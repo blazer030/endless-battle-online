@@ -1,3 +1,9 @@
 export const PollIntervalMilliseconds = 10_000
 export const CatchUpThresholdSeconds = 30
 export const RestAfterBatchSeconds = 1
+export const HitShakeSeconds = 0.25
+export const SlashSeconds = 0.3
+export const DamageNumberSeconds = 0.9
+export const SealSeconds = 1.2
+export const InkSplashSeconds = 0.8
+export const BreathingCycleSeconds = 3
