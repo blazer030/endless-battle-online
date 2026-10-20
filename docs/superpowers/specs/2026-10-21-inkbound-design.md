@@ -224,7 +224,7 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 - **Database-First 流程**：
   1. 手寫 migration；
   2. Flyway 套用到本機 MySQL；
-  3. 執行 `scripts/scaffold-db.sh`（包裝 `dotnet ef dbcontext scaffold`）重新產生 Infrastructure 的 model 與 DbContext；
+  3. 執行 `scripts/scaffold-db.sh` 重新產生 Infrastructure 的 model 與 DbContext。這個腳本只是用固定參數呼叫內建的 `dotnet ef dbcontext scaffold`，連線字串從設定檔讀取（`Name=ConnectionStrings:...`），`dotnet-ef` 的版本用 dotnet tool manifest 固定在專案裡；
   4. 產生的檔案一起 commit。
 - 產生的檔案**不得手改**；需要擴充時寫在另一個檔案的 `partial class`。〔Claude 的判斷〕
 - scaffold 產生的 model 只代表「資料庫長怎樣」，**只存在於 Infrastructure 層**。Domain 層有自己的遊戲模型，兩者在 Application 層轉換。這樣資料表變動不會直接波及戰鬥規則，Domain 測試也不需要資料庫。〔Claude 的判斷〕
