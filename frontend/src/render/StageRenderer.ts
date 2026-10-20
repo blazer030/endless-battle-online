@@ -15,8 +15,7 @@ import {
   playSlash,
 } from "./effects"
 import { Palette } from "./palette"
-
-export const StageHeight = 220
+import { StageHeight } from "./stageLayout"
 
 export type StageHandle = Pick<StageRenderer, "showEncounter" | "updateHealth" | "play">
 

@@ -1,8 +1,9 @@
 import { useEffect, useImperativeHandle, useRef } from "react"
 import type { Ref } from "react"
 import type { StageState } from "../game/stageModel"
-import { StageHeight, StageRenderer } from "./StageRenderer"
+import { StageRenderer } from "./StageRenderer"
 import type { StageHandle } from "./StageRenderer"
+import { StageHeight } from "./stageLayout"
 
 type Pending = { encounter?: Parameters<StageHandle["showEncounter"]>; state?: StageState }
 
