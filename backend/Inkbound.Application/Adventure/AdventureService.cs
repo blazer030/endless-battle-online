@@ -38,8 +38,10 @@ public sealed class AdventureService(
             Math.Min(elapsedSeconds, MaxSimulatedSeconds),
             randomFactory.Create());
 
-        // 沒用完的秒數留到下一次；超過上限時直接結算到現在
-        var settledAt = isCapped ? now : character.LastSettledAt.AddSeconds(run.ConsumedSeconds);
+        // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果。
+        // 超過上限時，多出的時間直接捨棄（計畫 3 以離線結算取代）
+        var settledThroughLastFight = character.LastSettledAt.AddSeconds(run.ConsumedSeconds);
+        var settledAt = isCapped && settledThroughLastFight < now ? now : settledThroughLastFight;
         var updated = await characters.UpdateAsync(
             character with
             {

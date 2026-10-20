@@ -65,7 +65,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         factory.Clock.Advance(TimeSpan.FromHours(1));
 
         var capped = await AdvanceAsync(client);
-        Assert.All(capped.GetProperty("events").EnumerateArray(), battleEvent => Assert.True(battleEvent.GetProperty("atSeconds").GetDouble() <= 300));
+        Assert.All(capped.GetProperty("events").EnumerateArray(), battleEvent => Assert.True(battleEvent.GetProperty("atSeconds").GetDouble() <= 360));
 
         var immediatelyAfter = await AdvanceAsync(client);
         Assert.Empty(immediatelyAfter.GetProperty("events").EnumerateArray());

@@ -20,17 +20,12 @@ public static class AdventureSimulator
         long experienceGained = 0;
         long spiritStonesGained = 0;
 
-        while (true)
+        // 只要還有可用時間就開新的一場，而且開打的戰鬥一律打完（可能超過可用時間）。
+        // 若改成捨棄打不完的那場、下次重抽，收下的戰鬥會偏向打得快的，結果會受輪詢頻率影響。
+        while (cursor < availableSeconds)
         {
             var monster = stageMonsters[random.NextInt(stageMonsters.Count)];
-            var timeLimit = Math.Min(BattleTimeLimitSeconds, availableSeconds - cursor);
-            var battle = BattleSimulator.Simulate(player, monster.Stats, random, timeLimit);
-
-            // 剩下的時間不夠打完這場：捨棄，時間留到下一次
-            if (battle.Winner is null && timeLimit < BattleTimeLimitSeconds)
-            {
-                break;
-            }
+            var battle = BattleSimulator.Simulate(player, monster.Stats, random, BattleTimeLimitSeconds);
 
             var fightStart = cursor;
             events.Add(new EncounterEvent(fightStart, monster.Id));
@@ -46,6 +41,6 @@ public static class AdventureSimulator
             cursor += battle.DurationSeconds + RestSecondsBetweenFights;
         }
 
-        return new AdventureRun(events, Math.Min(cursor, availableSeconds), experienceGained, spiritStonesGained);
+        return new AdventureRun(events, cursor, experienceGained, spiritStonesGained);
     }
 }

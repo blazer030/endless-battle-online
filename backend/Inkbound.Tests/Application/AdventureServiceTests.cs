@@ -1,5 +1,6 @@
 using Inkbound.Application.Adventure;
 using Inkbound.Application.Common;
+using Inkbound.Domain.Adventure;
 using Inkbound.Domain.Characters;
 using Inkbound.Domain.Randomness;
 using Inkbound.Infrastructure.Content;
@@ -24,19 +25,20 @@ public class AdventureServiceTests
     }
 
     // 手算：0.99 讓妖怪一律抽到 index 1（test-wolf）且不會心。
-    // 起始攻擊 12 對防禦 3：每下 144/15 = 9.6 → 10；寒狼 60 血，第 6 秒倒下；休息到第 7 秒，剩 3 秒打不完，捨棄。
+    // 起始攻擊 12 對防禦 3：每下 144/15 = 9.6 → 10；寒狼 60 血，第 6 秒倒下；休息到第 7 秒。
+    // 第 7 秒開打的第二場跨過第 10 秒，照樣打完：第 13 秒倒下，休息到第 14 秒。
     [Fact]
-    public async Task Advance_SettlesOnlyConsumedSeconds()
+    public async Task Advance_SettlesThroughLastStartedFight()
     {
         clock.Advance(TimeSpan.FromSeconds(10));
 
         var result = await service.AdvanceAsync(AccountId, TestContext.Current.CancellationToken);
 
-        Assert.Equal(8, result.ExperienceGained);
-        Assert.Equal(3, result.SpiritStonesGained);
+        Assert.Equal(16, result.ExperienceGained);
+        Assert.Equal(6, result.SpiritStonesGained);
         var stored = await repository.FindByAccountAsync(AccountId, TestContext.Current.CancellationToken);
-        Assert.Equal(Start.AddSeconds(7), stored!.LastSettledAt);
-        Assert.Equal(8, stored.Experience);
+        Assert.Equal(Start.AddSeconds(14), stored!.LastSettledAt);
+        Assert.Equal(16, stored.Experience);
     }
 
     [Fact]
@@ -48,7 +50,8 @@ public class AdventureServiceTests
 
         var stored = await repository.FindByAccountAsync(AccountId, TestContext.Current.CancellationToken);
         Assert.Equal(clock.UtcNow, stored!.LastSettledAt);
-        Assert.All(result.Events, battleEvent => Assert.True(battleEvent.AtSeconds <= AdventureService.MaxSimulatedSeconds));
+        Assert.All(result.Events, battleEvent => Assert.True(
+            battleEvent.AtSeconds <= AdventureService.MaxSimulatedSeconds + AdventureSimulator.BattleTimeLimitSeconds));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

@@ -13,12 +13,23 @@ public class AdventureSimulatorTests
     [Fact]
     public void Run_ChainsFightsWithRestAndRewards()
     {
-        var run = AdventureSimulator.Run(TestStats.Make(attack: 10), [Monster("sprite", 20, 1)], availableSeconds: 10, new ScriptedRandom(0.99));
+        var run = AdventureSimulator.Run(TestStats.Make(attack: 10), [Monster("sprite", 20, 1)], availableSeconds: 8, new ScriptedRandom(0.99));
         Assert.Equal(new double[] { 0, 3, 6 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
         Assert.Equal(new double[] { 2, 5, 8 }, run.Events.OfType<RewardEvent>().Select(reward => reward.AtSeconds));
         Assert.Equal(9, run.ConsumedSeconds);
         Assert.Equal(15, run.ExperienceGained);
         Assert.Equal(6, run.SpiritStonesGained);
+    }
+
+    // 已開打的戰鬥一律打完，即使超過可用時間；否則邊界那場會被捨棄重抽，收下的戰鬥會偏向打得快的那種
+    [Fact]
+    public void Run_FinishesFightThatCrossesAvailableTime()
+    {
+        var run = AdventureSimulator.Run(TestStats.Make(attack: 10), [Monster("sprite", 20, 1)], availableSeconds: 10, new ScriptedRandom(0.99));
+        Assert.Equal(new double[] { 0, 3, 6, 9 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
+        Assert.Equal(11, run.Events.OfType<RewardEvent>().Last().AtSeconds);
+        Assert.Equal(12, run.ConsumedSeconds);
+        Assert.Equal(20, run.ExperienceGained);
     }
 
     [Fact]
@@ -35,8 +46,8 @@ public class AdventureSimulatorTests
     {
         var tank = TestStats.Make(maxHealth: 1_000_000, attack: 1);
         var run = AdventureSimulator.Run(tank, [new MonsterDefinition("rock", "rock", tank, 5, 2)], availableSeconds: 130, new ScriptedRandom(0.99));
-        Assert.Equal(new double[] { 0, 61 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
-        Assert.Equal(122, run.ConsumedSeconds);
+        Assert.Equal(new double[] { 0, 61, 122 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
+        Assert.Equal(183, run.ConsumedSeconds);
     }
 
     [Fact]
