@@ -12,14 +12,25 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<string, MonsterDefinition> monsters;
     private readonly Dictionary<string, StageDefinition> stages;
 
-    private JsonGameContent(string startingStageId, Dictionary<string, MonsterDefinition> monsters, Dictionary<string, StageDefinition> stages)
+    private JsonGameContent(
+        string startingStageId,
+        IReadOnlyList<MonsterDefinition> allMonsters,
+        IReadOnlyList<StageDefinition> allStages,
+        Dictionary<string, MonsterDefinition> monsters,
+        Dictionary<string, StageDefinition> stages)
     {
         StartingStageId = startingStageId;
+        AllMonsters = allMonsters;
+        AllStages = allStages;
         this.monsters = monsters;
         this.stages = stages;
     }
 
     public string StartingStageId { get; }
+
+    public IReadOnlyList<MonsterDefinition> AllMonsters { get; }
+
+    public IReadOnlyList<StageDefinition> AllStages { get; }
 
     public static JsonGameContent Load(string directory)
     {
@@ -65,7 +76,7 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"起始關卡不存在：{stageFile.StartingStageId}");
         }
 
-        return new JsonGameContent(stageFile.StartingStageId, monsters, stages);
+        return new JsonGameContent(stageFile.StartingStageId, monsterFile.Monsters, stageFile.Stages, monsters, stages);
     }
 
     public StageDefinition GetStage(string stageId) =>

@@ -11,6 +11,10 @@ public sealed record LoginResponse(string AccessToken);
 
 public sealed record AccountResponse(long AccountId, string Username);
 
+public sealed record NamedContent(string Id, string Name);
+
+public sealed record ContentResponse(IReadOnlyList<NamedContent> Monsters, IReadOnlyList<NamedContent> Stages);
+
 public sealed record CreateCharacterRequest(string? Name);
 
 public sealed record CharacterResponse(string Name, long Experience, long SpiritStones, string CurrentStageId);
