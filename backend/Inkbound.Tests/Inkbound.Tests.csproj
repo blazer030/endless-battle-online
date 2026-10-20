@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Inkbound.Domain\Inkbound.Domain.csproj" />
     <ProjectReference Include="..\Inkbound.Application\Inkbound.Application.csproj" />
     <ProjectReference Include="..\Inkbound.Infrastructure\Inkbound.Infrastructure.csproj" />

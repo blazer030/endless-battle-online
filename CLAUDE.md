@@ -34,7 +34,7 @@
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
 - `cd backend && dotnet run --project Inkbound.Api` — 啟動 API。
-- `cd backend && dotnet test -- --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
+- `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 
 需要資料庫的測試依賴 Docker 執行中。
 
