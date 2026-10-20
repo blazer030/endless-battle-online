@@ -211,6 +211,8 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 ### 6.6 執行與部署〔Claude 的判斷〕
 
 - **開發時**不用 Docker：後端 `dotnet watch`，前端 `pnpm dev`。
+- **SQLite 只是一個檔案，不需要資料庫伺服器**，由 EF Core 直接在後端程序內讀寫。開發時的檔案位置是 `backend/Inkbound.Api/inkbound.db`（加入 `.gitignore`）；用 docker compose 時放在掛載的 volume，例如 `/data/inkbound.db`。路徑由設定檔指定。
+- **Docker 是選用的**：不用 Docker 也能完整開發和遊玩，它只是讓遊戲方便常駐的打包方式。
 - **執行時**在使用者自己的 Mac 上跑。〔使用者決定〕附 `Dockerfile` 和 `docker-compose.yml`（API＋前端靜態檔＋存放 SQLite 檔案的 volume），一個指令就能啟動。
 - 手機在同一個 Wi-Fi 下以電腦的區網 IP 連線遊玩；要從外面連時再考慮 Tailscale 之類的工具。
 - 雲端部署之後再說。〔使用者決定〕
