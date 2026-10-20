@@ -77,6 +77,19 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // 6 個文字單位（通過字數檢查），但有 15 個 code point，超過資料庫 VARCHAR(12)
+    [Fact]
+    public async Task Create_Returns400_ForNameExceedingStorageLength()
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        const string meditator = "\U0001F9D8‍♂️";
+
+        var response = await client.PostAsJsonAsync("/api/characters", new { name = $"修仙者{meditator}{meditator}{meditator}" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task Create_TrimsSurroundingWhitespace()
     {

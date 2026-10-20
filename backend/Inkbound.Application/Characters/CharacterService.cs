@@ -21,6 +21,12 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
             throw new InputValidationException($"角色名稱必須是 {MinimumNameLength}～{MaximumNameLength} 個字");
         }
 
+        // 資料庫欄位 VARCHAR(12) 以 code point 計算；組合 emoji 一個字就可能佔好幾個
+        if (trimmedName.EnumerateRunes().Count() > MaximumNameLength)
+        {
+            throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字");
+        }
+
         var character = new Character(
             Id: 0,
             AccountId: accountId,
