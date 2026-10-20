@@ -46,7 +46,14 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+  Reflect.deleteProperty(document, "visibilityState")
 })
+
+const setVisibility = (state: DocumentVisibilityState) =>
+  act(async () => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => state })
+    document.dispatchEvent(new Event("visibilitychange"))
+  })
 
 test("adventureLoop_AdvancesOnMountAndEveryInterval", async () => {
   const advance = vi.fn().mockResolvedValue(emptyResponse)
@@ -113,6 +120,23 @@ test("adventureLoop_AdvancesWhenTabBecomesVisible", async () => {
   })
 
   expect(advance).toHaveBeenCalledTimes(2)
+})
+
+test("adventureLoop_DoesNotPollWhileHidden", async () => {
+  const advance = vi.fn().mockResolvedValue(emptyResponse)
+  renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  expect(advance).toHaveBeenCalledTimes(1)
+
+  await setVisibility("hidden")
+  await advanceTime(30_000)
+  expect(advance).toHaveBeenCalledTimes(1)
+
+  await setVisibility("visible")
+  expect(advance).toHaveBeenCalledTimes(2)
+
+  await advanceTime(10_000)
+  expect(advance).toHaveBeenCalledTimes(3)
 })
 
 test("adventureLoop_HandsDueItemsToOnItems", async () => {
