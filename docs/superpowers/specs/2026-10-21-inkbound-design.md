@@ -159,9 +159,9 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 | 後端分層 | 沿用 WealthOS：Domain／Application／Infrastructure／Api／Tests | Claude 的判斷（使用者熟悉這個結構） |
 | 資料庫 | **MySQL 8** | 使用者決定 |
 | 資料表版本控制 | **Flyway＋手寫 SQL**，沿用 game-server 的做法（見 §6.6） | 使用者決定 |
-| ORM | EF Core，**Database-First**：從資料庫 scaffold 產生 model，不用 EF Core Migrations；MySQL provider 預計用 Pomelo，規劃時確認對 .NET 10 的支援 | 使用者決定 Database-First；provider 是 Claude 的判斷 |
+| ORM | EF Core，**Database-First**：從資料庫 scaffold 產生 model，不用 EF Core Migrations；MySQL provider 用 Oracle 官方的 `MySql.EntityFrameworkCore` 10.x（Pomelo 在 2026-10 時尚無 EF Core 10 正式版） | 使用者決定 Database-First；provider 是 Claude 的判斷 |
 | 後端測試 | xUnit；需要資料庫的整合測試用 Testcontainers 開臨時 MySQL | Claude 的判斷（WealthOS 已使用 xUnit） |
-| 登入 | ASP.NET Core Identity，用 token 而非 cookie，方便日後包成 App | Claude 的判斷 |
+| 登入 | 自建 `accounts` 表，密碼雜湊用 Identity 的 `PasswordHasher`，登入後發 JWT（不用 cookie，方便日後包成 App）。不用完整的 ASP.NET Core Identity，因為它要求由 EF Core 管理自己的資料表，和 Flyway 衝突 | Claude 的判斷 |
 | 前端 | React＋TypeScript＋Vite，pnpm | Claude 的判斷（沿用 color-sweeper） |
 | 對戰舞台 | PixiJS（WebGL）＋GSAP | Claude 的判斷（沿用 color-sweeper） |
 | 其他介面 | 一般 DOM＋CSS；介面動畫用 GSAP | Claude 的判斷 |
