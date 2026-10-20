@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Inkbound.Domain\Inkbound.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
