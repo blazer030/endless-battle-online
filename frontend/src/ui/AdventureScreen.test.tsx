@@ -1,11 +1,37 @@
 import { act, render, screen } from "@testing-library/react"
+import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import type { StageHandle } from "../render/StageRenderer"
 import { AdventureScreen } from "./AdventureScreen"
 
-// jsdom 沒有 WebGL，舞台換成空元件
-vi.mock("../render/PixiStage", () => ({ PixiStage: () => <div data-testid="stage" /> }))
+// jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
+const stage = vi.hoisted(() => ({
+  handle: {
+    showEncounter: vi.fn<StageHandle["showEncounter"]>(),
+    updateHealth: vi.fn<StageHandle["updateHealth"]>(),
+    play: vi.fn<StageHandle["play"]>(),
+  },
+  attach: () => {},
+}))
+
+vi.mock("../render/PixiStage", async () => {
+  const { useEffect, useImperativeHandle, useState } = await import("react")
+  const AttachedStage = ({ ref }: { ref?: Ref<StageHandle> }) => {
+    useImperativeHandle(ref, () => stage.handle, [])
+    return <div data-testid="stage" />
+  }
+  return {
+    PixiStage: ({ ref }: { ref?: Ref<StageHandle> }) => {
+      const [attached, setAttached] = useState(false)
+      useEffect(() => {
+        stage.attach = () => setAttached(true)
+      }, [])
+      return attached ? <AttachedStage ref={ref} /> : <div data-testid="stage" />
+    },
+  }
+})
 
 const character: CharacterView = {
   name: "青衣",
@@ -50,6 +76,7 @@ const advanceTime = (milliseconds: number) =>
   })
 
 beforeEach(() => {
+  vi.clearAllMocks()
   vi.useFakeTimers()
   vi.setSystemTime(new Date("2026-10-21T00:00:00Z"))
 })
@@ -75,4 +102,25 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(screen.getByText("靈石 3")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "本命" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "本命" })).toHaveAttribute("title", "尚未開放")
+})
+
+test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
+  expect(stage.handle.showEncounter).not.toHaveBeenCalled()
+
+  act(() => stage.attach())
+
+  const state = {
+    monsterId: "test-wolf",
+    monsterHealth: 60,
+    monsterMaxHealth: 60,
+    playerHealth: 120,
+    playerMaxHealth: 120,
+  }
+  expect(stage.handle.showEncounter).toHaveBeenCalledTimes(1)
+  expect(stage.handle.showEncounter).toHaveBeenCalledWith("test-wolf", "測試寒狼", state)
+  expect(stage.handle.updateHealth).toHaveBeenCalledWith(state)
 })

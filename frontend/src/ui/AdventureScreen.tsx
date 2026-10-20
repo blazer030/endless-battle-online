@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react"
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import type { ApiClient } from "../api/client"
 import { createMonsterNameResolver, describePlaybackItem, MaxLogLines } from "../game/battleLog"
 import type { LogLine } from "../game/battleLog"
@@ -33,7 +33,17 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
+  const currentMonsterName = useRef<string | null>(null)
   const nextLineId = useRef(0)
+
+  // 舞台 chunk 載入期間 handle 還不存在，接上時補播目前這隻妖怪與血量
+  const attachStage = useCallback((handle: StageHandle | null) => {
+    stageHandle.current = handle
+    const state = stageState.current
+    if (handle === null || state.monsterId === null || currentMonsterName.current === null) return
+    handle.showEncounter(state.monsterId, currentMonsterName.current, state)
+    handle.updateHealth(state)
+  }, [])
 
   useEffect(() => {
     let isCurrent = true
@@ -63,9 +73,10 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         const { event } = item
         stageState.current = applyToStage(stageState.current, event)
         if (event.type === "encounter") {
+          currentMonsterName.current = monsterName(event.monsterId)
           stageHandle.current?.showEncounter(
             event.monsterId,
-            monsterName(event.monsterId),
+            currentMonsterName.current,
             stageState.current,
           )
         } else if (event.type === "attack") {
@@ -91,7 +102,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       </header>
       <h1 className="adventure__stage-name">{stageName}</h1>
       <Suspense fallback={<div style={{ height: StageHeight }} />}>
-        <PixiStage ref={stageHandle} />
+        <PixiStage ref={attachStage} />
       </Suspense>
       {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字 */}
       {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
