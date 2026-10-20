@@ -1,4 +1,5 @@
 using Inkbound.Application.Accounts;
+using Inkbound.Application.Adventure;
 using Inkbound.Application.Characters;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,7 @@ public static class DependencyInjection
     {
         services.AddScoped<AccountService>();
         services.AddScoped<CharacterService>();
+        services.AddScoped<AdventureService>();
         return services;
     }
 }

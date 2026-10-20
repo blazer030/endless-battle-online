@@ -50,6 +50,7 @@ app.UseAuthorization();
 
 app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
+app.MapAdventureEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

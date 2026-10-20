@@ -42,6 +42,30 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
         return ToDomain(row);
     }
 
+    public async Task<Character> UpdateAsync(Character character, CancellationToken cancellationToken)
+    {
+        var row = await context.Characters.SingleOrDefaultAsync(existing => existing.Id == character.Id, cancellationToken)
+            ?? throw new NotFoundException("找不到角色");
+
+        // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
+        context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
+        row.Experience = character.Experience;
+        row.SpiritStones = character.SpiritStones;
+        row.CurrentStageId = character.CurrentStageId;
+        row.LastSettledAt = character.LastSettledAt.UtcDateTime;
+        row.Version = character.Version + 1;
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理");
+        }
+
+        return ToDomain(row);
+    }
+
     private static Character ToDomain(CharacterRow row) => new(
         row.Id,
         row.AccountId,
