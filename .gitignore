@@ -483,3 +483,7 @@ $RECYCLE.BIN/
 
 # Superpowers scratch
 .superpowers/
+
+# 前端
+node_modules/
+dist/

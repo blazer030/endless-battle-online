@@ -9,3 +9,5 @@ repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repository_root/backend"
 dotnet build -warnaserror
 dotnet test
+
+cd "$repository_root/frontend" && pnpm install --frozen-lockfile && pnpm check

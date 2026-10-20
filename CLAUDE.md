@@ -14,6 +14,13 @@
 - `backend/Inkbound.Tests` — xUnit v3；需要資料庫的測試用 Testcontainers。
 - `backend/db/ddl`、`backend/db/dml` — Flyway migration。
 - `backend/content` — 遊戲內容 JSON。
+- `frontend` — Vite + React 19 + TypeScript + PixiJS 8 + GSAP 3，pnpm 管理。
+  - `src/api` — API client；`schema.ts` 由 `pnpm generate:api` 產生。
+  - `src/game` — 遊戲狀態與播放模型，純 TypeScript。
+  - `src/motion/timings.ts` — 動畫時長、輪詢間隔等常數。
+  - `src/render` — Pixi 舞台與用色（`palette.ts`）。
+  - `src/ui` — React 畫面與 `theme.css`。
+  - `src/test/setup.ts` — Vitest＋Testing Library 設定。
 
 ## 硬規則
 
@@ -28,13 +35,28 @@
 6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `Inkbound.Tests/TestContent/`。
 7. 時間一律 UTC；資料庫時間欄位用 `DATETIME(6)`。
 
+### 前端
+
+1. TypeScript `strict`，禁用 `any`。
+2. 手機直式優先：以 375×667 為主要設計尺寸，360～430 寬度不得出現水平捲動；電腦上整個畫面置中、最大寬度 480px。
+3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，數值與 CSS 變數一致。
+4. 字型「霞鶩文楷 TC」（`LXGW WenKai TC`，Google Fonts），標題與妖怪名稱用 700 字重。
+5. 遊戲狀態只存在 `src/game/` 的純 TS 物件；React state 與 Pixi 物件都不持有權威狀態。`src/game/` 不得 import React、Pixi、GSAP 或 `src/api/` 以外的瀏覽器 API。
+6. 整個 app 只有一個 Pixi `Application`；Pixi `Text` 一律明確指定 `resolution: window.devicePixelRatio`。
+7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。
+8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖的 id 走書法字退路。
+9. `src/api/schema.ts` 是產生檔，不得手改。
+
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、build（警告視為錯誤）、全部測試。提交前必須通過，以 exit code 判斷。
+- `./scripts/check.sh` — SQL 檢查、後端 build（警告視為錯誤）與測試、前端 `pnpm check`。提交前必須通過，以 exit code 判斷。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
 - `cd backend && dotnet run --project Inkbound.Api` — 啟動 API。
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
+- `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。
+- `cd frontend && pnpm check` — eslint、prettier 檢查、`tsc -b`、vitest。
+- `cd frontend && pnpm generate:api` — API 執行中時，從 `/openapi/v1.json` 重新產生 `src/api/schema.ts`。
 
 需要資料庫的測試依賴 Docker 執行中。
 
