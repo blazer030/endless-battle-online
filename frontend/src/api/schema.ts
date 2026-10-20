@@ -267,15 +267,15 @@ export interface components {
     schemas: {
         AccountResponse: {
             /** Format: int64 */
-            accountId: number | string;
+            accountId: number;
             username: string;
         };
         AdvanceResponse: {
             events: components["schemas"]["BattleEvent"][];
             /** Format: int64 */
-            experienceGained: number | string;
+            experienceGained: number;
             /** Format: int64 */
-            spiritStonesGained: number | string;
+            spiritStonesGained: number;
             character: components["schemas"]["CharacterResponse"];
         };
         BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventRewardEvent"];
@@ -284,47 +284,47 @@ export interface components {
             type?: "attack";
             attacker: components["schemas"]["CombatSide"];
             /** Format: int32 */
-            damage: number | string;
+            damage: number;
             isCritical: boolean;
             /** Format: int32 */
-            targetHealthAfter: number | string;
+            targetHealthAfter: number;
             /** Format: double */
-            atSeconds: number | string;
+            atSeconds: number;
         };
         BattleEventDefeatEvent: {
             /** @enum {string} */
             type?: "defeat";
             loser: components["schemas"]["CombatSide"];
             /** Format: double */
-            atSeconds: number | string;
+            atSeconds: number;
         };
         BattleEventEncounterEvent: {
             /** @enum {string} */
             type?: "encounter";
             monsterId: string;
             /** Format: int32 */
-            monsterMaxHealth: number | string;
+            monsterMaxHealth: number;
             /** Format: int32 */
-            playerMaxHealth: number | string;
+            playerMaxHealth: number;
             /** Format: double */
-            atSeconds: number | string;
+            atSeconds: number;
         };
         BattleEventRewardEvent: {
             /** @enum {string} */
             type?: "reward";
             /** Format: int64 */
-            experience: number | string;
+            experience: number;
             /** Format: int64 */
-            spiritStones: number | string;
+            spiritStones: number;
             /** Format: double */
-            atSeconds: number | string;
+            atSeconds: number;
         };
         CharacterResponse: {
             name: string;
             /** Format: int64 */
-            experience: number | string;
+            experience: number;
             /** Format: int64 */
-            spiritStones: number | string;
+            spiritStones: number;
             currentStageId: string;
         };
         /** @enum {unknown} */
@@ -349,7 +349,7 @@ export interface components {
         };
         RegisterResponse: {
             /** Format: int64 */
-            accountId: number | string;
+            accountId: number;
         };
     };
     responses: never;

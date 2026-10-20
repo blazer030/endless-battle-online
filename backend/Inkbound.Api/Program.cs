@@ -40,7 +40,11 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddOpenApi();
 builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // 嚴格數字，OpenAPI 才會把數字欄位標成純 number
+    options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 
 var app = builder.Build();
 
