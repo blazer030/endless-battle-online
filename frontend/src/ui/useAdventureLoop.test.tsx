@@ -1,0 +1,139 @@
+import { act, renderHook } from "@testing-library/react"
+import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { ApiError } from "../api/client"
+import type { ApiClient } from "../api/client"
+import { BattlePlayback } from "../game/battlePlayback"
+import type { AdvanceResponse, CharacterView } from "../game/types"
+import { useAdventureLoop } from "./useAdventureLoop"
+
+const character: CharacterView = {
+  name: "測試",
+  experience: 0,
+  spiritStones: 0,
+  currentStageId: "test-stage-1",
+}
+
+const emptyResponse: AdvanceResponse = {
+  events: [],
+  experienceGained: 0,
+  spiritStonesGained: 0,
+  character,
+}
+
+const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
+  register: vi.fn(),
+  login: vi.fn(),
+  getMyCharacter: vi.fn(),
+  createCharacter: vi.fn(),
+  advance,
+  getContent: vi.fn(),
+})
+
+const renderLoop = (api: ApiClient) =>
+  renderHook(() =>
+    useAdventureLoop({ api, playback: new BattlePlayback(character), onItems: vi.fn() }),
+  )
+
+const advanceTime = (milliseconds: number) =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(milliseconds)
+  })
+
+beforeEach(() => {
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date("2026-10-21T00:00:00Z"))
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+test("adventureLoop_AdvancesOnMountAndEveryInterval", async () => {
+  const advance = vi.fn().mockResolvedValue(emptyResponse)
+  renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  expect(advance).toHaveBeenCalledTimes(1)
+
+  await advanceTime(10_000)
+  expect(advance).toHaveBeenCalledTimes(2)
+
+  await advanceTime(20_000)
+  expect(advance).toHaveBeenCalledTimes(4)
+})
+
+test("adventureLoop_IgnoresConflictAndKeepsPolling", async () => {
+  const advance = vi
+    .fn()
+    .mockRejectedValueOnce(new ApiError(409, "歷練進行中"))
+    .mockResolvedValue(emptyResponse)
+  const { result } = renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  expect(result.current.error).toBeNull()
+
+  await advanceTime(10_000)
+
+  expect(advance).toHaveBeenCalledTimes(2)
+  expect(result.current.error).toBeNull()
+})
+
+test("adventureLoop_ShowsRetryMessage_OnNetworkError_AndClearsOnSuccess", async () => {
+  const advance = vi
+    .fn()
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    .mockResolvedValue(emptyResponse)
+  const { result } = renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  expect(result.current.error).toBe("連線不穩，稍後自動重試")
+
+  await advanceTime(10_000)
+
+  expect(result.current.error).toBeNull()
+})
+
+test("adventureLoop_StopsOnUnmount", async () => {
+  const advance = vi.fn().mockResolvedValue(emptyResponse)
+  const { unmount } = renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  const callsBeforeUnmount = advance.mock.calls.length
+
+  unmount()
+  await advanceTime(30_000)
+  document.dispatchEvent(new Event("visibilitychange"))
+
+  expect(advance).toHaveBeenCalledTimes(callsBeforeUnmount)
+})
+
+test("adventureLoop_AdvancesWhenTabBecomesVisible", async () => {
+  const advance = vi.fn().mockResolvedValue(emptyResponse)
+  renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+
+  await act(async () => {
+    document.dispatchEvent(new Event("visibilitychange"))
+  })
+
+  expect(advance).toHaveBeenCalledTimes(2)
+})
+
+test("adventureLoop_HandsDueItemsToOnItems", async () => {
+  const response: AdvanceResponse = {
+    ...emptyResponse,
+    events: [
+      {
+        type: "encounter",
+        atSeconds: 0,
+        monsterId: "test-wolf",
+        monsterMaxHealth: 60,
+        playerMaxHealth: 120,
+      },
+    ],
+  }
+  const onItems = vi.fn()
+  const api = createFakeApi(vi.fn().mockResolvedValue(response))
+  renderHook(() => useAdventureLoop({ api, playback: new BattlePlayback(character), onItems }))
+
+  await advanceTime(100)
+
+  expect(onItems).toHaveBeenCalledTimes(1)
+  expect(onItems).toHaveBeenCalledWith([{ kind: "event", event: response.events[0] }])
+})

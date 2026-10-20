@@ -1,0 +1,73 @@
+/* 固定為一個視窗高，戰報填滿剩下的空間而不是把頁面撐長 */
+.adventure {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.adventure__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 8px;
+  font-size: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+.adventure__name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adventure__totals {
+  display: flex;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.adventure__stage-name {
+  margin: 0;
+  padding: 8px 0 2px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-align: center;
+}
+
+.adventure__error {
+  margin: 0;
+  padding: 4px 16px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--vermilion);
+}
+
+.adventure__nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px 6px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+.adventure__nav-item {
+  padding: 6px 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.adventure__nav-item[aria-current="page"] {
+  background: var(--ink);
+  color: var(--paper-light);
+}
+
+.adventure__nav-item:disabled {
+  opacity: 0.6;
+}

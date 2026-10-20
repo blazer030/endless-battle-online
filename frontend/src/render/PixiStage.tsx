@@ -25,16 +25,21 @@ export function PixiStage({ ref }: { ref?: Ref<StageHandle> }) {
     const container = containerRef.current
     if (container === null) return
     let cancelled = false
-    void StageRenderer.create(container).then((renderer) => {
-      if (cancelled) {
-        renderer.destroy()
-        return
-      }
-      rendererRef.current = renderer
-      const { encounter, state } = pendingRef.current
-      if (encounter !== undefined) renderer.showEncounter(...encounter)
-      if (state !== undefined) renderer.updateHealth(state)
-    })
+    StageRenderer.create(container)
+      .then((renderer) => {
+        if (cancelled) {
+          renderer.destroy()
+          return
+        }
+        rendererRef.current = renderer
+        const { encounter, state } = pendingRef.current
+        if (encounter !== undefined) renderer.showEncounter(...encounter)
+        if (state !== undefined) renderer.updateHealth(state)
+      })
+      .catch((error: unknown) => {
+        // WebGL 無法初始化時舞台留白，戰報照常運作
+        console.error("舞台初始化失敗", error)
+      })
     return () => {
       cancelled = true
       rendererRef.current?.destroy()
