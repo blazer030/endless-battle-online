@@ -1,0 +1,124 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@500;900&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+
+<style>
+  .bp-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; margin-top:16px; }
+  .bp-card h3 { margin:12px 4px 4px; text-align:center; }
+  .bp-card p { margin:0 4px 6px; font-size:13px; opacity:.8; line-height:1.55; text-align:center; }
+
+  .ink { width:100%; max-width:300px; height:580px; margin:0 auto; border-radius:26px; overflow:hidden; position:relative; display:flex; flex-direction:column;
+         background:linear-gradient(#f3ead8,#e6d9bd); color:#2b2620; font-family:'LXGW WenKai TC','Noto Serif TC',serif; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+  .i-top { display:flex; justify-content:space-between; padding:14px 16px 8px; font-size:12px; border-bottom:1px solid rgba(43,38,32,.2); }
+  .i-realm { font-weight:700; }
+  .i-stage { text-align:center; font-size:13px; letter-spacing:4px; padding:8px 0 2px; font-weight:700; }
+  .stage { position:relative; height:220px; overflow:hidden;
+           background:radial-gradient(ellipse at 50% 100%, rgba(43,38,32,.12), transparent 60%); }
+  .stage .mount { position:absolute; left:0; right:0; bottom:0; height:80px; opacity:.18; }
+  .hp { position:absolute; width:96px; }
+  .hp small { font-size:11px; display:block; margin-bottom:2px; }
+  .hp .b { height:5px; background:rgba(43,38,32,.15); border-radius:3px; overflow:hidden; } .hp .b i { display:block; height:100%; }
+  .portrait { position:absolute; animation:breathe 3s ease-in-out infinite; transform-origin:bottom center; }
+  @keyframes breathe { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.015)} }
+  .foe-hit { animation:hit 3s ease-in-out infinite; }
+  @keyframes hit { 0%,38%,52%,100%{transform:translateX(0)} 41%{transform:translateX(6px)} 44%{transform:translateX(-4px)} 47%{transform:translateX(3px)} }
+  .bigname { position:absolute; right:14px; top:44px; font-family:'Ma Shan Zheng','LXGW WenKai TC',serif; font-size:52px; line-height:1; writing-mode:vertical-rl; letter-spacing:8px; opacity:.88; animation:hit 3s ease-in-out infinite; }
+  .seal { position:absolute; font-family:'Ma Shan Zheng','LXGW WenKai TC',serif; color:#b8322a; border:3px solid #b8322a; border-radius:6px; padding:2px 8px; font-size:28px; transform:rotate(-12deg);
+          animation:stamp 3s ease-out infinite; opacity:0; animation-delay:1.2s; }
+  @keyframes stamp { 0%{opacity:0; transform:rotate(-12deg) scale(2.2)} 8%{opacity:.95; transform:rotate(-12deg) scale(1)} 70%{opacity:.95} 100%{opacity:0} }
+  .splash { position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(43,38,32,.5) 0%, rgba(43,38,32,.2) 40%, transparent 70%); filter:blur(2px);
+            animation:splash 3s ease-out infinite; opacity:0; animation-delay:1.1s; }
+  @keyframes splash { 0%{opacity:0; transform:scale(.2)} 10%{opacity:1; transform:scale(1)} 60%{opacity:.4} 100%{opacity:0; transform:scale(1.3)} }
+  .sword { position:absolute; height:3px; width:190px; background:linear-gradient(90deg, transparent, #d4a017, #fff3c4, transparent); box-shadow:0 0 12px #d4a017;
+           animation:slash 3s ease-in-out infinite; opacity:0; }
+  @keyframes slash { 0%,30%{opacity:0; transform:translateX(-50px) rotate(-18deg)} 36%{opacity:1} 46%{opacity:0; transform:translateX(50px) rotate(-18deg)} 100%{opacity:0} }
+  .dmg { position:absolute; font-weight:700; color:#b8322a; font-size:22px; animation:up 3s ease-out infinite; opacity:0; animation-delay:1.15s; }
+  @keyframes up { 0%{opacity:0; transform:translateY(8px)} 8%{opacity:1; transform:none} 50%{opacity:1; transform:translateY(-30px)} 60%,100%{opacity:0; transform:translateY(-40px)} }
+
+  .log { flex:1; overflow:hidden; padding:6px 16px; font-size:13px; line-height:1.85; border-top:1px dashed rgba(43,38,32,.3);
+         -webkit-mask-image:linear-gradient(transparent, #000 22%); mask-image:linear-gradient(transparent, #000 22%); display:flex; flex-direction:column; justify-content:flex-end; }
+  .log-tabs { display:flex; gap:14px; font-size:11px; padding:6px 16px 0; opacity:.7; } .log-tabs b { border-bottom:2px solid #2b2620; }
+  .red { color:#b8322a; font-weight:700; } .gold { color:#a87a12; font-weight:700; } .dim { opacity:.55; }
+  .i-exp { margin:4px 16px 6px; height:4px; background:rgba(43,38,32,.15); border-radius:2px; } .i-exp i { display:block; width:64%; height:100%; background:#2b2620; }
+  .i-nav { display:grid; grid-template-columns:repeat(4,1fr); text-align:center; font-size:12px; padding:8px 6px 14px; border-top:1px solid rgba(43,38,32,.2); }
+  .i-nav span { padding:6px 0; border-radius:4px; } .i-nav .on { background:#2b2620; color:#f3ead8; }
+</style>
+
+<h2>A ＋ C 混合：上半部對戰，下半部戰報</h2>
+<p class="subtitle">左邊是有 AI 立繪時的樣子。右邊是同一個畫面在「這隻妖怪還沒有圖」時自動退回書法字，版面不會破掉，所以美術可以慢慢補。</p>
+
+<div class="bp-grid">
+
+  <div class="bp-card">
+    <div class="ink">
+      <div class="i-top"><span class="i-realm">築基 · 三層</span><span>靈石 128,400</span></div>
+      <div class="i-stage">冷峰寒地 · 七</div>
+      <div class="stage">
+        <svg class="mount" viewBox="0 0 300 80" preserveAspectRatio="none"><path d="M0 80 L0 50 Q40 10 80 40 Q120 0 170 35 Q220 5 260 30 Q285 20 300 35 L300 80Z" fill="#2b2620"/></svg>
+        <div class="hp" style="left:14px;top:10px"><small>你 · 劍修</small><div class="b"><i style="width:82%;background:#2b2620"></i></div></div>
+        <div class="hp" style="right:14px;top:10px;text-align:right"><small>雪妖</small><div class="b"><i style="width:30%;background:#b8322a"></i></div></div>
+        <svg class="portrait" style="left:10px;bottom:0" width="100" height="170" viewBox="0 0 110 200">
+          <path d="M55 20 q14 0 14 16 q0 14 -14 14 q-14 0 -14 -14 q0 -16 14 -16z" fill="#2b2620"/>
+          <path d="M20 200 Q26 90 55 60 Q84 90 92 200 Z" fill="#2b2620" opacity=".82"/>
+          <line x1="70" y1="70" x2="108" y2="8" stroke="#2b2620" stroke-width="3"/>
+        </svg>
+        <svg class="portrait foe-hit" style="right:4px;bottom:0" width="130" height="180" viewBox="0 0 150 230">
+          <path d="M10 230 Q20 90 75 40 Q130 90 140 230 Z" fill="#2b2620" opacity=".18"/>
+          <path d="M30 230 Q38 110 75 70 Q112 110 120 230 Z" fill="#2b2620" opacity=".6"/>
+          <path d="M50 70 L40 30 L62 58 M100 70 L110 30 L88 58" stroke="#2b2620" stroke-width="5" fill="none" opacity=".7"/>
+          <circle cx="62" cy="110" r="4" fill="#b8322a"/><circle cx="88" cy="110" r="4" fill="#b8322a"/>
+        </svg>
+        <div class="splash" style="right:20px;top:60px"></div>
+        <div class="sword" style="left:60px;top:130px"></div>
+        <div class="dmg" style="right:60px;top:70px">31,207</div>
+        <div class="seal" style="left:110px;top:60px">會心</div>
+      </div>
+      <div class="log-tabs"><b>全部</b><span>掉落</span><span>觸發</span></div>
+      <div class="log">
+        <div class="dim">雪妖吐出寒霧，你受到 1,203 點傷害。</div>
+        <div>你運起 <span class="gold">青冥劍訣</span>，劍氣縱橫。</div>
+        <div>經脈「天池穴」觸發：<span class="gold">劍意 ×3</span></div>
+        <div>你一劍穿心，<span class="red">會心 31,207</span>！</div>
+        <div>雪妖化為一縷寒煙。獲得 <span class="red">【傳說】寒魄劍匣</span></div>
+      </div>
+      <div class="i-exp"><i></i></div>
+      <div class="i-nav"><span class="on">歷練</span><span>本命</span><span>經脈</span><span>行囊</span></div>
+    </div>
+    <h3>有立繪</h3>
+    <p>立繪輕微呼吸晃動，被打中時抖動；劍氣、潑墨、印章、傷害數字疊在上面。</p>
+  </div>
+
+  <div class="bp-card">
+    <div class="ink">
+      <div class="i-top"><span class="i-realm">築基 · 三層</span><span>靈石 128,400</span></div>
+      <div class="i-stage">冷峰寒地 · 七</div>
+      <div class="stage">
+        <svg class="mount" viewBox="0 0 300 80" preserveAspectRatio="none"><path d="M0 80 L0 50 Q40 10 80 40 Q120 0 170 35 Q220 5 260 30 Q285 20 300 35 L300 80Z" fill="#2b2620"/></svg>
+        <div class="hp" style="left:14px;top:10px"><small>你 · 劍修</small><div class="b"><i style="width:82%;background:#2b2620"></i></div></div>
+        <div class="hp" style="right:14px;top:10px;text-align:right"><small>雪妖</small><div class="b"><i style="width:30%;background:#b8322a"></i></div></div>
+        <svg class="portrait" style="left:10px;bottom:0" width="100" height="170" viewBox="0 0 110 200">
+          <path d="M55 20 q14 0 14 16 q0 14 -14 14 q-14 0 -14 -14 q0 -16 14 -16z" fill="#2b2620"/>
+          <path d="M20 200 Q26 90 55 60 Q84 90 92 200 Z" fill="#2b2620" opacity=".82"/>
+          <line x1="70" y1="70" x2="108" y2="8" stroke="#2b2620" stroke-width="3"/>
+        </svg>
+        <div class="bigname">雪妖</div>
+        <div class="splash" style="right:20px;top:60px"></div>
+        <div class="sword" style="left:60px;top:130px"></div>
+        <div class="dmg" style="right:70px;top:70px">31,207</div>
+        <div class="seal" style="left:110px;top:60px">會心</div>
+      </div>
+      <div class="log-tabs"><b>全部</b><span>掉落</span><span>觸發</span></div>
+      <div class="log">
+        <div class="dim">雪妖吐出寒霧，你受到 1,203 點傷害。</div>
+        <div>你運起 <span class="gold">青冥劍訣</span>，劍氣縱橫。</div>
+        <div>經脈「天池穴」觸發：<span class="gold">劍意 ×3</span></div>
+        <div>你一劍穿心，<span class="red">會心 31,207</span>！</div>
+        <div>雪妖化為一縷寒煙。獲得 <span class="red">【傳說】寒魄劍匣</span></div>
+      </div>
+      <div class="i-exp"><i></i></div>
+      <div class="i-nav"><span class="on">歷練</span><span>本命</span><span>經脈</span><span>行囊</span></div>
+    </div>
+    <h3>還沒有圖時</h3>
+    <p>妖怪改用直書的書法名字，特效照樣打在字上。開發初期可以全部用這種方式。</p>
+  </div>
+
+</div>
