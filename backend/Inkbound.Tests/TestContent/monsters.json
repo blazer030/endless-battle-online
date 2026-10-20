@@ -1,0 +1,18 @@
+{
+  "monsters": [
+    {
+      "id": "test-sprite",
+      "name": "測試雪精",
+      "stats": { "maxHealth": 40, "attack": 6, "defense": 2, "critChance": 0, "critMultiplier": 1.5, "attacksPerSecond": 0.8 },
+      "experienceReward": 5,
+      "spiritStoneReward": 2
+    },
+    {
+      "id": "test-wolf",
+      "name": "測試寒狼",
+      "stats": { "maxHealth": 60, "attack": 8, "defense": 3, "critChance": 0.05, "critMultiplier": 1.5, "attacksPerSecond": 1.0 },
+      "experienceReward": 8,
+      "spiritStoneReward": 3
+    }
+  ]
+}

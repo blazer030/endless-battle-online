@@ -9,6 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="TestContent/**/*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Inkbound.Domain\Inkbound.Domain.csproj" />
     <ProjectReference Include="..\Inkbound.Application\Inkbound.Application.csproj" />
     <ProjectReference Include="..\Inkbound.Infrastructure\Inkbound.Infrastructure.csproj" />

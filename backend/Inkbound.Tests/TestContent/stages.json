@@ -1,0 +1,6 @@
+{
+  "startingStageId": "test-stage-1",
+  "stages": [
+    { "id": "test-stage-1", "name": "測試關卡・一", "monsterIds": ["test-sprite", "test-wolf"] }
+  ]
+}
