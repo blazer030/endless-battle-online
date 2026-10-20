@@ -49,6 +49,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAccountEndpoints();
+app.MapCharacterEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

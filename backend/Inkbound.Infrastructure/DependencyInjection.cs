@@ -1,4 +1,5 @@
 using Inkbound.Application.Accounts;
+using Inkbound.Application.Characters;
 using Inkbound.Application.Common;
 using Inkbound.Application.Content;
 using Inkbound.Infrastructure.Content;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddSingleton<IGameContent>(gameContent);
 
         services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<ICharacterRepository, CharacterRepository>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IRandomSourceFactory, SystemRandomSourceFactory>();
