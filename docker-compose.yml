@@ -1,0 +1,37 @@
+# 開發用：MySQL 8.4 與 Flyway。遊戲程式在本機用 dotnet 執行。
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: inkbound
+      MYSQL_USER: inkbound
+      MYSQL_PASSWORD: inkbound_dev
+      MYSQL_ROOT_PASSWORD: root_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uinkbound", "-pinkbound_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  flyway:
+    image: flyway/flyway:11
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./backend/db/ddl:/flyway/sql/ddl:ro
+      - ./backend/db/dml:/flyway/sql/dml:ro
+    command:
+      - -url=jdbc:mysql://mysql:3306/inkbound?allowPublicKeyRetrieval=true&useSSL=false
+      - -user=inkbound
+      - -password=inkbound_dev
+      - -locations=filesystem:/flyway/sql/ddl,filesystem:/flyway/sql/dml
+      - -validateMigrationNaming=true
+      - migrate
+
+volumes:
+  mysql-data:

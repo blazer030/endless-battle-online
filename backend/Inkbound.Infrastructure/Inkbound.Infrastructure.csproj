@@ -5,4 +5,8 @@
     <ProjectReference Include="..\Inkbound.Domain\Inkbound.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.*" />
+  </ItemGroup>
+
 </Project>
