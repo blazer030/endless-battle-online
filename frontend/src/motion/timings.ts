@@ -1,4 +1,5 @@
 export const PollIntervalMilliseconds = 10_000
+export const RequestTimeoutMilliseconds = 8_000
 export const CatchUpThresholdSeconds = 30
 export const RestAfterBatchSeconds = 1
 export const HitShakeSeconds = 0.25

@@ -63,3 +63,31 @@ test("request_ClearsTokenAndNotifies_On401", async () => {
   expect(readAccessToken()).toBeNull()
   expect(onUnauthorized).toHaveBeenCalledTimes(1)
 })
+
+const neverRespondingFetch = () =>
+  vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+    const signal = init?.signal
+    return new Promise<Response>((_resolve, reject) => {
+      signal?.addEventListener("abort", () => reject(signal.reason))
+    })
+  })
+
+// AbortSignal.timeout 是原生計時器，fake timers 推不動，所以用真計時器與極短逾時
+test("request_TimesOut_WhenServerNeverResponds", async () => {
+  saveAccessToken("abc")
+  const fetchMock = neverRespondingFetch()
+  const onUnauthorized = vi.fn()
+  const client = createApiClient({
+    fetch: fetchMock,
+    onUnauthorized,
+    requestTimeoutMilliseconds: 20,
+  })
+
+  const error = await client.advance().catch((caught: unknown) => caught)
+
+  expect(error).toBeInstanceOf(Error)
+  expect(error).not.toBeInstanceOf(ApiError)
+  expect((fetchMock.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal)
+  expect(readAccessToken()).toBe("abc")
+  expect(onUnauthorized).not.toHaveBeenCalled()
+})

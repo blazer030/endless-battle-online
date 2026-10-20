@@ -1,4 +1,5 @@
 import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 
 const fallbackDetail = "發生錯誤，請稍後再試"
@@ -40,6 +41,7 @@ const readDetail = async (response: Response): Promise<string> => {
 export const createApiClient = (options: {
   fetch: typeof fetch
   onUnauthorized: () => void
+  requestTimeoutMilliseconds?: number
 }): ApiClient => {
   const send = async (path: string, method: string, body?: unknown): Promise<Response> => {
     const headers = new Headers()
@@ -51,6 +53,8 @@ export const createApiClient = (options: {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      // 逾時會以 TimeoutError 拋出，不轉成 ApiError，由呼叫端當成一般連線錯誤
+      signal: AbortSignal.timeout(options.requestTimeoutMilliseconds ?? RequestTimeoutMilliseconds),
     })
     if (response.ok) return response
 

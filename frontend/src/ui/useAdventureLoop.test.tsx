@@ -4,6 +4,7 @@ import { ApiError } from "../api/client"
 import type { ApiClient } from "../api/client"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { AdvanceResponse, CharacterView } from "../game/types"
+import { PollIntervalMilliseconds, RequestTimeoutMilliseconds } from "../motion/timings"
 import { useAdventureLoop } from "./useAdventureLoop"
 
 const character: CharacterView = {
@@ -160,4 +161,29 @@ test("adventureLoop_HandsDueItemsToOnItems", async () => {
 
   expect(onItems).toHaveBeenCalledTimes(1)
   expect(onItems).toHaveBeenCalledWith([{ kind: "event", event: response.events[0] }])
+})
+
+test("adventureLoop_RecoversAfterHungRequest", async () => {
+  const advance = vi
+    .fn()
+    .mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          setTimeout(
+            () => reject(new DOMException("signal timed out", "TimeoutError")),
+            RequestTimeoutMilliseconds,
+          )
+        }),
+    )
+    .mockResolvedValue(emptyResponse)
+  const { result } = renderLoop(createFakeApi(advance))
+  await advanceTime(0)
+  expect(result.current.error).toBeNull()
+
+  await advanceTime(RequestTimeoutMilliseconds)
+  expect(result.current.error).toBe("連線不穩，稍後自動重試")
+
+  await advanceTime(PollIntervalMilliseconds - RequestTimeoutMilliseconds)
+  expect(advance).toHaveBeenCalledTimes(2)
+  expect(result.current.error).toBeNull()
 })
