@@ -78,6 +78,25 @@ describe("BattlePlayback", () => {
     ])
   })
 
+  it("enqueue_SummaryWaitsForPreviousBatch", () => {
+    const playback = new BattlePlayback(startCharacter)
+    const firstEvent = encounter(0)
+    const lastOfFirstBatch = reward(9, 1, 1)
+    playback.enqueue(response([firstEvent, lastOfFirstBatch]), 0)
+    const lastEncounter = encounter(35)
+    playback.enqueue(
+      response([encounter(0), reward(5, 1, 1), lastEncounter, reward(40, 1, 1)]),
+      5000,
+    )
+
+    expect(playback.takeDue(5000)).toEqual([{ kind: "event", event: firstEvent }])
+    expect(playback.takeDue(9000)).toEqual([{ kind: "event", event: lastOfFirstBatch }])
+    expect(playback.takeDue(10000)).toEqual([
+      { kind: "summary", fights: 1, experience: 1, spiritStones: 1 },
+      { kind: "event", event: { ...lastEncounter, atSeconds: 0 } },
+    ])
+  })
+
   it("displayedCharacter_ExcludesUnplayedRewards", () => {
     const playback = new BattlePlayback(startCharacter)
     playback.enqueue(response([encounter(0), reward(2, 8, 0)], { experience: 13 }), 0)
