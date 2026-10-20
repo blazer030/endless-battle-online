@@ -14,6 +14,7 @@ const stage = vi.hoisted(() => ({
     play: vi.fn<StageHandle["play"]>(),
   },
   attach: () => {},
+  fail: false,
 }))
 
 vi.mock("../render/PixiStage", async () => {
@@ -24,6 +25,7 @@ vi.mock("../render/PixiStage", async () => {
   }
   return {
     PixiStage: ({ ref }: { ref?: Ref<StageHandle> }) => {
+      if (stage.fail) throw new Error("chunk load failed")
       const [attached, setAttached] = useState(false)
       useEffect(() => {
         stage.attach = () => setAttached(true)
@@ -77,6 +79,7 @@ const advanceTime = (milliseconds: number) =>
 
 beforeEach(() => {
   vi.clearAllMocks()
+  stage.fail = false
   vi.useFakeTimers()
   vi.setSystemTime(new Date("2026-10-21T00:00:00Z"))
 })
@@ -123,4 +126,17 @@ test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
   expect(stage.handle.showEncounter).toHaveBeenCalledTimes(1)
   expect(stage.handle.showEncounter).toHaveBeenCalledWith("test-wolf", "測試寒狼", state)
   expect(stage.handle.updateHealth).toHaveBeenCalledWith(state)
+})
+
+test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
+  stage.fail = true
+  const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+
+  expect(screen.getByText("青衣")).toBeInTheDocument()
+  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
+  consoleError.mockRestore()
 })

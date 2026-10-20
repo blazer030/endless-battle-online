@@ -9,6 +9,7 @@ import type { CharacterView, ContentNames } from "../game/types"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BattleLog } from "./BattleLog"
+import { StageErrorBoundary } from "./StageErrorBoundary"
 import { useAdventureLoop } from "./useAdventureLoop"
 import "./AdventureScreen.css"
 
@@ -101,9 +102,11 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         </span>
       </header>
       <h1 className="adventure__stage-name">{stageName}</h1>
-      <Suspense fallback={<div style={{ height: StageHeight }} />}>
-        <PixiStage ref={attachStage} />
-      </Suspense>
+      <StageErrorBoundary>
+        <Suspense fallback={<div style={{ height: StageHeight }} />}>
+          <PixiStage ref={attachStage} />
+        </Suspense>
+      </StageErrorBoundary>
       {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字 */}
       {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
       <BattleLog lines={lines} />
