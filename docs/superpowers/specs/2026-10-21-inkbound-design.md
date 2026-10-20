@@ -157,8 +157,10 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 | 後端 | ASP.NET Core Web API，.NET 10 | 使用者決定用 .NET；版本是 Claude 的判斷 |
 | 前後端關係 | **完全分離**，不用 Blazor | 使用者決定 |
 | 後端分層 | 沿用 WealthOS：Domain／Application／Infrastructure／Api／Tests | Claude 的判斷（使用者熟悉這個結構） |
-| 資料庫 | EF Core＋SQLite；之後上雲端時再評估換 PostgreSQL | Claude 的判斷 |
-| 後端測試 | xUnit | Claude 的判斷（WealthOS 已使用） |
+| 資料庫 | **MySQL 8** | 使用者決定 |
+| 資料表版本控制 | **Flyway＋手寫 SQL**，沿用 game-server 的做法（見 §6.6） | 使用者決定 |
+| ORM | EF Core，**Database-First**：從資料庫 scaffold 產生 model，不用 EF Core Migrations；MySQL provider 預計用 Pomelo，規劃時確認對 .NET 10 的支援 | 使用者決定 Database-First；provider 是 Claude 的判斷 |
+| 後端測試 | xUnit；需要資料庫的整合測試用 Testcontainers 開臨時 MySQL | Claude 的判斷（WealthOS 已使用 xUnit） |
 | 登入 | ASP.NET Core Identity，用 token 而非 cookie，方便日後包成 App | Claude 的判斷 |
 | 前端 | React＋TypeScript＋Vite，pnpm | Claude 的判斷（沿用 color-sweeper） |
 | 對戰舞台 | PixiJS（WebGL）＋GSAP | Claude 的判斷（沿用 color-sweeper） |
@@ -175,10 +177,14 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 │   ├── Inkbound.sln
 │   ├── Inkbound.Domain/          遊戲規則：戰鬥、掉落、銘文、經脈、境界；純 C#、不碰資料庫
 │   ├── Inkbound.Application/     用例：歷練推進、離線結算、換裝、點穴、洗煉
-│   ├── Inkbound.Infrastructure/  EF Core、內容資料載入
+│   ├── Inkbound.Infrastructure/  EF Core（scaffold 產生的 model 與 DbContext）、內容資料載入
 │   ├── Inkbound.Api/             HTTP 端點、登入、OpenAPI
 │   ├── Inkbound.Tests/
+│   ├── db/
+│   │   ├── ddl/                  結構變更，例如 V000000001__create_player_table.sql
+│   │   └── dml/                  資料變更；與 ddl 共用同一條版本號序列
 │   └── content/                  遊戲內容資料（JSON）：妖怪、法寶、銘文、經脈圖、關卡
+├── scripts/                      scaffold-db.sh、SQL 安全檢查等
 ├── frontend/                     React app；art/ 放美術圖
 └── docs/
 ```
@@ -208,18 +214,34 @@ WOG 原始碼（`~/Project/WOG4.5_Releas_CT`）只當作氣氛參考，**不移�
 - 每筆內容有穩定的英文 id（例如 `snow-demon`），前端用 id 對應美術圖。
 - 測試使用獨立的小型內容資料，不受正式數值調整影響。
 
-### 6.6 執行與部署〔Claude 的判斷〕
+### 6.6 資料庫與版本控制〔使用者決定：MySQL、Flyway、Database-First〕
 
-- **開發時**不用 Docker：後端 `dotnet watch`，前端 `pnpm dev`。
-- **SQLite 只是一個檔案，不需要資料庫伺服器**，由 EF Core 直接在後端程序內讀寫。開發時的檔案位置是 `backend/Inkbound.Api/inkbound.db`（加入 `.gitignore`）；用 docker compose 時放在掛載的 volume，例如 `/data/inkbound.db`。路徑由設定檔指定。
-- **Docker 是選用的**：不用 Docker 也能完整開發和遊玩，它只是讓遊戲方便常駐的打包方式。
-- **執行時**在使用者自己的 Mac 上跑。〔使用者決定〕附 `Dockerfile` 和 `docker-compose.yml`（API＋前端靜態檔＋存放 SQLite 檔案的 volume），一個指令就能啟動。
+- 資料表結構**只由 Flyway migration 決定**，沿用使用者在 `~/Project/fantasy-system/game-server` 的慣例：
+  - 檔名 `V<9 位數版本號>__<英文描述>.sql`，例如 `V000000001__create_player_table.sql`；
+  - `db/ddl/` 放結構變更，`db/dml/` 放資料變更，兩者共用一條版本號序列；
+  - 已套用的 migration 不得修改，要改就新增一個版本。
+- **SQL 安全檢查**：比照 game-server 的 `scan_sql.sh`，擋下含 `DROP TABLE`、`DROP VIEW`、`DROP DATABASE`、`TRUNCATE` 的 migration。納入提交前的檢查。〔Claude 的判斷〕
+- **Database-First 流程**：
+  1. 手寫 migration；
+  2. Flyway 套用到本機 MySQL；
+  3. 執行 `scripts/scaffold-db.sh`（包裝 `dotnet ef dbcontext scaffold`）重新產生 Infrastructure 的 model 與 DbContext；
+  4. 產生的檔案一起 commit。
+- 產生的檔案**不得手改**；需要擴充時寫在另一個檔案的 `partial class`。〔Claude 的判斷〕
+- scaffold 產生的 model 只代表「資料庫長怎樣」，**只存在於 Infrastructure 層**。Domain 層有自己的遊戲模型，兩者在 Application 層轉換。這樣資料表變動不會直接波及戰鬥規則，Domain 測試也不需要資料庫。〔Claude 的判斷〕
+- 遊戲內容（§6.5）仍是 JSON 檔，不放進資料庫；資料庫只存玩家狀態，例如帳號、角色、背包、經脈、build、進度。〔Claude 的判斷〕
+
+### 6.7 執行與部署〔Claude 的判斷〕
+
+- **開發時**：MySQL 和 Flyway 用 `docker compose` 開，啟動 MySQL 8 並自動套用所有 migration。後端在本機用 `dotnet watch` 跑，前端用 `pnpm dev`。使用者的電腦已有 Docker。
+- 使用者電腦目前只有 .NET 9 SDK，開工前需安裝 .NET 10 SDK。
+- **執行時**在使用者自己的 Mac 上跑。〔使用者決定〕docker compose 另提供一個「完整」設定，包含 MySQL、Flyway、API 與前端靜態檔，資料存在 volume，一個指令就能常駐。
 - 手機在同一個 Wi-Fi 下以電腦的區網 IP 連線遊玩；要從外面連時再考慮 Tailscale 之類的工具。
 - 雲端部署之後再說。〔使用者決定〕
 
 ## 7. 開發方式
 
 - 依使用者的全域規則：TDD（一次一個測試）、結構性與行為性變更分開 commit、小而頻繁的 commit、commit 訊息用英文 Conventional Commits 加 emoji。
+- 資料庫變更的順序：先寫 migration，再 scaffold，再寫用到它的程式與測試。
 - 使用者正在學 .NET：實作時在關鍵處說明 C# 和 ASP.NET Core 的概念。
 - 規劃、說明、文件用中文；程式碼註解語言由專案 CLAUDE.md 決定，未規定時用中文。
 
