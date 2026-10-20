@@ -28,7 +28,7 @@ public static class AdventureSimulator
             var battle = BattleSimulator.Simulate(player, monster.Stats, random, BattleTimeLimitSeconds);
 
             var fightStart = cursor;
-            events.Add(new EncounterEvent(fightStart, monster.Id));
+            events.Add(new EncounterEvent(fightStart, monster.Id, monster.Stats.MaxHealth, player.MaxHealth));
             events.AddRange(battle.Events.Select(battleEvent => battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart }));
 
             if (battle.Winner == CombatSide.Player)

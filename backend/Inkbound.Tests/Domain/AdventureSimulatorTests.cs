@@ -64,4 +64,13 @@ public class AdventureSimulatorTests
         var run = AdventureSimulator.Run(TestStats.Make(attack: 10), [Monster("first", 20, 1), Monster("second", 20, 1)], availableSeconds: 3, new ScriptedRandom(0.99, 0.7));
         Assert.Equal("second", run.Events.OfType<EncounterEvent>().First().MonsterId);
     }
+
+    [Fact]
+    public void Run_EncounterCarriesMaxHealthOfBothSides()
+    {
+        var run = AdventureSimulator.Run(TestStats.Make(maxHealth: 120, attack: 10), [Monster("sprite", 20, 1)], availableSeconds: 1, new ScriptedRandom(0.99));
+        var encounter = run.Events.OfType<EncounterEvent>().First();
+        Assert.Equal(20, encounter.MonsterMaxHealth);
+        Assert.Equal(120, encounter.PlayerMaxHealth);
+    }
 }

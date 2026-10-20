@@ -10,7 +10,7 @@ namespace Inkbound.Domain.Combat;
 [JsonDerivedType(typeof(RewardEvent), "reward")]
 public abstract record BattleEvent(double AtSeconds);
 
-public sealed record EncounterEvent(double AtSeconds, string MonsterId) : BattleEvent(AtSeconds);
+public sealed record EncounterEvent(double AtSeconds, string MonsterId, int MonsterMaxHealth, int PlayerMaxHealth) : BattleEvent(AtSeconds);
 
 public sealed record AttackEvent(double AtSeconds, CombatSide Attacker, int Damage, bool IsCritical, int TargetHealthAfter)
     : BattleEvent(AtSeconds);
