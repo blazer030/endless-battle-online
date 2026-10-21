@@ -269,6 +269,7 @@ export function SkillsScreen({ api, character, onCharacterChange }: Props) {
             options={activeOptions}
             onChange={editDrafts}
             drafts={drafts}
+            disabled={busy}
           />
         ))}
         <h3 className="skills__group-title">被動 4～5</h3>
@@ -279,6 +280,7 @@ export function SkillsScreen({ api, character, onCharacterChange }: Props) {
             options={passiveOptions}
             onChange={editDrafts}
             drafts={drafts}
+            disabled={busy}
           />
         ))}
         {loadoutReasons.length > 0 && (
@@ -362,11 +364,13 @@ function SlotRow({
   drafts,
   options,
   onChange,
+  disabled,
 }: {
   draft: SlotDraft
   drafts: SlotDraft[]
   options: SkillView[]
   onChange: (drafts: SlotDraft[]) => void
+  disabled: boolean
 }) {
   const { slot, skillId, chance } = draft
   const label = `欄位 ${slot}`
@@ -376,6 +380,7 @@ function SlotRow({
       <select
         className="skills__select"
         aria-label={`${label} 技能`}
+        disabled={disabled}
         value={skillId ?? ""}
         onChange={(event) =>
           onChange(
@@ -397,7 +402,7 @@ function SlotRow({
           <button
             type="button"
             aria-label={`降低${label} 發動率`}
-            disabled={chance <= MinChance}
+            disabled={disabled || chance <= MinChance}
             onClick={() => onChange(stepChance(drafts, slot, -1))}
           >
             −
@@ -406,7 +411,7 @@ function SlotRow({
           <button
             type="button"
             aria-label={`提高${label} 發動率`}
-            disabled={chance >= MaxChance}
+            disabled={disabled || chance >= MaxChance}
             onClick={() => onChange(stepChance(drafts, slot, 1))}
           >
             ＋

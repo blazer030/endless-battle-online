@@ -244,6 +244,19 @@ test("SkillsScreen_SavesSlotsWithPutBody", async () => {
   expect(await screen.findByText("欄位已儲存。")).toBeInTheDocument()
 })
 
+test("SkillsScreen_LocksTheLoadoutWhileSaving", async () => {
+  const api = createApi({ setSkillSlots: vi.fn(() => new Promise<never>(() => {})) })
+  renderScreen(api)
+
+  await userEvent.click(await screen.findByRole("button", { name: "儲存欄位" }))
+
+  for (const slot of [1, 2, 3, 4, 5])
+    expect(screen.getByLabelText(`欄位 ${slot} 技能`)).toBeDisabled()
+  expect(screen.getByRole("button", { name: "提高欄位 1 發動率" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "降低欄位 1 發動率" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "儲存欄位" })).toBeDisabled()
+})
+
 test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
   renderScreen(createApi({ getSkills: vi.fn().mockResolvedValue(learned) }))
 

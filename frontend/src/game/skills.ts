@@ -87,7 +87,7 @@ export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): s
 }
 
 export const proficiencyPercent = (value: number) =>
-  Math.min(100, Math.floor((value / FullProficiency) * 100))
+  Math.max(0, Math.min(100, Math.floor((value / FullProficiency) * 100)))
 
 const translate = (texts: Record<string, string>) => (code: string) => texts[code] ?? code
 

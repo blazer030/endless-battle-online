@@ -146,6 +146,7 @@ describe("skills", () => {
   })
 
   it("proficiencyPercent_FloorsAndCapsAtHundred", () => {
+    expect(proficiencyPercent(-5)).toBe(0)
     expect(proficiencyPercent(0)).toBe(0)
     expect(proficiencyPercent(3499)).toBe(99)
     expect(proficiencyPercent(3500)).toBe(100)
