@@ -2,7 +2,7 @@
 
 現代奇幻風的單人放置 RPG，WOG 4.5 的單機翻新版。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
 
-- 設計文件：`docs/superpowers/specs/2026-10-21-inkbound-design.md`
+- 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；`docs/superpowers/specs/2026-10-21-inkbound-design.md`（v1，技術架構 §6 仍有效，其餘作廢）
 - 實作計畫：`docs/superpowers/plans/`
 
 ## 結構
