@@ -144,11 +144,15 @@ export const playMiss = (layer: Container, x: number, y: number) => {
   })
 }
 
-export type PlateTone = "gold" | "muted"
+export type PlateTone = "gold" | "muted" | "cyan"
 
-const plateColors: Record<PlateTone, number> = { gold: Palette.gold, muted: Palette.textMuted }
+const plateColors: Record<PlateTone, number> = {
+  gold: Palette.gold,
+  muted: Palette.textMuted,
+  cyan: Palette.cyan,
+}
 
-// 名牌：黑底描邊的橫排字，放大落下、停留、淡出；暴擊、升級用金色，膠著用淡色
+// 名牌：黑底描邊的橫排字，放大落下、停留、淡出；暴擊、升級用金色，技能用青色，膠著、暈眩用淡色
 export const playPlate = (
   layer: Container,
   x: number,
@@ -212,13 +216,13 @@ export const playStandOff = (body: Container, direction: -1 | 1) => {
   })
 }
 
-// 升級：角色身上泛起金光，擴散後淡去
-export const playLevelUpFlash = (layer: Container, x: number, y: number) => {
+// 角色身上泛起光暈，擴散後淡去；升級用金色，施放技能用青色
+export const playAuraFlash = (layer: Container, x: number, y: number, color: number) => {
   const glow = new Graphics()
     .ellipse(0, 0, 58, 92)
-    .fill({ color: Palette.gold, alpha: 0.18 })
+    .fill({ color, alpha: 0.18 })
     .ellipse(0, 0, 36, 70)
-    .fill({ color: Palette.gold, alpha: 0.32 })
+    .fill({ color, alpha: 0.32 })
   glow.filters = [new BlurFilter({ strength: 8 })]
   glow.position.set(x, y)
   glow.scale.set(0.7)

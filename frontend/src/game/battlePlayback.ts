@@ -91,6 +91,11 @@ export class BattlePlayback {
     }
   }
 
+  // 戰鬥以外的操作（轉職、學技能）回傳的最新角色資料；尚未播出的增量照樣扣回
+  confirm(character: CharacterView): void {
+    this.confirmedCharacter = character
+  }
+
   takeDue(nowMilliseconds: number): PlaybackItem[] {
     const due = this.pending
       .filter((scheduled) => scheduled.dueMilliseconds <= nowMilliseconds)

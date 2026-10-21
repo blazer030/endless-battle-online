@@ -15,9 +15,22 @@ const job = (id: string, name: string, tier = 1) =>
     unlockLevel: tier === 1 ? 1 : 30,
   })
 
+const warrior = {
+  ...job("warrior", "戰士"),
+  growth: {
+    str: [2, 3],
+    smart: [0, 1],
+    life: [1, 2],
+    vit: [2, 3],
+    agi: [0, 1],
+    au: [0, 1],
+    be: [0, 1],
+  },
+}
+
 const content: ContentNames = makeContent({
   jobs: [
-    job("warrior", "戰士"),
+    warrior,
     job("sorcerer", "術士"),
     job("thief", "盜賊"),
     job("bard", "樂手"),
@@ -60,7 +73,8 @@ test("CreateCharacterScreen_ListsOnlyFirstTierJobs", () => {
   const jobs = within(group("職業")).getAllByRole("button")
   expect(jobs).toHaveLength(4)
   expect(jobs[0]).toHaveTextContent("戰士")
-  expect(jobs[0]).toHaveTextContent("力量／體質")
+  expect(jobs[0]).toHaveTextContent("近身前排，攻守兼備")
+  expect(jobs[0]).toHaveTextContent("成長：力量／體質 2～3")
   expect(screen.queryByText("狂戰士")).not.toBeInTheDocument()
 })
 

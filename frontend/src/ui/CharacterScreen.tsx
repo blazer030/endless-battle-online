@@ -1,5 +1,6 @@
 import { useId } from "react"
-import type { BaseStats, DerivedStats } from "../game/stats"
+import { proficiencyPercent } from "../game/skills"
+import { baseStatLabels, type DerivedStats } from "../game/stats"
 import type { CharacterView, ContentNames } from "../game/types"
 import { formatNumber } from "./formatNumber"
 import { StatBar } from "./StatBar"
@@ -9,16 +10,6 @@ type Props = {
   character: CharacterView
   content: Pick<ContentNames, "elements" | "births" | "sexes">
 }
-
-const baseStats: { key: keyof BaseStats; label: string }[] = [
-  { key: "str", label: "力量" },
-  { key: "smart", label: "智力" },
-  { key: "life", label: "生命" },
-  { key: "vit", label: "體質" },
-  { key: "agi", label: "敏捷" },
-  { key: "au", label: "魅力" },
-  { key: "be", label: "信仰" },
-]
 
 const derivedStats: { key: keyof DerivedStats; label: string }[] = [
   { key: "at", label: "物攻" },
@@ -36,6 +27,9 @@ const nameOf = (options: { id: string; name: string }[], id: number) =>
 const currentJobProficiency = (character: CharacterView) =>
   character.jobProficiency.find((entry) => entry.jobId === character.jobId)?.proficiency ?? 0
 
+const describeProficiency = (value: number) =>
+  `${proficiencyPercent(value)}%（${formatNumber(value)}）`
+
 export function CharacterScreen({ character, content }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
@@ -46,7 +40,7 @@ export function CharacterScreen({ character, content }: Props) {
     { label: "屬性", value: nameOf(content.elements, character.element) },
     { label: "出生地", value: nameOf(content.births, character.birth) },
     { label: "必殺技", value: character.specialAttackName },
-    { label: "職業熟練度", value: formatNumber(currentJobProficiency(character)) },
+    { label: "職業熟練度", value: describeProficiency(currentJobProficiency(character)) },
   ]
   const bars = [
     { label: "HP", value: character.hp, max: stats.hpMax, tone: "hp" },
@@ -88,7 +82,7 @@ export function CharacterScreen({ character, content }: Props) {
           能力
         </h2>
         <dl className="character__grid">
-          {baseStats.map(({ key, label }) => (
+          {baseStatLabels.map(({ key, label }) => (
             <div key={key} className="character__entry">
               <dt>{label}</dt>
               {/* 括號內是裝備加成，裝備系統上線前一律 +0 */}

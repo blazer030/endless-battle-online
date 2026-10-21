@@ -24,6 +24,11 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   createCharacter: vi.fn(),
   advance,
   getContent: vi.fn(),
+  getJobs: vi.fn(),
+  changeJob: vi.fn(),
+  getSkills: vi.fn(),
+  learnSkill: vi.fn(),
+  setSkillSlots: vi.fn(),
 })
 
 const renderLoop = (api: ApiClient) =>

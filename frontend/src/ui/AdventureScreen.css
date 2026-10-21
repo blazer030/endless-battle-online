@@ -30,6 +30,12 @@
   white-space: nowrap;
 }
 
+.adventure__job {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .adventure__level {
   flex-shrink: 0;
   color: var(--gold);

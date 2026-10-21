@@ -2,10 +2,16 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
-import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import type {
+  AdvanceResponse,
+  CharacterView,
+  ContentNames,
+  JobOption,
+  SkillOverview,
+} from "../game/types"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
-import { makeCharacter, makeContent, makeSummary } from "../test/fixtures"
+import { makeCharacter, makeContent, makeJob, makeSummary } from "../test/fixtures"
 import { AdventureScreen } from "./AdventureScreen"
 
 // jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
@@ -80,6 +86,22 @@ const levelUpResponse: AdvanceResponse = {
   character: { ...character, level: 2, exp: 200, nextExp: 1092, money: 3 },
 }
 
+const thiefOption: JobOption = {
+  ...makeJob({ id: "thief", name: "盜賊" }),
+  parentName: null,
+  current: false,
+  proficiencyPercent: 0,
+  eligible: true,
+  reasons: [],
+}
+
+const skillOverview: SkillOverview = {
+  jobId: "test-warrior",
+  skillPoints: 0,
+  skills: [],
+  slots: [],
+}
+
 const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient => ({
   register: vi.fn(),
   login: vi.fn(),
@@ -87,6 +109,11 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   createCharacter: vi.fn(),
   advance: vi.fn().mockResolvedValue(advanceResponse),
   getContent: vi.fn().mockResolvedValue(content),
+  getJobs: vi.fn().mockResolvedValue([thiefOption]),
+  changeJob: vi.fn().mockResolvedValue({ ...character, jobId: "thief", jobName: "盜賊" }),
+  getSkills: vi.fn().mockResolvedValue(skillOverview),
+  learnSkill: vi.fn(),
+  setSkillSlots: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -128,10 +155,9 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(within(topBar).getByText("金錢 3")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
   expect(screen.getByRole("button", { name: "角色" })).toBeEnabled()
-  for (const label of ["技能", "背包"]) {
-    expect(screen.getByRole("button", { name: label })).toBeDisabled()
-    expect(screen.getByRole("button", { name: label })).toHaveAttribute("title", "尚未開放")
-  }
+  expect(screen.getByRole("button", { name: "技能" })).toBeEnabled()
+  expect(screen.getByRole("button", { name: "背包" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("title", "尚未開放")
 })
 
 test("AdventureScreen_TopBarShowsStamina", async () => {
@@ -291,4 +317,42 @@ test("AdventureScreen_ShowsPollErrorOnCharacterTab", async () => {
 
   expect(screen.getByRole("region", { name: "能力" })).toBeVisible()
   expect(screen.getByText("連線不穩，稍後自動重試")).toBeVisible()
+})
+
+test("AdventureScreen_SkillsTabLoadsSkillsScreenOnEachVisit", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  expect(api.getJobs).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
+  await advanceTime(0)
+
+  expect(screen.getByRole("button", { name: "技能" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("heading", { name: "盜賊（基礎）" })).toBeVisible()
+  expect(screen.getByTestId("stage")).not.toBeVisible()
+
+  fireEvent.click(screen.getByRole("button", { name: "冒險" }))
+  expect(screen.queryByRole("heading", { name: "盜賊（基礎）" })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
+  await advanceTime(0)
+
+  expect(api.getJobs).toHaveBeenCalledTimes(2)
+})
+
+test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
+  const topBar = screen.getByRole("banner")
+  expect(within(topBar).getByText("測試戰士")).toBeInTheDocument()
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: "轉職" }))
+  await advanceTime(0)
+
+  expect(within(topBar).getByText("盜賊")).toBeInTheDocument()
+  fireEvent.click(screen.getByRole("button", { name: "冒險" }))
+  const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
+  expect(lines).toContain("你轉職為盜賊。")
 })

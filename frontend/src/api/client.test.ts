@@ -116,3 +116,48 @@ test("request_TimesOut_WhenServerNeverResponds", async () => {
   expect(readAccessToken()).toBe("abc")
   expect(onUnauthorized).not.toHaveBeenCalled()
 })
+
+test("skillAndJobCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.getJobs()
+  await client.changeJob("knight")
+  await client.getSkills()
+  await client.learnSkill("burst")
+  await client.setSkillSlots([{ slot: 1, skillId: "burst", chance: 100 }])
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["GET", "/api/jobs", undefined],
+    ["POST", "/api/jobs/change", { jobId: "knight" }],
+    ["GET", "/api/skills", undefined],
+    ["POST", "/api/skills/learn", { skillId: "burst" }],
+    ["PUT", "/api/skills/slots", { slots: [{ slot: 1, skillId: "burst", chance: 100 }] }],
+  ])
+})
+
+test("request_ExposesProblemReasons_OnValidationError", async () => {
+  const problem = { detail: "技能欄位不正確", reasons: ["duplicateSkill", "notLearned"] }
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(problem, 400))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  const error = await client.setSkillSlots([]).catch((caught: unknown) => caught)
+
+  expect(error).toBeInstanceOf(ApiError)
+  expect((error as ApiError).detail).toBe("技能欄位不正確")
+  expect((error as ApiError).reasons).toEqual(["duplicateSkill", "notLearned"])
+})
+
+test("request_HasNoReasons_WhenProblemOmitsThem", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ detail: "衝突" }, 409))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  const error = await client.learnSkill("burst").catch((caught: unknown) => caught)
+
+  expect((error as ApiError).reasons).toEqual([])
+})

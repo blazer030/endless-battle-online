@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { baseStatsFromAllocation, deriveStats } from "./stats"
+import { baseStatsFromAllocation, deriveStats, describeTopGrowth } from "./stats"
 
 describe("deriveStats", () => {
   it("deriveStats_MatchesWogFormulas", () => {
@@ -21,5 +21,29 @@ describe("baseStatsFromAllocation", () => {
     const base = baseStatsFromAllocation({ str: 4, smart: 1, life: 3, agi: 2 })
 
     expect(base).toEqual({ str: 14, smart: 11, life: 13, vit: 10, agi: 12, au: 10, be: 10 })
+  })
+})
+
+describe("describeTopGrowth", () => {
+  const flat = {
+    str: [0, 1],
+    smart: [0, 1],
+    life: [1, 2],
+    vit: [0, 1],
+    agi: [0, 1],
+    au: [0, 1],
+    be: [0, 1],
+  }
+
+  it("describeTopGrowth_NamesTheStatWithHighestAverage", () => {
+    expect(describeTopGrowth({ ...flat, agi: [2, 3] })).toBe("敏捷 2～3")
+  })
+
+  it("describeTopGrowth_GroupsTiedStatsSharingARange", () => {
+    expect(describeTopGrowth({ ...flat, str: [2, 3], vit: [2, 3] })).toBe("力量／體質 2～3")
+  })
+
+  it("describeTopGrowth_KeepsEachRangeWhenTiedRangesDiffer", () => {
+    expect(describeTopGrowth({ ...flat, str: [1, 4], be: [2, 3] })).toBe("力量 1～4／信仰 2～3")
   })
 })

@@ -4,10 +4,10 @@ import {
   AllocationTotalPoints,
   baseStatsFromAllocation,
   deriveStats,
+  describeTopGrowth,
   MinimumAllocation,
 } from "../game/stats"
 import type { CharacterView, ContentNames, StatAllocation } from "../game/types"
-import { jobBlurbs } from "./jobBlurbs"
 import "./CreateCharacterScreen.css"
 
 type Props = {
@@ -33,7 +33,7 @@ const totalOf = (allocation: StatAllocation) =>
 // 內容的選項 id 是 "1"～"N"，請求要的是數字
 const firstNumericId = (options: Option[]) => (options.length > 0 ? Number(options[0].id) : 1)
 
-const ChoiceGroup = ({
+const ChoiceGroup = <T extends Option>({
   legend,
   options,
   selectedId,
@@ -42,11 +42,11 @@ const ChoiceGroup = ({
   renderOption = (option) => option.name,
 }: {
   legend: string
-  options: Option[]
+  options: T[]
   selectedId: string
   onSelect: (id: string) => void
   className: string
-  renderOption?: (option: Option) => ReactNode
+  renderOption?: (option: T) => ReactNode
 }) => (
   <fieldset className="choice-group">
     <legend>{legend}</legend>
@@ -67,17 +67,23 @@ const ChoiceGroup = ({
   </fieldset>
 )
 
-const JobCard = ({ job }: { job: Option }) => {
-  const blurb = jobBlurbs[job.id]
+type JobContent = ContentNames["jobs"][number]
+
+// 內容只有數值，初階職業的定位文字在此維護；成長文字由 content 的 growth 算出
+const jobRoles: Readonly<Partial<Record<string, string>>> = {
+  warrior: "近身前排，攻守兼備",
+  sorcerer: "遠距施法，魔攻見長",
+  thief: "身手敏捷，先發制人",
+  bard: "樂聲支援，攻守靈活",
+}
+
+const JobCard = ({ job }: { job: JobContent }) => {
+  const role = jobRoles[job.id]
   return (
     <>
       <strong className="job-name">{job.name}</strong>
-      {blurb !== undefined && (
-        <>
-          <span className="job-role">{blurb.role}</span>
-          <span className="job-growth">{blurb.growth}</span>
-        </>
-      )}
+      {role !== undefined && <span className="job-role">{role}</span>}
+      <span className="job-growth">{`成長：${describeTopGrowth(job.growth)}`}</span>
     </>
   )
 }

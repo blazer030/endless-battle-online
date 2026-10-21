@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { applyToStage, initialStageState, stageEffectsFor } from "./stageModel"
 import type { StageState } from "./stageModel"
-import type { AttackEvent, BattleEvent } from "./types"
+import type { AttackEvent, BattleEvent, SkillEvent } from "./types"
 
 const encounter: BattleEvent = {
   type: "encounter",
@@ -27,6 +27,18 @@ const attack = (overrides: Partial<AttackEvent> = {}): BattleEvent => ({
   targetHpAfter: 70,
   specialAttackName: null,
   stunned: false,
+  atSeconds: 1,
+  ...overrides,
+})
+
+const skill = (overrides: Partial<SkillEvent> = {}): BattleEvent => ({
+  type: "skill",
+  caster: "Player",
+  skillId: "burst",
+  skillName: "爆氣",
+  level: 1,
+  spAfter: 3,
+  heal: 0,
   atSeconds: 1,
   ...overrides,
 })
@@ -89,6 +101,30 @@ describe("stageModel", () => {
       },
     ]
     for (const event of events) expect(applyToStage(midFight, event)).toBe(midFight)
+  })
+
+  it("applyToStage_HealSkillRaisesPlayerHealthUpToMax", () => {
+    expect(applyToStage(midFight, skill({ heal: 30 })).playerHp).toBe(42)
+    expect(applyToStage(midFight, skill({ heal: 500 })).playerHp).toBe(80)
+    expect(applyToStage(midFight, skill())).toBe(midFight)
+  })
+
+  it("stageEffectsFor_PlayerSkill_FlashesCyanWithSkillPlate", () => {
+    expect(stageEffectsFor(skill())).toEqual([
+      { type: "skillFlash" },
+      { type: "plate", text: "爆氣", tone: "cyan" },
+    ])
+  })
+
+  it("stageEffectsFor_MonsterSkill_HasNoEffects", () => {
+    expect(stageEffectsFor(skill({ caster: "Monster" }))).toEqual([])
+  })
+
+  it("stageEffectsFor_StunnedMonster_ShowsMutedPlateOverMonster", () => {
+    const stunned = attack({ attacker: "Monster", hit: false, damage: 0, stunned: true })
+    expect(stageEffectsFor(stunned)).toEqual([
+      { type: "plate", text: "暈眩", tone: "muted", over: "monster" },
+    ])
   })
 
   it("stageEffectsFor_PlayerPhysicalHit_SlashesMonster", () => {

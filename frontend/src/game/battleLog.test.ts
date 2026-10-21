@@ -3,7 +3,7 @@ import { createMonsterNameResolver, describePlaybackItem } from "./battleLog"
 import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
 import { makeContent } from "../test/fixtures"
-import type { AttackEvent, BattleEvent, EncounterEvent, GrowthStats } from "./types"
+import type { AttackEvent, BattleEvent, EncounterEvent, GrowthStats, SkillEvent } from "./types"
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
@@ -42,6 +42,18 @@ const attack = (overrides: Partial<AttackEvent>) =>
     targetHpAfter: 5,
     specialAttackName: null,
     stunned: false,
+    ...overrides,
+  })
+
+const skill = (overrides: Partial<SkillEvent>) =>
+  event({
+    type: "skill",
+    caster: "Player",
+    skillId: "burst",
+    skillName: "爆氣",
+    level: 1,
+    spAfter: 3,
+    heal: 0,
     ...overrides,
   })
 
@@ -101,6 +113,22 @@ const cases: [string, PlaybackItem, Line[]][] = [
     attack({ attacker: "Monster", hit: false, damage: 0 }),
     [["史萊姆的攻擊落空了。", "normal"]],
   ],
+  ["player skill cast", skill({}), [["你施展了爆氣！", "trigger"]]],
+  [
+    "player heal skill",
+    skill({ skillId: "heal", skillName: "治癒", heal: 1234 }),
+    [
+      ["你施展了治癒！", "trigger"],
+      ["回復了 1,234 點 HP。", "normal"],
+    ],
+  ],
+  ["monster skill is not narrated", skill({ caster: "Monster" }), []],
+  [
+    "monster stunned",
+    attack({ attacker: "Monster", hit: false, damage: 0, stunned: true }),
+    [["史萊姆暈眩中，無法行動。", "muted"]],
+  ],
+  ["multi-hit strike", attack({ damage: 40 }), [["你攻擊 史萊姆，造成 40 點傷害。", "normal"]]],
   ["monster defeated", event({ type: "defeat", loser: "Monster" }), [["史萊姆倒下了。", "normal"]]],
   ["player defeated", event({ type: "defeat", loser: "Player" }), [["你倒下了……", "muted"]]],
   [

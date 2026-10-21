@@ -3,6 +3,9 @@ import type {
   CharacterView,
   ContentNames,
   CreateCharacterCommand,
+  JobOption,
+  SkillOverview,
+  SkillSlotCommand,
 } from "../game/types"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
@@ -12,11 +15,14 @@ const fallbackDetail = "發生錯誤，請稍後再試"
 export class ApiError extends Error {
   readonly status: number
   readonly detail: string
+  // ProblemDetails 的 reasons 擴充欄位：驗證失敗的原因代碼
+  readonly reasons: string[]
 
-  constructor(status: number, detail: string) {
+  constructor(status: number, detail: string, reasons: string[] = []) {
     super(detail)
     this.status = status
     this.detail = detail
+    this.reasons = reasons
     this.name = "ApiError"
   }
 }
@@ -28,19 +34,30 @@ export type ApiClient = {
   createCharacter: (command: CreateCharacterCommand) => Promise<CharacterView>
   advance: () => Promise<AdvanceResponse>
   getContent: () => Promise<ContentNames>
+  getJobs: () => Promise<JobOption[]>
+  changeJob: (jobId: string) => Promise<CharacterView>
+  getSkills: () => Promise<SkillOverview>
+  learnSkill: (skillId: string) => Promise<SkillOverview>
+  setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverview>
 }
 
-const readDetail = async (response: Response): Promise<string> => {
+type Problem = { detail: string; reasons: string[] }
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string")
+
+const readProblem = async (response: Response): Promise<Problem> => {
+  const problem: Problem = { detail: fallbackDetail, reasons: [] }
   try {
-    const problem: unknown = await response.json()
-    if (typeof problem === "object" && problem !== null && "detail" in problem) {
-      const { detail } = problem
-      if (typeof detail === "string" && detail !== "") return detail
-    }
+    const body: unknown = await response.json()
+    if (typeof body !== "object" || body === null) return problem
+    if ("detail" in body && typeof body.detail === "string" && body.detail !== "")
+      problem.detail = body.detail
+    if ("reasons" in body && isStringArray(body.reasons)) problem.reasons = body.reasons
   } catch {
     // 內容不是 JSON 時使用預設訊息
   }
-  return fallbackDetail
+  return problem
 }
 
 export const createApiClient = (options: {
@@ -63,12 +80,12 @@ export const createApiClient = (options: {
     })
     if (response.ok) return response
 
-    const detail = await readDetail(response)
+    const { detail, reasons } = await readProblem(response)
     if (response.status === 401) {
       clearAccessToken()
       options.onUnauthorized()
     }
-    throw new ApiError(response.status, detail)
+    throw new ApiError(response.status, detail, reasons)
   }
 
   const requestJson = async <T>(path: string, method: string, body?: unknown): Promise<T> =>
@@ -97,5 +114,10 @@ export const createApiClient = (options: {
     createCharacter: (command) => requestJson<CharacterView>("/api/characters", "POST", command),
     advance: () => requestJson<AdvanceResponse>("/api/adventure/advance", "POST"),
     getContent: () => requestJson<ContentNames>("/api/content", "GET"),
+    getJobs: () => requestJson<JobOption[]>("/api/jobs", "GET"),
+    changeJob: (jobId) => requestJson<CharacterView>("/api/jobs/change", "POST", { jobId }),
+    getSkills: () => requestJson<SkillOverview>("/api/skills", "GET"),
+    learnSkill: (skillId) => requestJson<SkillOverview>("/api/skills/learn", "POST", { skillId }),
+    setSkillSlots: (slots) => requestJson<SkillOverview>("/api/skills/slots", "PUT", { slots }),
   }
 }

@@ -52,6 +52,20 @@ function response(
 }
 
 describe("BattlePlayback", () => {
+  it("confirm_ReplacesCharacterAndKeepsUnplayedGainsPending", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(response([reward(2, 10, 30)], { exp: 10, money: 30 }), 0)
+
+    playback.confirm({ ...startCharacter, exp: 10, money: 20, jobId: "knight", jobName: "騎士" })
+
+    expect(playback.displayedCharacter).toMatchObject({
+      exp: 0,
+      money: 0,
+      jobId: "knight",
+      jobName: "騎士",
+    })
+  })
+
   it("takeDue_ReleasesEventsAtTheirOffsets", () => {
     const playback = new BattlePlayback(startCharacter)
     const first = encounter(0)

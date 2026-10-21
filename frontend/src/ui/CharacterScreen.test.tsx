@@ -69,13 +69,13 @@ test("CharacterScreen_ShowsProfile", () => {
   expect(valueOf("屬性")).toHaveTextContent("火")
   expect(valueOf("出生地")).toHaveTextContent("末日王城")
   expect(valueOf("必殺技")).toHaveTextContent("星落")
-  expect(valueOf("職業熟練度")).toHaveTextContent(/^1,234$/)
+  expect(valueOf("職業熟練度")).toHaveTextContent(/^35%（1,234）$/)
 })
 
 test("CharacterScreen_ShowsZeroProficiency_WhenCurrentJobHasNone", () => {
   render(<CharacterScreen character={{ ...character, jobProficiency: [] }} content={content} />)
 
-  expect(valueOf("職業熟練度")).toHaveTextContent(/^0$/)
+  expect(valueOf("職業熟練度")).toHaveTextContent(/^0%（0）$/)
 })
 
 test("CharacterScreen_ShowsProportionalBars", () => {
@@ -136,4 +136,14 @@ test("CharacterScreen_FallsBackToIds_WhenContentMissing", () => {
   expect(valueOf("性別", profile)).toHaveTextContent(/^2$/)
   expect(valueOf("屬性", profile)).toHaveTextContent(/^3$/)
   expect(valueOf("出生地", profile)).toHaveTextContent(/^4$/)
+})
+
+test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
+  const veteran = {
+    ...character,
+    jobProficiency: [{ jobId: "sorcerer", proficiency: 9000, skillPoints: 0 }],
+  }
+  render(<CharacterScreen character={veteran} content={content} />)
+
+  expect(valueOf("職業熟練度")).toHaveTextContent(/^100%（9,000）$/)
 })

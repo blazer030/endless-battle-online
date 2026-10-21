@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import type { ApiClient } from "../api/client"
 import { createMonsterNameResolver, describePlaybackItem, MaxLogLines } from "../game/battleLog"
-import type { LogLine } from "../game/battleLog"
+import type { LogEntry, LogLine } from "../game/battleLog"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
@@ -12,6 +12,7 @@ import type { StageHandle } from "../render/StageRenderer"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
 import { formatNumber } from "./formatNumber"
+import { SkillsScreen } from "./SkillsScreen"
 import { StageErrorBoundary } from "./StageErrorBoundary"
 import { StatBar } from "./StatBar"
 import { useAdventureLoop } from "./useAdventureLoop"
@@ -31,14 +32,15 @@ const emptyContent: ContentNames = {
   sexes: [],
 }
 
-type Tab = "adventure" | "character"
+type Tab = "adventure" | "character" | "skills"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
   { id: "character", label: "角色" },
+  { id: "skills", label: "技能" },
 ]
 
-const unavailableTabs = ["技能", "背包"]
+const unavailableTabs = ["背包"]
 
 type Props = { api: ApiClient; initialCharacter: CharacterView }
 
@@ -91,9 +93,23 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     content?.stages.find((stage) => stage.id === character.currentStageId)?.name ??
     character.currentStageId
 
+  const appendLines = (entries: LogEntry[]) => {
+    const added = entries.map((entry) => ({ id: nextLineId.current++, ...entry }))
+    setLines((previous) => [...previous, ...added].slice(-MaxLogLines))
+  }
+
+  // 轉職、學技能回傳的最新角色；轉職時在戰報留一行本地訊息
+  const handleCharacterChange = (updated: CharacterView) => {
+    const previousJobId = playback.displayedCharacter.jobId
+    playback.confirm(updated)
+    setCharacter(playback.displayedCharacter)
+    if (updated.jobId !== previousJobId)
+      appendLines([{ text: `你轉職為${updated.jobName}。`, kind: "muted" }])
+  }
+
   const handleItems = (items: PlaybackItem[]) => {
     const monsterName = createMonsterNameResolver(content ?? emptyContent)
-    const added: LogLine[] = []
+    const added: LogEntry[] = []
     for (const item of items) {
       if (item.kind === "event") {
         const { event } = item
@@ -112,11 +128,9 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         if (event.type === "levelUp") setLevelUpHint(event.newLevel)
         stageHandle.current?.play(stageEffectsFor(event))
       }
-      for (const line of describePlaybackItem(item, monsterName, stageState.current.monsterId)) {
-        added.push({ id: nextLineId.current++, ...line })
-      }
+      added.push(...describePlaybackItem(item, monsterName, stageState.current.monsterId))
     }
-    setLines((previous) => [...previous, ...added].slice(-MaxLogLines))
+    appendLines(added)
     setCharacter(playback.displayedCharacter)
   }
 
@@ -125,6 +139,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       <header className="adventure__top">
         <span className="adventure__identity">
           <span className="adventure__name">{character.name}</span>
+          <span className="adventure__job">{character.jobName}</span>
           <span className="adventure__level">{`Lv ${character.level}`}</span>
           {levelUpHint !== null && (
             <span key={levelUpHint} className="adventure__level-up" role="status">
@@ -143,7 +158,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到怪物名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
       {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
       <main className="adventure__main">
-        {/* 切到角色分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
+        {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
           <h1 className="adventure__stage-name">{stageName}</h1>
           <StageErrorBoundary>
@@ -156,6 +171,16 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         <div className="adventure__sheet" hidden={tab !== "character"}>
           <CharacterScreen character={character} content={content ?? emptyContent} />
         </div>
+        {/* 技能分頁每次打開才載入，轉職條件與熟練度都是最新的 */}
+        {tab === "skills" && (
+          <div className="adventure__sheet">
+            <SkillsScreen
+              api={api}
+              character={character}
+              onCharacterChange={handleCharacterChange}
+            />
+          </div>
+        )}
       </main>
       <nav className="adventure__nav">
         {tabs.map(({ id, label }) => (

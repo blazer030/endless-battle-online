@@ -10,12 +10,12 @@ import {
   createStageText,
   Fonts,
   getFogGradient,
+  playAuraFlash,
   playBeam,
   playDamageNumber,
   playFade,
   playHitShake,
   playImpactBurst,
-  playLevelUpFlash,
   playMiss,
   playPlate,
   playSlash,
@@ -23,6 +23,9 @@ import {
 } from "./effects"
 import { Palette } from "./palette"
 import { StageHeight } from "./stageLayout"
+
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.max(minimum, Math.min(value, maximum))
 
 export type StageHandle = Pick<StageRenderer, "showEncounter" | "updateHealth" | "play">
 
@@ -37,6 +40,8 @@ const MonsterPlateCenterY = 120
 const MonsterPlateMaxWidth = 176
 const MonsterPlatePadding = { x: 14, y: 6 }
 const FogHeight = 70
+const SidePlateY = 56
+const SidePlateMaxWidth = 150
 const PlayerLabel = "你"
 
 type Box = { width: number; height: number }
@@ -132,6 +137,7 @@ export class StageRenderer {
     const monsterX = this.monster.slot.x
     // 傷害數字落在目標內側，避開怪物名字與玩家的劍
     const damageX = { player: this.player.slot.x + 70, monster: monsterX - 80 }
+    const auraY = StageHeight - PlayerBox.height / 2
     for (const effect of effects) {
       switch (effect.type) {
         case "slash":
@@ -151,14 +157,20 @@ export class StageRenderer {
           void fontReady(effect.text).then(() => {
             if (this.destroyed) return
             const stageWidth = this.app.screen.width
-            playPlate(
-              this.effects,
-              stageWidth * 0.48,
-              82,
-              effect.text,
-              effect.tone,
-              stageWidth - Gutter * 4,
-            )
+            // 指定一方時名牌落在該方頭頂，寬度以該方的框為限
+            const anchor =
+              effect.over === undefined
+                ? { x: stageWidth * 0.48, y: 82, maxWidth: stageWidth - Gutter * 4 }
+                : {
+                    x: clamp(
+                      this[effect.over].slot.x,
+                      Gutter + SidePlateMaxWidth / 2,
+                      stageWidth - Gutter - SidePlateMaxWidth / 2,
+                    ),
+                    y: SidePlateY,
+                    maxWidth: SidePlateMaxWidth,
+                  }
+            playPlate(this.effects, anchor.x, anchor.y, effect.text, effect.tone, anchor.maxWidth)
           })
           break
         case "hitShake":
@@ -172,7 +184,10 @@ export class StageRenderer {
           playStandOff(this.monster.body, 1)
           break
         case "levelUpFlash":
-          playLevelUpFlash(this.effects, this.player.slot.x, StageHeight - PlayerBox.height / 2)
+          playAuraFlash(this.effects, this.player.slot.x, auraY, Palette.gold)
+          break
+        case "skillFlash":
+          playAuraFlash(this.effects, this.player.slot.x, auraY, Palette.cyan)
           break
         case "fade":
           playFade(this.app.stage, effect.seconds)

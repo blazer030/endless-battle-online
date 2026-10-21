@@ -1,0 +1,246 @@
+.skills {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.skills__loading {
+  margin: 0;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.skills__card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.skills__card-title {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.skills__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skills__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+}
+
+.skills__item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.skills__item-name {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.skills__badge,
+.skills__type {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.skills__badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--night);
+  font-weight: 700;
+}
+
+.skills__type {
+  color: var(--text-muted);
+}
+
+.skills__requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.skills__requirement[data-met="true"] {
+  color: var(--green);
+}
+
+.skills__requirement[data-met="false"] {
+  color: var(--crimson-text);
+}
+
+.skills__description,
+.skills__next,
+.skills__unmet {
+  margin: 0;
+  font-size: 13px;
+}
+
+.skills__description,
+.skills__next {
+  color: var(--text-muted);
+}
+
+.skills__next {
+  font-variant-numeric: tabular-nums;
+}
+
+.skills__unmet {
+  color: var(--crimson-text);
+}
+
+.skills__action {
+  align-self: flex-end;
+  min-width: 72px;
+  padding: 6px 14px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.skills__action:enabled {
+  cursor: pointer;
+}
+
+.skills__action:disabled {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.skills__points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.skills__group-title {
+  margin: 12px 0 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.skills__group-title:first-of-type {
+  margin-top: 0;
+}
+
+.skills__slot {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.skills__slot-label {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.skills__select {
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+}
+
+.skills__chance {
+  display: grid;
+  grid-template-columns: 32px 3.2em 32px;
+  align-items: center;
+  gap: 4px;
+}
+
+.skills__chance button {
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.skills__chance button:disabled {
+  opacity: 0.35;
+}
+
+.skills__chance-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.skills__reasons {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--crimson-text);
+  font-size: 13px;
+}
+
+.skills__saved {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.skills__card .actions {
+  margin-top: 10px;
+}
+
+.skills__card .error {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.skills__select:focus-visible,
+.skills__action:focus-visible,
+.skills__chance button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}

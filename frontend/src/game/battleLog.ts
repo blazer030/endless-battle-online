@@ -1,5 +1,6 @@
 import type { PlaybackItem } from "./battlePlayback"
-import type { AttackEvent, ContentNames, GrowthStats } from "./types"
+import { baseStatLabels } from "./stats"
+import type { AttackEvent, ContentNames, GrowthStats, SkillEvent } from "./types"
 
 export type LogLineKind = "normal" | "muted" | "drop" | "trigger"
 export type LogLine = { id: number; text: string; kind: LogLineKind }
@@ -16,16 +17,6 @@ export const createMonsterNameResolver = (content: ContentNames): MonsterNameRes
 
 const format = (value: number) => value.toLocaleString("zh-TW")
 
-const growthLabels: [keyof GrowthStats, string][] = [
-  ["str", "力量"],
-  ["smart", "智力"],
-  ["life", "生命"],
-  ["vit", "體質"],
-  ["agi", "敏捷"],
-  ["au", "魅力"],
-  ["be", "信仰"],
-]
-
 const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
   const damage = format(event.damage)
   if (event.attacker === "Player") {
@@ -38,16 +29,25 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
       ? { text: `你施放魔法，${monster}受到 ${damage} 點傷害。`, kind: "normal" }
       : { text: `你攻擊 ${monster}，造成 ${damage} 點傷害。`, kind: "normal" }
   }
+  if (event.stunned) return { text: `${monster}暈眩中，無法行動。`, kind: "muted" }
   if (!event.hit) return { text: `${monster}的攻擊落空了。`, kind: "normal" }
   return event.critical
     ? { text: `${monster}重擊！你受到 ${damage} 點傷害！`, kind: "normal" }
     : { text: `${monster}攻擊，你受到 ${damage} 點傷害。`, kind: "normal" }
 }
 
+// 本計畫怪物沒有技能，只敘述玩家的施放
+const describeSkill = (event: SkillEvent): LogEntry[] => {
+  if (event.caster !== "Player") return []
+  const lines: LogEntry[] = [{ text: `你施展了${event.skillName}！`, kind: "trigger" }]
+  if (event.heal > 0) lines.push({ text: `回復了 ${format(event.heal)} 點 HP。`, kind: "normal" })
+  return lines
+}
+
 const describeGrowth = (growth: GrowthStats) =>
-  growthLabels
-    .filter(([key]) => growth[key] !== 0)
-    .map(([key, label]) => `${label}+${format(growth[key])}`)
+  baseStatLabels
+    .filter(({ key }) => growth[key] !== 0)
+    .map(({ key, label }) => `${label}+${format(growth[key])}`)
     .join(" ")
 
 export const describePlaybackItem = (
@@ -73,6 +73,8 @@ export const describePlaybackItem = (
       return []
     case "attack":
       return [describeAttack(event, current)]
+    case "skill":
+      return describeSkill(event)
     case "defeat":
       return [
         event.loser === "Monster"

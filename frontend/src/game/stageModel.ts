@@ -15,11 +15,13 @@ export type StageEffect =
   | { type: "beam" }
   | { type: "damageNumber"; side: StageSide; value: number; critical: boolean }
   | { type: "miss"; side: StageSide }
-  | { type: "plate"; text: string; tone: "gold" | "muted" }
+  // over 省略時名牌落在舞台中央
+  | { type: "plate"; text: string; tone: "gold" | "muted" | "cyan"; over?: StageSide }
   | { type: "hitShake"; side: StageSide }
   | { type: "impactBurst" }
   | { type: "standOff" }
   | { type: "levelUpFlash" }
+  | { type: "skillFlash" }
   | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
@@ -47,6 +49,10 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
       return event.attacker === "Player"
         ? { ...state, monsterHp: event.targetHpAfter }
         : { ...state, playerHp: event.targetHpAfter }
+    case "skill":
+      return event.caster === "Player" && event.heal > 0
+        ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
+        : state
     case "rest":
       return { ...state, playerHp: state.playerHpMax }
     case "round":
@@ -60,6 +66,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
 
 const attackEffects = (event: AttackEvent): StageEffect[] => {
   if (event.attacker === "Monster") {
+    if (event.stunned) return [{ type: "plate", text: "暈眩", tone: "muted", over: "monster" }]
     return event.hit
       ? [
           { type: "damageNumber", side: "player", value: event.damage, critical: event.critical },
@@ -88,6 +95,10 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
   switch (event.type) {
     case "attack":
       return attackEffects(event)
+    case "skill":
+      return event.caster === "Player"
+        ? [{ type: "skillFlash" }, { type: "plate", text: event.skillName, tone: "cyan" }]
+        : []
     case "defeat":
       return event.loser === "Monster" ? [{ type: "impactBurst" }] : []
     case "timeout":
