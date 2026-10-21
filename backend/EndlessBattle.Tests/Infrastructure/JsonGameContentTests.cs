@@ -213,12 +213,70 @@ public class JsonGameContentTests
             "eager");
 
     [Fact]
+    public void Skills_RejectPassiveChanceAboveHundred()
+    {
+        var chance100 = ValidLevel.Replace("\"chance\": 0", "\"chance\": 100");
+        var loaded = LoadSkills(SkillJson("sure", "warrior", "passive", chance100));
+        Assert.Equal(100, loaded.GetSkill("sure").LevelAt(1).Chance);
+        AssertSkillsRejected(
+            SkillJson("overflow", "warrior", "passive", ValidLevel.Replace("\"chance\": 0", "\"chance\": 101")),
+            "overflow");
+    }
+
+    [Fact]
+    public void Skills_RejectFirstLevelNotOne() =>
+        AssertSkillsRejected(
+            SkillJson("late", "warrior", "active", ValidLevel.Replace("\"level\": 1", "\"level\": 2")),
+            "late");
+
+    [Fact]
+    public void Skills_RejectZeroRounds() =>
+        AssertSkillsRejected(
+            SkillJson("instant", "warrior", "active", ValidLevel.Replace("\"rounds\": 3", "\"rounds\": 0")),
+            "instant");
+
+    [Fact]
+    public void Skills_RejectUnknownEnumValue()
+    {
+        AssertSkillsRejected(SkillJson("bogus-type", "warrior", "bogus", ValidLevel), "bogus-type");
+        AssertSkillsRejected(
+            SkillJson("numeric-effect", "warrior", "active", ValidLevel).Replace("AtMultiplier", "99"),
+            "numeric-effect");
+    }
+
+    [Fact]
+    public void GetSkill_UnknownId_Throws()
+    {
+        var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
+        var exception = Assert.Throws<GameContentException>(() => content.GetSkill("nope"));
+        Assert.Contains("nope", exception.Message);
+    }
+
+    private static JsonGameContent LoadSkills(string skills)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), ValidStages);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), $$"""{ "skills": [{{skills}}] }""");
+            return JsonGameContent.Load(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void SkillsOf_ReturnsOnlyThatJob()
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         Assert.Equal(["burst", "iron-skin"], content.SkillsOf("warrior").Select(skill => skill.Id));
         Assert.Equal("heal", content.GetSkill("heal").Id);
         Assert.Empty(content.SkillsOf("sorcerer"));
+        Assert.Equal(["lullaby", "heal"], content.SkillsOf("bard").Select(skill => skill.Id));
     }
 
     [Fact]
