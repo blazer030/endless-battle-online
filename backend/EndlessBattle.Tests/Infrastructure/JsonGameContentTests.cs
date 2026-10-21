@@ -6,6 +6,8 @@ namespace EndlessBattle.Tests.Infrastructure;
 
 public class JsonGameContentTests
 {
+    private static readonly string ShippedContentDirectory = Path.Combine(BackendPaths.BackendDirectory, "content");
+
     private const string ValidMonster =
         """{ "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0 }""";
 
@@ -55,7 +57,7 @@ public class JsonGameContentTests
     [Fact]
     public void Load_ShippedContent_IsValid()
     {
-        var content = JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
+        var content = JsonGameContent.Load(ShippedContentDirectory);
         var startingStage = content.GetStage(content.StartingStageId);
         Assert.NotEmpty(startingStage.MonsterIds);
         Assert.All(startingStage.MonsterIds, monsterId => Assert.Equal(monsterId, content.GetMonster(monsterId).Id));
@@ -63,6 +65,32 @@ public class JsonGameContentTests
         Assert.All(
             content.AllJobs.Where(job => job.Tier == 2),
             job => Assert.Equal(1, content.GetJob(job.ParentId!).Tier));
+    }
+
+    public static TheoryData<string> ShippedJobIds =>
+        new(JsonGameContent.Load(ShippedContentDirectory).AllJobs.Select(job => job.Id));
+
+    // spec §5.3：每級期望總成長（七項 (min+max)/2 之和）基礎 7～9、進階 9～12
+    [Theory]
+    [MemberData(nameof(ShippedJobIds))]
+    public void JobGrowth_TotalsWithinSpecBands(string jobId)
+    {
+        var job = JsonGameContent.Load(ShippedContentDirectory).GetJob(jobId);
+        var growth = job.Growth;
+        var total = new[] { growth.Str, growth.Smart, growth.Life, growth.Vit, growth.Agi, growth.Au, growth.Be }
+            .Sum(range => (range.Min + range.Max) / 2.0);
+
+        var (minimum, maximum) = job.Tier == 1 ? (7.0, 9.0) : (9.0, 12.0);
+        Assert.InRange(total, minimum, maximum);
+    }
+
+    // spec §5.2 的例子：騎士 體質 ≥ 60
+    [Fact]
+    public void Knight_RequiresVitSixty()
+    {
+        var knight = JsonGameContent.Load(ShippedContentDirectory).GetJob("knight");
+
+        Assert.Equal([new StatRequirement("vit", 60)], knight.StatRequirements);
     }
 
     [Fact]
@@ -93,7 +121,7 @@ public class JsonGameContentTests
     [Fact]
     public void Load_ShippedContent_DescribesFrostPeakMonsters()
     {
-        var content = JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
+        var content = JsonGameContent.Load(ShippedContentDirectory);
         Assert.Equal(
             [
                 new MonsterDefinition("snow-sprite", "雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0),
