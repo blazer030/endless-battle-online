@@ -81,7 +81,7 @@ public sealed record CharacterResponse(
 
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 
-// EventsCoverAll 為 false 時，Events 只含最後 30 秒的場次，其餘只計入 Summary
+// EventsCoverAll 為 false 時，Events 只含最後 30 秒的場次，其餘場次或住宿只計入 Summary
 public sealed record AdvanceResponse(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,

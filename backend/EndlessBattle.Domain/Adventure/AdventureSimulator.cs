@@ -58,9 +58,7 @@ public static class AdventureSimulator
                 continue;
             }
 
-            var (consumed, fDown, intervalSeconds) = StaminaRules.Consume(stamina);
-            // WOG 只處理行動力 0 與 −1 兩種情況，存回時不低於 0，回復才有意義
-            stamina = consumed with { ActNum = Math.Max(consumed.ActNum, 0) };
+            (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
             var definition = PickMonster(stageMonsters, random);
             var player = CombatBridge.ToCombatant(character);

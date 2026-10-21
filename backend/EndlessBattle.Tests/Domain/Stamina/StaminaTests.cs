@@ -25,15 +25,26 @@ public class StaminaTests
         Assert.Equal(new StaminaState(40, T0.AddSeconds(500)), StaminaRules.Regenerate(new StaminaState(40, null), T0.AddSeconds(500)));
     }
 
-    // act 1 → 0：fDown 1、12 秒；act 0 → −1：fDown 0.5、12 秒；act 5 → 4：fDown 1、2 秒
+    // act 1 → 0：fDown 1、12 秒；act 0 → −1：fDown 0.5、12 秒（存回 0）；act 5 → 4：fDown 1、2 秒
     [Fact]
     public void Stamina_DepletedHalvesRewardsAndSlowsFights()
     {
         var last = T0.AddSeconds(7);
 
         Assert.Equal((new StaminaState(0, last), 1.0, 12.0), StaminaRules.Consume(new StaminaState(1, last)));
-        Assert.Equal((new StaminaState(-1, last), 0.5, 12.0), StaminaRules.Consume(new StaminaState(0, last)));
+        Assert.Equal((new StaminaState(0, last), 0.5, 12.0), StaminaRules.Consume(new StaminaState(0, last)));
         Assert.Equal((new StaminaState(4, last), 1.0, 2.0), StaminaRules.Consume(new StaminaState(5, last)));
+    }
+
+    // 存回的行動力不低於 0：連續耗盡時一直停在 0，回復的 +6 才有效；就算傳入負值也一樣
+    [Fact]
+    public void Stamina_StoredValueNeverDropsBelowZero()
+    {
+        var last = T0.AddSeconds(7);
+
+        var (afterDepleted, _, _) = StaminaRules.Consume(StaminaRules.Consume(new StaminaState(0, last)).State);
+        Assert.Equal(new StaminaState(0, last), afterDepleted);
+        Assert.Equal((new StaminaState(0, last), 0.5, 12.0), StaminaRules.Consume(new StaminaState(-5, last)));
     }
 
     // 恰好 180 秒 → periods = 1 → +6；恰好 360 秒 → periods = 2 → +12
