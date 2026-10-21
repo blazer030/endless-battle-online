@@ -35,9 +35,11 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
 
         var events = body.GetProperty("events").EnumerateArray().ToList();
         Assert.Equal("encounter", events[0].GetProperty("type").GetString());
-        Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "reward");
+        Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "round");
+        Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "attack");
+        // 計畫 4 Task 5 加入 WOG 獎勵後改回 > 0
         var expGained = body.GetProperty("expGained").GetInt64();
-        Assert.True(expGained > 0);
+        Assert.True(expGained >= 0);
         Assert.Equal(expGained, body.GetProperty("character").GetProperty("exp").GetInt64());
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);

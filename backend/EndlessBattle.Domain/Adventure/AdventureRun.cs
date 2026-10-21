@@ -1,4 +1,4 @@
-using EndlessBattle.Domain.Combat;
+using EndlessBattle.Domain.Battle;
 
 namespace EndlessBattle.Domain.Adventure;
 

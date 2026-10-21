@@ -33,7 +33,7 @@ public sealed class AdventureService(
         var stage = content.GetStage(character.CurrentStageId);
         var stageMonsters = stage.MonsterIds.Select(content.GetMonster).ToList();
         var run = AdventureSimulator.Run(
-            CombatBridge.ToCombatStats(DerivedStats.From(character.Base)),
+            CombatBridge.ToCombatant(character),
             stageMonsters,
             Math.Min(elapsedSeconds, MaxSimulatedSeconds),
             randomFactory.Create());

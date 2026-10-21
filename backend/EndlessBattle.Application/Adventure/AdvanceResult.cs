@@ -1,5 +1,5 @@
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
-using EndlessBattle.Domain.Combat;
 
 namespace EndlessBattle.Application.Adventure;
 
