@@ -33,6 +33,9 @@ const derivedStats: { key: keyof DerivedStats; label: string }[] = [
 const nameOf = (options: { id: string; name: string }[], id: number) =>
   options.find((option) => option.id === String(id))?.name ?? String(id)
 
+const currentJobProficiency = (character: CharacterView) =>
+  character.jobProficiency.find((entry) => entry.jobId === character.jobId)?.proficiency ?? 0
+
 export function CharacterScreen({ character, content }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
@@ -43,6 +46,7 @@ export function CharacterScreen({ character, content }: Props) {
     { label: "屬性", value: nameOf(content.elements, character.element) },
     { label: "出生地", value: nameOf(content.births, character.birth) },
     { label: "必殺技", value: character.specialAttackName },
+    { label: "職業熟練度", value: formatNumber(currentJobProficiency(character)) },
   ]
   const bars = [
     { label: "HP", value: character.hp, max: stats.hpMax, tone: "hp" },

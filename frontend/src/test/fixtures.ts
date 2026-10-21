@@ -1,4 +1,4 @@
-import type { CharacterView, ContentNames } from "../game/types"
+import type { AdvanceSummary, CharacterView, ContentNames } from "../game/types"
 
 export const makeCharacter = (overrides: Partial<CharacterView> = {}): CharacterView => ({
   name: "測試",
@@ -30,6 +30,21 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
     spMax: 88,
   },
   currentStageId: "test-stage-1",
+  actNum: 50,
+  actNumMax: 50,
+  jobProficiency: [],
+  ...overrides,
+})
+
+export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSummary => ({
+  fights: 0,
+  wins: 0,
+  losses: 0,
+  timeouts: 0,
+  exp: 0,
+  money: 0,
+  jobExp: 0,
+  levelsGained: 0,
   ...overrides,
 })
 

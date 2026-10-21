@@ -3,8 +3,9 @@ import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import { LevelUpHintMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
-import { makeCharacter, makeContent } from "../test/fixtures"
+import { makeCharacter, makeContent, makeSummary } from "../test/fixtures"
 import { AdventureScreen } from "./AdventureScreen"
 
 // jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
@@ -49,22 +50,42 @@ const response: AdvanceResponse = {
       type: "encounter",
       atSeconds: 0,
       monsterId: "test-wolf",
-      monsterMaxHealth: 60,
-      playerMaxHealth: 120,
+      monsterHp: 60,
+      monsterHpMax: 60,
+      playerHp: 100,
+      playerHpMax: 120,
+      playerSp: 10,
+      playerSpMax: 10,
+      staminaDepleted: false,
     },
-    { type: "reward", atSeconds: 0, experience: 8, spiritStones: 3 },
+    { type: "reward", atSeconds: 0, exp: 8, money: 3, jobExp: 2 },
   ],
-  expGained: 8,
-  moneyGained: 3,
-  character: { ...character, exp: 8, money: 3 },
+  summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
+  eventsCoverAll: true,
+  character: { ...character, exp: 8, money: 3, actNum: 49 },
 }
 
-const createFakeApi = (): ApiClient => ({
+const levelUpResponse: AdvanceResponse = {
+  events: [
+    { type: "reward", atSeconds: 0, exp: 1200, money: 3, jobExp: 2 },
+    {
+      type: "levelUp",
+      atSeconds: 0,
+      newLevel: 2,
+      growth: { str: 1, smart: 0, life: 0, vit: 0, agi: 0, au: 0, be: 0 },
+    },
+  ],
+  summary: makeSummary({ fights: 1, wins: 1, exp: 1200, money: 3, jobExp: 2, levelsGained: 1 }),
+  eventsCoverAll: true,
+  character: { ...character, level: 2, exp: 200, nextExp: 1092, money: 3 },
+}
+
+const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient => ({
   register: vi.fn(),
   login: vi.fn(),
   getMyCharacter: vi.fn(),
   createCharacter: vi.fn(),
-  advance: vi.fn().mockResolvedValue(response),
+  advance: vi.fn().mockResolvedValue(advanceResponse),
   getContent: vi.fn().mockResolvedValue(content),
 })
 
@@ -100,8 +121,8 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(screen.getByText("測試關卡・一")).toBeInTheDocument()
   const lines = screen.getAllByRole("listitem")
   expect(lines).toHaveLength(2)
-  expect(lines[0]).toHaveTextContent("測試寒狼現身。")
-  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3。")
+  expect(lines[0]).toHaveTextContent("遭遇 測試寒狼！")
+  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3、熟練度 2。")
   expect(topBarExp()).toHaveAttribute("aria-valuenow", "8")
   expect(within(topBar).getByText("8 / 1,000")).toBeInTheDocument()
   expect(within(topBar).getByText("金錢 3")).toBeInTheDocument()
@@ -111,6 +132,34 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
     expect(screen.getByRole("button", { name: label })).toBeDisabled()
     expect(screen.getByRole("button", { name: label })).toHaveAttribute("title", "尚未開放")
   }
+})
+
+test("AdventureScreen_TopBarShowsStamina", async () => {
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
+  const topBar = screen.getByRole("banner")
+  expect(within(topBar).getByText("行動力 50/50")).toBeInTheDocument()
+
+  await advanceTime(0)
+  await advanceTime(100)
+
+  expect(within(topBar).getByText("行動力 49/50")).toBeInTheDocument()
+})
+
+test("AdventureScreen_ShowsLevelUpHintWhenLevelUpPlays", async () => {
+  render(<AdventureScreen api={createFakeApi(levelUpResponse)} initialCharacter={character} />)
+  const topBar = screen.getByRole("banner")
+  expect(within(topBar).queryByText("升級！")).not.toBeInTheDocument()
+
+  await advanceTime(0)
+  await advanceTime(100)
+
+  expect(within(topBar).getByText("Lv 2")).toBeInTheDocument()
+  expect(within(topBar).getByText("升級！")).toBeInTheDocument()
+  expect(screen.getAllByRole("listitem")[1]).toHaveTextContent("升級！Lv 2（力量+1）")
+
+  await advanceTime(LevelUpHintMilliseconds)
+
+  expect(within(topBar).queryByText("升級！")).not.toBeInTheDocument()
 })
 
 test("AdventureScreen_TopBarExpBarIsProportional", () => {
@@ -153,8 +202,8 @@ test("AdventureScreen_SwitchesToCharacterSheet_WithoutRemountingAdventure", asyn
   expect(stageElement).toBeVisible()
   const lines = screen.getAllByRole("listitem")
   expect(lines).toHaveLength(2)
-  expect(lines[0]).toHaveTextContent("測試寒狼現身。")
-  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3。")
+  expect(lines[0]).toHaveTextContent("遭遇 測試寒狼！")
+  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3、熟練度 2。")
   // loop 若重新掛載會立刻再送一次 advance
   expect(api.advance).toHaveBeenCalledTimes(1)
 })
@@ -163,17 +212,17 @@ test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
   render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
-  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
+  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("遭遇 測試寒狼！")
   expect(stage.handle.showEncounter).not.toHaveBeenCalled()
 
   act(() => stage.attach())
 
   const state = {
     monsterId: "test-wolf",
-    monsterHealth: 60,
-    monsterMaxHealth: 60,
-    playerHealth: 120,
-    playerMaxHealth: 120,
+    monsterHp: 60,
+    monsterHpMax: 60,
+    playerHp: 100,
+    playerHpMax: 120,
   }
   expect(stage.handle.showEncounter).toHaveBeenCalledTimes(1)
   expect(stage.handle.showEncounter).toHaveBeenCalledWith("test-wolf", "測試寒狼", state)
@@ -189,7 +238,7 @@ test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   await advanceTime(100)
 
   expect(within(screen.getByRole("banner")).getByText("青衣")).toBeInTheDocument()
-  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
+  expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("遭遇 測試寒狼！")
   consoleError.mockRestore()
 })
 

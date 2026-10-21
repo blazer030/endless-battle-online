@@ -1,68 +1,103 @@
-import type { BattleEvent } from "./types"
+import type { AttackEvent, BattleEvent } from "./types"
 
 export type StageState = {
   monsterId: string | null
-  monsterHealth: number
-  monsterMaxHealth: number
-  playerHealth: number
-  playerMaxHealth: number
+  monsterHp: number
+  monsterHpMax: number
+  playerHp: number
+  playerHpMax: number
 }
+
+export type StageSide = "player" | "monster"
 
 export type StageEffect =
   | { type: "slash" }
-  | { type: "damageNumber"; side: "player" | "monster"; value: number; critical: boolean }
-  | { type: "plate"; text: string }
-  | { type: "hitShake"; side: "player" | "monster" }
+  | { type: "beam" }
+  | { type: "damageNumber"; side: StageSide; value: number; critical: boolean }
+  | { type: "miss"; side: StageSide }
+  | { type: "plate"; text: string; tone: "gold" | "muted" }
+  | { type: "hitShake"; side: StageSide }
   | { type: "impactBurst" }
+  | { type: "standOff" }
+  | { type: "levelUpFlash" }
+  | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
   monsterId: null,
-  monsterHealth: 0,
-  monsterMaxHealth: 0,
-  playerHealth: 0,
-  playerMaxHealth: 0,
+  monsterHp: 0,
+  monsterHpMax: 0,
+  playerHp: 0,
+  playerHpMax: 0,
 }
+
+// 必殺技名缺漏時的備用字
+const CriticalPlateText = "CRITICAL"
 
 export const applyToStage = (state: StageState, event: BattleEvent): StageState => {
   switch (event.type) {
     case "encounter":
       return {
         monsterId: event.monsterId,
-        monsterHealth: event.monsterMaxHealth,
-        monsterMaxHealth: event.monsterMaxHealth,
-        playerHealth: event.playerMaxHealth,
-        playerMaxHealth: event.playerMaxHealth,
+        monsterHp: event.monsterHp,
+        monsterHpMax: event.monsterHpMax,
+        playerHp: event.playerHp,
+        playerHpMax: event.playerHpMax,
       }
     case "attack":
       return event.attacker === "Player"
-        ? { ...state, monsterHealth: event.targetHealthAfter }
-        : { ...state, playerHealth: event.targetHealthAfter }
+        ? { ...state, monsterHp: event.targetHpAfter }
+        : { ...state, playerHp: event.targetHpAfter }
+    case "rest":
+      return { ...state, playerHp: state.playerHpMax }
+    case "round":
     case "defeat":
+    case "timeout":
     case "reward":
+    case "levelUp":
       return state
   }
 }
 
-export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
-  switch (event.type) {
-    case "attack": {
-      if (event.attacker === "Monster") {
-        return [
-          { type: "damageNumber", side: "player", value: event.damage, critical: event.isCritical },
+const attackEffects = (event: AttackEvent): StageEffect[] => {
+  if (event.attacker === "Monster") {
+    return event.hit
+      ? [
+          { type: "damageNumber", side: "player", value: event.damage, critical: event.critical },
           { type: "hitShake", side: "player" },
         ]
-      }
-      const effects: StageEffect[] = [
-        { type: "slash" },
-        { type: "damageNumber", side: "monster", value: event.damage, critical: event.isCritical },
-        { type: "hitShake", side: "monster" },
-      ]
-      if (event.isCritical) effects.push({ type: "plate", text: "CRITICAL" })
-      return effects
-    }
+      : [{ type: "miss", side: "player" }]
+  }
+  const stroke: StageEffect = event.kind === "Magic" ? { type: "beam" } : { type: "slash" }
+  if (!event.hit) return [stroke, { type: "miss", side: "monster" }]
+  const effects: StageEffect[] = [
+    stroke,
+    { type: "damageNumber", side: "monster", value: event.damage, critical: event.critical },
+    { type: "hitShake", side: "monster" },
+  ]
+  if (event.critical) {
+    effects.push({
+      type: "plate",
+      text: event.specialAttackName ?? CriticalPlateText,
+      tone: "gold",
+    })
+  }
+  return effects
+}
+
+export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
+  switch (event.type) {
+    case "attack":
+      return attackEffects(event)
     case "defeat":
       return event.loser === "Monster" ? [{ type: "impactBurst" }] : []
+    case "timeout":
+      return [{ type: "standOff" }, { type: "plate", text: "膠著", tone: "muted" }]
+    case "levelUp":
+      return [{ type: "levelUpFlash" }, { type: "plate", text: "LEVEL UP", tone: "gold" }]
+    case "rest":
+      return [{ type: "fade", seconds: event.waitSeconds }]
     case "encounter":
+    case "round":
     case "reward":
       return []
   }

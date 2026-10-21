@@ -10,11 +10,16 @@ import {
   createStageText,
   Fonts,
   getFogGradient,
+  playBeam,
   playDamageNumber,
+  playFade,
   playHitShake,
   playImpactBurst,
+  playLevelUpFlash,
+  playMiss,
   playPlate,
   playSlash,
+  playStandOff,
 } from "./effects"
 import { Palette } from "./palette"
 import { StageHeight } from "./stageLayout"
@@ -94,7 +99,7 @@ export class StageRenderer {
         resolution: window.devicePixelRatio,
         autoDensity: true,
       }),
-      fontReady(`${PlayerLabel}CRITICAL0123456789,`),
+      fontReady(`${PlayerLabel}CRITICALLEVELUPMISS膠著0123456789,`),
     ])
     container.appendChild(app.canvas)
     return new StageRenderer(app)
@@ -118,31 +123,47 @@ export class StageRenderer {
 
   updateHealth(state: StageState): void {
     this.state = state
-    drawMeter(this.playerBar, state.playerHealth, state.playerMaxHealth)
-    drawMeter(this.monsterBar, state.monsterHealth, state.monsterMaxHealth)
+    drawMeter(this.playerBar, state.playerHp, state.playerHpMax)
+    drawMeter(this.monsterBar, state.monsterHp, state.monsterHpMax)
   }
 
   play(effects: StageEffect[]): void {
     const width = this.app.screen.width
     const monsterX = this.monster.slot.x
-    // 傷害數字落在目標內側，避開妖怪名字與玩家的劍
+    // 傷害數字落在目標內側，避開怪物名字與玩家的劍
     const damageX = { player: this.player.slot.x + 70, monster: monsterX - 80 }
     for (const effect of effects) {
       switch (effect.type) {
         case "slash":
           playSlash(this.effects, width)
           break
+        case "beam":
+          playBeam(this.effects, width)
+          break
         case "damageNumber":
           playDamageNumber(this.effects, damageX[effect.side], 70, effect.value, effect.critical)
           break
+        case "miss":
+          playMiss(this.effects, damageX[effect.side], 70)
+          break
         case "plate":
-          playPlate(this.effects, width * 0.48, 82, effect.text)
+          playPlate(this.effects, width * 0.48, 82, effect.text, effect.tone, width - Gutter * 4)
           break
         case "hitShake":
           playHitShake(this[effect.side].body)
           break
         case "impactBurst":
           playImpactBurst(this.effects, monsterX - 16, StageHeight - 95)
+          break
+        case "standOff":
+          playStandOff(this.player.body, -1)
+          playStandOff(this.monster.body, 1)
+          break
+        case "levelUpFlash":
+          playLevelUpFlash(this.effects, this.player.slot.x, StageHeight - PlayerBox.height / 2)
+          break
+        case "fade":
+          playFade(this.app.stage, effect.seconds)
           break
       }
     }
@@ -151,7 +172,7 @@ export class StageRenderer {
   destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
-    const animated = [this.player.body, this.monster.body, ...this.effects.children]
+    const animated = [this.app.stage, this.player.body, this.monster.body, ...this.effects.children]
     gsap.killTweensOf(animated.flatMap((target) => [target, target.scale]))
     this.app.renderer.off("resize", this.onResize)
     this.app.destroy({ removeView: true }, { children: true })

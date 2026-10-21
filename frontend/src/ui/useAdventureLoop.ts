@@ -58,7 +58,7 @@ export const useAdventureLoop = ({
     }
 
     void advance()
-    // 背景時不輪詢：伺服器會結算離開期間，回到前景時一次拿回整段，由 playback 壓成摘要
+    // 背景時不輪詢：伺服器會結算離開期間，回到前景時一次拿回摘要與最後一段事件
     const interval = setInterval(() => {
       if (document.visibilityState !== "hidden") void advance()
     }, PollIntervalMilliseconds)

@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
 import type { CreateCharacterCommand } from "../game/types"
-import { makeCharacter } from "../test/fixtures"
+import { makeCharacter, makeSummary } from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -9,8 +9,8 @@ const jsonResponse = (body: unknown, status = 200) =>
 
 const advanceBody = {
   events: [],
-  expGained: 0,
-  moneyGained: 0,
+  summary: makeSummary(),
+  eventsCoverAll: true,
   character: makeCharacter(),
 }
 

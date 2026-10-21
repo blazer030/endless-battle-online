@@ -2,16 +2,24 @@ import gsap from "gsap"
 import { BlurFilter, Color, Container, FillGradient, Graphics, Text, TextStyle } from "pixi.js"
 import type { TextStyleOptions } from "pixi.js"
 import {
+  BeamSeconds,
   DamageNumberSeconds,
   HitShakeSeconds,
   ImpactBurstSeconds,
+  LevelUpFlashSeconds,
+  MissSeconds,
   PlateSeconds,
+  RestFadeMaxSeconds,
   SlashSeconds,
+  StandOffSeconds,
 } from "../motion/timings"
 import { Palette } from "./palette"
 
-// 介面與數字用無襯線，妖怪名牌用中文襯線，CRITICAL 用 Cinzel
+// 介面與數字用無襯線，怪物名牌用中文襯線，CRITICAL 用 Cinzel
 export const Fonts = { ui: "Noto Sans TC", title: "Noto Serif TC", latin: "Cinzel" } as const
+
+// 名牌文字可能是英文（LEVEL UP）或玩家取的中文必殺技名，拉丁字用 Cinzel、中文退到襯線
+const PlateFontFamily = [Fonts.latin, Fonts.title]
 
 const degrees = (value: number) => (value * Math.PI) / 180
 
@@ -27,7 +35,7 @@ export const createStageText = (text: string, style: TextStyleOptions) =>
     resolution: window.devicePixelRatio,
   })
 
-// 漸層只建一次，所有劍氣共用
+// 漸層只建一次，所有斬擊共用
 let bladeGradient: FillGradient | null = null
 const getBladeGradient = () =>
   (bladeGradient ??= new FillGradient({
@@ -39,7 +47,7 @@ const getBladeGradient = () =>
     ],
   }))
 
-// 劍氣由左向右掃過舞台中段，尾端金、刃尖白
+// 斬擊由左向右掃過舞台中段，尾端金、刃尖白
 export const playSlash = (layer: Container, stageWidth: number) => {
   const length = Math.max(120, stageWidth - 110)
   const blade = new Graphics()
@@ -89,32 +97,98 @@ export const playDamageNumber = (
   })
 }
 
-// 暴擊名牌：黑底金邊的橫排字，放大落下、停留、淡出
-export const playPlate = (layer: Container, x: number, y: number, label: string) => {
-  const text = createStageText(label, {
+// 魔法：青色光束由玩家射向怪物，從左端伸展後淡去
+export const playBeam = (layer: Container, stageWidth: number) => {
+  const length = Math.max(120, stageWidth - 150)
+  const beam = new Graphics()
+    .rect(0, -6, length, 12)
+    .fill({ color: Palette.cyan, alpha: 0.2 })
+    .rect(0, -2.5, length, 5)
+    .fill({ color: Palette.cyan, alpha: 0.85 })
+    .rect(0, -0.75, length, 1.5)
+    .fill(Palette.white)
+  beam.filters = [new BlurFilter({ strength: 1 })]
+  beam.position.set(70, 118)
+  beam.scale.x = 0
+  layer.addChild(beam)
+  gsap.to(beam.scale, { x: 1, duration: BeamSeconds * 0.35, ease: "power2.out" })
+  gsap.to(beam, {
+    alpha: 0,
+    delay: BeamSeconds * 0.45,
+    duration: BeamSeconds * 0.55,
+    ease: "power1.in",
+    onComplete: () => dispose(beam),
+  })
+}
+
+// 未命中：目標上方飄起淡色 MISS
+export const playMiss = (layer: Container, x: number, y: number) => {
+  const text = createStageText("MISS", {
     fontFamily: Fonts.latin,
+    fontSize: 18,
+    fontWeight: "700",
+    fill: Palette.textMuted,
+    letterSpacing: 2,
+  })
+  text.anchor.set(0.5)
+  text.position.set(x, y + 6)
+  text.alpha = 0
+  layer.addChild(text)
+  gsap.to(text, {
+    keyframes: [
+      { alpha: 1, y, duration: MissSeconds * 0.15 },
+      { y: y - 18, duration: MissSeconds * 0.45 },
+      { alpha: 0, y: y - 26, duration: MissSeconds * 0.4 },
+    ],
+    onComplete: () => dispose(text),
+  })
+}
+
+export type PlateTone = "gold" | "muted"
+
+const plateColors: Record<PlateTone, number> = { gold: Palette.gold, muted: Palette.textMuted }
+
+// 名牌：黑底描邊的橫排字，放大落下、停留、淡出；暴擊、升級用金色，膠著用淡色
+export const playPlate = (
+  layer: Container,
+  x: number,
+  y: number,
+  label: string,
+  tone: PlateTone,
+  maxWidth: number,
+) => {
+  const color = plateColors[tone]
+  const text = createStageText(label, {
+    fontFamily: PlateFontFamily,
     fontSize: 22,
     fontWeight: "700",
-    fill: Palette.gold,
+    fill: color,
     letterSpacing: 3,
   })
   text.anchor.set(0.5)
-  const plate = createPlate(text, 16, 6)
-  const criticalPlate = new Container()
-  criticalPlate.addChild(plate, text)
-  criticalPlate.position.set(x, y)
-  criticalPlate.rotation = degrees(-6)
-  criticalPlate.scale.set(2.2)
-  criticalPlate.alpha = 0
-  layer.addChild(criticalPlate)
-  gsap.to(criticalPlate.scale, { x: 1, y: 1, duration: PlateSeconds * 0.08, ease: "power2.in" })
-  gsap.to(criticalPlate, {
+  const plate = createPlate(text, 16, 6, color)
+  const plateGroup = new Container()
+  plateGroup.addChild(plate, text)
+  // 玩家取的必殺技名可能很長，縮到舞台寬度內
+  const restingScale = Math.min(1, maxWidth / plateGroup.width)
+  plateGroup.position.set(x, y)
+  plateGroup.rotation = degrees(-6)
+  plateGroup.scale.set(2.2 * restingScale)
+  plateGroup.alpha = 0
+  layer.addChild(plateGroup)
+  gsap.to(plateGroup.scale, {
+    x: restingScale,
+    y: restingScale,
+    duration: PlateSeconds * 0.08,
+    ease: "power2.in",
+  })
+  gsap.to(plateGroup, {
     keyframes: [
       { alpha: 0.95, duration: PlateSeconds * 0.08 },
       { alpha: 0.95, duration: PlateSeconds * 0.62 },
       { alpha: 0, duration: PlateSeconds * 0.3 },
     ],
-    onComplete: () => dispose(criticalPlate),
+    onComplete: () => dispose(plateGroup),
   })
 }
 
@@ -125,7 +199,56 @@ export const playHitShake = (body: Container) => {
   gsap.to(body, { keyframes: [6, -4, 3, 0].map((x) => ({ x, duration: step, ease: "none" })) })
 }
 
-// 妖怪倒下：淡色光霧擴散後淡去
+// 超限收手：雙方各自後退一步再回到原位
+export const playStandOff = (body: Container, direction: -1 | 1) => {
+  gsap.killTweensOf(body, "x")
+  body.x = 0
+  gsap.to(body, {
+    keyframes: [
+      { x: direction * 14, duration: StandOffSeconds * 0.3, ease: "power2.out" },
+      { x: direction * 14, duration: StandOffSeconds * 0.3 },
+      { x: 0, duration: StandOffSeconds * 0.4, ease: "sine.inOut" },
+    ],
+  })
+}
+
+// 升級：角色身上泛起金光，擴散後淡去
+export const playLevelUpFlash = (layer: Container, x: number, y: number) => {
+  const glow = new Graphics()
+    .ellipse(0, 0, 58, 92)
+    .fill({ color: Palette.gold, alpha: 0.18 })
+    .ellipse(0, 0, 36, 70)
+    .fill({ color: Palette.gold, alpha: 0.32 })
+  glow.filters = [new BlurFilter({ strength: 8 })]
+  glow.position.set(x, y)
+  glow.scale.set(0.7)
+  glow.alpha = 0
+  layer.addChild(glow)
+  gsap.to(glow.scale, { x: 1.15, y: 1.15, duration: LevelUpFlashSeconds, ease: "power1.out" })
+  gsap.to(glow, {
+    keyframes: [
+      { alpha: 1, duration: LevelUpFlashSeconds * 0.15 },
+      { alpha: 0.8, duration: LevelUpFlashSeconds * 0.35 },
+      { alpha: 0, duration: LevelUpFlashSeconds * 0.5 },
+    ],
+    onComplete: () => dispose(glow),
+  })
+}
+
+// 住宿：整個舞台暗下再亮回來，時長取等待時間與上限的較小者
+export const playFade = (scene: Container, waitSeconds: number) => {
+  const duration = Math.min(waitSeconds, RestFadeMaxSeconds)
+  gsap.killTweensOf(scene, "alpha")
+  gsap.to(scene, {
+    keyframes: [
+      { alpha: 0.15, duration: duration * 0.4, ease: "power1.in" },
+      { alpha: 0.15, duration: duration * 0.2 },
+      { alpha: 1, duration: duration * 0.4, ease: "power1.out" },
+    ],
+  })
+}
+
+// 怪物倒下：淡色光霧擴散後淡去
 export const playImpactBurst = (layer: Container, x: number, y: number) => {
   const burst = new Graphics()
     .circle(0, 0, 65)
@@ -155,14 +278,19 @@ export const playImpactBurst = (layer: Container, x: number, y: number) => {
   })
 }
 
-// 名牌底板：以文字為中心的黑底金邊圓角框
-export const createPlate = (text: Text, paddingX: number, paddingY: number) => {
+// 名牌底板：以文字為中心的黑底描邊圓角框
+export const createPlate = (
+  text: Text,
+  paddingX: number,
+  paddingY: number,
+  borderColor: number = Palette.gold,
+) => {
   const width = text.width + paddingX * 2
   const height = text.height + paddingY * 2
   return new Graphics()
     .roundRect(-width / 2, -height / 2, width, height, 6)
     .fill({ color: Palette.night, alpha: 0.9 })
-    .stroke({ width: 1, color: Palette.gold })
+    .stroke({ width: 1, color: borderColor })
 }
 
 // 底部霧氣：由透明漸到白色 6%

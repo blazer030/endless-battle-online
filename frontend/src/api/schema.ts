@@ -272,22 +272,61 @@ export interface components {
         };
         AdvanceResponse: {
             events: components["schemas"]["BattleEvent"][];
-            /** Format: int64 */
-            expGained: number;
-            /** Format: int64 */
-            moneyGained: number;
+            summary: components["schemas"]["AdvanceSummary"];
+            eventsCoverAll: boolean;
             character: components["schemas"]["CharacterResponse"];
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventRewardEvent"];
+        AdvanceSummary: {
+            /** Format: int32 */
+            fights: number;
+            /** Format: int32 */
+            wins: number;
+            /** Format: int32 */
+            losses: number;
+            /** Format: int32 */
+            timeouts: number;
+            /** Format: int64 */
+            exp: number;
+            /** Format: int64 */
+            money: number;
+            /** Format: int64 */
+            jobExp: number;
+            /** Format: int32 */
+            levelsGained: number;
+        };
+        /** @enum {unknown} */
+        AttackKind: "Physical" | "Magic";
+        BaseStats: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            life: number;
+            /** Format: int32 */
+            vit: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+            /** Format: int32 */
+            be: number;
+        };
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
             attacker: components["schemas"]["CombatSide"];
+            kind: components["schemas"]["AttackKind"];
+            hit: boolean;
+            critical: boolean;
             /** Format: int32 */
             damage: number;
-            isCritical: boolean;
+            /** Format: double */
+            elementMultiplier: number;
             /** Format: int32 */
-            targetHealthAfter: number;
+            targetHpAfter: number;
+            specialAttackName: null | string;
             /** Format: double */
             atSeconds: number;
         };
@@ -303,9 +342,38 @@ export interface components {
             type?: "encounter";
             monsterId: string;
             /** Format: int32 */
-            monsterMaxHealth: number;
+            monsterHp: number;
             /** Format: int32 */
-            playerMaxHealth: number;
+            monsterHpMax: number;
+            /** Format: int32 */
+            playerHp: number;
+            /** Format: int32 */
+            playerHpMax: number;
+            /** Format: int32 */
+            playerSp: number;
+            /** Format: int32 */
+            playerSpMax: number;
+            staminaDepleted: boolean;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventLevelUpEvent: {
+            /** @enum {string} */
+            type?: "levelUp";
+            /** Format: int32 */
+            newLevel: number;
+            growth: components["schemas"]["BaseStats"];
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventRestEvent: {
+            /** @enum {string} */
+            type?: "rest";
+            /** Format: int64 */
+            cost: number;
+            expPenalty: boolean;
+            /** Format: double */
+            waitSeconds: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -313,9 +381,29 @@ export interface components {
             /** @enum {string} */
             type?: "reward";
             /** Format: int64 */
-            experience: number;
+            exp: number;
             /** Format: int64 */
-            spiritStones: number;
+            money: number;
+            /** Format: int64 */
+            jobExp: number;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventRoundEvent: {
+            /** @enum {string} */
+            type?: "round";
+            /** Format: int32 */
+            round: number;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventTimeoutEvent: {
+            /** @enum {string} */
+            type?: "timeout";
+            /** Format: int32 */
+            rounds: number;
+            /** Format: int32 */
+            damageDealt: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -344,6 +432,11 @@ export interface components {
             specialAttackName: string;
             stats: components["schemas"]["StatsResponse"];
             currentStageId: string;
+            /** Format: int32 */
+            actNum: number;
+            /** Format: int32 */
+            actNumMax: number;
+            jobProficiency: components["schemas"]["JobProficiencyResponse"][];
         };
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
@@ -382,6 +475,13 @@ export interface components {
             /** Format: int32 */
             proficiencyRequired: number;
             statRequirements: components["schemas"]["StatRequirementContent"][];
+        };
+        JobProficiencyResponse: {
+            jobId: string;
+            /** Format: int64 */
+            proficiency: number;
+            /** Format: int64 */
+            skillPoints: number;
         };
         LoginResponse: {
             accessToken: string;

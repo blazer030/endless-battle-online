@@ -6,6 +6,7 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
 import type { CharacterView, ContentNames } from "../game/types"
+import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BattleLog } from "./BattleLog"
@@ -47,13 +48,15 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
   const [tab, setTab] = useState<Tab>("adventure")
+  // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
+  const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
   const currentMonsterName = useRef<string | null>(null)
   const nextLineId = useRef(0)
 
-  // 舞台 chunk 載入期間 handle 還不存在，接上時補播目前這隻妖怪與血量
+  // 舞台 chunk 載入期間 handle 還不存在，接上時補播目前這隻怪物與血量
   const attachStage = useCallback((handle: StageHandle | null) => {
     stageHandle.current = handle
     const state = stageState.current
@@ -78,6 +81,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     }
   }, [api])
 
+  useEffect(() => {
+    if (levelUpHint === null) return
+    const timer = setTimeout(() => setLevelUpHint(null), LevelUpHintMilliseconds)
+    return () => clearTimeout(timer)
+  }, [levelUpHint])
+
   const stageName =
     content?.stages.find((stage) => stage.id === character.currentStageId)?.name ??
     character.currentStageId
@@ -88,7 +97,8 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     for (const item of items) {
       if (item.kind === "event") {
         const { event } = item
-        stageState.current = applyToStage(stageState.current, event)
+        const previousState = stageState.current
+        stageState.current = applyToStage(previousState, event)
         if (event.type === "encounter") {
           currentMonsterName.current = monsterName(event.monsterId)
           stageHandle.current?.showEncounter(
@@ -96,13 +106,15 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             currentMonsterName.current,
             stageState.current,
           )
-        } else if (event.type === "attack") {
+        } else if (stageState.current !== previousState) {
           stageHandle.current?.updateHealth(stageState.current)
         }
+        if (event.type === "levelUp") setLevelUpHint(event.newLevel)
         stageHandle.current?.play(stageEffectsFor(event))
       }
-      const line = describePlaybackItem(item, monsterName, stageState.current.monsterId)
-      if (line !== null) added.push({ id: nextLineId.current++, ...line })
+      for (const line of describePlaybackItem(item, monsterName, stageState.current.monsterId)) {
+        added.push({ id: nextLineId.current++, ...line })
+      }
     }
     setLines((previous) => [...previous, ...added].slice(-MaxLogLines))
     setCharacter(playback.displayedCharacter)
@@ -114,15 +126,21 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         <span className="adventure__identity">
           <span className="adventure__name">{character.name}</span>
           <span className="adventure__level">{`Lv ${character.level}`}</span>
+          {levelUpHint !== null && (
+            <span key={levelUpHint} className="adventure__level-up" role="status">
+              升級！
+            </span>
+          )}
         </span>
         <span className="adventure__money">{`金錢 ${formatNumber(character.money)}`}</span>
+        <span className="adventure__stamina">{`行動力 ${character.actNum}/${character.actNumMax}`}</span>
         <span className="adventure__exp">
           <span className="adventure__exp-label">EXP</span>
           <StatBar label="EXP" value={character.exp} max={character.nextExp} tone="exp" />
           <span className="adventure__exp-value">{`${formatNumber(character.exp)} / ${formatNumber(character.nextExp)}`}</span>
         </span>
       </header>
-      {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
+      {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到怪物名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
       {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
       <main className="adventure__main">
         {/* 切到角色分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}

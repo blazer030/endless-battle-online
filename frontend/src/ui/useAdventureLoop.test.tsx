@@ -5,15 +5,15 @@ import type { ApiClient } from "../api/client"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { AdvanceResponse, CharacterView } from "../game/types"
 import { PollIntervalMilliseconds, RequestTimeoutMilliseconds } from "../motion/timings"
-import { makeCharacter } from "../test/fixtures"
+import { makeCharacter, makeSummary } from "../test/fixtures"
 import { useAdventureLoop } from "./useAdventureLoop"
 
 const character: CharacterView = makeCharacter()
 
 const emptyResponse: AdvanceResponse = {
   events: [],
-  expGained: 0,
-  moneyGained: 0,
+  summary: makeSummary(),
+  eventsCoverAll: true,
   character,
 }
 
@@ -144,8 +144,13 @@ test("adventureLoop_HandsDueItemsToOnItems", async () => {
         type: "encounter",
         atSeconds: 0,
         monsterId: "test-wolf",
-        monsterMaxHealth: 60,
-        playerMaxHealth: 120,
+        monsterHp: 60,
+        monsterHpMax: 60,
+        playerHp: 120,
+        playerHpMax: 120,
+        playerSp: 10,
+        playerSpMax: 10,
+        staminaDepleted: false,
       },
     ],
   }

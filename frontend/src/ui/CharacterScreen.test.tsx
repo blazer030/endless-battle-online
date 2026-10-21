@@ -14,8 +14,13 @@ const character: CharacterView = makeCharacter({
   sex: 2,
   element: 3,
   birth: 4,
+  jobId: "sorcerer",
   jobName: "術士",
   specialAttackName: "星落",
+  jobProficiency: [
+    { jobId: "warrior", proficiency: 9000, skillPoints: 9000 },
+    { jobId: "sorcerer", proficiency: 1234, skillPoints: 300 },
+  ],
   stats: {
     str: 14,
     smart: 31,
@@ -64,6 +69,13 @@ test("CharacterScreen_ShowsProfile", () => {
   expect(valueOf("屬性")).toHaveTextContent("火")
   expect(valueOf("出生地")).toHaveTextContent("末日王城")
   expect(valueOf("必殺技")).toHaveTextContent("星落")
+  expect(valueOf("職業熟練度")).toHaveTextContent(/^1,234$/)
+})
+
+test("CharacterScreen_ShowsZeroProficiency_WhenCurrentJobHasNone", () => {
+  render(<CharacterScreen character={{ ...character, jobProficiency: [] }} content={content} />)
+
+  expect(valueOf("職業熟練度")).toHaveTextContent(/^0$/)
 })
 
 test("CharacterScreen_ShowsProportionalBars", () => {
