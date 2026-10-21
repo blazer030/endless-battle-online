@@ -312,6 +312,64 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Player).Take(2));
     }
 
+    // 嗜血只在命中後擲骰。怪物 150 血。
+    // 第 1 回合：先攻 0.0；命中 0.99 未命中 → 不擲嗜血；怪物命中 0.99 未命中。
+    // 第 2 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150 擊倒；嗜血 0.99 → 100 > 70 不發動。共 3 + 5 = 8 顆
+    [Fact]
+    public void Battle_BloodthirstRollsOnlyOnHit()
+    {
+        var random = new ScriptedRandom(0.0, 0.0, 0.99, 0.99, 0.0, 0.0, 0.99, 0.0, 0.99);
+
+        var outcome = WogBattle.Run(Player(hp: 500), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, chance: 70, slot: 4)], random);
+
+        Assert.Equal(8, random.Consumed);
+        Assert.Empty(outcome.Events.OfType<SkillEvent>());
+        Assert.Equal(CombatSide.Player, outcome.Winner);
+        Assert.Equal(2, outcome.Rounds);
+    }
+
+    // 治癒 lv3 = 35，以當下 HP 封頂（不是開戰時的 HP）。怪物 at 60 打 df 50：60·1.2 − 50 = 22。
+    // 第 1 回合：治癒 0.99 → 100 > 50 不發動；先攻 0.99 怪物先；命中 0.0、暴擊 0.99、傷害 0.0 → 100 → 78；玩家命中 0.99 未命中。
+    // 第 2 回合：治癒 0.0 → 發動，回復 min(35, 100 − 78) = 22。之後全是 0.99：治癒不發動、雙方都未命中
+    [Fact]
+    public void Battle_HealCapsAtCurrentHp()
+    {
+        var random = new ScriptedRandom(0.99, 0.99, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0);
+
+        var outcome = WogBattle.Run(Player(hp: 100, hpMax: 100), Monster(at: 60), null, [Equip(Heal, level: 3, chance: 50)], random);
+
+        Assert.Equal(new SkillEvent(0.8, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, Heal: 22), Assert.Single(outcome.Events.OfType<SkillEvent>()));
+        Assert.Equal(100, outcome.Player.Hp);
+    }
+
+    // 反擊只減物理傷害。怪物 at 0 < mat 100，攻擊方式 0.0 → 1 ≤ 8 魔法：mat 100 打 mdf 50 = 150，不乘 0.82。
+    // 擲骰：反擊 0.0；先攻 0.99 怪物先；攻擊方式 0.0；暴擊 0.99；傷害 0.0；玩家命中 0.99 未命中
+    [Fact]
+    public void Battle_CounterDoesNotReduceMagicDamage()
+    {
+        var random = new ScriptedRandom(0.99, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
+
+        var outcome = WogBattle.Run(Player(), Monster(mat: 100), null, [Equip(Counter, level: 5, chance: 70, slot: 4)], random);
+
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Monster, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
+            AttacksBy(outcome, CombatSide.Monster)[0]);
+    }
+
+    // 急影 lv5：agi 20 ×1.05 = 21 > 怪物 20 → 先攻門檻由 30 變 70。
+    // 擲骰：急影 0.0；先攻 0.5 → 51（≤ 70 玩家先；沒有急影時 > 30 怪物先）
+    [Fact]
+    public void Battle_FirstStrikeUsesModifiedAgi()
+    {
+        var swiftShadow = TestSkills.Battle("swift-shadow", "急影", SkillEffectKind.AgiMultiplier, SkillType.Passive);
+
+        var outcome = WogBattle.Run(Player(), Monster() with { Agi = 20 }, null, [Equip(swiftShadow, level: 5, chance: 70, slot: 4)], new ScriptedRandom(0.99, 0.0, 0.5));
+
+        var first = outcome.Events.OfType<AttackEvent>().First();
+        Assert.Equal(CombatSide.Player, first.Attacker);
+        Assert.Equal(0, first.AtSeconds);
+    }
+
     // 固定種子的整場戰鬥：數值是加入技能前（a61c9de）的舊程式跑出來的，新舊兩個多載都必須完全相同
     [Fact]
     public void Battle_WithoutSkills_IsUnchanged()

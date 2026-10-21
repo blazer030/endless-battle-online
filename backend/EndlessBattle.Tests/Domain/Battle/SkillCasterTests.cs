@@ -37,6 +37,17 @@ public class SkillCasterTests
         Assert.Equal(new BattleModifiers(), caster.Current with { At = 1, Df = 1 });
     }
 
+    // SP 剛好等於消耗（爆氣 lv1 sp 5）也能施放，施放後 SP 為 0
+    [Fact]
+    public void Caster_CastsWhenSpEqualsCost()
+    {
+        var caster = new SkillCaster(Player(sp: 5), [new EquippedSkill(Burst, Level: 1, Chance: 100, Slot: 1)]);
+
+        var cast = Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, new ScriptedRandom(0.99)));
+
+        Assert.Equal(0, cast.SpAfter);
+    }
+
     // 技能表的公式（value = lv）；玩家 str 100、au 25
     public static TheoryData<SkillEffectKind, int, BattleModifiers> EffectFormulas => new()
     {
