@@ -17,6 +17,9 @@ public static class AdventureSimulator
     // spec §7.1 的 HP 門檻，先固定；死亡（HP ≤ 0）一定在門檻之下
     public const double AutoRestHpRatio = 0.15;
 
+    // SP 只有住宿才會回復，所以只在裝備了技能時才看 SP 門檻；沒有技能的角色 SP 低也不影響戰鬥
+    public const double AutoRestSpRatio = 0.15;
+
     // 超限時 WOG 以怪物等級 × 0.6、累計傷害 / 1.5 計算部分經驗
     private const double TimeoutLevelFactor = 0.6;
     private const double TimeoutDamageDivisor = 1.5;
@@ -47,8 +50,10 @@ public static class AdventureSimulator
             var keepEvents = cursor >= windowStart;
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
-            // 死亡或 HP 低於門檻時，先住宿再開打
-            if (character.Hp < DerivedStats.From(character.Base).HpMax * AutoRestHpRatio)
+            // 死亡、HP 低於門檻，或（有技能時）SP 低於門檻，先住宿再開打
+            var derived = DerivedStats.From(character.Base);
+            if (character.Hp < derived.HpMax * AutoRestHpRatio
+                || (skills.Count > 0 && character.Sp < derived.SpMax * AutoRestSpRatio))
             {
                 var rest = Hotel.Rest(character);
                 character = rest.Character;

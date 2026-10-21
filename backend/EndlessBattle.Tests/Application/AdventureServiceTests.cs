@@ -186,28 +186,28 @@ public class AdventureServiceTests
         await loadout.ReplaceAsync(character.Id, slots, CancellationToken);
     }
 
-    // 欄位依序 1→5 擲骰（全部擲 1）：第一場 burst lv2 耗 8（25 → 17）、iron-skin lv1 耗 5（→ 12）；
-    // 第二場 burst 12 → 4，iron-skin 不足 5；之後 SP 4 都不夠。欄 2 的 combo 不在技能書裡 → 略過
+    // 欄位依序 1→5 擲骰（全部擲 1），SP 91 滿；5 秒內開 2 場（0、2.8 秒；下一場 5.6 秒不開）：
+    // 每場 burst lv2 耗 8、iron-skin lv1 耗 5：91 → 83 → 78 → 70 → 65。欄 2 的 combo 不在技能書裡 → 略過
     [Fact]
     public async Task Advance_BuildsLoadoutFromBookAndSlots()
     {
-        var character = await AddCharacterAsync();
+        var character = await AddCharacterAsync(character => character with { Sp = 91 });
         await EquipAsync(
             character,
             [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1)],
             [new SkillSlot(1, "burst", 100), new SkillSlot(2, "combo", 50), new SkillSlot(4, "iron-skin", 30)]);
-        clock.Advance(TimeSpan.FromSeconds(20));
+        clock.Advance(TimeSpan.FromSeconds(5));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         Assert.Equal(
-            [("burst", 2, 17), ("iron-skin", 1, 12), ("burst", 2, 4)],
+            [("burst", 2, 83), ("iron-skin", 1, 78), ("burst", 2, 70), ("iron-skin", 1, 65)],
             result.Events.OfType<SkillEvent>().Select(skill => (skill.SkillId, skill.Level, skill.SpAfter)));
-        Assert.Equal(3, result.Summary.SkillsCast);
-        Assert.Equal(4, result.Character.Sp);
+        Assert.Equal(4, result.Summary.SkillsCast);
+        Assert.Equal(65, result.Character.Sp);
     }
 
-    // 轉職與推進競態時欄 4 可能還留著別職業的被動：不施放。主動欄照 WOG 不限職業，thief 仍可用 burst（25 → 20 → … → 0）
+    // 轉職與推進競態時欄 4 可能還留著別職業的被動：不施放。主動欄照 WOG 不限職業，thief 仍可用 burst（6 秒開 3 場：25 → 20 → 15 → 10）
     [Fact]
     public async Task Advance_IgnoresPassiveSlotOfOtherJob()
     {
@@ -216,12 +216,12 @@ public class AdventureServiceTests
             character,
             [new LearnedSkill("burst", 1), new LearnedSkill("iron-skin", 1)],
             [new SkillSlot(1, "burst", 100), new SkillSlot(4, "iron-skin", 30)]);
-        clock.Advance(TimeSpan.FromSeconds(20));
+        clock.Advance(TimeSpan.FromSeconds(6));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal(Enumerable.Repeat("burst", 5), result.Events.OfType<SkillEvent>().Select(skill => skill.SkillId));
-        Assert.Equal(5, result.Summary.SkillsCast);
+        Assert.Equal(Enumerable.Repeat("burst", 3), result.Events.OfType<SkillEvent>().Select(skill => skill.SkillId));
+        Assert.Equal(3, result.Summary.SkillsCast);
     }
 
     [Fact]

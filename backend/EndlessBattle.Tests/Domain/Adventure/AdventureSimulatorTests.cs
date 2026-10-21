@@ -259,6 +259,16 @@ public class AdventureSimulatorTests
         static string FirstMonster(AdventureRun run) => run.Events.OfType<EncounterEvent>().First().MonsterId;
     }
 
+    // 英雄 HP 滿（350）、SP 13／91（< 15% = 13.65；14 則不住宿）。有技能 → 開打前先住宿（0 秒），住宿後 SP 回滿再開打；沒有技能 → 直接開打
+    [Fact]
+    public void Adventure_RestsWhenSpBelowThreshold_OnlyWithSkills()
+    {
+        var hero = Hero() with { Hp = 350, Sp = 13 };
+
+        Assert.IsType<RestEvent>(Run(hero, seconds: 1, skills: [Burst]).Events[0]);
+        Assert.IsType<EncounterEvent>(Run(hero, seconds: 1).Events[0]);
+    }
+
     // 英雄在子地區 2：怪物 first 只在子地區 1、second 只在子地區 2，擲骰 0 時只有 second 入選
     [Fact]
     public void Adventure_PicksBySubPlace()
@@ -284,17 +294,18 @@ public class AdventureSimulatorTests
         Assert.Equal(15, run.Character.Sp);
     }
 
-    // 120 秒 43 場（見 Adventure_KeepsOnlyLastThirtySecondsOfEvents）；SP 25 只夠前 5 場各施放一次（→ 0），
-    // 這 5 場都在 90 秒之前、事件被略去，摘要仍要計入
+    // 每場耗 SP 5，開打前 SP < 91 × 15% = 13.65 就住宿（5 秒，回滿 91）。時間線（每場 2.8 秒）：
+    // 0～8.4 秒 3 場（SP 25 → 10）、住宿到 13.4；16 場到 58.2（91 → 11）、住宿到 63.2；16 場到 108、住宿到 113；113、115.8、118.6 各 1 場。
+    // 共 38 場、38 次施放、結束於 121.4 秒。只保留 90 秒起開打的場次：63.2 起第 11 場（91.2）起 6 場 + 最後 3 場 = 9 場的施放事件；其餘施放仍要計入
     [Fact]
     public void Adventure_CountsSkillsCastAcrossDroppedFights()
     {
         var run = Run(Hero(), seconds: 120, skills: [Burst]);
 
-        Assert.Equal(43, run.Summary.Fights);
-        Assert.Empty(run.Events.OfType<SkillEvent>());
-        Assert.Equal(5, run.Summary.SkillsCast);
-        Assert.Equal(0, run.Character.Sp);
+        Assert.Equal(38, run.Summary.Fights);
+        Assert.Equal(9, run.Events.OfType<SkillEvent>().Count());
+        Assert.Equal(38, run.Summary.SkillsCast);
+        Assert.Equal(91 - 3 * 5, run.Character.Sp);
     }
 
     // 擲骰一律 0.5 → 發動擲骰 rand(1,100) = 51：欄位發動率 10 永遠不施放，100 則施放
