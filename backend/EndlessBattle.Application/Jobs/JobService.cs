@@ -28,7 +28,8 @@ public sealed class JobService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
     ISkillLoadoutRepository loadout,
-    IGameContent content)
+    IGameContent content,
+    IClock clock)
 {
     public async Task<IReadOnlyList<JobOption>> ListAsync(long accountId, CancellationToken cancellationToken)
     {
@@ -73,7 +74,7 @@ public sealed class JobService(
         var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
         var slots = await loadout.ListAsync(character.Id, cancellationToken);
         await loadout.ReplaceAsync(character.Id, slots.Where(slot => !SkillLoadout.IsPassiveSlot(slot.Slot)).ToList(), cancellationToken);
-        return new CharacterProfile(updated, rows);
+        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), rows);
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
