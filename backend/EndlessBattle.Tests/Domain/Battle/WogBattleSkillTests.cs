@@ -35,6 +35,19 @@ public class WogBattleSkillTests
     private static List<AttackEvent> AttacksBy(BattleOutcome outcome, CombatSide side) =>
         outcome.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == side).ToList();
 
+    // 連打的時間是半回合平分後的小數，時間比到小數 6 位，其餘欄位完全相同
+    private static void AssertEventsAt(IEnumerable<BattleEvent> expected, IEnumerable<BattleEvent> actual)
+    {
+        var expectedEvents = expected.ToList();
+        var actualEvents = actual.ToList();
+        Assert.Equal(expectedEvents.Count, actualEvents.Count);
+        foreach (var (expectedEvent, actualEvent) in expectedEvents.Zip(actualEvents))
+        {
+            Assert.Equal(expectedEvent.AtSeconds, actualEvent.AtSeconds, 6);
+            Assert.Equal(expectedEvent, actualEvent with { AtSeconds = expectedEvent.AtSeconds });
+        }
+    }
+
     // SP 4 < 爆氣 lv1 的 5：整場不發動、不扣 SP，也不擲發動骰，所以事件與耗用的亂數都和沒有技能時相同
     [Fact]
     public void Battle_SkipsSkillWhenSpInsufficient()
@@ -77,7 +90,7 @@ public class WogBattleSkillTests
         Assert.Equal(83, outcome.Player.Sp);
     }
 
-    // 連擊 lv2（sp 8）：物理 3 下、每下 at ×0.98 → 98：98·1.96 − 50 = 142.08 → 142；每下 +0.1 秒、各自擲命中／暴擊／傷害。
+    // 連擊 lv2（sp 8）：物理 3 下、每下 at ×0.98 → 98：98·1.96 − 50 = 142.08 → 142；平均分在攻方的半回合（0.4 秒）內：0、0.1333、0.2667，各自擲命中／暴擊／傷害。
     // 擲骰：連擊 0.0；先攻 0.0；第 1 下 命中 0.0、暴擊 0.99、傷害 0.0；第 2 下 命中 0.99 → 100 未命中；
     // 第 3 下 命中 0.0、暴擊 0.99、傷害 0.0；怪物命中 0.99 未命中
     [Fact]
@@ -87,20 +100,39 @@ public class WogBattleSkillTests
 
         var outcome = WogBattle.Run(Player(), Monster(), null, [Equip(Combo, level: 2)], random);
 
-        Assert.Equal(
+        AssertEventsAt(
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
                 new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 858, SpecialAttackName: null),
-                new AttackEvent(0.1, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 858, SpecialAttackName: null),
-                new AttackEvent(0.2, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 716, SpecialAttackName: null),
+                new AttackEvent(0.133333, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 858, SpecialAttackName: null),
+                new AttackEvent(0.266667, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 716, SpecialAttackName: null),
                 new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 1000, SpecialAttackName: null),
             },
             outcome.Events.Take(6));
     }
 
-    // 同上的 142 點連打，怪物只有 200 血：第 2 下擊倒（0.1 秒）就停，不打第 3 下。
+    // 連擊 lv5 → 6 下，間隔 0.4 / 6 = 0.0667：最後一下 0.3333 仍早於怪物在 0.4 出手。
+    // 擲骰：連擊 0.0；先攻 0.0；6 下命中都擲 0.99 → 未命中（不再擲暴擊／傷害）；怪物命中 0.99 未命中
+    [Fact]
+    public void Battle_ComboHitsStayInsideHalfRound()
+    {
+        var outcome = WogBattle.Run(Player(), Monster(), null, [Equip(Combo, level: 5)], new ScriptedRandom(0.99, 0.0, 0.0));
+
+        var firstRound = outcome.Events.OfType<AttackEvent>().Where(attack => attack.AtSeconds < BattleTiming.SecondsPerRound).ToList();
+        var playerHits = firstRound.Where(attack => attack.Attacker == CombatSide.Player).Select(attack => attack.AtSeconds).ToList();
+        Assert.Equal(6, playerHits.Count);
+        foreach (var (expected, actual) in new[] { 0, 1 / 15.0, 2 / 15.0, 3 / 15.0, 4 / 15.0, 5 / 15.0 }.Zip(playerHits))
+        {
+            Assert.Equal(expected, actual, 6);
+        }
+
+        Assert.True(playerHits[^1] < 0.4);
+        Assert.Equal(0.4, firstRound.Single(attack => attack.Attacker == CombatSide.Monster).AtSeconds);
+    }
+
+    // 同上的 142 點連打，怪物只有 200 血：第 2 下擊倒（0.1333 秒）就停，不打第 3 下。
     // 擲骰：連擊 0.0；先攻 0.0；兩下都是 命中 0.0、暴擊 0.99、傷害 0.0
     [Fact]
     public void Battle_ComboStopsWhenMonsterFalls()
@@ -109,14 +141,14 @@ public class WogBattleSkillTests
 
         var outcome = WogBattle.Run(Player(), Monster(hp: 200), null, [Equip(Combo, level: 2)], random);
 
-        Assert.Equal(
+        AssertEventsAt(
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
                 new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 58, SpecialAttackName: null),
-                new AttackEvent(0.1, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
-                new DefeatEvent(0.1, CombatSide.Monster),
+                new AttackEvent(0.133333, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new DefeatEvent(0.133333, CombatSide.Monster),
             },
             outcome.Events);
     }
@@ -258,7 +290,7 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Player)[0]);
     }
 
-    // 附加傷 lv5：round(au 10 × 0.4) = 4，物理與魔法每次命中都加；魔連擊 lv1 → 魔法 2 下。
+    // 附加傷 lv5：round(au 10 × 0.4) = 4，物理與魔法每次命中都加；魔連擊 lv1 → 魔法 2 下（0、0.2 秒）。
     // 玩家指定魔法、mat 100 打 mdf 50 = 150 + 4 = 154。擲骰：魔連擊 0.0、附加傷 0.0；先攻 0.0；
     // 兩下各 暴擊 0.99（au 相同，機率 10）、傷害 0.0；怪物命中 0.99 未命中
     [Fact]
@@ -271,11 +303,11 @@ public class WogBattleSkillTests
 
         var outcome = WogBattle.Run(player, Monster(), AttackKind.Magic, [Equip(magicCombo, level: 1), Equip(bonusStrike, level: 5, slot: 2)], random);
 
-        Assert.Equal(
+        AssertEventsAt(
             new[]
             {
                 new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: false, Damage: 154, ElementMultiplier: 1.0, TargetHpAfter: 846, SpecialAttackName: null),
-                new AttackEvent(0.1, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: false, Damage: 154, ElementMultiplier: 1.0, TargetHpAfter: 692, SpecialAttackName: null),
+                new AttackEvent(0.2, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: false, Damage: 154, ElementMultiplier: 1.0, TargetHpAfter: 692, SpecialAttackName: null),
             },
             AttacksBy(outcome, CombatSide.Player).Take(2));
     }

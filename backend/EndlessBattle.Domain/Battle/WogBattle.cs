@@ -9,9 +9,6 @@ public static class WogBattle
     // 同一回合的後攻者晚半回合出手
     private const double SecondStrikeOffsetSeconds = BattleTiming.SecondsPerRound / 2;
 
-    // 連打時同一次出手內每下的間隔
-    private const double MultiHitIntervalSeconds = 0.1;
-
     public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IRandomSource random) =>
         Run(player, monster, playerPreferred, [], random);
 
@@ -61,13 +58,14 @@ public static class WogBattle
         bool Strike(CombatSide attacker, double atSeconds) =>
             attacker == CombatSide.Player ? PlayerStrike(atSeconds) : MonsterStrike(atSeconds);
 
-        // 連打每下各自擲命中／暴擊／傷害，擊倒就停
+        // 連打每下各自擲命中／暴擊／傷害，擊倒就停；各下平均分在攻方的半回合內，最後一下早於對手出手
         bool PlayerStrike(double atSeconds)
         {
             var hits = playerKind == AttackKind.Physical ? modifiers.PhysicalHits : modifiers.MagicHits;
+            var intervalSeconds = SecondStrikeOffsetSeconds / hits;
             for (var hit = 0; hit < hits; hit++)
             {
-                var hitSeconds = atSeconds + hit * MultiHitIntervalSeconds;
+                var hitSeconds = atSeconds + hit * intervalSeconds;
                 var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CritChanceBonus, modifiers.BonusDamage);
                 monsterHp = Math.Max(0, monsterHp - result.Damage);
                 damageDealt += result.Damage;
