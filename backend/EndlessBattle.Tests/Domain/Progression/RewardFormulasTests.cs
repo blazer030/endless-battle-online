@@ -15,7 +15,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_KilledSnowSpriteAtLevelOne()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpRemaining: 0, playerLevel: 1, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 0, playerLevel: 1, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
 
         Assert.Equal(116, exp);
     }
@@ -24,7 +24,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_HalvesWhenStaminaDepleted()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpRemaining: 0, playerLevel: 1, killed: true, fDown: 0.5, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 0, playerLevel: 1, killed: true, fDown: 0.5, new ScriptedRandom(0.0));
 
         Assert.Equal(58, exp);
     }
@@ -33,9 +33,9 @@ public class RewardFormulasTests
     // 11 × 1.3 = 14.3；3 × 14.3 × 3 × 0.5 × 0.18 = 11.583；× 0.5 = 5.7915
     // × 2.5 = 14.47875；× 2 × 1 = 28.9575 → round 29
     [Fact]
-    public void Exp_UnkilledScalesByRemainingHpRatio()
+    public void Exp_UnkilledScalesByHpValueRatio()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpRemaining: 30, playerLevel: 1, killed: false, fDown: 1.0, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 30, playerLevel: 1, killed: false, fDown: 1.0, new ScriptedRandom(0.0));
 
         Assert.Equal(29, exp);
     }
@@ -47,7 +47,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_UsesLevelOverride()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpRemaining: 40, playerLevel: 1, killed: false, fDown: 1.0, new ScriptedRandom(0.99), levelOverride: 1.8);
+        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 40, playerLevel: 1, killed: false, fDown: 1.0, new ScriptedRandom(0.99), levelOverride: 1.8);
 
         Assert.Equal(20, exp);
     }
@@ -60,7 +60,7 @@ public class RewardFormulasTests
     {
         var dragon = SnowSprite with { Level = 450, Hp = 1000, At = 100, Mat = 100 };
 
-        var exp = RewardFormulas.Exp(dragon, monsterHpRemaining: 0, playerLevel: 200, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Exp(dragon, monsterHpValue: 0, playerLevel: 200, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
 
         Assert.Equal(21870, exp);
     }

@@ -7,7 +7,15 @@ namespace EndlessBattle.Domain.Progression;
 // WOG 的經驗、金錢、職業熟練度公式（spec §4，對應 wog_fight_m.php 的 get_exp／get_money）
 public static class RewardFormulas
 {
-    public static long Exp(MonsterDefinition m, int monsterHpRemaining, int playerLevel, bool killed, double fDown, IRandomSource random, double? levelOverride = null)
+    public static long Exp(
+        MonsterDefinition m,
+        // 擊殺時忽略；超限時傳 round(min(累計傷害, hpmax)/1.5)，愈高經驗愈多
+        int monsterHpValue,
+        int playerLevel,
+        bool killed,
+        double fDown,
+        IRandomSource random,
+        double? levelOverride = null)
     {
         // 超過回合上限時呼叫端傳 m.Level × 0.6
         var monsterLevel = levelOverride ?? m.Level;
@@ -24,7 +32,7 @@ public static class RewardFormulas
         }
 
         // 擊殺時 WOG 傳入 m_hp = m_hpmax，比值為 1；未擊殺時比值乘兩次
-        var hpRatio = killed ? 1.0 : monsterHpRemaining / (double)m.Hp;
+        var hpRatio = killed ? 1.0 : monsterHpValue / (double)m.Hp;
         e = monsterLevel * e * (monsterLevel / playerLevel) * hpRatio * 0.18;
         if (!killed)
         {
