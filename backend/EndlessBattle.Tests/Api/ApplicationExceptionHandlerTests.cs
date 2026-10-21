@@ -1,4 +1,5 @@
 using EndlessBattle.Api.Errors;
+using EndlessBattle.Application.Common;
 using Microsoft.AspNetCore.Http;
 
 namespace EndlessBattle.Tests.Api;
@@ -21,6 +22,31 @@ public class ApplicationExceptionHandlerTests
         Assert.True(handled);
         Assert.Equal(statusCode, httpContext.Response.StatusCode);
         Assert.Equal(statusCode, problemDetails.Written?.ProblemDetails.Status);
+    }
+
+    [Fact]
+    public async Task InputValidation_WritesReasonCodesAsExtension()
+    {
+        var problemDetails = new RecordingProblemDetailsService();
+
+        await new ApplicationExceptionHandler(problemDetails).TryHandleAsync(
+            new DefaultHttpContext(),
+            new InputValidationException("無法學習技能", ["wrongJob", "notEnoughMoney"]),
+            TestContext.Current.CancellationToken);
+
+        var reasons = Assert.IsAssignableFrom<IEnumerable<string>>(problemDetails.Written?.ProblemDetails.Extensions["reasons"]);
+        Assert.Equal(["wrongJob", "notEnoughMoney"], reasons);
+    }
+
+    [Fact]
+    public async Task InputValidation_OmitsReasonsWhenEmpty()
+    {
+        var problemDetails = new RecordingProblemDetailsService();
+
+        await new ApplicationExceptionHandler(problemDetails).TryHandleAsync(
+            new DefaultHttpContext(), new InputValidationException("資料不完整"), TestContext.Current.CancellationToken);
+
+        Assert.False(problemDetails.Written!.ProblemDetails.Extensions.ContainsKey("reasons"));
     }
 
     private sealed class RecordingProblemDetailsService : IProblemDetailsService

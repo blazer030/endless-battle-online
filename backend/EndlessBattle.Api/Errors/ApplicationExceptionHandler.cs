@@ -23,12 +23,18 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
             return false;
         }
 
+        var problemDetails = new ProblemDetails { Status = status, Title = title, Detail = exception.Message };
+        if (exception is InputValidationException { Reasons.Count: > 0 } validation)
+        {
+            problemDetails.Extensions["reasons"] = validation.Reasons;
+        }
+
         httpContext.Response.StatusCode = status;
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
             Exception = exception,
-            ProblemDetails = new ProblemDetails { Status = status, Title = title, Detail = exception.Message },
+            ProblemDetails = problemDetails,
         });
     }
 }
