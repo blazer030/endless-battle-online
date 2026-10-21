@@ -1,0 +1,105 @@
+using EndlessBattle.Application.Common;
+using EndlessBattle.Domain.Characters;
+using EndlessBattle.Infrastructure.Persistence;
+using EndlessBattle.Tests.Support;
+
+namespace EndlessBattle.Tests.Infrastructure;
+
+public class CharacterRepositoryTests(MySqlDatabaseFixture database)
+{
+    private static string UniqueName(string prefix) => $"{prefix}{Random.Shared.Next(100000, 999999)}";
+
+    [Fact]
+    public async Task UpdateAsync_RejectsStaleVersion()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = DateTimeOffset.UtcNow;
+        await using var setupContext = database.CreateDbContext();
+        var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        await new CharacterRepository(setupContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("樂觀"), "stage", now), cancellationToken);
+
+        await using var contextA = database.CreateDbContext();
+        await using var contextB = database.CreateDbContext();
+        var repositoryA = new CharacterRepository(contextA);
+        var repositoryB = new CharacterRepository(contextB);
+        var snapshotA = (await repositoryA.FindByAccountAsync(accountId, cancellationToken))!;
+        var snapshotB = (await repositoryB.FindByAccountAsync(accountId, cancellationToken))!;
+
+        var updated = await repositoryA.UpdateAsync(snapshotA with { Money = 10 }, cancellationToken);
+        Assert.Equal(1, updated.Version);
+        Assert.Equal(10, updated.Money);
+
+        await Assert.ThrowsAsync<ConflictException>(() => repositoryB.UpdateAsync(snapshotB with { Money = 20 }, cancellationToken));
+    }
+
+    // 每個欄位都用和資料庫預設值不同的值，漏對應的欄位才會被抓到
+    [Fact]
+    public async Task AddAsync_RoundTripsAllColumns()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero).AddTicks(1234560);
+        await using var setupContext = database.CreateDbContext();
+        var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var character = new Character(
+            Id: 0,
+            AccountId: accountId,
+            Name: UniqueName("往返"),
+            Level: 2,
+            Exp: 345,
+            NextExp: 2184,
+            Money: 2000,
+            Sex: 2,
+            Element: 3,
+            Birth: 4,
+            JobId: "sorcerer",
+            SpecialAttackName: "冰封千里",
+            Base: new BaseStats(Str: 14, Smart: 15, Life: 16, Vit: 17, Agi: 18, Au: 19, Be: 20),
+            Hp: 37,
+            Sp: 19,
+            CurrentStageId: "stage-9",
+            LastSettledAt: now,
+            Version: 0);
+
+        var added = await new CharacterRepository(setupContext).AddAsync(character, cancellationToken);
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
+        Assert.Equal(character with { Id = added.Id }, stored);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_RoundTripsAllColumns()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero);
+        await using var setupContext = database.CreateDbContext();
+        var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var added = await new CharacterRepository(setupContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("更新"), "stage", now), cancellationToken);
+        var changed = added with
+        {
+            Level = 3,
+            Exp = 77,
+            NextExp = 3500,
+            Money = 1500,
+            Sex = 2,
+            Element = 6,
+            Birth = 3,
+            JobId = "sorcerer",
+            SpecialAttackName = "雷鳴",
+            Base = new BaseStats(Str: 21, Smart: 22, Life: 23, Vit: 24, Agi: 25, Au: 26, Be: 27),
+            Hp = 12,
+            Sp = 8,
+            CurrentStageId = "stage-2",
+            LastSettledAt = now.AddMinutes(5),
+        };
+
+        await using var updateContext = database.CreateDbContext();
+        await new CharacterRepository(updateContext).UpdateAsync(changed, cancellationToken);
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
+        Assert.Equal(changed with { Version = 1 }, stored);
+    }
+}

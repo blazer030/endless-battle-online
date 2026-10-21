@@ -6,8 +6,8 @@ set -euo pipefail
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repository_root"
 
-table_names="$(docker compose exec -T mysql mysql -uinkbound -pinkbound_dev -N -e \
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'inkbound' AND table_name <> 'flyway_schema_history' ORDER BY table_name" \
+table_names="$(docker compose exec -T mysql mysql -uebo -pebo_dev -N -e \
+    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'endless_battle' AND table_name <> 'flyway_schema_history' ORDER BY table_name" \
     2>/dev/null)"
 
 if [ -z "$table_names" ]; then
@@ -22,9 +22,9 @@ done <<< "$table_names"
 
 cd "$repository_root/backend"
 dotnet tool restore > /dev/null
-dotnet ef dbcontext scaffold "Name=ConnectionStrings:Inkbound" MySql.EntityFrameworkCore \
-    --project Inkbound.Infrastructure --startup-project Inkbound.Api \
-    --output-dir Persistence/Models --context-dir Persistence --context InkboundDbContext \
-    --namespace Inkbound.Infrastructure.Persistence.Models \
-    --context-namespace Inkbound.Infrastructure.Persistence \
+dotnet ef dbcontext scaffold "Name=ConnectionStrings:EndlessBattle" MySql.EntityFrameworkCore \
+    --project EndlessBattle.Infrastructure --startup-project EndlessBattle.Api \
+    --output-dir Persistence/Models --context-dir Persistence --context EndlessBattleDbContext \
+    --namespace EndlessBattle.Infrastructure.Persistence.Models \
+    --context-namespace EndlessBattle.Infrastructure.Persistence \
     --no-onconfiguring --force "${table_arguments[@]}"

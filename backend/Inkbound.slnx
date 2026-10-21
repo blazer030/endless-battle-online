@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="Inkbound.Api/Inkbound.Api.csproj" />
-  <Project Path="Inkbound.Application/Inkbound.Application.csproj" />
-  <Project Path="Inkbound.Domain/Inkbound.Domain.csproj" />
-  <Project Path="Inkbound.Infrastructure/Inkbound.Infrastructure.csproj" />
-  <Project Path="Inkbound.Tests/Inkbound.Tests.csproj" />
-</Solution>

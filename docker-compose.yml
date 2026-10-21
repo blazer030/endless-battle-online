@@ -3,16 +3,16 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_DATABASE: inkbound
-      MYSQL_USER: inkbound
-      MYSQL_PASSWORD: inkbound_dev
+      MYSQL_DATABASE: endless_battle
+      MYSQL_USER: ebo
+      MYSQL_PASSWORD: ebo_dev
       MYSQL_ROOT_PASSWORD: root_dev
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uinkbound", "-pinkbound_dev"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uebo", "-pebo_dev"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -26,9 +26,9 @@ services:
       - ./backend/db/ddl:/flyway/sql/ddl:ro
       - ./backend/db/dml:/flyway/sql/dml:ro
     command:
-      - -url=jdbc:mysql://mysql:3306/inkbound?allowPublicKeyRetrieval=true&useSSL=false
-      - -user=inkbound
-      - -password=inkbound_dev
+      - -url=jdbc:mysql://mysql:3306/endless_battle?allowPublicKeyRetrieval=true&useSSL=false
+      - -user=ebo
+      - -password=ebo_dev
       - -locations=filesystem:/flyway/sql/ddl,filesystem:/flyway/sql/dml
       - -validateMigrationNaming=true
       - migrate
