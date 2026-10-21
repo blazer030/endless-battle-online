@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -91,3 +92,40 @@ public sealed record AdvanceResponse(
     AdvanceSummary Summary,
     bool EventsCoverAll,
     CharacterResponse Character);
+
+public sealed record LearnSkillRequest(string? SkillId);
+
+// 省略的欄位＝清空；主動欄省略 Chance 時用預設發動率，被動欄的 Chance 一律由伺服器填入
+public sealed record SetSkillSlotsRequest(IReadOnlyList<SkillSlotRequest?>? Slots);
+
+public sealed record SkillSlotRequest(int? Slot, string? SkillId, int? Chance);
+
+public sealed record SkillOverviewResponse(
+    string JobId,
+    long SkillPoints,
+    IReadOnlyList<SkillResponse> Skills,
+    IReadOnlyList<SkillSlotResponse> Slots);
+
+// Level 0 表示尚未學習；Next 在已滿級時為 null
+public sealed record SkillResponse(
+    string Id,
+    string Name,
+    SkillType Type,
+    SkillEffectKind Effect,
+    string Description,
+    string JobId,
+    int Level,
+    int MaxLevel,
+    SkillNextLevelResponse? Next);
+
+public sealed record SkillNextLevelResponse(
+    int Level,
+    int Sp,
+    int Rounds,
+    int Chance,
+    long Money,
+    long Proficiency,
+    bool CanLearn,
+    IReadOnlyList<string> Reasons);
+
+public sealed record SkillSlotResponse(int Slot, string SkillId, int Chance);
