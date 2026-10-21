@@ -87,6 +87,16 @@ public class CharacterFactoryTests
         Assert.Throws<CharacterCreationException>(() => Create(Command(sex: sex, element: element, birth: birth)));
     }
 
+    [Theory]
+    [InlineData(2, 6, 4)]
+    [InlineData(1, 1, 1)]
+    public void Create_AcceptsEnumBounds(int sex, int element, int birth)
+    {
+        var character = Create(Command(sex: sex, element: element, birth: birth));
+
+        Assert.Equal((sex, element, birth), (character.Sex, character.Element, character.Birth));
+    }
+
     [Fact]
     public void Create_RejectsNonStartingJob()
     {

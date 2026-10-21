@@ -10,6 +10,7 @@ namespace Inkbound.Tests.Application;
 public class AdventureServiceTests
 {
     private const long AccountId = 7;
+    private const long StartingExp = 100;
     private static readonly DateTimeOffset Start = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private readonly InMemoryCharacterRepository repository = new();
@@ -20,7 +21,7 @@ public class AdventureServiceTests
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         service = new AdventureService(repository, content, clock, new ScriptedRandomFactory());
-        repository.AddAsync(TestCharacters.Default(AccountId, "測試者", "test-stage-1", Start), CancellationToken.None).Wait();
+        repository.AddAsync(TestCharacters.Default(AccountId, "測試者", "test-stage-1", Start) with { Exp = StartingExp }, CancellationToken.None).Wait();
     }
 
     // 手算：0.99 讓妖怪一律抽到 index 1（test-wolf）且不會心。
@@ -37,7 +38,7 @@ public class AdventureServiceTests
         Assert.Equal(6, result.SpiritStonesGained);
         var stored = await repository.FindByAccountAsync(AccountId, TestContext.Current.CancellationToken);
         Assert.Equal(Start.AddSeconds(14), stored!.LastSettledAt);
-        Assert.Equal(16, stored.Exp);
+        Assert.Equal(StartingExp + 16, stored.Exp);
         Assert.Equal(2006, stored.Money);
     }
 
