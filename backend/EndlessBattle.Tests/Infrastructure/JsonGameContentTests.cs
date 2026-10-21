@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Infrastructure;
 public class JsonGameContentTests
 {
     private const string ValidMonster =
-        """{ "id": "sprite", "name": "雪精", "stats": { "maxHealth": 40, "attack": 6, "defense": 2, "critChance": 0, "critMultiplier": 1.5, "attacksPerSecond": 0.8 }, "experienceReward": 5, "spiritStoneReward": 2 }""";
+        """{ "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0 }""";
 
     private const string ValidMonsters = $$"""{ "monsters": [{{ValidMonster}}] }""";
 
@@ -26,9 +26,19 @@ public class JsonGameContentTests
         { $$"""{ "monsters": [{{ValidMonster}}] }""", """{ "startingStageId": "s1", "stages": [{ "id": "s1", "name": "一", "monsterIds": ["ghost-monster"] }] }""", "ghost-monster" },
         { $$"""{ "monsters": [{{ValidMonster}}, {{ValidMonster}}] }""", """{ "startingStageId": "s1", "stages": [{ "id": "s1", "name": "一", "monsterIds": ["sprite"] }] }""", "sprite" },
         { $$"""{ "monsters": [{{ValidMonster}}] }""", """{ "startingStageId": "missing-stage", "stages": [{ "id": "s1", "name": "一", "monsterIds": ["sprite"] }] }""", "missing-stage" },
-        { $$"""{ "monsters": [{{ValidMonster.Replace("\"attacksPerSecond\": 0.8", "\"attacksPerSecond\": 0")}}] }""", """{ "startingStageId": "s1", "stages": [{ "id": "s1", "name": "一", "monsterIds": ["sprite"] }] }""", "sprite" },
-        { $$"""{ "monsters": [{{ValidMonster.Replace("\"maxHealth\": 40", "\"maxHealth\": 0")}}] }""", """{ "startingStageId": "s1", "stages": [{ "id": "s1", "name": "一", "monsterIds": ["sprite"] }] }""", "sprite" },
         { $$"""{ "monsters": [{{ValidMonster}}] }""", """{ "startingStageId": "empty-stage", "stages": [{ "id": "empty-stage", "name": "空", "monsterIds": [] }] }""", "empty-stage" },
+    };
+
+    // 怪物數值範圍：hp、agi（命中公式的分母）必須大於 0，屬性 0～6，遇敵率 0～100，等級至少 1
+    public static TheoryData<string, string> InvalidMonsterStats => new()
+    {
+        { "\"hp\": 60", "\"hp\": 0" },
+        { "\"agi\": 9", "\"agi\": 0" },
+        { "\"element\": 2", "\"element\": 7" },
+        { "\"element\": 2", "\"element\": -1" },
+        { "\"meet\": 0", "\"meet\": 101" },
+        { "\"meet\": 0", "\"meet\": -1" },
+        { "\"level\": 3", "\"level\": 0" },
     };
 
     public static TheoryData<string, string> InvalidJobs => new()
@@ -72,8 +82,24 @@ public class JsonGameContentTests
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         Assert.Equal("test-stage-1", content.StartingStageId);
         Assert.Equal(["test-sprite", "test-wolf"], content.GetStage("test-stage-1").MonsterIds);
-        Assert.Equal(60, content.GetMonster("test-wolf").Stats.MaxHealth);
-        Assert.Equal("測試寒狼", content.GetMonster("test-wolf").Name);
+        Assert.Equal(
+            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30),
+            content.GetMonster("test-wolf"));
+        Assert.Equal(
+            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0),
+            content.GetMonster("test-sprite"));
+    }
+
+    [Fact]
+    public void Load_ShippedContent_DescribesFrostPeakMonsters()
+    {
+        var content = JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
+        Assert.Equal(
+            [
+                new MonsterDefinition("snow-sprite", "雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0),
+                new MonsterDefinition("frost-wolf", "寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30),
+            ],
+            content.AllMonsters);
     }
 
     [Theory]
@@ -81,6 +107,15 @@ public class JsonGameContentTests
     public void Load_Rejects_InvalidContent(string monstersJson, string stagesJson, string offendingId)
     {
         AssertLoadRejects(monstersJson, stagesJson, ValidJobs, offendingId);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidMonsterStats))]
+    public void Load_Rejects_MonsterStatsOutOfRange(string validField, string invalidField)
+    {
+        Assert.Contains(validField, ValidMonster);
+        var monstersJson = $$"""{ "monsters": [{{ValidMonster.Replace(validField, invalidField)}}] }""";
+        AssertLoadRejects(monstersJson, ValidStages, ValidJobs, "sprite");
     }
 
     [Theory]

@@ -9,6 +9,10 @@ public sealed class JsonGameContent : IGameContent
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
+    private const int MinimumElement = 0;
+    private const int MaximumElement = 6;
+    private const int MaximumMeet = 100;
+
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
     private readonly Dictionary<string, MonsterDefinition> monsters;
@@ -55,10 +59,7 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"妖怪 id 重複：{monster.Id}");
             }
 
-            if (monster.Stats.MaxHealth <= 0 || monster.Stats.AttacksPerSecond <= 0)
-            {
-                throw new GameContentException($"妖怪 {monster.Id} 的 maxHealth 與 attacksPerSecond 必須大於 0");
-            }
+            ValidateMonster(monster);
         }
 
         var stages = new Dictionary<string, StageDefinition>();
@@ -113,6 +114,30 @@ public sealed class JsonGameContent : IGameContent
 
     public JobDefinition GetJob(string jobId) =>
         jobs.TryGetValue(jobId, out var job) ? job : throw new GameContentException($"找不到職業：{jobId}");
+
+    private static void ValidateMonster(MonsterDefinition monster)
+    {
+        // agi 是命中公式的分母
+        if (monster.Hp <= 0 || monster.Agi <= 0)
+        {
+            throw new GameContentException($"妖怪 {monster.Id} 的 hp 與 agi 必須大於 0");
+        }
+
+        if (monster.Level < 1)
+        {
+            throw new GameContentException($"妖怪 {monster.Id} 的 level 必須至少 1");
+        }
+
+        if (monster.Element is < MinimumElement or > MaximumElement)
+        {
+            throw new GameContentException($"妖怪 {monster.Id} 的 element 必須在 {MinimumElement}～{MaximumElement}");
+        }
+
+        if (monster.Meet is < 0 or > MaximumMeet)
+        {
+            throw new GameContentException($"妖怪 {monster.Id} 的 meet 必須在 0～{MaximumMeet}");
+        }
+    }
 
     private static void ValidateJob(JobDefinition job, Dictionary<string, JobDefinition> jobs)
     {

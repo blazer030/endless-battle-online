@@ -25,17 +25,18 @@ public static class AdventureSimulator
         while (cursor < availableSeconds)
         {
             var monster = stageMonsters[random.NextInt(stageMonsters.Count)];
-            var battle = BattleSimulator.Simulate(player, monster.Stats, random, BattleTimeLimitSeconds);
+            var battle = BattleSimulator.Simulate(player, monster.LegacyStats, random, BattleTimeLimitSeconds);
 
             var fightStart = cursor;
-            events.Add(new EncounterEvent(fightStart, monster.Id, monster.Stats.MaxHealth, player.MaxHealth));
+            events.Add(new EncounterEvent(fightStart, monster.Id, monster.Hp, player.MaxHealth));
             events.AddRange(battle.Events.Select(battleEvent => battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart }));
 
             if (battle.Winner == CombatSide.Player)
             {
-                events.Add(new RewardEvent(fightStart + battle.DurationSeconds, monster.ExperienceReward, monster.SpiritStoneReward));
-                experienceGained += monster.ExperienceReward;
-                spiritStonesGained += monster.SpiritStoneReward;
+                // 計畫 4 Task 5 改用 WOG 獎勵公式
+                events.Add(new RewardEvent(fightStart + battle.DurationSeconds, monster.LegacyExperienceReward, monster.LegacySpiritStoneReward));
+                experienceGained += monster.LegacyExperienceReward;
+                spiritStonesGained += monster.LegacySpiritStoneReward;
             }
 
             cursor += battle.DurationSeconds + RestSecondsBetweenFights;

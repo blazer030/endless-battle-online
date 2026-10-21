@@ -7,8 +7,9 @@ namespace EndlessBattle.Tests.Domain;
 
 public class AdventureSimulatorTests
 {
+    // 計畫 4 Task 5 移除：橋接期間獎勵為 經驗 Level×2、金錢 Level，Lv3 → 6／3
     private static MonsterDefinition Monster(string id, int maxHealth, int attack) =>
-        new(id, id, TestStats.Make(maxHealth: maxHealth, attack: attack), ExperienceReward: 5, SpiritStoneReward: 2);
+        new(id, id, Level: 3, Hp: maxHealth, Sp: 0, At: attack, Mat: 0, Df: 0, Mdf: 0, Agi: 1, Au: 0, Element: 0, JobExp: 0, Meet: 0);
 
     [Fact]
     public void Run_ChainsFightsWithRestAndRewards()
@@ -17,8 +18,8 @@ public class AdventureSimulatorTests
         Assert.Equal(new double[] { 0, 3, 6 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
         Assert.Equal(new double[] { 2, 5, 8 }, run.Events.OfType<RewardEvent>().Select(reward => reward.AtSeconds));
         Assert.Equal(9, run.ConsumedSeconds);
-        Assert.Equal(15, run.ExperienceGained);
-        Assert.Equal(6, run.SpiritStonesGained);
+        Assert.Equal(18, run.ExperienceGained);
+        Assert.Equal(9, run.SpiritStonesGained);
     }
 
     // 已開打的戰鬥一律打完，即使超過可用時間；否則邊界那場會被捨棄重抽，收下的戰鬥會偏向打得快的那種
@@ -29,7 +30,7 @@ public class AdventureSimulatorTests
         Assert.Equal(new double[] { 0, 3, 6, 9 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
         Assert.Equal(11, run.Events.OfType<RewardEvent>().Last().AtSeconds);
         Assert.Equal(12, run.ConsumedSeconds);
-        Assert.Equal(20, run.ExperienceGained);
+        Assert.Equal(24, run.ExperienceGained);
     }
 
     [Fact]
@@ -45,7 +46,7 @@ public class AdventureSimulatorTests
     public void Run_CountsStalemateAsConsumedTime()
     {
         var tank = TestStats.Make(maxHealth: 1_000_000, attack: 1);
-        var run = AdventureSimulator.Run(tank, [new MonsterDefinition("rock", "rock", tank, 5, 2)], availableSeconds: 130, new ScriptedRandom(0.99));
+        var run = AdventureSimulator.Run(tank, [Monster("rock", maxHealth: 1_000_000, attack: 1)], availableSeconds: 130, new ScriptedRandom(0.99));
         Assert.Equal(new double[] { 0, 61, 122 }, run.Events.OfType<EncounterEvent>().Select(encounter => encounter.AtSeconds));
         Assert.Equal(183, run.ConsumedSeconds);
     }

@@ -25,21 +25,22 @@ public class AdventureServiceTests
     }
 
     // 手算：0.99 讓妖怪一律抽到 index 1（test-wolf）且不會心。
-    // 預設角色 At 12（HpMax 350、Df 10，撐得住）對防禦 3：每下 144/15 = 9.6 → 10；寒狼 60 血，第 6 秒倒下；休息到第 7 秒。
-    // 第 7 秒開打的第二場跨過第 10 秒，照樣打完：第 13 秒倒下，休息到第 14 秒。
+    // 預設角色 At 12（HpMax 350、Df 10，撐得住）對防禦 9：每下 144/21 = 6.86 → 7；寒狼 95 血，第 14 秒倒下；休息到第 15 秒。
+    // 第 15 秒開打的第二場跨過第 20 秒，照樣打完：第 29 秒倒下，休息到第 30 秒。
+    // 計畫 4 Task 5 移除：橋接期間獎勵為 經驗 Lv5×2 = 10、金錢 5
     [Fact]
     public async Task Advance_SettlesThroughLastStartedFight()
     {
-        clock.Advance(TimeSpan.FromSeconds(10));
+        clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, TestContext.Current.CancellationToken);
 
-        Assert.Equal(16, result.ExperienceGained);
-        Assert.Equal(6, result.SpiritStonesGained);
+        Assert.Equal(20, result.ExperienceGained);
+        Assert.Equal(10, result.SpiritStonesGained);
         var stored = await repository.FindByAccountAsync(AccountId, TestContext.Current.CancellationToken);
-        Assert.Equal(Start.AddSeconds(14), stored!.LastSettledAt);
-        Assert.Equal(StartingExp + 16, stored.Exp);
-        Assert.Equal(2006, stored.Money);
+        Assert.Equal(Start.AddSeconds(30), stored!.LastSettledAt);
+        Assert.Equal(StartingExp + 20, stored.Exp);
+        Assert.Equal(2010, stored.Money);
     }
 
     [Fact]
