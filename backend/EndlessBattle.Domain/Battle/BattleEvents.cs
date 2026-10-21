@@ -8,6 +8,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(EncounterEvent), "encounter")]
 [JsonDerivedType(typeof(RoundEvent), "round")]
 [JsonDerivedType(typeof(AttackEvent), "attack")]
+[JsonDerivedType(typeof(SkillEvent), "skill")]
 [JsonDerivedType(typeof(DefeatEvent), "defeat")]
 [JsonDerivedType(typeof(TimeoutEvent), "timeout")]
 [JsonDerivedType(typeof(RewardEvent), "reward")]
@@ -40,6 +41,9 @@ public sealed record AttackEvent(
     int TargetHpAfter,
     string? SpecialAttackName,
     bool Stunned = false) : BattleEvent(AtSeconds);
+
+// Heal 是實際回復量，非回復技能為 0
+public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);
 
 public sealed record DefeatEvent(double AtSeconds, CombatSide Loser) : BattleEvent(AtSeconds);
 
