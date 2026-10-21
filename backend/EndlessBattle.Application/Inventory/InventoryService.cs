@@ -132,13 +132,8 @@ public sealed class InventoryService(
     }
 
     // 卸下的道具要放回背包：同分類放不下就整筆拒絕（400 bagFull），不丟棄
-    private AddResult TryReturn(IReadOnlyList<InventoryEntry> bag, InventoryEntry equipped, int quantity, int bagBonus)
-    {
-        var item = content.GetItem(equipped.ItemId);
-        var sameCategory = bag.Where(entry => content.GetItem(entry.ItemId).Category == item.Category).ToList();
-        var result = InventoryRules.TryAdd(sameCategory, item, quantity, bagBonus);
-        return result.Discarded > 0 ? throw BagFull() : result;
-    }
+    private AddResult TryReturn(IReadOnlyList<InventoryEntry> bag, InventoryEntry equipped, int quantity, int bagBonus) =>
+        Unequipping.TryReturn(bag, content.GetItem(equipped.ItemId), quantity, bagBonus, content.GetItem) ?? throw BagFull();
 
     // 欄位必須先清空：裝備欄引用背包列，刪除仍被引用的列會撞外鍵
     private async Task ApplyReturnAsync(long characterId, InventoryEntry equipped, AddResult result, CancellationToken cancellationToken)
