@@ -4,9 +4,9 @@ using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Adventure;
 
-public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained)
+public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast)
 {
-    public static AdvanceSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0);
+    public static AdvanceSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 // 熟練度與技能點的增量，由呼叫端寫入熟練度帳

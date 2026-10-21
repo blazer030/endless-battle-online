@@ -36,7 +36,7 @@ public static class AdventureSimulator
         var windowStart = totalSeconds - CatchUpWindowSeconds;
         var events = new List<BattleEvent>();
         var eventsCoverAll = true;
-        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0;
+        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
 
@@ -79,6 +79,15 @@ public static class AdventureSimulator
                 foreach (var battleEvent in outcome.Events)
                 {
                     events.Add(battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart });
+                }
+            }
+
+            // 施放次數不論事件是否保留都要計入
+            foreach (var battleEvent in outcome.Events)
+            {
+                if (battleEvent is SkillEvent { Caster: CombatSide.Player })
+                {
+                    skillsCast++;
                 }
             }
 
@@ -130,7 +139,7 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained);
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
         return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll);
     }

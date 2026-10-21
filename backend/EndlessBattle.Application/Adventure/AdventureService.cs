@@ -1,7 +1,11 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Adventure;
+using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Application.Adventure;
@@ -9,6 +13,8 @@ namespace EndlessBattle.Application.Adventure;
 public sealed class AdventureService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
+    ISkillBookRepository skillBook,
+    ISkillLoadoutRepository loadout,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory)
@@ -36,7 +42,7 @@ public sealed class AdventureService(
             character,
             content.GetJob(character.JobId),
             content.GetStage(character.CurrentStageId),
-            [],
+            await LoadEquippedSkillsAsync(character, cancellationToken),
             content.GetMonster,
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
@@ -61,5 +67,31 @@ public sealed class AdventureService(
 
         return new AdvanceResult(run.Events, run.Summary, run.EventsCoverAll, updated,
             await proficiencies.ListAsync(updated.Id, cancellationToken));
+    }
+
+    private async Task<IReadOnlyList<EquippedSkill>> LoadEquippedSkillsAsync(Character character, CancellationToken cancellationToken)
+    {
+        var learnedLevels = (await skillBook.ListAsync(character.Id, cancellationToken))
+            .ToDictionary(skill => skill.SkillId, skill => skill.Level, StringComparer.Ordinal);
+        var equipped = new List<EquippedSkill>();
+        foreach (var slot in await loadout.ListAsync(character.Id, cancellationToken))
+        {
+            // 欄位指向技能書沒有的技能（資料不一致）就略過
+            if (!learnedLevels.TryGetValue(slot.SkillId, out var level))
+            {
+                continue;
+            }
+
+            // 轉職與推進同時發生時，被動欄可能還留著前一個職業的技能；主動欄照 WOG 不限職業
+            var skill = content.GetSkill(slot.SkillId);
+            if (SkillLoadout.IsPassiveSlot(slot.Slot) && skill.JobId != character.JobId)
+            {
+                continue;
+            }
+
+            equipped.Add(new EquippedSkill(skill, level, slot.Chance, slot.Slot));
+        }
+
+        return equipped;
     }
 }

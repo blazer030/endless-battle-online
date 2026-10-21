@@ -2,7 +2,9 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Application.Characters;
 using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -54,6 +56,54 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(StaminaMax, character.GetProperty("actNumMax").GetInt32());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(character.ToString(), me.ToString());
+    }
+
+    private static List<JsonElement> EventsOfType(JsonElement body, string type) => body.GetProperty("events").EnumerateArray()
+        .Where(battleEvent => battleEvent.GetProperty("type").GetString() == type)
+        .ToList();
+
+    // 直接寫入 300 技能點（burst lv1 的門檻）再走 API 學習與裝備；新角色先住宿回滿 SP，之後每場開頭必施放 burst（耗 5）
+    [Fact]
+    public async Task Advance_UsesEquippedSkills()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+                .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+            await scope.ServiceProvider.GetRequiredService<IJobProficiencyRepository>()
+                .AddAsync(character!.Id, "warrior", 0, 300, CancellationToken);
+        }
+
+        (await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken)).EnsureSuccessStatusCode();
+        (await client.PutAsJsonAsync("/api/skills/slots", new { slots = new[] { new { slot = 1, skillId = "burst", chance = 100 } } }, CancellationToken))
+            .EnsureSuccessStatusCode();
+        factory.Clock.Advance(TimeSpan.FromSeconds(20));
+
+        var body = await AdvanceAsync(client);
+
+        var casts = EventsOfType(body, "skill");
+        Assert.NotEmpty(casts);
+        Assert.All(casts, cast => Assert.Equal("burst", cast.GetProperty("skillId").GetString()));
+        Assert.Equal(casts.Count, body.GetProperty("summary").GetProperty("skillsCast").GetInt32());
+        var result = body.GetProperty("character");
+        Assert.True(result.GetProperty("sp").GetInt32() < result.GetProperty("stats").GetProperty("spMax").GetInt32());
+    }
+
+    [Fact]
+    public async Task Advance_WithoutSkills_StillWorks()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        factory.Clock.Advance(TimeSpan.FromSeconds(20));
+
+        var body = await AdvanceAsync(client);
+
+        Assert.NotEmpty(EventsOfType(body, "encounter"));
+        Assert.Empty(EventsOfType(body, "skill"));
+        Assert.Equal(0, body.GetProperty("summary").GetProperty("skillsCast").GetInt32());
     }
 
     [Fact]

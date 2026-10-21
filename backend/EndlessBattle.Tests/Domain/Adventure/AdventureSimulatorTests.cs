@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Tests.Support;
 
@@ -29,7 +30,13 @@ public class AdventureSimulatorTests
 
     private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", "stage", From);
 
-    private static AdventureRun Run(Character character, double seconds, IRandomSource? random = null, params MonsterDefinition[] monsters)
+    private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", "warrior", SkillType.Active), Level: 1, Chance: 100, Slot: 1);
+
+    private static AdventureRun Run(Character character, double seconds, IRandomSource? random = null, params MonsterDefinition[] monsters) =>
+        Run(character, seconds, skills: [], random, monsters);
+
+    private static AdventureRun Run(
+        Character character, double seconds, IReadOnlyList<EquippedSkill> skills, IRandomSource? random = null, params MonsterDefinition[] monsters)
     {
         var stageMonsters = monsters.Length == 0 ? [Dummy] : monsters;
         var stage = new StageDefinition("stage", "關卡", stageMonsters.Select(monster => monster.Id).ToList());
@@ -37,7 +44,7 @@ public class AdventureSimulatorTests
             character,
             Warrior,
             stage,
-            [],
+            skills,
             id => stageMonsters.Single(monster => monster.Id == id),
             new StaminaState(character.ActNum, character.ActNumTime),
             From,
@@ -62,7 +69,7 @@ public class AdventureSimulatorTests
         Assert.Equal(2184, run.Character.NextExp);
         Assert.Equal(2002, run.Character.Money);
         Assert.Equal(new BaseStats(14, 12, 13, 11, 13, 10, 10), run.Character.Base);
-        Assert.Equal(new AdvanceSummary(Fights: 1, Wins: 1, Losses: 0, Timeouts: 0, Exp: 146, Money: 2, JobExp: 12, LevelsGained: 1), run.Summary);
+        Assert.Equal(new AdvanceSummary(Fights: 1, Wins: 1, Losses: 0, Timeouts: 0, Exp: 146, Money: 2, JobExp: 12, LevelsGained: 1, SkillsCast: 0), run.Summary);
         Assert.Equal([new JobGain("warrior", 12, 12)], run.JobGains);
         Assert.True(run.EventsCoverAll);
     }
@@ -141,7 +148,7 @@ public class AdventureSimulatorTests
         Assert.Equal(new DefeatEvent(0.4, CombatSide.Player), run.Events.OfType<DefeatEvent>().Single());
         Assert.Empty(run.Events.OfType<RewardEvent>());
         Assert.Equal(0, run.Character.Hp);
-        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Exp: 0, Money: 0, JobExp: 0, LevelsGained: 0), run.Summary);
+        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Exp: 0, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
         Assert.Empty(run.JobGains);
         Assert.Equal(2.8, run.ConsumedSeconds, 9);
     }
@@ -227,7 +234,7 @@ public class AdventureSimulatorTests
         Assert.Equal(new TimeoutEvent(32, 40, 40), run.Events.OfType<TimeoutEvent>().Single());
         Assert.Equal(new RewardEvent(32, Exp: 43, Money: 0, JobExp: 0), run.Events.OfType<RewardEvent>().Single());
         Assert.Equal(43, RewardFormulas.Exp(rock, 27, playerLevel: 1, killed: false, fDown: 1, new ScriptedRandom(0.0), levelOverride: 3));
-        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Exp: 43, Money: 0, JobExp: 0, LevelsGained: 0), run.Summary);
+        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Exp: 43, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
         Assert.Equal(20, run.Character.Hp);
         Assert.Empty(run.JobGains);
         Assert.Equal(34, run.ConsumedSeconds, 9);
@@ -248,6 +255,31 @@ public class AdventureSimulatorTests
         Assert.Equal("wolf", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.0, 0.7), Monster("bat", meet: 50), Monster("wolf", meet: 50))));
 
         static string FirstMonster(AdventureRun run) => run.Events.OfType<EncounterEvent>().First().MonsterId;
+    }
+
+    // burst lv1 耗 SP 5、發動率 100（擲 1）：0 秒那場 25 → 20，2.8 秒那場從 20 開始 → 15；住宿以外不回 SP
+    [Fact]
+    public void Adventure_CarriesSpBetweenFights()
+    {
+        var run = Run(Hero(), seconds: 3, skills: [Burst]);
+
+        Assert.Equal(2, run.Summary.Fights);
+        Assert.Equal([20, 15], run.Events.OfType<SkillEvent>().Select(skill => skill.SpAfter));
+        Assert.Equal([25, 20], run.Events.OfType<EncounterEvent>().Select(encounter => encounter.PlayerSp));
+        Assert.Equal(15, run.Character.Sp);
+    }
+
+    // 120 秒 43 場（見 Adventure_KeepsOnlyLastThirtySecondsOfEvents）；SP 25 只夠前 5 場各施放一次（→ 0），
+    // 這 5 場都在 90 秒之前、事件被略去，摘要仍要計入
+    [Fact]
+    public void Adventure_CountsSkillsCastAcrossDroppedFights()
+    {
+        var run = Run(Hero(), seconds: 120, skills: [Burst]);
+
+        Assert.Equal(43, run.Summary.Fights);
+        Assert.Empty(run.Events.OfType<SkillEvent>());
+        Assert.Equal(5, run.Summary.SkillsCast);
+        Assert.Equal(0, run.Character.Sp);
     }
 
     [Fact]
