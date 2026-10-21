@@ -1,5 +1,4 @@
 using EndlessBattle.Domain.Stamina;
-using StaminaRules = EndlessBattle.Domain.Stamina.Stamina;
 
 namespace EndlessBattle.Tests.Domain.Stamina;
 

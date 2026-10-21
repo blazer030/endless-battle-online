@@ -1,8 +1,10 @@
+using EndlessBattle.Domain.Battle;
+
 namespace EndlessBattle.Domain.Stamina;
 
 public sealed record StaminaState(int ActNum, DateTimeOffset? LastRegenAt);
 
-public static class Stamina
+public static class StaminaRules
 {
     public const int Max = 50;
     public const int RegenAmount = 6;
@@ -35,9 +37,9 @@ public static class Stamina
         var next = s with { ActNum = act };
         return act switch
         {
-            < 0 => (next, 0.5, Battle.BattleTiming.FightIntervalWhenDepletedSeconds),
-            0 => (next, 1.0, Battle.BattleTiming.FightIntervalWhenDepletedSeconds),
-            _ => (next, 1.0, Battle.BattleTiming.FightIntervalSeconds),
+            < 0 => (next, 0.5, BattleTiming.FightIntervalWhenDepletedSeconds),
+            0 => (next, 1.0, BattleTiming.FightIntervalWhenDepletedSeconds),
+            _ => (next, 1.0, BattleTiming.FightIntervalSeconds),
         };
     }
 }
