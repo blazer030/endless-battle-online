@@ -4,8 +4,8 @@ import type { TextStyleOptions } from "pixi.js"
 import {
   DamageNumberSeconds,
   HitShakeSeconds,
-  InkSplashSeconds,
-  SealSeconds,
+  ImpactBurstSeconds,
+  PlateSeconds,
   SlashSeconds,
 } from "../motion/timings"
 import { Palette } from "./palette"
@@ -90,7 +90,7 @@ export const playDamageNumber = (
 }
 
 // 暴擊名牌：黑底金邊的橫排字，放大落下、停留、淡出
-export const playSeal = (layer: Container, x: number, y: number, label: string) => {
+export const playPlate = (layer: Container, x: number, y: number, label: string) => {
   const text = createStageText(label, {
     fontFamily: Fonts.latin,
     fontSize: 22,
@@ -100,21 +100,21 @@ export const playSeal = (layer: Container, x: number, y: number, label: string) 
   })
   text.anchor.set(0.5)
   const plate = createPlate(text, 16, 6)
-  const seal = new Container()
-  seal.addChild(plate, text)
-  seal.position.set(x, y)
-  seal.rotation = degrees(-6)
-  seal.scale.set(2.2)
-  seal.alpha = 0
-  layer.addChild(seal)
-  gsap.to(seal.scale, { x: 1, y: 1, duration: SealSeconds * 0.08, ease: "power2.in" })
-  gsap.to(seal, {
+  const criticalPlate = new Container()
+  criticalPlate.addChild(plate, text)
+  criticalPlate.position.set(x, y)
+  criticalPlate.rotation = degrees(-6)
+  criticalPlate.scale.set(2.2)
+  criticalPlate.alpha = 0
+  layer.addChild(criticalPlate)
+  gsap.to(criticalPlate.scale, { x: 1, y: 1, duration: PlateSeconds * 0.08, ease: "power2.in" })
+  gsap.to(criticalPlate, {
     keyframes: [
-      { alpha: 0.95, duration: SealSeconds * 0.08 },
-      { alpha: 0.95, duration: SealSeconds * 0.62 },
-      { alpha: 0, duration: SealSeconds * 0.3 },
+      { alpha: 0.95, duration: PlateSeconds * 0.08 },
+      { alpha: 0.95, duration: PlateSeconds * 0.62 },
+      { alpha: 0, duration: PlateSeconds * 0.3 },
     ],
-    onComplete: () => dispose(seal),
+    onComplete: () => dispose(criticalPlate),
   })
 }
 
@@ -126,32 +126,32 @@ export const playHitShake = (body: Container) => {
 }
 
 // 妖怪倒下：淡色光霧擴散後淡去
-export const playInkSplash = (layer: Container, x: number, y: number) => {
-  const splash = new Graphics()
+export const playImpactBurst = (layer: Container, x: number, y: number) => {
+  const burst = new Graphics()
     .circle(0, 0, 65)
     .fill({ color: Palette.text, alpha: 0.06 })
     .circle(0, 0, 45)
     .fill({ color: Palette.text, alpha: 0.12 })
     .circle(0, 0, 26)
     .fill({ color: Palette.gold, alpha: 0.25 })
-  splash.filters = [new BlurFilter({ strength: 2 })]
-  splash.position.set(x, y)
-  splash.scale.set(0.2)
-  splash.alpha = 0
-  layer.addChild(splash)
-  gsap.to(splash.scale, {
+  burst.filters = [new BlurFilter({ strength: 2 })]
+  burst.position.set(x, y)
+  burst.scale.set(0.2)
+  burst.alpha = 0
+  layer.addChild(burst)
+  gsap.to(burst.scale, {
     keyframes: [
-      { x: 1, y: 1, duration: InkSplashSeconds * 0.1 },
-      { x: 1.3, y: 1.3, duration: InkSplashSeconds * 0.9 },
+      { x: 1, y: 1, duration: ImpactBurstSeconds * 0.1 },
+      { x: 1.3, y: 1.3, duration: ImpactBurstSeconds * 0.9 },
     ],
   })
-  gsap.to(splash, {
+  gsap.to(burst, {
     keyframes: [
-      { alpha: 1, duration: InkSplashSeconds * 0.1 },
-      { alpha: 0.4, duration: InkSplashSeconds * 0.5 },
-      { alpha: 0, duration: InkSplashSeconds * 0.4 },
+      { alpha: 1, duration: ImpactBurstSeconds * 0.1 },
+      { alpha: 0.4, duration: ImpactBurstSeconds * 0.5 },
+      { alpha: 0, duration: ImpactBurstSeconds * 0.4 },
     ],
-    onComplete: () => dispose(splash),
+    onComplete: () => dispose(burst),
   })
 }
 

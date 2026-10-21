@@ -11,9 +11,9 @@ export type StageState = {
 export type StageEffect =
   | { type: "slash" }
   | { type: "damageNumber"; side: "player" | "monster"; value: number; critical: boolean }
-  | { type: "seal"; text: string }
+  | { type: "plate"; text: string }
   | { type: "hitShake"; side: "player" | "monster" }
-  | { type: "inkSplash" }
+  | { type: "impactBurst" }
 
 export const initialStageState: StageState = {
   monsterId: null,
@@ -57,11 +57,11 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         { type: "damageNumber", side: "monster", value: event.damage, critical: event.isCritical },
         { type: "hitShake", side: "monster" },
       ]
-      if (event.isCritical) effects.push({ type: "seal", text: "CRITICAL" })
+      if (event.isCritical) effects.push({ type: "plate", text: "CRITICAL" })
       return effects
     }
     case "defeat":
-      return event.loser === "Monster" ? [{ type: "inkSplash" }] : []
+      return event.loser === "Monster" ? [{ type: "impactBurst" }] : []
     case "encounter":
     case "reward":
       return []

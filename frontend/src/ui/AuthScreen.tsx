@@ -38,7 +38,8 @@ export const AuthScreen = ({ api, onAuthenticated }: Props) => {
 
   return (
     <main className="screen">
-      <h1 className="title">墨渡</h1>
+      <h1 className="title">EBO</h1>
+      <p className="tagline">Endless Battle Online</p>
       <p className="subtitle">奇幻放置 RPG</p>
       <form className="form" onSubmit={handleLogin}>
         <label>

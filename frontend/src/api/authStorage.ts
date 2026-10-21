@@ -1,4 +1,4 @@
-const accessTokenKey = "inkbound.accessToken"
+const accessTokenKey = "ebo.accessToken"
 
 export const readAccessToken = (): string | null => {
   try {

@@ -1,17 +1,17 @@
-# 墨渡（Inkbound）
+# Endless Battle Online（EBO）
 
 現代奇幻風的單人放置 RPG，WOG 4.5 的單機翻新版。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
 
-- 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；`docs/superpowers/specs/2026-10-21-inkbound-design.md`（v1，技術架構 §6 仍有效，其餘作廢）
+- 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；v1 設計文件見 v2 §0 所指的檔案（技術架構 §6 仍有效，其餘作廢）
 - 實作計畫：`docs/superpowers/plans/`
 
 ## 結構
 
-- `backend/Inkbound.Domain` — 遊戲規則：戰鬥、歷練、內容定義。純 C#，零依賴。
-- `backend/Inkbound.Application` — 用例與介面（Repository、時鐘、亂數、遊戲內容）。
-- `backend/Inkbound.Infrastructure` — EF Core（Database-First）、內容載入、介面實作。
-- `backend/Inkbound.Api` — Minimal API、JWT、OpenAPI。
-- `backend/Inkbound.Tests` — xUnit v3；需要資料庫的測試用 Testcontainers。
+- `backend/EndlessBattle.Domain` — 遊戲規則：戰鬥、歷練、內容定義。純 C#，零依賴。
+- `backend/EndlessBattle.Application` — 用例與介面（Repository、時鐘、亂數、遊戲內容）。
+- `backend/EndlessBattle.Infrastructure` — EF Core（Database-First）、內容載入、介面實作。
+- `backend/EndlessBattle.Api` — Minimal API、JWT、OpenAPI。
+- `backend/EndlessBattle.Tests` — xUnit v3；需要資料庫的測試用 Testcontainers。
 - `backend/db/ddl`、`backend/db/dml` — Flyway migration。
 - `backend/content` — 遊戲內容 JSON。
 - `frontend` — Vite + React 19 + TypeScript + PixiJS 8 + GSAP 3，pnpm 管理。
@@ -30,9 +30,9 @@
    - 檔名 `V<9 位數>__<小寫英文與底線>.sql`，ddl 與 dml 共用一條版本號序列。
    - 已 commit 的 migration 不得修改，要改就新增版本。
    - 不得含 `DROP TABLE`、`DROP VIEW`、`DROP DATABASE`、`TRUNCATE`（`scripts/check-sql.sh` 會擋）。
-4. `Inkbound.Infrastructure/Persistence/InkboundDbContext.cs` 與 `Persistence/Models/*.cs` 由 `scripts/scaffold-db.sh` 產生，**不得手改**；擴充寫在 `*.Partial.cs`。
+4. `EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs` 與 `Persistence/Models/*.cs` 由 `scripts/scaffold-db.sh` 產生，**不得手改**；擴充寫在 `*.Partial.cs`。
 5. scaffold 產生的 model 只在 Infrastructure 使用，Application 與 Domain 只看見 Domain 型別。
-6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `Inkbound.Tests/TestContent/`。
+6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `EndlessBattle.Tests/TestContent/`。
 7. 時間一律 UTC；資料庫時間欄位用 `DATETIME(6)`。
 
 ### 前端
@@ -53,7 +53,7 @@
 - `./scripts/check.sh` — SQL 檢查、後端 build（警告視為錯誤）與測試、前端 `pnpm check`。提交前必須通過，以 exit code 判斷。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
-- `cd backend && dotnet run --project Inkbound.Api` — 啟動 API。
+- `cd backend && dotnet run --project EndlessBattle.Api` — 啟動 API。
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。
 - `cd frontend && pnpm check` — eslint、prettier 檢查、`tsc -b`、vitest。

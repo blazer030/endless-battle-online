@@ -33,8 +33,10 @@ test("AuthScreen_ShowsServerDetail_OnError", async () => {
   expect(screen.getByLabelText("帳號")).toHaveValue("alice")
 })
 
-test("AuthScreen_ShowsFantasySubtitle", () => {
+test("AuthScreen_ShowsTitleAndFantasySubtitle", () => {
   render(<AuthScreen api={{ register: vi.fn(), login: vi.fn() }} onAuthenticated={vi.fn()} />)
 
+  expect(screen.getByRole("heading", { name: "EBO" })).toBeInTheDocument()
+  expect(screen.getByText("Endless Battle Online")).toBeInTheDocument()
   expect(screen.getByText("奇幻放置 RPG")).toBeInTheDocument()
 })

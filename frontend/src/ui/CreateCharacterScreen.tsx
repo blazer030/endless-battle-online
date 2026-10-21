@@ -129,7 +129,8 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
 
   return (
     <main className="screen create-screen">
-      <h1 className="title">墨渡</h1>
+      <h1 className="title">EBO</h1>
+      <p className="tagline">Endless Battle Online</p>
       <p className="subtitle">建立你的冒險者</p>
       <form className="form" onSubmit={(event) => void handleSubmit(event)}>
         <label>

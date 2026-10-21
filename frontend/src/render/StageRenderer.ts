@@ -12,8 +12,8 @@ import {
   getFogGradient,
   playDamageNumber,
   playHitShake,
-  playInkSplash,
-  playSeal,
+  playImpactBurst,
+  playPlate,
   playSlash,
 } from "./effects"
 import { Palette } from "./palette"
@@ -135,14 +135,14 @@ export class StageRenderer {
         case "damageNumber":
           playDamageNumber(this.effects, damageX[effect.side], 70, effect.value, effect.critical)
           break
-        case "seal":
-          playSeal(this.effects, width * 0.48, 82, effect.text)
+        case "plate":
+          playPlate(this.effects, width * 0.48, 82, effect.text)
           break
         case "hitShake":
           playHitShake(this[effect.side].body)
           break
-        case "inkSplash":
-          playInkSplash(this.effects, monsterX - 16, StageHeight - 95)
+        case "impactBurst":
+          playImpactBurst(this.effects, monsterX - 16, StageHeight - 95)
           break
       }
     }

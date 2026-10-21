@@ -52,12 +52,12 @@ describe("stageModel", () => {
     expect(started.monsterHealth).toBe(100)
   })
 
-  it("stageEffectsFor_PlayerCritical_IncludesSeal", () => {
+  it("stageEffectsFor_PlayerCritical_IncludesPlate", () => {
     expect(stageEffectsFor(attack("Player", true))).toEqual([
       { type: "slash" },
       { type: "damageNumber", side: "monster", value: 30, critical: true },
       { type: "hitShake", side: "monster" },
-      { type: "seal", text: "CRITICAL" },
+      { type: "plate", text: "CRITICAL" },
     ])
   })
 
@@ -68,9 +68,9 @@ describe("stageModel", () => {
     ])
   })
 
-  it("stageEffectsFor_MonsterDefeat_SplashesInk", () => {
+  it("stageEffectsFor_MonsterDefeat_PlaysImpactBurst", () => {
     expect(stageEffectsFor({ type: "defeat", loser: "Monster", atSeconds: 2 })).toEqual([
-      { type: "inkSplash" },
+      { type: "impactBurst" },
     ])
   })
 
