@@ -153,12 +153,11 @@ public class WogBattleSkillTests
             outcome.Events);
     }
 
-    // 治癒 lv3（sp 11）：round(smart 20 × (1 + 0.375·2)) = 35，不超過 HpMax 100；滿血時照樣施放、回復 0。
+    // 治癒 lv3（sp 11）：round(smart 20 × (1 + 0.375·2)) = 35，不超過 HpMax 100（滿血不施放，見 Battle_HealSkipsAtFullHp）。
     // 擲骰：治癒 0.0；先攻 0.0；命中 0.0；暴擊 0.99；傷害 0.0 → 150 擊倒 100 血的怪物
     [Theory]
     [InlineData(50, 35, 85)]
     [InlineData(90, 10, 100)]
-    [InlineData(100, 0, 100)]
     public void Battle_HealCapsAtHpMax(int hp, int expectedHeal, int expectedHp)
     {
         var random = new ScriptedRandom(0.99, 0.0, 0.0, 0.0, 0.99, 0.0);
@@ -175,6 +174,39 @@ public class WogBattleSkillTests
             },
             outcome.Events);
         Assert.Equal(expectedHp, outcome.Player.Hp);
+    }
+
+    // SP 只在住宿回復：滿血時治癒不擲骰、不扣 SP、不產生事件，事件與耗用的亂數都和沒有技能時相同
+    [Fact]
+    public void Battle_HealSkipsAtFullHp()
+    {
+        var player = Player(hp: 100, hpMax: 100);
+        var withSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
+        var withoutSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
+
+        var outcome = WogBattle.Run(player, Monster(hp: 100), null, [Equip(Heal, level: 3)], withSkill);
+        var baseline = WogBattle.Run(player, Monster(hp: 100), null, withoutSkill);
+
+        Assert.Empty(outcome.Events.OfType<SkillEvent>());
+        Assert.Equal(100, outcome.Player.Sp);
+        Assert.Equal(baseline.Events, outcome.Events);
+        Assert.Equal(withoutSkill.Consumed, withSkill.Consumed);
+    }
+
+    // 嗜血同理：滿血（1000）命中後不擲骰。怪物 at 0、雙方各一下：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150；怪物命中 0.99 未命中
+    [Fact]
+    public void Battle_BloodthirstSkipsAtFullHp()
+    {
+        var withSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
+        var withoutSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
+
+        var outcome = WogBattle.Run(Player(), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, chance: 100, slot: 4)], withSkill);
+        var baseline = WogBattle.Run(Player(), Monster(hp: 150), null, withoutSkill);
+
+        Assert.Empty(outcome.Events.OfType<SkillEvent>());
+        Assert.Equal(100, outcome.Player.Sp);
+        Assert.Equal(baseline.Events, outcome.Events);
+        Assert.Equal(withoutSkill.Consumed, withSkill.Consumed);
     }
 
     // 暈眩 lv5（持續 3 回合）：怪物出手前擲 rand(1,100) ≤ 15 → 跳過。怪物 at 100 打玩家 df 50 = 150。
@@ -329,12 +361,12 @@ public class WogBattleSkillTests
     }
 
     // 治癒 lv3 = 35，以當下 HP 封頂（不是開戰時的 HP）。怪物 at 60 打 df 50：60·1.2 − 50 = 22。
-    // 第 1 回合：治癒 0.99 → 100 > 50 不發動；先攻 0.99 怪物先；命中 0.0、暴擊 0.99、傷害 0.0 → 100 → 78；玩家命中 0.99 未命中。
+    // 第 1 回合：滿血不擲治癒；先攻 0.99 怪物先；命中 0.0、暴擊 0.99、傷害 0.0 → 100 → 78；玩家命中 0.99 未命中。
     // 第 2 回合：治癒 0.0 → 發動，回復 min(35, 100 − 78) = 22。之後全是 0.99：治癒不發動、雙方都未命中
     [Fact]
     public void Battle_HealCapsAtCurrentHp()
     {
-        var random = new ScriptedRandom(0.99, 0.99, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0);
+        var random = new ScriptedRandom(0.99, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0);
 
         var outcome = WogBattle.Run(Player(hp: 100, hpMax: 100), Monster(at: 60), null, [Equip(Heal, level: 3, chance: 50)], random);
 

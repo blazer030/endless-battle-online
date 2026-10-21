@@ -62,8 +62,10 @@ public sealed class SkillCaster
         {
             var level = equipped.Skill.LevelAt(equipped.Level);
 
-            // 持續中或 SP 不足時不擲骰：SP 見底的戰鬥與沒有技能時耗用相同的亂數
-            if (remainingRounds.ContainsKey(equipped) || sp < level.Sp || PhpRandom.Between(random, 1, 100) > equipped.Chance)
+            // 持續中、SP 不足或滿血時的回復技能都不擲骰：SP 只在住宿回復，不浪費在回復 0 上；
+            // 這些情況耗用的亂數與沒有技能時相同
+            if (remainingRounds.ContainsKey(equipped) || sp < level.Sp || (IsHealing(equipped) && hp >= player.HpMax)
+                || PhpRandom.Between(random, 1, 100) > equipped.Chance)
             {
                 continue;
             }
@@ -82,6 +84,9 @@ public sealed class SkillCaster
 
         return casts;
     }
+
+    private static bool IsHealing(EquippedSkill equipped) =>
+        equipped.Skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst;
 
     private void Recompute() =>
         Current = skills.Where(remainingRounds.ContainsKey).Aggregate(new BattleModifiers(), Apply);
