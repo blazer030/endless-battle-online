@@ -43,7 +43,7 @@ public sealed class AdventureService(
             character,
             content.GetJob(character.JobId),
             content.GetPlace(character.PlaceId),
-            PlaceMonsters(character.PlaceId),
+            content.MonstersOf(character.PlaceId),
             await LoadEquippedSkillsAsync(character, cancellationToken),
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
@@ -69,10 +69,6 @@ public sealed class AdventureService(
         return new AdvanceResult(run.Events, run.Summary, run.EventsCoverAll, updated,
             await proficiencies.ListAsync(updated.Id, cancellationToken));
     }
-
-    // 該地區與全域（placeId 0）的怪物；Task 4 改用 MonsterPool 並依子地區篩選
-    private IReadOnlyList<MonsterDefinition> PlaceMonsters(int placeId) =>
-        content.AllMonsters.Where(monster => monster.PlaceId == placeId || monster.PlaceId == 0).ToList();
 
     // 內容檔移除的技能以 null 交給 Domain 略過；技能只有十幾個，線性查找即可
     private async Task<IReadOnlyList<EquippedSkill>> LoadEquippedSkillsAsync(Character character, CancellationToken cancellationToken) =>

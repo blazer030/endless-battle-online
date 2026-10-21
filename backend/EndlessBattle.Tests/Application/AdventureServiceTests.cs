@@ -103,6 +103,19 @@ public class AdventureServiceTests
         Assert.True(result.EventsCoverAll);
     }
 
+    // 角色在地區 2 → 只遇到地區 2 的測試蝙蝠（meet 0），不會碰到地區 1 的怪
+    [Fact]
+    public async Task Advance_UsesCharacterPlace()
+    {
+        await AddCharacterAsync(character => character with { PlaceId = 2, SubPlace = 1 });
+        clock.Advance(TimeSpan.FromSeconds(5));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.NotEmpty(result.Events.OfType<EncounterEvent>());
+        Assert.All(result.Events.OfType<EncounterEvent>(), encounter => Assert.Equal("test-bat", encounter.MonsterId));
+    }
+
     // 離線 30 小時：只模擬最後 24 小時，結果應與直接從 now − 24h 模擬到 now 相同
     [Fact]
     public async Task Advance_CapsAtTwentyFourHours()
@@ -114,7 +127,7 @@ public class AdventureServiceTests
 
         var from = clock.UtcNow.AddHours(-24);
         var expected = AdventureSimulator.Run(
-            character, Content.GetJob("warrior"), Content.GetPlace(1), Content.AllMonsters, [],
+            character, Content.GetJob("warrior"), Content.GetPlace(1), Content.MonstersOf(1), [],
             new StaminaState(character.ActNum, character.ActNumTime), from, clock.UtcNow, new ScriptedRandom(0.0));
         Assert.Equal(expected.Summary, result.Summary);
         Assert.True(result.Summary.Fights > 1000);

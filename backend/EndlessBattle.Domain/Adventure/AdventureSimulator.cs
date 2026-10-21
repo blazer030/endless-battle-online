@@ -63,7 +63,7 @@ public static class AdventureSimulator
 
             (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
-            var definition = PickMonster(placeMonsters, random);
+            var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random);
             var player = CombatBridge.ToCombatant(character);
             var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, random);
             var fightStart = cursor;
@@ -142,36 +142,5 @@ public static class AdventureSimulator
         var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
         return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll);
-    }
-
-    // WOG：擲一次 rand(0,100)，遇敵率 Meet 不高於它的怪物入選，候選中均勻抽；沒有候選時退回全部怪物。
-    // 暫時不分子地區，Task 4 改用 MonsterPool
-    private static MonsterDefinition PickMonster(IReadOnlyList<MonsterDefinition> placeMonsters, IRandomSource random)
-    {
-        var roll = PhpRandom.Between(random, 0, 100);
-        var candidateCount = 0;
-        foreach (var monster in placeMonsters)
-        {
-            if (monster.Meet <= roll)
-            {
-                candidateCount++;
-            }
-        }
-
-        if (candidateCount == 0)
-        {
-            return placeMonsters[random.NextInt(placeMonsters.Count)];
-        }
-
-        var remaining = random.NextInt(candidateCount);
-        foreach (var monster in placeMonsters)
-        {
-            if (monster.Meet <= roll && remaining-- == 0)
-            {
-                return monster;
-            }
-        }
-
-        throw new InvalidOperationException("候選怪物計數不一致");
     }
 }

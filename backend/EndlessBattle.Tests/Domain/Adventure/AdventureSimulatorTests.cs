@@ -24,8 +24,9 @@ public class AdventureSimulatorTests
         new JobGrowth(new(2, 3), new(0, 1), new(1, 2), new(1, 2), new(1, 2), new(0, 1), new(0, 1)));
 
     private static MonsterDefinition Monster(
-        string id, int level = 5, int hp = 100, int at = 10, int df = 1, int jobExp = 12, int meet = 0) =>
-        new(id, id, level, hp, Sp: 5, at, Mat: 0, df, Mdf: 1, Agi: 12, Au: 10, Element: 0, jobExp, meet);
+        string id, int level = 5, int hp = 100, int at = 10, int df = 1, int jobExp = 12, int meet = 0,
+        int placeId = 0, params int[] subPlaces) =>
+        new(id, id, level, hp, Sp: 5, at, Mat: 0, df, Mdf: 1, Agi: 12, Au: 10, Element: 0, jobExp, meet, placeId, subPlaces);
 
     private static readonly MonsterDefinition Dummy = Monster("dummy");
 
@@ -256,6 +257,19 @@ public class AdventureSimulatorTests
         Assert.Equal("wolf", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.0, 0.7), Monster("bat", meet: 50), Monster("wolf", meet: 50))));
 
         static string FirstMonster(AdventureRun run) => run.Events.OfType<EncounterEvent>().First().MonsterId;
+    }
+
+    // 英雄在子地區 2：怪物 first 只在子地區 1、second 只在子地區 2，擲骰 0 時只有 second 入選
+    [Fact]
+    public void Adventure_PicksBySubPlace()
+    {
+        var first = Monster("first", placeId: 1, subPlaces: 1);
+        var second = Monster("second", placeId: 1, subPlaces: 2);
+
+        var run = Run(Hero() with { SubPlace = 2 }, seconds: 30, monsters: [first, second]);
+
+        Assert.True(run.Summary.Fights > 1);
+        Assert.All(run.Events.OfType<EncounterEvent>(), encounter => Assert.Equal("second", encounter.MonsterId));
     }
 
     // burst lv1 耗 SP 5、發動率 100（擲 1）：0 秒那場 25 → 20，2.8 秒那場從 20 開始 → 15；住宿以外不回 SP

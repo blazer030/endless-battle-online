@@ -31,6 +31,9 @@ public interface IGameContent
 
     SkillDefinition GetSkill(string skillId);
 
+    // 該地區與全域怪物，依內容檔中的順序
+    IReadOnlyList<MonsterDefinition> MonstersOf(int placeId);
+
     // 依內容檔中的順序
     IReadOnlyList<SkillDefinition> SkillsOf(string jobId);
 }

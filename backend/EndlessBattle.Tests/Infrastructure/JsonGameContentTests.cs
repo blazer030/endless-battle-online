@@ -110,7 +110,8 @@ public class JsonGameContentTests
     public void Load_TestContent_ExposesMonsters()
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
-        Assert.Equal(["test-sprite", "test-wolf"], content.AllMonsters.Select(monster => monster.Id));
+        Assert.Equal(["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith"], content.AllMonsters.Select(monster => monster.Id));
+        Assert.Equal(["test-sprite", "test-wolf"], content.MonstersOf(1).Select(monster => monster.Id));
         // SubPlaces 是清單，record 的 Equals 只比參考，改用結構比對
         Assert.Equivalent(
             new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3]),
@@ -177,13 +178,19 @@ public class JsonGameContentTests
     public void Monster_RequiresSubPlaceForPlaceWithThem() =>
         AssertLoadRejects(MonsterAt("1", "[]"), ValidJobs, "sprite");
 
+    // ValidWorld 的地區 2 沒有任何怪物（也沒有全域怪）
+    [Fact]
+    public void Content_RejectsPlaceWithoutMonsters() =>
+        AssertLoadRejects(MonsterAt("1", "[1]"), ValidJobs, "地區 2");
+
     [Fact]
     public void Monster_AcceptsPlaceAndSubPlaces()
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
         try
         {
-            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), MonsterAt("1", "[2, 4]"));
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), MonsterAt("1", "[2, 4]").Replace(
+                "}] }", "}, " + ValidMonster.Replace("\"sprite\"", "\"anywhere\"") + "] }"));
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);

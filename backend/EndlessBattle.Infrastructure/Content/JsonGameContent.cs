@@ -17,7 +17,6 @@ public sealed class JsonGameContent : IGameContent
     private const int MinimumPlaceId = 1;
     private const int MaximumPlaceId = 21;
     private const int SubPlacesPerPlace = 4;
-    private const int GlobalPlaceId = 0;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -85,6 +84,14 @@ public sealed class JsonGameContent : IGameContent
             ValidateMonster(monster, places);
         }
 
+        // 地區沒有怪物就無法遇敵，載入時就擋下
+        var emptyPlace = allPlaces.FirstOrDefault(place =>
+            !monsterFile.Monsters.Any(monster => monster.PlaceId == place.Id || monster.PlaceId == MonsterPool.GlobalPlaceId));
+        if (emptyPlace is not null)
+        {
+            throw new GameContentException($"地區 {emptyPlace.Id} 沒有任何怪物（含全域怪）");
+        }
+
         var allJobs = jobFile.Jobs.Select(ToJobDefinition).ToList();
         var jobs = new Dictionary<string, JobDefinition>();
         foreach (var job in allJobs)
@@ -132,6 +139,9 @@ public sealed class JsonGameContent : IGameContent
 
     public SkillDefinition GetSkill(string skillId) =>
         skills.TryGetValue(skillId, out var skill) ? skill : throw new GameContentException($"找不到技能：{skillId}");
+
+    public IReadOnlyList<MonsterDefinition> MonstersOf(int placeId) =>
+        AllMonsters.Where(monster => monster.PlaceId == placeId || monster.PlaceId == MonsterPool.GlobalPlaceId).ToList();
 
     public IReadOnlyList<SkillDefinition> SkillsOf(string jobId) =>
         AllSkills.Where(skill => skill.JobId == jobId).ToList();
@@ -239,7 +249,7 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"怪物 {monster.Id} 的 subPlaces 必須是 1～{SubPlacesPerPlace} 且不重複");
         }
 
-        if (monster.PlaceId == GlobalPlaceId)
+        if (monster.PlaceId == MonsterPool.GlobalPlaceId)
         {
             if (monster.SubPlaces.Count > 0)
             {
