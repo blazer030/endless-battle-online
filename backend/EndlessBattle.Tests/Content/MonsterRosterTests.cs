@@ -58,7 +58,7 @@ public partial class MonsterRosterTests
         Assert.Equal([1, 5], globals.Select(monster => monster.Level).Order());
         Assert.All(globals, monster =>
         {
-            Assert.Equal(80, monster.Meet);
+            Assert.Equal(95, monster.Meet);
             Assert.Empty(monster.SubPlaces);
         });
     }
@@ -73,6 +73,27 @@ public partial class MonsterRosterTests
                 .SelectMany(monster => monster.SubPlaces)
                 .ToHashSet();
             Assert.All(place.SubPlaces, subPlace => Assert.Contains(subPlace.Index, covered));
+        }
+    }
+
+    // meet 0 的怪每次擲骰都是候選，確保每個子地區（無子地區時為地區本身）不會只剩稀有怪
+    [Fact]
+    public void Roster_EverySubPlaceHasAnAlwaysMeetMonster()
+    {
+        foreach (var place in Content.AllPlaces)
+        {
+            var alwaysMeet = Content.AllMonsters
+                .Where(monster => monster.PlaceId == place.Id && monster.Meet == 0)
+                .ToList();
+            if (!place.HasSubPlaces)
+            {
+                Assert.NotEmpty(alwaysMeet);
+                continue;
+            }
+
+            var covered = alwaysMeet.SelectMany(monster => monster.SubPlaces).ToHashSet();
+            Assert.All(place.SubPlaces, subPlace =>
+                Assert.True(covered.Contains(subPlace.Index), $"地區 {place.Id} 子地區 {subPlace.Index} 沒有 meet 0 的怪"));
         }
     }
 
