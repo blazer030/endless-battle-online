@@ -31,6 +31,10 @@
   | `BackendPaths` 尋找 `Inkbound.slnx` | `EndlessBattle.slnx` |
   | `scripts/scaffold-db.sh` 的 `--context InkboundDbContext`、namespace、`-uinkbound -pinkbound_dev`、schema `inkbound` | 對應新名 |
   | `docs/superpowers/screenshots/`、`.superpowers/` | 不改 |
+  | `JwtOptions.cs` 的預設值 `"inkbound"`、`DependencyInjection.cs` 的錯誤訊息、`BackendPaths.cs` 的錯誤訊息、`JsonGameContentTests` 的暫存目錄前綴 `inkbound-content-` | 對應新名（`ebo`／`EndlessBattle`） |
+  | `CLAUDE.md:1` 標題、`:33` 的 `InkboundDbContext` 路徑 | 對應新名 |
+  | `CreateCharacterScreen.tsx` 的 `<h1>墨渡</h1>` | 同登入頁：`EBO` |
+  | 水墨殘留的識別名：`playInkSplash`／`inkSplash` 效果、`"seal"` 效果型別（`stageModel.ts`、`effects.ts`、`StageRenderer.ts`、測試） | `playImpactBurst`／`impactBurst`、`"plate"` |
 - Repo 資料夾 `~/Project/Inkbound` → `~/Project/endless-battle-online`：**由控制者在合併後執行**（`mv`），不在任務內做（會讓進行中的 agent 失去工作目錄）。
 - 本機 MySQL 資料庫會因為 database 名稱改變而重建：`docker compose down -v && docker compose up -d`。開發資料（測試帳號）會消失，可接受。
 - Commit：兩個結構性 commit（後端、前端＋文件），訊息 `♻️ refactor: rename the backend to EndlessBattle`、`♻️ refactor: rename the game to Endless Battle Online`；不加 Co-Authored-By。
