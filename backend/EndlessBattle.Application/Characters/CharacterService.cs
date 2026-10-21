@@ -5,7 +5,11 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Application.Characters;
 
-public sealed class CharacterService(ICharacterRepository characters, IGameContent content, IClock clock)
+public sealed class CharacterService(
+    ICharacterRepository characters,
+    IJobProficiencyRepository proficiencies,
+    IGameContent content,
+    IClock clock)
 {
     private const int MinimumNameLength = 2;
     private const int MaximumNameLength = 12;
@@ -47,7 +51,10 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
         return await characters.AddAsync(character, cancellationToken);
     }
 
-    public async Task<Character> GetAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken)
-        ?? throw new NotFoundException("尚未建立角色");
+    public async Task<CharacterProfile> GetAsync(long accountId, CancellationToken cancellationToken)
+    {
+        var character = await characters.FindByAccountAsync(accountId, cancellationToken)
+            ?? throw new NotFoundException("尚未建立角色");
+        return new CharacterProfile(character, await proficiencies.ListAsync(character.Id, cancellationToken));
+    }
 }

@@ -2,19 +2,17 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Adventure;
-using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Application.Adventure;
 
 public sealed class AdventureService(
     ICharacterRepository characters,
+    IJobProficiencyRepository proficiencies,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory)
 {
-    // 一次最多模擬 5 分鐘；更長的離線時間由計畫 3 的離線結算處理
-    public const double MaxSimulatedSeconds = 300;
-
     public async Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)
@@ -26,31 +24,41 @@ public sealed class AdventureService(
         // 時鐘倒退或剛結算過：什麼都不做，也不寫入
         if (elapsedSeconds <= 0)
         {
-            return new AdvanceResult([], 0, 0, character);
+            return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
+                await proficiencies.ListAsync(character.Id, cancellationToken));
         }
 
-        var isCapped = elapsedSeconds > MaxSimulatedSeconds;
-        var stage = content.GetStage(character.CurrentStageId);
-        var stageMonsters = stage.MonsterIds.Select(content.GetMonster).ToList();
+        // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
+        var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
+            ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
+            : character.LastSettledAt;
         var run = AdventureSimulator.Run(
-            CombatBridge.ToCombatant(character),
-            stageMonsters,
-            Math.Min(elapsedSeconds, MaxSimulatedSeconds),
+            character,
+            content.GetJob(character.JobId),
+            content.GetStage(character.CurrentStageId),
+            content.GetMonster,
+            new StaminaState(character.ActNum, character.ActNumTime),
+            from,
+            now,
             randomFactory.Create());
 
-        // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果。
-        // 超過上限時，多出的時間直接捨棄（計畫 3 以離線結算取代）
-        var settledThroughLastFight = character.LastSettledAt.AddSeconds(run.ConsumedSeconds);
-        var settledAt = isCapped && settledThroughLastFight < now ? now : settledThroughLastFight;
+        // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果
         var updated = await characters.UpdateAsync(
-            character with
+            run.Character with
             {
-                Exp = character.Exp + run.ExperienceGained,
-                Money = character.Money + run.SpiritStonesGained,
-                LastSettledAt = settledAt,
+                ActNum = run.Stamina.ActNum,
+                ActNumTime = run.Stamina.LastRegenAt,
+                LastSettledAt = from.AddSeconds(run.ConsumedSeconds),
             },
             cancellationToken);
 
-        return new AdvanceResult(run.Events, run.ExperienceGained, run.SpiritStonesGained, updated);
+        // 角色以版本檢查寫入成功後才記熟練度，衝突的推進不會重複累加
+        foreach (var gain in run.JobGains)
+        {
+            await proficiencies.AddAsync(updated.Id, gain.JobId, gain.Proficiency, gain.SkillPoints, cancellationToken);
+        }
+
+        return new AdvanceResult(run.Events, run.Summary, run.EventsCoverAll, updated,
+            await proficiencies.ListAsync(updated.Id, cancellationToken));
     }
 }

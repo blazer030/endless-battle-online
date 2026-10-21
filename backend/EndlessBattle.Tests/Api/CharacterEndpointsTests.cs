@@ -57,6 +57,20 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(91, stats.GetProperty("spMax").GetInt32());
     }
 
+    [Fact]
+    public async Task Create_ReturnsFullStaminaAndNoProficiency()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("體力")));
+
+        var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(50, body.GetProperty("actNum").GetInt32());
+        Assert.Equal(50, body.GetProperty("actNumMax").GetInt32());
+        Assert.Empty(body.GetProperty("jobProficiency").EnumerateArray());
+    }
+
     public static TheoryData<object?> InvalidAllocations => new()
     {
         new { str = 5, smart = 2, life = 2, agi = 2 },

@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 
 namespace EndlessBattle.Api.Endpoints;
@@ -73,10 +74,16 @@ public sealed record CharacterResponse(
     string JobName,
     string SpecialAttackName,
     StatsResponse Stats,
-    string CurrentStageId);
+    string CurrentStageId,
+    int ActNum,
+    int ActNumMax,
+    IReadOnlyList<JobProficiencyResponse> JobProficiency);
 
+public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
+
+// EventsCoverAll 為 false 時，Events 只含最後 30 秒的場次，其餘只計入 Summary
 public sealed record AdvanceResponse(
     IReadOnlyList<BattleEvent> Events,
-    long ExpGained,
-    long MoneyGained,
+    AdvanceSummary Summary,
+    bool EventsCoverAll,
     CharacterResponse Character);
