@@ -137,6 +137,23 @@ public class AdventureSimulatorTests
         Assert.Equal(12.8, run.ConsumedSeconds, 9);
     }
 
+    // 行動力 1：第一場消耗後為 0，f_down 仍為 1（WOG act == 0 那一場全額）但場間已是 12 秒；
+    // 第二場消耗後為 −1 → f_down 0.5。兩場都在第 1 回合擊倒 dummy（Lv1 未升級），開打時間 0 與 0.8 + 12 = 12.8。
+    // 全額：exp 146、money 2、jobExp 12；半額：73.125 → 73、0.8 → 1、⌊6⌋ = 6（手算見 Adventure_AppliesLevelUpsAndJobGains 上方）
+    [Fact]
+    public void Adventure_LastStaminaPointStillPaysFull()
+    {
+        var run = Run(Hero() with { ActNum = 1, ActNumTime = From }, seconds: 14);
+
+        var encounters = run.Events.OfType<EncounterEvent>().ToList();
+        Assert.Equal(2, encounters.Count);
+        Assert.Equal(12.8, encounters[1].AtSeconds - encounters[0].AtSeconds, 9);
+        Assert.Equal([false, true], encounters.Select(encounter => encounter.StaminaDepleted));
+        Assert.Equal(
+            [new RewardEvent(0, Exp: 146, Money: 2, JobExp: 12), new RewardEvent(12.8, Exp: 73, Money: 1, JobExp: 6)],
+            run.Events.OfType<RewardEvent>().Select(reward => reward with { AtSeconds = Math.Round(reward.AtSeconds, 9) }));
+    }
+
     // rock（hp 60、at 40、df 1000）對 Df 1000 的角色：雙方每下 1 點，40 回合後超限（32 秒）。
     // 累計傷害 40 → round(40 / 1.5) = 27；等級以 5 × 0.6 = 3 計：base 20 → rand(20, 23) = 20；×1.3 = 26；
     // 3 × 26 × 3 × (27/60) × 0.18 = 18.954；未擊殺再 ×0.45 = 8.5293；×2.5 = 21.32325；×2 = 42.6465 → 43。沒有金錢與熟練度、不算敗場
@@ -158,6 +175,7 @@ public class AdventureSimulatorTests
     }
 
     // 遇敵擲骰 rand(0,100) = ⌊擲骰 × 101⌋：0.5 → 50，兩隻都入選，0.7 → NextInt(2) = 1 → wolf；
+    // 0.3 → 30 恰好等於 wolf 的 Meet 30，m_meet ≤ rand 仍入選 → wolf；
     // 0.25 → 25，只有 Meet 0 的 sprite；全部 Meet 50 而擲出 0 → 沒有候選，退回全部怪物中均勻抽
     [Fact]
     public void Adventure_PicksMonstersWithinMeetRoll()
@@ -166,6 +184,7 @@ public class AdventureSimulatorTests
         var wolf = Monster("wolf", meet: 30);
 
         Assert.Equal("wolf", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.5, 0.7), sprite, wolf)));
+        Assert.Equal("wolf", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.3, 0.7), sprite, wolf)));
         Assert.Equal("sprite", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.25, 0.7), sprite, wolf)));
         Assert.Equal("wolf", FirstMonster(Run(Hero(), 1, new ScriptedRandom(0.0, 0.0, 0.7), Monster("bat", meet: 50), Monster("wolf", meet: 50))));
 
