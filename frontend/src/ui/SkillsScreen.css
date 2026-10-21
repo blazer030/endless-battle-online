@@ -191,6 +191,8 @@
   background: var(--bg-top);
   color: var(--text);
   font: inherit;
+  /* iOS 在字級小於 16px 的欄位聚焦時會放大頁面 */
+  font-size: 16px;
 }
 
 .skills__chance {
