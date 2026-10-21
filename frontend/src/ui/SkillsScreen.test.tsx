@@ -157,6 +157,25 @@ test("SkillsScreen_ChangeJobReportsCharacterAndReloads", async () => {
   expect(api.getSkills).toHaveBeenCalledTimes(2)
 })
 
+test("SkillsScreen_KeepsTheJobChange_WhenReloadFails", async () => {
+  const changed = makeCharacter({ jobId: "thief", jobName: "盜賊" })
+  const api = createApi({
+    changeJob: vi.fn().mockResolvedValue(changed),
+    getJobs: vi.fn().mockResolvedValueOnce(jobs).mockRejectedValueOnce(new TypeError("offline")),
+  })
+  const { onCharacterChange } = renderScreen(api)
+
+  await userEvent.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
+
+  expect(onCharacterChange).toHaveBeenCalledWith(changed)
+  expect(await screen.findByRole("alert")).toHaveTextContent("已轉職，重新載入失敗，請稍後再試")
+  expect(screen.queryByText(/發生錯誤/)).not.toBeInTheDocument()
+  const thief = await jobCard("盜賊（基礎）")
+  expect(within(thief).getByText("目前")).toBeInTheDocument()
+  expect(within(thief).getByRole("button", { name: "轉職" })).toBeDisabled()
+  expect(within(await jobCard("戰士（基礎）")).queryByText("目前")).not.toBeInTheDocument()
+})
+
 test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
   renderScreen()
 

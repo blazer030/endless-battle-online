@@ -8,6 +8,7 @@ import {
   isActiveSlot,
   jobReasonText,
   learnReasonText,
+  markCurrentJob,
   MaxChance,
   MinChance,
   PassiveSlots,
@@ -66,6 +67,8 @@ const requirementsOf = (job: JobOption, jobs: JobOption[]): Requirement[] => {
   }
   return rows
 }
+
+const ReloadAfterChangeFailed = "已轉職，重新載入失敗，請稍後再試"
 
 type Loaded = { jobs: JobOption[]; overview: SkillOverview }
 
@@ -131,8 +134,11 @@ export function SkillsScreen({ api, character, onCharacterChange }: Props) {
     run(
       async () => {
         setJobError(null)
-        onCharacterChange(await api.changeJob(jobId))
-        await load()
+        const changed = await api.changeJob(jobId)
+        onCharacterChange(changed)
+        // 轉職已成功；重新載入失敗時先在本地標出新職業，不當成轉職失敗
+        setJobs((current) => (current === null ? current : markCurrentJob(current, changed.jobId)))
+        await load().catch(() => setJobError(ReloadAfterChangeFailed))
       },
       (error) => setJobError(describeError(error, jobReasonText)),
     )

@@ -1,5 +1,5 @@
 import { statLabel } from "./stats"
-import type { SkillOverview, SkillSlotCommand } from "./types"
+import type { JobOption, SkillOverview, SkillSlotCommand } from "./types"
 
 // 與後端 SkillLoadout 相同：1～3 主動欄（發動率 10～100、步進 10），4～5 被動欄
 export type SlotNumber = 1 | 2 | 3 | 4 | 5
@@ -121,3 +121,14 @@ export const slotReasonText = translate({
   passiveNotCurrentJob: "被動欄只能放目前職業的技能",
   chanceOutOfRange: "發動率須為 10～100，每格 10",
 })
+
+const SameJob = "sameJob"
+
+// 轉職成功但列表沒能重新載入時，在本地改標目前職業；其他條件沿用上次的判定
+export const markCurrentJob = (jobs: JobOption[], currentJobId: string): JobOption[] =>
+  jobs.map((job) => {
+    const isCurrent = job.id === currentJobId
+    const others = job.reasons.filter((code) => code !== SameJob)
+    const reasons = isCurrent ? [SameJob, ...others] : others
+    return { ...job, current: isCurrent, reasons, eligible: reasons.length === 0 }
+  })

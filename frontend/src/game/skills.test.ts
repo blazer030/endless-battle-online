@@ -4,6 +4,7 @@ import {
   draftsFrom,
   jobReasonText,
   learnReasonText,
+  markCurrentJob,
   proficiencyPercent,
   setSlot,
   slotReasonText,
@@ -12,7 +13,8 @@ import {
   validateLoadout,
 } from "./skills"
 import type { SlotDraft } from "./skills"
-import type { SkillOverview, SkillView } from "./types"
+import type { JobOption, SkillOverview, SkillView } from "./types"
+import { makeJob } from "../test/fixtures"
 
 const skill = (overrides: Partial<SkillView>): SkillView => ({
   id: "burst",
@@ -112,6 +114,35 @@ describe("skills", () => {
     ]
     for (const [loadout, reasons] of cases)
       expect(validateLoadout(loadout, overview)).toEqual(reasons)
+  })
+
+  it("markCurrentJob_MovesCurrentAndSameJobToTheNewJob", () => {
+    const option = (id: string, current: boolean, reasons: string[]): JobOption => ({
+      ...makeJob({ id }),
+      parentName: null,
+      current,
+      proficiencyPercent: 0,
+      eligible: reasons.length === 0,
+      reasons,
+    })
+    const jobs = [
+      option("warrior", true, ["sameJob"]),
+      option("thief", false, []),
+      option("knight", false, ["levelTooLow"]),
+    ]
+
+    expect(
+      markCurrentJob(jobs, "thief").map(({ id, current, eligible, reasons }) => ({
+        id,
+        current,
+        eligible,
+        reasons,
+      })),
+    ).toEqual([
+      { id: "warrior", current: false, eligible: true, reasons: [] },
+      { id: "thief", current: true, eligible: false, reasons: ["sameJob"] },
+      { id: "knight", current: false, eligible: false, reasons: ["levelTooLow"] },
+    ])
   })
 
   it("proficiencyPercent_FloorsAndCapsAtHundred", () => {
