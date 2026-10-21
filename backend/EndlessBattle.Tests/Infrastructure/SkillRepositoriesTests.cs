@@ -78,4 +78,44 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
 
         Assert.Empty(await ListSlotsAsync(characterId));
     }
+
+    // 重複主鍵讓 insert 失敗時，前面的 delete 要一起回復
+    [Fact]
+    public async Task Loadout_ReplaceRollsBack_WhenInsertFails()
+    {
+        var characterId = await CreateCharacterAsync();
+        var original = new[] { new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20) };
+        await ReplaceSlotsAsync(characterId, original);
+
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            ReplaceSlotsAsync(characterId, new SkillSlot(3, "bash", 10), new SkillSlot(3, "heal", 15)));
+
+        Assert.Equal(original, await ListSlotsAsync(characterId));
+    }
+
+    [Fact]
+    public async Task Loadout_ListsOrderedBySlot()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await ReplaceSlotsAsync(characterId, new SkillSlot(4, "heal", 10), new SkillSlot(1, "slash", 30));
+
+        Assert.Equal([new SkillSlot(1, "slash", 30), new SkillSlot(4, "heal", 10)], await ListSlotsAsync(characterId));
+    }
+
+    [Fact]
+    public async Task SkillBook_ListsOrderedBySkillId()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        foreach (var skillId in new[] { "zeal", "aim" })
+        {
+            await using var context = database.CreateDbContext();
+            await new SkillBookRepository(context).UpsertAsync(characterId, new LearnedSkill(skillId, 1), CancellationToken);
+        }
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new SkillBookRepository(readContext).ListAsync(characterId, CancellationToken);
+        Assert.Equal([new LearnedSkill("aim", 1), new LearnedSkill("zeal", 1)], stored);
+    }
 }
