@@ -9,10 +9,10 @@ public class WogBattleTests
     private const string SpecialAttack = "烈焰斬";
 
     private static CombatantState Player(int hp = 100, int at = 100, int mat = 0, int df = 50, int mdf = 50, int agi = 20, int au = 10, int element = 0) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttack);
+        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttack, Str: at, Smart: mat);
 
     private static CombatantState Monster(int hp = 100, int at = 0, int mat = 0, int df = 50, int mdf = 50, int agi = 10, int au = 10, int element = 0) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttackName: null);
+        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttackName: null, Str: at, Smart: mat);
 
     // 玩家 agi 20 > 怪物 10，先攻門檻 70。
     // 擲骰：先攻 0.695 → 70 ≤ 70 玩家先；命中 0.0 → 1，20/30×100+20 = 86.7 > 1 命中；

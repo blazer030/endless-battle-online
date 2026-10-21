@@ -28,7 +28,7 @@ public sealed record EncounterEvent(
 
 public sealed record RoundEvent(double AtSeconds, int Round) : BattleEvent(AtSeconds);
 
-// 未命中時 Damage 為 0、ElementMultiplier 為 1
+// 未命中時 Damage 為 0、ElementMultiplier 為 1；Stunned 表示攻方暈眩、這次沒有出手
 public sealed record AttackEvent(
     double AtSeconds,
     CombatSide Attacker,
@@ -38,7 +38,8 @@ public sealed record AttackEvent(
     int Damage,
     double ElementMultiplier,
     int TargetHpAfter,
-    string? SpecialAttackName) : BattleEvent(AtSeconds);
+    string? SpecialAttackName,
+    bool Stunned = false) : BattleEvent(AtSeconds);
 
 public sealed record DefeatEvent(double AtSeconds, CombatSide Loser) : BattleEvent(AtSeconds);
 

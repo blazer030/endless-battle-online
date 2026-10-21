@@ -142,7 +142,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺"),
+            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺", Str: 12, Smart: 12),
             combatant);
     }
 }

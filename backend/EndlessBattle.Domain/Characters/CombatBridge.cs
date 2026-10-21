@@ -20,6 +20,8 @@ public static class CombatBridge
             Agi: character.Base.Agi,
             Au: character.Base.Au,
             Element: character.Element,
-            SpecialAttackName: character.SpecialAttackName);
+            SpecialAttackName: character.SpecialAttackName,
+            Str: character.Base.Str,
+            Smart: character.Base.Smart);
     }
 }
