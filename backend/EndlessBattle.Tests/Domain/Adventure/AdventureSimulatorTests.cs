@@ -37,6 +37,7 @@ public class AdventureSimulatorTests
             character,
             Warrior,
             stage,
+            [],
             id => stageMonsters.Single(monster => monster.Id == id),
             new StaminaState(character.ActNum, character.ActNumTime),
             From,

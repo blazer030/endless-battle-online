@@ -111,7 +111,7 @@ public class AdventureServiceTests
 
         var from = clock.UtcNow.AddHours(-24);
         var expected = AdventureSimulator.Run(
-            character, Content.GetJob("warrior"), Content.GetStage("test-stage-1"), Content.GetMonster,
+            character, Content.GetJob("warrior"), Content.GetStage("test-stage-1"), [], Content.GetMonster,
             new StaminaState(character.ActNum, character.ActNumTime), from, clock.UtcNow, new ScriptedRandom(0.0));
         Assert.Equal(expected.Summary, result.Summary);
         Assert.True(result.Summary.Fights > 1000);

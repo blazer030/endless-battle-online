@@ -24,6 +24,7 @@ public static class AdventureSimulator
         Character character,
         JobDefinition job,
         StageDefinition stage,
+        IReadOnlyList<EquippedSkill> skills,
         Func<string, MonsterDefinition> monsters,
         StaminaState stamina,
         DateTimeOffset from,
@@ -64,7 +65,7 @@ public static class AdventureSimulator
 
             var definition = PickMonster(stageMonsters, random);
             var player = CombatBridge.ToCombatant(character);
-            var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, random);
+            var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, random);
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
             fights++;

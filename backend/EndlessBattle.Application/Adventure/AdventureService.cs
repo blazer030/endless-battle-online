@@ -36,6 +36,7 @@ public sealed class AdventureService(
             character,
             content.GetJob(character.JobId),
             content.GetStage(character.CurrentStageId),
+            [],
             content.GetMonster,
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
