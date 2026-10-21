@@ -17,6 +17,7 @@ public sealed class JsonGameContent : IGameContent
     private const int MinimumPlaceId = 1;
     private const int MaximumPlaceId = 21;
     private const int SubPlacesPerPlace = 4;
+    private const int GlobalPlaceId = 0;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -83,6 +84,8 @@ public sealed class JsonGameContent : IGameContent
         var skillFile = Read<SkillFile>(Path.Combine(directory, "skills.json"));
         var worldFile = Read<WorldFile>(Path.Combine(directory, "world.json"));
 
+        var (allAreas, allPlaces, places) = BuildWorld(worldFile);
+
         var monsters = new Dictionary<string, MonsterDefinition>();
         foreach (var monster in monsterFile.Monsters)
         {
@@ -91,7 +94,7 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"怪物 id 重複：{monster.Id}");
             }
 
-            ValidateMonster(monster);
+            ValidateMonster(monster, places);
         }
 
         var stages = new Dictionary<string, StageDefinition>();
@@ -145,8 +148,6 @@ public sealed class JsonGameContent : IGameContent
 
             ValidateSkill(skill, jobs);
         }
-
-        var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
         return new JsonGameContent(
             stageFile.StartingStageId, monsterFile.Monsters, stageFile.Stages, allJobs, allSkills, monsters, stages, jobs, skills,
@@ -245,7 +246,7 @@ public sealed class JsonGameContent : IGameContent
         return (allAreas, allPlaces, allPlaces.ToDictionary(place => place.Id));
     }
 
-    private static void ValidateMonster(MonsterDefinition monster)
+    private static void ValidateMonster(MonsterDefinition monster, Dictionary<int, PlaceDefinition> places)
     {
         // agi 是命中公式的分母
         if (monster.Hp <= 0 || monster.Agi <= 0)
@@ -266,6 +267,33 @@ public sealed class JsonGameContent : IGameContent
         if (monster.Meet is < 0 or > MaximumMeet)
         {
             throw new GameContentException($"怪物 {monster.Id} 的 meet 必須在 0～{MaximumMeet}");
+        }
+
+        if (monster.SubPlaces.Any(subPlace => subPlace is < 1 or > SubPlacesPerPlace)
+            || monster.SubPlaces.Distinct().Count() != monster.SubPlaces.Count)
+        {
+            throw new GameContentException($"怪物 {monster.Id} 的 subPlaces 必須是 1～{SubPlacesPerPlace} 且不重複");
+        }
+
+        if (monster.PlaceId == GlobalPlaceId)
+        {
+            if (monster.SubPlaces.Count > 0)
+            {
+                throw new GameContentException($"全域怪物 {monster.Id} 不能指定 subPlaces");
+            }
+
+            return;
+        }
+
+        if (!places.TryGetValue(monster.PlaceId, out var place))
+        {
+            throw new GameContentException($"怪物 {monster.Id} 引用了不存在的地區：{monster.PlaceId}");
+        }
+
+        if (place.HasSubPlaces != monster.SubPlaces.Count > 0)
+        {
+            throw new GameContentException(
+                $"怪物 {monster.Id} 的 subPlaces 與地區 {place.Id} 不符：有子地區的地區至少指定一個，沒有的必須為空");
         }
     }
 

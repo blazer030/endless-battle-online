@@ -124,12 +124,15 @@ public class JsonGameContentTests
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         Assert.Equal("test-stage-1", content.StartingStageId);
         Assert.Equal(["test-sprite", "test-wolf"], content.GetStage("test-stage-1").MonsterIds);
-        Assert.Equal(
-            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30),
-            content.GetMonster("test-wolf"));
-        Assert.Equal(
-            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0),
-            content.GetMonster("test-sprite"));
+        // SubPlaces 是清單，record 的 Equals 只比參考，改用結構比對
+        Assert.Equivalent(
+            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3]),
+            content.GetMonster("test-wolf"),
+            strict: true);
+        Assert.Equivalent(
+            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2]),
+            content.GetMonster("test-sprite"),
+            strict: true);
     }
 
     [Fact]
@@ -158,6 +161,52 @@ public class JsonGameContentTests
         Assert.Contains(validField, ValidMonster);
         var monstersJson = $$"""{ "monsters": [{{ValidMonster.Replace(validField, invalidField)}}] }""";
         AssertLoadRejects(monstersJson, ValidStages, ValidJobs, "sprite");
+    }
+
+    private static string MonsterAt(string placeId, string subPlaces) =>
+        $$"""{ "monsters": [{{ValidMonster.Replace("\"meet\": 0", $"\"meet\": 0, \"placeId\": {placeId}, \"subPlaces\": {subPlaces}")}}] }""";
+
+    [Theory]
+    [InlineData("[0]")]
+    [InlineData("[5]")]
+    [InlineData("[1, 1]")]
+    public void Monster_RejectsSubPlaceOutsideRange(string subPlaces) =>
+        AssertLoadRejects(MonsterAt("1", subPlaces), ValidStages, ValidJobs, "sprite");
+
+    [Fact]
+    public void Monster_RejectsUnknownPlace() =>
+        AssertLoadRejects(MonsterAt("7", "[1]"), ValidStages, ValidJobs, "sprite");
+
+    // ValidWorld 的地區 2 沒有子地區；placeId 0 為全域怪
+    [Theory]
+    [InlineData("2")]
+    [InlineData("0")]
+    public void Monster_RejectsSubPlacesForPlaceWithoutThem(string placeId) =>
+        AssertLoadRejects(MonsterAt(placeId, "[1]"), ValidStages, ValidJobs, "sprite");
+
+    [Fact]
+    public void Monster_RequiresSubPlaceForPlaceWithThem() =>
+        AssertLoadRejects(MonsterAt("1", "[]"), ValidStages, ValidJobs, "sprite");
+
+    [Fact]
+    public void Monster_AcceptsPlaceAndSubPlaces()
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), MonsterAt("1", "[2, 4]"));
+            File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), ValidStages);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            var monster = JsonGameContent.Load(directory.FullName).GetMonster("sprite");
+            Assert.Equal(1, monster.PlaceId);
+            Assert.Equal([2, 4], monster.SubPlaces);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
     }
 
     [Theory]
