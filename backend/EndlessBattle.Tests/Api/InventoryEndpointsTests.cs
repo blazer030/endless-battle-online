@@ -119,6 +119,27 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(13, me.GetProperty("baseStats").GetProperty("str").GetInt32());
     }
 
+    // 生命護符 life +20 → hpMax 32×25+50 = 850；在身上時 hp 850，卸下後上限回到 350，hp 不能超過
+    [Fact]
+    public async Task Me_ClampsHpAfterUnequip()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var amulet = await GiveAsync(characterId, "test-life-amulet");
+        await ReadAsync(await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = amulet }, CancellationToken));
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Characters.Where(character => character.Id == characterId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(character => character.Hp, 850), CancellationToken);
+        }
+
+        await ReadAsync(await client.PostAsJsonAsync("/api/inventory/unequip", new { slot = "Accessory" }, CancellationToken));
+
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(350, me.GetProperty("stats").GetProperty("hpMax").GetInt32());
+        Assert.Equal(350, me.GetProperty("hp").GetInt32());
+    }
+
     [Fact]
     public async Task Inventory_RequiresAuthentication()
     {

@@ -172,4 +172,15 @@ public class CharacterFactoryTests
             new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, SpecialAttackName: "必殺", Str: 14, Smart: 13),
             combatant);
     }
+
+    // 卸下加 life／smart／be 的裝備後 Hp／Sp 可能高於新上限：進戰鬥時夾回 350／91
+    [Fact]
+    public void CombatBridge_ClampsHpToEffectiveMax()
+    {
+        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now) with { Hp = 850, Sp = 200 };
+
+        var combatant = CombatBridge.ToCombatant(character, EquipmentBonus.Zero);
+
+        Assert.Equal((350, 350, 91, 91), (combatant.Hp, combatant.HpMax, combatant.Sp, combatant.SpMax));
+    }
 }

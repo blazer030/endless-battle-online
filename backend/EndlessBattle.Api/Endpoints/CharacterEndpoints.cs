@@ -57,6 +57,7 @@ public static class CharacterEndpoints
         var bare = character.Base;
         var total = equipment.Effective(bare);
         var derived = DerivedStats.From(bare, equipment);
+        var vitals = CombatBridge.ToCombatant(character, equipment);
         var place = content.GetPlace(character.PlaceId);
         return new CharacterResponse(
             character.Name,
@@ -64,8 +65,8 @@ public static class CharacterEndpoints
             character.Exp,
             character.NextExp,
             character.Money,
-            character.Hp,
-            character.Sp,
+            vitals.Hp,
+            vitals.Sp,
             character.Sex,
             character.Element,
             character.Birth,

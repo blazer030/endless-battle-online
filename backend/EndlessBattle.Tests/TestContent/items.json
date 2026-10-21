@@ -12,6 +12,7 @@
     {"id": "test-str-potion", "name": "測試力量藥水", "category": "Consumable", "consumable": "StatPotion", "bonus": {"str": 1, "vit": 2}, "price": 500, "shopLevel": 1, "shopSellable": false},
     {"id": "test-stamina-potion", "name": "測試行動力藥水", "category": "Consumable", "consumable": "StaminaPotion", "amount": 20, "price": 300, "shopLevel": 1, "shopSellable": false},
     {"id": "test-bag-expansion", "name": "測試背包擴充", "category": "Consumable", "consumable": "BagExpansion", "amount": 5, "price": 5000, "shopLevel": 1, "shopSellable": false},
-    {"id": "test-depot-expansion", "name": "測試倉庫擴充", "category": "Consumable", "consumable": "DepotExpansion", "amount": 5, "price": 5000, "shopLevel": 1, "shopSellable": false}
+    {"id": "test-depot-expansion", "name": "測試倉庫擴充", "category": "Consumable", "consumable": "DepotExpansion", "amount": 5, "price": 5000, "shopLevel": 1, "shopSellable": false},
+    {"id": "test-life-amulet", "name": "測試生命護符", "category": "Accessory", "bonus": {"life": 20}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false}
   ]
 }
