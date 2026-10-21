@@ -156,6 +156,18 @@ public class SkillServiceTests
         Assert.False(combo.Next.CanLearn);
     }
 
+    [Fact]
+    public async Task Get_ShowsNoNextLevel_AtMaxLevel()
+    {
+        await ArrangeAsync(0, new LearnedSkill("burst", 5));
+
+        var overview = await service.GetAsync(AccountId, CancellationToken);
+
+        var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
+        Assert.Equal(5, burst.Level);
+        Assert.Null(burst.Next);
+    }
+
     private sealed class NextLevelViewComparer : IEqualityComparer<NextLevelView?>
     {
         public static readonly NextLevelViewComparer Instance = new();

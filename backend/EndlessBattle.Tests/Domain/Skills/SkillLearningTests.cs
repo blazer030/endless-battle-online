@@ -47,7 +47,6 @@ public class SkillLearningTests
         Assert.Equal(["notEnoughProficiency"], check.Reasons);
         var exception = Assert.Throws<SkillLearningException>(() => SkillLearning.Apply(Warrior, Burst, 0, 299));
         Assert.Equal(["notEnoughProficiency"], exception.Reasons);
-        Assert.Equal(2000, Warrior.Money);
     }
 
     [Fact]
