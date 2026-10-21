@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EndlessBattle.Domain.Battle;
 
 namespace EndlessBattle.Domain.Combat;
 

@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Combat;
 using EndlessBattle.Tests.Support;
 

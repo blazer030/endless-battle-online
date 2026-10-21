@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Randomness;
 
 namespace EndlessBattle.Domain.Combat;

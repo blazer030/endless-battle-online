@@ -1,4 +1,4 @@
-namespace EndlessBattle.Domain.Combat;
+namespace EndlessBattle.Domain.Battle;
 
 public enum CombatSide
 {
