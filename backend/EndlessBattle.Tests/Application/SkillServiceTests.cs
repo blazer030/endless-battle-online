@@ -108,6 +108,10 @@ public class SkillServiceTests
         await Assert.ThrowsAsync<NotFoundException>(() => service.LearnAsync(AccountId, "burst", CancellationToken));
 
     [Fact]
+    public async Task Learn_Throws_WhenNoCharacter_EvenIfSkillUnknown() =>
+        await Assert.ThrowsAsync<NotFoundException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
+
+    [Fact]
     public async Task SetSlots_FillsPassiveChanceFromSkill()
     {
         var character = await ArrangeAsync(0, new LearnedSkill("burst", 1), new LearnedSkill("iron-skin", 2));

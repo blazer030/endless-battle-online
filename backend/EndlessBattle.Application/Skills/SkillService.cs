@@ -33,9 +33,9 @@ public sealed class SkillService(
     // 角色更新（扣錢、版本鎖）成功後才寫技能點與技能書；版本衝突時其他表都不動
     public async Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken)
     {
+        var character = await FindCharacterAsync(accountId, cancellationToken);
         var skill = content.AllSkills.FirstOrDefault(candidate => candidate.Id == skillId)
             ?? throw new InputValidationException("不存在的技能");
-        var character = await FindCharacterAsync(accountId, cancellationToken);
         var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), skill.JobId);
         var currentLevel = (await skillBook.ListAsync(character.Id, cancellationToken))
             .FirstOrDefault(learned => learned.SkillId == skill.Id)?.Level ?? 0;

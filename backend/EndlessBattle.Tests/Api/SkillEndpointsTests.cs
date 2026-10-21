@@ -208,6 +208,18 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Empty(cleared.GetProperty("slots").EnumerateArray());
     }
 
+    // 先找角色再找技能：沒有角色時一律 404
+    [Fact]
+    public async Task Learn_Returns404_WhenNoCharacter_EvenIfSkillUnknown()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "no-such-skill" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     [Fact]
     public async Task Overview_Returns404_WhenNoCharacter()
     {
