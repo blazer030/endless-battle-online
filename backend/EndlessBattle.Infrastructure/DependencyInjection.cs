@@ -28,6 +28,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICharacterRepository, CharacterRepository>();
+        services.AddScoped<IJobProficiencyRepository, JobProficiencyRepository>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IRandomSourceFactory, SystemRandomSourceFactory>();

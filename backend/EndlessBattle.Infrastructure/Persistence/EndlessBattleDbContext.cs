@@ -16,6 +16,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<Character> Characters { get; set; }
 
+    public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -50,6 +52,12 @@ public partial class EndlessBattleDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("account_id");
+            entity.Property(e => e.ActNum)
+                .HasDefaultValueSql("'50'")
+                .HasColumnName("act_num");
+            entity.Property(e => e.ActNumTime)
+                .HasMaxLength(6)
+                .HasColumnName("act_num_time");
             entity.Property(e => e.BaseAgi)
                 .HasDefaultValueSql("'10'")
                 .HasColumnName("base_agi");
@@ -120,6 +128,25 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey<Character>(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_characters_account");
+        });
+
+        modelBuilder.Entity<CharacterJobProficiency>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.JobId }).HasName("PRIMARY");
+
+            entity.ToTable("character_job_proficiency");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.JobId)
+                .HasMaxLength(32)
+                .HasColumnName("job_id");
+            entity.Property(e => e.Proficiency).HasColumnName("proficiency");
+            entity.Property(e => e.SkillPoints).HasColumnName("skill_points");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterJobProficiencies)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_job_proficiency_character");
         });
 
         OnModelCreatingPartial(modelBuilder);

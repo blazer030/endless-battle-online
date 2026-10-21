@@ -55,5 +55,11 @@ public partial class Character
 
     public int Sp { get; set; }
 
+    public int ActNum { get; set; }
+
+    public DateTime? ActNumTime { get; set; }
+
     public virtual Account Account { get; set; } = null!;
+
+    public virtual ICollection<CharacterJobProficiency> CharacterJobProficiencies { get; set; } = new List<CharacterJobProficiency>();
 }

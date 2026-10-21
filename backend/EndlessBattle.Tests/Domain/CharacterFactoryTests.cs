@@ -34,6 +34,8 @@ public class CharacterFactoryTests
         Assert.Equal(new BaseStats(Str: 14, Smart: 12, Life: 13, Vit: 10, Agi: 11, Au: 10, Be: 10), character.Base);
         Assert.Equal(50, character.Hp);
         Assert.Equal(25, character.Sp);
+        Assert.Equal(50, character.ActNum);
+        Assert.Null(character.ActNumTime);
         Assert.Equal(2000, character.Money);
         Assert.Equal(1, character.Level);
         Assert.Equal(1000, character.NextExp);

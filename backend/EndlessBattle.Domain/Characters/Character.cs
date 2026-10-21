@@ -17,6 +17,8 @@ public sealed record Character(
     BaseStats Base,
     int Hp,
     int Sp,
+    int ActNum,
+    DateTimeOffset? ActNumTime,
     string CurrentStageId,
     DateTimeOffset LastSettledAt,
     int Version);

@@ -81,6 +81,8 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.BaseBe = character.Base.Be;
         row.Hp = character.Hp;
         row.Sp = character.Sp;
+        row.ActNum = character.ActNum;
+        row.ActNumTime = character.ActNumTime?.UtcDateTime;
         row.CurrentStageId = character.CurrentStageId;
         row.LastSettledAt = character.LastSettledAt.UtcDateTime;
     }
@@ -101,7 +103,11 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         Base: new BaseStats(row.BaseStr, row.BaseSmart, row.BaseLife, row.BaseVit, row.BaseAgi, row.BaseAu, row.BaseBe),
         Hp: row.Hp,
         Sp: row.Sp,
+        ActNum: row.ActNum,
+        ActNumTime: row.ActNumTime is { } actNumTime ? ToUtc(actNumTime) : null,
         CurrentStageId: row.CurrentStageId,
-        LastSettledAt: new DateTimeOffset(DateTime.SpecifyKind(row.LastSettledAt, DateTimeKind.Utc)),
+        LastSettledAt: ToUtc(row.LastSettledAt),
         Version: row.Version);
+
+    private static DateTimeOffset ToUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 }

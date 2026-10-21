@@ -10,6 +10,7 @@ public static class CharacterFactory
     public const int UnallocatedStatValue = 10;
     public const int StartingHp = 50;
     public const int StartingSp = 25;
+    public const int StartingActNum = 50;
     public const long StartingMoney = 2000;
     public const int StartingLevel = 1;
     public const long StartingNextExp = 1000;
@@ -66,6 +67,8 @@ public static class CharacterFactory
                 Be: UnallocatedStatValue),
             Hp: StartingHp,
             Sp: StartingSp,
+            ActNum: StartingActNum,
+            ActNumTime: null,
             CurrentStageId: startingStageId,
             LastSettledAt: now,
             Version: 0);

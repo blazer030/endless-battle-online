@@ -57,6 +57,8 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
             Base: new BaseStats(Str: 14, Smart: 15, Life: 16, Vit: 17, Agi: 18, Au: 19, Be: 20),
             Hp: 37,
             Sp: 19,
+            ActNum: 37,
+            ActNumTime: now.AddMinutes(-3),
             CurrentStageId: "stage-9",
             LastSettledAt: now,
             Version: 0);
@@ -91,6 +93,8 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
             Base = new BaseStats(Str: 21, Smart: 22, Life: 23, Vit: 24, Agi: 25, Au: 26, Be: 27),
             Hp = 12,
             Sp = 8,
+            ActNum = 41,
+            ActNumTime = now.AddSeconds(30),
             CurrentStageId = "stage-2",
             LastSettledAt = now.AddMinutes(5),
         };

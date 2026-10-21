@@ -29,6 +29,8 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal("warrior", stored.JobId);
         Assert.Equal(10, stored.BaseStr);
         Assert.Equal(50, stored.Hp);
+        Assert.Equal(50, stored.ActNum);
+        Assert.Null(stored.ActNumTime);
         Assert.Equal(0, stored.Money);
         Assert.Equal(0, stored.Exp);
     }
