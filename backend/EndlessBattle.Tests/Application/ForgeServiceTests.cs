@@ -46,6 +46,14 @@ public class ForgeServiceTests
     private async Task<IReadOnlyList<(string ItemId, int Quantity)>> ItemsAsync(Character character) =>
         (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.ItemId, entry.Quantity)).ToList();
 
+    // 先扣石頭／道具再寫強化：中途失敗時寧可損失消耗品，也不白給強化
+    private void AssertConsumedBeforeEnhanced(long equipmentId)
+    {
+        var enhanced = inventory.Writes.IndexOf($"enhance:{equipmentId}");
+        var consumed = inventory.Writes.FindIndex(write => write.StartsWith("remove:") || write.StartsWith("quantity:"));
+        Assert.InRange(consumed, 0, enhanced - 1);
+    }
+
     // 裝備中的道具也能精鍊：擲 1.0 → r = 100 成功，at、df 各擲 [1, 2] 的上界
     [Fact]
     public async Task Refine_EquippedItemCanBeRefined()
@@ -54,11 +62,13 @@ public class ForgeServiceTests
         var sword = await GiveAsync(character, "test-sword");
         var stone = await GiveAsync(character, "test-refine-stone");
         await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, sword, null, CancellationToken);
+        inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.99);
 
         var result = await service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken);
 
         Assert.True(result.Success);
+        AssertConsumedBeforeEnhanced(sword);
         var refined = Find(character, sword);
         Assert.Equal(1, refined.RefineLevel);
         Assert.Equal(StatBonus.Zero with { At = 2, Df = 2 }, refined.RefineBonus);
@@ -137,9 +147,11 @@ public class ForgeServiceTests
         var sword = await GiveAsync(character, "test-sword");
         var stone = await GiveAsync(character, "test-stone", 3);
 
+        inventory.Writes.Clear();
         var result = await service.SocketAsync(AccountId, sword, 1, stone, CancellationToken);
 
         Assert.True(result.Success);
+        AssertConsumedBeforeEnhanced(sword);
         Assert.Equal([new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], Find(character, sword).Sockets);
         Assert.Equal([("test-sword", 1), ("test-stone", 2)], await ItemsAsync(character));
         Assert.Equal(["update"], log);
@@ -173,11 +185,13 @@ public class ForgeServiceTests
         var character = await AddCharacterAsync();
         var sword = await SocketedSwordAsync(character);
         await GiveAsync(character, "stone-remover");
+        inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.0);
 
         var result = await service.UnsocketAsync(AccountId, sword, 1, CancellationToken);
 
         Assert.True(result.Recovered);
+        AssertConsumedBeforeEnhanced(sword);
         Assert.Empty(Find(character, sword).Sockets);
         Assert.Equal([("test-sword", 1), ("test-stone", 1)], await ItemsAsync(character));
         Assert.Equal(["update"], log);
@@ -227,11 +241,13 @@ public class ForgeServiceTests
         var character = await AddCharacterAsync();
         var sword = await GiveAsync(character, "test-sword");
         await GiveAsync(character, "hole-driller");
+        inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.0);
 
         var result = await service.DrillAsync(AccountId, sword, CancellationToken);
 
         Assert.True(result.Success);
+        AssertConsumedBeforeEnhanced(sword);
         Assert.Equal(2, Find(character, sword).Holes);
         Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
         Assert.Equal(

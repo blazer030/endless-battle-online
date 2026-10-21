@@ -14,7 +14,8 @@ public sealed record ForgeResult(bool Success, InventoryView Inventory);
 public sealed record UnsocketResult(bool Recovered, InventoryView Inventory);
 
 // 精鍊與鑲嵌的對象可以在背包或裝備欄；石頭與道具必須在背包。
-// 先以版本鎖寫入角色（內容不變、只遞增版本），成功後才擲骰與寫入背包；衝突時背包不動
+// 先以版本鎖寫入角色（內容不變、只遞增版本），成功後才擲骰與寫入背包；衝突時背包不動。
+// 寫入沒有交易可包，一律先扣石頭／道具再寫強化：中途失敗時寧可損失消耗品，也不白給強化
 public sealed class ForgeService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
@@ -37,11 +38,6 @@ public sealed class ForgeService(
 
         await LockAsync(character, cancellationToken);
         var outcome = Refine.Attempt(target, targetItem, stoneItem, useSafeStone, randomFactory.Create());
-        if (outcome.Success)
-        {
-            await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
-        }
-
         if (outcome.ConsumedStone)
         {
             await ConsumeAsync(character.Id, stone, 1, cancellationToken);
@@ -50,6 +46,11 @@ public sealed class ForgeService(
         if (outcome.ConsumedSafeStone)
         {
             await ConsumeAsync(character.Id, safeStone!, 1, cancellationToken);
+        }
+
+        if (outcome.Success)
+        {
+            await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         }
 
         return new ForgeResult(outcome.Success, await inventoryService.GetAsync(accountId, cancellationToken));
@@ -67,8 +68,8 @@ public sealed class ForgeService(
 
         await LockAsync(character, cancellationToken);
         var outcome = Socket.Insert(target, hole, stoneItem, randomFactory.Create());
-        await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         await ConsumeAsync(character.Id, stone, 1, cancellationToken);
+        await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         return new ForgeResult(true, await inventoryService.GetAsync(accountId, cancellationToken));
     }
 
@@ -83,8 +84,8 @@ public sealed class ForgeService(
 
         await LockAsync(character, cancellationToken);
         var outcome = Socket.Remove(target, hole, randomFactory.Create());
-        await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         await ConsumeAsync(character.Id, remover, 1, cancellationToken);
+        await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         var recovered = outcome.Recovered && await TryAddAsync(character, AfterConsuming(state.Bag, remover, 1), content.GetItem(outcome.StoneId), 1, cancellationToken);
         return new UnsocketResult(recovered, await inventoryService.GetAsync(accountId, cancellationToken));
     }
@@ -101,12 +102,11 @@ public sealed class ForgeService(
 
         await LockAsync(character, cancellationToken);
         var outcome = Socket.Drill(target, targetItem, randomFactory.Create());
+        await ConsumeAsync(character.Id, driller, 1, cancellationToken);
         if (outcome.Success)
         {
             await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
         }
-
-        await ConsumeAsync(character.Id, driller, 1, cancellationToken);
         return new ForgeResult(outcome.Success, await inventoryService.GetAsync(accountId, cancellationToken));
     }
 
