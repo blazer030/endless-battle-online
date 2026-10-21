@@ -39,6 +39,7 @@ public sealed class InventoryService(
         }
 
         // 原本的裝備隨欄位改指向新裝備而回到背包；新裝備同時離開背包，該分類格數不變
+        await LockAsync(character, cancellationToken);
         await equipment.SetSlotAsync(character.Id, EquipmentRules.SlotOf(item.Category), entry.Id, null, cancellationToken);
         return await ViewAsync(character, cancellationToken);
     }
@@ -53,6 +54,7 @@ public sealed class InventoryService(
         if (slot == EquipmentSlot.Supply)
         {
             var returned = TryReturn(state.Bag, equipped, state.Loadout.SupplyQuantity, character.BagBonus);
+            await LockAsync(character, cancellationToken);
             await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
             await ApplyReturnAsync(character.Id, equipped, returned, cancellationToken);
         }
@@ -60,6 +62,7 @@ public sealed class InventoryService(
         {
             // 裝備的列本來就在背包表裡，只要確認放得下，清空欄位即可
             TryReturn(state.Bag, equipped, 1, character.BagBonus);
+            await LockAsync(character, cancellationToken);
             await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
         }
 
@@ -103,10 +106,10 @@ public sealed class InventoryService(
             .Where(other => other.Quantity > 0)
             .ToList();
         var previous = state.Loadout.Equipped.GetValueOrDefault(EquipmentSlot.Supply);
-        AddResult? returned = null;
+        var returned = previous is null ? null : TryReturn(bagAfterSplit, previous, state.Loadout.SupplyQuantity, character.BagBonus);
+        await LockAsync(character, cancellationToken);
         if (previous is not null)
         {
-            returned = TryReturn(bagAfterSplit, previous, state.Loadout.SupplyQuantity, character.BagBonus);
             await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, null, null, cancellationToken);
         }
 
@@ -148,6 +151,11 @@ public sealed class InventoryService(
 
         await inventory.RemoveAsync(characterId, equipped.Id, cancellationToken);
     }
+
+    // 裝備欄與背包沒有交易可包：先以版本鎖寫入（欄位不變、只遞增版本）佔住這次變更，
+    // 重複送出的請求會在動到背包之前收到 409
+    private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
+        characters.UpdateAsync(character, cancellationToken);
 
     private static InputValidationException BagFull() => new("背包已滿", ["bagFull"]);
 

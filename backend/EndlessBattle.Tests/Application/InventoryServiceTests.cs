@@ -325,4 +325,43 @@ public class InventoryServiceTests
     {
         await Assert.ThrowsAsync<NotFoundException>(() => service.GetAsync(AccountId, CancellationToken));
     }
+
+    // 重複送出的裝備請求要撞版本鎖：角色寫入衝突時，背包與欄位都不能動
+    [Fact]
+    public async Task Equip_ConflictLeavesBagUntouched()
+    {
+        var character = await AddCharacterAsync();
+        var supply = await GiveAsync(character, "test-supply", 30);
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.EquipAsync(AccountId, supply, 10, CancellationToken));
+
+        Assert.Equal([(supply, "test-supply", 30)], (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.Id, entry.ItemId, entry.Quantity)));
+        Assert.Empty((await equipment.GetAsync(character.Id, CancellationToken)).Equipped);
+    }
+
+    [Fact]
+    public async Task Unequip_ConflictLeavesSlotUntouched()
+    {
+        var character = await AddCharacterAsync();
+        await service.EquipAsync(AccountId, await GiveAsync(character, "test-supply", 30), 10, CancellationToken);
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.UnequipAsync(AccountId, EquipmentSlot.Supply, CancellationToken));
+
+        Assert.Equal(10, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+        Assert.Equal([20, 10], (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => entry.Quantity));
+    }
+
+    [Fact]
+    public async Task Equip_BumpsCharacterVersion()
+    {
+        var character = await AddCharacterAsync();
+
+        await service.EquipAsync(AccountId, await GiveAsync(character, "test-sword"), null, CancellationToken);
+        await service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken);
+
+        Assert.Equal(2, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
+        Assert.Equal(["update", "update"], log);
+    }
 }
