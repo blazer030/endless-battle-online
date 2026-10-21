@@ -25,7 +25,7 @@ public static class WogBattle
         // 玩家的攻擊方式整場只決定一次（WOG 在開戰時擲 m_type）；怪物每次出手前重擲
         var playerKind = playerPreferred ?? RoundResolver.ChooseKind(player.At, player.Mat, random);
 
-        // 本回合套用技能修正後的雙方能力值
+        // 本回合套用技能修正後的雙方能力值；每回合開頭都會重新指定，這裡的初值只是讓區域函式能捕捉
         var modifiers = caster.Current;
         var fighter = player;
         var opponent = monster;

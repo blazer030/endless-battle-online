@@ -19,7 +19,7 @@ public sealed record CombatantState(
     int Str,
     int Smart)
 {
-    // 怪物每場都從滿 HP／SP 開始；怪物沒有技能，Str／Smart 只是沿用 at／mat 填值
+    // 怪物每場都從滿 HP／SP 開始；怪物沒有技能，Str／Smart 用不到，填 0
     public static CombatantState From(MonsterDefinition monster) => new(
         Hp: monster.Hp,
         HpMax: monster.Hp,
@@ -33,6 +33,6 @@ public sealed record CombatantState(
         Au: monster.Au,
         Element: monster.Element,
         SpecialAttackName: null,
-        Str: monster.At,
-        Smart: monster.Mat);
+        Str: 0,
+        Smart: 0);
 }
