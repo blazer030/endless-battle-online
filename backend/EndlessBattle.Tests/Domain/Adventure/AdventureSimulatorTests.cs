@@ -282,6 +282,18 @@ public class AdventureSimulatorTests
         Assert.Equal(0, run.Character.Sp);
     }
 
+    // 擲骰一律 0.5 → 發動擲骰 rand(1,100) = 51：欄位發動率 10 永遠不施放，100 則施放
+    [Theory]
+    [InlineData(10, false)]
+    [InlineData(100, true)]
+    public void Adventure_UsesSlotChanceForCasting(int chance, bool casts)
+    {
+        var run = Run(Hero(), seconds: 1, skills: [Burst with { Chance = chance }], new ScriptedRandom(0.5));
+
+        Assert.Equal(1, run.Summary.Fights);
+        Assert.Equal(casts, run.Summary.SkillsCast > 0);
+    }
+
     [Fact]
     public void Adventure_ConsumesNothing_WhenNoTimeAvailable()
     {
