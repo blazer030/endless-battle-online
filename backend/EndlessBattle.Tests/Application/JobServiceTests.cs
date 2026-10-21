@@ -135,15 +135,12 @@ public class JobServiceTests
     private async Task<IReadOnlyList<(string ItemId, int Quantity)>> ItemsAsync(Character character) =>
         (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.ItemId, entry.Quantity)).ToList();
 
-    // 轉職時全部裝備（含補給欄）都回到背包，回應的裝備加成歸零
+    // 轉職時六格裝備與補給欄全部回到背包，回應的裝備加成歸零
     [Fact]
     public async Task JobChange_UnequipsEverything()
     {
         var character = await ArrangeAsync();
-        await EquipAsync(character, EquipmentSlot.Weapon, "test-sword");
-        await EquipAsync(character, EquipmentSlot.Head, "test-helm");
-        await EquipAsync(character, EquipmentSlot.Accessory, "test-power-ring");
-        await EquipAsync(character, EquipmentSlot.Supply, "test-supply", 5);
+        await EquipAllSlotsAsync(character);
 
         var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
 
@@ -151,8 +148,39 @@ public class JobServiceTests
         Assert.Equal(EquipmentBonus.Zero, profile.Equipment);
         Assert.Empty((await equipment.GetAsync(character.Id, CancellationToken)).Equipped);
         Assert.Equal(
-            [("test-sword", 1), ("test-helm", 1), ("test-power-ring", 1), ("test-supply", 5)],
+            [
+                ("test-sword", 1), ("test-helm", 1), ("test-armor", 1), ("test-gloves", 1), ("test-boots", 1),
+                ("test-power-ring", 1), ("test-supply", 5),
+            ],
             await ItemsAsync(character));
+    }
+
+    // 角色寫入（版本鎖）必須排在卸裝之前：衝突時裝備欄、背包列都不動
+    [Fact]
+    public async Task Change_ConflictLeavesEquippedItems()
+    {
+        var character = await ArrangeAsync();
+        await EquipAllSlotsAsync(character);
+        inventory.Writes.Clear();
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.ChangeAsync(AccountId, "thief", CancellationToken));
+
+        Assert.Empty(inventory.Writes);
+        var loadoutAfter = await equipment.GetAsync(character.Id, CancellationToken);
+        Assert.Equal(Enum.GetValues<EquipmentSlot>(), loadoutAfter.Equipped.Keys.Order());
+        Assert.Equal(5, loadoutAfter.SupplyQuantity);
+    }
+
+    private async Task EquipAllSlotsAsync(Character character)
+    {
+        await EquipAsync(character, EquipmentSlot.Weapon, "test-sword");
+        await EquipAsync(character, EquipmentSlot.Head, "test-helm");
+        await EquipAsync(character, EquipmentSlot.Body, "test-armor");
+        await EquipAsync(character, EquipmentSlot.Hand, "test-gloves");
+        await EquipAsync(character, EquipmentSlot.Foot, "test-boots");
+        await EquipAsync(character, EquipmentSlot.Accessory, "test-power-ring");
+        await EquipAsync(character, EquipmentSlot.Supply, "test-supply", 5);
     }
 
     // 補給欄 5 個併回背包原有的 10 個，補給欄那一列刪除

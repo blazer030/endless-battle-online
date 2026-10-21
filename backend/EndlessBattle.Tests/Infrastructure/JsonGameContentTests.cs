@@ -527,6 +527,7 @@ public class JsonGameContentTests
                 "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion", "test-stamina-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
+                "test-armor", "test-gloves", "test-boots",
             ],
             content.AllItems.Select(item => item.Id));
 

@@ -403,6 +403,24 @@ public class ForgeServiceTests
         Assert.Empty(log);
     }
 
+    // 扣錢的角色寫入兼版本鎖，必須排在扣材料、放成品之前：衝突時背包與金錢都不動
+    [Fact]
+    public async Task Synthesis_ConflictWritesNothing()
+    {
+        var character = await AddCharacterAsync();
+        var ore = await GiveAsync(character, "test-ore", 3);
+        inventory.Writes.Clear();
+        random.Next = new ScriptedRandom(0.0);
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.SynthesizeAsync(AccountId, "test-forge-sword", 1, CancellationToken));
+
+        Assert.Empty(inventory.Writes);
+        Assert.Equal([("test-ore", 3)], await ItemsAsync(character));
+        Assert.Equal(3, Find(character, ore).Quantity);
+        Assert.Equal(2000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+    }
+
     [Fact]
     public async Task Synthesis_UnknownRecipeIsNotFound()
     {

@@ -13,9 +13,9 @@ public sealed record ForgeResult(bool Success, InventoryView Inventory);
 // Recovered 為 false：沒擲中回收，或背包魔石分類已滿而消失
 public sealed record UnsocketResult(bool Recovered, InventoryView Inventory);
 
-// 精鍊與鑲嵌的對象可以在背包或裝備欄；石頭與道具必須在背包。
 public sealed record SynthesisResult(int Successes, int Attempts, long Cost, InventoryView Inventory);
 
+// 精鍊與鑲嵌的對象可以在背包或裝備欄；石頭與道具必須在背包。
 // 先以版本鎖寫入角色（內容不變、只遞增版本），成功後才擲骰與寫入背包；衝突時背包不動。
 // 寫入沒有交易可包，一律先扣石頭／道具再寫強化：中途失敗時寧可損失消耗品，也不白給強化
 public sealed class ForgeService(

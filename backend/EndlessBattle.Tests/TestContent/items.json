@@ -18,6 +18,9 @@
     {"id": "test-refine-stone-2", "name": "測試精鍊石 Lv2", "category": "RefineStone", "price": 400, "shopLevel": 1, "shopSellable": false, "refine": {"level": 2, "kind": 1, "at": [2, 4], "df": [2, 4]}},
     {"id": "stone-remover", "name": "拆石器", "category": "Material", "price": 500, "shopLevel": 3, "shopSellable": false},
     {"id": "hole-driller", "name": "鑽孔器", "category": "Material", "price": 3000, "shopLevel": 5, "shopSellable": false},
-    {"id": "safe-refine-stone", "name": "安全精鍊石", "category": "Material", "price": 2000, "shopLevel": 4, "shopSellable": false}
+    {"id": "safe-refine-stone", "name": "安全精鍊石", "category": "Material", "price": 2000, "shopLevel": 4, "shopSellable": false},
+    {"id": "test-armor", "name": "測試鐵甲", "category": "Body", "bonus": {"df": 4}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false},
+    {"id": "test-gloves", "name": "測試鐵手套", "category": "Hand", "bonus": {"df": 2}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false},
+    {"id": "test-boots", "name": "測試鐵靴", "category": "Foot", "bonus": {"df": 2}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false}
   ]
 }
