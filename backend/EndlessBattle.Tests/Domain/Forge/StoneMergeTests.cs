@@ -48,4 +48,12 @@ public class StoneMergeTests
         Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 2, 1, Find));
         Assert.Equal(["notRefineStone"], StoneMerge.Check(TestItems.Item("ore", ItemCategory.Material), 4, 1, Find));
     }
+
+    // 先判斷這種石頭能不能合成，再看數量：只有 1 顆 Lv10 也回 cannotMerge
+    [Fact]
+    public void Merge_SingleMaxLevelStoneReportsCannotMerge()
+    {
+        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 1, 1, Find));
+        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 2, 0, Find));
+    }
 }
