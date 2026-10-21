@@ -13,7 +13,12 @@ public static class WogBattle
         Run(player, monster, playerPreferred, [], random);
 
     // skills 已由呼叫端整理好（被動欄只放當前職業的技能）；怪物沒有技能
-    public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, IRandomSource random)
+    public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, IRandomSource random) =>
+        Run(player, monster, playerPreferred, skills, supply: null, random);
+
+    // supply 為補給欄的補給品，null 表示沒有；剩餘數量由 BattleOutcome.Supply 帶回
+    public static BattleOutcome Run(
+        CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, SupplyState? supply, IRandomSource random)
     {
         var events = new List<BattleEvent>();
         var playerHp = player.Hp;
@@ -21,6 +26,7 @@ public static class WogBattle
         var monsterHp = monster.Hp;
         var damageDealt = 0;
         var caster = new SkillCaster(player, skills);
+        var potionsUsed = 0;
 
         // 玩家的攻擊方式整場只決定一次（WOG 在開戰時擲 m_type）；怪物每次出手前重擲
         var playerKind = playerPreferred ?? RoundResolver.ChooseKind(player.At, player.Mat, random);
@@ -35,6 +41,7 @@ public static class WogBattle
             var roundStart = (round - 1) * BattleTiming.SecondsPerRound;
             caster.ExpireAtRoundStart();
             events.Add(new RoundEvent(roundStart, round));
+            DrinkPotion(roundStart);
             Record(caster.CastBeforeAttack(playerHp, playerSp, random), roundStart);
 
             modifiers = caster.Current;
@@ -104,6 +111,23 @@ public static class WogBattle
             return playerHp == 0;
         }
 
+        // 玩家出手前（技能判定之前）喝補給，不佔用這回合的攻擊、不擲骰
+        void DrinkPotion(double atSeconds)
+        {
+            if (!PotionRules.ShouldUse(player with { Hp = playerHp, Sp = playerSp }, supply, potionsUsed))
+            {
+                return;
+            }
+
+            var hpGained = Math.Min(supply!.Hp, player.HpMax - playerHp);
+            var spGained = Math.Min(supply.Sp, player.SpMax - playerSp);
+            playerHp += hpGained;
+            playerSp += spGained;
+            supply = supply with { Quantity = supply.Quantity - 1 };
+            potionsUsed++;
+            events.Add(new PotionEvent(atSeconds, supply.ItemId, supply.Name, hpGained, spGained, supply.Quantity));
+        }
+
         void Record(IReadOnlyList<SkillCast> casts, double atSeconds)
         {
             foreach (var cast in casts)
@@ -116,7 +140,7 @@ public static class WogBattle
         }
 
         BattleOutcome Outcome(CombatSide? winner, int rounds) =>
-            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp });
+            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp }, supply);
     }
 
     private static CombatSide Opponent(CombatSide side) => side == CombatSide.Player ? CombatSide.Monster : CombatSide.Player;

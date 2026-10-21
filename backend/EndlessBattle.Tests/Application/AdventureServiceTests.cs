@@ -330,6 +330,69 @@ public class AdventureServiceTests
         Assert.Empty(await BagAsync(character.Id));
     }
 
+    // 力量、智力都 1 → At 1、Mat 1：每下只打雪精 1 點；雪精每下 15 點。HP 60／350、SP 25／58（智力 1 → (1+10)×3+25）。
+    // 1 秒只開打一場：第 1 回合被打到 45 < 52.5 → 第 2 回合開頭喝（+50／+25 → 95／50）；第 4 回合後 50 → 第 5 回合再喝（+50／+8，SP 滿）。
+    // 之後 SP 已滿，HP 再低也不喝，第 11 回合倒下。共喝 2 瓶
+    private Task<Character> AddWeakCharacterAsync() =>
+        AddCharacterAsync(character => character with { Base = character.Base with { Str = 1, Smart = 1 } });
+
+    private async Task<long> EquipSupplyAsync(Character character, int quantity)
+    {
+        var id = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", quantity), CancellationToken);
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, id, quantity, CancellationToken);
+        return id;
+    }
+
+    [Fact]
+    public async Task Adventure_WritesBackRemainingQuantity()
+    {
+        var character = await AddWeakCharacterAsync();
+        var supplyId = await EquipSupplyAsync(character, quantity: 20);
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(2, result.Summary.PotionsUsed);
+        Assert.Equal([19, 18], result.Events.OfType<PotionEvent>().Select(potion => potion.Remaining));
+        var loadout = await equipment.GetAsync(character.Id, CancellationToken);
+        Assert.Equal(supplyId, loadout.Equipped[EquipmentSlot.Supply].Id);
+        Assert.Equal(18, loadout.SupplyQuantity);
+        Assert.Equal(18, loadout.Equipped[EquipmentSlot.Supply].Quantity);
+    }
+
+    // 只有 1 瓶：第 2 回合喝完 → 補給欄清空、那一列刪除，第 5 回合不再喝
+    [Fact]
+    public async Task Advance_ClearsSupplySlotWhenEmpty()
+    {
+        var character = await AddWeakCharacterAsync();
+        await EquipSupplyAsync(character, quantity: 1);
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(1, result.Summary.PotionsUsed);
+        var loadout = await equipment.GetAsync(character.Id, CancellationToken);
+        Assert.False(loadout.Equipped.ContainsKey(EquipmentSlot.Supply));
+        Assert.Equal(0, loadout.SupplyQuantity);
+        Assert.Empty(await BagAsync(character.Id));
+    }
+
+    [Fact]
+    public async Task Advance_WritesNoSupply_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddWeakCharacterAsync();
+        var supplyId = await EquipSupplyAsync(character, quantity: 1);
+        repository.FailNextUpdate = true;
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        var loadout = await equipment.GetAsync(character.Id, CancellationToken);
+        Assert.Equal(supplyId, loadout.Equipped[EquipmentSlot.Supply].Id);
+        Assert.Equal(1, loadout.SupplyQuantity);
+        Assert.Equal([("test-supply", 1)], await BagAsync(character.Id));
+    }
+
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Create() => new ScriptedRandom(0.0);

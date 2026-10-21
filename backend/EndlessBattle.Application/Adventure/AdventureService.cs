@@ -7,6 +7,7 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
@@ -30,7 +31,8 @@ public sealed class AdventureService(
             ?? throw new NotFoundException("尚未建立角色");
 
         // 裝備在一次推進中不變，只讀一次
-        var bonus = await equipment.LoadBonusAsync(character.Id, content, cancellationToken);
+        var equipped = await equipment.GetAsync(character.Id, cancellationToken);
+        var bonus = EquipmentBonusCalculator.Sum(equipped, content.GetItem);
         var now = clock.UtcNow;
         var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
 
@@ -56,7 +58,8 @@ public sealed class AdventureService(
             from,
             now,
             randomFactory.Create(),
-            bonus);
+            bonus,
+            SupplyOf(equipped));
 
         // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果
         var updated = await characters.UpdateAsync(
@@ -75,9 +78,41 @@ public sealed class AdventureService(
         }
 
         var drops = await StoreDropsAsync(updated, run, cancellationToken);
+        await StoreSupplyAsync(updated.Id, equipped, run.SupplyRemaining, cancellationToken);
 
         return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
             await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
+    }
+
+    private SupplyState? SupplyOf(Loadout equipped)
+    {
+        if (!equipped.Equipped.TryGetValue(EquipmentSlot.Supply, out var entry))
+        {
+            return null;
+        }
+
+        var item = content.GetItem(entry.ItemId);
+        return new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity);
+    }
+
+    // 補給欄在掉落之後寫回；用完就清空補給欄並刪掉那一列（先清欄位，否則外鍵擋刪除）
+    private async Task StoreSupplyAsync(long characterId, Loadout equipped, int? remaining, CancellationToken cancellationToken)
+    {
+        if (remaining is not { } quantity || quantity == equipped.SupplyQuantity)
+        {
+            return;
+        }
+
+        var entry = equipped.Equipped[EquipmentSlot.Supply];
+        if (quantity > 0)
+        {
+            await equipment.SetSlotAsync(characterId, EquipmentSlot.Supply, entry.Id, quantity, cancellationToken);
+            await inventory.UpdateQuantityAsync(characterId, entry.Id, quantity, cancellationToken);
+            return;
+        }
+
+        await equipment.SetSlotAsync(characterId, EquipmentSlot.Supply, null, null, cancellationToken);
+        await inventory.RemoveAsync(characterId, entry.Id, cancellationToken);
     }
 
     // 掉落在角色與熟練度之後才寫入背包；事件裡的 Discarded 以背包實際放不放得下為準。

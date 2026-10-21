@@ -9,6 +9,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(RoundEvent), "round")]
 [JsonDerivedType(typeof(AttackEvent), "attack")]
 [JsonDerivedType(typeof(SkillEvent), "skill")]
+[JsonDerivedType(typeof(PotionEvent), "potion")]
 [JsonDerivedType(typeof(DefeatEvent), "defeat")]
 [JsonDerivedType(typeof(TimeoutEvent), "timeout")]
 [JsonDerivedType(typeof(RewardEvent), "reward")]
@@ -44,6 +45,9 @@ public sealed record AttackEvent(
 
 // Heal 是實際回復量，非回復技能為 0
 public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);
+
+// Hp／Sp 是實際回復量（已扣掉超過上限的部分）；Remaining 是喝完後的剩餘數量
+public sealed record PotionEvent(double AtSeconds, string ItemId, string Name, int Hp, int Sp, int Remaining) : BattleEvent(AtSeconds);
 
 public sealed record DefeatEvent(double AtSeconds, CombatSide Loser) : BattleEvent(AtSeconds);
 

@@ -352,6 +352,36 @@ public class AdventureSimulatorTests
         Assert.Equal(850, run.Character.Hp);
     }
 
+    // pebble（hp 2、at 40、df 1000）對 Df 1000 的角色：雙方每下 1 點，玩家先攻，第 2 回合擊倒，每場 1.6 秒 + 場間 2 秒。
+    // HP 53 ≥ 52.5 不住宿；第 1 回合被打到 52 < 52.5 → 第 2 回合開頭喝（+1 → 53）。第二場在 3.6 秒開打，同樣在第 2 回合符合門檻，
+    // 但補給只剩 0 → 不喝、以 52 收場
+    [Fact]
+    public void Adventure_CarriesSupplyAcrossFights()
+    {
+        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, Hp = 53 };
+        var pebble = Monster("pebble", hp: 2, at: 40, df: 1000);
+        var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 1);
+
+        var run = AdventureSimulator.Run(
+            tough, Warrior, Place, [pebble], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(4), new ScriptedRandom(0.0), supply: supply);
+
+        Assert.Equal(2, run.Summary.Fights);
+        Assert.Equal(new PotionEvent(0.8, "tonic", "補給", Hp: 1, Sp: 0, Remaining: 0), run.Events.OfType<PotionEvent>().Single());
+        Assert.Equal(1, run.Summary.PotionsUsed);
+        Assert.Equal(0, run.SupplyRemaining);
+        Assert.Equal(52, run.Character.Hp);
+    }
+
+    // 沒有補給：剩餘數量為 null
+    [Fact]
+    public void Adventure_ReportsNoSupplyRemaining_WithoutSupply()
+    {
+        var run = Run(Hero(), seconds: 1);
+
+        Assert.Null(run.SupplyRemaining);
+        Assert.Equal(0, run.Summary.PotionsUsed);
+    }
+
     // 勝場擲掉落：ore topr 10 → 分母 9，擲 0.0 → 1 命中；herb topr 1 → 不擲、一定掉；名稱來自道具定義
     [Fact]
     public void Adventure_EmitsDropsOnWins()

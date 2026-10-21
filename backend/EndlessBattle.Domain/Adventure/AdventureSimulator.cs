@@ -37,7 +37,8 @@ public static class AdventureSimulator
         DateTimeOffset from,
         DateTimeOffset to,
         IRandomSource random,
-        EquipmentBonus? equipment = null)
+        EquipmentBonus? equipment = null,
+        SupplyState? supply = null)
     {
         // 裝備在整段推進中不變；null 表示沒有裝備
         var bonus = equipment ?? EquipmentBonus.Zero;
@@ -46,7 +47,7 @@ public static class AdventureSimulator
         var events = new List<BattleEvent>();
         var droppedItemIds = new List<string>();
         var eventsCoverAll = true;
-        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0;
+        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
 
@@ -77,7 +78,9 @@ public static class AdventureSimulator
 
             var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random);
             var player = CombatBridge.ToCombatant(character, bonus);
-            var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, random);
+            // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
+            var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, supply, random);
+            supply = outcome.Supply;
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
             fights++;
@@ -94,12 +97,16 @@ public static class AdventureSimulator
                 }
             }
 
-            // 施放次數不論事件是否保留都要計入
+            // 施放與喝補給次數不論事件是否保留都要計入
             foreach (var battleEvent in outcome.Events)
             {
                 if (battleEvent is SkillEvent { Caster: CombatSide.Player })
                 {
                     skillsCast++;
+                }
+                else if (battleEvent is PotionEvent)
+                {
+                    potionsUsed++;
                 }
             }
 
@@ -159,8 +166,8 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast);
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
-        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds);
+        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity);
     }
 }
