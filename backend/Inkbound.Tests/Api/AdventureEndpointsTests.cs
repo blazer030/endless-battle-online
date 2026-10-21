@@ -82,7 +82,6 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Empty(body.GetProperty("events").EnumerateArray());
         Assert.Equal(0, body.GetProperty("expGained").GetInt64());
         Assert.Equal(0, body.GetProperty("moneyGained").GetInt64());
-        Assert.Equal(0, body.GetProperty("moneyGained").GetInt64());
     }
 
     [Fact]
