@@ -448,6 +448,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/world": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorldAreaResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/world/location": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MoveRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CharacterResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -640,7 +714,13 @@ export interface components {
             jobName: string;
             specialAttackName: string;
             stats: components["schemas"]["StatsResponse"];
-            currentStageId: string;
+            /** Format: int32 */
+            placeId: number;
+            placeName: string;
+            /** Format: int32 */
+            subPlace: null | number;
+            subPlaceName: null | string;
+            areaName: string;
             /** Format: int32 */
             actNum: number;
             /** Format: int32 */
@@ -651,7 +731,6 @@ export interface components {
         CombatSide: "Player" | "Monster";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
-            stages: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
             elements: components["schemas"]["NamedContent"][];
             births: components["schemas"]["NamedContent"][];
@@ -724,13 +803,27 @@ export interface components {
         LearnSkillRequest: {
             skillId: null | string;
         };
+        LevelRangeResponse: {
+            /** Format: int32 */
+            min: number;
+            /** Format: int32 */
+            max: number;
+        };
         LoginResponse: {
             accessToken: string;
+        };
+        MoveRequest: {
+            /** Format: int32 */
+            placeId: null | number;
+            /** Format: int32 */
+            subPlace: null | number;
         };
         NamedContent: {
             id: string;
             name: string;
         };
+        /** @enum {unknown} */
+        Recommendation: "Recommended" | "TooHard" | "TooEasy" | "None";
         RegisterResponse: {
             /** Format: int64 */
             accountId: number;
@@ -834,6 +927,26 @@ export interface components {
             hpMax: number;
             /** Format: int32 */
             spMax: number;
+        };
+        SubPlaceResponse: {
+            /** Format: int32 */
+            index: number;
+            name: string;
+        };
+        WorldAreaResponse: {
+            id: string;
+            name: string;
+            places: components["schemas"]["WorldPlaceResponse"][];
+        };
+        WorldPlaceResponse: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            subPlaces: components["schemas"]["SubPlaceResponse"][];
+            recommended: components["schemas"]["LevelRangeResponse"];
+            restricted: boolean;
+            current: boolean;
+            recommendation: components["schemas"]["Recommendation"];
         };
     };
     responses: never;

@@ -47,7 +47,6 @@ const character: CharacterView = makeCharacter({ name: "青衣" })
 
 const content: ContentNames = makeContent({
   monsters: [{ id: "test-wolf", name: "測試寒狼" }],
-  stages: [{ id: "test-stage-1", name: "測試關卡・一" }],
 })
 
 const response: AdvanceResponse = {
@@ -145,7 +144,7 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   await advanceTime(0)
   await advanceTime(100)
 
-  expect(screen.getByText("測試關卡・一")).toBeInTheDocument()
+  expect(screen.getByRole("heading", { name: "中央平原" })).toBeInTheDocument()
   const lines = screen.getAllByRole("listitem")
   expect(lines).toHaveLength(2)
   expect(lines[0]).toHaveTextContent("遭遇 測試寒狼！")

@@ -3,7 +3,7 @@ import type { AdvanceResponse, AdvanceSummary, BattleEvent, CharacterView } from
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { BattlePlayback } from "./battlePlayback"
 
-const startCharacter: CharacterView = makeCharacter({ name: "test", currentStageId: "test-stage" })
+const startCharacter: CharacterView = makeCharacter({ name: "test" })
 
 function encounter(atSeconds: number): BattleEvent {
   return {

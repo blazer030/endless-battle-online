@@ -31,7 +31,11 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
     hpMax: 325,
     spMax: 88,
   },
-  currentStageId: "test-stage-1",
+  placeId: 1,
+  placeName: "中央平原",
+  subPlace: 1,
+  subPlaceName: "香茅綠地",
+  areaName: "中央大陸",
   actNum: 50,
   actNumMax: 50,
   jobProficiency: [],
@@ -53,7 +57,6 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
 
 export const makeContent = (overrides: Partial<ContentNames> = {}): ContentNames => ({
   monsters: [],
-  stages: [],
   jobs: [],
   elements: [],
   births: [],

@@ -25,7 +25,6 @@ const PixiStage = lazy(() =>
 
 const emptyContent: ContentNames = {
   monsters: [],
-  stages: [],
   jobs: [],
   elements: [],
   births: [],
@@ -88,10 +87,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     const timer = setTimeout(() => setLevelUpHint(null), LevelUpHintMilliseconds)
     return () => clearTimeout(timer)
   }, [levelUpHint])
-
-  const stageName =
-    content?.stages.find((stage) => stage.id === character.currentStageId)?.name ??
-    character.currentStageId
 
   const appendLines = (entries: LogEntry[]) => {
     const added = entries.map((entry) => ({ id: nextLineId.current++, ...entry }))
@@ -160,7 +155,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       <main className="adventure__main">
         {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
-          <h1 className="adventure__stage-name">{stageName}</h1>
+          <h1 className="adventure__stage-name">{character.placeName}</h1>
           <StageErrorBoundary>
             <Suspense fallback={<div style={{ height: StageHeight }} />}>
               <PixiStage ref={attachStage} />
