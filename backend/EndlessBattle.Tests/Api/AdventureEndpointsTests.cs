@@ -96,6 +96,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await CreateClientWithCharacterAsync(factory);
+        var created = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         factory.Clock.Advance(TimeSpan.FromHours(6));
 
         var stopwatch = Stopwatch.StartNew();
@@ -112,9 +113,17 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.True(summary.GetProperty("fights").GetInt32() > 1000);
         Assert.True(summary.GetProperty("levelsGained").GetInt32() > 0);
         Assert.True(body.GetProperty("character").GetProperty("level").GetInt32() > 1);
+        string[] baseStats = ["str", "smart", "life", "vit", "agi", "au", "be"];
+        var statsBefore = created.GetProperty("stats");
+        var statsAfter = body.GetProperty("character").GetProperty("stats");
+        Assert.Contains(baseStats, stat => statsAfter.GetProperty(stat).GetInt32() > statsBefore.GetProperty(stat).GetInt32());
 
+        // 回應不含 lastSettledAt：馬上再推進是空的 → 已結算到現在之後；再過 60 秒有新的一場 → 結算點不晚於現在 + 60 秒
         var immediatelyAfter = await AdvanceAsync(client);
         Assert.Empty(immediatelyAfter.GetProperty("events").EnumerateArray());
+        factory.Clock.Advance(TimeSpan.FromSeconds(60));
+        var minuteLater = await AdvanceAsync(client);
+        Assert.Contains(minuteLater.GetProperty("events").EnumerateArray(), battleEvent => battleEvent.GetProperty("type").GetString() is "encounter" or "rest");
     }
 
     [Fact]
