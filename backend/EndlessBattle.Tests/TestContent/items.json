@@ -1,0 +1,10 @@
+{
+  "items": [
+    {"id": "test-sword", "name": "測試鐵劍", "category": "Weapon", "bonus": {"at": 8}, "requires": {"str": 10}, "holes": 1, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": true},
+    {"id": "test-helm", "name": "測試鐵盔", "category": "Head", "bonus": {"df": 2}, "requires": {"str": 10}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": true},
+    {"id": "test-supply", "name": "測試補給藥劑", "category": "Consumable", "consumable": "Supply", "supplyHp": 50, "supplySp": 25, "price": 20, "shopLevel": 1, "shopSellable": true},
+    {"id": "test-refine-stone", "name": "測試精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 1, "at": [1, 2], "df": [1, 2]}},
+    {"id": "test-stone", "name": "測試攻擊魔石", "category": "Stone", "price": 2000, "shopLevel": 1, "shopSellable": false, "stone": {"random": false, "fixed": {"at": 5}}},
+    {"id": "test-ore", "name": "測試礦石", "category": "Material", "price": 10, "shopLevel": 1, "shopSellable": false}
+  ]
+}

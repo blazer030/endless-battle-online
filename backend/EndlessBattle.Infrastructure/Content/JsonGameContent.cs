@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -17,6 +18,11 @@ public sealed class JsonGameContent : IGameContent
     private const int MinimumPlaceId = 1;
     private const int MaximumPlaceId = 21;
     private const int SubPlacesPerPlace = 4;
+    private const int MinimumShopLevel = 1;
+    private const int MaximumShopLevel = 7;
+    private const int MaximumHoles = 4;
+    private const int MaximumRefineLevel = 10;
+    private const int MaximumRefineKind = 18;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -24,6 +30,8 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<string, JobDefinition> jobs;
     private readonly Dictionary<string, SkillDefinition> skills;
     private readonly Dictionary<int, PlaceDefinition> places;
+    private readonly Dictionary<string, ItemDefinition> items;
+    private readonly Dictionary<string, Recipe> recipes;
 
     private JsonGameContent(
         IReadOnlyList<MonsterDefinition> allMonsters,
@@ -35,8 +43,15 @@ public sealed class JsonGameContent : IGameContent
         WorldFile world,
         IReadOnlyList<AreaDefinition> allAreas,
         IReadOnlyList<PlaceDefinition> allPlaces,
-        Dictionary<int, PlaceDefinition> places)
+        Dictionary<int, PlaceDefinition> places,
+        IReadOnlyList<ItemDefinition> allItems,
+        Dictionary<string, ItemDefinition> items,
+        IReadOnlyList<Recipe> allRecipes)
     {
+        AllItems = allItems;
+        this.items = items;
+        AllRecipes = allRecipes;
+        recipes = allRecipes.ToDictionary(recipe => recipe.Id);
         StartingPlaceId = world.StartingPlaceId;
         StartingSubPlace = world.StartingSubPlace;
         AllAreas = allAreas;
@@ -64,12 +79,18 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<SkillDefinition> AllSkills { get; }
 
+    public IReadOnlyList<ItemDefinition> AllItems { get; }
+
+    public IReadOnlyList<Recipe> AllRecipes { get; }
+
     public static JsonGameContent Load(string directory)
     {
         var monsterFile = Read<MonsterFile>(Path.Combine(directory, "monsters.json"));
         var jobFile = Read<JobFile>(Path.Combine(directory, "jobs.json"));
         var skillFile = Read<SkillFile>(Path.Combine(directory, "skills.json"));
         var worldFile = Read<WorldFile>(Path.Combine(directory, "world.json"));
+        var itemFile = Read<ItemFile>(Path.Combine(directory, "items.json"));
+        var recipeFile = Read<RecipeFile>(Path.Combine(directory, "recipes.json"));
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
@@ -119,9 +140,33 @@ public sealed class JsonGameContent : IGameContent
             ValidateSkill(skill, jobs);
         }
 
+        var allItems = itemFile.Items.Select(ToItemDefinition).ToList();
+        var items = new Dictionary<string, ItemDefinition>();
+        foreach (var item in allItems)
+        {
+            if (!items.TryAdd(item.Id, item))
+            {
+                throw new GameContentException($"道具 id 重複：{item.Id}");
+            }
+
+            ValidateItem(item, jobs);
+        }
+
+        var allRecipes = recipeFile.Recipes.Select(ToRecipe).ToList();
+        var recipeIds = new HashSet<string>();
+        foreach (var recipe in allRecipes)
+        {
+            if (!recipeIds.Add(recipe.Id))
+            {
+                throw new GameContentException($"配方 id 重複：{recipe.Id}");
+            }
+
+            ValidateRecipe(recipe, items);
+        }
+
         return new JsonGameContent(
             monsterFile.Monsters, allJobs, allSkills, monsters, jobs, skills,
-            worldFile, allAreas, allPlaces, places);
+            worldFile, allAreas, allPlaces, places, allItems, items, allRecipes);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -139,6 +184,15 @@ public sealed class JsonGameContent : IGameContent
 
     public SkillDefinition GetSkill(string skillId) =>
         skills.TryGetValue(skillId, out var skill) ? skill : throw new GameContentException($"找不到技能：{skillId}");
+
+    public ItemDefinition GetItem(string itemId) =>
+        items.TryGetValue(itemId, out var item) ? item : throw new GameContentException($"找不到道具：{itemId}");
+
+    public Recipe GetRecipe(string recipeId) =>
+        recipes.TryGetValue(recipeId, out var recipe) ? recipe : throw new GameContentException($"找不到配方：{recipeId}");
+
+    public IReadOnlyList<ItemDefinition> ItemsForShop(ItemCategory category, int level) =>
+        AllItems.Where(item => item.ShopSellable && item.Category == category && item.ShopLevel == level).ToList();
 
     public IReadOnlyList<MonsterDefinition> MonstersOf(int placeId) =>
         AllMonsters.Where(monster => monster.PlaceId == placeId || monster.PlaceId == MonsterPool.GlobalPlaceId).ToList();
@@ -339,6 +393,194 @@ public sealed class JsonGameContent : IGameContent
         }
     }
 
+    private static void ValidateItem(ItemDefinition item, Dictionary<string, JobDefinition> jobs)
+    {
+        void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException(message);
+            }
+        }
+
+        var id = item.Id;
+        Require(item.ShopLevel is >= MinimumShopLevel and <= MaximumShopLevel,
+            $"道具 {id} 的 shopLevel 必須在 {MinimumShopLevel}～{MaximumShopLevel}");
+        Require(item.Holes is >= 0 and <= MaximumHoles, $"道具 {id} 的 holes 必須在 0～{MaximumHoles}");
+        Require(item.RefineMax >= 0, $"道具 {id} 的 refineMax 不可為負");
+        Require(item.Price >= 0, $"道具 {id} 的 price 不可為負");
+        Require(item.Element is >= MinimumElement and <= MaximumElement,
+            $"道具 {id} 的 element 必須在 {MinimumElement}～{MaximumElement}");
+        Require(item.JobId is null || jobs.ContainsKey(item.JobId), $"道具 {id} 引用了不存在的職業：{item.JobId}");
+
+        if (item.IsEquipment)
+        {
+            Require(item.Consumable == ConsumableKind.None && item.SupplyHp == 0 && item.SupplySp == 0 && item.Amount == 0
+                    && item.Refine is null && item.Stone is null,
+                $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone");
+            return;
+        }
+
+        Require(item.Requires == StatRequirement7.None && item.JobId is null, $"非裝備道具 {id} 不能有能力需求（requires）或 jobId");
+        Require(item.Holes == 0, $"非裝備道具 {id} 的 holes 必須為 0");
+        Require(item.RefineMax == 0, $"非裝備道具 {id} 的 refineMax 必須為 0");
+
+        if (item.Category == ItemCategory.Consumable)
+        {
+            Require(item.Consumable != ConsumableKind.None, $"消耗品 {id} 必須指定 consumable");
+        }
+        else
+        {
+            Require(item.Consumable == ConsumableKind.None, $"道具 {id} 不是消耗品，consumable 必須為 None");
+        }
+
+        var usesAmount = item.Consumable is ConsumableKind.StaminaPotion or ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion;
+        // 先檢查該種消耗品自己需要的欄位，再檢查用不到的欄位為 0
+        if (item.Consumable == ConsumableKind.Supply)
+        {
+            Require(item.SupplyHp >= 0 && item.SupplySp >= 0 && item.SupplyHp + item.SupplySp > 0,
+                $"補給品 {id} 的 supplyHp、supplySp 不可為負，且至少一項大於 0");
+        }
+        else if (item.Consumable == ConsumableKind.StatPotion)
+        {
+            Require(Values(item.Bonus).All(value => value >= 0) && item.Bonus != StatBonus.Zero,
+                $"能力藥水 {id} 的 bonus 不可為負，且至少一項大於 0");
+        }
+        else if (usesAmount)
+        {
+            Require(item.Amount >= 1, $"道具 {id} 的 amount 必須至少 1");
+        }
+
+        Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHp == 0 && item.SupplySp == 0),
+            $"道具 {id} 不是補給品，supplyHp 與 supplySp 必須為 0");
+        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水與擴充");
+        Require(item.Consumable == ConsumableKind.StatPotion || item.Bonus == StatBonus.Zero,
+            $"道具 {id} 不能有 bonus（只有能力藥水可以）");
+
+        if (item.Category == ItemCategory.RefineStone)
+        {
+            Require(item.Refine is not null, $"精鍊石 {id} 必須有 refine");
+            ValidateRefineStone(id, item.Refine!);
+        }
+        else
+        {
+            Require(item.Refine is null, $"道具 {id} 不是精鍊石，不能有 refine");
+        }
+
+        if (item.Category == ItemCategory.Stone)
+        {
+            Require(item.Stone is not null, $"魔石 {id} 必須有 stone");
+            ValidateStone(id, item.Stone!);
+        }
+        else
+        {
+            Require(item.Stone is null, $"道具 {id} 不是魔石，不能有 stone");
+        }
+    }
+
+    private static void ValidateRefineStone(string id, RefineStoneSpec refine)
+    {
+        if (refine.Level is < 1 or > MaximumRefineLevel)
+        {
+            throw new GameContentException($"精鍊石 {id} 的 level 必須在 1～{MaximumRefineLevel}");
+        }
+
+        if (refine.Kind is < 1 or > MaximumRefineKind)
+        {
+            throw new GameContentException($"精鍊石 {id} 的 kind 必須在 1～{MaximumRefineKind}");
+        }
+
+        StatRange?[] ranges =
+        [
+            refine.At, refine.Mat, refine.Df, refine.Mdf, refine.Str, refine.Smart, refine.Life, refine.Vit,
+            refine.Agi, refine.Au, refine.Be,
+        ];
+        if (ranges.All(range => range is null))
+        {
+            throw new GameContentException($"精鍊石 {id} 至少要有一項能力範圍");
+        }
+
+        if (ranges.Any(range => range is not null && (range.Min < 0 || range.Min > range.Max)))
+        {
+            throw new GameContentException($"精鍊石 {id} 的能力範圍必須 0 ≤ min ≤ max");
+        }
+    }
+
+    private static void ValidateStone(string id, StoneSpec stone)
+    {
+        if (!stone.Random)
+        {
+            if (stone.Fixed == StatBonus.Zero)
+            {
+                throw new GameContentException($"固定魔石 {id} 的 fixed 至少一項不為 0");
+            }
+
+            if (stone.Min is not null || stone.Max is not null)
+            {
+                throw new GameContentException($"固定魔石 {id} 不能有 min、max");
+            }
+
+            return;
+        }
+
+        if (stone.Fixed != StatBonus.Zero)
+        {
+            throw new GameContentException($"隨機魔石 {id} 不能有 fixed");
+        }
+
+        if (stone.Min is null || stone.Max is null)
+        {
+            throw new GameContentException($"隨機魔石 {id} 必須有 min 與 max");
+        }
+
+        if (Values(stone.Min).Zip(Values(stone.Max)).Any(pair => pair.First < 0 || pair.First > pair.Second))
+        {
+            throw new GameContentException($"隨機魔石 {id} 的每項能力必須 0 ≤ min ≤ max");
+        }
+    }
+
+    private static int[] Values(StatBonus bonus) =>
+    [
+        bonus.Str, bonus.Smart, bonus.Life, bonus.Vit, bonus.Agi, bonus.Au, bonus.Be,
+        bonus.At, bonus.Mat, bonus.Df, bonus.Mdf, bonus.HpMax,
+    ];
+
+    private static void ValidateRecipe(Recipe recipe, Dictionary<string, ItemDefinition> items)
+    {
+        if (!items.ContainsKey(recipe.ResultItemId))
+        {
+            throw new GameContentException($"配方 {recipe.Id} 的成品不存在：{recipe.ResultItemId}");
+        }
+
+        if (recipe.ResultQuantity < 1)
+        {
+            throw new GameContentException($"配方 {recipe.Id} 的 resultQuantity 必須至少 1");
+        }
+
+        if (recipe.SuccessRate is < 1 or > 100)
+        {
+            throw new GameContentException($"配方 {recipe.Id} 的 successRate 必須在 1～100");
+        }
+
+        if (recipe.Materials.Count == 0)
+        {
+            throw new GameContentException($"配方 {recipe.Id} 的 materials 至少要有一項");
+        }
+
+        foreach (var (itemId, quantity) in recipe.Materials)
+        {
+            if (!items.ContainsKey(itemId))
+            {
+                throw new GameContentException($"配方 {recipe.Id} 的材料不存在：{itemId}");
+            }
+
+            if (quantity < 1)
+            {
+                throw new GameContentException($"配方 {recipe.Id} 的材料 {itemId} 的 quantity 必須至少 1");
+            }
+        }
+    }
+
     private static SkillDefinition ToSkillDefinition(SkillEntry entry)
     {
         T ParseEnum<T>(string value, string field) where T : struct, Enum =>
@@ -383,6 +625,61 @@ public sealed class JsonGameContent : IGameContent
                 ToRange(growth.Be)));
     }
 
+    private static ItemDefinition ToItemDefinition(ItemEntry entry)
+    {
+        T ParseEnum<T>(string value, string field) where T : struct, Enum =>
+            Enum.TryParse<T>(value, ignoreCase: true, out var parsed) && Enum.IsDefined(parsed)
+                ? parsed
+                : throw new GameContentException($"道具 {entry.Id} 的 {field} 無法辨識：{value}");
+
+        StatRange? ToRange(int[]? range) => range switch
+        {
+            null => null,
+            [var min, var max] => new StatRange(min, max),
+            _ => throw new GameContentException($"精鍊石 {entry.Id} 的能力範圍必須是 [min, max]"),
+        };
+
+        var refine = entry.Refine is { } spec
+            ? new RefineStoneSpec(
+                spec.Level, spec.Kind,
+                ToRange(spec.At), ToRange(spec.Mat), ToRange(spec.Df), ToRange(spec.Mdf),
+                ToRange(spec.Str), ToRange(spec.Smart), ToRange(spec.Life), ToRange(spec.Vit),
+                ToRange(spec.Agi), ToRange(spec.Au), ToRange(spec.Be))
+            : null;
+        var stone = entry.Stone is { } stoneEntry
+            ? new StoneSpec(stoneEntry.Random, stoneEntry.Fixed ?? StatBonus.Zero, stoneEntry.Min, stoneEntry.Max)
+            : null;
+
+        return new ItemDefinition(
+            entry.Id,
+            entry.Name,
+            ParseEnum<ItemCategory>(entry.Category, "category"),
+            ParseEnum<ConsumableKind>(entry.Consumable ?? nameof(ConsumableKind.None), "consumable"),
+            entry.Bonus ?? StatBonus.Zero,
+            entry.SupplyHp,
+            entry.SupplySp,
+            entry.Amount,
+            entry.Requires ?? StatRequirement7.None,
+            entry.JobId,
+            entry.Element,
+            entry.Holes,
+            entry.RefineMax,
+            entry.Price,
+            entry.ShopLevel,
+            entry.ShopSellable,
+            entry.Bound,
+            refine,
+            stone);
+    }
+
+    private static Recipe ToRecipe(RecipeEntry entry) =>
+        new(
+            entry.Id,
+            entry.ResultItemId,
+            entry.ResultQuantity,
+            entry.Materials.Select(material => (material.ItemId, material.Quantity)).ToList(),
+            entry.SuccessRate);
+
     private static T Read<T>(string path) =>
         JsonSerializer.Deserialize<T>(File.ReadAllText(path), SerializerOptions)
         ?? throw new GameContentException($"內容檔是空的：{path}");
@@ -422,4 +719,52 @@ public sealed class JsonGameContent : IGameContent
         GrowthEntry Growth);
 
     private sealed record GrowthEntry(int[]? Str, int[]? Smart, int[]? Life, int[]? Vit, int[]? Agi, int[]? Au, int[]? Be);
+
+    private sealed record ItemFile(IReadOnlyList<ItemEntry> Items);
+
+    private sealed record ItemEntry(
+        string Id,
+        string Name,
+        string Category,
+        string? Consumable,
+        StatBonus? Bonus,
+        int SupplyHp,
+        int SupplySp,
+        int Amount,
+        StatRequirement7? Requires,
+        string? JobId,
+        int Element,
+        int Holes,
+        int RefineMax,
+        long Price,
+        int ShopLevel,
+        bool ShopSellable,
+        bool Bound,
+        RefineEntry? Refine,
+        StoneEntry? Stone);
+
+    // 能力範圍在內容檔裡寫成 [min, max]
+    private sealed record RefineEntry(
+        int Level,
+        int Kind,
+        int[]? At,
+        int[]? Mat,
+        int[]? Df,
+        int[]? Mdf,
+        int[]? Str,
+        int[]? Smart,
+        int[]? Life,
+        int[]? Vit,
+        int[]? Agi,
+        int[]? Au,
+        int[]? Be);
+
+    private sealed record StoneEntry(bool Random, StatBonus? Fixed, StatBonus? Min, StatBonus? Max);
+
+    private sealed record RecipeFile(IReadOnlyList<RecipeEntry> Recipes);
+
+    private sealed record RecipeEntry(
+        string Id, string ResultItemId, int ResultQuantity, IReadOnlyList<MaterialEntry> Materials, int SuccessRate);
+
+    private sealed record MaterialEntry(string ItemId, int Quantity);
 }

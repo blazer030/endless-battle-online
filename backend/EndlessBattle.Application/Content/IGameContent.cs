@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -17,6 +18,10 @@ public interface IGameContent
 
     IReadOnlyList<PlaceDefinition> AllPlaces { get; }
 
+    IReadOnlyList<ItemDefinition> AllItems { get; }
+
+    IReadOnlyList<Recipe> AllRecipes { get; }
+
     int StartingPlaceId { get; }
 
     int? StartingSubPlace { get; }
@@ -31,9 +36,16 @@ public interface IGameContent
 
     SkillDefinition GetSkill(string skillId);
 
+    ItemDefinition GetItem(string itemId);
+
+    Recipe GetRecipe(string recipeId);
+
     // 該地區與全域怪物，依內容檔中的順序
     IReadOnlyList<MonsterDefinition> MonstersOf(int placeId);
 
     // 依內容檔中的順序
     IReadOnlyList<SkillDefinition> SkillsOf(string jobId);
+
+    // 商店該分類、該等級頁上販賣的品項，依內容檔中的順序
+    IReadOnlyList<ItemDefinition> ItemsForShop(ItemCategory category, int level);
 }

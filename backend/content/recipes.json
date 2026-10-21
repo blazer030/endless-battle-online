@@ -1,0 +1,10 @@
+{
+  "recipes": [
+    {"id": "forge-iron-sword", "resultItemId": "iron-sword", "resultQuantity": 1, "materials": [{"itemId": "iron-ore", "quantity": 3}], "successRate": 70},
+    {"id": "carve-wooden-staff", "resultItemId": "wooden-staff", "resultQuantity": 1, "materials": [{"itemId": "magic-dust", "quantity": 3}], "successRate": 70},
+    {"id": "stitch-iron-boots", "resultItemId": "iron-boots", "resultQuantity": 1, "materials": [{"itemId": "beast-hide", "quantity": 3}, {"itemId": "iron-ore", "quantity": 1}], "successRate": 70},
+    {"id": "brew-medium-supply", "resultItemId": "medium-supply", "resultQuantity": 1, "materials": [{"itemId": "small-supply", "quantity": 3}, {"itemId": "magic-dust", "quantity": 1}], "successRate": 90},
+    {"id": "cut-attack-stone", "resultItemId": "attack-stone", "resultQuantity": 1, "materials": [{"itemId": "crystal-shard", "quantity": 5}, {"itemId": "iron-ore", "quantity": 3}], "successRate": 40},
+    {"id": "condense-chaos-stone", "resultItemId": "chaos-stone", "resultQuantity": 1, "materials": [{"itemId": "crystal-shard", "quantity": 10}, {"itemId": "magic-dust", "quantity": 5}], "successRate": 20}
+  ]
+}

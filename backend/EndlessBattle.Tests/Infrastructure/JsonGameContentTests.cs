@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
@@ -30,6 +31,10 @@ public class JsonGameContentTests
         """;
 
     private const string ValidSkills = """{ "skills": [] }""";
+
+    private const string ValidItems = """{ "items": [] }""";
+
+    private const string ValidRecipes = """{ "recipes": [] }""";
 
     private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300 }""";
 
@@ -194,6 +199,8 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             var monster = JsonGameContent.Load(directory.FullName).GetMonster("sprite");
             Assert.Equal(1, monster.PlaceId);
             Assert.Equal([2, 4], monster.SubPlaces);
@@ -314,6 +321,8 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), $$"""{ "skills": [{{skills}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             return JsonGameContent.Load(directory.FullName);
         }
         finally
@@ -480,6 +489,8 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
             File.WriteAllText(
                 Path.Combine(directory.FullName, "world.json"), WorldJson("1", PlaceJson(1, recommended: "[5, 5]")));
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             Assert.Equal(new LevelRange(5, 5), JsonGameContent.Load(directory.FullName).GetPlace(1).Recommended);
         }
         finally
@@ -488,8 +499,265 @@ public class JsonGameContentTests
         }
     }
 
+    private static readonly string TestContentDirectory = Path.Combine(AppContext.BaseDirectory, "TestContent");
+
+    [Fact]
+    public void Load_TestContent_ExposesItemsAndRecipes()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+        Assert.Equal(
+            ["test-sword", "test-helm", "test-supply", "test-refine-stone", "test-stone", "test-ore"],
+            content.AllItems.Select(item => item.Id));
+
+        var sword = content.GetItem("test-sword");
+        Assert.Equal(ItemCategory.Weapon, sword.Category);
+        Assert.Equal(ConsumableKind.None, sword.Consumable);
+        Assert.Equal(StatBonus.Zero with { At = 8 }, sword.Bonus);
+        Assert.Equal(new StatRequirement7(10, 0, 0, 0), sword.Requires);
+        Assert.Equal((1, 4, 200L, 1, true), (sword.Holes, sword.RefineMax, sword.Price, sword.ShopLevel, sword.ShopSellable));
+        Assert.True(sword.IsEquipment);
+        Assert.False(sword.Stackable);
+
+        var supply = content.GetItem("test-supply");
+        Assert.Equal((ConsumableKind.Supply, 50, 25), (supply.Consumable, supply.SupplyHp, supply.SupplySp));
+        Assert.True(supply.Stackable);
+
+        var refine = content.GetItem("test-refine-stone").Refine!;
+        Assert.Equal((1, 1), (refine.Level, refine.Kind));
+        Assert.Equal(new StatRange(1, 2), refine.At);
+        Assert.Null(refine.Mat);
+
+        var stone = content.GetItem("test-stone").Stone!;
+        Assert.False(stone.Random);
+        Assert.Equal(StatBonus.Zero with { At = 5 }, stone.Fixed);
+
+        var recipe = Assert.Single(content.AllRecipes);
+        Assert.Same(recipe, content.GetRecipe("test-forge-sword"));
+        Assert.Equal(("test-sword", 1, 70), (recipe.ResultItemId, recipe.ResultQuantity, recipe.SuccessRate));
+        Assert.Equal([("test-ore", 3)], recipe.Materials);
+    }
+
+    [Fact]
+    public void Content_ItemsForShop_FiltersByCategoryAndLevel()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+        Assert.Equal(["test-sword"], content.ItemsForShop(ItemCategory.Weapon, 1).Select(item => item.Id));
+        Assert.Equal(["test-helm"], content.ItemsForShop(ItemCategory.Head, 1).Select(item => item.Id));
+        Assert.Equal(["test-supply"], content.ItemsForShop(ItemCategory.Consumable, 1).Select(item => item.Id));
+        Assert.Empty(content.ItemsForShop(ItemCategory.Weapon, 2));
+        // 不在商店販賣的品項不出現
+        Assert.Empty(content.ItemsForShop(ItemCategory.RefineStone, 1));
+        Assert.Empty(content.ItemsForShop(ItemCategory.Material, 1));
+    }
+
+    [Fact]
+    public void GetItem_UnknownThrows()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+        Assert.Contains("ghost-item", Assert.Throws<GameContentException>(() => content.GetItem("ghost-item")).Message);
+        Assert.Contains("ghost-recipe", Assert.Throws<GameContentException>(() => content.GetRecipe("ghost-recipe")).Message);
+    }
+
+    private const string ValidItem =
+        """{ "id": "blade", "name": "刃", "category": "Weapon", "bonus": { "at": 8 }, "requires": { "str": 10 }, "holes": 1, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": true }""";
+
+    private const string ValidOre =
+        """{ "id": "ore", "name": "礦", "category": "Material", "price": 10, "shopLevel": 1, "shopSellable": false }""";
+
+    private const string ValidSupply =
+        """{ "id": "tonic", "name": "藥", "category": "Consumable", "consumable": "Supply", "supplyHp": 50, "supplySp": 25, "price": 20, "shopLevel": 1, "shopSellable": true }""";
+
+    private const string ValidRefineStone =
+        """{ "id": "whetstone", "name": "石", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": { "level": 1, "kind": 1, "at": [1, 2] } }""";
+
+    private const string ValidStone =
+        """{ "id": "gem", "name": "晶", "category": "Stone", "price": 2000, "shopLevel": 1, "shopSellable": false, "stone": { "random": false, "fixed": { "at": 5 } } }""";
+
+    private const string ValidRecipe =
+        """{ "id": "forge", "resultItemId": "blade", "resultQuantity": 1, "materials": [{ "itemId": "ore", "quantity": 3 }], "successRate": 70 }""";
+
+    private const string ValidItemList = $"{ValidItem}, {ValidOre}, {ValidSupply}, {ValidRefineStone}, {ValidStone}";
+
+    // 回傳載入失敗的訊息；其他內容檔都用合法值
+    private static string ItemRejection(string items, string recipes = ValidRecipe)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{items}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{recipes}}] }""");
+            return Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName)).Message;
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static string Replace(string json, string validField, string invalidField)
+    {
+        Assert.Contains(validField, json);
+        return json.Replace(validField, invalidField);
+    }
+
+    [Fact]
+    public void Items_AcceptValidSample()
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{ValidItemList}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{ValidRecipe}}] }""");
+            Assert.Equal(5, JsonGameContent.Load(directory.FullName).AllItems.Count);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Items_RejectDuplicateId()
+    {
+        var message = ItemRejection($"{ValidItemList}, {ValidItem}");
+        Assert.Contains("道具 id 重複：blade", message);
+    }
+
+    [Theory]
+    [InlineData("\"supplyHp\": 50")]
+    [InlineData("\"supplySp\": 25")]
+    [InlineData("\"amount\": 5")]
+    [InlineData("\"consumable\": \"Supply\"")]
+    public void Items_RejectEquipmentWithSupply(string field)
+    {
+        var message = ItemRejection(
+            $"{Replace(ValidItem, "\"holes\": 1", $"{field}, \"holes\": 1")}, {ValidOre}, {ValidSupply}");
+        Assert.Contains("blade", message);
+        Assert.Contains("裝備", message);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(8)]
+    public void Items_RejectShopLevelOutsideRange(int shopLevel)
+    {
+        var message = ItemRejection($"{Replace(ValidItem, "\"shopLevel\": 1", $"\"shopLevel\": {shopLevel}")}, {ValidOre}");
+        Assert.Contains("blade", message);
+        Assert.Contains("shopLevel", message);
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(-1)]
+    public void Items_RejectHolesAboveFour(int holes)
+    {
+        var message = ItemRejection($"{Replace(ValidItem, "\"holes\": 1", $"\"holes\": {holes}")}, {ValidOre}");
+        Assert.Contains("blade", message);
+        Assert.Contains("holes", message);
+    }
+
+    [Theory]
+    [InlineData("\"resultItemId\": \"blade\"", "\"resultItemId\": \"phantom\"")]
+    [InlineData("\"itemId\": \"ore\"", "\"itemId\": \"phantom\"")]
+    public void Recipes_RejectUnknownItem(string validField, string invalidField)
+    {
+        var message = ItemRejection(ValidItemList, Replace(ValidRecipe, validField, invalidField));
+        Assert.Contains("forge", message);
+        Assert.Contains("phantom", message);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    public void Recipes_RejectRateOutsideRange(int rate)
+    {
+        var message = ItemRejection(ValidItemList, Replace(ValidRecipe, "\"successRate\": 70", $"\"successRate\": {rate}"));
+        Assert.Contains("forge", message);
+        Assert.Contains("successRate", message);
+    }
+
+    // 其餘欄位規則：(要改的道具、原欄位、改成、訊息應含的字)
+    public static TheoryData<string, string, string, string> InvalidItemFields => new()
+    {
+        { ValidItem, "\"category\": \"Weapon\"", "\"category\": \"Spoon\"", "category" },
+        { ValidItem, "\"refineMax\": 4", "\"refineMax\": -1", "refineMax" },
+        { ValidItem, "\"price\": 200", "\"price\": -1", "price" },
+        { ValidItem, "\"holes\": 1", "\"element\": 7, \"holes\": 1", "element" },
+        { ValidItem, "\"holes\": 1", "\"jobId\": \"nobody\", \"holes\": 1", "nobody" },
+        { ValidItem, "\"holes\": 1", "\"refine\": { \"level\": 1, \"kind\": 1, \"at\": [1, 2] }, \"holes\": 1", "裝備" },
+        { ValidItem, "\"holes\": 1", "\"stone\": { \"random\": false, \"fixed\": { \"at\": 5 } }, \"holes\": 1", "裝備" },
+        { ValidSupply, "\"price\": 20", "\"requires\": { \"str\": 10 }, \"price\": 20", "需求" },
+        { ValidSupply, "\"price\": 20", "\"bonus\": { \"at\": 5 }, \"price\": 20", "bonus" },
+        { ValidSupply, "\"price\": 20", "\"holes\": 1, \"price\": 20", "holes" },
+        { ValidSupply, "\"price\": 20", "\"refineMax\": 3, \"price\": 20", "refineMax" },
+        { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"None\"", "consumable" },
+        { ValidSupply, "\"supplyHp\": 50, \"supplySp\": 25", "\"supplyHp\": 0, \"supplySp\": 0", "supply" },
+        { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"StatPotion\"", "bonus" },
+        { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"StaminaPotion\"", "amount" },
+        { ValidOre, "\"price\": 10", "\"consumable\": \"Supply\", \"supplyHp\": 50, \"price\": 10", "consumable" },
+        { ValidOre, "\"price\": 10", "\"refine\": { \"level\": 1, \"kind\": 1, \"at\": [1, 2] }, \"price\": 10", "refine" },
+        { ValidOre, "\"price\": 10", "\"stone\": { \"random\": false, \"fixed\": { \"at\": 5 } }, \"price\": 10", "stone" },
+        { ValidRefineStone, "\"level\": 1", "\"level\": 0", "level" },
+        { ValidRefineStone, "\"level\": 1", "\"level\": 11", "level" },
+        { ValidRefineStone, "\"kind\": 1", "\"kind\": 0", "kind" },
+        { ValidRefineStone, "\"kind\": 1", "\"kind\": 19", "kind" },
+        { ValidRefineStone, "\"at\": [1, 2]", "\"at\": [3, 2]", "範圍" },
+        { ValidRefineStone, "\"at\": [1, 2]", "\"at\": [-1, 2]", "範圍" },
+        { ValidRefineStone, ", \"refine\": { \"level\": 1, \"kind\": 1, \"at\": [1, 2] }", "", "refine" },
+        { ValidStone, ", \"stone\": { \"random\": false, \"fixed\": { \"at\": 5 } }", "", "stone" },
+        { ValidStone, "\"fixed\": { \"at\": 5 }", "\"fixed\": {}", "fixed" },
+        { ValidStone, "\"random\": false, \"fixed\": { \"at\": 5 }", "\"random\": true, \"min\": { \"at\": 1 }", "min" },
+        { ValidStone, "\"random\": false, \"fixed\": { \"at\": 5 }", "\"random\": true, \"min\": { \"at\": 6 }, \"max\": { \"at\": 5 }", "min" },
+        { ValidStone, "\"fixed\": { \"at\": 5 }", "\"fixed\": { \"at\": 5 }, \"min\": { \"at\": 1 }", "min" },
+        { ValidStone, "\"random\": false", "\"random\": true, \"min\": { \"at\": 1 }, \"max\": { \"at\": 5 }", "fixed" },
+        { ValidRefineStone, ", \"at\": [1, 2]", "", "至少" },
+        { ValidOre, "\"price\": 10", "\"supplyHp\": 50, \"price\": 10", "supplyHp" },
+        { ValidSupply, "\"price\": 20", "\"amount\": 5, \"price\": 20", "amount" },
+        { ValidOre, "\"price\": 10", "\"jobId\": \"warrior\", \"price\": 10", "jobId" },
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidItemFields))]
+    public void Items_RejectInvalidFields(string item, string validField, string invalidField, string expected)
+    {
+        var id = item[(item.IndexOf("\"id\": \"", StringComparison.Ordinal) + 7)..].Split('"')[0];
+        var others = new[] { ValidItem, ValidOre, ValidSupply, ValidRefineStone, ValidStone }.Where(other => other != item);
+        var message = ItemRejection(string.Join(", ", others.Prepend(Replace(item, validField, invalidField))));
+        Assert.Contains(id, message);
+        Assert.Contains(expected, message);
+    }
+
+    [Theory]
+    [InlineData("\"resultQuantity\": 1", "\"resultQuantity\": 0", "resultQuantity")]
+    [InlineData("\"quantity\": 3", "\"quantity\": 0", "quantity")]
+    [InlineData("\"materials\": [{ \"itemId\": \"ore\", \"quantity\": 3 }]", "\"materials\": []", "materials")]
+    public void Recipes_RejectInvalidFields(string validField, string invalidField, string expected)
+    {
+        var message = ItemRejection(ValidItemList, Replace(ValidRecipe, validField, invalidField));
+        Assert.Contains("forge", message);
+        Assert.Contains(expected, message);
+    }
+
+    [Fact]
+    public void Recipes_RejectDuplicateId() =>
+        Assert.Contains("配方 id 重複：forge", ItemRejection(ValidItemList, $"{ValidRecipe}, {ValidRecipe}"));
+
     private static void AssertLoadRejects(
-        string monstersJson, string jobsJson, string offendingId, string skillsJson = ValidSkills, string worldJson = ValidWorld)
+        string monstersJson,
+        string jobsJson,
+        string offendingId,
+        string skillsJson = ValidSkills,
+        string worldJson = ValidWorld,
+        string itemsJson = ValidItems,
+        string recipesJson = ValidRecipes)
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
         try
@@ -498,6 +766,8 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), jobsJson);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), skillsJson);
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), worldJson);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), itemsJson);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), recipesJson);
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingId, exception.Message);
         }

@@ -1,0 +1,5 @@
+{
+  "recipes": [
+    {"id": "test-forge-sword", "resultItemId": "test-sword", "resultQuantity": 1, "materials": [{"itemId": "test-ore", "quantity": 3}], "successRate": 70}
+  ]
+}
