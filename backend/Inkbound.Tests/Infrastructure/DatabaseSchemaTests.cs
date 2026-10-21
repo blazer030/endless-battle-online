@@ -13,8 +13,24 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
 
         await using var reader = database.CreateDbContext();
         var stored = await reader.Characters.SingleAsync(character => character.Id == characterId, TestContext.Current.CancellationToken);
-        Assert.Equal(0, stored.Experience);
+        Assert.Equal(0, stored.Exp);
         Assert.Equal(0, stored.Version);
+    }
+
+    [Fact]
+    public async Task Migration_GivesExistingRowsDefaults()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await using var reader = database.CreateDbContext();
+        var stored = await reader.Characters.SingleAsync(character => character.Id == characterId, TestContext.Current.CancellationToken);
+        Assert.Equal(1, stored.Level);
+        Assert.Equal(1000, stored.NextExp);
+        Assert.Equal("warrior", stored.JobId);
+        Assert.Equal(10, stored.BaseStr);
+        Assert.Equal(50, stored.Hp);
+        Assert.Equal(0, stored.Money);
+        Assert.Equal(0, stored.Exp);
     }
 
     [Fact]
@@ -41,11 +57,11 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         var characterA = await contextA.Characters.SingleAsync(character => character.Id == characterId, cancellationToken);
         var characterB = await contextB.Characters.SingleAsync(character => character.Id == characterId, cancellationToken);
 
-        characterA.SpiritStones = 10;
+        characterA.Money = 10;
         characterA.Version += 1;
         await contextA.SaveChangesAsync(cancellationToken);
 
-        characterB.SpiritStones = 20;
+        characterB.Money = 20;
         characterB.Version += 1;
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync(cancellationToken));
     }

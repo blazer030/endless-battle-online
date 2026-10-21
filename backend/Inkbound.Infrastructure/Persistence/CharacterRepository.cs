@@ -22,8 +22,8 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
         {
             AccountId = character.AccountId,
             Name = character.Name,
-            Experience = character.Experience,
-            SpiritStones = character.SpiritStones,
+            Exp = character.Experience,
+            Money = character.SpiritStones,
             CurrentStageId = character.CurrentStageId,
             LastSettledAt = character.LastSettledAt.UtcDateTime,
             Version = character.Version,
@@ -49,8 +49,8 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
 
         // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
         context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
-        row.Experience = character.Experience;
-        row.SpiritStones = character.SpiritStones;
+        row.Exp = character.Experience;
+        row.Money = character.SpiritStones;
         row.CurrentStageId = character.CurrentStageId;
         row.LastSettledAt = character.LastSettledAt.UtcDateTime;
         row.Version = character.Version + 1;
@@ -70,8 +70,8 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
         row.Id,
         row.AccountId,
         row.Name,
-        row.Experience,
-        row.SpiritStones,
+        row.Exp,
+        row.Money,
         row.CurrentStageId,
         new DateTimeOffset(DateTime.SpecifyKind(row.LastSettledAt, DateTimeKind.Utc)),
         row.Version);

@@ -11,9 +11,9 @@ public partial class Character
 
     public string Name { get; set; } = null!;
 
-    public long Experience { get; set; }
+    public long Exp { get; set; }
 
-    public long SpiritStones { get; set; }
+    public long Money { get; set; }
 
     public string CurrentStageId { get; set; } = null!;
 
@@ -22,6 +22,38 @@ public partial class Character
     public int Version { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public int Level { get; set; }
+
+    public long NextExp { get; set; }
+
+    public sbyte Sex { get; set; }
+
+    public sbyte Element { get; set; }
+
+    public sbyte Birth { get; set; }
+
+    public string JobId { get; set; } = null!;
+
+    public string SpecialAttackName { get; set; } = null!;
+
+    public int BaseStr { get; set; }
+
+    public int BaseSmart { get; set; }
+
+    public int BaseLife { get; set; }
+
+    public int BaseVit { get; set; }
+
+    public int BaseAgi { get; set; }
+
+    public int BaseAu { get; set; }
+
+    public int BaseBe { get; set; }
+
+    public int Hp { get; set; }
+
+    public int Sp { get; set; }
 
     public virtual Account Account { get; set; } = null!;
 }
