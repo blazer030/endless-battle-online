@@ -1,0 +1,7 @@
+{
+  "jobs": [
+    { "id": "warrior",   "name": "測試戰士",   "tier": 1, "parentId": null,      "unlockLevel": 1,  "proficiencyRequired": 0,    "statRequirements": [], "growth": { "str": [2, 3], "smart": [0, 1], "life": [1, 2], "vit": [1, 2], "agi": [1, 2], "au": [0, 1], "be": [0, 1] } },
+    { "id": "sorcerer",  "name": "測試術士",   "tier": 1, "parentId": null,      "unlockLevel": 1,  "proficiencyRequired": 0,    "statRequirements": [], "growth": { "str": [0, 1], "smart": [2, 3], "life": [1, 2], "vit": [0, 1], "agi": [1, 2], "au": [1, 2], "be": [1, 2] } },
+    { "id": "berserker", "name": "測試狂戰士", "tier": 2, "parentId": "warrior", "unlockLevel": 30, "proficiencyRequired": 3500, "statRequirements": [{ "stat": "str", "minimum": 60 }], "growth": { "str": [3, 4], "smart": [0, 1], "life": [2, 3], "vit": [0, 1], "agi": [1, 2], "au": [0, 1], "be": [0, 1] } }
+  ]
+}

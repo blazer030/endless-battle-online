@@ -11,7 +11,11 @@ public interface IGameContent
 
     IReadOnlyList<StageDefinition> AllStages { get; }
 
+    IReadOnlyList<JobDefinition> AllJobs { get; }
+
     StageDefinition GetStage(string stageId);
 
     MonsterDefinition GetMonster(string monsterId);
+
+    JobDefinition GetJob(string jobId);
 }
