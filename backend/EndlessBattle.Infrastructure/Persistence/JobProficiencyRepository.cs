@@ -1,6 +1,5 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Domain.Progression;
-using EndlessBattle.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Infrastructure.Persistence;
@@ -14,20 +13,14 @@ public sealed class JobProficiencyRepository(EndlessBattleDbContext context) : I
             .Select(row => new JobProficiency(row.JobId, row.Proficiency, row.SkillPoints))
             .ToListAsync(cancellationToken);
 
-    // 單人遊戲，不處理同時寫入：先讀再新增或累加
+    // 單一 upsert 由資料庫累加，同時寫入也不會遺失差值
     public async Task AddAsync(
-        long characterId, string jobId, long proficiencyDelta, long skillPointsDelta, CancellationToken cancellationToken)
-    {
-        var row = await context.CharacterJobProficiencies
-            .SingleOrDefaultAsync(existing => existing.CharacterId == characterId && existing.JobId == jobId, cancellationToken);
-        if (row is null)
-        {
-            row = new CharacterJobProficiency { CharacterId = characterId, JobId = jobId };
-            context.CharacterJobProficiencies.Add(row);
-        }
-
-        row.Proficiency += proficiencyDelta;
-        row.SkillPoints += skillPointsDelta;
-        await context.SaveChangesAsync(cancellationToken);
-    }
+        long characterId, string jobId, long proficiencyDelta, long skillPointsDelta, CancellationToken cancellationToken) =>
+        await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+            INSERT INTO character_job_proficiency (character_id, job_id, proficiency, skill_points)
+            VALUES ({characterId}, {jobId}, {proficiencyDelta}, {skillPointsDelta})
+            ON DUPLICATE KEY UPDATE proficiency = proficiency + {proficiencyDelta}, skill_points = skill_points + {skillPointsDelta}
+            """,
+            cancellationToken);
 }

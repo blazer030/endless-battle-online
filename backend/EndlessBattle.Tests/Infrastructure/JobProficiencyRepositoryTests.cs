@@ -34,6 +34,40 @@ public class JobProficiencyRepositoryTests(MySqlDatabaseFixture database)
         Assert.Equal([new JobProficiency("warrior", 30, 3)], stored);
     }
 
+    // 多個請求同時寫入同一列時，每筆差值都要累加進去
+    [Fact]
+    public async Task AddAsync_AccumulatesConcurrentDeltas()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await Task.WhenAll(Enumerable.Range(0, 10).Select(async _ =>
+        {
+            await using var context = database.CreateDbContext();
+            await new JobProficiencyRepository(context).AddAsync(characterId, "warrior", 3, 1, CancellationToken);
+        }));
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new JobProficiencyRepository(readContext).ListAsync(characterId, CancellationToken);
+        Assert.Equal([new JobProficiency("warrior", 30, 10)], stored);
+    }
+
+    // 最小重現：同一個 context 先寫過一次，另一個 context 再累加；第一個 context 不可拿手上的舊值覆寫
+    [Fact]
+    public async Task AddAsync_KeepsDeltasWrittenByAnotherContext()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using var first = database.CreateDbContext();
+        await using var second = database.CreateDbContext();
+
+        await new JobProficiencyRepository(first).AddAsync(characterId, "warrior", 5, 1, CancellationToken);
+        await new JobProficiencyRepository(second).AddAsync(characterId, "warrior", 7, 1, CancellationToken);
+        await new JobProficiencyRepository(first).AddAsync(characterId, "warrior", 1, 1, CancellationToken);
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new JobProficiencyRepository(readContext).ListAsync(characterId, CancellationToken);
+        Assert.Equal([new JobProficiency("warrior", 13, 3)], stored);
+    }
+
     [Fact]
     public async Task ListAsync_ReturnsEmpty_WhenNoProficiency()
     {
