@@ -45,6 +45,7 @@ public sealed class WorldService(
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var target = content.AllPlaces.FirstOrDefault(place => place.Id == placeId);
+        // 驗證用的是第一次讀到的角色；期間若有並行變更，由最後寫入時的版本鎖擋下
         var reasons = PlaceMove.Evaluate(character, target, subPlace);
         if (reasons.Count > 0)
         {
