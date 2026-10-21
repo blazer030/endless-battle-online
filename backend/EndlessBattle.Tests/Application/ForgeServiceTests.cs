@@ -1,0 +1,297 @@
+using EndlessBattle.Application.Common;
+using EndlessBattle.Application.Forge;
+using EndlessBattle.Application.Inventory;
+using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Infrastructure.Content;
+using EndlessBattle.Tests.Support;
+
+namespace EndlessBattle.Tests.Application;
+
+// TestContent：test-sword（at 8、1 孔、精鍊上限 4）、test-refine-stone（Lv1 種類 1，at／df [1, 2]）、test-refine-stone-2（Lv2 種類 1）、
+// test-stone（固定 at +5）、stone-remover、hole-driller、safe-refine-stone（材料）。
+// ScriptedRandom 的值 v 對 rand(1, 100) 取 ⌊100v⌋ + 1
+public class ForgeServiceTests
+{
+    private const long AccountId = 7;
+    private static readonly JsonGameContent Content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
+
+    private readonly List<string> log = [];
+    private readonly LoggingCharacterRepository characters;
+    private readonly InMemoryInventoryRepository inventory = new();
+    private readonly InMemoryEquipmentRepository equipment;
+    private readonly ScriptedRandomFactory random = new();
+    private readonly ForgeService service;
+
+    public ForgeServiceTests()
+    {
+        characters = new LoggingCharacterRepository(log);
+        equipment = new InMemoryEquipmentRepository(inventory);
+        var inventoryService = new InventoryService(characters, inventory, equipment, Content);
+        service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService);
+    }
+
+    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
+    private async Task<Character> AddCharacterAsync() =>
+        await characters.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, DateTimeOffset.UnixEpoch), CancellationToken);
+
+    private Task<long> GiveAsync(Character character, string itemId, int quantity = 1) =>
+        inventory.AddAsync(character.Id, TestItems.Entry(0, itemId, quantity) with { Holes = Content.GetItem(itemId).Holes }, CancellationToken);
+
+    private InventoryEntry Find(Character character, long id) => inventory.Find(character.Id, id);
+
+    private async Task<IReadOnlyList<(string ItemId, int Quantity)>> ItemsAsync(Character character) =>
+        (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.ItemId, entry.Quantity)).ToList();
+
+    // 裝備中的道具也能精鍊：擲 1.0 → r = 100 成功，at、df 各擲 [1, 2] 的上界
+    [Fact]
+    public async Task Refine_EquippedItemCanBeRefined()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-refine-stone");
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, sword, null, CancellationToken);
+        random.Next = new ScriptedRandom(0.99);
+
+        var result = await service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken);
+
+        Assert.True(result.Success);
+        var refined = Find(character, sword);
+        Assert.Equal(1, refined.RefineLevel);
+        Assert.Equal(StatBonus.Zero with { At = 2, Df = 2 }, refined.RefineBonus);
+        Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
+        var weapon = Assert.Single(result.Inventory.Equipped);
+        Assert.Equal(1, weapon.Item.Entry.RefineLevel);
+        Assert.Equal(8 + 2, result.Inventory.Bonus.Total.At);
+        Assert.Equal(["update"], log);
+    }
+
+    // 擲 0.0 → r = 1 失敗：扣 1 顆安全精鍊石、精鍊石與裝備都保留
+    [Fact]
+    public async Task Refine_SafeStoneFailureConsumesSafeStone()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-refine-stone");
+        await GiveAsync(character, "safe-refine-stone", 2);
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.RefineAsync(AccountId, sword, stone, useSafeStone: true, CancellationToken);
+
+        Assert.False(result.Success);
+        Assert.Equal([("test-sword", 1), ("test-refine-stone", 1), ("safe-refine-stone", 1)], await ItemsAsync(character));
+        Assert.Equal(0, Find(character, sword).RefineLevel);
+    }
+
+    [Fact]
+    public async Task Refine_SafeStoneMissingRejectsWithoutWrites()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-refine-stone");
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(
+            () => service.RefineAsync(AccountId, sword, stone, useSafeStone: true, CancellationToken));
+
+        Assert.Equal(["missingTool:safe-refine-stone"], exception.Reasons);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Refine_ConflictWritesNothing()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-refine-stone");
+        random.Next = new ScriptedRandom(0.99);
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken));
+
+        Assert.Equal([("test-sword", 1), ("test-refine-stone", 1)], await ItemsAsync(character));
+        Assert.Equal(0, Find(character, sword).RefineLevel);
+    }
+
+    // 別的角色的道具與不存在的 id 一樣找不到
+    [Fact]
+    public async Task Refine_OtherCharactersItemIsNotFound()
+    {
+        var character = await AddCharacterAsync();
+        var stone = await GiveAsync(character, "test-refine-stone");
+        var otherSword = await inventory.AddAsync(character.Id + 100, TestItems.Entry(0, "test-sword"), CancellationToken);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => service.RefineAsync(AccountId, otherSword, stone, useSafeStone: false, CancellationToken));
+        await Assert.ThrowsAsync<NotFoundException>(() => service.RefineAsync(AccountId, 999, stone, useSafeStone: false, CancellationToken));
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Socket_InsertsStoneAndConsumesIt()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-stone", 3);
+
+        var result = await service.SocketAsync(AccountId, sword, 1, stone, CancellationToken);
+
+        Assert.True(result.Success);
+        Assert.Equal([new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], Find(character, sword).Sockets);
+        Assert.Equal([("test-sword", 1), ("test-stone", 2)], await ItemsAsync(character));
+        Assert.Equal(["update"], log);
+    }
+
+    private async Task<long> SocketedSwordAsync(Character character)
+    {
+        var sword = await GiveAsync(character, "test-sword");
+        await inventory.UpdateEnhancementAsync(
+            character.Id, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+        return sword;
+    }
+
+    [Fact]
+    public async Task Unsocket_RequiresRemover()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await SocketedSwordAsync(character);
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.UnsocketAsync(AccountId, sword, 1, CancellationToken));
+
+        Assert.Equal(["missingTool:stone-remover"], exception.Reasons);
+        Assert.Single(Find(character, sword).Sockets);
+        Assert.Empty(log);
+    }
+
+    // 擲 0.0 → r = 1 < 25 回收：魔石回背包、拆石器用掉、孔位清空
+    [Fact]
+    public async Task Unsocket_RecoveredStoneReturnsToBag()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await SocketedSwordAsync(character);
+        await GiveAsync(character, "stone-remover");
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.UnsocketAsync(AccountId, sword, 1, CancellationToken);
+
+        Assert.True(result.Recovered);
+        Assert.Empty(Find(character, sword).Sockets);
+        Assert.Equal([("test-sword", 1), ("test-stone", 1)], await ItemsAsync(character));
+        Assert.Equal(["update"], log);
+    }
+
+    // 魔石分類已滿：回收的魔石放不下就消失，不擋拆除
+    [Fact]
+    public async Task Unsocket_BagFullLosesRecoveredStone()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await SocketedSwordAsync(character);
+        await GiveAsync(character, "stone-remover");
+        for (var index = 0; index < 15; index++)
+        {
+            await GiveAsync(character, "test-stone", 99);
+        }
+
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.UnsocketAsync(AccountId, sword, 1, CancellationToken);
+
+        Assert.False(result.Recovered);
+        Assert.Empty(Find(character, sword).Sockets);
+        Assert.Equal(15 * 99, (await ItemsAsync(character)).Where(item => item.ItemId == "test-stone").Sum(item => item.Quantity));
+        Assert.DoesNotContain(await ItemsAsync(character), item => item.ItemId == "stone-remover");
+    }
+
+    // 擲 0.99 → r = 100 > 8 失敗：孔數不變，鑽孔器照樣用掉
+    [Fact]
+    public async Task Drill_FailureStillConsumesDriller()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        await GiveAsync(character, "hole-driller", 2);
+        random.Next = new ScriptedRandom(0.99);
+
+        var result = await service.DrillAsync(AccountId, sword, CancellationToken);
+
+        Assert.False(result.Success);
+        Assert.Equal(1, Find(character, sword).Holes);
+        Assert.Equal([("test-sword", 1), ("hole-driller", 1)], await ItemsAsync(character));
+    }
+
+    [Fact]
+    public async Task Drill_SuccessAddsHoleToSameEntry()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        await GiveAsync(character, "hole-driller");
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.DrillAsync(AccountId, sword, CancellationToken);
+
+        Assert.True(result.Success);
+        Assert.Equal(2, Find(character, sword).Holes);
+        Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
+        Assert.Equal(
+            ["missingTool:hole-driller"],
+            (await Assert.ThrowsAsync<InputValidationException>(() => service.DrillAsync(AccountId, sword, CancellationToken))).Reasons);
+    }
+
+    // 5 顆 Lv1 合 2 組 → 剩 1 顆 Lv1、得 2 顆 Lv2
+    [Fact]
+    public async Task Merge_ConsumesPairsAndAddsNextLevel()
+    {
+        var character = await AddCharacterAsync();
+        var stone = await GiveAsync(character, "test-refine-stone", 5);
+
+        var result = await service.MergeStonesAsync(AccountId, stone, 2, CancellationToken);
+
+        Assert.True(result.Success);
+        Assert.Equal([("test-refine-stone", 1), ("test-refine-stone-2", 2)], await ItemsAsync(character));
+        Assert.Equal(["update"], log);
+    }
+
+    // 精鍊石分類 15 格全滿、合成後原格還有剩 → 新等級的石頭沒有格子放
+    [Fact]
+    public async Task Merge_BagFullConsumesNothing()
+    {
+        var character = await AddCharacterAsync();
+        var stone = await GiveAsync(character, "test-refine-stone", 4);
+        for (var index = 0; index < 14; index++)
+        {
+            await GiveAsync(character, "test-refine-stone", 99);
+        }
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MergeStonesAsync(AccountId, stone, 1, CancellationToken));
+
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(4, Find(character, stone).Quantity);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Merge_RejectsBadQuantityAndUnmergeableStones()
+    {
+        var character = await AddCharacterAsync();
+        var stone = await GiveAsync(character, "test-refine-stone", 4);
+        var top = await GiveAsync(character, "test-refine-stone-2", 2);
+        var magic = await GiveAsync(character, "test-stone", 2);
+
+        async Task<IReadOnlyList<string>> ReasonsAsync(long id, int pairs) =>
+            (await Assert.ThrowsAsync<InputValidationException>(() => service.MergeStonesAsync(AccountId, id, pairs, CancellationToken))).Reasons;
+
+        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, 3));
+        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, 0));
+        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, int.MaxValue));
+        Assert.Equal(["cannotMerge"], await ReasonsAsync(top, 1));
+        Assert.Equal(["notRefineStone"], await ReasonsAsync(magic, 1));
+        Assert.Empty(log);
+    }
+
+    private sealed class ScriptedRandomFactory : IRandomSourceFactory
+    {
+        public IRandomSource Next { get; set; } = new ScriptedRandom(0.0);
+
+        public IRandomSource Create() => Next;
+    }
+}

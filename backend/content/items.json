@@ -138,6 +138,9 @@
     {"id": "iron-ore", "name": "鐵礦石", "category": "Material", "price": 10, "shopLevel": 1, "shopSellable": false},
     {"id": "magic-dust", "name": "魔法粉塵", "category": "Material", "price": 20, "shopLevel": 1, "shopSellable": false},
     {"id": "beast-hide", "name": "野獸毛皮", "category": "Material", "price": 15, "shopLevel": 1, "shopSellable": false},
-    {"id": "crystal-shard", "name": "水晶碎片", "category": "Material", "price": 40, "shopLevel": 1, "shopSellable": false}
+    {"id": "crystal-shard", "name": "水晶碎片", "category": "Material", "price": 40, "shopLevel": 1, "shopSellable": false},
+    {"id": "stone-remover", "name": "拆石器", "category": "Material", "price": 500, "shopLevel": 3, "shopSellable": true},
+    {"id": "hole-driller", "name": "鑽孔器", "category": "Material", "price": 3000, "shopLevel": 5, "shopSellable": true},
+    {"id": "safe-refine-stone", "name": "安全精鍊石", "category": "Material", "price": 2000, "shopLevel": 4, "shopSellable": true}
   ]
 }

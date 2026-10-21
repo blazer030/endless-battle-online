@@ -233,3 +233,21 @@ public sealed record DepotMoveResponse(InventoryResponse Inventory, DepotRespons
 public sealed record StoreRequest(long? InventoryId, int? Quantity);
 
 public sealed record TakeRequest(long? DepotId, int? Quantity);
+
+// UseSafeStone 省略時為 false
+public sealed record RefineRequest(long? InventoryId, long? StoneInventoryId, bool? UseSafeStone);
+
+// Hole 從 1 起算
+public sealed record SocketRequest(long? InventoryId, int? Hole, long? StoneInventoryId);
+
+public sealed record UnsocketRequest(long? InventoryId, int? Hole);
+
+public sealed record DrillRequest(long? InventoryId);
+
+public sealed record MergeStonesRequest(long? StoneInventoryId, int? QuantityPairs);
+
+// Success：精鍊、打洞為擲骰結果；鑲嵌、合成成功才會回 200，一律為 true
+public sealed record ForgeResponse(bool Success, InventoryResponse Inventory);
+
+// 拆除一律成功；Recovered 為 false 表示魔石沒有回收（沒擲中或背包已滿）
+public sealed record UnsocketResponse(bool Success, bool Recovered, InventoryResponse Inventory);

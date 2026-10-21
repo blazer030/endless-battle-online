@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using EndlessBattle.Domain.Forge;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -98,7 +99,7 @@ public partial class ItemTableTests
         Assert.Equal(2, stones.Count(stone => stone.Random));
 
         Assert.Equal(
-            ["iron-ore", "magic-dust", "beast-hide", "crystal-shard"],
+            ["iron-ore", "magic-dust", "beast-hide", "crystal-shard", "stone-remover", "hole-driller", "safe-refine-stone"],
             Content.AllItems.Where(item => item.Category == ItemCategory.Material).Select(item => item.Id));
 
         Assert.Equal(6, Content.AllRecipes.Count);
@@ -162,5 +163,20 @@ public partial class ItemTableTests
         var forge = Content.GetRecipe("forge-iron-sword");
         Assert.Equal(("iron-sword", 1, 70), (forge.ResultItemId, forge.ResultQuantity, forge.SuccessRate));
         Assert.Equal([("iron-ore", 3)], forge.Materials);
+    }
+
+    // 鍛造消耗的道具：材料分類、商店販賣
+    [Fact]
+    public void ForgeTools_AreSoldInShop()
+    {
+        Assert.Equal(
+            [("stone-remover", 500L, 3), ("hole-driller", 3000L, 5), ("safe-refine-stone", 2000L, 4)],
+            new[] { ForgeTools.StoneRemover, ForgeTools.HoleDriller, ForgeTools.SafeRefineStone }
+                .Select(Content.GetItem)
+                .Select(item => (item.Id, item.Price, item.ShopLevel)));
+        Assert.All(
+            new[] { ForgeTools.StoneRemover, ForgeTools.HoleDriller, ForgeTools.SafeRefineStone }.Select(Content.GetItem),
+            item => Assert.Equal((ItemCategory.Material, true, (RefineStoneSpec?)null), (item.Category, item.ShopSellable, item.Refine)));
+        Assert.Contains(Content.ItemsForShop(ItemCategory.Material, 3), item => item.Id == ForgeTools.StoneRemover);
     }
 }
