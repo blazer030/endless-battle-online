@@ -122,6 +122,8 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
           <span className="adventure__exp-value">{`${formatNumber(character.exp)} / ${formatNumber(character.nextExp)}`}</span>
         </span>
       </header>
+      {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
+      {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
       <main className="adventure__main">
         {/* 切到角色分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
@@ -131,10 +133,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               <PixiStage ref={attachStage} />
             </Suspense>
           </StageErrorBoundary>
-          {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字 */}
-          {content !== null && (
-            <AdventureLoop api={api} playback={playback} onItems={handleItems} />
-          )}
           <BattleLog lines={lines} />
         </div>
         <div className="adventure__sheet" hidden={tab !== "character"}>

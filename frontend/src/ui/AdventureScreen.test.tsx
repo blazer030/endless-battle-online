@@ -192,3 +192,16 @@ test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
   consoleError.mockRestore()
 })
+
+test("AdventureScreen_ShowsPollErrorOnCharacterTab", async () => {
+  const api = createFakeApi()
+  vi.mocked(api.advance).mockRejectedValue(new TypeError("Failed to fetch"))
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+
+  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+
+  expect(screen.getByRole("region", { name: "能力" })).toBeVisible()
+  expect(screen.getByText("連線不穩，稍後自動重試")).toBeVisible()
+})
