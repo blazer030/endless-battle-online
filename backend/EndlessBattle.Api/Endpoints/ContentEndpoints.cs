@@ -17,7 +17,6 @@ public static class ContentEndpoints
         app.MapGet("/api/content", (IGameContent content) =>
             TypedResults.Ok(new ContentResponse(
                 content.AllMonsters.Select(monster => new NamedContent(monster.Id, monster.Name)).ToList(),
-                content.AllStages.Select(stage => new NamedContent(stage.Id, stage.Name)).ToList(),
                 content.AllJobs.Select(job => new JobContent(
                     job.Id,
                     job.Name,

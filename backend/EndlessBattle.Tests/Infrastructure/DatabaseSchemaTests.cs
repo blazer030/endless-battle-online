@@ -84,6 +84,19 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal(30, (await reader.CharacterSkillSlots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Chance);
     }
 
+    // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
+    [Fact]
+    public async Task Schema_HasPlaceColumns()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await using var reader = database.CreateDbContext();
+        var stored = await reader.Characters.SingleAsync(character => character.Id == characterId, TestContext.Current.CancellationToken);
+        Assert.Equal(1, stored.CurrentPlaceId);
+        Assert.Null(stored.CurrentSubPlace);
+        Assert.Null(stored.CurrentStageId);
+    }
+
     private async Task<long> CreateCharacterAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -96,7 +109,6 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         {
             AccountId = account.Id,
             Name = $"角{account.Id}",
-            CurrentStageId = "stage",
             LastSettledAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
         };

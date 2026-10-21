@@ -15,7 +15,7 @@ public class JobProficiencyRepositoryTests(MySqlDatabaseFixture database)
         await using var context = database.CreateDbContext();
         var accountId = await new AccountRepository(context).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, CancellationToken);
         var character = await new CharacterRepository(context).AddAsync(
-            TestCharacters.Default(accountId, $"熟練{Random.Shared.Next(100000, 999999)}", "stage", now), CancellationToken);
+            TestCharacters.Default(accountId, $"熟練{Random.Shared.Next(100000, 999999)}", 1, 1, now), CancellationToken);
         return character.Id;
     }
 

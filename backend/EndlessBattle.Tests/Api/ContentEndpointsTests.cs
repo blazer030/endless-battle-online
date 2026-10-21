@@ -10,7 +10,7 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task GetContent_ReturnsMonsterAndStageNames_WithoutLogin()
+    public async Task GetContent_ReturnsMonsterNames_WithoutLogin()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = factory.CreateClient();
@@ -25,9 +25,7 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(
             ["test-sprite:測試雪精", "test-wolf:測試寒狼"],
             content.GetProperty("monsters").EnumerateArray().Select(item => $"{item.GetProperty("id").GetString()}:{item.GetProperty("name").GetString()}"));
-        Assert.Equal(
-            ["test-stage-1:測試關卡・一"],
-            content.GetProperty("stages").EnumerateArray().Select(item => $"{item.GetProperty("id").GetString()}:{item.GetProperty("name").GetString()}"));
+        Assert.False(content.TryGetProperty("stages", out _));
     }
 
     [Fact]

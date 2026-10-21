@@ -15,7 +15,7 @@ public partial class Character
 
     public long Money { get; set; }
 
-    public string CurrentStageId { get; set; } = null!;
+    public string? CurrentStageId { get; set; }
 
     public DateTime LastSettledAt { get; set; }
 
@@ -58,6 +58,10 @@ public partial class Character
     public int ActNum { get; set; }
 
     public DateTime? ActNumTime { get; set; }
+
+    public int CurrentPlaceId { get; set; }
+
+    public sbyte? CurrentSubPlace { get; set; }
 
     public virtual Account Account { get; set; } = null!;
 

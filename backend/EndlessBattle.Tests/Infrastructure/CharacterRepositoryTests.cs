@@ -17,7 +17,7 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         await using var setupContext = database.CreateDbContext();
         var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
         await new CharacterRepository(setupContext).AddAsync(
-            TestCharacters.Default(accountId, UniqueName("樂觀"), "stage", now), cancellationToken);
+            TestCharacters.Default(accountId, UniqueName("樂觀"), 1, 1, now), cancellationToken);
 
         await using var contextA = database.CreateDbContext();
         await using var contextB = database.CreateDbContext();
@@ -59,7 +59,8 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
             Sp: 19,
             ActNum: 37,
             ActNumTime: now.AddMinutes(-3),
-            CurrentStageId: "stage-9",
+            PlaceId: 16,
+            SubPlace: 3,
             LastSettledAt: now,
             Version: 0);
 
@@ -78,7 +79,7 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         await using var setupContext = database.CreateDbContext();
         var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
         var added = await new CharacterRepository(setupContext).AddAsync(
-            TestCharacters.Default(accountId, UniqueName("更新"), "stage", now), cancellationToken);
+            TestCharacters.Default(accountId, UniqueName("更新"), 1, 1, now), cancellationToken);
         var changed = added with
         {
             Level = 3,
@@ -95,7 +96,8 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
             Sp = 8,
             ActNum = 41,
             ActNumTime = now.AddSeconds(30),
-            CurrentStageId = "stage-2",
+            PlaceId = 7,
+            SubPlace = 4,
             LastSettledAt = now.AddMinutes(5),
         };
 
@@ -105,5 +107,28 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         await using var readContext = database.CreateDbContext();
         var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
         Assert.Equal(changed with { Version = 1 }, stored);
+    }
+
+    // 沒有子地區的地區（20 黑曜神廟）存 NULL；移動到有子地區的地區後再寫回數值
+    [Fact]
+    public async Task Repository_RoundTripsPlace()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero);
+        await using var setupContext = database.CreateDbContext();
+        var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var added = await new CharacterRepository(setupContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("地區"), placeId: 20, subPlace: null, now), cancellationToken);
+
+        await using var firstRead = database.CreateDbContext();
+        var stored = (await new CharacterRepository(firstRead).FindByAccountAsync(accountId, cancellationToken))!;
+        Assert.Equal((20, (int?)null), (stored.PlaceId, stored.SubPlace));
+
+        await using var updateContext = database.CreateDbContext();
+        await new CharacterRepository(updateContext).UpdateAsync(added with { PlaceId = 3, SubPlace = 2 }, cancellationToken);
+
+        await using var secondRead = database.CreateDbContext();
+        var moved = (await new CharacterRepository(secondRead).FindByAccountAsync(accountId, cancellationToken))!;
+        Assert.Equal((3, (int?)2), (moved.PlaceId, moved.SubPlace));
     }
 }

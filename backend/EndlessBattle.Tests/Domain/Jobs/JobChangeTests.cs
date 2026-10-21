@@ -15,7 +15,7 @@ public class JobChangeTests
     private static readonly JobDefinition Berserker = new("berserker", "狂戰士", 2, "warrior", 30, 3500, [new StatRequirement("str", 60)], Growth);
 
     private static Character Warrior(int level = 30, int str = 60) =>
-        TestCharacters.Default(1, "測試者", "test-stage-1", Now) with { Level = level, Base = new BaseStats(str, 12, 12, 10, 12, 10, 10) };
+        TestCharacters.Default(1, "測試者", 1, 1, Now) with { Level = level, Base = new BaseStats(str, 12, 12, 10, 12, 10, 10) };
 
     private static IReadOnlyList<JobProficiency> Ch(long proficiency) => [new JobProficiency("warrior", proficiency, 0)];
 

@@ -42,7 +42,7 @@ public class AdventureServiceTests
 
     private Task<Character> AddCharacterAsync(Func<Character, Character>? customize = null)
     {
-        var character = TestCharacters.Default(AccountId, "測試者", "test-stage-1", Start);
+        var character = TestCharacters.Default(AccountId, "測試者", 1, 1, Start);
         return repository.AddAsync(customize is null ? character : customize(character), CancellationToken);
     }
 
@@ -114,7 +114,7 @@ public class AdventureServiceTests
 
         var from = clock.UtcNow.AddHours(-24);
         var expected = AdventureSimulator.Run(
-            character, Content.GetJob("warrior"), Content.GetStage("test-stage-1"), [], Content.GetMonster,
+            character, Content.GetJob("warrior"), Content.GetPlace(1), Content.AllMonsters, [],
             new StaminaState(character.ActNum, character.ActNumTime), from, clock.UtcNow, new ScriptedRandom(0.0));
         Assert.Equal(expected.Summary, result.Summary);
         Assert.True(result.Summary.Fights > 1000);

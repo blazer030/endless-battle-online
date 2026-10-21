@@ -29,7 +29,8 @@ public static class CharacterFactory
         long accountId,
         CreateCharacterCommand command,
         JobDefinition job,
-        string startingStageId,
+        int startingPlaceId,
+        int? startingSubPlace,
         DateTimeOffset now)
     {
         var allocation = command.Allocation;
@@ -69,7 +70,8 @@ public static class CharacterFactory
             Sp: StartingSp,
             ActNum: StartingActNum,
             ActNumTime: null,
-            CurrentStageId: startingStageId,
+            PlaceId: startingPlaceId,
+            SubPlace: startingSubPlace,
             LastSettledAt: now,
             Version: 0);
     }

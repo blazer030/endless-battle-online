@@ -5,6 +5,7 @@ using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Stamina;
+using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Domain.Adventure;
 
@@ -23,15 +24,14 @@ public static class AdventureSimulator
     public static AdventureRun Run(
         Character character,
         JobDefinition job,
-        StageDefinition stage,
+        PlaceDefinition place,
+        IReadOnlyList<MonsterDefinition> placeMonsters,
         IReadOnlyList<EquippedSkill> skills,
-        Func<string, MonsterDefinition> monsters,
         StaminaState stamina,
         DateTimeOffset from,
         DateTimeOffset to,
         IRandomSource random)
     {
-        var stageMonsters = stage.MonsterIds.Select(monsters).ToArray();
         var totalSeconds = (to - from).TotalSeconds;
         var windowStart = totalSeconds - CatchUpWindowSeconds;
         var events = new List<BattleEvent>();
@@ -63,7 +63,7 @@ public static class AdventureSimulator
 
             (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
-            var definition = PickMonster(stageMonsters, random);
+            var definition = PickMonster(placeMonsters, random);
             var player = CombatBridge.ToCombatant(character);
             var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, random);
             var fightStart = cursor;
@@ -144,12 +144,13 @@ public static class AdventureSimulator
         return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll);
     }
 
-    // WOG：擲一次 rand(0,100)，遇敵率 Meet 不高於它的怪物入選，候選中均勻抽；沒有候選時退回全部怪物
-    private static MonsterDefinition PickMonster(MonsterDefinition[] stageMonsters, IRandomSource random)
+    // WOG：擲一次 rand(0,100)，遇敵率 Meet 不高於它的怪物入選，候選中均勻抽；沒有候選時退回全部怪物。
+    // 暫時不分子地區，Task 4 改用 MonsterPool
+    private static MonsterDefinition PickMonster(IReadOnlyList<MonsterDefinition> placeMonsters, IRandomSource random)
     {
         var roll = PhpRandom.Between(random, 0, 100);
         var candidateCount = 0;
-        foreach (var monster in stageMonsters)
+        foreach (var monster in placeMonsters)
         {
             if (monster.Meet <= roll)
             {
@@ -159,11 +160,11 @@ public static class AdventureSimulator
 
         if (candidateCount == 0)
         {
-            return stageMonsters[random.NextInt(stageMonsters.Length)];
+            return placeMonsters[random.NextInt(placeMonsters.Count)];
         }
 
         var remaining = random.NextInt(candidateCount);
-        foreach (var monster in stageMonsters)
+        foreach (var monster in placeMonsters)
         {
             if (monster.Meet <= roll && remaining-- == 0)
             {

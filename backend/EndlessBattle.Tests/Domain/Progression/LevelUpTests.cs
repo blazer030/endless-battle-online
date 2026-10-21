@@ -9,7 +9,7 @@ namespace EndlessBattle.Tests.Domain.Progression;
 public class LevelUpTests
 {
     // 預設角色 Lv1、Exp 0、NextExp 1000、HP 50、SP 25、Base (12,12,12,10,12,10,10)
-    private static readonly Character Novice = TestCharacters.Default(1, "測試者", "stage-1", DateTimeOffset.UnixEpoch);
+    private static readonly Character Novice = TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch);
 
     private static JobDefinition JobWith(JobGrowth growth) =>
         new("warrior", "戰士", Tier: 1, ParentId: null, UnlockLevel: 1, ProficiencyRequired: 0, StatRequirements: [], growth);

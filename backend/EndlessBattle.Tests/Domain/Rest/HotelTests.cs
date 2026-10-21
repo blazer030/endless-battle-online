@@ -8,7 +8,7 @@ public class HotelTests
 {
     // Life 38 → HpMax = round(38×25) + 50 = 1000；Smart 12、Be 10 → SpMax = round(22×3) + 25 = 91
     private static Character Hero(int level, int hp, long money = 100_000, long exp = 500) =>
-        TestCharacters.Default(1, "測試者", "stage-1", DateTimeOffset.UnixEpoch) with
+        TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with
         {
             Level = level,
             Hp = hp,

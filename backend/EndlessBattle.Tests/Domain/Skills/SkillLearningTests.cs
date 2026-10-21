@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Skills;
 // 預設角色是戰士、2000 錢；burst 每級 money 500·lv²、proficiency 300·lv
 public class SkillLearningTests
 {
-    private static readonly Character Warrior = TestCharacters.Default(1, "測試者", "test-stage-1", DateTimeOffset.UnixEpoch);
+    private static readonly Character Warrior = TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch);
     private static readonly SkillDefinition Burst = TestSkills.Create("burst", "warrior", SkillType.Active);
     private static readonly SkillDefinition Combo = TestSkills.Create("combo", "thief", SkillType.Active);
 

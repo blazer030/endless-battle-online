@@ -22,19 +22,15 @@ public sealed class JsonGameContent : IGameContent
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
     private readonly Dictionary<string, MonsterDefinition> monsters;
-    private readonly Dictionary<string, StageDefinition> stages;
     private readonly Dictionary<string, JobDefinition> jobs;
     private readonly Dictionary<string, SkillDefinition> skills;
     private readonly Dictionary<int, PlaceDefinition> places;
 
     private JsonGameContent(
-        string startingStageId,
         IReadOnlyList<MonsterDefinition> allMonsters,
-        IReadOnlyList<StageDefinition> allStages,
         IReadOnlyList<JobDefinition> allJobs,
         IReadOnlyList<SkillDefinition> allSkills,
         Dictionary<string, MonsterDefinition> monsters,
-        Dictionary<string, StageDefinition> stages,
         Dictionary<string, JobDefinition> jobs,
         Dictionary<string, SkillDefinition> skills,
         WorldFile world,
@@ -47,18 +43,13 @@ public sealed class JsonGameContent : IGameContent
         AllAreas = allAreas;
         AllPlaces = allPlaces;
         this.places = places;
-        StartingStageId = startingStageId;
         AllMonsters = allMonsters;
-        AllStages = allStages;
         AllJobs = allJobs;
         AllSkills = allSkills;
         this.monsters = monsters;
-        this.stages = stages;
         this.jobs = jobs;
         this.skills = skills;
     }
-
-    public string StartingStageId { get; }
 
     public int StartingPlaceId { get; }
 
@@ -70,8 +61,6 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<MonsterDefinition> AllMonsters { get; }
 
-    public IReadOnlyList<StageDefinition> AllStages { get; }
-
     public IReadOnlyList<JobDefinition> AllJobs { get; }
 
     public IReadOnlyList<SkillDefinition> AllSkills { get; }
@@ -79,7 +68,6 @@ public sealed class JsonGameContent : IGameContent
     public static JsonGameContent Load(string directory)
     {
         var monsterFile = Read<MonsterFile>(Path.Combine(directory, "monsters.json"));
-        var stageFile = Read<StageFile>(Path.Combine(directory, "stages.json"));
         var jobFile = Read<JobFile>(Path.Combine(directory, "jobs.json"));
         var skillFile = Read<SkillFile>(Path.Combine(directory, "skills.json"));
         var worldFile = Read<WorldFile>(Path.Combine(directory, "world.json"));
@@ -95,31 +83,6 @@ public sealed class JsonGameContent : IGameContent
             }
 
             ValidateMonster(monster, places);
-        }
-
-        var stages = new Dictionary<string, StageDefinition>();
-        foreach (var stage in stageFile.Stages)
-        {
-            if (!stages.TryAdd(stage.Id, stage))
-            {
-                throw new GameContentException($"關卡 id 重複：{stage.Id}");
-            }
-
-            if (stage.MonsterIds.Count == 0)
-            {
-                throw new GameContentException($"關卡 {stage.Id} 沒有任何怪物");
-            }
-
-            var unknownMonster = stage.MonsterIds.FirstOrDefault(monsterId => !monsters.ContainsKey(monsterId));
-            if (unknownMonster is not null)
-            {
-                throw new GameContentException($"關卡 {stage.Id} 引用了不存在的怪物：{unknownMonster}");
-            }
-        }
-
-        if (!stages.ContainsKey(stageFile.StartingStageId))
-        {
-            throw new GameContentException($"起始關卡不存在：{stageFile.StartingStageId}");
         }
 
         var allJobs = jobFile.Jobs.Select(ToJobDefinition).ToList();
@@ -150,15 +113,12 @@ public sealed class JsonGameContent : IGameContent
         }
 
         return new JsonGameContent(
-            stageFile.StartingStageId, monsterFile.Monsters, stageFile.Stages, allJobs, allSkills, monsters, stages, jobs, skills,
+            monsterFile.Monsters, allJobs, allSkills, monsters, jobs, skills,
             worldFile, allAreas, allPlaces, places);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
         places.TryGetValue(placeId, out var place) ? place : throw new GameContentException($"找不到地區：{placeId}");
-
-    public StageDefinition GetStage(string stageId) =>
-        stages.TryGetValue(stageId, out var stage) ? stage : throw new GameContentException($"找不到關卡：{stageId}");
 
     public MonsterDefinition GetMonster(string monsterId) =>
         monsters.TryGetValue(monsterId, out var monster) ? monster : throw new GameContentException($"找不到怪物：{monsterId}");
@@ -414,8 +374,6 @@ public sealed class JsonGameContent : IGameContent
         ?? throw new GameContentException($"內容檔是空的：{path}");
 
     private sealed record MonsterFile(IReadOnlyList<MonsterDefinition> Monsters);
-
-    private sealed record StageFile(string StartingStageId, IReadOnlyList<StageDefinition> Stages);
 
     private sealed record WorldFile(
         int StartingPlaceId, int? StartingSubPlace, IReadOnlyList<AreaEntry> Areas, IReadOnlyList<PlaceEntry> Places);

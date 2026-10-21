@@ -83,7 +83,8 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.Sp = character.Sp;
         row.ActNum = character.ActNum;
         row.ActNumTime = character.ActNumTime?.UtcDateTime;
-        row.CurrentStageId = character.CurrentStageId;
+        row.CurrentPlaceId = character.PlaceId;
+        row.CurrentSubPlace = (sbyte?)character.SubPlace;
         row.LastSettledAt = character.LastSettledAt.UtcDateTime;
     }
 
@@ -105,7 +106,8 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         Sp: row.Sp,
         ActNum: row.ActNum,
         ActNumTime: row.ActNumTime is { } actNumTime ? ToUtc(actNumTime) : null,
-        CurrentStageId: row.CurrentStageId,
+        PlaceId: row.CurrentPlaceId,
+        SubPlace: row.CurrentSubPlace,
         LastSettledAt: ToUtc(row.LastSettledAt),
         Version: row.Version);
 

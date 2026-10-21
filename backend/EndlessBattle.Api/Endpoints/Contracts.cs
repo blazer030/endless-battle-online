@@ -32,7 +32,6 @@ public sealed record JobGrowthContent(int[] Str, int[] Smart, int[] Life, int[] 
 
 public sealed record ContentResponse(
     IReadOnlyList<NamedContent> Monsters,
-    IReadOnlyList<NamedContent> Stages,
     IReadOnlyList<JobContent> Jobs,
     IReadOnlyList<NamedContent> Elements,
     IReadOnlyList<NamedContent> Births,
@@ -79,7 +78,8 @@ public sealed record CharacterResponse(
     string JobName,
     string SpecialAttackName,
     StatsResponse Stats,
-    string CurrentStageId,
+    int PlaceId,
+    int? SubPlace,
     int ActNum,
     int ActNumMax,
     IReadOnlyList<JobProficiencyResponse> JobProficiency);

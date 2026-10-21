@@ -1,6 +1,0 @@
-{
-  "startingStageId": "frost-peak-1",
-  "stages": [
-    { "id": "frost-peak-1", "name": "冷峰寒地・一", "monsterIds": ["snow-sprite", "frost-wolf"] }
-  ]
-}

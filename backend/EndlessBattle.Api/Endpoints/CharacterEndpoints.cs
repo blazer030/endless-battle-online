@@ -70,7 +70,8 @@ public static class CharacterEndpoints
             new StatsResponse(
                 total.Str, total.Smart, total.Life, total.Vit, total.Agi, total.Au, total.Be,
                 derived.At, derived.Mat, derived.Df, derived.Mdf, derived.HpMax, derived.SpMax),
-            character.CurrentStageId,
+            character.PlaceId,
+            character.SubPlace,
             character.ActNum,
             StaminaRules.Max,
             jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList());

@@ -6,6 +6,7 @@ using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
+using EndlessBattle.Domain.World;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Adventure;
@@ -28,7 +29,9 @@ public class AdventureSimulatorTests
 
     private static readonly MonsterDefinition Dummy = Monster("dummy");
 
-    private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", "stage", From);
+    private static readonly PlaceDefinition Place = new(1, "平原", "central", [], new LevelRange(1, 10), Restricted: false);
+
+    private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", 1, 1, From);
 
     private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", "warrior", SkillType.Active), Level: 1, Chance: 100, Slot: 1);
 
@@ -38,14 +41,12 @@ public class AdventureSimulatorTests
     private static AdventureRun Run(
         Character character, double seconds, IReadOnlyList<EquippedSkill> skills, IRandomSource? random = null, params MonsterDefinition[] monsters)
     {
-        var stageMonsters = monsters.Length == 0 ? [Dummy] : monsters;
-        var stage = new StageDefinition("stage", "關卡", stageMonsters.Select(monster => monster.Id).ToList());
         return AdventureSimulator.Run(
             character,
             Warrior,
-            stage,
+            Place,
+            monsters.Length == 0 ? [Dummy] : monsters,
             skills,
-            id => stageMonsters.Single(monster => monster.Id == id),
             new StaminaState(character.ActNum, character.ActNumTime),
             From,
             From.AddSeconds(seconds),

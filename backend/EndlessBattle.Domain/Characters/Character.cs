@@ -19,6 +19,7 @@ public sealed record Character(
     int Sp,
     int ActNum,
     DateTimeOffset? ActNumTime,
-    string CurrentStageId,
+    int PlaceId,
+    int? SubPlace,
     DateTimeOffset LastSettledAt,
     int Version);

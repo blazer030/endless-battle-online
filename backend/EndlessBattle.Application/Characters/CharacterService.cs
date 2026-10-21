@@ -41,7 +41,8 @@ public sealed class CharacterService(
         Character character;
         try
         {
-            character = CharacterFactory.Create(accountId, command, content.GetJob(command.JobId), content.StartingStageId, clock.UtcNow);
+            character = CharacterFactory.Create(
+                accountId, command, content.GetJob(command.JobId), content.StartingPlaceId, content.StartingSubPlace, clock.UtcNow);
         }
         catch (CharacterCreationException exception)
         {

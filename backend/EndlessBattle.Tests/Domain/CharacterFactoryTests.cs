@@ -8,7 +8,8 @@ namespace EndlessBattle.Tests.Domain;
 public class CharacterFactoryTests
 {
     private const long AccountId = 7;
-    private const string StartingStageId = "stage-1";
+    private const int StartingPlaceId = 1;
+    private const int StartingSubPlace = 1;
     private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static readonly StatRange Flat = new(1, 1);
@@ -25,7 +26,7 @@ public class CharacterFactoryTests
         new("墨客", sex, element, birth, "warrior", allocation ?? new StatAllocation(4, 2, 3, 1), specialAttackName);
 
     private static Character Create(CreateCharacterCommand command, JobDefinition? job = null) =>
-        CharacterFactory.Create(AccountId, command, job ?? Warrior, StartingStageId, Now);
+        CharacterFactory.Create(AccountId, command, job ?? Warrior, StartingPlaceId, StartingSubPlace, Now);
 
     [Fact]
     public void Create_AppliesAllocationAndDefaults()
@@ -48,9 +49,18 @@ public class CharacterFactoryTests
         Assert.Equal("烈焰斬", character.SpecialAttackName);
         Assert.Equal(AccountId, character.AccountId);
         Assert.Equal("墨客", character.Name);
-        Assert.Equal(StartingStageId, character.CurrentStageId);
         Assert.Equal(Now, character.LastSettledAt);
         Assert.Equal(0, character.Version);
+    }
+
+    // 起始地由呼叫端從內容檔傳入：1 中央平原、子地區 1 香茅綠地
+    [Fact]
+    public void Factory_StartsAtCentralPlainsSubOne()
+    {
+        var character = Create(Command());
+
+        Assert.Equal(1, character.PlaceId);
+        Assert.Equal(1, character.SubPlace);
     }
 
     [Fact]
@@ -137,7 +147,7 @@ public class CharacterFactoryTests
     [Fact]
     public void CombatBridge_MapsCharacterToCombatant()
     {
-        var character = TestCharacters.Default(AccountId, "測試者", StartingStageId, Now);
+        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
 
         var combatant = CombatBridge.ToCombatant(character);
 

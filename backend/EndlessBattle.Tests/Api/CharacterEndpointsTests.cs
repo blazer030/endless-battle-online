@@ -13,7 +13,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     private static string UniqueName(string prefix) => $"{prefix}{Random.Shared.Next(100000, 999999)}";
 
     [Fact]
-    public async Task Create_ReturnsCharacterAtStartingStage()
+    public async Task Create_ReturnsCharacterAtStartingPlace()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
@@ -24,7 +24,9 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(name, body.GetProperty("name").GetString());
         Assert.Equal(0, body.GetProperty("exp").GetInt64());
-        Assert.Equal("test-stage-1", body.GetProperty("currentStageId").GetString());
+        Assert.Equal(1, body.GetProperty("placeId").GetInt32());
+        Assert.Equal(1, body.GetProperty("subPlace").GetInt32());
+        Assert.False(body.TryGetProperty("currentStageId", out _));
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(body.ToString(), me.ToString());

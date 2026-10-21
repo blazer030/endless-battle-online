@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Characters;
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -19,7 +20,7 @@ public class CharacterServiceTests
         var repository = new InMemoryCharacterRepository();
         var service = new CharacterService(repository, new InMemoryJobProficiencyRepository(), Content, new FakeClock(Now));
         await repository.AddAsync(
-            TestCharacters.Default(AccountId, "測試者", "test-stage-1", Now) with { ActNum = 20, ActNumTime = Now.AddMinutes(-10) },
+            TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { ActNum = 20, ActNumTime = Now.AddMinutes(-10) },
             CancellationToken);
 
         var profile = await service.GetAsync(AccountId, CancellationToken);
@@ -30,5 +31,18 @@ public class CharacterServiceTests
         Assert.Equal(20, stored!.ActNum);
         Assert.Equal(Now.AddMinutes(-10), stored.ActNumTime);
         Assert.Equal(0, stored.Version);
+    }
+
+    // 起始地取自內容檔（TestContent：地區 1、子地區 1）
+    [Fact]
+    public async Task Create_StartsAtContentStartingPlace()
+    {
+        var service = new CharacterService(
+            new InMemoryCharacterRepository(), new InMemoryJobProficiencyRepository(), Content, new FakeClock(Now));
+
+        var character = await service.CreateAsync(
+            AccountId, new CreateCharacterCommand("墨客", 1, 1, 1, "warrior", new StatAllocation(4, 2, 3, 1), "烈焰斬"), CancellationToken);
+
+        Assert.Equal((Content.StartingPlaceId, Content.StartingSubPlace), (character.PlaceId, character.SubPlace));
     }
 }

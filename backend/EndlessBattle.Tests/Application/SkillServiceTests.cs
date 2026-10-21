@@ -36,7 +36,7 @@ public class SkillServiceTests
     // 準備角色與技能點，並清掉準備過程的紀錄
     private async Task<Character> ArrangeAsync(long skillPoints, params LearnedSkill[] learned)
     {
-        var character = await characters.AddAsync(TestCharacters.Default(AccountId, "測試者", "test-stage-1", Now), CancellationToken);
+        var character = await characters.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, Now), CancellationToken);
         if (skillPoints > 0)
         {
             await proficiencies.AddAsync(character.Id, "warrior", 0, skillPoints, CancellationToken);

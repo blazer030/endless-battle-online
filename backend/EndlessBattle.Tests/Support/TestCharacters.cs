@@ -6,7 +6,7 @@ public static class TestCharacters
 {
     // 戰士、配點 2/2/2/2：Base (12,12,12,10,12,10,10) → At 12、Df 10、HpMax 350。
     // Hp 60 而非新角色的 50：高於自動住宿門檻 350 × 0.15 = 52.5，開打前不住宿
-    public static Character Default(long accountId, string name, string currentStageId, DateTimeOffset lastSettledAt) => new(
+    public static Character Default(long accountId, string name, int placeId, int? subPlace, DateTimeOffset lastSettledAt) => new(
         Id: 0,
         AccountId: accountId,
         Name: name,
@@ -24,7 +24,8 @@ public static class TestCharacters
         Sp: 25,
         ActNum: 50,
         ActNumTime: null,
-        CurrentStageId: currentStageId,
+        PlaceId: placeId,
+        SubPlace: subPlace,
         LastSettledAt: lastSettledAt,
         Version: 0);
 }

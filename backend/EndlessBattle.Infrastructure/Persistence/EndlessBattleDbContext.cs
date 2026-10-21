@@ -89,9 +89,13 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasMaxLength(6)
                 .HasColumnName("created_at");
+            entity.Property(e => e.CurrentPlaceId)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("current_place_id");
             entity.Property(e => e.CurrentStageId)
                 .HasMaxLength(64)
                 .HasColumnName("current_stage_id");
+            entity.Property(e => e.CurrentSubPlace).HasColumnName("current_sub_place");
             entity.Property(e => e.Element)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("element");

@@ -32,7 +32,7 @@ public class JobServiceTests
 
     private async Task<Character> ArrangeAsync(params SkillSlot[] slots)
     {
-        var character = await characters.AddAsync(TestCharacters.Default(AccountId, "測試者", "test-stage-1", Now), CancellationToken);
+        var character = await characters.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, Now), CancellationToken);
         await loadout.ReplaceAsync(character.Id, slots, CancellationToken);
         log.Clear();
         return character;
@@ -55,7 +55,7 @@ public class JobServiceTests
     public async Task Change_ReturnsRegeneratedActNum()
     {
         await characters.AddAsync(
-            TestCharacters.Default(AccountId, "測試者", "test-stage-1", Now) with { ActNum = 10, ActNumTime = Now }, CancellationToken);
+            TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { ActNum = 10, ActNumTime = Now }, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(400));
 
         var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
