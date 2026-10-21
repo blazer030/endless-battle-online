@@ -358,11 +358,11 @@ public class JsonGameContentTests
 
     [Fact]
     public void World_RejectsUnknownPlaceInArea() =>
-        AssertWorldRejected(WorldJson("1, 7", PlaceJson(1)), "7");
+        AssertWorldRejected(WorldJson("1, 7", PlaceJson(1)), "不存在的地區：7");
 
     [Fact]
     public void World_RejectsPlaceOutsideAnyArea() =>
-        AssertWorldRejected(WorldJson("1", $"{PlaceJson(1)}, {PlaceJson(2)}"), "2");
+        AssertWorldRejected(WorldJson("1", $"{PlaceJson(1)}, {PlaceJson(2)}"), "地區 2 不屬於任何區域");
 
     [Fact]
     public void World_RejectsDuplicatePlaceId() =>
@@ -400,6 +400,43 @@ public class JsonGameContentTests
     [InlineData(22)]
     public void World_RejectsPlaceIdOutsideOneToTwentyOne(int id) =>
         AssertWorldRejected(WorldJson($"{id}", PlaceJson(id), $"\"startingPlaceId\": {id}, \"startingSubPlace\": 1"), "1～21");
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    public void World_RejectsStartingSubPlaceOutsideRange(int subPlace) =>
+        AssertWorldRejected(
+            WorldJson("1", PlaceJson(1), $"\"startingPlaceId\": 1, \"startingSubPlace\": {subPlace}"), "起始");
+
+    [Fact]
+    public void World_RejectsPlaceInTwoAreas() =>
+        AssertWorldRejected(
+            """
+            { "startingPlaceId": 1, "startingSubPlace": 1,
+              "areas": [{ "id": "a", "name": "甲", "placeIds": [1] }, { "id": "b", "name": "乙", "placeIds": [1] }],
+              "places": [{ "id": 1, "name": "地", "subPlaces": ["a", "b", "c", "d"], "recommended": [1, 10], "restricted": false }] }
+            """,
+            "同時屬於多個區域");
+
+    [Fact]
+    public void World_AcceptsEqualRecommendedRange()
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), ValidStages);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(
+                Path.Combine(directory.FullName, "world.json"), WorldJson("1", PlaceJson(1, recommended: "[5, 5]")));
+            Assert.Equal(new LevelRange(5, 5), JsonGameContent.Load(directory.FullName).GetPlace(1).Recommended);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
 
     private static void AssertLoadRejects(
         string monstersJson, string stagesJson, string jobsJson, string offendingId, string skillsJson = ValidSkills, string worldJson = ValidWorld)
