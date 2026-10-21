@@ -372,6 +372,28 @@ public class AdventureSimulatorTests
         Assert.Equal(52, run.Character.Hp);
     }
 
+    // pebble 改成 hp 10：第 1 回合被打到 52，第 2～10 回合開頭各喝一次（+1 → 53），第 10 回合擊倒時停在 53，不住宿。
+    // 每場 10 回合 8 秒 + 場間 2 秒，第二場在 10 秒開打、過程相同。每場的 9 次上限各自計算 → 兩場共喝 18 次
+    [Fact]
+    public void Adventure_PotionCounterResetsEachFight()
+    {
+        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, Hp = 53 };
+        var pebble = Monster("pebble", hp: 10, at: 40, df: 1000);
+        var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 20);
+
+        var run = AdventureSimulator.Run(
+            tough, Warrior, Place, [pebble], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(11), new ScriptedRandom(0.0), supply: supply);
+
+        Assert.Equal(2, run.Summary.Fights);
+        var secondFight = run.Events.OfType<EncounterEvent>().Last().AtSeconds;
+        Assert.Equal(10, secondFight, 9);
+        var potions = run.Events.OfType<PotionEvent>().ToList();
+        Assert.Equal(9, potions.Count(potion => potion.AtSeconds < secondFight));
+        Assert.Equal(9, potions.Count(potion => potion.AtSeconds >= secondFight));
+        Assert.Equal(18, run.Summary.PotionsUsed);
+        Assert.Equal(2, run.SupplyRemaining);
+    }
+
     // 沒有補給：剩餘數量為 null
     [Fact]
     public void Adventure_ReportsNoSupplyRemaining_WithoutSupply()
