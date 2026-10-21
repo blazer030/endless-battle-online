@@ -36,4 +36,16 @@ public class StoneMergeTests
         Assert.Null(StoneMerge.SameKindNext(Stone(1, 3), Stone(1, 4), Find));
         Assert.Null(StoneMerge.SameKindNext(Stone(1, 3), TestItems.Item("ore", ItemCategory.Material), Find));
     }
+
+    // 每組 2 顆，組數 1～⌊數量 / 2⌋
+    [Fact]
+    public void Merge_CheckRejectsBadQuantityAndUnmergeableStones()
+    {
+        Assert.Empty(StoneMerge.Check(Stone(1, 3), 4, 2, Find));
+        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, 3, Find));
+        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, 0, Find));
+        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, int.MaxValue, Find));
+        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 2, 1, Find));
+        Assert.Equal(["notRefineStone"], StoneMerge.Check(TestItems.Item("ore", ItemCategory.Material), 4, 1, Find));
+    }
 }

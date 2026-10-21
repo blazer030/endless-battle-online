@@ -110,28 +110,16 @@ public sealed class ForgeService(
         return new ForgeResult(outcome.Success, await inventoryService.GetAsync(accountId, cancellationToken));
     }
 
-    // 同類合成：從同一格扣 2 × quantityPairs 顆，得 quantityPairs 顆同種類 +1 級；放不下就整筆拒絕（400 bagFull）
+    // 同類合成（規則見 StoneMerge）：從同一格扣 2 × quantityPairs 顆，得 quantityPairs 顆同種類 +1 級；放不下就整筆拒絕（400 bagFull）
     public async Task<ForgeResult> MergeStonesAsync(long accountId, long stoneInventoryId, int quantityPairs, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var state = await LoadAsync(character.Id, cancellationToken);
         var stone = FindInBag(state, stoneInventoryId);
         var stoneItem = content.GetItem(stone.ItemId);
-        if (stoneItem.Refine is null)
-        {
-            throw new InputValidationException("只能合成精鍊石", ["notRefineStone"]);
-        }
-
-        // 先以除法比較，避免組數極大時乘 2 溢位
-        if (quantityPairs < 1 || quantityPairs > stone.Quantity / 2)
-        {
-            throw new InputValidationException("合成組數必須至少 1，且每組需要 2 顆", ["invalidQuantity"]);
-        }
-
-        var consumed = quantityPairs * 2;
-
-        var next = StoneMerge.SameKindNext(stoneItem, stoneItem, FindRefineStone)
-            ?? throw new InputValidationException("這種精鍊石無法再合成", ["cannotMerge"]);
+        Check(StoneMerge.Check(stoneItem, stone.Quantity, quantityPairs, FindRefineStone), "無法合成");
+        var next = StoneMerge.SameKindNext(stoneItem, stoneItem, FindRefineStone) ?? throw new InvalidOperationException("Check 已確認可合成");
+        var consumed = quantityPairs * StoneMerge.StonesPerPair;
         var added = InventoryRules.TryAdd(SameCategory(AfterConsuming(state.Bag, stone, consumed), next), next, quantityPairs, character.BagBonus);
         if (added.Discarded > 0)
         {
