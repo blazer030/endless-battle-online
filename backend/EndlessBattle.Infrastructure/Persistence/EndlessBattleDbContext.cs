@@ -18,6 +18,10 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
 
+    public virtual DbSet<CharacterSkill> CharacterSkills { get; set; }
+
+    public virtual DbSet<CharacterSkillSlot> CharacterSkillSlots { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
@@ -147,6 +151,43 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_job_proficiency_character");
+        });
+
+        modelBuilder.Entity<CharacterSkill>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.SkillId }).HasName("PRIMARY");
+
+            entity.ToTable("character_skills");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.SkillId)
+                .HasMaxLength(32)
+                .HasColumnName("skill_id");
+            entity.Property(e => e.Level).HasColumnName("level");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterSkills)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_skills_character");
+        });
+
+        modelBuilder.Entity<CharacterSkillSlot>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.Slot }).HasName("PRIMARY");
+
+            entity.ToTable("character_skill_slots");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Slot).HasColumnName("slot");
+            entity.Property(e => e.Chance).HasColumnName("chance");
+            entity.Property(e => e.SkillId)
+                .HasMaxLength(32)
+                .HasColumnName("skill_id");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterSkillSlots)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_skill_slots_character");
         });
 
         OnModelCreatingPartial(modelBuilder);

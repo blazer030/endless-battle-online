@@ -68,6 +68,22 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => contextB.SaveChangesAsync(cancellationToken));
     }
 
+    [Fact]
+    public async Task Schema_HasSkillTables()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var context = database.CreateDbContext();
+        context.CharacterSkills.Add(new CharacterSkill { CharacterId = characterId, SkillId = "slash", Level = 1 });
+        context.CharacterSkillSlots.Add(new CharacterSkillSlot { CharacterId = characterId, Slot = 1, SkillId = "slash", Chance = 30 });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        Assert.Equal(1, (await reader.CharacterSkills.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Level);
+        Assert.Equal(30, (await reader.CharacterSkillSlots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Chance);
+    }
+
     private async Task<long> CreateCharacterAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

@@ -2,6 +2,7 @@ using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Infrastructure.Randomness;
@@ -29,6 +30,8 @@ public static class DependencyInjection
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICharacterRepository, CharacterRepository>();
         services.AddScoped<IJobProficiencyRepository, JobProficiencyRepository>();
+        services.AddScoped<ISkillBookRepository, SkillBookRepository>();
+        services.AddScoped<ISkillLoadoutRepository, SkillLoadoutRepository>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IRandomSourceFactory, SystemRandomSourceFactory>();

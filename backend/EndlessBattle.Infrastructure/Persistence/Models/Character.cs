@@ -62,4 +62,8 @@ public partial class Character
     public virtual Account Account { get; set; } = null!;
 
     public virtual ICollection<CharacterJobProficiency> CharacterJobProficiencies { get; set; } = new List<CharacterJobProficiency>();
+
+    public virtual ICollection<CharacterSkillSlot> CharacterSkillSlots { get; set; } = new List<CharacterSkillSlot>();
+
+    public virtual ICollection<CharacterSkill> CharacterSkills { get; set; } = new List<CharacterSkill>();
 }
