@@ -147,7 +147,19 @@ export class StageRenderer {
           playMiss(this.effects, damageX[effect.side], 70)
           break
         case "plate":
-          playPlate(this.effects, width * 0.48, 82, effect.text, effect.tone, width - Gutter * 4)
+          // 必殺技名是玩家自訂的中文，字形要等載入後才畫，否則會先用備用字型
+          void fontReady(effect.text).then(() => {
+            if (this.destroyed) return
+            const stageWidth = this.app.screen.width
+            playPlate(
+              this.effects,
+              stageWidth * 0.48,
+              82,
+              effect.text,
+              effect.tone,
+              stageWidth - Gutter * 4,
+            )
+          })
           break
         case "hitShake":
           playHitShake(this[effect.side].body)
