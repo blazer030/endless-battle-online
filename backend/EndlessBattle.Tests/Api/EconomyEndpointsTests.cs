@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
 using Microsoft.EntityFrameworkCore;
@@ -138,6 +139,32 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Empty(taken.GetProperty("depot").GetProperty("entries").EnumerateArray());
         Assert.Single(Category(taken.GetProperty("inventory"), "Weapon").GetProperty("items").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Depot_PreservesEnhancementsThroughStoreAndTake()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var sword = await GiveAsync(characterId, "test-sword");
+        await using (var context = database.CreateDbContext())
+        {
+            await new InventoryRepository(context).UpdateEnhancementAsync(
+                characterId, sword, 2, StatBonus.Zero with { At = 3 }, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+        }
+
+        var stored = await ReadAsync(await client.PostAsJsonAsync("/api/depot/store", new { inventoryId = sword, quantity = 1 }, CancellationToken));
+        var depotId = stored.GetProperty("depot").GetProperty("entries")[0].GetProperty("inventoryId").GetInt64();
+        await ReadAsync(await client.PostAsJsonAsync("/api/depot/take", new { depotId, quantity = 1 }, CancellationToken));
+
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+        var item = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
+        Assert.Equal(2, item.GetProperty("refineLevel").GetInt32());
+        Assert.Equal(3, item.GetProperty("refineBonus").GetProperty("at").GetInt32());
+        Assert.Equal(1, item.GetProperty("holes").GetInt32());
+        var socket = Assert.Single(item.GetProperty("sockets").EnumerateArray());
+        Assert.Equal("test-stone", socket.GetProperty("stoneId").GetString());
+        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("at").GetInt32());
     }
 
     [Fact]

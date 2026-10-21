@@ -46,6 +46,18 @@ public class DepotRulesTests
     }
 
     [Fact]
+    public void TryStore_MergesIntoExistingStackWhenDepotFull()
+    {
+        var depot = Filled(19).Append(TestItems.Entry(20, "supply", 10)).ToList();
+
+        var plan = DepotRules.TryStore(depot, Supply, TestItems.Entry(9, "supply", 5), 5, 0);
+
+        Assert.Empty(plan.Reasons);
+        Assert.Equal([(20L, 15)], plan.Updated.Select(entry => (entry.Id, entry.Quantity)));
+        Assert.Empty(plan.Created);
+    }
+
+    [Fact]
     public void TryStore_EquipmentKeepsEnhancements()
     {
         var refined = TestItems.Entry(9, "sword") with { RefineLevel = 2, RefineBonus = StatBonus.Zero with { At = 3 }, Holes = 1 };

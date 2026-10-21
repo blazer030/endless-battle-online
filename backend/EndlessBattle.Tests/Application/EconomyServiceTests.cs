@@ -316,6 +316,45 @@ public class EconomyServiceTests
 
         Assert.Equal(["bagFull"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 1, CancellationToken)));
         Assert.Single(await depot.ListAsync(character.Id, CancellationToken));
+        Assert.Equal(15, (await inventory.ListAsync(character.Id, CancellationToken)).Count);
+    }
+
+    // 同分類 15 格（含一格已滿 99 的同種堆疊）：整筆拒絕，背包與倉庫都不變
+    [Fact]
+    public async Task Take_RejectsWhenBagFull_Stackable()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "test-supply", 99);
+        for (var index = 0; index < 14; index++)
+        {
+            await GiveAsync(character, "test-str-potion");
+        }
+
+        var stored = await depot.AddAsync(character.Id, TestItems.Entry(0, "test-supply", 5), CancellationToken);
+
+        Assert.Equal(["bagFull"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 5, CancellationToken)));
+        var bag = await inventory.ListAsync(character.Id, CancellationToken);
+        Assert.Equal(15, bag.Count);
+        Assert.Equal(99, bag.Single(entry => entry.ItemId == "test-supply").Quantity);
+        Assert.Equal(5, Assert.Single(await depot.ListAsync(character.Id, CancellationToken)).Quantity);
+    }
+
+    // 倉庫 20 格已滿，但已有同種消耗品：合併不需要新格
+    [Fact]
+    public async Task Depot_MergesIntoExistingStackWhenFull()
+    {
+        var character = await AddCharacterAsync();
+        await depot.AddAsync(character.Id, TestItems.Entry(0, "test-supply", 10), CancellationToken);
+        for (var index = 0; index < 19; index++)
+        {
+            await depot.AddAsync(character.Id, TestItems.Entry(0, "test-axe"), CancellationToken);
+        }
+
+        var id = await GiveAsync(character, "test-supply", 5);
+        var stored = await depotService.StoreAsync(AccountId, id, 5, CancellationToken);
+
+        Assert.Equal(20, stored.Depot.Entries.Count);
+        Assert.Equal(15, stored.Depot.Entries.Single(entry => entry.Entry.ItemId == "test-supply").Entry.Quantity);
     }
 
     [Fact]
