@@ -57,6 +57,7 @@ app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
 app.MapAdventureEndpoints();
 app.MapSkillEndpoints();
+app.MapJobEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

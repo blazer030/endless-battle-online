@@ -35,7 +35,7 @@ public static class ContentEndpoints
         return app;
     }
 
-    private static JobGrowthContent ToGrowthContent(JobGrowth growth) => new(
+    internal static JobGrowthContent ToGrowthContent(JobGrowth growth) => new(
         [growth.Str.Min, growth.Str.Max],
         [growth.Smart.Min, growth.Smart.Max],
         [growth.Life.Min, growth.Life.Max],

@@ -1,0 +1,102 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using EndlessBattle.Tests.Support;
+
+namespace EndlessBattle.Tests.Api;
+
+// 新戰士：Lv1、str 12、warrior 熟練度 0
+public class JobEndpointsTests(MySqlDatabaseFixture database)
+{
+    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
+    private static async Task<HttpClient> CreateClientWithCharacterAsync(EndlessBattleApiFactory factory)
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"轉職{Random.Shared.Next(100000, 999999)}"))).EnsureSuccessStatusCode();
+        return client;
+    }
+
+    private static Task<HttpResponseMessage> ChangeAsync(HttpClient client, string jobId) =>
+        client.PostAsJsonAsync("/api/jobs/change", new { jobId }, CancellationToken);
+
+    [Fact]
+    public async Task Jobs_ListMarksCurrentAndEligibility()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var jobs = (await client.GetFromJsonAsync<JsonElement>("/api/jobs", CancellationToken)).EnumerateArray().ToList();
+
+        JsonElement Find(string id) => jobs.First(job => job.GetProperty("id").GetString() == id);
+        Assert.True(Find("warrior").GetProperty("current").GetBoolean());
+        Assert.False(Find("thief").GetProperty("current").GetBoolean());
+        Assert.True(Find("thief").GetProperty("eligible").GetBoolean());
+        var berserker = Find("berserker");
+        Assert.False(berserker.GetProperty("eligible").GetBoolean());
+        Assert.Equal("測試戰士", berserker.GetProperty("parentName").GetString());
+        Assert.Equal(60, berserker.GetProperty("statRequirements")[0].GetProperty("minimum").GetInt32());
+        Assert.Equal(3, berserker.GetProperty("growth").GetProperty("str")[0].GetInt32());
+        Assert.Equal(
+            ["levelTooLow", "parentProficiencyTooLow", "statTooLow:str"],
+            berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    [Fact]
+    public async Task Change_Returns400_WhenIneligible()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var response = await ChangeAsync(client, "berserker");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Contains("levelTooLow", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    [Fact]
+    public async Task Change_SwitchesJobAndKeepsLevel()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var before = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+
+        var response = await ChangeAsync(client, "thief");
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("thief", body.GetProperty("jobId").GetString());
+        Assert.Equal("盜賊", body.GetProperty("jobName").GetString());
+        foreach (var field in new[] { "level", "exp", "money" })
+        {
+            Assert.Equal(before.GetProperty(field).GetInt64(), body.GetProperty(field).GetInt64());
+        }
+
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal("thief", me.GetProperty("jobId").GetString());
+    }
+
+    [Fact]
+    public async Task Change_Returns400_ForSameJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var response = await ChangeAsync(client, "warrior");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(["sameJob"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    [Fact]
+    public async Task Jobs_RequiresAuthentication()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = factory.CreateClient();
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/jobs", CancellationToken)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await ChangeAsync(client, "thief")).StatusCode);
+    }
+}

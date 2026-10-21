@@ -129,3 +129,20 @@ public sealed record SkillNextLevelResponse(
     IReadOnlyList<string> Reasons);
 
 public sealed record SkillSlotResponse(int Slot, string SkillId, int Chance);
+
+public sealed record JobOptionResponse(
+    string Id,
+    string Name,
+    int Tier,
+    string? ParentId,
+    string? ParentName,
+    int UnlockLevel,
+    int ProficiencyRequired,
+    IReadOnlyList<StatRequirementContent> StatRequirements,
+    JobGrowthContent Growth,
+    bool Current,
+    int ProficiencyPercent,
+    bool Eligible,
+    IReadOnlyList<string> Reasons);
+
+public sealed record ChangeJobRequest(string? JobId);

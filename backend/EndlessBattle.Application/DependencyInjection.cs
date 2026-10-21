@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Jobs;
 using EndlessBattle.Application.Skills;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<CharacterService>();
         services.AddScoped<AdventureService>();
         services.AddScoped<SkillService>();
+        services.AddScoped<JobService>();
         return services;
     }
 }
