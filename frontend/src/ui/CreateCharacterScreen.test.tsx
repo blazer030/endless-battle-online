@@ -3,18 +3,17 @@ import userEvent from "@testing-library/user-event"
 import { expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import type { ContentNames } from "../game/types"
-import { makeCharacter, makeContent } from "../test/fixtures"
+import { makeCharacter, makeContent, makeJob } from "../test/fixtures"
 import { CreateCharacterScreen } from "./CreateCharacterScreen"
 
-const job = (id: string, name: string, tier = 1) => ({
-  id,
-  name,
-  tier,
-  parentId: tier === 1 ? null : "warrior",
-  unlockLevel: tier === 1 ? 1 : 30,
-  proficiencyRequired: 0,
-  statRequirements: [],
-})
+const job = (id: string, name: string, tier = 1) =>
+  makeJob({
+    id,
+    name,
+    tier,
+    parentId: tier === 1 ? null : "warrior",
+    unlockLevel: tier === 1 ? 1 : 30,
+  })
 
 const content: ContentNames = makeContent({
   jobs: [

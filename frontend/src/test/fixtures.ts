@@ -1,5 +1,7 @@
 import type { AdvanceSummary, CharacterView, ContentNames } from "../game/types"
 
+type JobContent = ContentNames["jobs"][number]
+
 export const makeCharacter = (overrides: Partial<CharacterView> = {}): CharacterView => ({
   name: "測試",
   level: 1,
@@ -45,6 +47,7 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   money: 0,
   jobExp: 0,
   levelsGained: 0,
+  skillsCast: 0,
   ...overrides,
 })
 
@@ -55,5 +58,25 @@ export const makeContent = (overrides: Partial<ContentNames> = {}): ContentNames
   elements: [],
   births: [],
   sexes: [],
+  ...overrides,
+})
+
+export const makeJob = (overrides: Partial<JobContent> = {}): JobContent => ({
+  id: "warrior",
+  name: "戰士",
+  tier: 1,
+  parentId: null,
+  unlockLevel: 1,
+  proficiencyRequired: 0,
+  statRequirements: [],
+  growth: {
+    str: [1, 2],
+    smart: [0, 1],
+    life: [1, 1],
+    vit: [1, 2],
+    agi: [0, 1],
+    au: [0, 1],
+    be: [0, 1],
+  },
   ...overrides,
 })

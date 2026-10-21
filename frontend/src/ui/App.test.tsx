@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
-import { makeCharacter, makeContent } from "../test/fixtures"
+import { makeCharacter, makeContent, makeJob } from "../test/fixtures"
 import { App } from "./App"
 
 // 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
@@ -16,15 +16,7 @@ vi.mock("./AdventureScreen", () => ({
 
 const character = makeCharacter({ name: "青衣" })
 
-const job = {
-  id: "warrior",
-  name: "戰士",
-  tier: 1,
-  parentId: null,
-  unlockLevel: 1,
-  proficiencyRequired: 0,
-  statRequirements: [],
-}
+const job = makeJob()
 
 const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   register: vi.fn(),

@@ -261,6 +261,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SkillOverviewResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skills/learn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LearnSkillRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SkillOverviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/skills/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetSkillSlotsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SkillOverviewResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JobOptionResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChangeJobRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CharacterResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -293,6 +480,8 @@ export interface components {
             jobExp: number;
             /** Format: int32 */
             levelsGained: number;
+            /** Format: int32 */
+            skillsCast: number;
         };
         /** @enum {unknown} */
         AttackKind: "Physical" | "Magic";
@@ -312,7 +501,7 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -327,6 +516,8 @@ export interface components {
             /** Format: int32 */
             targetHpAfter: number;
             specialAttackName: null | string;
+            /** @default false */
+            stunned: boolean;
             /** Format: double */
             atSeconds: number;
         };
@@ -397,6 +588,21 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
+        BattleEventSkillEvent: {
+            /** @enum {string} */
+            type?: "skill";
+            caster: components["schemas"]["CombatSide"];
+            skillId: string;
+            skillName: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            spAfter: number;
+            /** Format: int32 */
+            heal: number;
+            /** Format: double */
+            atSeconds: number;
+        };
         BattleEventTimeoutEvent: {
             /** @enum {string} */
             type?: "timeout";
@@ -406,6 +612,9 @@ export interface components {
             damageDealt: number;
             /** Format: double */
             atSeconds: number;
+        };
+        ChangeJobRequest: {
+            jobId: null | string;
         };
         CharacterResponse: {
             name: string;
@@ -475,6 +684,35 @@ export interface components {
             /** Format: int32 */
             proficiencyRequired: number;
             statRequirements: components["schemas"]["StatRequirementContent"][];
+            growth: components["schemas"]["JobGrowthContent"];
+        };
+        JobGrowthContent: {
+            str: number[];
+            smart: number[];
+            life: number[];
+            vit: number[];
+            agi: number[];
+            au: number[];
+            be: number[];
+        };
+        JobOptionResponse: {
+            id: string;
+            name: string;
+            /** Format: int32 */
+            tier: number;
+            parentId: null | string;
+            parentName: null | string;
+            /** Format: int32 */
+            unlockLevel: number;
+            /** Format: int32 */
+            proficiencyRequired: number;
+            statRequirements: components["schemas"]["StatRequirementContent"][];
+            growth: components["schemas"]["JobGrowthContent"];
+            current: boolean;
+            /** Format: int32 */
+            proficiencyPercent: number;
+            eligible: boolean;
+            reasons: string[];
         };
         JobProficiencyResponse: {
             jobId: string;
@@ -482,6 +720,9 @@ export interface components {
             proficiency: number;
             /** Format: int64 */
             skillPoints: number;
+        };
+        LearnSkillRequest: {
+            skillId: null | string;
         };
         LoginResponse: {
             accessToken: string;
@@ -494,6 +735,63 @@ export interface components {
             /** Format: int64 */
             accountId: number;
         };
+        SetSkillSlotsRequest: {
+            slots: null | components["schemas"]["SkillSlotRequest"][];
+        };
+        /** @enum {unknown} */
+        SkillEffectKind: "AtMultiplier" | "MatMultiplier" | "DfMultiplier" | "MdfMultiplier" | "AgiMultiplier" | "MultiHit" | "MagicMultiHit" | "EnemyAgiDown" | "EnemyAttackDown" | "Heal" | "WarGodWrath" | "Counter" | "CritChanceUp" | "Bloodthirst" | "BonusDamage" | "Stun";
+        SkillNextLevelResponse: {
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            sp: number;
+            /** Format: int32 */
+            rounds: number;
+            /** Format: int32 */
+            chance: number;
+            /** Format: int64 */
+            money: number;
+            /** Format: int64 */
+            proficiency: number;
+            canLearn: boolean;
+            reasons: string[];
+        };
+        SkillOverviewResponse: {
+            jobId: string;
+            /** Format: int64 */
+            skillPoints: number;
+            skills: components["schemas"]["SkillResponse"][];
+            slots: components["schemas"]["SkillSlotResponse"][];
+        };
+        SkillResponse: {
+            id: string;
+            name: string;
+            type: components["schemas"]["SkillType"];
+            effect: components["schemas"]["SkillEffectKind"];
+            description: string;
+            jobId: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            maxLevel: number;
+            next: null | components["schemas"]["SkillNextLevelResponse"];
+        };
+        SkillSlotRequest: {
+            /** Format: int32 */
+            slot: null | number;
+            skillId: null | string;
+            /** Format: int32 */
+            chance: null | number;
+        };
+        SkillSlotResponse: {
+            /** Format: int32 */
+            slot: number;
+            skillId: string;
+            /** Format: int32 */
+            chance: number;
+        };
+        /** @enum {unknown} */
+        SkillType: "Active" | "Passive";
         StatAllocationRequest: {
             /** Format: int32 */
             str: null | number;

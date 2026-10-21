@@ -26,6 +26,7 @@ const attack = (overrides: Partial<AttackEvent> = {}): BattleEvent => ({
   elementMultiplier: 1,
   targetHpAfter: 70,
   specialAttackName: null,
+  stunned: false,
   atSeconds: 1,
   ...overrides,
 })
