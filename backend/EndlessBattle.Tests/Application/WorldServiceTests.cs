@@ -28,7 +28,8 @@ public class WorldServiceTests
         characters = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         var adventure = new AdventureService(
-            characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), Content, clock, new ZeroRandomFactory());
+            characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(),
+            new InMemoryEquipmentRepository(new InMemoryInventoryRepository()), Content, clock, new ZeroRandomFactory());
         service = new WorldService(characters, Content, clock, adventure);
     }
 

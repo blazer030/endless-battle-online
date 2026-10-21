@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Domain.Items;
@@ -6,6 +7,30 @@ public sealed record StatBonus(
     int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax = 0)
 {
     public static StatBonus Zero { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    // 只加七項能力
+    public BaseStats AddTo(BaseStats stats) => new(
+        Str: stats.Str + Str,
+        Smart: stats.Smart + Smart,
+        Life: stats.Life + Life,
+        Vit: stats.Vit + Vit,
+        Agi: stats.Agi + Agi,
+        Au: stats.Au + Au,
+        Be: stats.Be + Be);
+
+    public static StatBonus operator +(StatBonus left, StatBonus right) => new(
+        left.Str + right.Str,
+        left.Smart + right.Smart,
+        left.Life + right.Life,
+        left.Vit + right.Vit,
+        left.Agi + right.Agi,
+        left.Au + right.Au,
+        left.Be + right.Be,
+        left.At + right.At,
+        left.Mat + right.Mat,
+        left.Df + right.Df,
+        left.Mdf + right.Mdf,
+        left.HpMax + right.HpMax);
 }
 
 // 裝備需求只比對這四項裸點

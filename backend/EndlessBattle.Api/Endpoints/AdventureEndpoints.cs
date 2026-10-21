@@ -18,7 +18,7 @@ public static class AdventureEndpoints
                 result.Events,
                 result.Summary,
                 result.EventsCoverAll,
-                CharacterEndpoints.ToResponse(result.Character, result.JobProficiency, content)));
+                CharacterEndpoints.ToResponse(result.Character, result.JobProficiency, result.Equipment, content)));
         });
 
         return app;

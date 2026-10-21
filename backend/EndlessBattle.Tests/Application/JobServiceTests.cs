@@ -25,7 +25,7 @@ public class JobServiceTests
         characters = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         loadout = new InMemorySkillLoadoutRepository(log);
-        service = new JobService(characters, proficiencies, loadout, Content, clock);
+        service = new JobService(characters, proficiencies, loadout, new InMemoryEquipmentRepository(new InMemoryInventoryRepository()), Content, clock);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;

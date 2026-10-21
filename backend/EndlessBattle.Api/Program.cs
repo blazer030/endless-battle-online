@@ -59,6 +59,7 @@ app.MapAdventureEndpoints();
 app.MapSkillEndpoints();
 app.MapJobEndpoints();
 app.MapWorldEndpoints();
+app.MapInventoryEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

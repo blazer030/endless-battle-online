@@ -3,6 +3,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -28,6 +29,8 @@ public class AdventureServiceTests
     private readonly InMemoryJobProficiencyRepository proficiencies;
     private readonly InMemorySkillBookRepository skillBook = new();
     private readonly InMemorySkillLoadoutRepository loadout = new();
+    private readonly InMemoryInventoryRepository inventory = new();
+    private readonly InMemoryEquipmentRepository equipment;
     private readonly FakeClock clock = new(Start);
     private readonly AdventureService service;
 
@@ -35,7 +38,8 @@ public class AdventureServiceTests
     {
         repository = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
-        service = new AdventureService(repository, proficiencies, skillBook, loadout, Content, clock, new ScriptedRandomFactory());
+        equipment = new InMemoryEquipmentRepository(inventory);
+        service = new AdventureService(repository, proficiencies, skillBook, loadout, equipment, Content, clock, new ScriptedRandomFactory());
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -222,6 +226,23 @@ public class AdventureServiceTests
 
         Assert.Equal(Enumerable.Repeat("burst", 3), result.Events.OfType<SkillEvent>().Select(skill => skill.SkillId));
         Assert.Equal(3, result.Summary.SkillsCast);
+    }
+
+    // 裝上測試鐵劍（at 8）→ At 20：暴擊 A = 20×1.6 = 32；(32·32/6 − 6)·1.2 = 197.6，比值 6.175 → rand(2,3) = 2 → 200（沒裝備時 68）
+    [Fact]
+    public async Task Advance_UsesEquipmentStats()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-sword"), CancellationToken);
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, sword, null, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var first = result.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player);
+        Assert.True(first.Critical);
+        Assert.Equal(200, first.Damage);
+        Assert.Equal(8, result.Equipment.Total.At);
     }
 
     [Fact]

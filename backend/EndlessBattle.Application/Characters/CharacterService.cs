@@ -1,6 +1,7 @@
 using System.Globalization;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Application.Characters;
@@ -8,6 +9,7 @@ namespace EndlessBattle.Application.Characters;
 public sealed class CharacterService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
+    IEquipmentRepository equipment,
     IGameContent content,
     IClock clock)
 {
@@ -58,6 +60,8 @@ public sealed class CharacterService(
             ?? throw new NotFoundException("尚未建立角色");
 
         return new CharacterProfile(
-            CharacterStamina.Regenerated(character, clock.UtcNow), await proficiencies.ListAsync(character.Id, cancellationToken));
+            CharacterStamina.Regenerated(character, clock.UtcNow),
+            await proficiencies.ListAsync(character.Id, cancellationToken),
+            await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
     }
 }

@@ -26,7 +26,7 @@ public static class WorldEndpoints
             }
 
             var profile = await service.MoveAsync(user.GetAccountId(), placeId, request.SubPlace, cancellationToken);
-            return TypedResults.Ok(CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, content));
+            return TypedResults.Ok(CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 
         return app;

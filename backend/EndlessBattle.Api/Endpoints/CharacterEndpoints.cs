@@ -4,6 +4,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Stamina;
 
@@ -18,13 +19,13 @@ public static class CharacterEndpoints
         characters.MapPost("/", async (CreateCharacterRequest request, ClaimsPrincipal user, CharacterService service, IGameContent content, CancellationToken cancellationToken) =>
         {
             var character = await service.CreateAsync(user.GetAccountId(), ToCommand(request), cancellationToken);
-            return TypedResults.Created("/api/characters/me", ToResponse(character, [], content));
+            return TypedResults.Created("/api/characters/me", ToResponse(character, [], EquipmentBonus.Zero, content));
         });
 
         characters.MapGet("/me", async (ClaimsPrincipal user, CharacterService service, IGameContent content, CancellationToken cancellationToken) =>
         {
             var profile = await service.GetAsync(user.GetAccountId(), cancellationToken);
-            return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, content));
+            return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 
         return app;
@@ -49,10 +50,13 @@ public static class CharacterEndpoints
             request.Name, sex, element, birth, request.JobId, new StatAllocation(str, smart, life, agi), request.SpecialAttackName);
     }
 
-    public static CharacterResponse ToResponse(Character character, IReadOnlyList<JobProficiency> jobProficiency, IGameContent content)
+    // Stats 是有效值（裸點 + 裝備），BaseStats 是裸點
+    public static CharacterResponse ToResponse(
+        Character character, IReadOnlyList<JobProficiency> jobProficiency, EquipmentBonus equipment, IGameContent content)
     {
-        var total = character.Base;
-        var derived = DerivedStats.From(total);
+        var bare = character.Base;
+        var total = equipment.Effective(bare);
+        var derived = DerivedStats.From(bare, equipment);
         var place = content.GetPlace(character.PlaceId);
         return new CharacterResponse(
             character.Name,
@@ -71,6 +75,7 @@ public static class CharacterEndpoints
             new StatsResponse(
                 total.Str, total.Smart, total.Life, total.Vit, total.Agi, total.Au, total.Be,
                 derived.At, derived.Mat, derived.Df, derived.Mdf, derived.HpMax, derived.SpMax),
+            new BaseStatsResponse(bare.Str, bare.Smart, bare.Life, bare.Vit, bare.Agi, bare.Au, bare.Be),
             place.Id,
             place.Name,
             character.SubPlace,

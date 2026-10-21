@@ -26,7 +26,7 @@ public static class JobEndpoints
             }
 
             var profile = await service.ChangeAsync(user.GetAccountId(), request.JobId, cancellationToken);
-            return TypedResults.Ok(CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, content));
+            return TypedResults.Ok(CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 
         return app;

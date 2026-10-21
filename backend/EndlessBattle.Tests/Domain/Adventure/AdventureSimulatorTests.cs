@@ -2,6 +2,8 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -332,5 +334,18 @@ public class AdventureSimulatorTests
         Assert.Equal(AdvanceSummary.Empty, run.Summary);
         Assert.Equal(hero, run.Character);
         Assert.True(run.EventsCoverAll);
+    }
+
+    // 裝備 life +20 → HpMax 32×25+50 = 850，門檻 127.5：Hp 60 低於門檻 → 先住宿並回滿到 850（沒裝備時 60 ≥ 52.5 直接開打）
+    [Fact]
+    public void Adventure_RestsAgainstEffectiveMaximum()
+    {
+        var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 20 });
+
+        var run = AdventureSimulator.Run(
+            Hero(), Warrior, Place, [Dummy], [], new StaminaState(50, null), From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
+
+        Assert.IsType<RestEvent>(run.Events[0]);
+        Assert.Equal(850, run.Character.Hp);
     }
 }

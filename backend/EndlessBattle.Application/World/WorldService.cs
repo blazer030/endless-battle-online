@@ -54,7 +54,7 @@ public sealed class WorldService(
 
         var settled = await adventure.AdvanceAsync(accountId, cancellationToken);
         var updated = await characters.UpdateAsync(settled.Character with { PlaceId = placeId, SubPlace = subPlace }, cancellationToken);
-        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), settled.JobProficiency);
+        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), settled.JobProficiency, settled.Equipment);
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>

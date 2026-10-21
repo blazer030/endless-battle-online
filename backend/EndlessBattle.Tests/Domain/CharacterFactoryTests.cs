@@ -1,6 +1,8 @@
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain;
@@ -153,6 +155,21 @@ public class CharacterFactoryTests
 
         Assert.Equal(
             new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺", Str: 12, Smart: 12),
+            combatant);
+    }
+
+    // 加成同 DerivedStatsTests：有效 (14,13,16,13,17,16,12)；敏捷、魅力、力量、智力都用有效值
+    [Fact]
+    public void CombatBridge_UsesEquipmentBonus()
+    {
+        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
+        var bonus = new EquipmentBonus(new StatBonus(
+            Str: 2, Smart: 1, Life: 4, Vit: 3, Agi: 5, Au: 6, Be: 2, At: 28, Mat: 7, Df: 9, Mdf: 11, HpMax: 50));
+
+        var combatant = CombatBridge.ToCombatant(character, bonus);
+
+        Assert.Equal(
+            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, SpecialAttackName: "必殺", Str: 14, Smart: 13),
             combatant);
     }
 }

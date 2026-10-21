@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
@@ -16,6 +17,7 @@ public sealed class AdventureService(
     IJobProficiencyRepository proficiencies,
     ISkillBookRepository skillBook,
     ISkillLoadoutRepository loadout,
+    IEquipmentRepository equipment,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory)
@@ -25,6 +27,8 @@ public sealed class AdventureService(
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)
             ?? throw new NotFoundException("尚未建立角色");
 
+        // 裝備在一次推進中不變，只讀一次
+        var bonus = await equipment.LoadBonusAsync(character.Id, content, cancellationToken);
         var now = clock.UtcNow;
         var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
 
@@ -32,7 +36,7 @@ public sealed class AdventureService(
         if (elapsedSeconds <= 0)
         {
             return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
-                await proficiencies.ListAsync(character.Id, cancellationToken));
+                await proficiencies.ListAsync(character.Id, cancellationToken), bonus);
         }
 
         // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
@@ -48,7 +52,8 @@ public sealed class AdventureService(
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
             now,
-            randomFactory.Create());
+            randomFactory.Create(),
+            bonus);
 
         // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果
         var updated = await characters.UpdateAsync(
@@ -67,7 +72,7 @@ public sealed class AdventureService(
         }
 
         return new AdvanceResult(run.Events, run.Summary, run.EventsCoverAll, updated,
-            await proficiencies.ListAsync(updated.Id, cancellationToken));
+            await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
     }
 
     // 內容檔移除的技能以 null 交給 Domain 略過；技能只有十幾個，線性查找即可

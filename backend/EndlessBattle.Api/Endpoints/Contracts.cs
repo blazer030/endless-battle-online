@@ -1,5 +1,7 @@
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -64,6 +66,10 @@ public sealed record StatsResponse(
     int HpMax,
     int SpMax);
 
+// 七項裸點；前端顯示「裸點（+裝備）」
+public sealed record BaseStatsResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be);
+
+// Stats 為有效值（裸點 + 裝備）
 public sealed record CharacterResponse(
     string Name,
     int Level,
@@ -79,6 +85,7 @@ public sealed record CharacterResponse(
     string JobName,
     string SpecialAttackName,
     StatsResponse Stats,
+    BaseStatsResponse BaseStats,
     int PlaceId,
     string PlaceName,
     int? SubPlace,
@@ -169,3 +176,43 @@ public sealed record LevelRangeResponse(int Min, int Max);
 
 // 沒有子地區的地區 SubPlace 必須為 null
 public sealed record MoveRequest(int? PlaceId, int? SubPlace);
+
+// 背包只含沒有裝備上的道具；每個分類都會列出（含空分類）。Equipment 只列有裝備的欄位，補給欄的 Quantity 是補給數量
+public sealed record InventoryResponse(
+    IReadOnlyList<BagCategoryResponse> Bag,
+    IReadOnlyList<EquippedItemResponse> Equipment,
+    StatBonus Bonus);
+
+public sealed record BagCategoryResponse(ItemCategory Category, int Capacity, IReadOnlyList<InventoryItemResponse> Items);
+
+public sealed record EquippedItemResponse(EquipmentSlot Slot, int Quantity, InventoryItemResponse Item);
+
+public sealed record InventoryItemResponse(
+    long InventoryId,
+    string ItemId,
+    string Name,
+    ItemCategory Category,
+    ConsumableKind Consumable,
+    int Quantity,
+    StatBonus Bonus,
+    StatRequirement7 Requires,
+    string? JobId,
+    int SupplyHp,
+    int SupplySp,
+    int Amount,
+    int RefineLevel,
+    int RefineMax,
+    StatBonus RefineBonus,
+    int Holes,
+    IReadOnlyList<SocketResponse> Sockets,
+    long Price,
+    bool Bound);
+
+public sealed record SocketResponse(int Hole, string StoneId, StatBonus Rolled);
+
+// Quantity 只用於補給品，省略時整格裝上
+public sealed record EquipRequest(long? InventoryId, int? Quantity);
+
+public sealed record UnequipRequest(EquipmentSlot? Slot);
+
+public sealed record UseItemRequest(long? InventoryId);

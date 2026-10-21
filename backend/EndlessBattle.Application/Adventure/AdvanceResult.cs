@@ -1,6 +1,7 @@
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
 
 namespace EndlessBattle.Application.Adventure;
@@ -10,4 +11,5 @@ public sealed record AdvanceResult(
     AdvanceSummary Summary,
     bool EventsCoverAll,
     Character Character,
-    IReadOnlyList<JobProficiency> JobProficiency);
+    IReadOnlyList<JobProficiency> JobProficiency,
+    EquipmentBonus Equipment);

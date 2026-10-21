@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
@@ -28,6 +29,7 @@ public sealed class JobService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
     ISkillLoadoutRepository loadout,
+    IEquipmentRepository equipment,
     IGameContent content,
     IClock clock)
 {
@@ -74,7 +76,8 @@ public sealed class JobService(
         var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
         var slots = await loadout.ListAsync(character.Id, cancellationToken);
         await loadout.ReplaceAsync(character.Id, slots.Where(slot => !SkillLoadout.IsPassiveSlot(slot.Slot)).ToList(), cancellationToken);
-        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), rows);
+        return new CharacterProfile(
+            CharacterStamina.Regenerated(updated, clock.UtcNow), rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>

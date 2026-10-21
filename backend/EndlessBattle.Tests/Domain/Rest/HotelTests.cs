@@ -1,4 +1,6 @@
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Rest;
 using EndlessBattle.Tests.Support;
 
@@ -148,5 +150,16 @@ public class HotelTests
 
         Assert.Equal(1818, result.Cost);
         Assert.Equal(100_000 - 1818, result.Character.Money);
+    }
+
+    // 裝備 life +2、smart +1、魔石 hpMax +30：HpMax round(40×25)+50+30 = 1080；SpMax (13+10)×3+25 = 94
+    [Fact]
+    public void Hotel_HealsToEffectiveMaximum()
+    {
+        var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 2, Smart = 1, HpMax = 30 });
+
+        var result = Hotel.Rest(Hero(1, hp: 30), bonus);
+
+        Assert.Equal((1080, 94), (result.Character.Hp, result.Character.Sp));
     }
 }
