@@ -77,13 +77,15 @@ public class ForgeServiceTests
         var sword = await GiveAsync(character, "test-sword");
         var stone = await GiveAsync(character, "test-refine-stone");
         await GiveAsync(character, "safe-refine-stone", 2);
+        var before = Find(character, sword);
         random.Next = new ScriptedRandom(0.0);
 
         var result = await service.RefineAsync(AccountId, sword, stone, useSafeStone: true, CancellationToken);
 
         Assert.False(result.Success);
         Assert.Equal([("test-sword", 1), ("test-refine-stone", 1), ("safe-refine-stone", 1)], await ItemsAsync(character));
-        Assert.Equal(0, Find(character, sword).RefineLevel);
+        Assert.Equal(before, Find(character, sword));
+        Assert.DoesNotContain($"enhance:{sword}", inventory.Writes);
     }
 
     [Fact]
@@ -286,6 +288,47 @@ public class ForgeServiceTests
         Assert.Equal(["cannotMerge"], await ReasonsAsync(top, 1));
         Assert.Equal(["notRefineStone"], await ReasonsAsync(magic, 1));
         Assert.Empty(log);
+    }
+
+    // 已 +1、有精鍊加成與魔石、2 孔的劍用 Lv2 石頭精鍊，擲 0.0 → r = 1 < 20 失敗：整筆裝備不變、沒有寫入強化，只少一顆精鍊石
+    [Fact]
+    public async Task ForgeService_RefineFailureConsumesStoneOnly()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        await inventory.UpdateEnhancementAsync(
+            character.Id, sword, 1, StatBonus.Zero with { At = 2, Df = 1 },
+            [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 2, CancellationToken);
+        var stone = await GiveAsync(character, "test-refine-stone-2", 2);
+        var before = Find(character, sword);
+        inventory.Writes.Clear();
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken);
+
+        Assert.False(result.Success);
+        Assert.Equal(before, Find(character, sword));
+        Assert.Equal([$"quantity:{stone}"], inventory.Writes);
+        Assert.Equal([("test-sword", 1), ("test-refine-stone-2", 1)], await ItemsAsync(character));
+        Assert.Equal(["update"], log);
+    }
+
+    // 擲 0.99 → r = 100 ≥ 25 沒回收：孔位照樣清空並寫入、拆石器用掉、魔石不回背包
+    [Fact]
+    public async Task ForgeService_UnsocketLostStoneStillClearsHole()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await SocketedSwordAsync(character);
+        await GiveAsync(character, "stone-remover");
+        inventory.Writes.Clear();
+        random.Next = new ScriptedRandom(0.99);
+
+        var result = await service.UnsocketAsync(AccountId, sword, 1, CancellationToken);
+
+        Assert.False(result.Recovered);
+        Assert.Empty(Find(character, sword).Sockets);
+        Assert.Contains($"enhance:{sword}", inventory.Writes);
+        Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

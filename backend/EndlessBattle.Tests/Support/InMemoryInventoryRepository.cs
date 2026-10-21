@@ -13,6 +13,9 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
     // 由 InMemoryEquipmentRepository 設定
     public Func<long, bool> IsEquipped { get; set; } = _ => false;
 
+    // 依序記錄寫入：add:<itemId>、quantity:<id>、enhance:<id>、remove:<id>
+    public List<string> Writes { get; } = [];
+
     public Task<IReadOnlyList<InventoryEntry>> ListAsync(long characterId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<InventoryEntry>>(rows.Values
             .Where(row => row.CharacterId == characterId)
@@ -24,12 +27,14 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
     {
         var id = nextId++;
         rows[id] = (characterId, entry with { Id = id });
+        Writes.Add($"add:{entry.ItemId}");
         return Task.FromResult(id);
     }
 
     public Task UpdateQuantityAsync(long characterId, long id, int quantity, CancellationToken cancellationToken)
     {
         rows[id] = (characterId, Find(characterId, id) with { Quantity = quantity });
+        Writes.Add($"quantity:{id}");
         return Task.CompletedTask;
     }
 
@@ -38,6 +43,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         CancellationToken cancellationToken)
     {
         rows[id] = (characterId, Find(characterId, id) with { RefineLevel = refineLevel, RefineBonus = refineBonus, Sockets = sockets, Holes = holes });
+        Writes.Add($"enhance:{id}");
         return Task.CompletedTask;
     }
 
@@ -50,6 +56,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         }
 
         rows.Remove(id);
+        Writes.Add($"remove:{id}");
         return Task.CompletedTask;
     }
 
