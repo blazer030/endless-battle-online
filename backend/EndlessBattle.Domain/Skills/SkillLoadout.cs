@@ -94,11 +94,15 @@ public static class SkillLoadout
                 continue;
             }
 
-            equipped.Add(new EquippedSkill(skill, learnedSkill.Level, slot.Chance, slot.Slot));
+            equipped.Add(new EquippedSkill(skill, learnedSkill.Level, ChanceOf(slot, skill, learnedSkill.Level), slot.Slot));
         }
 
         return equipped;
     }
+
+    // 主動欄用玩家設定的發動率；被動欄用技能在已學等級的 chance，存下的值只是顯示快取
+    public static int ChanceOf(SkillSlot slot, SkillDefinition skill, int learnedLevel) =>
+        IsPassiveSlot(slot.Slot) ? skill.LevelAt(learnedLevel).Chance : slot.Chance;
 
     private static bool IsValidActiveChance(int chance) =>
         chance is >= MinChance and <= MaxChance && chance % ChanceStep == 0;

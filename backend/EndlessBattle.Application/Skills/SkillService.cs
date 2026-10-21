@@ -27,14 +27,19 @@ public sealed class SkillService(
             .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), SkillPointsOf(points, skill.JobId)))
             .ToList();
 
-        return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, await loadout.ListAsync(character.Id, cancellationToken));
+        var slots = (await loadout.ListAsync(character.Id, cancellationToken))
+            .Select(slot => FindSkill(slot.SkillId) is { } skill && levels.TryGetValue(slot.SkillId, out var level)
+                ? slot with { Chance = SkillLoadout.ChanceOf(slot, skill, level) }
+                : slot)
+            .ToList();
+        return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots);
     }
 
     // 角色更新（扣錢、版本鎖）成功後才寫技能點與技能書；版本衝突時其他表都不動
     public async Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
-        var skill = content.AllSkills.FirstOrDefault(candidate => candidate.Id == skillId)
+        var skill = FindSkill(skillId)
             ?? throw new InputValidationException("不存在的技能");
         var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), skill.JobId);
         var currentLevel = (await skillBook.ListAsync(character.Id, cancellationToken))
@@ -67,9 +72,7 @@ public sealed class SkillService(
 
         var levels = learned.ToDictionary(skill => skill.SkillId, skill => skill.Level, StringComparer.Ordinal);
         var slots = requested
-            .Select(slot => SkillLoadout.IsPassiveSlot(slot.Slot)
-                ? slot with { Chance = content.GetSkill(slot.SkillId).LevelAt(levels[slot.SkillId]).Chance }
-                : slot)
+            .Select(slot => slot with { Chance = SkillLoadout.ChanceOf(slot, content.GetSkill(slot.SkillId), levels[slot.SkillId]) })
             .OrderBy(slot => slot.Slot)
             .ToList();
         // 角色不變，只為了走版本鎖：與轉職同時進行時其中一方會 409
@@ -77,6 +80,9 @@ public sealed class SkillService(
         await loadout.ReplaceAsync(character.Id, slots, cancellationToken);
         return await GetAsync(accountId, cancellationToken);
     }
+
+    private SkillDefinition? FindSkill(string skillId) =>
+        content.AllSkills.FirstOrDefault(skill => skill.Id == skillId);
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
         await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");

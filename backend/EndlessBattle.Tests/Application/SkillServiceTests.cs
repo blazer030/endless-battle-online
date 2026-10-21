@@ -111,6 +111,19 @@ public class SkillServiceTests
     public async Task Learn_Throws_WhenNoCharacter_EvenIfSkillUnknown() =>
         await Assert.ThrowsAsync<NotFoundException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
 
+    // 已裝在欄 4 的 iron-skin 從 lv1 升到 lv2（600 技能點、2000 錢）：欄位存的 30 不重寫，回傳的 chance 依已學等級算成 40
+    [Fact]
+    public async Task Learn_RaisingAnEquippedPassive_UpdatesItsChance()
+    {
+        var character = await ArrangeAsync(600, new LearnedSkill("iron-skin", 1));
+        await loadout.ReplaceAsync(character.Id, [new SkillSlot(4, "iron-skin", 30)], CancellationToken);
+
+        var overview = await service.LearnAsync(AccountId, "iron-skin", CancellationToken);
+
+        Assert.Equal([new SkillSlot(4, "iron-skin", 40)], overview.Slots);
+        Assert.Equal([new SkillSlot(4, "iron-skin", 40)], (await service.GetAsync(AccountId, CancellationToken)).Slots);
+    }
+
     [Fact]
     public async Task SetSlots_FillsPassiveChanceFromSkill()
     {

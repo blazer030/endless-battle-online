@@ -87,15 +87,22 @@ public class SkillLoadoutTests
             .Select(equipped => (equipped.Skill.Id, equipped.Level, equipped.Chance, equipped.Slot))
             .ToList();
 
-    // 輸入順序與字母序都和欄位序相反，輸出仍依欄位 1→5；等級取技能書、發動率取欄位
+    // 輸入順序與字母序都和欄位序相反，輸出仍依欄位 1→5；等級取技能書，主動欄的發動率取欄位設定
     [Fact]
-    public void ForBattle_OrdersBySlotWithLearnedLevelAndSlotChance() =>
+    public void ForBattle_OrdersBySlotWithLearnedLevelAndActiveSlotChance() =>
         Assert.Equal(
             [("lullaby", 3, 100, 1), ("burst", 2, 30, 2), ("iron-skin", 1, 30, 4)],
             ForBattle(
                 [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1), new LearnedSkill("lullaby", 3)],
                 "warrior",
                 new SkillSlot(4, "iron-skin", 30), new SkillSlot(2, "burst", 30), new SkillSlot(1, "lullaby", 100)));
+
+    // 存下的被動欄 chance 只是顯示快取：學到 lv2 後欄位還是 30，戰鬥用 lv2 的 40
+    [Fact]
+    public void ForBattle_PassiveChanceFollowsLearnedLevel() =>
+        Assert.Equal(
+            [("iron-skin", 2, 40, 4)],
+            ForBattle([new LearnedSkill("iron-skin", 2)], "warrior", new SkillSlot(4, "iron-skin", 30)));
 
     [Fact]
     public void ForBattle_SkipsSkillsNotInBook() =>
