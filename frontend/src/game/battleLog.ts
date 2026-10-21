@@ -56,12 +56,9 @@ export const describePlaybackItem = (
   currentMonsterId: string | null,
 ): LogEntry[] => {
   if (item.kind === "summary") {
-    return [
-      {
-        text: `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}，升了 ${format(item.levels)} 級。`,
-        kind: "drop",
-      },
-    ]
+    const gains = `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}`
+    const levels = item.levels > 0 ? `，升了 ${format(item.levels)} 級` : ""
+    return [{ text: `${gains}${levels}。`, kind: "drop" }]
   }
 
   const event = item.event

@@ -152,6 +152,11 @@ const cases: [string, PlaybackItem, Line[]][] = [
     { kind: "summary", fights: 1500, wins: 1498, exp: 20000, money: 4, levels: 2 },
     [["離開期間戰鬥 1,500 場（勝 1,498）、獲得經驗 20,000、金錢 4，升了 2 級。", "drop"]],
   ],
+  [
+    "summary without level ups",
+    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 40, levels: 0 },
+    [["離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 40。", "drop"]],
+  ],
 ]
 
 describe("describePlaybackItem", () => {
