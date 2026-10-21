@@ -45,7 +45,7 @@
 public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);
 ```
 
-- `AttackEvent` 連打時每一下各一個事件，同一次出手內每下 +0.1 秒；暈眩使怪物跳過出手時產生 `AttackEvent(Hit=false, Damage=0, Kind=Physical, Stunned=true)` — 為此 `AttackEvent` 新增 `bool Stunned` 欄位（預設 false），前端文案「{怪物}暈眩中，無法行動。」。
+- `AttackEvent` 連打時每一下各一個事件，各下平均分配在攻方的半回合內（間隔 = 0.4 秒 ÷ 下數，最後一下早於對手出手與下一回合）〔執行時裁定，原訂每下 +0.1 秒會超出半回合〕；暈眩使怪物跳過出手時產生 `AttackEvent(Hit=false, Damage=0, Kind=Physical, Stunned=true)` — 為此 `AttackEvent` 新增 `bool Stunned` 欄位（預設 false），前端文案「{怪物}暈眩中，無法行動。」。
 - 計畫 4 延後項目在本計畫處理（Task 1）：`GET /api/characters/me` 的 `actNum` 回復到現在（唯讀，不寫入）；模擬器在開打前 `hp < hpmax × AutoRestHpRatio(0.15)` 時先住宿（spec §7.1 的 HP 門檻，門檻先固定）；`jobs.json` 騎士體質門檻改 60（spec §5.2 例子）；成長表依 §5.3 檢查（基礎每級期望總和 7～9、進階 9～12）並附 Lv1→Lv100 期望值表。
 - 程式碼註解中文、非必要不寫；commit 規則同前；生成檔 `Persistence/Models/*`、`EndlessBattleDbContext.cs` 只能由 `scripts/scaffold-db.sh` 產生。
 
