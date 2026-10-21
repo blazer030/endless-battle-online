@@ -22,13 +22,10 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
         {
             AccountId = character.AccountId,
             Name = character.Name,
-            Exp = character.Experience,
-            Money = character.SpiritStones,
-            CurrentStageId = character.CurrentStageId,
-            LastSettledAt = character.LastSettledAt.UtcDateTime,
             Version = character.Version,
             CreatedAt = character.LastSettledAt.UtcDateTime,
         };
+        CopyState(character, row);
         context.Characters.Add(row);
         try
         {
@@ -49,10 +46,7 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
 
         // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
         context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
-        row.Exp = character.Experience;
-        row.Money = character.SpiritStones;
-        row.CurrentStageId = character.CurrentStageId;
-        row.LastSettledAt = character.LastSettledAt.UtcDateTime;
+        CopyState(character, row);
         row.Version = character.Version + 1;
         try
         {
@@ -66,13 +60,48 @@ public sealed class CharacterRepository(InkboundDbContext context) : ICharacterR
         return ToDomain(row);
     }
 
+    // 新增與更新共用；scaffold 的欄位帶有資料庫預設值，值為 0 時 EF 會在 INSERT 略過該欄位改用預設值
+    private static void CopyState(Character character, CharacterRow row)
+    {
+        row.Level = character.Level;
+        row.Exp = character.Exp;
+        row.NextExp = character.NextExp;
+        row.Money = character.Money;
+        row.Sex = (sbyte)character.Sex;
+        row.Element = (sbyte)character.Element;
+        row.Birth = (sbyte)character.Birth;
+        row.JobId = character.JobId;
+        row.SpecialAttackName = character.SpecialAttackName;
+        row.BaseStr = character.Base.Str;
+        row.BaseSmart = character.Base.Smart;
+        row.BaseLife = character.Base.Life;
+        row.BaseVit = character.Base.Vit;
+        row.BaseAgi = character.Base.Agi;
+        row.BaseAu = character.Base.Au;
+        row.BaseBe = character.Base.Be;
+        row.Hp = character.Hp;
+        row.Sp = character.Sp;
+        row.CurrentStageId = character.CurrentStageId;
+        row.LastSettledAt = character.LastSettledAt.UtcDateTime;
+    }
+
     private static Character ToDomain(CharacterRow row) => new(
-        row.Id,
-        row.AccountId,
-        row.Name,
-        row.Exp,
-        row.Money,
-        row.CurrentStageId,
-        new DateTimeOffset(DateTime.SpecifyKind(row.LastSettledAt, DateTimeKind.Utc)),
-        row.Version);
+        Id: row.Id,
+        AccountId: row.AccountId,
+        Name: row.Name,
+        Level: row.Level,
+        Exp: row.Exp,
+        NextExp: row.NextExp,
+        Money: row.Money,
+        Sex: row.Sex,
+        Element: row.Element,
+        Birth: row.Birth,
+        JobId: row.JobId,
+        SpecialAttackName: row.SpecialAttackName,
+        Base: new BaseStats(row.BaseStr, row.BaseSmart, row.BaseLife, row.BaseVit, row.BaseAgi, row.BaseAu, row.BaseBe),
+        Hp: row.Hp,
+        Sp: row.Sp,
+        CurrentStageId: row.CurrentStageId,
+        LastSettledAt: new DateTimeOffset(DateTime.SpecifyKind(row.LastSettledAt, DateTimeKind.Utc)),
+        Version: row.Version);
 }

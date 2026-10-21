@@ -24,5 +24,5 @@ public static class CharacterEndpoints
     }
 
     public static CharacterResponse ToResponse(Character character) =>
-        new(character.Name, character.Experience, character.SpiritStones, character.CurrentStageId);
+        new(character.Name, character.Exp, character.Money, character.CurrentStageId);
 }

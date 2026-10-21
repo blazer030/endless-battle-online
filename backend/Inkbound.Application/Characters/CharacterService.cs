@@ -9,6 +9,8 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
 {
     private const int MinimumNameLength = 2;
     private const int MaximumNameLength = 12;
+    private const string DefaultJobId = "warrior";
+    private const string DefaultSpecialAttackName = "必殺";
 
     public async Task<Character> CreateAsync(long accountId, string name, CancellationToken cancellationToken)
     {
@@ -27,15 +29,26 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
             throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字");
         }
 
-        var character = new Character(
-            Id: 0,
-            AccountId: accountId,
+        // 計畫 3 Task 3 改由 API 傳入完整的創角選擇；在那之前一律用預設選擇建立
+        var command = new CreateCharacterCommand(
             Name: trimmedName,
-            Experience: 0,
-            SpiritStones: 0,
-            CurrentStageId: content.StartingStageId,
-            LastSettledAt: clock.UtcNow,
-            Version: 0);
+            Sex: 1,
+            Element: 1,
+            Birth: 1,
+            JobId: DefaultJobId,
+            Allocation: new StatAllocation(Str: 2, Smart: 2, Life: 2, Agi: 2),
+            SpecialAttackName: DefaultSpecialAttackName);
+
+        Character character;
+        try
+        {
+            character = CharacterFactory.Create(accountId, command, content.GetJob(command.JobId), content.StartingStageId, clock.UtcNow);
+        }
+        catch (CharacterCreationException exception)
+        {
+            throw new InputValidationException(exception.Message);
+        }
+
         return await characters.AddAsync(character, cancellationToken);
     }
 

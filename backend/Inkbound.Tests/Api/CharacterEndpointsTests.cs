@@ -24,7 +24,8 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(name, body.GetProperty("name").GetString());
         Assert.Equal(0, body.GetProperty("experience").GetInt64());
-        Assert.Equal(0, body.GetProperty("spiritStones").GetInt64());
+        // 創角起始金錢 2000（WOG）；Task 3 改寫回應欄位名稱
+        Assert.Equal(2000, body.GetProperty("spiritStones").GetInt64());
         Assert.Equal("test-stage-1", body.GetProperty("currentStageId").GetString());
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);

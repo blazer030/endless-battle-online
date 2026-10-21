@@ -33,7 +33,7 @@ public sealed class AdventureService(
         var stage = content.GetStage(character.CurrentStageId);
         var stageMonsters = stage.MonsterIds.Select(content.GetMonster).ToList();
         var run = AdventureSimulator.Run(
-            PlayerStats.Starting,
+            CombatBridge.ToCombatStats(DerivedStats.From(character.Base)),
             stageMonsters,
             Math.Min(elapsedSeconds, MaxSimulatedSeconds),
             randomFactory.Create());
@@ -45,8 +45,8 @@ public sealed class AdventureService(
         var updated = await characters.UpdateAsync(
             character with
             {
-                Experience = character.Experience + run.ExperienceGained,
-                SpiritStones = character.SpiritStones + run.SpiritStonesGained,
+                Exp = character.Exp + run.ExperienceGained,
+                Money = character.Money + run.SpiritStonesGained,
                 LastSettledAt = settledAt,
             },
             cancellationToken);
