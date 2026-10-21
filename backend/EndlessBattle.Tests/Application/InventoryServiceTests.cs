@@ -381,4 +381,20 @@ public class InventoryServiceTests
         Assert.Equal([2, 1], (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => entry.Quantity));
         Assert.Empty(log);
     }
+
+    // 容量只看同分類：道具分類 15 格全滿，卸下武器仍放得回武器分類
+    [Fact]
+    public async Task Unequip_IgnoresOtherFullCategories()
+    {
+        var character = await AddCharacterAsync();
+        await service.EquipAsync(AccountId, await GiveAsync(character, "test-sword"), null, CancellationToken);
+        for (var index = 0; index < InventoryRules.SlotsPerCategory; index++)
+        {
+            await GiveAsync(character, "test-supply", InventoryRules.StackLimit);
+        }
+
+        var view = await service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken);
+
+        Assert.Equal([("test-sword", 1)], BagOf(view, ItemCategory.Weapon));
+    }
 }
