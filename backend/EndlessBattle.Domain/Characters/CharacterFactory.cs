@@ -73,6 +73,9 @@ public static class CharacterFactory
             PlaceId: startingPlaceId,
             SubPlace: startingSubPlace,
             LastSettledAt: now,
+            Bank: 0,
+            BagBonus: 0,
+            DepotBonus: 0,
             Version: 0);
     }
 

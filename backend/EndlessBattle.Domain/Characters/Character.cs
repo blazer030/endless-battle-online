@@ -22,4 +22,7 @@ public sealed record Character(
     int PlaceId,
     int? SubPlace,
     DateTimeOffset LastSettledAt,
+    long Bank,
+    int BagBonus,
+    int DepotBonus,
     int Version);

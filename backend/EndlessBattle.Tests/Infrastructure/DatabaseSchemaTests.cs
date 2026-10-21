@@ -84,6 +84,27 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal(30, (await reader.CharacterSkillSlots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Chance);
     }
 
+    [Fact]
+    public async Task Schema_HasInventoryTables()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var context = database.CreateDbContext();
+        var inventory = new CharacterInventory { CharacterId = characterId, ItemId = "sword", Quantity = 1 };
+        context.CharacterInventories.Add(inventory);
+        context.CharacterDepots.Add(new CharacterDepot { CharacterId = characterId, ItemId = "potion", Quantity = 2 });
+        await context.SaveChangesAsync(cancellationToken);
+        context.CharacterEquipments.Add(new CharacterEquipment { CharacterId = characterId, Slot = "Weapon", InventoryId = inventory.Id });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        Assert.Equal("Weapon", (await reader.CharacterEquipments.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Slot);
+        Assert.Equal(2, (await reader.CharacterDepots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Quantity);
+        var stored = await reader.Characters.SingleAsync(character => character.Id == characterId, cancellationToken);
+        Assert.Equal((0L, 0, 0), (stored.Bank, stored.BagBonus, stored.DepotBonus));
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

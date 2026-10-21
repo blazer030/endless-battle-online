@@ -62,6 +62,9 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
             PlaceId: 16,
             SubPlace: 3,
             LastSettledAt: now,
+            Bank: 0,
+            BagBonus: 0,
+            DepotBonus: 0,
             Version: 0);
 
         var added = await new CharacterRepository(setupContext).AddAsync(character, cancellationToken);
@@ -69,6 +72,26 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         await using var readContext = database.CreateDbContext();
         var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
         Assert.Equal(character with { Id = added.Id }, stored);
+    }
+
+    [Fact]
+    public async Task Character_RoundTripsBankAndBonuses()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = DateTimeOffset.UtcNow;
+        await using var context = database.CreateDbContext();
+        var accountId = await new AccountRepository(context).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var repository = new CharacterRepository(context);
+        var added = await repository.AddAsync(
+            TestCharacters.Default(accountId, UniqueName("銀行"), 1, 1, now) with { Bank = 123456789012, BagBonus = 4, DepotBonus = 6 }, cancellationToken);
+
+        var updated = await repository.UpdateAsync(added with { Bank = 99, BagBonus = 5, DepotBonus = 7 }, cancellationToken);
+
+        Assert.Equal((123456789012, 4, 6), (added.Bank, added.BagBonus, added.DepotBonus));
+        await using var readContext = database.CreateDbContext();
+        var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
+        Assert.Equal((99, 5, 7), (stored!.Bank, stored.BagBonus, stored.DepotBonus));
+        Assert.Equal(updated, stored);
     }
 
     [Fact]

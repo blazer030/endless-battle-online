@@ -16,6 +16,12 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<Character> Characters { get; set; }
 
+    public virtual DbSet<CharacterDepot> CharacterDepots { get; set; }
+
+    public virtual DbSet<CharacterEquipment> CharacterEquipments { get; set; }
+
+    public virtual DbSet<CharacterInventory> CharacterInventories { get; set; }
+
     public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
 
     public virtual DbSet<CharacterSkill> CharacterSkills { get; set; }
@@ -62,6 +68,8 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.ActNumTime)
                 .HasMaxLength(6)
                 .HasColumnName("act_num_time");
+            entity.Property(e => e.BagBonus).HasColumnName("bag_bonus");
+            entity.Property(e => e.Bank).HasColumnName("bank");
             entity.Property(e => e.BaseAgi)
                 .HasDefaultValueSql("'10'")
                 .HasColumnName("base_agi");
@@ -96,6 +104,7 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasMaxLength(64)
                 .HasColumnName("current_stage_id");
             entity.Property(e => e.CurrentSubPlace).HasColumnName("current_sub_place");
+            entity.Property(e => e.DepotBonus).HasColumnName("depot_bonus");
             entity.Property(e => e.Element)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("element");
@@ -136,6 +145,92 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey<Character>(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_characters_account");
+        });
+
+        modelBuilder.Entity<CharacterDepot>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("character_depot");
+
+            entity.HasIndex(e => e.CharacterId, "ix_character_depot_character");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Holes).HasColumnName("holes");
+            entity.Property(e => e.ItemId)
+                .HasMaxLength(32)
+                .HasColumnName("item_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.RefineBonus)
+                .HasColumnType("json")
+                .HasColumnName("refine_bonus");
+            entity.Property(e => e.RefineLevel).HasColumnName("refine_level");
+            entity.Property(e => e.Sockets)
+                .HasColumnType("json")
+                .HasColumnName("sockets");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterDepots)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_depot_character");
+        });
+
+        modelBuilder.Entity<CharacterEquipment>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.Slot }).HasName("PRIMARY");
+
+            entity.ToTable("character_equipment");
+
+            entity.HasIndex(e => e.InventoryId, "fk_character_equipment_inventory");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Slot)
+                .HasMaxLength(16)
+                .HasColumnName("slot");
+            entity.Property(e => e.InventoryId).HasColumnName("inventory_id");
+            entity.Property(e => e.SupplyQuantity).HasColumnName("supply_quantity");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterEquipments)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_equipment_character");
+
+            entity.HasOne(d => d.Inventory).WithMany(p => p.CharacterEquipments)
+                .HasForeignKey(d => d.InventoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_equipment_inventory");
+        });
+
+        modelBuilder.Entity<CharacterInventory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("character_inventory");
+
+            entity.HasIndex(e => e.CharacterId, "ix_character_inventory_character");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Holes).HasColumnName("holes");
+            entity.Property(e => e.ItemId)
+                .HasMaxLength(32)
+                .HasColumnName("item_id");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValueSql("'1'")
+                .HasColumnName("quantity");
+            entity.Property(e => e.RefineBonus)
+                .HasColumnType("json")
+                .HasColumnName("refine_bonus");
+            entity.Property(e => e.RefineLevel).HasColumnName("refine_level");
+            entity.Property(e => e.Sockets)
+                .HasColumnType("json")
+                .HasColumnName("sockets");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterInventories)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_inventory_character");
         });
 
         modelBuilder.Entity<CharacterJobProficiency>(entity =>

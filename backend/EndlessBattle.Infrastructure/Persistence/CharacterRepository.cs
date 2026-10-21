@@ -86,6 +86,9 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.CurrentPlaceId = character.PlaceId;
         row.CurrentSubPlace = (sbyte?)character.SubPlace;
         row.LastSettledAt = character.LastSettledAt.UtcDateTime;
+        row.Bank = character.Bank;
+        row.BagBonus = character.BagBonus;
+        row.DepotBonus = character.DepotBonus;
     }
 
     private static Character ToDomain(CharacterRow row) => new(
@@ -109,6 +112,9 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         PlaceId: row.CurrentPlaceId,
         SubPlace: row.CurrentSubPlace,
         LastSettledAt: ToUtc(row.LastSettledAt),
+        Bank: row.Bank,
+        BagBonus: row.BagBonus,
+        DepotBonus: row.DepotBonus,
         Version: row.Version);
 
     private static DateTimeOffset ToUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));

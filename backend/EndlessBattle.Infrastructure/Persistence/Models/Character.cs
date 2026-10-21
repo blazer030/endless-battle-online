@@ -63,7 +63,19 @@ public partial class Character
 
     public sbyte? CurrentSubPlace { get; set; }
 
+    public long Bank { get; set; }
+
+    public int BagBonus { get; set; }
+
+    public int DepotBonus { get; set; }
+
     public virtual Account Account { get; set; } = null!;
+
+    public virtual ICollection<CharacterDepot> CharacterDepots { get; set; } = new List<CharacterDepot>();
+
+    public virtual ICollection<CharacterEquipment> CharacterEquipments { get; set; } = new List<CharacterEquipment>();
+
+    public virtual ICollection<CharacterInventory> CharacterInventories { get; set; } = new List<CharacterInventory>();
 
     public virtual ICollection<CharacterJobProficiency> CharacterJobProficiencies { get; set; } = new List<CharacterJobProficiency>();
 

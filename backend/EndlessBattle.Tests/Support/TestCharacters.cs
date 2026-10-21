@@ -27,5 +27,8 @@ public static class TestCharacters
         PlaceId: placeId,
         SubPlace: subPlace,
         LastSettledAt: lastSettledAt,
+        Bank: 0,
+        BagBonus: 0,
+        DepotBonus: 0,
         Version: 0);
 }
