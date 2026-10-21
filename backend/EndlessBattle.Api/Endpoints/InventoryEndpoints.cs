@@ -35,12 +35,12 @@ public static class InventoryEndpoints
         return app;
     }
 
-    private static InventoryResponse ToResponse(InventoryView view) => new(
+    internal static InventoryResponse ToResponse(InventoryView view) => new(
         view.Bag.Select(category => new BagCategoryResponse(category.Category, category.Capacity, category.Items.Select(ToItem).ToList())).ToList(),
         view.Equipped.Select(equipped => new EquippedItemResponse(equipped.Slot, equipped.Quantity, ToItem(equipped.Item))).ToList(),
         view.Bonus.Total);
 
-    private static InventoryItemResponse ToItem(InventoryItem item) => new(
+    internal static InventoryItemResponse ToItem(InventoryItem item) => new(
         item.Entry.Id,
         item.Item.Id,
         item.Item.Name,

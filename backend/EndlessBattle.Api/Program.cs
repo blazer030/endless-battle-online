@@ -60,6 +60,9 @@ app.MapSkillEndpoints();
 app.MapJobEndpoints();
 app.MapWorldEndpoints();
 app.MapInventoryEndpoints();
+app.MapShopEndpoints();
+app.MapBankEndpoints();
+app.MapDepotEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

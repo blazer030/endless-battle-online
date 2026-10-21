@@ -216,3 +216,20 @@ public sealed record EquipRequest(long? InventoryId, int? Quantity);
 public sealed record UnequipRequest(EquipmentSlot? Slot);
 
 public sealed record UseItemRequest(long? InventoryId);
+
+public sealed record ShopItemResponse(
+    string Id, string Name, ItemCategory Category, long Price, StatBonus Bonus, StatRequirement7 Requires, int Holes, int RefineMax);
+
+public sealed record BuyRequest(string? ItemId, int? Quantity);
+
+public sealed record SellRequest(long? InventoryId, int? Quantity);
+
+public sealed record BankAmountRequest(long? Amount);
+
+public sealed record DepotResponse(IReadOnlyList<InventoryItemResponse> Entries, int Capacity);
+
+public sealed record DepotMoveResponse(InventoryResponse Inventory, DepotResponse Depot);
+
+public sealed record StoreRequest(long? InventoryId, int? Quantity);
+
+public sealed record TakeRequest(long? DepotId, int? Quantity);

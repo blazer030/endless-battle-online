@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Economy;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Jobs;
 using EndlessBattle.Application.Skills;
@@ -20,6 +21,9 @@ public static class DependencyInjection
         services.AddScoped<JobService>();
         services.AddScoped<WorldService>();
         services.AddScoped<InventoryService>();
+        services.AddScoped<ShopService>();
+        services.AddScoped<BankService>();
+        services.AddScoped<DepotService>();
         return services;
     }
 }
