@@ -9,12 +9,10 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
 {
     private const int MinimumNameLength = 2;
     private const int MaximumNameLength = 12;
-    private const string DefaultJobId = "warrior";
-    private const string DefaultSpecialAttackName = "必殺";
 
-    public async Task<Character> CreateAsync(long accountId, string name, CancellationToken cancellationToken)
+    public async Task<Character> CreateAsync(long accountId, CreateCharacterCommand request, CancellationToken cancellationToken)
     {
-        var trimmedName = name.Trim();
+        var trimmedName = request.Name.Trim();
 
         // 以「文字單位」計算長度，組合字元與 emoji 都算一個字
         var nameLength = new StringInfo(trimmedName).LengthInTextElements;
@@ -29,15 +27,12 @@ public sealed class CharacterService(ICharacterRepository characters, IGameConte
             throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字");
         }
 
-        // 計畫 3 Task 3 改由 API 傳入完整的創角選擇；在那之前一律用預設選擇建立
-        var command = new CreateCharacterCommand(
-            Name: trimmedName,
-            Sex: 1,
-            Element: 1,
-            Birth: 1,
-            JobId: DefaultJobId,
-            Allocation: new StatAllocation(Str: 2, Smart: 2, Life: 2, Agi: 2),
-            SpecialAttackName: DefaultSpecialAttackName);
+        if (content.AllJobs.All(candidate => candidate.Id != request.JobId))
+        {
+            throw new InputValidationException("不存在的職業");
+        }
+
+        var command = request with { Name = trimmedName };
 
         Character character;
         try

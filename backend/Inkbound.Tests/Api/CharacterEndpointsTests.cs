@@ -19,17 +19,107 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
         var name = UniqueName("墨客");
 
-        var created = await client.PostAsJsonAsync("/api/characters", new { name }, CancellationToken);
+        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(name, body.GetProperty("name").GetString());
-        Assert.Equal(0, body.GetProperty("experience").GetInt64());
-        // 創角起始金錢 2000（WOG）；Task 3 改寫回應欄位名稱
-        Assert.Equal(2000, body.GetProperty("spiritStones").GetInt64());
+        Assert.Equal(0, body.GetProperty("exp").GetInt64());
         Assert.Equal("test-stage-1", body.GetProperty("currentStageId").GetString());
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(body.ToString(), me.ToString());
+    }
+
+    // 戰士、配點 4/2/3/1 → Base (14,12,13,10,11,10,10)
+    [Fact]
+    public async Task Create_ReturnsFullCharacter()
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("全貌");
+
+        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name, str: 4, smart: 2, life: 3, agi: 1));
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(2000, body.GetProperty("money").GetInt64());
+        Assert.Equal("warrior", body.GetProperty("jobId").GetString());
+        Assert.Equal("測試戰士", body.GetProperty("jobName").GetString());
+        Assert.Equal("烈焰斬", body.GetProperty("specialAttackName").GetString());
+        Assert.Equal(3, body.GetProperty("element").GetInt32());
+        var stats = body.GetProperty("stats");
+        Assert.Equal(14, stats.GetProperty("at").GetInt32());
+        Assert.Equal(13, stats.GetProperty("life").GetInt32());
+        Assert.Equal(375, stats.GetProperty("hpMax").GetInt32());
+        Assert.Equal(91, stats.GetProperty("spMax").GetInt32());
+    }
+
+    public static TheoryData<object?> InvalidAllocations => new()
+    {
+        new { str = 5, smart = 2, life = 2, agi = 2 },
+        new { str = 0, smart = 4, life = 3, agi = 3 },
+        new { str = -1, smart = 4, life = 4, agi = 3 },
+        (object?)null,
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidAllocations))]
+    public async Task Create_RejectsInvalidAllocation(object? allocation)
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new
+        {
+            name = UniqueName("配點"),
+            sex = 1,
+            element = 3,
+            birth = 1,
+            jobId = "warrior",
+            allocation,
+            specialAttackName = "烈焰斬",
+        };
+
+        var response = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_AllowsUnderspentPoints()
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        // 2/2/2/2 只花了 8 點
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點")));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(3, 3, 1, "warrior")]
+    [InlineData(1, 7, 1, "warrior")]
+    [InlineData(1, 3, 0, "warrior")]
+    [InlineData(1, 3, 1, "ghost")]
+    [InlineData(1, 3, 1, "berserker")]
+    public async Task Create_RejectsInvalidChoices(int sex, int element, int birth, string jobId)
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new
+        {
+            name = UniqueName("選項"),
+            sex,
+            element,
+            birth,
+            jobId,
+            allocation = new { str = 2, smart = 2, life = 2, agi = 2 },
+            specialAttackName = "烈焰斬",
+        };
+
+        var response = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -47,9 +137,9 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     {
         await using var factory = new InkboundApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
-        await client.PostAsJsonAsync("/api/characters", new { name = UniqueName("初") }, CancellationToken);
+        await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(UniqueName("初")), CancellationToken);
 
-        var second = await client.PostAsJsonAsync("/api/characters", new { name = UniqueName("再") }, CancellationToken);
+        var second = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(UniqueName("再")), CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
     }
 
@@ -61,8 +151,8 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var secondClient = await factory.CreateAuthenticatedClientAsync();
         var name = UniqueName("同名");
 
-        await firstClient.PostAsJsonAsync("/api/characters", new { name }, CancellationToken);
-        var duplicate = await secondClient.PostAsJsonAsync("/api/characters", new { name }, CancellationToken);
+        await firstClient.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(name), CancellationToken);
+        var duplicate = await secondClient.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(name), CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
     }
 
@@ -74,7 +164,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     {
         await using var factory = new InkboundApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
-        var response = await client.PostAsJsonAsync("/api/characters", new { name }, CancellationToken);
+        var response = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(name), CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -86,7 +176,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
         const string meditator = "\U0001F9D8‍♂️";
 
-        var response = await client.PostAsJsonAsync("/api/characters", new { name = $"修仙者{meditator}{meditator}{meditator}" }, CancellationToken);
+        var response = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody($"修仙者{meditator}{meditator}{meditator}"), CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -98,7 +188,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
         var name = UniqueName("劍心");
 
-        var response = await client.PostAsJsonAsync("/api/characters", new { name = $"  {name}  " }, CancellationToken);
+        var response = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody($"  {name}  "), CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(name, body.GetProperty("name").GetString());
@@ -109,7 +199,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     {
         await using var factory = new InkboundApiFactory(database);
         var client = factory.CreateClient();
-        var create = await client.PostAsJsonAsync("/api/characters", new { name = "無名氏" }, CancellationToken);
+        var create = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody("無名氏"), CancellationToken);
         var me = await client.GetAsync("/api/characters/me", CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, create.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, me.StatusCode);

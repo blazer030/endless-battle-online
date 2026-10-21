@@ -12,7 +12,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
     private static async Task<HttpClient> CreateClientWithCharacterAsync(InkboundApiFactory factory)
     {
         var client = await factory.CreateAuthenticatedClientAsync();
-        var created = await client.PostAsJsonAsync("/api/characters", new { name = $"行者{Random.Shared.Next(100000, 999999)}" }, CancellationToken);
+        var created = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody($"行者{Random.Shared.Next(100000, 999999)}"), CancellationToken);
         created.EnsureSuccessStatusCode();
         return client;
     }
@@ -36,13 +36,39 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         var events = body.GetProperty("events").EnumerateArray().ToList();
         Assert.Equal("encounter", events[0].GetProperty("type").GetString());
         Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "reward");
-        var experienceGained = body.GetProperty("experienceGained").GetInt64();
-        Assert.True(experienceGained > 0);
-        Assert.Equal(experienceGained, body.GetProperty("character").GetProperty("experience").GetInt64());
+        var expGained = body.GetProperty("expGained").GetInt64();
+        Assert.True(expGained > 0);
+        Assert.Equal(expGained, body.GetProperty("character").GetProperty("exp").GetInt64());
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(experienceGained, me.GetProperty("experience").GetInt64());
+        Assert.Equal(expGained, me.GetProperty("exp").GetInt64());
     }
+
+    [Fact]
+    public async Task Advance_UsesCharacterStats()
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var strong = await factory.CreateAuthenticatedClientAsync();
+        var weak = await factory.CreateAuthenticatedClientAsync();
+        (await strong.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"力士{Random.Shared.Next(100000, 999999)}", str: 7, smart: 1, life: 1, agi: 1))).EnsureSuccessStatusCode();
+        (await weak.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"命士{Random.Shared.Next(100000, 999999)}", str: 1, smart: 1, life: 7, agi: 1))).EnsureSuccessStatusCode();
+        factory.Clock.Advance(TimeSpan.FromSeconds(10));
+
+        var strongBody = await AdvanceAsync(strong);
+        var weakBody = await AdvanceAsync(weak);
+
+        Assert.True(MaxPlayerDamage(strongBody) > MaxPlayerDamage(weakBody));
+        foreach (var (client, body) in new[] { (strong, strongBody), (weak, weakBody) })
+        {
+            var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+            Assert.Equal(body.GetProperty("expGained").GetInt64(), me.GetProperty("exp").GetInt64());
+        }
+    }
+
+    private static int MaxPlayerDamage(JsonElement body) => body.GetProperty("events").EnumerateArray()
+        .Where(battleEvent => battleEvent.GetProperty("type").GetString() == "attack"
+            && string.Equals(battleEvent.GetProperty("attacker").GetString(), "player", StringComparison.OrdinalIgnoreCase))
+        .Max(battleEvent => battleEvent.GetProperty("damage").GetInt32());
 
     [Fact]
     public async Task Advance_ReturnsNothing_WhenClockIsBehindLastSettlement()
@@ -54,7 +80,9 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         var body = await AdvanceAsync(client);
 
         Assert.Empty(body.GetProperty("events").EnumerateArray());
-        Assert.Equal(0, body.GetProperty("experienceGained").GetInt64());
+        Assert.Equal(0, body.GetProperty("expGained").GetInt64());
+        Assert.Equal(0, body.GetProperty("moneyGained").GetInt64());
+        Assert.Equal(0, body.GetProperty("moneyGained").GetInt64());
     }
 
     [Fact]

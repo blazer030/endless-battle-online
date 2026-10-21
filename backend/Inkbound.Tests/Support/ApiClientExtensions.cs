@@ -21,4 +21,25 @@ public static class ApiClientExtensions
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body.GetProperty("accessToken").GetString());
         return client;
     }
+
+    // 合法的創角 body（戰士、配點 2/2/2/2）；可覆寫個別欄位
+    public static object ValidCharacterBody(
+        string name,
+        string jobId = "warrior",
+        int str = 2,
+        int smart = 2,
+        int life = 2,
+        int agi = 2) => new
+        {
+            name,
+            sex = 1,
+            element = 3,
+            birth = 1,
+            jobId,
+            allocation = new { str, smart, life, agi },
+            specialAttackName = "烈焰斬",
+        };
+
+    public static async Task<HttpResponseMessage> CreateCharacterAsync(this HttpClient client, object body) =>
+        await client.PostAsJsonAsync("/api/characters", body, TestContext.Current.CancellationToken);
 }

@@ -4,13 +4,30 @@ namespace Inkbound.Api.Endpoints;
 
 public static class ContentEndpoints
 {
-    // 公開端點：只給前端顯示名稱用，不回傳任何數值
+    private static readonly NamedContent[] Elements = [new("1", "地"), new("2", "水"), new("3", "火"), new("4", "木"), new("5", "風"), new("6", "毒")];
+
+    private static readonly NamedContent[] Births = [new("1", "中央大陸"), new("2", "魔法王國"), new("3", "熱帶雨林"), new("4", "末日王城")];
+
+    private static readonly NamedContent[] Sexes = [new("1", "男"), new("2", "女")];
+
+    // 公開端點：給前端顯示名稱與創角選項用，不回傳戰鬥數值
     public static IEndpointRouteBuilder MapContentEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/content", (IGameContent content) =>
             TypedResults.Ok(new ContentResponse(
                 content.AllMonsters.Select(monster => new NamedContent(monster.Id, monster.Name)).ToList(),
-                content.AllStages.Select(stage => new NamedContent(stage.Id, stage.Name)).ToList())))
+                content.AllStages.Select(stage => new NamedContent(stage.Id, stage.Name)).ToList(),
+                content.AllJobs.Select(job => new JobContent(
+                    job.Id,
+                    job.Name,
+                    job.Tier,
+                    job.ParentId,
+                    job.UnlockLevel,
+                    job.ProficiencyRequired,
+                    job.StatRequirements.Select(requirement => new StatRequirementContent(requirement.Stat, requirement.Minimum)).ToList())).ToList(),
+                Elements,
+                Births,
+                Sexes)))
             .WithTags("Content");
 
         return app;
