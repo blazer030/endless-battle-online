@@ -56,7 +56,7 @@
       {"level": 4, "sp": 14, "rounds": 1, "chance": 0, "money": 8000, "proficiency": 1200},
       {"level": 5, "sp": 17, "rounds": 1, "chance": 0, "money": 12500, "proficiency": 1500}
     ]},
-    {"id": "war-god-wrath", "name": "戰神之怒", "jobId": "berserker", "type": "active", "timing": "beforeAttack", "effect": "WarGodWrath", "description": "以力量換取大幅攻擊力，但降低迴避", "levels": [
+    {"id": "war-god-wrath", "name": "戰神之怒", "jobId": "berserker", "type": "active", "timing": "beforeAttack", "effect": "WarGodWrath", "description": "以力量換取大幅攻擊力，但降低命中", "levels": [
       {"level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300},
       {"level": 2, "sp": 8, "rounds": 3, "chance": 0, "money": 2000, "proficiency": 600},
       {"level": 3, "sp": 11, "rounds": 3, "chance": 0, "money": 4500, "proficiency": 900},
