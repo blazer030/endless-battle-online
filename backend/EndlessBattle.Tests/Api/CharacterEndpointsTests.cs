@@ -59,6 +59,23 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(91, stats.GetProperty("spMax").GetInt32());
     }
 
+    // TestContent 的起始地：測試大陸・測試平原・甲地（正式內容為 中央大陸・中央平原・香茅綠地）
+    [Fact]
+    public async Task Me_ReturnsPlaceNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("地名")));
+
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+
+        Assert.Equal(1, me.GetProperty("placeId").GetInt32());
+        Assert.Equal("測試平原", me.GetProperty("placeName").GetString());
+        Assert.Equal(1, me.GetProperty("subPlace").GetInt32());
+        Assert.Equal("甲地", me.GetProperty("subPlaceName").GetString());
+        Assert.Equal("測試大陸", me.GetProperty("areaName").GetString());
+    }
+
     [Fact]
     public async Task Create_ReturnsFullStaminaAndNoProficiency()
     {

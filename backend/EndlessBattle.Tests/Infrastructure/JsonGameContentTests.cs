@@ -384,6 +384,14 @@ public class JsonGameContentTests
     }
 
     [Fact]
+    public void GetArea_ReturnsAreaOrThrows()
+    {
+        var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
+        Assert.Equal("測試大陸", content.GetArea("central").Name);
+        Assert.Contains("nowhere", Assert.Throws<GameContentException>(() => content.GetArea("nowhere")).Message);
+    }
+
+    [Fact]
     public void World_TestContent_ExposesPlaces()
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));

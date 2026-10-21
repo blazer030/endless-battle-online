@@ -53,6 +53,7 @@ public static class CharacterEndpoints
     {
         var total = character.Base;
         var derived = DerivedStats.From(total);
+        var place = content.GetPlace(character.PlaceId);
         return new CharacterResponse(
             character.Name,
             character.Level,
@@ -70,8 +71,11 @@ public static class CharacterEndpoints
             new StatsResponse(
                 total.Str, total.Smart, total.Life, total.Vit, total.Agi, total.Au, total.Be,
                 derived.At, derived.Mat, derived.Df, derived.Mdf, derived.HpMax, derived.SpMax),
-            character.PlaceId,
+            place.Id,
+            place.Name,
             character.SubPlace,
+            place.SubPlaces.FirstOrDefault(subPlace => subPlace.Index == character.SubPlace)?.Name,
+            content.GetArea(place.AreaId).Name,
             character.ActNum,
             StaminaRules.Max,
             jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList());

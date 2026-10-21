@@ -120,6 +120,10 @@ public sealed class JsonGameContent : IGameContent
     public PlaceDefinition GetPlace(int placeId) =>
         places.TryGetValue(placeId, out var place) ? place : throw new GameContentException($"找不到地區：{placeId}");
 
+    // 區域只有個位數，線性查找即可
+    public AreaDefinition GetArea(string areaId) =>
+        AllAreas.FirstOrDefault(area => area.Id == areaId) ?? throw new GameContentException($"找不到區域：{areaId}");
+
     public MonsterDefinition GetMonster(string monsterId) =>
         monsters.TryGetValue(monsterId, out var monster) ? monster : throw new GameContentException($"找不到怪物：{monsterId}");
 

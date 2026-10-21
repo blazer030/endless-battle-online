@@ -79,7 +79,10 @@ public sealed record CharacterResponse(
     string SpecialAttackName,
     StatsResponse Stats,
     int PlaceId,
+    string PlaceName,
     int? SubPlace,
+    string? SubPlaceName,
+    string AreaName,
     int ActNum,
     int ActNumMax,
     IReadOnlyList<JobProficiencyResponse> JobProficiency);

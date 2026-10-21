@@ -23,6 +23,8 @@ public interface IGameContent
 
     PlaceDefinition GetPlace(int placeId);
 
+    AreaDefinition GetArea(string areaId);
+
     MonsterDefinition GetMonster(string monsterId);
 
     JobDefinition GetJob(string jobId);
