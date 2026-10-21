@@ -85,17 +85,26 @@ public class RewardFormulasTests
         Assert.Equal(4, money);
     }
 
-    // At + Mat = 0 時 WOG 會除以零，這裡把除數當 1：
-    // rand(1, 3)，0.99 → 3；rand(0/3, 60/1 × 0.4) = rand(0, 24) = NextInt(25)，0.5 → ⌊12.5⌋ = 12
-    // 3 × 12 × 0.4 × 1 = 14.4 → round 14
+    // At + Mat = 0：WOG 的 hp/(at+mat) 除以零得 false，rand(0, false) = rand(0, 0) = 0，金錢為 0
+    // 即使兩次擲骰都取上限（0.99）也一樣是 0
     [Fact]
-    public void Money_TreatsZeroAttackSumAsOne()
+    public void Money_GivesNothingForMonsterWithoutAttackStats()
     {
         var harmless = SnowSprite with { At = 0, Mat = 0 };
 
-        var money = RewardFormulas.Money(harmless, fDown: 1.0, new ScriptedRandom(0.5, 0.99));
+        var money = RewardFormulas.Money(harmless, fDown: 1.0, new ScriptedRandom(0.99));
 
-        Assert.Equal(14, money);
+        Assert.Equal(0, money);
+    }
+
+    // 最小重現：Lv1、Hp 5、At 0、Mat 0；rand(0.4, 1) = rand(0, 1)，0.99 → 1
+    // 若把除數當 1：rand(0, 5 × 0.4) = rand(0, 2)，0.99 → 2，1 × 2 × 0.4 = 0.8 → 1；WOG 第二個 rand 為 0 → 0
+    [Fact]
+    public void Money_ZeroAttackSumYieldsZero()
+    {
+        var minimal = new MonsterDefinition("minimal", "最小", Level: 1, Hp: 5, Sp: 0, At: 0, Mat: 0, Df: 0, Mdf: 0, Agi: 1, Au: 0, Element: 0, JobExp: 0, Meet: 0);
+
+        Assert.Equal(0, RewardFormulas.Money(minimal, fDown: 1.0, new ScriptedRandom(0.99)));
     }
 
     // ⌊13 × 0.5⌋ = ⌊6.5⌋ = 6；⌊13 × 1.0⌋ = 13

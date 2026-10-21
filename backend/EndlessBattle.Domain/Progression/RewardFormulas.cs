@@ -49,12 +49,16 @@ public static class RewardFormulas
 
     public static long Money(MonsterDefinition m, double fDown, IRandomSource random)
     {
-        double monsterLevel = m.Level;
         double attackSum = m.At + m.Mat;
+        // At + Mat 為 0 時 WOG 的 hp/(at+mat) 除以零得 false，rand(0, false) = 0，金錢為 0
+        if (attackSum == 0)
+        {
+            return 0;
+        }
+
+        double monsterLevel = m.Level;
         var levelRoll = PhpRandom.Between(random, monsterLevel / 2.5, monsterLevel);
-        // At + Mat 為 0 時 WOG 會除以零，這裡把除數當 1
-        var attackDivisor = attackSum == 0 ? 1.0 : attackSum;
-        var attackRoll = PhpRandom.Between(random, attackSum / monsterLevel, m.Hp / attackDivisor * 0.4);
+        var attackRoll = PhpRandom.Between(random, attackSum / monsterLevel, m.Hp / attackSum * 0.4);
         return (long)Math.Round(levelRoll * (attackRoll * 0.4) * fDown, MidpointRounding.AwayFromZero);
     }
 
