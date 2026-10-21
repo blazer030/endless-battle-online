@@ -36,8 +36,10 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
 
         var body = await AdvanceAsync(client);
 
+        // 新角色 Hp 50／350 低於自動住宿門檻，先住宿 5 秒再開打
         var events = body.GetProperty("events").EnumerateArray().ToList();
-        Assert.Equal("encounter", events[0].GetProperty("type").GetString());
+        Assert.Equal("rest", events[0].GetProperty("type").GetString());
+        Assert.Equal("encounter", events[1].GetProperty("type").GetString());
         Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "round");
         Assert.Contains(events, battleEvent => battleEvent.GetProperty("type").GetString() == "attack");
         Assert.True(body.GetProperty("eventsCoverAll").GetBoolean());

@@ -54,4 +54,18 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(4, content.GetProperty("births").GetArrayLength());
         Assert.Equal(2, content.GetProperty("sexes").GetArrayLength());
     }
+
+    // TestContent 測試戰士：str [2,3]、smart [0,1]、life [1,2]、vit [1,2]、agi [1,2]、au [0,1]、be [0,1]
+    [Fact]
+    public async Task Content_ExposesJobGrowth()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+
+        var content = await factory.CreateClient().GetFromJsonAsync<JsonElement>("/api/content", CancellationToken);
+
+        var growth = content.GetProperty("jobs")[0].GetProperty("growth");
+        Assert.Equal(
+            ["str:2,3", "smart:0,1", "life:1,2", "vit:1,2", "agi:1,2", "au:0,1", "be:0,1"],
+            growth.EnumerateObject().Select(stat => $"{stat.Name}:{string.Join(",", stat.Value.EnumerateArray().Select(value => value.GetInt32()))}"));
+    }
 }

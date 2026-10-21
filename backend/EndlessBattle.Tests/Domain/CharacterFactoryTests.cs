@@ -133,7 +133,7 @@ public class CharacterFactoryTests
     }
 
     // TestCharacters.Default：Base (12,12,12,10,12,10,10) → At 12、Mat 12、Df 10、Mdf 10、
-    // HpMax 12×25+50 = 350、SpMax (12+10)×3+25 = 91；戰鬥從目前的 Hp 50／Sp 25 開始
+    // HpMax 12×25+50 = 350、SpMax (12+10)×3+25 = 91；戰鬥從目前的 Hp 60／Sp 25 開始
     [Fact]
     public void CombatBridge_MapsCharacterToCombatant()
     {
@@ -142,7 +142,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character);
 
         Assert.Equal(
-            new CombatantState(Hp: 50, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺"),
+            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺"),
             combatant);
     }
 }

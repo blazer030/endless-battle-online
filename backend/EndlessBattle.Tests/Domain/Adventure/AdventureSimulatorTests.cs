@@ -10,7 +10,7 @@ using EndlessBattle.Tests.Support;
 namespace EndlessBattle.Tests.Domain.Adventure;
 
 // 除非另外指定，擲骰一律 0.0：rand 取下限、NextInt 取 0、遇敵擲骰 rand(0,100) = 0 → 只有 Meet 0 的怪物入選。
-// 預設角色（TestCharacters.Default）：Lv1、Base (12,12,12,10,12,10,10)、地屬性、Hp 50／350、Sp 25／91、行動力 50。
+// 預設角色（TestCharacters.Default）：Lv1、Base (12,12,12,10,12,10,10)、地屬性、Hp 60／350、Sp 25／91、行動力 50。
 // 對上 dummy（agi 12、df 1、無屬性）：agi 相同 → 30% 先攻，擲 1 ≤ 30 玩家先攻；必中；暴擊 1 < 10、倍率 1.2 → A 14.4；
 // (14.4·14.4 − 1) = 206.36，加 rand(⌊14.33/3⌋, ⌊14.33/2⌋) = 4 → 210 ≥ 100，第 1 回合在 0 秒擊倒，怪物不出手。
 public class AdventureSimulatorTests
@@ -72,7 +72,7 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 1);
 
         Assert.Equal(
-            new EncounterEvent(0, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 50, PlayerHpMax: 350, PlayerSp: 25, PlayerSpMax: 91, StaminaDepleted: false),
+            new EncounterEvent(0, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 60, PlayerHpMax: 350, PlayerSp: 25, PlayerSpMax: 91, StaminaDepleted: false),
             run.Events[0]);
         Assert.Contains(run.Events, battleEvent => battleEvent is RoundEvent);
         Assert.Contains(run.Events, battleEvent => battleEvent is AttackEvent);
@@ -89,6 +89,33 @@ public class AdventureSimulatorTests
             new EncounterEvent(15, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 350, PlayerHpMax: 350, PlayerSp: 91, PlayerSpMax: 91, StaminaDepleted: false),
             run.Events[1]);
         Assert.Equal(1, run.Summary.Fights);
+    }
+
+    // 生命 2 → HpMax 100、門檻 15：14 先住宿（未死亡等 5 秒）再以滿血開打；剛好 15 不住宿
+    [Theory]
+    [InlineData(14, true)]
+    [InlineData(15, false)]
+    public void Adventure_RestsBeforeFight_WhenHpBelowThreshold(int hp, bool rests)
+    {
+        var hero = Hero() with { Base = Hero().Base with { Life = 2 }, Hp = hp };
+
+        var run = Run(hero, seconds: 6);
+
+        if (rests)
+        {
+            Assert.Equal(new RestEvent(0, Cost: 0, ExpPenalty: false, WaitSeconds: 5), run.Events[0]);
+            var encounter = Assert.IsType<EncounterEvent>(run.Events[1]);
+            Assert.Equal(5, encounter.AtSeconds);
+            Assert.Equal(100, encounter.PlayerHp);
+            Assert.Equal(100, encounter.PlayerHpMax);
+        }
+        else
+        {
+            var encounter = Assert.IsType<EncounterEvent>(run.Events[0]);
+            Assert.Equal(0, encounter.AtSeconds);
+            Assert.Equal(15, encounter.PlayerHp);
+            Assert.Equal(100, encounter.PlayerHpMax);
+        }
     }
 
     // 最小重現：31 秒、窗口從 1 秒起；0 秒的住宿在窗口外被略去，但 15 秒起的每一場戰鬥都在窗口內 → 戰鬥沒有缺漏
@@ -200,7 +227,7 @@ public class AdventureSimulatorTests
         Assert.Equal(new RewardEvent(32, Exp: 43, Money: 0, JobExp: 0), run.Events.OfType<RewardEvent>().Single());
         Assert.Equal(43, RewardFormulas.Exp(rock, 27, playerLevel: 1, killed: false, fDown: 1, new ScriptedRandom(0.0), levelOverride: 3));
         Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Exp: 43, Money: 0, JobExp: 0, LevelsGained: 0), run.Summary);
-        Assert.Equal(10, run.Character.Hp);
+        Assert.Equal(20, run.Character.Hp);
         Assert.Empty(run.JobGains);
         Assert.Equal(34, run.ConsumedSeconds, 9);
     }

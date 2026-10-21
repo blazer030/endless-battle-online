@@ -21,9 +21,13 @@ public sealed record JobContent(
     string? ParentId,
     int UnlockLevel,
     int ProficiencyRequired,
-    IReadOnlyList<StatRequirementContent> StatRequirements);
+    IReadOnlyList<StatRequirementContent> StatRequirements,
+    JobGrowthContent Growth);
 
 public sealed record StatRequirementContent(string Stat, int Minimum);
+
+// 每項為 [min, max]
+public sealed record JobGrowthContent(int[] Str, int[] Smart, int[] Life, int[] Vit, int[] Agi, int[] Au, int[] Be);
 
 public sealed record ContentResponse(
     IReadOnlyList<NamedContent> Monsters,

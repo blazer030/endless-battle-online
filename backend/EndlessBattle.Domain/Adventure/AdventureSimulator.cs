@@ -13,6 +13,9 @@ public static class AdventureSimulator
     public const double CatchUpWindowSeconds = 30;
     public const double MaxSimulatedSeconds = 86_400;
 
+    // spec §7.1 的 HP 門檻，先固定；死亡（HP ≤ 0）一定在門檻之下
+    public const double AutoRestHpRatio = 0.15;
+
     // 超限時 WOG 以怪物等級 × 0.6、累計傷害 / 1.5 計算部分經驗
     private const double TimeoutLevelFactor = 0.6;
     private const double TimeoutDamageDivisor = 1.5;
@@ -43,8 +46,8 @@ public static class AdventureSimulator
             var keepEvents = cursor >= windowStart;
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
-            // 死亡後必須先住宿才能再戰
-            if (character.Hp <= 0)
+            // 死亡或 HP 低於門檻時，先住宿再開打
+            if (character.Hp < DerivedStats.From(character.Base).HpMax * AutoRestHpRatio)
             {
                 var rest = Hotel.Rest(character);
                 character = rest.Character;

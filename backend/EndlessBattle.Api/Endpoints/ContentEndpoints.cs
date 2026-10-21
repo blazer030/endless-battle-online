@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -24,7 +25,8 @@ public static class ContentEndpoints
                     job.ParentId,
                     job.UnlockLevel,
                     job.ProficiencyRequired,
-                    job.StatRequirements.Select(requirement => new StatRequirementContent(requirement.Stat, requirement.Minimum)).ToList())).ToList(),
+                    job.StatRequirements.Select(requirement => new StatRequirementContent(requirement.Stat, requirement.Minimum)).ToList(),
+                    ToGrowthContent(job.Growth))).ToList(),
                 Elements,
                 Births,
                 Sexes)))
@@ -32,4 +34,13 @@ public static class ContentEndpoints
 
         return app;
     }
+
+    private static JobGrowthContent ToGrowthContent(JobGrowth growth) => new(
+        [growth.Str.Min, growth.Str.Max],
+        [growth.Smart.Min, growth.Smart.Max],
+        [growth.Life.Min, growth.Life.Max],
+        [growth.Vit.Min, growth.Vit.Max],
+        [growth.Agi.Min, growth.Agi.Max],
+        [growth.Au.Min, growth.Au.Max],
+        [growth.Be.Min, growth.Be.Max]);
 }
