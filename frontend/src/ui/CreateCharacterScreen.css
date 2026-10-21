@@ -64,20 +64,19 @@
   gap: 6px;
 }
 
+/* 六個色塊上 --night 字的對比皆 ≥ 5:1（--white 都不到 4.5:1），所以不淡化、只用金框標示選取 */
 .element-row .choice {
   padding: 8px 0;
   border-color: transparent;
   background: var(--swatch);
   color: var(--night);
   font-weight: 700;
-  opacity: 0.55;
 }
 
 .element-row .choice[aria-pressed="true"] {
-  border-color: var(--white);
+  border-color: var(--night);
   color: var(--night);
-  box-shadow: 0 0 0 2px var(--gold);
-  opacity: 1;
+  box-shadow: 0 0 0 3px var(--gold);
 }
 
 .element-row [data-option="1"] {

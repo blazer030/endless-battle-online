@@ -122,6 +122,30 @@ test("CreateCharacterScreen_SubmitsTheSelections", async () => {
   })
 })
 
+test("CreateCharacterScreen_MapsEachStepperToItsOwnStat", async () => {
+  const createCharacter = vi.fn<ApiClient["createCharacter"]>().mockResolvedValue(makeCharacter())
+  renderScreen(createCharacter)
+
+  const clicks: [string, number][] = [
+    ["增加力量", 3],
+    ["增加智力", 2],
+    ["增加敏捷", 1],
+  ]
+  for (const [label, count] of clicks) {
+    for (let click = 0; click < count; click++) {
+      await userEvent.click(screen.getByRole("button", { name: label }))
+    }
+  }
+  await userEvent.click(screen.getByRole("button", { name: "踏上旅途" }))
+
+  await vi.waitFor(() => expect(createCharacter).toHaveBeenCalled())
+  const { allocation } = createCharacter.mock.calls[0][0]
+  expect(allocation.str).toBe(4)
+  expect(allocation.smart).toBe(3)
+  expect(allocation.life).toBe(1)
+  expect(allocation.agi).toBe(2)
+})
+
 test("CreateCharacterScreen_ShowsValidationDetail", async () => {
   const createCharacter = vi
     .fn<ApiClient["createCharacter"]>()

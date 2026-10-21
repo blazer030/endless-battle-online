@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { readAccessToken } from "../api/authStorage"
-import type { ApiClient } from "../api/client"
+import { ApiError, type ApiClient } from "../api/client"
 import type { CharacterView, ContentNames } from "../game/types"
 import { AdventureScreen } from "./AdventureScreen"
 import { AuthScreen } from "./AuthScreen"
@@ -11,6 +11,7 @@ export type SessionExpiryListener = (listener: () => void) => () => void
 type Phase =
   | { name: "auth" }
   | { name: "loading" }
+  | { name: "error" }
   | { name: "create"; content: ContentNames }
   | { name: "adventure"; character: CharacterView }
 
@@ -42,8 +43,11 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       .then((next) => {
         if (isCurrent) setPhase(next)
       })
-      .catch(() => {
-        if (isCurrent) setPhase({ name: "auth" })
+      .catch((error: unknown) => {
+        if (!isCurrent) return
+        // 401 已由 client 清掉 token 並通知登出；其他失敗（斷線、5xx）留在原地讓玩家重試
+        const isUnauthorized = error instanceof ApiError && error.status === 401
+        setPhase(isUnauthorized ? { name: "auth" } : { name: "error" })
       })
     return () => {
       isCurrent = false
@@ -55,6 +59,19 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       return <AuthScreen api={api} onAuthenticated={() => setPhase({ name: "loading" })} />
     case "loading":
       return <p className="screen">載入中…</p>
+    case "error":
+      return (
+        <main className="screen">
+          <div className="form load-error">
+            <p>載入失敗，請稍後再試</p>
+            <div className="actions">
+              <button type="button" onClick={() => setPhase({ name: "loading" })}>
+                重試
+              </button>
+            </div>
+          </div>
+        </main>
+      )
     case "create":
       return (
         <CreateCharacterScreen
