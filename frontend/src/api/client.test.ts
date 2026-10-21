@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
+import type { CreateCharacterCommand } from "../game/types"
 import { makeCharacter } from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
@@ -11,6 +12,16 @@ const advanceBody = {
   expGained: 0,
   moneyGained: 0,
   character: makeCharacter(),
+}
+
+const command: CreateCharacterCommand = {
+  name: "青衣",
+  sex: 2,
+  element: 3,
+  birth: 4,
+  jobId: "sorcerer",
+  allocation: { str: 1, smart: 5, life: 3, agi: 1 },
+  specialAttackName: "流星火雨",
 }
 
 beforeEach(() => localStorage.clear())
@@ -35,6 +46,19 @@ test("login_SavesToken", async () => {
   expect(readAccessToken()).toBe("xyz")
 })
 
+test("createCharacter_PostsTheFullCommand", async () => {
+  const created = makeCharacter({ name: "青衣" })
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(created, 201))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  expect(await client.createCharacter(command)).toEqual(created)
+
+  const [path, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+  expect(path).toBe("/api/characters")
+  expect(init.method).toBe("POST")
+  expect(JSON.parse(init.body as string)).toEqual(command)
+})
+
 test("getMyCharacter_ReturnsNull_On404", async () => {
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ detail: "找不到角色" }, 404))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
@@ -46,7 +70,7 @@ test("request_ThrowsApiErrorWithDetail_OnConflict", async () => {
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ detail: "角色名稱已被使用" }, 409))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
-  const error = await client.createCharacter("青").catch((caught: unknown) => caught)
+  const error = await client.createCharacter(command).catch((caught: unknown) => caught)
 
   expect(error).toBeInstanceOf(ApiError)
   expect((error as ApiError).status).toBe(409)

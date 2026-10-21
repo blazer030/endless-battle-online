@@ -13,4 +13,7 @@ export const Palette = {
   green: 0x4fc47a,
   night: 0x0b1020,
   white: 0xffffff,
+  elementEarth: 0xb07a3c,
+  elementWater: 0x4a8fe0,
+  elementPoison: 0x9b6ee0,
 } as const

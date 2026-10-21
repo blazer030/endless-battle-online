@@ -1,23 +1,126 @@
-import { useState, type FormEvent } from "react"
+import { useState, type FormEvent, type ReactNode } from "react"
 import { ApiError, type ApiClient } from "../api/client"
-import type { CharacterView } from "../game/types"
+import {
+  AllocationTotalPoints,
+  baseStatsFromAllocation,
+  deriveStats,
+  MinimumAllocation,
+} from "../game/stats"
+import type { CharacterView, ContentNames, StatAllocation } from "../game/types"
+import { jobBlurbs } from "./jobBlurbs"
+import "./CreateCharacterScreen.css"
 
 type Props = {
   api: Pick<ApiClient, "createCharacter">
+  content: Pick<ContentNames, "jobs" | "elements" | "births" | "sexes">
   onCreated: (character: CharacterView) => void
 }
 
-export const CreateCharacterScreen = ({ api, onCreated }: Props) => {
+type Option = { id: string; name: string }
+
+const allocatableStats: { key: keyof StatAllocation; label: string }[] = [
+  { key: "str", label: "力量" },
+  { key: "smart", label: "智力" },
+  { key: "life", label: "生命" },
+  { key: "agi", label: "敏捷" },
+]
+
+const startingAllocation: StatAllocation = { str: 1, smart: 1, life: 1, agi: 1 }
+
+const totalOf = (allocation: StatAllocation) =>
+  Object.values(allocation).reduce((sum, points) => sum + points, 0)
+
+// 內容的選項 id 是 "1"～"N"，請求要的是數字
+const firstNumericId = (options: Option[]) => (options.length > 0 ? Number(options[0].id) : 1)
+
+const ChoiceGroup = ({
+  legend,
+  options,
+  selectedId,
+  onSelect,
+  className,
+  renderOption = (option) => option.name,
+}: {
+  legend: string
+  options: Option[]
+  selectedId: string
+  onSelect: (id: string) => void
+  className: string
+  renderOption?: (option: Option) => ReactNode
+}) => (
+  <fieldset className="choice-group">
+    <legend>{legend}</legend>
+    <div className={className}>
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          className="choice"
+          data-option={option.id}
+          aria-pressed={option.id === selectedId}
+          onClick={() => onSelect(option.id)}
+        >
+          {renderOption(option)}
+        </button>
+      ))}
+    </div>
+  </fieldset>
+)
+
+const JobCard = ({ job }: { job: Option }) => {
+  const blurb = jobBlurbs[job.id]
+  return (
+    <>
+      <strong className="job-name">{job.name}</strong>
+      {blurb !== undefined && (
+        <>
+          <span className="job-role">{blurb.role}</span>
+          <span className="job-growth">{blurb.growth}</span>
+        </>
+      )}
+    </>
+  )
+}
+
+export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
+  const startingJobs = content.jobs.filter((job) => job.tier === 1)
   const [name, setName] = useState("")
+  const [specialAttackName, setSpecialAttackName] = useState("")
+  const [sex, setSex] = useState(() => firstNumericId(content.sexes))
+  const [element, setElement] = useState(() => firstNumericId(content.elements))
+  const [birth, setBirth] = useState(() => firstNumericId(content.births))
+  const [jobId, setJobId] = useState(() => (startingJobs.length > 0 ? startingJobs[0].id : ""))
+  const [allocation, setAllocation] = useState(startingAllocation)
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
+
+  const remaining = AllocationTotalPoints - totalOf(allocation)
+  const preview = deriveStats(baseStatsFromAllocation(allocation))
+
+  const adjust = (key: keyof StatAllocation, delta: number) =>
+    setAllocation((current) => {
+      const next = { ...current, [key]: current[key] + delta }
+      const isWithinBounds =
+        next[key] >= MinimumAllocation && totalOf(next) <= AllocationTotalPoints
+      return isWithinBounds ? next : current
+    })
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setIsBusy(true)
     setErrorDetail(null)
     try {
-      onCreated(await api.createCharacter(name))
+      onCreated(
+        await api.createCharacter({
+          name,
+          sex,
+          element,
+          birth,
+          jobId,
+          allocation,
+          specialAttackName,
+        }),
+      )
     } catch (error) {
       setErrorDetail(error instanceof ApiError ? error.detail : "發生錯誤，請稍後再試")
       setIsBusy(false)
@@ -25,17 +128,101 @@ export const CreateCharacterScreen = ({ api, onCreated }: Props) => {
   }
 
   return (
-    <main className="screen">
+    <main className="screen create-screen">
       <h1 className="title">墨渡</h1>
+      <p className="subtitle">建立你的冒險者</p>
       <form className="form" onSubmit={(event) => void handleSubmit(event)}>
-        <p>為你的修仙者取個名字（2～12 字）</p>
         <label>
           名稱
-          <input value={name} onChange={(event) => setName(event.target.value)} maxLength={12} />
+          <input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            maxLength={12}
+            placeholder="2～12 字"
+          />
         </label>
+        <label>
+          必殺技名稱
+          <input
+            value={specialAttackName}
+            onChange={(event) => setSpecialAttackName(event.target.value)}
+            maxLength={8}
+            placeholder="1～8 字"
+          />
+        </label>
+
+        <ChoiceGroup
+          legend="性別"
+          className="choice-row"
+          options={content.sexes}
+          selectedId={String(sex)}
+          onSelect={(id) => setSex(Number(id))}
+        />
+        <ChoiceGroup
+          legend="屬性"
+          className="choice-row element-row"
+          options={content.elements}
+          selectedId={String(element)}
+          onSelect={(id) => setElement(Number(id))}
+        />
+        <ChoiceGroup
+          legend="出生地"
+          className="choice-grid"
+          options={content.births}
+          selectedId={String(birth)}
+          onSelect={(id) => setBirth(Number(id))}
+        />
+        <ChoiceGroup
+          legend="職業"
+          className="choice-grid job-grid"
+          options={startingJobs}
+          selectedId={jobId}
+          onSelect={setJobId}
+          renderOption={(job) => <JobCard job={job} />}
+        />
+
+        <fieldset className="choice-group">
+          <legend>能力配點</legend>
+          <p className="points-left">剩餘 {remaining} 點</p>
+          <div className="allocation">
+            <ul className="steppers">
+              {allocatableStats.map(({ key, label }) => (
+                <li key={key} className="stepper">
+                  <span className="stepper-label">{label}</span>
+                  <button
+                    type="button"
+                    aria-label={`減少${label}`}
+                    disabled={allocation[key] <= MinimumAllocation}
+                    onClick={() => adjust(key, -1)}
+                  >
+                    −
+                  </button>
+                  <span className="stepper-value">{allocation[key]}</span>
+                  <button
+                    type="button"
+                    aria-label={`增加${label}`}
+                    disabled={remaining <= 0}
+                    onClick={() => adjust(key, 1)}
+                  >
+                    ＋
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <section className="preview" aria-label="能力預覽">
+              <p>
+                HP 上限 <strong>{preview.hpMax}</strong>
+              </p>
+              <p>
+                SP 上限 <strong>{preview.spMax}</strong>
+              </p>
+            </section>
+          </div>
+        </fieldset>
+
         <div className="actions">
           <button type="submit" disabled={isBusy}>
-            踏入仙途
+            踏上旅途
           </button>
         </div>
         {errorDetail !== null && (

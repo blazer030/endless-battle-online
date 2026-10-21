@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import { saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
-import { makeCharacter } from "../test/fixtures"
+import { makeCharacter, makeContent } from "../test/fixtures"
 import { App } from "./App"
 
 // 路由測試只關心切到哪個畫面，歷練畫面本身另有測試
@@ -14,6 +14,16 @@ vi.mock("./AdventureScreen", () => ({
 }))
 
 const character = makeCharacter({ name: "青衣" })
+
+const job = {
+  id: "warrior",
+  name: "戰士",
+  tier: 1,
+  parentId: null,
+  unlockLevel: 1,
+  proficiencyRequired: 0,
+  statRequirements: [],
+}
 
 const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   register: vi.fn(),
@@ -39,11 +49,30 @@ test("App_ShowsLogin_WhenNoToken", () => {
 
 test("App_ShowsCreateCharacter_WhenLoggedInWithoutCharacter", async () => {
   saveAccessToken("token")
-  const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(null) })
+  const content = makeContent({ jobs: [job] })
+  const api = createFakeApi({
+    getMyCharacter: vi.fn().mockResolvedValue(null),
+    getContent: vi.fn().mockResolvedValue(content),
+  })
 
   render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
 
-  expect(await screen.findByRole("button", { name: "踏入仙途" })).toBeInTheDocument()
+  expect(await screen.findByRole("button", { name: "踏上旅途" })).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: /戰士/ })).toBeInTheDocument()
+})
+
+test("App_KeepsLoading_UntilContentArrives", async () => {
+  saveAccessToken("token")
+  const api = createFakeApi({
+    getMyCharacter: vi.fn().mockResolvedValue(null),
+    getContent: vi.fn(() => new Promise<never>(() => {})),
+  })
+
+  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
+
+  await vi.waitFor(() => expect(api.getContent).toHaveBeenCalled())
+  expect(screen.getByText("載入中…")).toBeInTheDocument()
+  expect(screen.queryByRole("button", { name: "踏上旅途" })).not.toBeInTheDocument()
 })
 
 test("App_ShowsAdventure_WhenCharacterExists", async () => {

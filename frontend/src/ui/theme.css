@@ -14,6 +14,10 @@
   --green: #4fc47a;
   --night: #0b1020;
   --white: #ffffff;
+  /* 屬性色塊；火、木、風沿用 --crimson、--green、--cyan */
+  --element-earth: #b07a3c;
+  --element-water: #4a8fe0;
+  --element-poison: #9b6ee0;
   --font-ui: "Noto Sans TC", sans-serif;
   --font-title: "Cinzel", "Noto Serif TC", serif;
 }

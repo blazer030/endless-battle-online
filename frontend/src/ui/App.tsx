@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { readAccessToken } from "../api/authStorage"
 import type { ApiClient } from "../api/client"
-import type { CharacterView } from "../game/types"
+import type { CharacterView, ContentNames } from "../game/types"
 import { AdventureScreen } from "./AdventureScreen"
 import { AuthScreen } from "./AuthScreen"
 import { CreateCharacterScreen } from "./CreateCharacterScreen"
@@ -11,7 +11,7 @@ export type SessionExpiryListener = (listener: () => void) => () => void
 type Phase =
   | { name: "auth" }
   | { name: "loading" }
-  | { name: "create" }
+  | { name: "create"; content: ContentNames }
   | { name: "adventure"; character: CharacterView }
 
 type Props = {
@@ -34,9 +34,13 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     let isCurrent = true
     api
       .getMyCharacter()
-      .then((character) => {
-        if (isCurrent)
-          setPhase(character === null ? { name: "create" } : { name: "adventure", character })
+      .then(async (character): Promise<Phase> => {
+        if (character !== null) return { name: "adventure", character }
+        // 建角畫面的選項（職業、屬性等）來自內容，先取回再顯示
+        return { name: "create", content: await api.getContent() }
+      })
+      .then((next) => {
+        if (isCurrent) setPhase(next)
       })
       .catch(() => {
         if (isCurrent) setPhase({ name: "auth" })
@@ -55,6 +59,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       return (
         <CreateCharacterScreen
           api={api}
+          content={phase.content}
           onCreated={(character) => setPhase({ name: "adventure", character })}
         />
       )

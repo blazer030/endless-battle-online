@@ -1,4 +1,9 @@
-import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import type {
+  AdvanceResponse,
+  CharacterView,
+  ContentNames,
+  CreateCharacterCommand,
+} from "../game/types"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 
@@ -20,7 +25,7 @@ export type ApiClient = {
   register: (username: string, password: string) => Promise<void>
   login: (username: string, password: string) => Promise<void>
   getMyCharacter: () => Promise<CharacterView | null>
-  createCharacter: (name: string) => Promise<CharacterView>
+  createCharacter: (command: CreateCharacterCommand) => Promise<CharacterView>
   advance: () => Promise<AdvanceResponse>
   getContent: () => Promise<ContentNames>
 }
@@ -89,7 +94,7 @@ export const createApiClient = (options: {
         throw error
       }
     },
-    createCharacter: (name) => requestJson<CharacterView>("/api/characters", "POST", { name }),
+    createCharacter: (command) => requestJson<CharacterView>("/api/characters", "POST", command),
     advance: () => requestJson<AdvanceResponse>("/api/adventure/advance", "POST"),
     getContent: () => requestJson<ContentNames>("/api/content", "GET"),
   }
