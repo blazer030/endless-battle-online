@@ -99,5 +99,6 @@ public class JobServiceTests
         var berserker = options.Single(option => option.Id == "berserker");
         Assert.Equal("測試戰士", berserker.ParentName);
         Assert.False(berserker.Eligible);
+        Assert.Equal(0, berserker.ProficiencyPercent);
     }
 }

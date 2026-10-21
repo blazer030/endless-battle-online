@@ -91,6 +91,28 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Jobs_Returns404_WhenNoCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/jobs", CancellationToken)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await ChangeAsync(client, "thief")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Change_Returns400_WhenJobIdBlank()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await ChangeAsync(client, " ")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            (await client.PostAsJsonAsync("/api/jobs/change", new { }, CancellationToken)).StatusCode);
+    }
+
+    [Fact]
     public async Task Jobs_RequiresAuthentication()
     {
         await using var factory = new EndlessBattleApiFactory(database);

@@ -41,6 +41,24 @@ public class JobChangeTests
         Assert.Equal(expected, check.Reasons);
     }
 
+    // 七個能力名稱各自對應 Base 的欄位：minimum 比該能力高 1 點就不足
+    [Theory]
+    [InlineData("str", 13)]
+    [InlineData("smart", 13)]
+    [InlineData("life", 13)]
+    [InlineData("vit", 11)]
+    [InlineData("agi", 13)]
+    [InlineData("au", 11)]
+    [InlineData("be", 11)]
+    public void Evaluate_ComparesEachBaseStatByName(string stat, int minimum)
+    {
+        var target = Thief with { Id = "other", StatRequirements = [new StatRequirement(stat, minimum)] };
+        var character = Warrior(level: 1, str: 12);
+
+        Assert.Equal([$"statTooLow:{stat}"], JobChange.Evaluate(character, target, []).Reasons);
+        Assert.True(JobChange.Evaluate(character, target with { StatRequirements = [new StatRequirement(stat, minimum - 1)] }, []).Eligible);
+    }
+
     [Fact]
     public void Evaluate_MissingProficiencyRow_CountsAsZero()
     {
