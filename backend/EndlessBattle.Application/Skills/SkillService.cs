@@ -72,6 +72,8 @@ public sealed class SkillService(
                 : slot)
             .OrderBy(slot => slot.Slot)
             .ToList();
+        // 角色不變，只為了走版本鎖：與轉職同時進行時其中一方會 409
+        await characters.UpdateAsync(character, cancellationToken);
         await loadout.ReplaceAsync(character.Id, slots, cancellationToken);
         return await GetAsync(accountId, cancellationToken);
     }

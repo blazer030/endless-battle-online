@@ -139,6 +139,31 @@ public class SkillServiceTests
         Assert.Equal([new SkillSlot(1, "burst", 50)], await loadout.ListAsync(character.Id, CancellationToken));
     }
 
+    [Fact]
+    public async Task SetSlots_ConflictLeavesSlots()
+    {
+        var character = await ArrangeAsync(0, new LearnedSkill("burst", 1));
+        await loadout.ReplaceAsync(character.Id, [new SkillSlot(1, "burst", 50)], CancellationToken);
+        log.Clear();
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.SetSlotsAsync(AccountId, [], CancellationToken));
+
+        Assert.Empty(log);
+        Assert.Equal([new SkillSlot(1, "burst", 50)], await loadout.ListAsync(character.Id, CancellationToken));
+    }
+
+    [Fact]
+    public async Task SetSlots_BumpsCharacterVersion()
+    {
+        var character = await ArrangeAsync(0, new LearnedSkill("burst", 1));
+
+        await service.SetSlotsAsync(AccountId, [new SkillSlot(1, "burst", 70)], CancellationToken);
+
+        Assert.Equal(["update", "loadout"], log);
+        Assert.Equal(character.Version + 1, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
+    }
+
     // 目前職業的技能全部列出（含未學）；其他職業的技能只列已學的
     [Fact]
     public async Task Get_ListsCurrentJobSkillsAndLearnedOthers()
