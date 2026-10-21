@@ -56,7 +56,7 @@ public sealed class JsonGameContent : IGameContent
         {
             if (!monsters.TryAdd(monster.Id, monster))
             {
-                throw new GameContentException($"妖怪 id 重複：{monster.Id}");
+                throw new GameContentException($"怪物 id 重複：{monster.Id}");
             }
 
             ValidateMonster(monster);
@@ -72,13 +72,13 @@ public sealed class JsonGameContent : IGameContent
 
             if (stage.MonsterIds.Count == 0)
             {
-                throw new GameContentException($"關卡 {stage.Id} 沒有任何妖怪");
+                throw new GameContentException($"關卡 {stage.Id} 沒有任何怪物");
             }
 
             var unknownMonster = stage.MonsterIds.FirstOrDefault(monsterId => !monsters.ContainsKey(monsterId));
             if (unknownMonster is not null)
             {
-                throw new GameContentException($"關卡 {stage.Id} 引用了不存在的妖怪：{unknownMonster}");
+                throw new GameContentException($"關卡 {stage.Id} 引用了不存在的怪物：{unknownMonster}");
             }
         }
 
@@ -110,7 +110,7 @@ public sealed class JsonGameContent : IGameContent
         stages.TryGetValue(stageId, out var stage) ? stage : throw new GameContentException($"找不到關卡：{stageId}");
 
     public MonsterDefinition GetMonster(string monsterId) =>
-        monsters.TryGetValue(monsterId, out var monster) ? monster : throw new GameContentException($"找不到妖怪：{monsterId}");
+        monsters.TryGetValue(monsterId, out var monster) ? monster : throw new GameContentException($"找不到怪物：{monsterId}");
 
     public JobDefinition GetJob(string jobId) =>
         jobs.TryGetValue(jobId, out var job) ? job : throw new GameContentException($"找不到職業：{jobId}");
@@ -120,22 +120,22 @@ public sealed class JsonGameContent : IGameContent
         // agi 是命中公式的分母
         if (monster.Hp <= 0 || monster.Agi <= 0)
         {
-            throw new GameContentException($"妖怪 {monster.Id} 的 hp 與 agi 必須大於 0");
+            throw new GameContentException($"怪物 {monster.Id} 的 hp 與 agi 必須大於 0");
         }
 
         if (monster.Level < 1)
         {
-            throw new GameContentException($"妖怪 {monster.Id} 的 level 必須至少 1");
+            throw new GameContentException($"怪物 {monster.Id} 的 level 必須至少 1");
         }
 
         if (monster.Element is < MinimumElement or > MaximumElement)
         {
-            throw new GameContentException($"妖怪 {monster.Id} 的 element 必須在 {MinimumElement}～{MaximumElement}");
+            throw new GameContentException($"怪物 {monster.Id} 的 element 必須在 {MinimumElement}～{MaximumElement}");
         }
 
         if (monster.Meet is < 0 or > MaximumMeet)
         {
-            throw new GameContentException($"妖怪 {monster.Id} 的 meet 必須在 0～{MaximumMeet}");
+            throw new GameContentException($"怪物 {monster.Id} 的 meet 必須在 0～{MaximumMeet}");
         }
     }
 
