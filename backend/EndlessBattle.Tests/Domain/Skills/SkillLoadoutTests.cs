@@ -104,6 +104,14 @@ public class SkillLoadoutTests
             [("iron-skin", 2, 40, 4)],
             ForBattle([new LearnedSkill("iron-skin", 2)], "warrior", new SkillSlot(4, "iron-skin", 30)));
 
+    // 內容把技能縮成 5 級後，技能書裡的 7、9 級以 5 級施放
+    [Fact]
+    public void ForBattle_ClampsLevelToContentMaximum() =>
+        Assert.Equal(
+            [("burst", 5, 50, 1), ("iron-skin", 5, 70, 4)],
+            ForBattle([new LearnedSkill("burst", 7), new LearnedSkill("iron-skin", 9)], "warrior",
+                new SkillSlot(1, "burst", 50), new SkillSlot(4, "iron-skin", 30)));
+
     [Fact]
     public void ForBattle_SkipsSkillsNotInBook() =>
         Assert.Equal(
