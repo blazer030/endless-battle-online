@@ -49,7 +49,13 @@ public sealed record DefeatEvent(double AtSeconds, CombatSide Loser) : BattleEve
 
 public sealed record TimeoutEvent(double AtSeconds, int Rounds, int DamageDealt) : BattleEvent(AtSeconds);
 
-public sealed record RewardEvent(double AtSeconds, long Exp, long Money, long JobExp) : BattleEvent(AtSeconds);
+// Drops 依擲骰順序；Discarded 表示背包該分類已滿而被丟棄
+public sealed record RewardEvent(double AtSeconds, long Exp, long Money, long JobExp, IReadOnlyList<DropResult>? Drops = null) : BattleEvent(AtSeconds)
+{
+    public IReadOnlyList<DropResult> Drops { get; init; } = Drops ?? [];
+}
+
+public sealed record DropResult(string ItemId, string Name, int Quantity, bool Discarded);
 
 public sealed record LevelUpEvent(double AtSeconds, int NewLevel, BaseStats Growth) : BattleEvent(AtSeconds);
 

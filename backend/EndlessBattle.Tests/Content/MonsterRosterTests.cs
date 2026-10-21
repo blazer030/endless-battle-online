@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -48,6 +49,31 @@ public partial class MonsterRosterTests
             });
             Assert.InRange(monsters.Count(monster => monster.Meet == EliteMeet), 0, 1);
         }
+    }
+
+    // 每隻怪 1～3 個掉落、topr 3～200，不重複；全域怪有明確的指定（絨球小補給 topr 3、寶箱哥布林材料 topr 2 + 精鍊石 topr 50）
+    [Fact]
+    public void Roster_DropsReferenceKnownItems()
+    {
+        Assert.All(Content.AllMonsters, monster =>
+        {
+            Assert.InRange(monster.Drops.Count, 1, 3);
+            Assert.Equal(monster.Drops.Count, monster.Drops.Select(drop => drop.ItemId).Distinct().Count());
+            Assert.All(monster.Drops, drop =>
+            {
+                Assert.Contains(Content.AllItems, item => item.Id == drop.ItemId);
+                var minimum = monster.PlaceId == 0 ? 2 : 3;
+                Assert.InRange(drop.Topr, minimum, 200);
+            });
+        });
+
+        Assert.Equal([new DropEntry("small-supply", 3)], Content.GetMonster("wandering-puff").Drops);
+        var goblin = Content.GetMonster("treasure-goblin").Drops;
+        Assert.Equal(2, goblin.Count);
+        Assert.Equal(2, goblin[0].Topr);
+        Assert.Equal(ItemCategory.Material, Content.GetItem(goblin[0].ItemId).Category);
+        Assert.Equal(50, goblin[1].Topr);
+        Assert.Equal(ItemCategory.RefineStone, Content.GetItem(goblin[1].ItemId).Category);
     }
 
     [Fact]

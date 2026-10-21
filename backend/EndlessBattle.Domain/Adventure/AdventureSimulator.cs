@@ -2,6 +2,7 @@ using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
@@ -30,6 +31,7 @@ public static class AdventureSimulator
         JobDefinition job,
         PlaceDefinition place,
         IReadOnlyList<MonsterDefinition> placeMonsters,
+        Func<string, ItemDefinition> items,
         IReadOnlyList<EquippedSkill> skills,
         StaminaState stamina,
         DateTimeOffset from,
@@ -42,6 +44,7 @@ public static class AdventureSimulator
         var totalSeconds = (to - from).TotalSeconds;
         var windowStart = totalSeconds - CatchUpWindowSeconds;
         var events = new List<BattleEvent>();
+        var droppedItemIds = new List<string>();
         var eventsCoverAll = true;
         int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
@@ -103,6 +106,7 @@ public static class AdventureSimulator
             character = character with { Hp = outcome.Player.Hp, Sp = outcome.Player.Sp };
 
             long exp = 0, money = 0, jobExp = 0;
+            IReadOnlyList<string> dropped = [];
             switch (outcome.Winner)
             {
                 case CombatSide.Player:
@@ -110,6 +114,8 @@ public static class AdventureSimulator
                     exp = RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, fDown, random);
                     money = RewardFormulas.Money(definition, fDown, random);
                     jobExp = RewardFormulas.JobExp(definition, fDown);
+                    // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
+                    dropped = DropRoller.Roll(definition.Drops, fDown, random);
                     break;
                 case CombatSide.Monster:
                     // 死亡沒有懲罰，HP 留在 0，下一場前住宿
@@ -129,8 +135,13 @@ public static class AdventureSimulator
             {
                 if (keepEvents)
                 {
-                    events.Add(new RewardEvent(fightEnd, exp, money, jobExp));
+                    IReadOnlyList<DropResult> results = dropped.Count == 0
+                        ? Array.Empty<DropResult>()
+                        : dropped.Select(itemId => new DropResult(itemId, items(itemId).Name, 1, Discarded: false)).ToList();
+                    events.Add(new RewardEvent(fightEnd, exp, money, jobExp, results));
                 }
+
+                droppedItemIds.AddRange(dropped);
 
                 expTotal += exp;
                 moneyTotal += money;
@@ -150,6 +161,6 @@ public static class AdventureSimulator
 
         var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
-        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll);
+        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds);
     }
 }

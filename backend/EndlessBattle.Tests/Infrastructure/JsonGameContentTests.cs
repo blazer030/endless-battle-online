@@ -117,13 +117,13 @@ public class JsonGameContentTests
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         Assert.Equal(["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith"], content.AllMonsters.Select(monster => monster.Id));
         Assert.Equal(["test-sprite", "test-wolf"], content.MonstersOf(1).Select(monster => monster.Id));
-        // SubPlaces 是清單，record 的 Equals 只比參考，改用結構比對
+        // SubPlaces、Drops 是清單，record 的 Equals 只比參考，改用結構比對
         Assert.Equivalent(
-            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3]),
+            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
             content.GetMonster("test-wolf"),
             strict: true);
         Assert.Equivalent(
-            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2]),
+            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
             content.GetMonster("test-sprite"),
             strict: true);
     }
@@ -134,11 +134,13 @@ public class JsonGameContentTests
     {
         var content = JsonGameContent.Load(ShippedContentDirectory);
         Assert.Equivalent(
-            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 128, Mat: 76, Df: 41, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2, 3, 4]),
+            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 128, Mat: 76, Df: 41, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2, 3, 4],
+                Drops: [new DropEntry("medium-supply", 4), new DropEntry("iron-ore", 6)]),
             content.GetMonster("snow-sprite"),
             strict: true);
         Assert.Equivalent(
-            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 127, Mat: 84, Df: 45, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3]),
+            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 127, Mat: 84, Df: 45, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3],
+                Drops: [new DropEntry("medium-supply", 5), new DropEntry("magic-dust", 7), new DropEntry("arcane-refine-stone-2", 175)]),
             content.GetMonster("frost-wolf"),
             strict: true);
     }
@@ -167,6 +169,20 @@ public class JsonGameContentTests
     [InlineData("[1, 1]")]
     public void Monster_RejectsSubPlaceOutsideRange(string subPlaces) =>
         AssertLoadRejects(MonsterAt("1", subPlaces), ValidJobs, "sprite");
+
+    private const string HerbItems =
+        """{ "items": [{ "id": "herb", "name": "藥草", "category": "Material", "price": 1, "shopLevel": 1, "shopSellable": false }] }""";
+
+    private static string MonsterDropping(string itemId, int topr) =>
+        $$"""{ "monsters": [{{ValidMonster.Replace("\"meet\": 0", $"\"meet\": 0, \"drops\": [{{ \"itemId\": \"{itemId}\", \"topr\": {topr} }}]")}}] }""";
+
+    [Fact]
+    public void Monster_RejectsUnknownDropItem() =>
+        AssertLoadRejects(MonsterDropping("ghost-item", 5), ValidJobs, "ghost-item", itemsJson: HerbItems);
+
+    [Fact]
+    public void Monster_RejectsDropWithToprBelowOne() =>
+        AssertLoadRejects(MonsterDropping("herb", 0), ValidJobs, "topr", itemsJson: HerbItems);
 
     [Fact]
     public void Monster_RejectsUnknownPlace() =>

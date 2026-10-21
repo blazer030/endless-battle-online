@@ -152,6 +152,11 @@ public sealed class JsonGameContent : IGameContent
             ValidateItem(item, jobs);
         }
 
+        foreach (var monster in monsterFile.Monsters)
+        {
+            ValidateDrops(monster, items);
+        }
+
         var allRecipes = recipeFile.Recipes.Select(ToRecipe).ToList();
         var recipeIds = new HashSet<string>();
         foreach (var recipe in allRecipes)
@@ -272,6 +277,22 @@ public sealed class JsonGameContent : IGameContent
             .ToList();
         var allAreas = world.Areas.Select(area => new AreaDefinition(area.Id, area.Name, area.PlaceIds)).ToList();
         return (allAreas, allPlaces, allPlaces.ToDictionary(place => place.Id));
+    }
+
+    private static void ValidateDrops(MonsterDefinition monster, Dictionary<string, ItemDefinition> items)
+    {
+        foreach (var drop in monster.Drops)
+        {
+            if (!items.ContainsKey(drop.ItemId))
+            {
+                throw new GameContentException($"怪物 {monster.Id} 的掉落引用了不存在的道具：{drop.ItemId}");
+            }
+
+            if (drop.Topr < 1)
+            {
+                throw new GameContentException($"怪物 {monster.Id} 的掉落 {drop.ItemId} 的 topr 必須至少 1");
+            }
+        }
     }
 
     private static void ValidateMonster(MonsterDefinition monster, Dictionary<int, PlaceDefinition> places)

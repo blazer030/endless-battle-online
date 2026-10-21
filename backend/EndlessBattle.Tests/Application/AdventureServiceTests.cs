@@ -39,7 +39,7 @@ public class AdventureServiceTests
         repository = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        service = new AdventureService(repository, proficiencies, skillBook, loadout, equipment, Content, clock, new ScriptedRandomFactory());
+        service = new AdventureService(repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new ScriptedRandomFactory());
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -61,7 +61,7 @@ public class AdventureServiceTests
 
         Assert.Equal(8, result.Events.OfType<EncounterEvent>().Count());
         Assert.All(result.Events.OfType<EncounterEvent>(), encounter => Assert.Equal("test-sprite", encounter.MonsterId));
-        Assert.Equal(new AdvanceSummary(Fights: 8, Wins: 8, Losses: 0, Timeouts: 0, Exp: 928, Money: 0, JobExp: 96, LevelsGained: 1, SkillsCast: 0), result.Summary);
+        Assert.Equal(new AdvanceSummary(Fights: 8, Wins: 8, Losses: 0, Timeouts: 0, Exp: 928, Money: 0, JobExp: 96, LevelsGained: 1, SkillsCast: 0, Drops: 8), result.Summary);
         Assert.True(result.EventsCoverAll);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(Start.AddSeconds(22.4), stored!.LastSettledAt, TimeSpan.FromMilliseconds(1));
@@ -131,9 +131,11 @@ public class AdventureServiceTests
 
         var from = clock.UtcNow.AddHours(-24);
         var expected = AdventureSimulator.Run(
-            character, Content.GetJob("warrior"), Content.GetPlace(1), Content.MonstersOf(1), [],
+            character, Content.GetJob("warrior"), Content.GetPlace(1), Content.MonstersOf(1), Content.GetItem, [],
             new StaminaState(character.ActNum, character.ActNumTime), from, clock.UtcNow, new ScriptedRandom(0.0));
-        Assert.Equal(expected.Summary, result.Summary);
+        // 摘要的掉落是進背包的件數：8656 件補給品只放得下 15 格 × 99 = 1485
+        Assert.Equal(expected.Summary, result.Summary with { Drops = 0 });
+        Assert.Equal(1485, result.Summary.Drops);
         Assert.True(result.Summary.Fights > 1000);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(from.AddSeconds(expected.ConsumedSeconds), stored!.LastSettledAt);
@@ -249,6 +251,83 @@ public class AdventureServiceTests
     public async Task Advance_Throws_WhenNoCharacter()
     {
         await Assert.ThrowsAsync<NotFoundException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+    }
+
+    private async Task<IReadOnlyList<(string ItemId, int Quantity)>> BagAsync(long characterId) =>
+        (await inventory.ListAsync(characterId, CancellationToken)).Select(entry => (entry.ItemId, entry.Quantity)).ToList();
+
+    // 把消耗品分類填到只剩 1 格：14 格別的道具 ×99，第 15 格 test-supply ×supplyQuantity
+    private async Task FillConsumablesAsync(Character character, int supplyQuantity)
+    {
+        for (var index = 0; index < 14; index++)
+        {
+            await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-str-potion", 99), CancellationToken);
+        }
+
+        await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", supplyQuantity), CancellationToken);
+    }
+
+    // 8 場全勝，每場掉 test-supply（topr 1 → 必掉）→ 背包多 ×8；摘要計入背包的件數，事件列出掉落且沒有丟棄
+    [Fact]
+    public async Task Advance_PersistsDrops()
+    {
+        var character = await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal([("test-supply", 8)], await BagAsync(character.Id));
+        Assert.Equal(8, result.Summary.Drops);
+        var rewards = result.Events.OfType<RewardEvent>().ToList();
+        Assert.Equal(8, rewards.Count);
+        Assert.All(rewards, reward => Assert.Equal([new DropResult("test-supply", "測試補給藥劑", 1, false)], reward.Drops));
+    }
+
+    // 消耗品第 15 格 ×97：前兩件補滿到 99，其餘 6 件沒有格子 → 丟棄。摘要只計 2，事件的前兩個掉落未丟棄、後面都標丟棄
+    [Fact]
+    public async Task Advance_DiscardsDropsWhenBagCategoryIsFull()
+    {
+        var character = await AddCharacterAsync();
+        await FillConsumablesAsync(character, supplyQuantity: 97);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(2, result.Summary.Drops);
+        Assert.Equal(("test-supply", 99), (await BagAsync(character.Id)).Last());
+        Assert.Equal(15, (await BagAsync(character.Id)).Count);
+        var flags = result.Events.OfType<RewardEvent>().SelectMany(reward => reward.Drops).Select(drop => drop.Discarded);
+        Assert.Equal([false, false, true, true, true, true, true, true], flags);
+    }
+
+    // 40 秒：前幾場在 30 秒窗口外，事件只留尾段。背包只剩 1 個空位的堆疊（98 → 99）→ 只有第一個掉落（窗口外）被收下，
+    // 窗口內的掉落全部標丟棄：旗標必須從全部掉落的尾端對齊
+    [Fact]
+    public async Task Advance_AlignsDiscardFlagsWithTheEventWindow()
+    {
+        var character = await AddCharacterAsync();
+        await FillConsumablesAsync(character, supplyQuantity: 98);
+        clock.Advance(TimeSpan.FromSeconds(40));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var eventDrops = result.Events.OfType<RewardEvent>().SelectMany(reward => reward.Drops).ToList();
+        Assert.True(result.Summary.Wins > eventDrops.Count);
+        Assert.Equal(1, result.Summary.Drops);
+        Assert.NotEmpty(eventDrops);
+        Assert.All(eventDrops, drop => Assert.True(drop.Discarded));
+    }
+
+    [Fact]
+    public async Task Advance_WritesNoDrops_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        repository.FailNextUpdate = true;
+        clock.Advance(TimeSpan.FromSeconds(5));
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.Empty(await BagAsync(character.Id));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

@@ -30,6 +30,8 @@ public class AdventureSimulatorTests
         int placeId = 0, params int[] subPlaces) =>
         new(id, id, level, hp, Sp: 5, at, Mat: 0, df, Mdf: 1, Agi: 12, Au: 10, Element: 0, jobExp, meet, placeId, subPlaces);
 
+    private static ItemDefinition ItemOf(string id) => TestItems.Item(id, ItemCategory.Material) with { Name = $"名稱-{id}" };
+
     private static readonly MonsterDefinition Dummy = Monster("dummy");
 
     private static readonly PlaceDefinition Place = new(1, "平原", "central", [], new LevelRange(1, 10), Restricted: false);
@@ -49,6 +51,7 @@ public class AdventureSimulatorTests
             Warrior,
             Place,
             monsters.Length == 0 ? [Dummy] : monsters,
+            ItemOf,
             skills,
             new StaminaState(character.ActNum, character.ActNumTime),
             From,
@@ -343,9 +346,67 @@ public class AdventureSimulatorTests
         var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 20 });
 
         var run = AdventureSimulator.Run(
-            Hero(), Warrior, Place, [Dummy], [], new StaminaState(50, null), From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
+            Hero(), Warrior, Place, [Dummy], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
 
         Assert.IsType<RestEvent>(run.Events[0]);
         Assert.Equal(850, run.Character.Hp);
+    }
+
+    // 勝場擲掉落：ore topr 10 → 分母 9，擲 0.0 → 1 命中；herb topr 1 → 不擲、一定掉；名稱來自道具定義
+    [Fact]
+    public void Adventure_EmitsDropsOnWins()
+    {
+        var monster = Dummy with { Drops = [new("ore", 10), new("herb", 1)] };
+
+        var run = Run(Hero(), seconds: 1, monsters: monster);
+
+        var reward = run.Events.OfType<RewardEvent>().Single();
+        Assert.Equal([new DropResult("ore", "名稱-ore", 1, false), new DropResult("herb", "名稱-herb", 1, false)], reward.Drops);
+        Assert.Equal(["ore", "herb"], run.DroppedItemIds);
+        Assert.Equal(0, run.Summary.Drops);
+    }
+
+    // 敗場沒有獎勵事件也不掉落；超限只有部分經驗，同樣不掉落
+    [Fact]
+    public void Adventure_DropsNothingOnLossesAndTimeouts()
+    {
+        var drops = new DropEntry[] { new("ore", 1) };
+        var brute = Monster("brute", hp: 60, at: 40, df: 1000) with { Drops = drops };
+        var rock = Monster("rock", hp: 60, at: 40, df: 1000) with { Drops = drops };
+
+        var lost = Run(Hero(), seconds: 1, monsters: brute);
+        Assert.Equal(1, lost.Summary.Losses);
+        Assert.Empty(lost.DroppedItemIds);
+
+        var timedOut = Run(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, monsters: rock);
+        Assert.Equal(1, timedOut.Summary.Timeouts);
+        Assert.Empty(timedOut.DroppedItemIds);
+        Assert.All(timedOut.Events.OfType<RewardEvent>(), reward => Assert.Empty(reward.Drops));
+    }
+
+    // 窗口外的勝場照樣掉落（進背包），只是事件被略去：31 秒 → 窗口從 1 秒起，0 秒那場在窗口外
+    [Fact]
+    public void Adventure_CountsDropsOfFightsOutsideTheWindow()
+    {
+        var monster = Dummy with { Drops = [new("ore", 1)] };
+
+        var run = Run(Hero(), seconds: 31, monsters: monster);
+
+        Assert.Equal(run.Summary.Wins, run.DroppedItemIds.Count);
+        Assert.Equal(run.Summary.Wins - 1, run.Events.OfType<RewardEvent>().Sum(reward => reward.Drops.Count));
+    }
+
+    // 擲骰順序：經驗 → 金錢 → 掉落。先量出沒有掉落時一場消耗的亂數數 N，
+    // 再把第 N + 1 次（緊接在經驗、金錢之後）設為 0.99：ore topr 10 分母 9 → 擲 9 落空。順序若不同，這個值會被別的擲骰吃掉，ore 就會掉
+    [Fact]
+    public void Adventure_DropsConsumeRngAfterRewards()
+    {
+        var baseline = new ScriptedRandom(0.0);
+        Run(Hero(), seconds: 1, baseline);
+
+        var script = Enumerable.Repeat(0.0, baseline.Consumed).Append(0.99).ToArray();
+        var run = Run(Hero(), seconds: 1, new ScriptedRandom(0.0, script), Dummy with { Drops = [new("ore", 10)] });
+
+        Assert.Empty(run.DroppedItemIds);
     }
 }

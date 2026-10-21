@@ -7,6 +7,7 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 
@@ -17,6 +18,7 @@ public sealed class AdventureService(
     IJobProficiencyRepository proficiencies,
     ISkillBookRepository skillBook,
     ISkillLoadoutRepository loadout,
+    IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IGameContent content,
     IClock clock,
@@ -48,6 +50,7 @@ public sealed class AdventureService(
             content.GetJob(character.JobId),
             content.GetPlace(character.PlaceId),
             content.MonstersOf(character.PlaceId),
+            content.GetItem,
             await LoadEquippedSkillsAsync(character, cancellationToken),
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
@@ -71,8 +74,48 @@ public sealed class AdventureService(
             await proficiencies.AddAsync(updated.Id, gain.JobId, gain.Proficiency, gain.SkillPoints, cancellationToken);
         }
 
-        return new AdvanceResult(run.Events, run.Summary, run.EventsCoverAll, updated,
+        var drops = await StoreDropsAsync(updated, run, cancellationToken);
+
+        return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
             await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
+    }
+
+    // 掉落在角色與熟練度之後才寫入背包；事件裡的 Discarded 以背包實際放不放得下為準。
+    // 事件只含窗口內的勝場，是全部掉落的尾段，所以旗標從尾端對齊
+    private async Task<(IReadOnlyList<BattleEvent> Events, int Accepted)> StoreDropsAsync(
+        Character character, AdventureRun run, CancellationToken cancellationToken)
+    {
+        if (run.DroppedItemIds.Count == 0)
+        {
+            return (run.Events, 0);
+        }
+
+        var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
+        var applied = DropApplier.Apply(state.Bag, run.DroppedItemIds, content.GetItem, character.BagBonus);
+        foreach (var entry in applied.UpdatedEntries)
+        {
+            await inventory.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity, cancellationToken);
+        }
+
+        foreach (var entry in applied.NewEntries)
+        {
+            await inventory.AddAsync(character.Id, entry, cancellationToken);
+        }
+
+        var eventDrops = run.Events.OfType<RewardEvent>().Sum(reward => reward.Drops.Count);
+        var flagIndex = run.DroppedItemIds.Count - eventDrops;
+        var events = run.Events.Select(battleEvent =>
+        {
+            if (battleEvent is not RewardEvent { Drops.Count: > 0 } reward)
+            {
+                return battleEvent;
+            }
+
+            var results = reward.Drops.Select(drop => drop with { Discarded = applied.Discarded[flagIndex++] }).ToList();
+            return reward with { Drops = results };
+        }).ToList();
+
+        return (events, applied.Discarded.Count(discarded => !discarded));
     }
 
     // 內容檔移除的技能以 null 交給 Domain 略過；技能只有十幾個，線性查找即可

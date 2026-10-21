@@ -18,7 +18,13 @@ public sealed record MonsterDefinition(
     long JobExp,
     int Meet,
     int PlaceId = 0,
-    IReadOnlyList<int>? SubPlaces = null)
+    IReadOnlyList<int>? SubPlaces = null,
+    IReadOnlyList<DropEntry>? Drops = null)
 {
     public IReadOnlyList<int> SubPlaces { get; init; } = SubPlaces ?? [];
+
+    public IReadOnlyList<DropEntry> Drops { get; init; } = Drops ?? [];
 }
+
+// Topr 對應 WOG 的掉落分母基數：實際分母為 ⌊Topr × 0.9⌋，越大越難掉
+public sealed record DropEntry(string ItemId, int Topr);
