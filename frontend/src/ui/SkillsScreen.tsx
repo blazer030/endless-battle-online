@@ -214,6 +214,13 @@ export function SkillsScreen({ api, character, onCharacterChange }: Props) {
               <ul className="skills__requirements">
                 {requirementsOf(job, jobs).map(({ text, met }) => (
                   <li key={text} className="skills__requirement" data-met={met}>
+                    <span
+                      className="skills__mark"
+                      role="img"
+                      aria-label={met ? "已達成" : "未達成"}
+                    >
+                      {met ? "✓" : "✗"}
+                    </span>
                     {text}
                   </li>
                 ))}

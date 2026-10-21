@@ -92,6 +92,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.skills__mark {
+  margin-right: 4px;
+  font-weight: 700;
+}
+
 .skills__requirement[data-met="true"] {
   color: var(--green);
 }

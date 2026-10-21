@@ -123,19 +123,31 @@ const jobCard = async (name: string) =>
 const skillCard = async (name: string) =>
   (await screen.findByRole("heading", { name })).closest("li") as HTMLElement
 
+// 達標與否除了顏色，還要有 ✓／✗ 與可讀出的文字
+const expectRequirement = (card: HTMLElement, text: string, met: boolean) => {
+  const row = within(card)
+    .getAllByRole("listitem")
+    .find((item) => item.textContent?.endsWith(text))
+  expect(row).toHaveAttribute("data-met", String(met))
+  expect(row).toHaveTextContent(`${met ? "✓" : "✗"}${text}`)
+  expect(
+    within(row as HTMLElement).getByRole("img", { name: met ? "已達成" : "未達成" }),
+  ).toBeInTheDocument()
+}
+
 test("SkillsScreen_ListsJobsWithRequirementsAndReasons", async () => {
   renderScreen()
 
   const warrior = await jobCard("戰士（基礎）")
   expect(within(warrior).getByText("目前")).toBeInTheDocument()
-  expect(within(warrior).getByText("Lv 1")).toHaveAttribute("data-met", "true")
+  expectRequirement(warrior, "Lv 1", true)
 
   const knight = await jobCard("騎士（進階）")
   expect(within(knight).queryByText("目前")).not.toBeInTheDocument()
-  expect(within(knight).getByText("Lv 30")).toHaveAttribute("data-met", "false")
-  expect(within(knight).getByText("戰士熟練度 42%／100%")).toHaveAttribute("data-met", "false")
-  expect(within(knight).getByText("體質 ≥ 60")).toHaveAttribute("data-met", "false")
-  expect(within(knight).getByText("力量 ≥ 20")).toHaveAttribute("data-met", "true")
+  expectRequirement(knight, "Lv 30", false)
+  expectRequirement(knight, "戰士熟練度 42%／100%", false)
+  expectRequirement(knight, "體質 ≥ 60", false)
+  expectRequirement(knight, "力量 ≥ 20", true)
   const change = within(knight).getByRole("button", { name: "轉職" })
   expect(change).toBeDisabled()
   expect(change).toHaveAttribute("title", "等級不足、前置職業熟練度不足、體質不足")
