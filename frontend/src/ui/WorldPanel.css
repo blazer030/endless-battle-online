@@ -1,0 +1,196 @@
+/* 蓋在冒險分頁上；舞台與戰報留在底下繼續跑 */
+.world {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-bottom);
+}
+
+.world__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.world__title {
+  flex: 1;
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.world__close {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.world__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.world__loading {
+  margin: 0;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.world__area {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.world__area-name {
+  margin: 0 0 8px 4px;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.world__places {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world__place-button {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+.world__place-button:enabled {
+  cursor: pointer;
+}
+
+.world__place-button[aria-expanded="true"] {
+  border-color: var(--gold);
+}
+
+.world__place-button:disabled {
+  opacity: 0.6;
+}
+
+.world__place-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.world__place-level {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.world__tag,
+.world__badge,
+.world__locked {
+  font-size: 12px;
+}
+
+.world__tag[data-tone="recommended"] {
+  color: var(--green);
+}
+
+.world__tag[data-tone="too-hard"] {
+  color: var(--crimson-text);
+}
+
+.world__tag[data-tone="too-easy"] {
+  color: var(--text-muted);
+}
+
+.world__badge {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--night);
+  font-weight: 700;
+}
+
+.world__locked {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.world__sub-places {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px 0 2px;
+}
+
+.world__sub-place {
+  padding: 10px 8px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.world__sub-place:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.world__sub-place[aria-current="location"] {
+  border-color: var(--border);
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.world__place-button:focus-visible,
+.world__sub-place:focus-visible,
+.world__close:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.world__errors {
+  margin: 0;
+  padding: 8px 16px;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  color: var(--crimson-text);
+  font-size: 13px;
+  text-align: center;
+}

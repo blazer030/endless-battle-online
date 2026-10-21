@@ -30,6 +30,8 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   getSkills: vi.fn(),
   learnSkill: vi.fn(),
   setSkillSlots: vi.fn(),
+  getWorld: vi.fn(),
+  moveTo: vi.fn(),
   ...overrides,
 })
 

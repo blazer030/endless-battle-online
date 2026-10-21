@@ -161,3 +161,23 @@ test("request_HasNoReasons_WhenProblemOmitsThem", async () => {
 
   expect((error as ApiError).reasons).toEqual([])
 })
+
+test("worldCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.getWorld()
+  await client.moveTo(2, 1)
+  await client.moveTo(20, null)
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["GET", "/api/world", undefined],
+    ["PUT", "/api/world/location", { placeId: 2, subPlace: 1 }],
+    ["PUT", "/api/world/location", { placeId: 20, subPlace: null }],
+  ])
+})

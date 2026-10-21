@@ -6,6 +6,7 @@ import type {
   JobOption,
   SkillOverview,
   SkillSlotCommand,
+  WorldArea,
 } from "../game/types"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
@@ -39,6 +40,8 @@ export type ApiClient = {
   getSkills: () => Promise<SkillOverview>
   learnSkill: (skillId: string) => Promise<SkillOverview>
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverview>
+  getWorld: () => Promise<WorldArea[]>
+  moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterView>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -119,5 +122,8 @@ export const createApiClient = (options: {
     getSkills: () => requestJson<SkillOverview>("/api/skills", "GET"),
     learnSkill: (skillId) => requestJson<SkillOverview>("/api/skills/learn", "POST", { skillId }),
     setSkillSlots: (slots) => requestJson<SkillOverview>("/api/skills/slots", "PUT", { slots }),
+    getWorld: () => requestJson<WorldArea[]>("/api/world", "GET"),
+    moveTo: (placeId, subPlace) =>
+      requestJson<CharacterView>("/api/world/location", "PUT", { placeId, subPlace }),
   }
 }

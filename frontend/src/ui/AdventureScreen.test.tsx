@@ -11,7 +11,7 @@ import type {
 } from "../game/types"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
-import { makeCharacter, makeContent, makeJob, makeSummary } from "../test/fixtures"
+import { makeCharacter, makeContent, makeJob, makeSummary, makeWorld } from "../test/fixtures"
 import { AdventureScreen } from "./AdventureScreen"
 
 // jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
@@ -113,6 +113,13 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   getSkills: vi.fn().mockResolvedValue(skillOverview),
   learnSkill: vi.fn(),
   setSkillSlots: vi.fn(),
+  getWorld: vi.fn().mockResolvedValue(makeWorld()),
+  moveTo: vi.fn().mockResolvedValue({
+    ...character,
+    placeId: 2,
+    placeName: "試鍊洞窟",
+    subPlaceName: "燈影隧道",
+  }),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -144,7 +151,7 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   await advanceTime(0)
   await advanceTime(100)
 
-  expect(screen.getByRole("heading", { name: "中央平原" })).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" })).toBeInTheDocument()
   const lines = screen.getAllByRole("listitem")
   expect(lines).toHaveLength(2)
   expect(lines[0]).toHaveTextContent("遭遇 測試寒狼！")
@@ -354,4 +361,45 @@ test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {
   fireEvent.click(screen.getByRole("button", { name: "冒險" }))
   const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
   expect(lines).toContain("你轉職為盜賊。")
+})
+
+test("AdventureScreen_MovingUpdatesTheHeadingAndLogs", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: /^試鍊洞窟/ }))
+  fireEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await advanceTime(0)
+
+  expect(api.moveTo).toHaveBeenCalledWith(2, 1)
+  expect(screen.queryByRole("dialog", { name: "選擇地區" })).not.toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "試鍊洞窟・燈影隧道 ▾" })).toBeInTheDocument()
+  const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
+  expect(lines).toContain("你前往試鍊洞窟・燈影隧道。")
+})
+
+test("AdventureScreen_MovingToAPlaceWithoutSubPlacesLogsOnlyThePlace", async () => {
+  const api = createFakeApi()
+  vi.mocked(api.moveTo).mockResolvedValue({
+    ...character,
+    placeId: 20,
+    placeName: "黑曜神廟",
+    subPlace: null,
+    subPlaceName: null,
+  })
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: /^黑曜神廟/ }))
+  fireEvent.click(screen.getByRole("button", { name: "前往" }))
+  await advanceTime(0)
+
+  expect(screen.getByRole("button", { name: "黑曜神廟 ▾" })).toBeInTheDocument()
+  const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
+  expect(lines).toContain("你前往黑曜神廟。")
 })

@@ -6,6 +6,7 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
 import type { CharacterView, ContentNames } from "../game/types"
+import { locationTitle } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
@@ -16,6 +17,7 @@ import { SkillsScreen } from "./SkillsScreen"
 import { StageErrorBoundary } from "./StageErrorBoundary"
 import { StatBar } from "./StatBar"
 import { useAdventureLoop } from "./useAdventureLoop"
+import { WorldPanel } from "./WorldPanel"
 import "./AdventureScreen.css"
 
 // Pixi 與 GSAP 拆成獨立 chunk，舞台載入前先用同高的空白占位
@@ -49,6 +51,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
   const [tab, setTab] = useState<Tab>("adventure")
+  const [worldOpen, setWorldOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
   const stageHandle = useRef<StageHandle>(null)
@@ -93,13 +96,17 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     setLines((previous) => [...previous, ...added].slice(-MaxLogLines))
   }
 
-  // 轉職、學技能回傳的最新角色；轉職時在戰報留一行本地訊息
+  // 轉職、學技能、移動回傳的最新角色；轉職與移動時在戰報留一行本地訊息
   const handleCharacterChange = (updated: CharacterView) => {
-    const previousJobId = playback.displayedCharacter.jobId
+    const previous = playback.displayedCharacter
     playback.confirm(updated)
     setCharacter(playback.displayedCharacter)
-    if (updated.jobId !== previousJobId)
-      appendLines([{ text: `你轉職為${updated.jobName}。`, kind: "muted" }])
+    const notes: LogEntry[] = []
+    if (updated.jobId !== previous.jobId)
+      notes.push({ text: `你轉職為${updated.jobName}。`, kind: "muted" })
+    if (updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace)
+      notes.push({ text: `你前往${locationTitle(updated)}。`, kind: "muted" })
+    if (notes.length > 0) appendLines(notes)
   }
 
   const handleItems = (items: PlaybackItem[]) => {
@@ -155,13 +162,32 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       <main className="adventure__main">
         {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
-          <h1 className="adventure__stage-name">{character.placeName}</h1>
+          <h1 className="adventure__stage-name">
+            <button
+              type="button"
+              className="adventure__location"
+              aria-haspopup="dialog"
+              aria-expanded={worldOpen}
+              onClick={() => setWorldOpen(true)}
+            >
+              {`${locationTitle(character)} ▾`}
+            </button>
+          </h1>
           <StageErrorBoundary>
             <Suspense fallback={<div style={{ height: StageHeight }} />}>
               <PixiStage ref={attachStage} />
             </Suspense>
           </StageErrorBoundary>
           <BattleLog lines={lines} />
+          {/* 每次打開才載入，推薦標籤跟著目前等級 */}
+          {worldOpen && (
+            <WorldPanel
+              api={api}
+              character={character}
+              onCharacterChange={handleCharacterChange}
+              onClose={() => setWorldOpen(false)}
+            />
+          )}
         </div>
         <div className="adventure__sheet" hidden={tab !== "character"}>
           <CharacterScreen character={character} content={content ?? emptyContent} />

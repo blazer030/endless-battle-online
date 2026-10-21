@@ -1,4 +1,10 @@
-import type { AdvanceSummary, CharacterView, ContentNames } from "../game/types"
+import type {
+  AdvanceSummary,
+  CharacterView,
+  ContentNames,
+  WorldArea,
+  WorldPlace,
+} from "../game/types"
 
 type JobContent = ContentNames["jobs"][number]
 
@@ -83,3 +89,62 @@ export const makeJob = (overrides: Partial<JobContent> = {}): JobContent => ({
   },
   ...overrides,
 })
+
+const subPlaceNames: Record<number, string[]> = {
+  1: ["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"],
+  2: ["燈影隧道", "晶礦源地", "狹窄地道", "地底空洞"],
+  3: ["巨大沼澤", "腐植草原", "狂火祭壇", "狩者墳場"],
+  17: ["幽暗礦坑", "濕漉岩壁", "魔怪階梯", "魔實驗場"],
+}
+
+export const makePlace = (overrides: Partial<WorldPlace> & Pick<WorldPlace, "id" | "name">) => {
+  const place: WorldPlace = {
+    subPlaces: (subPlaceNames[overrides.id] ?? []).map((name, index) => ({
+      index: index + 1,
+      name,
+    })),
+    recommended: { min: 1, max: 10 },
+    restricted: false,
+    current: false,
+    recommendation: "None",
+    ...overrides,
+  }
+  return place
+}
+
+// 中央大陸、魔法王國、禁區各取幾個地區；黑曜神廟當成已取得鑰匙，方便測沒有子地區的移動
+export const makeWorld = (): WorldArea[] => [
+  {
+    id: "central",
+    name: "中央大陸",
+    places: [
+      makePlace({ id: 1, name: "中央平原", current: true, recommendation: "Recommended" }),
+      makePlace({
+        id: 3,
+        name: "黑暗沼澤",
+        recommended: { min: 10, max: 20 },
+        recommendation: "TooHard",
+      }),
+    ],
+  },
+  {
+    id: "magic",
+    name: "魔法王國",
+    places: [
+      makePlace({
+        id: 2,
+        name: "試鍊洞窟",
+        recommended: { min: 6, max: 15 },
+        recommendation: "TooEasy",
+      }),
+    ],
+  },
+  {
+    id: "forbidden",
+    name: "禁區",
+    places: [
+      makePlace({ id: 17, name: "廢棄洞窟", recommended: { min: 60, max: 80 }, restricted: true }),
+      makePlace({ id: 20, name: "黑曜神廟", recommended: { min: 130, max: 160 } }),
+    ],
+  },
+]
