@@ -20,7 +20,7 @@ const PixiStage = lazy(() =>
 
 const emptyContent: ContentNames = { monsters: [], stages: [] }
 
-const navigation = ["本命", "經脈", "行囊"]
+const navigation = ["角色", "技能", "背包"]
 
 const format = (value: number) => value.toLocaleString("zh-TW")
 
@@ -112,7 +112,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       <BattleLog lines={lines} />
       <nav className="adventure__nav">
         <button type="button" className="adventure__nav-item" aria-current="page">
-          歷練
+          冒險
         </button>
         {navigation.map((label) => (
           <button

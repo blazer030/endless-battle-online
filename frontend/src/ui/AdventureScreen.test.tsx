@@ -103,8 +103,11 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(lines[1]).toHaveTextContent("獲得修為 8、靈石 3。")
   expect(screen.getByText("修為 8")).toBeInTheDocument()
   expect(screen.getByText("靈石 3")).toBeInTheDocument()
-  expect(screen.getByRole("button", { name: "本命" })).toBeDisabled()
-  expect(screen.getByRole("button", { name: "本命" })).toHaveAttribute("title", "尚未開放")
+  expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
+  for (const label of ["角色", "技能", "背包"]) {
+    expect(screen.getByRole("button", { name: label })).toBeDisabled()
+    expect(screen.getByRole("button", { name: label })).toHaveAttribute("title", "尚未開放")
+  }
 })
 
 test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {

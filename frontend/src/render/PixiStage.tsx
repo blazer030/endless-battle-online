@@ -12,7 +12,7 @@ const stageStyle = {
   height: StageHeight,
   overflow: "hidden",
   background:
-    "radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--ink) 12%, transparent), transparent 60%)",
+    "radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--cyan) 7%, transparent), transparent 60%)",
 } as const
 
 export function PixiStage({ ref }: { ref?: Ref<StageHandle> }) {

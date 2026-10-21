@@ -1,10 +1,19 @@
 :root {
-  --paper-light: #f3ead8;
-  --paper-dark: #e6d9bd;
-  --ink: #2b2620;
-  --vermilion: #b8322a;
-  --gold: #a87a12;
-  --sword-gold: #d4a017;
+  color-scheme: dark;
+  --bg-top: #121826;
+  --bg-bottom: #1b2232;
+  --panel: #222b3d;
+  --border: #2e3950;
+  --text: #e8ecf4;
+  --text-muted: #9aa5bd;
+  --gold: #e0a63a;
+  --cyan: #4cc3d9;
+  --crimson: #e2554f;
+  --green: #4fc47a;
+  --night: #0b1020;
+  --white: #ffffff;
+  --font-ui: "Noto Sans TC", sans-serif;
+  --font-title: "Cinzel", "Noto Serif TC", serif;
 }
 
 *,
@@ -16,9 +25,9 @@
 body {
   margin: 0;
   min-height: 100dvh;
-  background: linear-gradient(180deg, var(--paper-light), var(--paper-dark)) fixed;
-  color: var(--ink);
-  font-family: "LXGW WenKai TC", serif;
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom)) fixed;
+  color: var(--text);
+  font-family: var(--font-ui);
 }
 
 #root {

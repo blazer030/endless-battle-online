@@ -32,3 +32,9 @@ test("AuthScreen_ShowsServerDetail_OnError", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("帳號或密碼錯誤")
   expect(screen.getByLabelText("帳號")).toHaveValue("alice")
 })
+
+test("AuthScreen_ShowsFantasySubtitle", () => {
+  render(<AuthScreen api={{ register: vi.fn(), login: vi.fn() }} onAuthenticated={vi.fn()} />)
+
+  expect(screen.getByText("奇幻放置 RPG")).toBeInTheDocument()
+})

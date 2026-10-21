@@ -57,7 +57,7 @@ describe("stageModel", () => {
       { type: "slash" },
       { type: "damageNumber", side: "monster", value: 30, critical: true },
       { type: "hitShake", side: "monster" },
-      { type: "seal", text: "會心" },
+      { type: "seal", text: "CRITICAL" },
     ])
   })
 

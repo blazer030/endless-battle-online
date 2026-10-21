@@ -57,7 +57,7 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         { type: "damageNumber", side: "monster", value: event.damage, critical: event.isCritical },
         { type: "hitShake", side: "monster" },
       ]
-      if (event.isCritical) effects.push({ type: "seal", text: "會心" })
+      if (event.isCritical) effects.push({ type: "seal", text: "CRITICAL" })
       return effects
     }
     case "defeat":
