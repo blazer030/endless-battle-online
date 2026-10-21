@@ -1,0 +1,43 @@
+using EndlessBattle.Domain.Characters;
+
+namespace EndlessBattle.Domain.World;
+
+// 移動免費、不看等級；代碼依序：unknownPlace、restricted、subPlaceNotAllowed、subPlaceRequired、subPlaceOutOfRange、samePlace
+public static class PlaceMove
+{
+    public static IReadOnlyList<string> Evaluate(Character character, PlaceDefinition? target, int? subPlace)
+    {
+        if (target is null)
+        {
+            return ["unknownPlace"];
+        }
+
+        var reasons = new List<string>();
+        if (target.Restricted)
+        {
+            reasons.Add("restricted");
+        }
+
+        if (!target.HasSubPlaces && subPlace is not null)
+        {
+            reasons.Add("subPlaceNotAllowed");
+        }
+
+        if (target.HasSubPlaces && subPlace is null)
+        {
+            reasons.Add("subPlaceRequired");
+        }
+
+        if (target.HasSubPlaces && subPlace is { } index && target.SubPlaces.All(candidate => candidate.Index != index))
+        {
+            reasons.Add("subPlaceOutOfRange");
+        }
+
+        if (character.PlaceId == target.Id && character.SubPlace == subPlace)
+        {
+            reasons.Add("samePlace");
+        }
+
+        return reasons;
+    }
+}

@@ -1,6 +1,7 @@
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Skills;
+using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -149,3 +150,22 @@ public sealed record JobOptionResponse(
     IReadOnlyList<string> Reasons);
 
 public sealed record ChangeJobRequest(string? JobId);
+
+public sealed record WorldAreaResponse(string Id, string Name, IReadOnlyList<WorldPlaceResponse> Places);
+
+// Recommendation 只是提示，移動不看等級；禁區為 None
+public sealed record WorldPlaceResponse(
+    int Id,
+    string Name,
+    IReadOnlyList<SubPlaceResponse> SubPlaces,
+    LevelRangeResponse Recommended,
+    bool Restricted,
+    bool Current,
+    Recommendation Recommendation);
+
+public sealed record SubPlaceResponse(int Index, string Name);
+
+public sealed record LevelRangeResponse(int Min, int Max);
+
+// 沒有子地區的地區 SubPlace 必須為 null
+public sealed record MoveRequest(int? PlaceId, int? SubPlace);
