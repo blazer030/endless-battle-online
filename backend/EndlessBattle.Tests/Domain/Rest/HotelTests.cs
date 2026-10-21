@@ -92,4 +92,61 @@ public class HotelTests
         Assert.Equal(15.0, Hotel.Rest(Hero(120, hp: 0)).WaitSeconds);
         Assert.Equal(5.0, Hotel.Rest(Hero(120, hp: 1)).WaitSeconds);
     }
+
+    // 經驗懲罰四捨五入（WOG 寫回 INT 欄位）：Exp 3 × 0.8 = 2.4 → 2；Exp 2 × 0.8 = 1.6 → 2（截斷會得 1）
+    [Fact]
+    public void Hotel_RoundsExpPenalty_LikeTheOriginal()
+    {
+        var result = Hotel.Rest(Hero(120, hp: 30, money: 0, exp: 2));
+
+        Assert.True(result.ExpPenalty);
+        Assert.Equal(2, result.Character.Exp);
+        Assert.Equal(1000, result.Character.Hp);
+        Assert.Equal(0, result.Character.Money);
+    }
+
+    // 最小重現：Exp 7 × 0.8 = 5.6 → 6（截斷會得 5）；Exp 3 → 2
+    [Theory]
+    [InlineData(7, 6)]
+    [InlineData(3, 2)]
+    public void Hotel_ExpPenalty_RoundsToNearest(long exp, long expected)
+    {
+        Assert.Equal(expected, Hotel.Rest(Hero(120, hp: 30, money: 0, exp: exp)).Character.Exp);
+    }
+
+    // HP 100 = HpMax/10：100 > 100 不成立 → 1.4×(1000−100)/1000 = 1.26；round(1200×1.26 = 1512) = 1512
+    [Fact]
+    public void Hotel_AtTenPercentHp_UsesProportionalRate()
+    {
+        Assert.Equal(1512, Hotel.Rest(Hero(120, hp: 100)).Cost);
+    }
+
+    // HP 120：1.4×880/1000 = 1.232；round(1200×1.232 = 1478.4) = 1478
+    [Fact]
+    public void Hotel_MidRangeHp_UsesProportionalRate()
+    {
+        Assert.Equal(1478, Hotel.Rest(Hero(120, hp: 120)).Cost);
+    }
+
+    // 錢剛好等於費用 2160：付得起，扣到 0，不罰經驗
+    [Fact]
+    public void Hotel_PaysWhenMoneyEqualsCost()
+    {
+        var result = Hotel.Rest(Hero(120, hp: 30, money: 2160));
+
+        Assert.Equal(2160, result.Cost);
+        Assert.Equal(0, result.Character.Money);
+        Assert.False(result.ExpPenalty);
+        Assert.Equal(500, result.Character.Exp);
+    }
+
+    // Lv 101 開始收費：HP 30 → 1.8；round(10×101×1.8 = 1818) = 1818 ≥ 下限 1010
+    [Fact]
+    public void Hotel_ChargesFromLevel101()
+    {
+        var result = Hotel.Rest(Hero(101, hp: 30));
+
+        Assert.Equal(1818, result.Cost);
+        Assert.Equal(100_000 - 1818, result.Character.Money);
+    }
 }

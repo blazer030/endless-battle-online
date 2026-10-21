@@ -20,13 +20,14 @@ public static class Hotel
             return new HotelResult(healed, 0, false, wait);
         }
 
+        // hp 夾回上限，缺血比例才不會變負（不變量：係數 ≥ 0）
         var cost = Math.Max(
-            (long)Math.Round(10.0 * c.Level * Coefficient(c.Hp, stats.HpMax), MidpointRounding.AwayFromZero),
+            (long)Math.Round(10.0 * c.Level * Coefficient(Math.Min(c.Hp, stats.HpMax), stats.HpMax), MidpointRounding.AwayFromZero),
             10L * c.Level);
 
         return c.Money >= cost
             ? new HotelResult(healed with { Money = c.Money - cost }, cost, false, wait)
-            : new HotelResult(healed with { Exp = (long)(c.Exp * 0.8) }, 0, true, wait);
+            : new HotelResult(healed with { Exp = (long)Math.Round(c.Exp * 0.8, MidpointRounding.AwayFromZero) }, 0, true, wait);
     }
 
     private static double Coefficient(int hp, int hpMax)
