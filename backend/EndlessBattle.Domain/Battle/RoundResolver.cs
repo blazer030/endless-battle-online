@@ -58,6 +58,7 @@ public static class RoundResolver
         return (Math.Min(MaximumCriticalChance, ratio * BaseCriticalChance), Math.Min(ratio * BaseCriticalMultiplier, MaximumCriticalMultiplier));
     }
 
+    // spec 的命中公式還有 + rag（裝備／技能加成），計畫 5／7 才有，目前為 0
     private static bool PhysicalHits(int attackerAgi, int defenderAgi, IRandomSource random) =>
         (double)attackerAgi / (attackerAgi + defenderAgi) * 100 + 20 > PhpRandom.Between(random, 1, 100);
 }

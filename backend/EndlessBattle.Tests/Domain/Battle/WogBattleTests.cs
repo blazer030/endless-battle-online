@@ -213,4 +213,59 @@ public class WogBattleTests
             new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 180, ElementMultiplier: 1.2, TargetHpAfter: 820, SpecialAttackName: null),
             outcome.Events.OfType<AttackEvent>().First());
     }
+
+    // 命中：agi/(agi+敵agi)×100 + 20 > rand(1,100)。擲骰：先攻 0.0 → 1 玩家先；命中依參數；暴擊 0.99 → 100 不中；傷害 rand(0,0) 吃掉 0.5。
+    // agi 20 對 10：20/30×100 + 20 = 86.67 → 80（0.795）、86（0.855）命中，87（0.865）未命中（拿掉 +20 只剩 66.67，80 會落空）。
+    // agi 30 對 10：30/40×100 + 20 = 95 整數 → 94（0.935）命中，95（0.945）因為是 > 而非 >= 未命中。
+    // 命中傷害 (100·2 − 50) = 150（agi 30 時暴擊率 20、100 仍不中），怪物 1000 → 850
+    [Theory]
+    [InlineData(20, 0.795, true)]
+    [InlineData(20, 0.855, true)]
+    [InlineData(20, 0.865, false)]
+    [InlineData(30, 0.935, true)]
+    [InlineData(30, 0.945, false)]
+    public void Battle_PhysicalHit_UsesAgiRatioPlusTwenty(int playerAgi, double hitRoll, bool expectedHit)
+    {
+        var outcome = WogBattle.Run(Player(agi: playerAgi), Monster(hp: 1000, agi: 10), null, new ScriptedRandom(0.99, 0.0, hitRoll, 0.99, 0.5));
+
+        var damage = expectedHit ? 150 : 0;
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, expectedHit, Critical: false, damage, ElementMultiplier: 1.0, TargetHpAfter: 1000 - damage, SpecialAttackName: null),
+            outcome.Events.OfType<AttackEvent>().First());
+    }
+
+    // agi 相等（10 對 10）不算玩家較高 → 先攻門檻 30。先攻 0.305 → 31 > 30 → 怪物先出手
+    [Fact]
+    public void Battle_MonsterStrikesFirst_WhenAgiEqualAndRollAboveThirty()
+    {
+        var outcome = WogBattle.Run(Player(agi: 10), Monster(agi: 10), null, new ScriptedRandom(0.99, 0.305));
+
+        var first = outcome.Events.OfType<AttackEvent>().First();
+        Assert.Equal(CombatSide.Monster, first.Attacker);
+        Assert.Equal(0, first.AtSeconds);
+    }
+
+    // agi 相等，先攻 0.295 → 30 ≤ 30 → 玩家先出手
+    [Fact]
+    public void Battle_PlayerStrikesFirst_WhenAgiEqualAndRollAtThirty()
+    {
+        var outcome = WogBattle.Run(Player(agi: 10), Monster(agi: 10), null, new ScriptedRandom(0.99, 0.295));
+
+        var first = outcome.Events.OfType<AttackEvent>().First();
+        Assert.Equal(CombatSide.Player, first.Attacker);
+        Assert.Equal(0, first.AtSeconds);
+    }
+
+    // 魔法暴擊比的是 au：agi 10 對 10（若誤用 agi → 機率 10），au 90 對 10 → 比值 9，機率 20、倍率 2。
+    // 擲骰：先攻 0.0 → 1 ≤ 30 玩家先；暴擊 0.185 → 19 < 20；傷害擲骰 0.0。
+    // A = 200：(200·4 − 50) = 750，rand(⌊3.75/3⌋, ⌊3.75/2⌋) = rand(1,1) = 1 → 751，怪物 1000 → 249
+    [Fact]
+    public void Battle_MagicCritUsesAuRatio()
+    {
+        var outcome = WogBattle.Run(Player(at: 0, mat: 100, agi: 10, au: 90), Monster(hp: 1000, agi: 10, au: 10), AttackKind.Magic, new ScriptedRandom(0.99, 0.0, 0.185, 0.0));
+
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: true, Damage: 751, ElementMultiplier: 1.0, TargetHpAfter: 249, SpecialAttack),
+            outcome.Events.OfType<AttackEvent>().First());
+    }
 }
