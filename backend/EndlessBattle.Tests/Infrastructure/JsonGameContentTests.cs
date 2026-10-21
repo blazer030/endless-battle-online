@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -20,6 +21,10 @@ public class JsonGameContentTests
 
     private const string ValidWarrior =
         $$"""{ "id": "warrior", "name": "戰士", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {{ValidGrowth}} }""";
+
+    private const string ValidSkills = """{ "skills": [] }""";
+
+    private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300 }""";
 
     private const string ValidJobs = $$"""{ "jobs": [{{ValidWarrior}}] }""";
 
@@ -97,7 +102,7 @@ public class JsonGameContentTests
     public void Load_TestContent_ExposesJobs()
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
-        Assert.Equal(3, content.AllJobs.Count);
+        Assert.Equal(7, content.AllJobs.Count);
         var berserker = content.GetJob("berserker");
         Assert.Equal("warrior", berserker.ParentId);
         Assert.Equal(new StatRequirement("str", 60), berserker.StatRequirements[0]);
@@ -153,6 +158,69 @@ public class JsonGameContentTests
         AssertLoadRejects(ValidMonsters, ValidStages, jobsJson, offendingId);
     }
 
+    private static string SkillJson(string id, string jobId, string type, string levels) =>
+        $$"""{ "id": "{{id}}", "name": "技", "jobId": "{{jobId}}", "type": "{{type}}", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", "levels": [{{levels}}] }""";
+
+    private static void AssertSkillsRejected(string skills, string offendingText) =>
+        AssertLoadRejects(ValidMonsters, ValidStages, ValidJobs, offendingText, $$"""{ "skills": [{{skills}}] }""");
+
+    [Fact]
+    public void Skills_LoadSixteenWithFiveLevels()
+    {
+        var content = JsonGameContent.Load(ShippedContentDirectory);
+        Assert.Equal(16, content.AllSkills.Count);
+        Assert.Equal(16, content.AllSkills.Select(skill => skill.Id).Distinct().Count());
+        foreach (var skill in content.AllSkills)
+        {
+            Assert.Equal(5, skill.MaxLevel);
+            foreach (var level in skill.Levels)
+            {
+                var lv = level.Level;
+                Assert.Equal(3 * lv + 2, level.Sp);
+                Assert.Equal(500L * lv * lv, level.Money);
+                Assert.Equal(300L * lv, level.Proficiency);
+                Assert.Equal(skill.Type == SkillType.Passive ? 20 + 10 * lv : 0, level.Chance);
+                var oneRound = skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst or SkillEffectKind.BonusDamage;
+                Assert.Equal(oneRound ? 1 : 3, level.Rounds);
+            }
+        }
+    }
+
+    [Fact]
+    public void Skills_RejectUnknownJob() =>
+        AssertSkillsRejected(SkillJson("ghost-skill", "nobody", "active", ValidLevel), "nobody");
+
+    [Fact]
+    public void Skills_RejectDuplicateId() =>
+        AssertSkillsRejected(
+            $"{SkillJson("twin", "warrior", "active", ValidLevel)}, {SkillJson("twin", "warrior", "active", ValidLevel)}",
+            "twin");
+
+    [Fact]
+    public void Skills_RejectNonIncreasingLevels() =>
+        AssertSkillsRejected(
+            SkillJson("jumpy", "warrior", "active", $"{ValidLevel}, {ValidLevel.Replace("\"level\": 1", "\"level\": 3")}"),
+            "jumpy");
+
+    [Fact]
+    public void Skills_RejectPassiveWithZeroChance() =>
+        AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidLevel), "lazy");
+
+    [Fact]
+    public void Skills_RejectActiveWithNonZeroChance() =>
+        AssertSkillsRejected(
+            SkillJson("eager", "warrior", "active", ValidLevel.Replace("\"chance\": 0", "\"chance\": 50")),
+            "eager");
+
+    [Fact]
+    public void SkillsOf_ReturnsOnlyThatJob()
+    {
+        var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
+        Assert.Equal(["burst", "iron-skin"], content.SkillsOf("warrior").Select(skill => skill.Id));
+        Assert.Equal("heal", content.GetSkill("heal").Id);
+        Assert.Empty(content.SkillsOf("sorcerer"));
+    }
+
     [Fact]
     public void GetMonster_UnknownId_Throws()
     {
@@ -161,7 +229,8 @@ public class JsonGameContentTests
         Assert.Contains("nobody", exception.Message);
     }
 
-    private static void AssertLoadRejects(string monstersJson, string stagesJson, string jobsJson, string offendingId)
+    private static void AssertLoadRejects(
+        string monstersJson, string stagesJson, string jobsJson, string offendingId, string skillsJson = ValidSkills)
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
         try
@@ -169,6 +238,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), monstersJson);
             File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), stagesJson);
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), jobsJson);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), skillsJson);
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingId, exception.Message);
         }

@@ -38,7 +38,7 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
         var content = await factory.CreateClient().GetFromJsonAsync<JsonElement>("/api/content", CancellationToken);
 
         var jobs = content.GetProperty("jobs").EnumerateArray().ToList();
-        Assert.Equal(["warrior", "sorcerer", "berserker"], jobs.Select(job => job.GetProperty("id").GetString()));
+        Assert.Equal(["warrior", "sorcerer", "berserker", "thief", "bard", "martialist", "beastmaster"], jobs.Select(job => job.GetProperty("id").GetString()));
         var berserker = jobs[2];
         Assert.Equal(2, berserker.GetProperty("tier").GetInt32());
         Assert.Equal("warrior", berserker.GetProperty("parentId").GetString());
