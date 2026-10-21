@@ -65,6 +65,56 @@ public class RewardFormulasTests
         Assert.Equal(21870, exp);
     }
 
+    // plv ≤ 100 才乘 1.3：怪物 Lv100、At 100、Mat 100；base 100，rand(100, 200) 0.0 → 100；plv > 15 不乘 2.5
+    // plv 100：× 1.3 = 130；100 × 130 × (100/100) × 0.18 = 2340；× 2 = 4680
+    // plv 101：100 × 100 × (100/101) × 0.18 = 1782.178…；× 2 = 3564.356… → round 3564
+    [Theory]
+    [InlineData(100, 4680)]
+    [InlineData(101, 3564)]
+    public void Exp_AppliesBonusUpToPlayerLevelOneHundred(int playerLevel, long expected)
+    {
+        var ogre = SnowSprite with { Level = 100, Hp = 1000, At = 100, Mat = 100 };
+
+        var exp = RewardFormulas.Exp(ogre, monsterHpValue: 0, playerLevel, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
+
+        Assert.Equal(expected, exp);
+    }
+
+    // plv ≤ 15 才乘 2.5：雪精 11 × 1.3 = 14.3
+    // plv 15：3 × 14.3 × (3/15) × 0.18 = 1.5444；× 2.5 = 3.861；× 2 = 7.722 → round 8
+    // plv 16：3 × 14.3 × (3/16) × 0.18 = 1.447875；× 2 = 2.89575 → round 3
+    [Theory]
+    [InlineData(15, 8)]
+    [InlineData(16, 3)]
+    public void Exp_AppliesNoviceBonusUpToPlayerLevelFifteen(int playerLevel, long expected)
+    {
+        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 0, playerLevel, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
+
+        Assert.Equal(expected, exp);
+    }
+
+    // mlv 449 < 450 不乘 0.6（對照 Exp_AppliesHighLevelModifiers 的 450）；plv 200 不乘 1.3／2.5
+    // base 100，rand(100, 549) 0.0 → 100；449 × 100 × (449/200) × 0.18 = 18144.09；× 2 = 36288.18 → round 36288
+    [Fact]
+    public void Exp_SkipsHighLevelPenaltyBelowFourHundredFifty()
+    {
+        var dragon = SnowSprite with { Level = 449, Hp = 1000, At = 100, Mat = 100 };
+
+        var exp = RewardFormulas.Exp(dragon, monsterHpValue: 0, playerLevel: 200, killed: true, fDown: 1.0, new ScriptedRandom(0.0));
+
+        Assert.Equal(36288, exp);
+    }
+
+    // round 而非 floor：rand(1, 3) 0.0 → 1；rand(7, 1) 對調成 rand(1, 7) = NextInt(7) + 1，0.5 → ⌊3.5⌋ = 3 → 4
+    // 1 × 4 × 0.4 × 1 = 1.6 → round 2（floor 會是 1）
+    [Fact]
+    public void Money_RoundsHalfUp()
+    {
+        var money = RewardFormulas.Money(SnowSprite, fDown: 1.0, new ScriptedRandom(0.5, 0.0));
+
+        Assert.Equal(2, money);
+    }
+
     // rand(3/2.5, 3) 截成 rand(1, 3) = NextInt(3) + 1，0.99 → 3
     // rand((14+8)/3, 60/(14+8) × 0.4) = rand(7.33, 1.09) 截成 rand(7, 1)，對調成 rand(1, 7) = NextInt(7) + 1，0.99 → 7
     // 3 × 7 × 0.4 × 1 = 8.4 → round 8
