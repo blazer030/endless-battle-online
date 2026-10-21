@@ -1,6 +1,8 @@
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Jobs;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -17,6 +19,8 @@ public class JobServiceTests
     private readonly LoggingCharacterRepository characters;
     private readonly InMemoryJobProficiencyRepository proficiencies;
     private readonly InMemorySkillLoadoutRepository loadout;
+    private readonly InMemoryInventoryRepository inventory = new();
+    private readonly InMemoryEquipmentRepository equipment;
     private readonly FakeClock clock = new(Now);
     private readonly JobService service;
 
@@ -25,7 +29,8 @@ public class JobServiceTests
         characters = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         loadout = new InMemorySkillLoadoutRepository(log);
-        service = new JobService(characters, proficiencies, loadout, new InMemoryEquipmentRepository(new InMemoryInventoryRepository()), Content, clock);
+        equipment = new InMemoryEquipmentRepository(inventory);
+        service = new JobService(characters, proficiencies, loadout, inventory, equipment, Content, clock);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -115,5 +120,76 @@ public class JobServiceTests
         Assert.Equal("測試戰士", berserker.ParentName);
         Assert.False(berserker.Eligible);
         Assert.Equal(0, berserker.ProficiencyPercent);
+    }
+
+    private Task<long> GiveAsync(Character character, string itemId, int quantity = 1) =>
+        inventory.AddAsync(character.Id, TestItems.Entry(0, itemId, quantity), CancellationToken);
+
+    private async Task<long> EquipAsync(Character character, EquipmentSlot slot, string itemId, int quantity = 1)
+    {
+        var id = await GiveAsync(character, itemId, quantity);
+        await equipment.SetSlotAsync(character.Id, slot, id, slot == EquipmentSlot.Supply ? quantity : null, CancellationToken);
+        return id;
+    }
+
+    private async Task<IReadOnlyList<(string ItemId, int Quantity)>> ItemsAsync(Character character) =>
+        (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.ItemId, entry.Quantity)).ToList();
+
+    // 轉職時全部裝備（含補給欄）都回到背包，回應的裝備加成歸零
+    [Fact]
+    public async Task JobChange_UnequipsEverything()
+    {
+        var character = await ArrangeAsync();
+        await EquipAsync(character, EquipmentSlot.Weapon, "test-sword");
+        await EquipAsync(character, EquipmentSlot.Head, "test-helm");
+        await EquipAsync(character, EquipmentSlot.Accessory, "test-power-ring");
+        await EquipAsync(character, EquipmentSlot.Supply, "test-supply", 5);
+
+        var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
+
+        Assert.Equal("thief", profile.Character.JobId);
+        Assert.Equal(EquipmentBonus.Zero, profile.Equipment);
+        Assert.Empty((await equipment.GetAsync(character.Id, CancellationToken)).Equipped);
+        Assert.Equal(
+            [("test-sword", 1), ("test-helm", 1), ("test-power-ring", 1), ("test-supply", 5)],
+            await ItemsAsync(character));
+    }
+
+    // 補給欄 5 個併回背包原有的 10 個，補給欄那一列刪除
+    [Fact]
+    public async Task JobChange_UnequipsSupplySlot()
+    {
+        var character = await ArrangeAsync();
+        var stack = await GiveAsync(character, "test-supply", 10);
+        await EquipAsync(character, EquipmentSlot.Supply, "test-supply", 5);
+
+        await service.ChangeAsync(AccountId, "thief", CancellationToken);
+
+        Assert.Empty((await equipment.GetAsync(character.Id, CancellationToken)).Equipped);
+        Assert.Equal([("test-supply", 15)], await ItemsAsync(character));
+        Assert.Equal(15, inventory.Find(character.Id, stack).Quantity);
+    }
+
+    // 武器分類 15 格全滿，裝備中的劍放不回去：不轉職、什麼都不寫
+    [Fact]
+    public async Task JobChange_BagFullWritesNothing()
+    {
+        var character = await ArrangeAsync(new SkillSlot(4, "iron-skin", 40));
+        for (var index = 0; index < InventoryRules.SlotsPerCategory; index++)
+        {
+            await GiveAsync(character, "test-sword");
+        }
+
+        await EquipAsync(character, EquipmentSlot.Weapon, "test-sword");
+        await EquipAsync(character, EquipmentSlot.Supply, "test-supply", 5);
+        inventory.Writes.Clear();
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "thief", CancellationToken));
+
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Empty(log);
+        Assert.Empty(inventory.Writes);
+        Assert.Equal(2, (await equipment.GetAsync(character.Id, CancellationToken)).Equipped.Count);
+        Assert.Equal("warrior", (await characters.FindByAccountAsync(AccountId, CancellationToken))!.JobId);
     }
 }

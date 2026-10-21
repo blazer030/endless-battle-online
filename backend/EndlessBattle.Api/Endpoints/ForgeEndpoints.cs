@@ -1,7 +1,10 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Forge;
+using EndlessBattle.Domain.Forge;
+using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -48,8 +51,27 @@ public static class ForgeEndpoints
             return TypedResults.Ok(ToResponse(await service.MergeStonesAsync(user.GetAccountId(), stoneInventoryId, quantityPairs, cancellationToken)));
         });
 
+        forge.MapGet("/recipes", (IGameContent content) => TypedResults.Ok(content.AllRecipes.Select(recipe => ToResponse(recipe, content)).ToList()));
+
+        forge.MapPost("/synthesize", async (SynthesizeRequest request, ClaimsPrincipal user, ForgeService service, CancellationToken cancellationToken) =>
+        {
+            var recipeId = string.IsNullOrWhiteSpace(request.RecipeId) ? throw new InputValidationException("缺少配方 id") : request.RecipeId;
+            var attempts = request.Attempts ?? throw new InputValidationException("缺少合成次數");
+            var result = await service.SynthesizeAsync(user.GetAccountId(), recipeId, attempts, cancellationToken);
+            return TypedResults.Ok(new SynthesisResponse(result.Successes, result.Attempts, result.Cost, InventoryEndpoints.ToResponse(result.Inventory)));
+        });
+
         return app;
     }
+
+    private static RecipeResponse ToResponse(Recipe recipe, IGameContent content) => new(
+        recipe.Id,
+        recipe.ResultItemId,
+        content.GetItem(recipe.ResultItemId).Name,
+        recipe.ResultQuantity,
+        recipe.Materials.Select(material => new RecipeMaterialResponse(material.ItemId, content.GetItem(material.ItemId).Name, material.Quantity)).ToList(),
+        recipe.SuccessRate,
+        Synthesis.CostPerAttempt);
 
     private static ForgeResponse ToResponse(ForgeResult result) => new(result.Success, InventoryEndpoints.ToResponse(result.Inventory));
 }

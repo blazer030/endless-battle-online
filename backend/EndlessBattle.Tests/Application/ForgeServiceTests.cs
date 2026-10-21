@@ -347,6 +347,73 @@ public class ForgeServiceTests
         Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
     }
 
+    // test-forge-sword：test-ore ×3 → test-sword ×1，成功率 70。擲 0.0 → r = 1 成功、0.99 → r = 100 失敗。
+    // 礦石分兩格（4 + 3）：先扣材料再放成品，只扣 1 次成功的 1000
+    [Fact]
+    public async Task Synthesis_ConsumesMaterialsAndChargesSuccesses()
+    {
+        var character = await AddCharacterAsync();
+        var first = await GiveAsync(character, "test-ore", 4);
+        var second = await GiveAsync(character, "test-ore", 3);
+        inventory.Writes.Clear();
+        random.Next = new ScriptedRandom(0.99, 0.0);
+
+        var result = await service.SynthesizeAsync(AccountId, "test-forge-sword", 2, CancellationToken);
+
+        Assert.Equal((1, 2, 1000L), (result.Successes, result.Attempts, result.Cost));
+        Assert.Equal([$"remove:{first}", $"quantity:{second}", "add:test-sword"], inventory.Writes);
+        Assert.Equal([("test-ore", 1), ("test-sword", 1)], await ItemsAsync(character));
+        Assert.Equal(1000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        Assert.Equal(["update"], log);
+        Assert.Single(result.Inventory.Bag.Single(bag => bag.Category == ItemCategory.Weapon).Items);
+    }
+
+    // 武器分類 15 格全滿：就算可能全部失敗，也要放得下全部成功的成品才合成
+    [Fact]
+    public async Task Synthesis_RespectsBagCapacity()
+    {
+        var character = await AddCharacterAsync();
+        var ore = await GiveAsync(character, "test-ore", 3);
+        for (var index = 0; index < InventoryRules.SlotsPerCategory; index++)
+        {
+            await GiveAsync(character, "test-sword");
+        }
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(
+            () => service.SynthesizeAsync(AccountId, "test-forge-sword", 1, CancellationToken));
+
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(3, Find(character, ore).Quantity);
+        Assert.Equal(2000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        Assert.Empty(log);
+    }
+
+    // 預設金錢 2000：合成 3 次可能要付 3000，擲骰前就拒絕
+    [Fact]
+    public async Task Synthesis_RequiresMoneyForAllAttempts()
+    {
+        var character = await AddCharacterAsync();
+        var ore = await GiveAsync(character, "test-ore", 9);
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(
+            () => service.SynthesizeAsync(AccountId, "test-forge-sword", 3, CancellationToken));
+
+        Assert.Equal(["notEnoughMoney"], exception.Reasons);
+        Assert.Equal(9, Find(character, ore).Quantity);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Synthesis_UnknownRecipeIsNotFound()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "test-ore", 3);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => service.SynthesizeAsync(AccountId, "nope", 1, CancellationToken));
+
+        Assert.Empty(log);
+    }
+
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Next { get; set; } = new ScriptedRandom(0.0);

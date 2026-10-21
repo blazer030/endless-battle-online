@@ -249,5 +249,21 @@ public sealed record MergeStonesRequest(long? StoneInventoryId, int? QuantityPai
 // Success：精鍊、打洞為擲骰結果；鑲嵌、合成成功才會回 200，一律為 true
 public sealed record ForgeResponse(bool Success, InventoryResponse Inventory);
 
+public sealed record RecipeResponse(
+    string Id,
+    string ResultItemId,
+    string ResultName,
+    int ResultQuantity,
+    IReadOnlyList<RecipeMaterialResponse> Materials,
+    int SuccessRate,
+    long CostPerAttempt);
+
+public sealed record RecipeMaterialResponse(string ItemId, string Name, int Quantity);
+
+public sealed record SynthesizeRequest(string? RecipeId, int? Attempts);
+
+// Cost 是實際扣的金錢（1000 × Successes）；材料不論成敗都依 Attempts 扣
+public sealed record SynthesisResponse(int Successes, int Attempts, long Cost, InventoryResponse Inventory);
+
 // 拆除一律成功；Recovered 為 false 表示魔石沒有回收（沒擲中或背包已滿）
 public sealed record UnsocketResponse(bool Success, bool Recovered, InventoryResponse Inventory);

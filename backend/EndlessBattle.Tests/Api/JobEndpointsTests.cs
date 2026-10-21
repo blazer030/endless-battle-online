@@ -1,7 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -140,5 +142,72 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/jobs", CancellationToken)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await ChangeAsync(client, "thief")).StatusCode);
+    }
+
+    private async Task<(HttpClient Client, long CharacterId)> CreateClientWithCharacterIdAsync(EndlessBattleApiFactory factory)
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = $"轉職{Random.Shared.Next(100000, 999999)}";
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        await using var context = database.CreateDbContext();
+        var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+        return (client, characterId);
+    }
+
+    private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1)
+    {
+        await using var context = database.CreateDbContext();
+        return await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
+    }
+
+    private static async Task<JsonElement> InventoryAsync(HttpClient client) =>
+        await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+
+    private static JsonElement Items(JsonElement inventory, string category) =>
+        inventory.GetProperty("bag").EnumerateArray().Single(bag => bag.GetProperty("category").GetString() == category).GetProperty("items");
+
+    // 裝上 16 把劍中的 1 把：背包武器 15 格全滿，轉職要卸下的劍放不回去
+    [Fact]
+    public async Task JobChange_BagFullLeavesEquipmentAndJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateClientWithCharacterIdAsync(factory);
+        var sword = await GiveAsync(characterId, "test-sword");
+        for (var index = 0; index < 15; index++)
+        {
+            await GiveAsync(characterId, "test-sword");
+        }
+
+        (await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = sword }, CancellationToken)).EnsureSuccessStatusCode();
+
+        var response = await ChangeAsync(client, "thief");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(["bagFull"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        var equipped = Assert.Single((await InventoryAsync(client)).GetProperty("equipment").EnumerateArray());
+        Assert.Equal(sword, equipped.GetProperty("item").GetProperty("inventoryId").GetInt64());
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal("warrior", me.GetProperty("jobId").GetString());
+    }
+
+    // 補給欄裝 4 個（從 10 個那格分出）：轉職後併回原格成為 10 個，武器回到背包
+    [Fact]
+    public async Task Change_UnequipsWeaponAndSupplyIntoBag()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateClientWithCharacterIdAsync(factory);
+        var sword = await GiveAsync(characterId, "test-sword");
+        var supply = await GiveAsync(characterId, "test-supply", 10);
+        (await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = sword }, CancellationToken)).EnsureSuccessStatusCode();
+        (await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = supply, quantity = 4 }, CancellationToken)).EnsureSuccessStatusCode();
+
+        (await ChangeAsync(client, "thief")).EnsureSuccessStatusCode();
+
+        var inventory = await InventoryAsync(client);
+        Assert.Empty(inventory.GetProperty("equipment").EnumerateArray());
+        Assert.Equal(sword, Assert.Single(Items(inventory, "Weapon").EnumerateArray()).GetProperty("inventoryId").GetInt64());
+        var supplies = Assert.Single(Items(inventory, "Consumable").EnumerateArray());
+        Assert.Equal((supply, 10), (supplies.GetProperty("inventoryId").GetInt64(), supplies.GetProperty("quantity").GetInt32()));
     }
 }

@@ -94,4 +94,51 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
             ["holeOccupied"],
             await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/socket", new { inventoryId = sword, hole = 1, stoneInventoryId = stone }, CancellationToken)));
     }
+
+    // TestContent 只有一條配方：test-ore ×3 → test-sword ×1，成功率 70
+    [Fact]
+    public async Task Recipes_EndpointListsAll()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, _) = await CreateCharacterAsync(factory);
+
+        var recipes = (await client.GetFromJsonAsync<JsonElement>("/api/forge/recipes", CancellationToken)).EnumerateArray().ToList();
+
+        var recipe = Assert.Single(recipes);
+        Assert.Equal("test-forge-sword", recipe.GetProperty("id").GetString());
+        Assert.Equal("測試鐵劍", recipe.GetProperty("resultName").GetString());
+        Assert.Equal(1, recipe.GetProperty("resultQuantity").GetInt32());
+        Assert.Equal(70, recipe.GetProperty("successRate").GetInt32());
+        Assert.Equal(1000, recipe.GetProperty("costPerAttempt").GetInt64());
+        var material = Assert.Single(recipe.GetProperty("materials").EnumerateArray());
+        Assert.Equal(("test-ore", "測試礦石", 3), (material.GetProperty("itemId").GetString(), material.GetProperty("name").GetString(), material.GetProperty("quantity").GetInt32()));
+    }
+
+    // 新角色 2000 金錢：合成 2 次，材料全扣、成功幾次就多幾把劍、扣幾個 1000
+    [Fact]
+    public async Task Synthesize_EndpointReturnsCounts()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-ore", 6);
+
+        Assert.Equal(
+            ["invalidQuantity"],
+            await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "test-forge-sword", attempts = 0 }, CancellationToken)));
+        var unknown = await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "nope", attempts = 1 }, CancellationToken);
+        Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+
+        var result = await ReadAsync(await client.PostAsJsonAsync(
+            "/api/forge/synthesize", new { recipeId = "test-forge-sword", attempts = 2 }, CancellationToken));
+
+        var successes = result.GetProperty("successes").GetInt32();
+        Assert.InRange(successes, 0, 2);
+        Assert.Equal(2, result.GetProperty("attempts").GetInt32());
+        Assert.Equal(1000L * successes, result.GetProperty("cost").GetInt64());
+        var inventory = result.GetProperty("inventory");
+        Assert.Empty(Items(inventory, "Material").EnumerateArray());
+        Assert.Equal(successes, Items(inventory, "Weapon").GetArrayLength());
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(2000 - 1000L * successes, me.GetProperty("money").GetInt64());
+    }
 }

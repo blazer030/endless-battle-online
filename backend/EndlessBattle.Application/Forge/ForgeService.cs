@@ -14,6 +14,8 @@ public sealed record ForgeResult(bool Success, InventoryView Inventory);
 public sealed record UnsocketResult(bool Recovered, InventoryView Inventory);
 
 // 精鍊與鑲嵌的對象可以在背包或裝備欄；石頭與道具必須在背包。
+public sealed record SynthesisResult(int Successes, int Attempts, long Cost, InventoryView Inventory);
+
 // 先以版本鎖寫入角色（內容不變、只遞增版本），成功後才擲骰與寫入背包；衝突時背包不動。
 // 寫入沒有交易可包，一律先扣石頭／道具再寫強化：中途失敗時寧可損失消耗品，也不白給強化
 public sealed class ForgeService(
@@ -130,6 +132,35 @@ public sealed class ForgeService(
         await ConsumeAsync(character.Id, stone, consumed, cancellationToken);
         await ApplyAsync(character.Id, added, cancellationToken);
         return new ForgeResult(true, await inventoryService.GetAsync(accountId, cancellationToken));
+    }
+
+    // 合成（規則見 Synthesis）：金錢與背包先以全部成功檢查。花費取決於擲骰結果，所以先擲（不寫入），
+    // 再以版本鎖扣錢（只算成功的次數），然後扣材料、放成品；衝突時什麼都不寫
+    public async Task<SynthesisResult> SynthesizeAsync(long accountId, string recipeId, int attempts, CancellationToken cancellationToken)
+    {
+        var character = await FindCharacterAsync(accountId, cancellationToken);
+        var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方");
+        var state = await LoadAsync(character.Id, cancellationToken);
+        Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem), "無法合成");
+
+        var outcome = Synthesis.Attempt(recipe, attempts, state.Bag, randomFactory.Create());
+        await characters.UpdateAsync(character with { Money = character.Money - outcome.Cost }, cancellationToken);
+        foreach (var taken in Synthesis.TakeMaterials(state.Bag, outcome.MaterialsConsumed))
+        {
+            await (taken.Quantity > 0
+                ? inventory.UpdateQuantityAsync(character.Id, taken.Id, taken.Quantity, cancellationToken)
+                : inventory.RemoveAsync(character.Id, taken.Id, cancellationToken));
+        }
+
+        if (outcome.Successes > 0)
+        {
+            var result = content.GetItem(recipe.ResultItemId);
+            var bag = Synthesis.AfterTaking(state.Bag, outcome.MaterialsConsumed);
+            var added = InventoryRules.TryAdd(SameCategory(bag, result), result, recipe.ResultQuantity * outcome.Successes, character.BagBonus);
+            await ApplyAsync(character.Id, added, cancellationToken);
+        }
+
+        return new SynthesisResult(outcome.Successes, attempts, outcome.Cost, await inventoryService.GetAsync(accountId, cancellationToken));
     }
 
     private ItemDefinition? FindRefineStone(int kind, int level) =>
