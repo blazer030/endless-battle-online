@@ -238,6 +238,26 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Monster)[0]);
     }
 
+    // 物暴擊率 lv5（被動、發動率 70）：物理暴擊率 +10。玩家 agi 10 對 10 → 先攻門檻 30、基礎暴擊率物理與魔法都是 10。
+    // 擲骰：物暴擊率 0.0；先攻 0.0；物理時命中 0.0；暴擊 0.145 → 15（物理 15 < 20 暴擊、魔法 15 < 10 不暴擊）；傷害 0.0。
+    // 物理暴擊：A = 120，120·2.4 − 50 = 238；魔法 mat 100 → 150
+    [Theory]
+    [InlineData(AttackKind.Physical, true, 238)]
+    [InlineData(AttackKind.Magic, false, 150)]
+    public void Battle_KeenEdgeAffectsPhysicalCritOnly(AttackKind kind, bool expectedCritical, int expectedDamage)
+    {
+        var keenEdge = TestSkills.Battle("keen-edge", "物暴擊率", SkillEffectKind.CritChanceUp, SkillType.Passive);
+        double[] rolls = kind == AttackKind.Physical ? [0.0, 0.0, 0.0, 0.145, 0.0] : [0.0, 0.0, 0.145, 0.0];
+        var player = Player() with { Mat = 100, Agi = 10 };
+
+        var outcome = WogBattle.Run(player, Monster(), kind, [Equip(keenEdge, level: 5, chance: 70, slot: 4)], new ScriptedRandom(0.99, rolls));
+
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Player, kind, Hit: true, expectedCritical, expectedDamage, ElementMultiplier: 1.0,
+                TargetHpAfter: 1000 - expectedDamage, expectedCritical ? SpecialAttack : null),
+            AttacksBy(outcome, CombatSide.Player)[0]);
+    }
+
     // 附加傷 lv5：round(au 10 × 0.4) = 4，物理與魔法每次命中都加；魔連擊 lv1 → 魔法 2 下。
     // 玩家指定魔法、mat 100 打 mdf 50 = 150 + 4 = 154。擲骰：魔連擊 0.0、附加傷 0.0；先攻 0.0；
     // 兩下各 暴擊 0.99（au 相同，機率 10）、傷害 0.0；怪物命中 0.99 未命中

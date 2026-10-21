@@ -26,14 +26,14 @@ public static class RoundResolver
     public static bool PlayerStrikesFirst(int playerAgi, int monsterAgi, IRandomSource random) =>
         PhpRandom.Between(random, 1, 100) <= (playerAgi > monsterAgi ? 70 : 30);
 
-    // rag、暴擊率加成、附加傷害來自技能（BattleModifiers），只有玩家出手時不為 0
+    // rag、物理暴擊率加成、附加傷害來自技能（BattleModifiers），只有玩家出手時不為 0
     public static AttackResult Strike(
         CombatantState attacker,
         CombatantState defender,
         AttackKind kind,
         IRandomSource random,
         int rag = 0,
-        double criticalChanceBonus = 0,
+        double physicalCriticalChanceBonus = 0,
         int bonusDamage = 0)
     {
         var physical = kind == AttackKind.Physical;
@@ -48,8 +48,8 @@ public static class RoundResolver
             ? CriticalOdds(attacker.Agi, defender.Agi)
             : CriticalOdds(attacker.Au, defender.Au);
 
-        // 技能的暴擊率加成加在 20% 上限之後，不再封頂
-        var critical = PhpRandom.Between(random, 1, 100) < criticalChance + criticalChanceBonus;
+        // 物暴擊率技能只加在物理，加在 20% 上限之後、不再封頂
+        var critical = PhpRandom.Between(random, 1, 100) < criticalChance + (physical ? physicalCriticalChanceBonus : 0);
         var elementMultiplier = ElementTable.Multiplier(attacker.Element, defender.Element);
         var (attack, defense) = physical ? (attacker.At, defender.Df) : (attacker.Mat, defender.Mdf);
         var damage = WogDamage.Fight(critical ? attack * criticalMultiplier : attack, defense, elementMultiplier, random, bonusDamage: bonusDamage);
