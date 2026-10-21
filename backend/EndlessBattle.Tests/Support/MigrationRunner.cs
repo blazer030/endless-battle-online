@@ -9,7 +9,16 @@ public static partial class MigrationRunner
     [GeneratedRegex(@"^V(\d{9})__[a-z0-9_]+\.sql$")]
     private static partial Regex MigrationFileName();
 
-    public static async Task ApplyAllAsync(string connectionString, string databaseDirectory)
+    public static Task ApplyAllAsync(string connectionString, string databaseDirectory) =>
+        ApplyAsync(connectionString, databaseDirectory, _ => true);
+
+    public static Task ApplyUpToAsync(string connectionString, string databaseDirectory, long maxVersion) =>
+        ApplyAsync(connectionString, databaseDirectory, version => version <= maxVersion);
+
+    public static Task ApplyAfterAsync(string connectionString, string databaseDirectory, long appliedVersion) =>
+        ApplyAsync(connectionString, databaseDirectory, version => version > appliedVersion);
+
+    private static async Task ApplyAsync(string connectionString, string databaseDirectory, Func<long, bool> includes)
     {
         var migrations = new[] { "ddl", "dml" }
             .Select(folder => Path.Combine(databaseDirectory, folder))
@@ -26,7 +35,7 @@ public static partial class MigrationRunner
 
         await using var connection = new MySqlConnection(connectionString);
         await connection.OpenAsync();
-        foreach (var migration in migrations.OrderBy(migration => migration.Version))
+        foreach (var migration in migrations.Where(migration => includes(migration.Version)).OrderBy(migration => migration.Version))
         {
             var script = new MySqlScript(connection, await File.ReadAllTextAsync(migration.Path));
             await script.ExecuteAsync();
