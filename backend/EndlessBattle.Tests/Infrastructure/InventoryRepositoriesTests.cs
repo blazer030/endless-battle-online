@@ -2,6 +2,7 @@ using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Infrastructure;
 
@@ -44,6 +45,61 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         await using var context = database.CreateDbContext();
         await new EquipmentRepository(context).SetSlotAsync(characterId, slot, inventoryId, supplyQuantity, CancellationToken);
+    }
+
+    private async Task<string?> ReadRawColumnAsync(string column, long id)
+    {
+        await using var context = database.CreateDbContext();
+        var query = column == "sockets"
+            ? context.Database.SqlQueryRaw<string?>("SELECT sockets AS Value FROM character_inventory WHERE id = {0}", id)
+            : context.Database.SqlQueryRaw<string?>("SELECT refine_bonus AS Value FROM character_inventory WHERE id = {0}", id);
+        return Assert.Single(await query.ToListAsync(CancellationToken));
+    }
+
+    [Fact]
+    public async Task Inventory_StoresEnhancementsAsCamelCaseJson()
+    {
+        var characterId = await CreateCharacterAsync();
+        var entry = new InventoryEntry(
+            0, "sword", 1, 1, new StatBonus(1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, HpMax: 30),
+            [new SocketedStone(1, "stone_fire", StatBonus.Zero), new SocketedStone(2, "stone_ice", StatBonus.Zero)], 2);
+
+        var id = await AddInventoryAsync(characterId, entry);
+
+        var sockets = await ReadRawColumnAsync("sockets", id);
+        var refineBonus = await ReadRawColumnAsync("refine_bonus", id);
+        Assert.Contains("\"stoneId\"", sockets);
+        Assert.Contains("\"rolled\"", sockets);
+        Assert.DoesNotContain("\"StoneId\"", sockets);
+        Assert.Contains("\"hpMax\"", refineBonus);
+        Assert.DoesNotContain("\"HpMax\"", refineBonus);
+    }
+
+    [Fact]
+    public async Task Inventory_StoresNullWhenNoEnhancements()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        var id = await AddInventoryAsync(characterId, Plain("potion", 3));
+
+        Assert.Null(await ReadRawColumnAsync("sockets", id));
+        Assert.Null(await ReadRawColumnAsync("refine_bonus", id));
+    }
+
+    [Fact]
+    public async Task Equipment_SetSlot_SwapsInventoryId()
+    {
+        var characterId = await CreateCharacterAsync();
+        var first = await AddInventoryAsync(characterId, Plain("sword"));
+        var second = await AddInventoryAsync(characterId, Plain("axe"));
+
+        await SetSlotAsync(characterId, EquipmentSlot.Weapon, first);
+        await SetSlotAsync(characterId, EquipmentSlot.Weapon, second);
+
+        var loadout = await GetLoadoutAsync(characterId);
+        Assert.Equal(second, loadout.Equipped[EquipmentSlot.Weapon].Id);
+        await using var context = database.CreateDbContext();
+        Assert.Equal(1, await context.CharacterEquipments.CountAsync(row => row.CharacterId == characterId, CancellationToken));
     }
 
     [Fact]
