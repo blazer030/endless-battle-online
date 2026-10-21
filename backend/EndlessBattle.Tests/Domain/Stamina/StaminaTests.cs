@@ -35,4 +35,15 @@ public class StaminaTests
         Assert.Equal((new StaminaState(-1, last), 0.5, 12.0), StaminaRules.Consume(new StaminaState(0, last)));
         Assert.Equal((new StaminaState(4, last), 1.0, 2.0), StaminaRules.Consume(new StaminaState(5, last)));
     }
+
+    // 恰好 180 秒 → periods = 1 → +6；恰好 360 秒 → periods = 2 → +12
+    [Fact]
+    public void Stamina_RegeneratesAtExactBoundaries()
+    {
+        var s = new StaminaState(20, T0);
+
+        Assert.Equal(new StaminaState(26, T0.AddSeconds(180)), StaminaRules.Regenerate(s, T0.AddSeconds(180)));
+        Assert.Equal(new StaminaState(32, T0.AddSeconds(360)), StaminaRules.Regenerate(s, T0.AddSeconds(360)));
+        Assert.Equal(new StaminaState(20, T0), StaminaRules.Regenerate(s, T0.AddSeconds(179)));
+    }
 }
