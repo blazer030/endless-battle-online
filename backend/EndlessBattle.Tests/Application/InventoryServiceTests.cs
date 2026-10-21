@@ -269,11 +269,11 @@ public class InventoryServiceTests
         Assert.Equal(after, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.ActNum);
     }
 
-    // 擴充是「設定」為 5，不是累加：已是 5 再用一次仍是 5；道具與魔石分類變 20 格
+    // 擴充是「設定」為 5，不是累加：3 → 5（累加會變 8）；道具與魔石分類變 20 格
     [Fact]
     public async Task Use_BagExpansionSetsNotAdds()
     {
-        var character = await AddCharacterAsync(character => character with { BagBonus = 5, DepotBonus = 5 });
+        var character = await AddCharacterAsync(character => character with { BagBonus = 3, DepotBonus = 3 });
 
         var view = await service.UseAsync(AccountId, await GiveAsync(character, "test-bag-expansion"), CancellationToken);
         await service.UseAsync(AccountId, await GiveAsync(character, "test-depot-expansion"), CancellationToken);
@@ -363,5 +363,22 @@ public class InventoryServiceTests
 
         Assert.Equal(2, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
         Assert.Equal(["update", "update"], log);
+    }
+
+    // 目前加成已 ≥ 擴充格數：400 noEffect，不消耗、不寫角色
+    [Theory]
+    [InlineData(5)]
+    [InlineData(8)]
+    public async Task Use_ExpansionRejectedWhenNoEffect(int bonus)
+    {
+        var character = await AddCharacterAsync(character => character with { BagBonus = bonus, DepotBonus = bonus });
+        var bag = await GiveAsync(character, "test-bag-expansion", 2);
+        var depot = await GiveAsync(character, "test-depot-expansion");
+
+        Assert.Equal(["noEffect"], await ReasonsAsync(() => service.UseAsync(AccountId, bag, CancellationToken)));
+        Assert.Equal(["noEffect"], await ReasonsAsync(() => service.UseAsync(AccountId, depot, CancellationToken)));
+
+        Assert.Equal([2, 1], (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => entry.Quantity));
+        Assert.Empty(log);
     }
 }

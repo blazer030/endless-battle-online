@@ -75,10 +75,14 @@ public sealed class InventoryService(
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var state = await LoadAsync(character.Id, cancellationToken);
         var entry = FindInBag(state, inventoryId);
-        var used = ConsumableUse.Apply(character, content.GetItem(entry.ItemId))
-            ?? throw new InputValidationException("這個道具不能使用", ["notUsable"]);
+        var item = content.GetItem(entry.ItemId);
+        var reasons = ConsumableUse.CanUse(character, item);
+        if (reasons.Count > 0)
+        {
+            throw new InputValidationException("這個道具不能使用", reasons);
+        }
 
-        var updated = await characters.UpdateAsync(used, cancellationToken);
+        var updated = await characters.UpdateAsync(ConsumableUse.Apply(character, item), cancellationToken);
         if (entry.Quantity > 1)
         {
             await inventory.UpdateQuantityAsync(updated.Id, entry.Id, entry.Quantity - 1, cancellationToken);
