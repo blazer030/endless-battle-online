@@ -7,7 +7,7 @@
 
 ## 結構
 
-- `backend/EndlessBattle.Domain` — 遊戲規則：戰鬥、歷練、內容定義。純 C#，零依賴。
+- `backend/EndlessBattle.Domain` — 遊戲規則：戰鬥、冒險、內容定義。純 C#，零依賴。
 - `backend/EndlessBattle.Application` — 用例與介面（Repository、時鐘、亂數、遊戲內容）。
 - `backend/EndlessBattle.Infrastructure` — EF Core（Database-First）、內容載入、介面實作。
 - `backend/EndlessBattle.Api` — Minimal API、JWT、OpenAPI。

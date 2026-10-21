@@ -50,7 +50,7 @@ public sealed record RestEvent(double AtSeconds, long Cost, bool ExpPenalty, dou
 - **40 回合超限**：雙方都很耐打時，第 40 回合後結束，給部分經驗、無金錢、不計敗場；不會無限迴圈。→ Task 2 `Battle_EndsAfterFortyRounds_WithPartialExp`。
 - **死亡後必須住宿**：HP 0 的角色下一場開打前會先住宿（Lv ≤ 100 免費回滿、等待 15 秒），住宿事件出現在時間軸。→ Task 5 `Adventure_RestsBeforeNextFight_WhenDead`。
 - **行動力耗盡**：連續掛機超過回復速度後，獎勵減半、場間 12 秒，`EncounterEvent.StaminaDepleted = true`；回復後恢復全額。→ Task 4 `Stamina_DepletedHalvesRewardsAndSlowsFights`。
-- **長時間離線**：離線 6 小時後推進，回應在 1 秒內、事件只含最後 30 秒、摘要正確加總、Lv 與能力值都已成長、`LastSettledAt` 等於現在。→ Task 5 `Advance_SixHours_ReturnsSummaryQuickly`。
+- **長時間離線**：離線 6 小時後推進，回應在 1 秒內、事件只含最後 30 秒、摘要正確加總、Lv 與能力值都已成長、`LastSettledAt` 結算到最後一場開打（可略超過現在）。→ Task 5 `Advance_SixHours_ReturnsSummaryQuickly`。
 - **升級跨多級**：一場獲得的經驗足夠連升兩級時，`nextExp` 先扣再算，成長各擲一次，事件兩個。→ Task 3 `LevelUp_AppliesMultipleLevelsInOrder`。
 
 ---
@@ -62,12 +62,12 @@ backend/
   db/ddl/V000000004__add_stamina_and_job_proficiency.sql
   content/monsters.json（改為 WOG 欄位）、content/stages.json（不變）
   EndlessBattle.Domain/Battle/CombatantState.cs, AttackKind.cs, ElementTable.cs, WogDamage.cs, RoundResolver.cs, WogBattle.cs, BattleTiming.cs, BattleEvents.cs（取代 Combat/BattleEvents.cs）
-  EndlessBattle.Domain/Progression/ExperienceCurve.cs, RewardFormulas.cs, LevelUp.cs, ProficiencyCalculator.cs（JobProficiency.cs 的 record 已在 Task 1 建立）
-  EndlessBattle.Domain/Stamina/Stamina.cs
+  EndlessBattle.Domain/Progression/ExperienceCurve.cs, RewardFormulas.cs, LevelUp.cs（ProficiencyCalculator 併入 RewardFormulas.JobExp；JobProficiency.cs 的 record 已在 Task 1 建立）
+  EndlessBattle.Domain/Stamina/StaminaRules.cs
   EndlessBattle.Domain/Rest/Hotel.cs
   EndlessBattle.Domain/Adventure/AdventureSimulator.cs（重寫）, AdventureRun.cs（擴充）
   EndlessBattle.Domain/Content/MonsterDefinition.cs（WOG 欄位）
-  EndlessBattle.Domain/Characters/Character.cs（ActNum, ActNumTime）、CombatBridge.cs 刪除
+  EndlessBattle.Domain/Characters/Character.cs（ActNum, ActNumTime）、CombatBridge.cs 保留為 Character → CombatantState 轉接
   EndlessBattle.Application/Characters/IJobProficiencyRepository.cs, Adventure/AdventureService.cs（重寫）, Adventure/AdvanceResult.cs
   EndlessBattle.Infrastructure/Persistence/JobProficiencyRepository.cs（+ scaffold）
   EndlessBattle.Api/Endpoints/Contracts.cs, AdventureEndpoints.cs, CharacterEndpoints.cs（ActNum）
@@ -181,7 +181,7 @@ public static class LevelUp { public static LevelUpResult Apply(Character charac
 
 ### Task 4: 行動力與住宿（Domain）
 
-**Files:** `Stamina/Stamina.cs`、`Rest/Hotel.cs`；測試
+**Files:** `Stamina/StaminaRules.cs`、`Rest/Hotel.cs`；測試
 
 ```csharp
 public sealed record StaminaState(int ActNum, DateTimeOffset? LastRegenAt);
