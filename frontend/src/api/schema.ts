@@ -273,9 +273,9 @@ export interface components {
         AdvanceResponse: {
             events: components["schemas"]["BattleEvent"][];
             /** Format: int64 */
-            experienceGained: number;
+            expGained: number;
             /** Format: int64 */
-            spiritStonesGained: number;
+            moneyGained: number;
             character: components["schemas"]["CharacterResponse"];
         };
         BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventRewardEvent"];
@@ -321,10 +321,28 @@ export interface components {
         };
         CharacterResponse: {
             name: string;
+            /** Format: int32 */
+            level: number;
             /** Format: int64 */
-            experience: number;
+            exp: number;
             /** Format: int64 */
-            spiritStones: number;
+            nextExp: number;
+            /** Format: int64 */
+            money: number;
+            /** Format: int32 */
+            hp: number;
+            /** Format: int32 */
+            sp: number;
+            /** Format: int32 */
+            sex: number;
+            /** Format: int32 */
+            element: number;
+            /** Format: int32 */
+            birth: number;
+            jobId: string;
+            jobName: string;
+            specialAttackName: string;
+            stats: components["schemas"]["StatsResponse"];
             currentStageId: string;
         };
         /** @enum {unknown} */
@@ -332,13 +350,38 @@ export interface components {
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             stages: components["schemas"]["NamedContent"][];
+            jobs: components["schemas"]["JobContent"][];
+            elements: components["schemas"]["NamedContent"][];
+            births: components["schemas"]["NamedContent"][];
+            sexes: components["schemas"]["NamedContent"][];
         };
         CreateCharacterRequest: {
             name: null | string;
+            /** Format: int32 */
+            sex: null | number;
+            /** Format: int32 */
+            element: null | number;
+            /** Format: int32 */
+            birth: null | number;
+            jobId: null | string;
+            allocation: null | components["schemas"]["StatAllocationRequest"];
+            specialAttackName: null | string;
         };
         CredentialsRequest: {
             username: null | string;
             password: null | string;
+        };
+        JobContent: {
+            id: string;
+            name: string;
+            /** Format: int32 */
+            tier: number;
+            parentId: null | string;
+            /** Format: int32 */
+            unlockLevel: number;
+            /** Format: int32 */
+            proficiencyRequired: number;
+            statRequirements: components["schemas"]["StatRequirementContent"][];
         };
         LoginResponse: {
             accessToken: string;
@@ -350,6 +393,49 @@ export interface components {
         RegisterResponse: {
             /** Format: int64 */
             accountId: number;
+        };
+        StatAllocationRequest: {
+            /** Format: int32 */
+            str: null | number;
+            /** Format: int32 */
+            smart: null | number;
+            /** Format: int32 */
+            life: null | number;
+            /** Format: int32 */
+            agi: null | number;
+        };
+        StatRequirementContent: {
+            stat: string;
+            /** Format: int32 */
+            minimum: number;
+        };
+        StatsResponse: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            life: number;
+            /** Format: int32 */
+            vit: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+            /** Format: int32 */
+            be: number;
+            /** Format: int32 */
+            at: number;
+            /** Format: int32 */
+            mat: number;
+            /** Format: int32 */
+            df: number;
+            /** Format: int32 */
+            mdf: number;
+            /** Format: int32 */
+            hpMax: number;
+            /** Format: int32 */
+            spMax: number;
         };
     };
     responses: never;

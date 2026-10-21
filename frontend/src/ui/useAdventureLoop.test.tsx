@@ -5,19 +5,15 @@ import type { ApiClient } from "../api/client"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { AdvanceResponse, CharacterView } from "../game/types"
 import { PollIntervalMilliseconds, RequestTimeoutMilliseconds } from "../motion/timings"
+import { makeCharacter } from "../test/fixtures"
 import { useAdventureLoop } from "./useAdventureLoop"
 
-const character: CharacterView = {
-  name: "測試",
-  experience: 0,
-  spiritStones: 0,
-  currentStageId: "test-stage-1",
-}
+const character: CharacterView = makeCharacter()
 
 const emptyResponse: AdvanceResponse = {
   events: [],
-  experienceGained: 0,
-  spiritStonesGained: 0,
+  expGained: 0,
+  moneyGained: 0,
   character,
 }
 

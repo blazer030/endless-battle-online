@@ -71,8 +71,8 @@ export class BattlePlayback {
     }
     return {
       ...this.confirmedCharacter,
-      experience: Math.max(0, this.confirmedCharacter.experience - experience),
-      spiritStones: Math.max(0, this.confirmedCharacter.spiritStones - spiritStones),
+      exp: Math.max(0, this.confirmedCharacter.exp - experience),
+      money: Math.max(0, this.confirmedCharacter.money - spiritStones),
     }
   }
 

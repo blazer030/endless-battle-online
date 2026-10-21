@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
+import { makeCharacter } from "../test/fixtures"
 import { CreateCharacterScreen } from "./CreateCharacterScreen"
 
 test("CreateCharacterScreen_ShowsConflictDetail", async () => {
@@ -16,7 +17,7 @@ test("CreateCharacterScreen_ShowsConflictDetail", async () => {
 })
 
 test("CreateCharacterScreen_CallsOnCreated_OnSuccess", async () => {
-  const created = { name: "青衣", experience: 0, spiritStones: 0, currentStageId: "stage-1" }
+  const created = makeCharacter({ name: "青衣" })
   const createCharacter = vi.fn().mockResolvedValue(created)
   const onCreated = vi.fn()
   render(<CreateCharacterScreen api={{ createCharacter }} onCreated={onCreated} />)

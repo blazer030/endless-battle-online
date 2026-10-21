@@ -1,13 +1,9 @@
 import { describe, expect, it } from "vitest"
 import type { AdvanceResponse, BattleEvent, CharacterView } from "./types"
+import { makeCharacter } from "../test/fixtures"
 import { BattlePlayback } from "./battlePlayback"
 
-const startCharacter: CharacterView = {
-  name: "test",
-  experience: 0,
-  spiritStones: 0,
-  currentStageId: "test-stage",
-}
+const startCharacter: CharacterView = makeCharacter({ name: "test", currentStageId: "test-stage" })
 
 function encounter(atSeconds: number): BattleEvent {
   return {
@@ -26,8 +22,8 @@ function reward(atSeconds: number, experience: number, spiritStones: number): Ba
 function response(events: BattleEvent[], character: Partial<CharacterView> = {}): AdvanceResponse {
   return {
     events,
-    experienceGained: 0,
-    spiritStonesGained: 0,
+    expGained: 0,
+    moneyGained: 0,
     character: { ...startCharacter, ...character },
   }
 }
@@ -99,20 +95,20 @@ describe("BattlePlayback", () => {
 
   it("displayedCharacter_ExcludesUnplayedRewards", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([encounter(0), reward(2, 8, 0)], { experience: 13 }), 0)
+    playback.enqueue(response([encounter(0), reward(2, 8, 0)], { exp: 13 }), 0)
 
-    expect(playback.displayedCharacter.experience).toBe(5)
+    expect(playback.displayedCharacter.exp).toBe(5)
 
     playback.takeDue(2000)
 
-    expect(playback.displayedCharacter.experience).toBe(13)
+    expect(playback.displayedCharacter.exp).toBe(13)
   })
 
   it("enqueue_EmptyEvents_UpdatesCharacterOnly", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([], { experience: 7, spiritStones: 3 }), 0)
+    playback.enqueue(response([], { exp: 7, money: 3 }), 0)
 
     expect(playback.takeDue(100000)).toEqual([])
-    expect(playback.displayedCharacter).toMatchObject({ experience: 7, spiritStones: 3 })
+    expect(playback.displayedCharacter).toMatchObject({ exp: 7, money: 3 })
   })
 })

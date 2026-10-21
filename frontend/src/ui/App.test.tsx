@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import { saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
+import { makeCharacter } from "../test/fixtures"
 import { App } from "./App"
 
 // 路由測試只關心切到哪個畫面，歷練畫面本身另有測試
@@ -12,7 +13,7 @@ vi.mock("./AdventureScreen", () => ({
   ),
 }))
 
-const character = { name: "青衣", experience: 0, spiritStones: 0, currentStageId: "stage-1" }
+const character = makeCharacter({ name: "青衣" })
 
 const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   register: vi.fn(),

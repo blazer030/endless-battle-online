@@ -1,5 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
+import { makeCharacter } from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -7,9 +8,9 @@ const jsonResponse = (body: unknown, status = 200) =>
 
 const advanceBody = {
   events: [],
-  experienceGained: 0,
-  spiritStonesGained: 0,
-  character: { name: "青", experience: 0, spiritStones: 0, currentStageId: "stage-1" },
+  expGained: 0,
+  moneyGained: 0,
+  character: makeCharacter(),
 }
 
 beforeEach(() => localStorage.clear())

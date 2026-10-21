@@ -18,7 +18,14 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-const emptyContent: ContentNames = { monsters: [], stages: [] }
+const emptyContent: ContentNames = {
+  monsters: [],
+  stages: [],
+  jobs: [],
+  elements: [],
+  births: [],
+  sexes: [],
+}
 
 const navigation = ["角色", "技能", "背包"]
 
@@ -97,8 +104,8 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
       <header className="adventure__top">
         <span className="adventure__name">{character.name}</span>
         <span className="adventure__totals">
-          <span>{`修為 ${format(character.experience)}`}</span>
-          <span>{`靈石 ${format(character.spiritStones)}`}</span>
+          <span>{`修為 ${format(character.exp)}`}</span>
+          <span>{`靈石 ${format(character.money)}`}</span>
         </span>
       </header>
       <h1 className="adventure__stage-name">{stageName}</h1>

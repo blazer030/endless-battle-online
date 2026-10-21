@@ -2,14 +2,14 @@ import { describe, expect, test } from "vitest"
 import { createMonsterNameResolver, describePlaybackItem } from "./battleLog"
 import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
+import { makeContent } from "../test/fixtures"
 import type { BattleEvent } from "./types"
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
-const resolver = createMonsterNameResolver({
-  monsters: [{ id: "slime", name: "墨靈" }],
-  stages: [],
-})
+const resolver = createMonsterNameResolver(
+  makeContent({ monsters: [{ id: "slime", name: "墨靈" }] }),
+)
 
 const event = (e: DistributiveOmit<BattleEvent, "atSeconds">): PlaybackItem => ({
   kind: "event",

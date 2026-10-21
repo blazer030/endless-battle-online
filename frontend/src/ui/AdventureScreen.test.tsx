@@ -4,6 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
 import type { StageHandle } from "../render/StageRenderer"
+import { makeCharacter, makeContent } from "../test/fixtures"
 import { AdventureScreen } from "./AdventureScreen"
 
 // jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
@@ -35,17 +36,12 @@ vi.mock("../render/PixiStage", async () => {
   }
 })
 
-const character: CharacterView = {
-  name: "青衣",
-  experience: 0,
-  spiritStones: 0,
-  currentStageId: "test-stage-1",
-}
+const character: CharacterView = makeCharacter({ name: "青衣" })
 
-const content: ContentNames = {
+const content: ContentNames = makeContent({
   monsters: [{ id: "test-wolf", name: "測試寒狼" }],
   stages: [{ id: "test-stage-1", name: "測試關卡・一" }],
-}
+})
 
 const response: AdvanceResponse = {
   events: [
@@ -58,9 +54,9 @@ const response: AdvanceResponse = {
     },
     { type: "reward", atSeconds: 0, experience: 8, spiritStones: 3 },
   ],
-  experienceGained: 8,
-  spiritStonesGained: 3,
-  character: { ...character, experience: 8, spiritStones: 3 },
+  expGained: 8,
+  moneyGained: 3,
+  character: { ...character, exp: 8, money: 3 },
 }
 
 const createFakeApi = (): ApiClient => ({
