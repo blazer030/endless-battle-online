@@ -135,16 +135,19 @@ public class JsonGameContentTests
             strict: true);
     }
 
+    // 既有的雪精、寒狼改歸 16 冷峰寒地，依公式重算（雪精 Lv36 普通；寒狼 Lv40 速：agi ×1.4、at ×0.9、hp ×0.8）
     [Fact]
     public void Load_ShippedContent_DescribesFrostPeakMonsters()
     {
         var content = JsonGameContent.Load(ShippedContentDirectory);
-        Assert.Equal(
-            [
-                new MonsterDefinition("snow-sprite", "雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0),
-                new MonsterDefinition("frost-wolf", "寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30),
-            ],
-            content.AllMonsters);
+        Assert.Equivalent(
+            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 125, Mat: 100, Df: 38, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2]),
+            content.GetMonster("snow-sprite"),
+            strict: true);
+        Assert.Equivalent(
+            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 124, Mat: 110, Df: 42, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3]),
+            content.GetMonster("frost-wolf"),
+            strict: true);
     }
 
     [Theory]
