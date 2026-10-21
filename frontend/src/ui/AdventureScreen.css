@@ -44,7 +44,7 @@
   padding: 4px 16px;
   font-size: 12px;
   text-align: center;
-  color: var(--crimson);
+  color: var(--crimson-text);
 }
 
 .adventure__nav {

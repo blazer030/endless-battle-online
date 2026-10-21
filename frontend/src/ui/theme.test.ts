@@ -12,6 +12,7 @@ const colorTokens = {
   "--gold": "#e0a63a",
   "--cyan": "#4cc3d9",
   "--crimson": "#e2554f",
+  "--crimson-text": "#f0706a",
   "--green": "#4fc47a",
   "--night": "#0b1020",
 }

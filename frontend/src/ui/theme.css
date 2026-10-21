@@ -9,6 +9,8 @@
   --gold: #e0a63a;
   --cyan: #4cc3d9;
   --crimson: #e2554f;
+  /* 小字用的緋紅，在 --panel 與 --bg-bottom 上對比皆 ≥ 4.5:1 */
+  --crimson-text: #f0706a;
   --green: #4fc47a;
   --night: #0b1020;
   --white: #ffffff;

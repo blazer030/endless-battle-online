@@ -9,6 +9,7 @@ export const Palette = {
   gold: 0xe0a63a,
   cyan: 0x4cc3d9,
   crimson: 0xe2554f,
+  crimsonText: 0xf0706a,
   green: 0x4fc47a,
   night: 0x0b1020,
   white: 0xffffff,

@@ -1,6 +1,6 @@
 # 墨渡（Inkbound）
 
-水墨修仙風格的單人放置 RPG。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
+現代奇幻風的單人放置 RPG，WOG 4.5 的單機翻新版。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
 
 - 設計文件：`docs/superpowers/specs/2026-10-21-inkbound-design.md`
 - 實作計畫：`docs/superpowers/plans/`
@@ -39,12 +39,13 @@
 
 1. TypeScript `strict`，禁用 `any`。
 2. 手機直式優先：以 375×667 為主要設計尺寸，360～430 寬度不得出現水平捲動；電腦上整個畫面置中、最大寬度 480px。
-3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，數值與 CSS 變數一致。
-4. 字型「霞鶩文楷 TC」（`LXGW WenKai TC`，Google Fonts），標題與妖怪名稱用 700 字重。
+3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，數值與 CSS 變數一致（`theme.test.ts` 會比對）。
+   - 色彩變數：`--bg-top`、`--bg-bottom`、`--panel`、`--border`、`--text`、`--text-muted`、`--gold`、`--cyan`、`--crimson`、`--crimson-text`（小字用，對比 ≥ 4.5:1）、`--green`、`--night`、`--white`；字型變數：`--font-ui`、`--font-title`。
+4. 字型（Google Fonts）：介面用 Noto Sans TC；標題用 Noto Serif TC 700（中文）與 Cinzel 700（拉丁），妖怪名牌用 Noto Serif TC 700。
 5. 遊戲狀態只存在 `src/game/` 的純 TS 物件；React state 與 Pixi 物件都不持有權威狀態。`src/game/` 不得 import React、Pixi、GSAP 或 `src/api/` 以外的瀏覽器 API。
 6. 整個 app 只有一個 Pixi `Application`；Pixi `Text` 一律明確指定 `resolution: window.devicePixelRatio`。
 7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。
-8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖的 id 走書法字退路。
+8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖時顯示橫排名牌。
 9. `src/api/schema.ts` 是產生檔，不得手改。
 
 ## 指令
