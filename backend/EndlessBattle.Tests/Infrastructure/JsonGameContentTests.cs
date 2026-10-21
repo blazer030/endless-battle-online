@@ -141,11 +141,11 @@ public class JsonGameContentTests
     {
         var content = JsonGameContent.Load(ShippedContentDirectory);
         Assert.Equivalent(
-            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 125, Mat: 100, Df: 38, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2]),
+            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 128, Mat: 76, Df: 41, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2]),
             content.GetMonster("snow-sprite"),
             strict: true);
         Assert.Equivalent(
-            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 124, Mat: 110, Df: 42, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3]),
+            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 127, Mat: 84, Df: 45, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3]),
             content.GetMonster("frost-wolf"),
             strict: true);
     }
