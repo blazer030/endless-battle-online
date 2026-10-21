@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Progression;
 
 namespace EndlessBattle.Tests.Support;
@@ -27,5 +28,25 @@ public sealed class InMemoryJobProficiencyRepository(List<string>? log = null) :
             SkillPoints = existing.SkillPoints + skillPointsDelta,
         };
         return Task.CompletedTask;
+    }
+
+    // 模擬讀取與扣除之間有別的請求先改了技能點
+    public Func<Task>? BeforeNextSpend { get; set; }
+
+    public async Task SpendSkillPointsAsync(long characterId, string jobId, long cost, CancellationToken cancellationToken)
+    {
+        if (BeforeNextSpend is { } beforeSpend)
+        {
+            BeforeNextSpend = null;
+            await beforeSpend();
+        }
+
+        Log.Add($"spend:{jobId}:{cost}");
+        if (rows.GetValueOrDefault((characterId, jobId)) is not { } existing || existing.SkillPoints < cost)
+        {
+            throw new ConflictException("技能熟練度已變動");
+        }
+
+        rows[(characterId, jobId)] = existing with { SkillPoints = existing.SkillPoints - cost };
     }
 }

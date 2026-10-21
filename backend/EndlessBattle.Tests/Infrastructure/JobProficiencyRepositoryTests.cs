@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
@@ -66,6 +67,34 @@ public class JobProficiencyRepositoryTests(MySqlDatabaseFixture database)
         await using var readContext = database.CreateDbContext();
         var stored = await new JobProficiencyRepository(readContext).ListAsync(characterId, CancellationToken);
         Assert.Equal([new JobProficiency("warrior", 13, 3)], stored);
+    }
+
+    [Fact]
+    public async Task SpendSkillPoints_DeductsOnlySkillPoints()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using var context = database.CreateDbContext();
+        var repository = new JobProficiencyRepository(context);
+        await repository.AddAsync(characterId, "warrior", 40, 300, CancellationToken);
+
+        await repository.SpendSkillPointsAsync(characterId, "warrior", 300, CancellationToken);
+
+        Assert.Equal([new JobProficiency("warrior", 40, 0)], await repository.ListAsync(characterId, CancellationToken));
+    }
+
+    // 讀取後被別的請求花掉時，條件式更新不扣成負數，也不動到別的職業或沒有紀錄的職業
+    [Fact]
+    public async Task SpendSkillPoints_RefusesWhenInsufficient()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using var context = database.CreateDbContext();
+        var repository = new JobProficiencyRepository(context);
+        await repository.AddAsync(characterId, "warrior", 40, 299, CancellationToken);
+
+        await Assert.ThrowsAsync<ConflictException>(() => repository.SpendSkillPointsAsync(characterId, "warrior", 300, CancellationToken));
+        await Assert.ThrowsAsync<ConflictException>(() => repository.SpendSkillPointsAsync(characterId, "thief", 1, CancellationToken));
+
+        Assert.Equal([new JobProficiency("warrior", 40, 299)], await repository.ListAsync(characterId, CancellationToken));
     }
 
     [Fact]

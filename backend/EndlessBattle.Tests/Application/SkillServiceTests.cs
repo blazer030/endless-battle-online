@@ -58,7 +58,7 @@ public class SkillServiceTests
 
         var overview = await service.LearnAsync(AccountId, "burst", CancellationToken);
 
-        Assert.Equal(["update", "proficiency:warrior", "book:burst:1"], log);
+        Assert.Equal(["update", "spend:warrior:300", "book:burst:1"], log);
         Assert.Equal(1500, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
         Assert.Equal([new JobProficiency("warrior", 0, 200)], await proficiencies.ListAsync(character.Id, CancellationToken));
         Assert.Equal(200, overview.SkillPoints);
@@ -77,6 +77,19 @@ public class SkillServiceTests
 
         Assert.Empty(log);
         Assert.Equal([new JobProficiency("warrior", 0, 300)], await proficiencies.ListAsync(character.Id, CancellationToken));
+        Assert.Empty(await skillBook.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 最小重現：檢查時夠 300，扣除前被別的請求花到 100 → 條件式扣除拒絕，技能書不寫
+    [Fact]
+    public async Task Learn_Conflicts_WhenSkillPointsSpentConcurrently()
+    {
+        var character = await ArrangeAsync(skillPoints: 300);
+        proficiencies.BeforeNextSpend = () => proficiencies.AddAsync(character.Id, "warrior", 0, -200, CancellationToken);
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.LearnAsync(AccountId, "burst", CancellationToken));
+
+        Assert.Equal([new JobProficiency("warrior", 0, 100)], await proficiencies.ListAsync(character.Id, CancellationToken));
         Assert.Empty(await skillBook.ListAsync(character.Id, CancellationToken));
     }
 

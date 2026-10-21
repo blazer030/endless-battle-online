@@ -35,7 +35,7 @@ public sealed class SkillService(
         return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots);
     }
 
-    // 角色更新（扣錢、版本鎖）成功後才寫技能點與技能書；版本衝突時其他表都不動
+    // 角色更新（扣錢、版本鎖）成功後才扣技能點（條件式，不足則 409）與寫技能書；版本衝突時其他表都不動
     public async Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
@@ -53,7 +53,7 @@ public sealed class SkillService(
 
         var (updated, proficiencyCost, learnedSkill) = SkillLearning.Apply(character, skill, currentLevel, skillPoints);
         await characters.UpdateAsync(updated, cancellationToken);
-        await proficiencies.AddAsync(character.Id, skill.JobId, 0, -proficiencyCost, cancellationToken);
+        await proficiencies.SpendSkillPointsAsync(character.Id, skill.JobId, proficiencyCost, cancellationToken);
         await skillBook.UpsertAsync(character.Id, learnedSkill, cancellationToken);
         return await GetAsync(accountId, cancellationToken);
     }
