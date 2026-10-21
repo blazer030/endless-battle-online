@@ -7,10 +7,10 @@ import type { CharacterView } from "../game/types"
 import { makeCharacter, makeContent } from "../test/fixtures"
 import { App } from "./App"
 
-// 路由測試只關心切到哪個畫面，歷練畫面本身另有測試
+// 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
 vi.mock("./AdventureScreen", () => ({
   AdventureScreen: ({ initialCharacter }: { initialCharacter: CharacterView }) => (
-    <p>歷練中：{initialCharacter.name}</p>
+    <p>冒險中：{initialCharacter.name}</p>
   ),
 }))
 
@@ -139,7 +139,7 @@ test("App_ShowsAdventure_WhenCharacterExists", async () => {
 
   render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
 
-  expect(await screen.findByText("歷練中：青衣")).toBeInTheDocument()
+  expect(await screen.findByText("冒險中：青衣")).toBeInTheDocument()
 })
 
 test("App_ShowsLogin_WhenSessionExpires", async () => {
@@ -151,7 +151,7 @@ test("App_ShowsLogin_WhenSessionExpires", async () => {
     return () => {}
   }
   render(<App api={api} subscribeToSessionExpiry={subscribeToSessionExpiry} />)
-  await screen.findByText("歷練中：青衣")
+  await screen.findByText("冒險中：青衣")
 
   act(() => expire())
 

@@ -72,7 +72,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         if (isCurrent) setContent(loaded)
       },
       () => {
-        // 名稱表載入失敗時以 id 顯示，不擋住歷練
+        // 名稱表載入失敗時以 id 顯示，不擋住冒險
         if (isCurrent) setContent(emptyContent)
       },
     )
