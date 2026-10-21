@@ -2,6 +2,7 @@ using System.Text.Json;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Skills;
+using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Infrastructure.Content;
 
@@ -13,6 +14,9 @@ public sealed class JsonGameContent : IGameContent
     private const int MinimumElement = 0;
     private const int MaximumElement = 6;
     private const int MaximumMeet = 100;
+    private const int MinimumPlaceId = 1;
+    private const int MaximumPlaceId = 21;
+    private const int SubPlacesPerPlace = 4;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -20,6 +24,7 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<string, StageDefinition> stages;
     private readonly Dictionary<string, JobDefinition> jobs;
     private readonly Dictionary<string, SkillDefinition> skills;
+    private readonly Dictionary<int, PlaceDefinition> places;
 
     private JsonGameContent(
         string startingStageId,
@@ -30,8 +35,17 @@ public sealed class JsonGameContent : IGameContent
         Dictionary<string, MonsterDefinition> monsters,
         Dictionary<string, StageDefinition> stages,
         Dictionary<string, JobDefinition> jobs,
-        Dictionary<string, SkillDefinition> skills)
+        Dictionary<string, SkillDefinition> skills,
+        WorldFile world,
+        IReadOnlyList<AreaDefinition> allAreas,
+        IReadOnlyList<PlaceDefinition> allPlaces,
+        Dictionary<int, PlaceDefinition> places)
     {
+        StartingPlaceId = world.StartingPlaceId;
+        StartingSubPlace = world.StartingSubPlace;
+        AllAreas = allAreas;
+        AllPlaces = allPlaces;
+        this.places = places;
         StartingStageId = startingStageId;
         AllMonsters = allMonsters;
         AllStages = allStages;
@@ -44,6 +58,14 @@ public sealed class JsonGameContent : IGameContent
     }
 
     public string StartingStageId { get; }
+
+    public int StartingPlaceId { get; }
+
+    public int? StartingSubPlace { get; }
+
+    public IReadOnlyList<AreaDefinition> AllAreas { get; }
+
+    public IReadOnlyList<PlaceDefinition> AllPlaces { get; }
 
     public IReadOnlyList<MonsterDefinition> AllMonsters { get; }
 
@@ -59,6 +81,7 @@ public sealed class JsonGameContent : IGameContent
         var stageFile = Read<StageFile>(Path.Combine(directory, "stages.json"));
         var jobFile = Read<JobFile>(Path.Combine(directory, "jobs.json"));
         var skillFile = Read<SkillFile>(Path.Combine(directory, "skills.json"));
+        var worldFile = Read<WorldFile>(Path.Combine(directory, "world.json"));
 
         var monsters = new Dictionary<string, MonsterDefinition>();
         foreach (var monster in monsterFile.Monsters)
@@ -123,9 +146,15 @@ public sealed class JsonGameContent : IGameContent
             ValidateSkill(skill, jobs);
         }
 
+        var (allAreas, allPlaces, places) = BuildWorld(worldFile);
+
         return new JsonGameContent(
-            stageFile.StartingStageId, monsterFile.Monsters, stageFile.Stages, allJobs, allSkills, monsters, stages, jobs, skills);
+            stageFile.StartingStageId, monsterFile.Monsters, stageFile.Stages, allJobs, allSkills, monsters, stages, jobs, skills,
+            worldFile, allAreas, allPlaces, places);
     }
+
+    public PlaceDefinition GetPlace(int placeId) =>
+        places.TryGetValue(placeId, out var place) ? place : throw new GameContentException($"找不到地區：{placeId}");
 
     public StageDefinition GetStage(string stageId) =>
         stages.TryGetValue(stageId, out var stage) ? stage : throw new GameContentException($"找不到關卡：{stageId}");
@@ -141,6 +170,80 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<SkillDefinition> SkillsOf(string jobId) =>
         AllSkills.Where(skill => skill.JobId == jobId).ToList();
+
+    private static (IReadOnlyList<AreaDefinition>, IReadOnlyList<PlaceDefinition>, Dictionary<int, PlaceDefinition>) BuildWorld(
+        WorldFile world)
+    {
+        var entries = new Dictionary<int, PlaceEntry>();
+        foreach (var entry in world.Places)
+        {
+            if (entry.Id is < MinimumPlaceId or > MaximumPlaceId)
+            {
+                throw new GameContentException($"地區 id 必須在 {MinimumPlaceId}～{MaximumPlaceId}：{entry.Id}");
+            }
+
+            if (!entries.TryAdd(entry.Id, entry))
+            {
+                throw new GameContentException($"地區 id 重複：{entry.Id}");
+            }
+
+            if (entry.SubPlaces.Count is not (0 or SubPlacesPerPlace))
+            {
+                throw new GameContentException($"地區 {entry.Id} 的子地區必須是 0 或 {SubPlacesPerPlace} 個");
+            }
+
+            if (entry.Recommended is not [var min, var max] || min < 1 || min > max)
+            {
+                throw new GameContentException($"地區 {entry.Id} 的推薦等級必須是 [min, max]，且 1 ≤ min ≤ max");
+            }
+        }
+
+        var areaOfPlace = new Dictionary<int, string>();
+        foreach (var area in world.Areas)
+        {
+            foreach (var placeId in area.PlaceIds)
+            {
+                if (!entries.ContainsKey(placeId))
+                {
+                    throw new GameContentException($"區域 {area.Id} 引用了不存在的地區：{placeId}");
+                }
+
+                if (!areaOfPlace.TryAdd(placeId, area.Id))
+                {
+                    throw new GameContentException($"地區 {placeId} 同時屬於多個區域");
+                }
+            }
+        }
+
+        var orphan = entries.Keys.FirstOrDefault(placeId => !areaOfPlace.ContainsKey(placeId));
+        if (orphan != 0)
+        {
+            throw new GameContentException($"地區 {orphan} 不屬於任何區域");
+        }
+
+        if (!entries.TryGetValue(world.StartingPlaceId, out var starting))
+        {
+            throw new GameContentException($"起始地區不存在：{world.StartingPlaceId}");
+        }
+
+        if (starting.SubPlaces.Count > 0 != world.StartingSubPlace.HasValue
+            || world.StartingSubPlace is < 1 or > SubPlacesPerPlace)
+        {
+            throw new GameContentException($"起始地區 {starting.Id} 的子地區設定不符：有子地區才需要，且為 1～{SubPlacesPerPlace}");
+        }
+
+        var allPlaces = world.Places
+            .Select(entry => new PlaceDefinition(
+                entry.Id,
+                entry.Name,
+                areaOfPlace[entry.Id],
+                entry.SubPlaces.Select((name, index) => new SubPlaceDefinition(index + 1, name)).ToList(),
+                new LevelRange(entry.Recommended[0], entry.Recommended[1]),
+                entry.Restricted))
+            .ToList();
+        var allAreas = world.Areas.Select(area => new AreaDefinition(area.Id, area.Name, area.PlaceIds)).ToList();
+        return (allAreas, allPlaces, allPlaces.ToDictionary(place => place.Id));
+    }
 
     private static void ValidateMonster(MonsterDefinition monster)
     {
@@ -285,6 +388,14 @@ public sealed class JsonGameContent : IGameContent
     private sealed record MonsterFile(IReadOnlyList<MonsterDefinition> Monsters);
 
     private sealed record StageFile(string StartingStageId, IReadOnlyList<StageDefinition> Stages);
+
+    private sealed record WorldFile(
+        int StartingPlaceId, int? StartingSubPlace, IReadOnlyList<AreaEntry> Areas, IReadOnlyList<PlaceEntry> Places);
+
+    private sealed record AreaEntry(string Id, string Name, IReadOnlyList<int> PlaceIds);
+
+    private sealed record PlaceEntry(
+        int Id, string Name, IReadOnlyList<string> SubPlaces, int[] Recommended, bool Restricted);
 
     private sealed record SkillFile(IReadOnlyList<SkillEntry> Skills);
 

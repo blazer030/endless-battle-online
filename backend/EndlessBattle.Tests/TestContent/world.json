@@ -1,0 +1,14 @@
+{
+  "startingPlaceId": 1,
+  "startingSubPlace": 1,
+  "areas": [
+    { "id": "central", "name": "測試大陸", "placeIds": [1, 2, 20] },
+    { "id": "restricted", "name": "測試禁區", "placeIds": [17] }
+  ],
+  "places": [
+    { "id": 1, "name": "測試平原", "subPlaces": ["甲地", "乙地", "丙地", "丁地"], "recommended": [1, 10], "restricted": false },
+    { "id": 2, "name": "測試洞窟", "subPlaces": ["一洞", "二洞", "三洞", "四洞"], "recommended": [6, 15], "restricted": false },
+    { "id": 20, "name": "測試神廟", "subPlaces": [], "recommended": [30, 40], "restricted": false },
+    { "id": 17, "name": "測試禁地", "subPlaces": ["禁一", "禁二", "禁三", "禁四"], "recommended": [60, 80], "restricted": true }
+  ]
+}

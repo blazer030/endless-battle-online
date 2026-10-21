@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Skills;
+using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -21,6 +22,14 @@ public class JsonGameContentTests
 
     private const string ValidWarrior =
         $$"""{ "id": "warrior", "name": "戰士", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {{ValidGrowth}} }""";
+
+    private const string ValidWorld = """
+        { "startingPlaceId": 1, "startingSubPlace": 1,
+          "areas": [{ "id": "central", "name": "中", "placeIds": [1, 2] }],
+          "places": [
+            { "id": 1, "name": "甲", "subPlaces": ["a", "b", "c", "d"], "recommended": [1, 10], "restricted": false },
+            { "id": 2, "name": "乙", "subPlaces": [], "recommended": [5, 15], "restricted": false }] }
+        """;
 
     private const string ValidSkills = """{ "skills": [] }""";
 
@@ -261,6 +270,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), ValidStages);
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), $$"""{ "skills": [{{skills}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
             return JsonGameContent.Load(directory.FullName);
         }
         finally
@@ -287,8 +297,112 @@ public class JsonGameContentTests
         Assert.Contains("nobody", exception.Message);
     }
 
+    private static void AssertWorldRejected(string world, string offendingText) =>
+        AssertLoadRejects(ValidMonsters, ValidStages, ValidJobs, offendingText, ValidSkills, world);
+
+    private static string PlaceJson(int id, string subPlaces = """["a", "b", "c", "d"]""", string recommended = "[1, 10]") =>
+        $$"""{ "id": {{id}}, "name": "地{{id}}", "subPlaces": {{subPlaces}}, "recommended": {{recommended}}, "restricted": false }""";
+
+    private static string WorldJson(string areaPlaceIds, string places, string starting = "\"startingPlaceId\": 1, \"startingSubPlace\": 1") =>
+        $$"""{ {{starting}}, "areas": [{ "id": "central", "name": "中", "placeIds": [{{areaPlaceIds}}] }], "places": [{{places}}] }""";
+
+    [Fact]
+    public void World_LoadsTwentyOnePlacesInFiveAreas()
+    {
+        var content = JsonGameContent.Load(ShippedContentDirectory);
+
+        Assert.Equal(21, content.AllPlaces.Count);
+        Assert.Equal(Enumerable.Range(1, 21), content.AllPlaces.Select(place => place.Id).Order());
+        Assert.Equal(["central", "magic", "jungle", "doom", "restricted"], content.AllAreas.Select(area => area.Id));
+        Assert.Equal([1, 3, 7, 13], content.AllAreas[0].PlaceIds);
+        Assert.Equal([2, 8, 12, 15], content.AllAreas[1].PlaceIds);
+        Assert.Equal([4, 11, 16, 9], content.AllAreas[2].PlaceIds);
+        Assert.Equal([10, 5, 6, 14, 21], content.AllAreas[3].PlaceIds);
+        Assert.Equal([17, 18, 19, 20], content.AllAreas[4].PlaceIds);
+        Assert.Equal(1, content.StartingPlaceId);
+        Assert.Equal(1, content.StartingSubPlace);
+
+        Assert.All(content.AllPlaces, place =>
+        {
+            Assert.Equal(place.Id != 20 ? 4 : 0, place.SubPlaces.Count);
+            Assert.Equal(place.Id is >= 17 and <= 20, place.Restricted);
+            Assert.InRange(place.Recommended.Min, 1, place.Recommended.Max);
+            Assert.Equal(content.AllAreas.Single(area => area.PlaceIds.Contains(place.Id)).Id, place.AreaId);
+        });
+        Assert.False(content.GetPlace(20).HasSubPlaces);
+
+        Assert.Equal(new LevelRange(1, 10), content.GetPlace(1).Recommended);
+        Assert.Equal(new LevelRange(20, 32), content.GetPlace(7).Recommended);
+        Assert.Equal(new LevelRange(26, 40), content.GetPlace(12).Recommended);
+        Assert.Equal(new LevelRange(35, 48), content.GetPlace(16).Recommended);
+        Assert.Equal(new LevelRange(110, 140), content.GetPlace(21).Recommended);
+        Assert.Equal(new LevelRange(130, 160), content.GetPlace(20).Recommended);
+
+        Assert.Equal("中央平原", content.GetPlace(1).Name);
+        Assert.Equal(["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"], content.GetPlace(1).SubPlaces.Select(sub => sub.Name));
+        Assert.Equal([1, 2, 3, 4], content.GetPlace(1).SubPlaces.Select(sub => sub.Index));
+        Assert.Equal(["試煉之道", "邪靈棧橋", "中央高塔", "熔岩斷層"], content.GetPlace(7).SubPlaces.Select(sub => sub.Name));
+        Assert.Equal(["雲端城堡", "輝煌都市", "天使之廳", "封神殿堂"], content.GetPlace(12).SubPlaces.Select(sub => sub.Name));
+        Assert.Equal(["寒氣苔原", "覆雪大地", "暴風雪山", "極寒冰峰"], content.GetPlace(16).SubPlaces.Select(sub => sub.Name));
+        Assert.Equal(["十字墓地", "惡魔遺蹟", "暗紅神殿", "焦池煉獄"], content.GetPlace(21).SubPlaces.Select(sub => sub.Name));
+    }
+
+    [Fact]
+    public void World_TestContent_ExposesPlaces()
+    {
+        var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
+        Assert.Equal([1, 2, 20, 17], content.AllPlaces.Select(place => place.Id));
+        Assert.True(content.GetPlace(17).Restricted);
+        Assert.Contains("999", Assert.Throws<GameContentException>(() => content.GetPlace(999)).Message);
+    }
+
+    [Fact]
+    public void World_RejectsUnknownPlaceInArea() =>
+        AssertWorldRejected(WorldJson("1, 7", PlaceJson(1)), "7");
+
+    [Fact]
+    public void World_RejectsPlaceOutsideAnyArea() =>
+        AssertWorldRejected(WorldJson("1", $"{PlaceJson(1)}, {PlaceJson(2)}"), "2");
+
+    [Fact]
+    public void World_RejectsDuplicatePlaceId() =>
+        AssertWorldRejected(WorldJson("1", $"{PlaceJson(1)}, {PlaceJson(1)}"), "重複");
+
+    [Theory]
+    [InlineData("""["a", "b", "c"]""")]
+    [InlineData("""["a", "b", "c", "d", "e"]""")]
+    public void World_RejectsSubPlaceCountOtherThanZeroOrFour(string subPlaces) =>
+        AssertWorldRejected(WorldJson("1", PlaceJson(1, subPlaces)), "子地區");
+
+    [Fact]
+    public void World_RejectsStartingPlaceWithoutSubPlaceWhenItHasThem() =>
+        AssertWorldRejected(
+            WorldJson("1", PlaceJson(1), "\"startingPlaceId\": 1, \"startingSubPlace\": null"), "起始");
+
+    [Fact]
+    public void World_RejectsStartingSubPlaceWhenPlaceHasNone() =>
+        AssertWorldRejected(
+            WorldJson("1", PlaceJson(1, "[]"), "\"startingPlaceId\": 1, \"startingSubPlace\": 1"), "起始");
+
+    [Fact]
+    public void World_RejectsMissingStartingPlace() =>
+        AssertWorldRejected(
+            WorldJson("1", PlaceJson(1), "\"startingPlaceId\": 9, \"startingSubPlace\": 1"), "起始");
+
+    [Theory]
+    [InlineData("[0, 10]")]
+    [InlineData("[10, 5]")]
+    public void World_RejectsBadRecommendedRange(string recommended) =>
+        AssertWorldRejected(WorldJson("1", PlaceJson(1, recommended: recommended)), "推薦");
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(22)]
+    public void World_RejectsPlaceIdOutsideOneToTwentyOne(int id) =>
+        AssertWorldRejected(WorldJson($"{id}", PlaceJson(id), $"\"startingPlaceId\": {id}, \"startingSubPlace\": 1"), "1～21");
+
     private static void AssertLoadRejects(
-        string monstersJson, string stagesJson, string jobsJson, string offendingId, string skillsJson = ValidSkills)
+        string monstersJson, string stagesJson, string jobsJson, string offendingId, string skillsJson = ValidSkills, string worldJson = ValidWorld)
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
         try
@@ -297,6 +411,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "stages.json"), stagesJson);
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), jobsJson);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), skillsJson);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), worldJson);
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingId, exception.Message);
         }
