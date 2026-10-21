@@ -15,6 +15,7 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
             AuthenticationFailedException => (StatusCodes.Status401Unauthorized, "驗證失敗"),
             NotFoundException => (StatusCodes.Status404NotFound, "找不到資料"),
             ConflictException => (StatusCodes.Status409Conflict, "資料衝突"),
+            BadHttpRequestException => (StatusCodes.Status400BadRequest, "請求格式錯誤"),
             _ => (0, ""),
         };
         if (status == 0)

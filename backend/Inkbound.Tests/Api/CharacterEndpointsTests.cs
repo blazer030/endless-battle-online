@@ -63,6 +63,8 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         new { str = 0, smart = 4, life = 3, agi = 3 },
         new { str = -1, smart = 4, life = 4, agi = 3 },
         new { str = int.MaxValue, smart = int.MaxValue, life = 1, agi = 1 },
+        new { str = 2.5, smart = 2, life = 2, agi = 2 },
+        new { str = 2, smart = 2, life = 2 },
         (object?)null,
     };
 
@@ -84,6 +86,47 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         };
 
         var response = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("name")]
+    [InlineData("sex")]
+    [InlineData("element")]
+    [InlineData("birth")]
+    [InlineData("jobId")]
+    [InlineData("specialAttackName")]
+    [InlineData("allocation")]
+    public async Task Create_Returns400_WhenAnyFieldIsMissing(string missingField)
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new Dictionary<string, object?>
+        {
+            ["name"] = UniqueName("缺欄"),
+            ["sex"] = 1,
+            ["element"] = 3,
+            ["birth"] = 1,
+            ["jobId"] = "warrior",
+            ["allocation"] = new { str = 2, smart = 2, life = 2, agi = 2 },
+            ["specialAttackName"] = "烈焰斬",
+        };
+        body.Remove(missingField);
+
+        var response = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_Returns400_ForMalformedJson()
+    {
+        await using var factory = new InkboundApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        using var content = new StringContent("{", System.Text.Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("/api/characters", content, CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

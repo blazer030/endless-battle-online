@@ -11,7 +11,7 @@ export function StatBar({ label, value, max, tone }: Props) {
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={max}
-      aria-valuenow={value}
+      aria-valuenow={Math.min(value, max)}
       aria-valuetext={`${formatNumber(value)} / ${formatNumber(max)}`}
       className={`stat-bar stat-bar--${tone}`}
     >
