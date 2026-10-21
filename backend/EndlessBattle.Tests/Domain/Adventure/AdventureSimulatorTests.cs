@@ -91,6 +91,18 @@ public class AdventureSimulatorTests
         Assert.Equal(1, run.Summary.Fights);
     }
 
+    // 最小重現：31 秒、窗口從 1 秒起；0 秒的住宿在窗口外被略去，但 15 秒起的每一場戰鬥都在窗口內 → 戰鬥沒有缺漏
+    [Fact]
+    public void Adventure_EventsCoverAll_WhenOnlyARestIsSkipped()
+    {
+        var run = Run(Hero() with { Hp = 0 }, seconds: 31);
+
+        Assert.Empty(run.Events.OfType<RestEvent>());
+        Assert.Equal(15, Assert.IsType<EncounterEvent>(run.Events[0]).AtSeconds);
+        Assert.Equal(run.Summary.Fights, run.Events.OfType<EncounterEvent>().Count());
+        Assert.True(run.EventsCoverAll);
+    }
+
     // brute（at 40、df 1000）：玩家每下 1 點打不死；怪物暴擊 A 48 對 df 10 → 48·4.8 − 10 = 220.4 + rand(1, 2) = 1 → 221 ≥ 50，
     // 玩家在 0.4 秒倒下。敗場沒有獎勵，HP 留在 0（下一場前才住宿）
     [Fact]

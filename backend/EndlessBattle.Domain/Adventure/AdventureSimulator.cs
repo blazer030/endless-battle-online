@@ -41,7 +41,6 @@ public static class AdventureSimulator
         {
             // 事件以整場為單位取捨；窗口外的場次照樣結算，只是不輸出事件
             var keepEvents = cursor >= windowStart;
-            eventsCoverAll &= keepEvents;
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
             // 死亡後必須先住宿才能再戰
@@ -66,6 +65,8 @@ public static class AdventureSimulator
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
             fights++;
+            // 只有略去戰鬥才算事件不完整；略去的若只是住宿，前端從戰鬥事件就能接上
+            eventsCoverAll &= keepEvents;
 
             if (keepEvents)
             {

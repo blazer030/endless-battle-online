@@ -87,6 +87,20 @@ public class AdventureServiceTests
         Assert.Equal(1, stored.Version);
     }
 
+    // 陣亡的角色離線 40 秒：0 秒住宿（窗口 10 秒起，被略去）後 15 秒起連戰，戰鬥全部輸出 → EventsCoverAll 仍為 true
+    [Fact]
+    public async Task Advance_ReportsAllEvents_WhenOnlyTheOpeningRestIsSkipped()
+    {
+        await AddCharacterAsync(character => character with { Hp = 0 });
+        clock.Advance(TimeSpan.FromSeconds(40));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Empty(result.Events.OfType<RestEvent>());
+        Assert.Equal(result.Summary.Fights, result.Events.OfType<EncounterEvent>().Count());
+        Assert.True(result.EventsCoverAll);
+    }
+
     // 離線 30 小時：只模擬最後 24 小時，結果應與直接從 now − 24h 模擬到 now 相同
     [Fact]
     public async Task Advance_CapsAtTwentyFourHours()
