@@ -62,7 +62,7 @@ backend/
   db/ddl/V000000004__add_stamina_and_job_proficiency.sql
   content/monsters.json（改為 WOG 欄位）、content/stages.json（不變）
   EndlessBattle.Domain/Battle/CombatantState.cs, AttackKind.cs, ElementTable.cs, WogDamage.cs, RoundResolver.cs, WogBattle.cs, BattleTiming.cs, BattleEvents.cs（取代 Combat/BattleEvents.cs）
-  EndlessBattle.Domain/Progression/ExperienceCurve.cs, RewardFormulas.cs, LevelUp.cs, JobProficiency.cs
+  EndlessBattle.Domain/Progression/ExperienceCurve.cs, RewardFormulas.cs, LevelUp.cs, ProficiencyCalculator.cs（JobProficiency.cs 的 record 已在 Task 1 建立）
   EndlessBattle.Domain/Stamina/Stamina.cs
   EndlessBattle.Domain/Rest/Hotel.cs
   EndlessBattle.Domain/Adventure/AdventureSimulator.cs（重寫）, AdventureRun.cs（擴充）
