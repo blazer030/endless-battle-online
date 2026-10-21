@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
 
 namespace EndlessBattle.Domain.Rest;
 
@@ -9,9 +10,12 @@ public static class Hotel
 {
     public const int FreeLevelMax = 100;
 
-    public static HotelResult Rest(Character c)
+    public static HotelResult Rest(Character c) => Rest(c, EquipmentBonus.Zero);
+
+    // 回滿到含裝備的上限
+    public static HotelResult Rest(Character c, EquipmentBonus equipment)
     {
-        var stats = DerivedStats.From(c.Base);
+        var stats = DerivedStats.From(c.Base, equipment);
         var wait = c.Hp <= 0 ? BattleTiming.RestWaitWhenDeadSeconds : BattleTiming.RestWaitSeconds;
         var healed = c with { Hp = stats.HpMax, Sp = stats.SpMax };
 

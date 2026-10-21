@@ -1,6 +1,7 @@
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
@@ -33,8 +34,11 @@ public static class AdventureSimulator
         StaminaState stamina,
         DateTimeOffset from,
         DateTimeOffset to,
-        IRandomSource random)
+        IRandomSource random,
+        EquipmentBonus? equipment = null)
     {
+        // 裝備在整段推進中不變；null 表示沒有裝備
+        var bonus = equipment ?? EquipmentBonus.Zero;
         var totalSeconds = (to - from).TotalSeconds;
         var windowStart = totalSeconds - CatchUpWindowSeconds;
         var events = new List<BattleEvent>();
@@ -51,11 +55,11 @@ public static class AdventureSimulator
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
             // 死亡、HP 低於門檻，或（有技能時）SP 低於門檻，先住宿再開打
-            var derived = DerivedStats.From(character.Base);
+            var derived = DerivedStats.From(character.Base, bonus);
             if (character.Hp < derived.HpMax * AutoRestHpRatio
                 || (skills.Count > 0 && character.Sp < derived.SpMax * AutoRestSpRatio))
             {
-                var rest = Hotel.Rest(character);
+                var rest = Hotel.Rest(character, bonus);
                 character = rest.Character;
                 if (keepEvents)
                 {
@@ -69,7 +73,7 @@ public static class AdventureSimulator
             (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
             var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random);
-            var player = CombatBridge.ToCombatant(character);
+            var player = CombatBridge.ToCombatant(character, bonus);
             var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, random);
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
