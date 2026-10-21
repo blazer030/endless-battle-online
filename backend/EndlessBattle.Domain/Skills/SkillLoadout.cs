@@ -1,3 +1,5 @@
+using EndlessBattle.Domain.Battle;
+
 namespace EndlessBattle.Domain.Skills;
 
 // 欄位 1～3 放主動技能（發動率由玩家設定），4～5 放當前職業的被動技能（發動率用技能自己的值）
@@ -71,6 +73,31 @@ public static class SkillLoadout
         }
 
         return reasons.Distinct().ToList();
+    }
+
+    // 戰鬥實際生效的欄位，依欄位 1→5：略過技能書沒有、內容已移除（skills 回傳 null）的技能，
+    // 以及別職業的被動（轉職與推進競態時可能殘留）；主動欄照 WOG 不限職業
+    public static IReadOnlyList<EquippedSkill> ForBattle(
+        IReadOnlyList<SkillSlot> slots, IReadOnlyList<LearnedSkill> learned, string currentJobId, Func<string, SkillDefinition?> skills)
+    {
+        var equipped = new List<EquippedSkill>();
+        foreach (var slot in slots.OrderBy(slot => slot.Slot))
+        {
+            var learnedSkill = learned.FirstOrDefault(skill => skill.SkillId == slot.SkillId);
+            if (learnedSkill is null || skills(slot.SkillId) is not { } skill)
+            {
+                continue;
+            }
+
+            if (IsPassiveSlot(slot.Slot) && skill.JobId != currentJobId)
+            {
+                continue;
+            }
+
+            equipped.Add(new EquippedSkill(skill, learnedSkill.Level, slot.Chance, slot.Slot));
+        }
+
+        return equipped;
     }
 
     private static bool IsValidActiveChance(int chance) =>

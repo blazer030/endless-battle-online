@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
@@ -79,4 +80,47 @@ public class SkillLoadoutTests
         Assert.Equal(
             ["passiveInActiveSlot", "chanceOutOfRange", "activeInPassiveSlot"],
             Validate(new SkillSlot(1, "iron-skin", 55), new SkillSlot(2, "guard", 50), new SkillSlot(4, "burst", 50)));
+
+    private static IReadOnlyList<(string SkillId, int Level, int Chance, int Slot)> ForBattle(
+        IReadOnlyList<LearnedSkill> learned, string currentJobId, params SkillSlot[] slots) =>
+        SkillLoadout.ForBattle(slots, learned, currentJobId, id => Skills.GetValueOrDefault(id))
+            .Select(equipped => (equipped.Skill.Id, equipped.Level, equipped.Chance, equipped.Slot))
+            .ToList();
+
+    // 輸入順序與字母序都和欄位序相反，輸出仍依欄位 1→5；等級取技能書、發動率取欄位
+    [Fact]
+    public void ForBattle_OrdersBySlotWithLearnedLevelAndSlotChance() =>
+        Assert.Equal(
+            [("lullaby", 3, 100, 1), ("burst", 2, 30, 2), ("iron-skin", 1, 30, 4)],
+            ForBattle(
+                [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1), new LearnedSkill("lullaby", 3)],
+                "warrior",
+                new SkillSlot(4, "iron-skin", 30), new SkillSlot(2, "burst", 30), new SkillSlot(1, "lullaby", 100)));
+
+    [Fact]
+    public void ForBattle_SkipsSkillsNotInBook() =>
+        Assert.Equal(
+            [("burst", 1, 50, 1)],
+            ForBattle([new LearnedSkill("burst", 1)], "warrior", new SkillSlot(1, "burst", 50), new SkillSlot(2, "combo", 50)));
+
+    // 轉職與推進競態時被動欄可能殘留前一個職業的被動
+    [Fact]
+    public void ForBattle_SkipsPassiveOfOtherJob() =>
+        Assert.Equal(
+            [("iron-skin", 1, 30, 4)],
+            ForBattle(Learned, "warrior", new SkillSlot(4, "iron-skin", 30), new SkillSlot(5, "bloodthirst", 30)));
+
+    // 主動欄照 WOG 不限職業
+    [Fact]
+    public void ForBattle_KeepsActiveOfOtherJob() =>
+        Assert.Equal(
+            [("burst", 1, 50, 1), ("combo", 1, 50, 2)],
+            ForBattle(Learned, "thief", new SkillSlot(1, "burst", 50), new SkillSlot(2, "combo", 50)));
+
+    [Fact]
+    public void ForBattle_SkipsSkillsRemovedFromContent() =>
+        Assert.Equal(
+            [("burst", 1, 50, 2)],
+            ForBattle([new LearnedSkill("retired", 1), new LearnedSkill("burst", 1)], "warrior",
+                new SkillSlot(1, "retired", 50), new SkillSlot(2, "burst", 50)));
 }
