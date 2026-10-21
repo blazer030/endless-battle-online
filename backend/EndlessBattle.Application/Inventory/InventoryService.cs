@@ -163,15 +163,8 @@ public sealed class InventoryService(
 
     private static InputValidationException BagFull() => new("背包已滿", ["bagFull"]);
 
-    private sealed record InventoryState(IReadOnlyList<InventoryEntry> Bag, Loadout Loadout);
-
-    private async Task<InventoryState> LoadAsync(long characterId, CancellationToken cancellationToken)
-    {
-        var entries = await inventory.ListAsync(characterId, cancellationToken);
-        var loadout = await equipment.GetAsync(characterId, cancellationToken);
-        var equippedIds = loadout.Equipped.Values.Select(entry => entry.Id).ToHashSet();
-        return new InventoryState(entries.Where(entry => !equippedIds.Contains(entry.Id)).ToList(), loadout);
-    }
+    private Task<InventoryState> LoadAsync(long characterId, CancellationToken cancellationToken) =>
+        BagReader.LoadAsync(inventory, equipment, characterId, cancellationToken);
 
     private static InventoryEntry FindInBag(InventoryState state, long inventoryId)
     {
