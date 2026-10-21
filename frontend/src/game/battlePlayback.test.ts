@@ -69,7 +69,7 @@ describe("BattlePlayback", () => {
     const due = playback.takeDue(1000)
 
     expect(due).toEqual([
-      { kind: "summary", fights: 2, experience: 10, spiritStones: 4 },
+      { kind: "summary", fights: 2, exp: 10, money: 4 },
       { kind: "event", event: { ...lastEncounter, atSeconds: 0 } },
     ])
   })
@@ -88,7 +88,7 @@ describe("BattlePlayback", () => {
     expect(playback.takeDue(5000)).toEqual([{ kind: "event", event: firstEvent }])
     expect(playback.takeDue(9000)).toEqual([{ kind: "event", event: lastOfFirstBatch }])
     expect(playback.takeDue(10000)).toEqual([
-      { kind: "summary", fights: 1, experience: 1, spiritStones: 1 },
+      { kind: "summary", fights: 1, exp: 1, money: 1 },
       { kind: "event", event: { ...lastEncounter, atSeconds: 0 } },
     ])
   })
@@ -102,6 +102,27 @@ describe("BattlePlayback", () => {
     playback.takeDue(2000)
 
     expect(playback.displayedCharacter.exp).toBe(13)
+  })
+
+  it("displayedCharacter_ExcludesUnplayedSummaryAndRewardMoney", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(
+      response([encounter(0), reward(5, 4, 6), encounter(35), reward(40, 3, 2)], {
+        exp: 107,
+        money: 2008,
+      }),
+      0,
+    )
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 100, money: 2000 })
+
+    playback.takeDue(0)
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 104, money: 2006 })
+
+    playback.takeDue(5000)
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 107, money: 2008 })
   })
 
   it("enqueue_EmptyEvents_UpdatesCharacterOnly", () => {

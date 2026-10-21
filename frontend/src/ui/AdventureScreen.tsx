@@ -9,7 +9,10 @@ import type { CharacterView, ContentNames } from "../game/types"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BattleLog } from "./BattleLog"
+import { CharacterScreen } from "./CharacterScreen"
+import { formatNumber } from "./formatNumber"
 import { StageErrorBoundary } from "./StageErrorBoundary"
+import { StatBar } from "./StatBar"
 import { useAdventureLoop } from "./useAdventureLoop"
 import "./AdventureScreen.css"
 
@@ -27,9 +30,14 @@ const emptyContent: ContentNames = {
   sexes: [],
 }
 
-const navigation = ["角色", "技能", "背包"]
+type Tab = "adventure" | "character"
 
-const format = (value: number) => value.toLocaleString("zh-TW")
+const tabs: { id: Tab; label: string }[] = [
+  { id: "adventure", label: "冒險" },
+  { id: "character", label: "角色" },
+]
+
+const unavailableTabs = ["技能", "背包"]
 
 type Props = { api: ApiClient; initialCharacter: CharacterView }
 
@@ -38,6 +46,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
+  const [tab, setTab] = useState<Tab>("adventure")
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
@@ -102,26 +111,49 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   return (
     <div className="adventure">
       <header className="adventure__top">
-        <span className="adventure__name">{character.name}</span>
-        <span className="adventure__totals">
-          <span>{`修為 ${format(character.exp)}`}</span>
-          <span>{`靈石 ${format(character.money)}`}</span>
+        <span className="adventure__identity">
+          <span className="adventure__name">{character.name}</span>
+          <span className="adventure__level">{`Lv ${character.level}`}</span>
+        </span>
+        <span className="adventure__money">{`金錢 ${formatNumber(character.money)}`}</span>
+        <span className="adventure__exp">
+          <span className="adventure__exp-label">EXP</span>
+          <StatBar label="EXP" value={character.exp} max={character.nextExp} tone="exp" />
+          <span className="adventure__exp-value">{`${formatNumber(character.exp)} / ${formatNumber(character.nextExp)}`}</span>
         </span>
       </header>
-      <h1 className="adventure__stage-name">{stageName}</h1>
-      <StageErrorBoundary>
-        <Suspense fallback={<div style={{ height: StageHeight }} />}>
-          <PixiStage ref={attachStage} />
-        </Suspense>
-      </StageErrorBoundary>
-      {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字 */}
-      {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
-      <BattleLog lines={lines} />
+      <main className="adventure__main">
+        {/* 切到角色分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
+        <div className="adventure__panel" hidden={tab !== "adventure"}>
+          <h1 className="adventure__stage-name">{stageName}</h1>
+          <StageErrorBoundary>
+            <Suspense fallback={<div style={{ height: StageHeight }} />}>
+              <PixiStage ref={attachStage} />
+            </Suspense>
+          </StageErrorBoundary>
+          {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到妖怪名字 */}
+          {content !== null && (
+            <AdventureLoop api={api} playback={playback} onItems={handleItems} />
+          )}
+          <BattleLog lines={lines} />
+        </div>
+        <div className="adventure__sheet" hidden={tab !== "character"}>
+          <CharacterScreen character={character} content={content ?? emptyContent} />
+        </div>
+      </main>
       <nav className="adventure__nav">
-        <button type="button" className="adventure__nav-item" aria-current="page">
-          冒險
-        </button>
-        {navigation.map((label) => (
+        {tabs.map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            className="adventure__nav-item"
+            aria-current={tab === id ? "page" : undefined}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+        {unavailableTabs.map((label) => (
           <button
             key={label}
             type="button"

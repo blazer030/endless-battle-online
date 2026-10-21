@@ -22,7 +22,7 @@ export const describePlaybackItem = (
 ): Omit<LogLine, "id"> | null => {
   if (item.kind === "summary") {
     return {
-      text: `離開期間歷練 ${format(item.fights)} 場，獲得修為 ${format(item.experience)}、靈石 ${format(item.spiritStones)}。`,
+      text: `離開期間歷練 ${format(item.fights)} 場，獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}。`,
       kind: "drop",
     }
   }
@@ -49,7 +49,7 @@ export const describePlaybackItem = (
         : { text: "你力竭倒下，調息片刻再戰。", kind: "muted" }
     case "reward":
       return {
-        text: `獲得修為 ${format(event.experience)}、靈石 ${format(event.spiritStones)}。`,
+        text: `獲得經驗 ${format(event.experience)}、金錢 ${format(event.spiritStones)}。`,
         kind: "drop",
       }
   }

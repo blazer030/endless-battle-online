@@ -81,13 +81,13 @@ const cases: [string, PlaybackItem, string, LogLineKind][] = [
   [
     "reward",
     event({ type: "reward", experience: 12000, spiritStones: 3 }),
-    "獲得修為 12,000、靈石 3。",
+    "獲得經驗 12,000、金錢 3。",
     "drop",
   ],
   [
     "summary",
-    { kind: "summary", fights: 1500, experience: 20, spiritStones: 4 },
-    "離開期間歷練 1,500 場，獲得修為 20、靈石 4。",
+    { kind: "summary", fights: 1500, exp: 20, money: 4 },
+    "離開期間歷練 1,500 場，獲得經驗 20、金錢 4。",
     "drop",
   ],
 ]

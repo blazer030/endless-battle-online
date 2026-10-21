@@ -3,7 +3,7 @@ import type { AdvanceResponse, BattleEvent, CharacterView } from "./types"
 
 export type PlaybackItem =
   | { kind: "event"; event: BattleEvent }
-  | { kind: "summary"; fights: number; experience: number; spiritStones: number }
+  | { kind: "summary"; fights: number; exp: number; money: number }
 
 interface ScheduledItem {
   item: PlaybackItem
@@ -58,21 +58,21 @@ export class BattlePlayback {
 
   // 顯示值 = 已確認的角色資料減去尚未播出的獎勵，數字隨戰報行逐步增加
   get displayedCharacter(): CharacterView {
-    let experience = 0
-    let spiritStones = 0
+    let exp = 0
+    let money = 0
     for (const { item } of this.pending) {
       if (item.kind === "summary") {
-        experience += item.experience
-        spiritStones += item.spiritStones
+        exp += item.exp
+        money += item.money
       } else if (item.event.type === "reward") {
-        experience += item.event.experience
-        spiritStones += item.event.spiritStones
+        exp += item.event.experience
+        money += item.event.spiritStones
       }
     }
     return {
       ...this.confirmedCharacter,
-      exp: Math.max(0, this.confirmedCharacter.exp - experience),
-      money: Math.max(0, this.confirmedCharacter.money - spiritStones),
+      exp: Math.max(0, this.confirmedCharacter.exp - exp),
+      money: Math.max(0, this.confirmedCharacter.money - money),
     }
   }
 
@@ -82,15 +82,15 @@ export class BattlePlayback {
 
   private summarize(events: BattleEvent[]): PlaybackItem {
     let fights = 0
-    let experience = 0
-    let spiritStones = 0
+    let exp = 0
+    let money = 0
     for (const event of events) {
       if (event.type === "encounter") fights++
       else if (event.type === "reward") {
-        experience += event.experience
-        spiritStones += event.spiritStones
+        exp += event.experience
+        money += event.spiritStones
       }
     }
-    return { kind: "summary", fights, experience, spiritStones }
+    return { kind: "summary", fights, exp, money }
   }
 }

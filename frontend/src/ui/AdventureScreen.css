@@ -7,12 +7,20 @@
 }
 
 .adventure__top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 12px 16px 8px;
   font-size: 12px;
   border-bottom: 1px solid var(--border);
+}
+
+.adventure__identity {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
 }
 
 .adventure__name {
@@ -22,11 +30,63 @@
   white-space: nowrap;
 }
 
-.adventure__totals {
-  display: flex;
-  gap: 12px;
+.adventure__level {
+  flex-shrink: 0;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.adventure__money {
   color: var(--gold);
   white-space: nowrap;
+}
+
+.adventure__exp {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.adventure__exp-label,
+.adventure__exp-value {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.adventure__exp-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.adventure__main {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.adventure__panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 冒險分頁隱藏時保留版面，Pixi 畫布尺寸與戰報捲動位置都不變 */
+.adventure__panel[hidden] {
+  visibility: hidden;
+}
+
+.adventure__sheet {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+}
+
+.adventure__sheet[hidden] {
+  display: none;
 }
 
 .adventure__stage-name {
@@ -64,6 +124,15 @@
   color: var(--text);
   font: inherit;
   font-size: 12px;
+}
+
+.adventure__nav-item:enabled {
+  cursor: pointer;
+}
+
+.adventure__nav-item:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
 }
 
 .adventure__nav-item[aria-current="page"] {

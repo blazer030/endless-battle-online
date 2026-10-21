@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
@@ -84,9 +84,14 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+const topBarExp = () => within(screen.getByRole("banner")).getByRole("progressbar", { name: "EXP" })
+
 test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
-  expect(screen.getByText("修為 0")).toBeInTheDocument()
+  const topBar = screen.getByRole("banner")
+  expect(within(topBar).getByText("Lv 1")).toBeInTheDocument()
+  expect(topBarExp()).toHaveAttribute("aria-valuenow", "0")
+  expect(within(topBar).getByText("金錢 0")).toBeInTheDocument()
 
   // 第一段讓名稱表載入、開始輪詢；第二段讓 advance 回應並由 animation frame 播出
   await advanceTime(0)
@@ -96,14 +101,62 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   const lines = screen.getAllByRole("listitem")
   expect(lines).toHaveLength(2)
   expect(lines[0]).toHaveTextContent("測試寒狼現身。")
-  expect(lines[1]).toHaveTextContent("獲得修為 8、靈石 3。")
-  expect(screen.getByText("修為 8")).toBeInTheDocument()
-  expect(screen.getByText("靈石 3")).toBeInTheDocument()
+  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3。")
+  expect(topBarExp()).toHaveAttribute("aria-valuenow", "8")
+  expect(within(topBar).getByText("8 / 1,000")).toBeInTheDocument()
+  expect(within(topBar).getByText("金錢 3")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
-  for (const label of ["角色", "技能", "背包"]) {
+  expect(screen.getByRole("button", { name: "角色" })).toBeEnabled()
+  for (const label of ["技能", "背包"]) {
     expect(screen.getByRole("button", { name: label })).toBeDisabled()
     expect(screen.getByRole("button", { name: label })).toHaveAttribute("title", "尚未開放")
   }
+})
+
+test("AdventureScreen_TopBarExpBarIsProportional", () => {
+  render(
+    <AdventureScreen
+      api={createFakeApi()}
+      initialCharacter={{ ...character, level: 7, exp: 250, nextExp: 1000 }}
+    />,
+  )
+
+  const bar = topBarExp()
+  expect(within(screen.getByRole("banner")).getByText("Lv 7")).toBeInTheDocument()
+  expect(bar).toHaveAttribute("aria-valuenow", "250")
+  expect(bar).toHaveAttribute("aria-valuemax", "1000")
+  expect(bar.firstElementChild).toHaveStyle({ width: "25%" })
+})
+
+test("AdventureScreen_SwitchesToCharacterSheet_WithoutRemountingAdventure", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+  const stageElement = screen.getByTestId("stage")
+  expect(api.advance).toHaveBeenCalledTimes(1)
+
+  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+
+  expect(screen.getByRole("button", { name: "角色" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("region", { name: "能力" })).toBeVisible()
+  expect(screen.getByRole("heading", { name: "青衣" })).toBeVisible()
+  expect(screen.getByRole("progressbar", { name: "HP" })).toBeVisible()
+  expect(stageElement).not.toBeVisible()
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "冒險" }))
+
+  expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
+  expect(screen.queryByRole("region", { name: "能力" })).not.toBeInTheDocument()
+  expect(screen.getByTestId("stage")).toBe(stageElement)
+  expect(stageElement).toBeVisible()
+  const lines = screen.getAllByRole("listitem")
+  expect(lines).toHaveLength(2)
+  expect(lines[0]).toHaveTextContent("測試寒狼現身。")
+  expect(lines[1]).toHaveTextContent("獲得經驗 8、金錢 3。")
+  // loop 若重新掛載會立刻再送一次 advance
+  expect(api.advance).toHaveBeenCalledTimes(1)
 })
 
 test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
@@ -135,7 +188,7 @@ test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   await advanceTime(0)
   await advanceTime(100)
 
-  expect(screen.getByText("青衣")).toBeInTheDocument()
+  expect(within(screen.getByRole("banner")).getByText("青衣")).toBeInTheDocument()
   expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("測試寒狼現身。")
   consoleError.mockRestore()
 })
