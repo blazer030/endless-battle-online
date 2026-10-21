@@ -118,6 +118,33 @@ describe("BattlePlayback", () => {
     expect(playback.takeDue(0)).toEqual([{ kind: "event", event: only }])
   })
 
+  it("enqueue_PartialEventsWithoutFights_HasNoSummary", () => {
+    const playback = new BattlePlayback(startCharacter)
+    const only = rest(0, 0)
+    playback.enqueue(response([only], {}, { fights: 0 }, false), 0)
+
+    expect(playback.takeDue(0)).toEqual([{ kind: "event", event: only }])
+  })
+
+  it("enqueue_SummaryOnly_WhenNoEventsReturned", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(
+      response([], { exp: 50, money: 9 }, { fights: 5, wins: 5, exp: 20, money: 4 }, false),
+      1000,
+    )
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 30, money: 5 })
+    expect(playback.takeDue(999)).toEqual([])
+    expect(playback.takeDue(1000)).toEqual([
+      { kind: "summary", fights: 5, wins: 5, exp: 20, money: 4, levels: 0 },
+    ])
+    expect(playback.displayedCharacter).toMatchObject({ exp: 50, money: 9 })
+    const next = encounter(0)
+    playback.enqueue(response([next]), 1000)
+    expect(playback.takeDue(1999)).toEqual([])
+    expect(playback.takeDue(2000)).toEqual([{ kind: "event", event: next }])
+  })
+
   it("enqueue_SummaryWaitsForPreviousBatch", () => {
     const playback = new BattlePlayback(startCharacter)
     const firstEvent = encounter(0)

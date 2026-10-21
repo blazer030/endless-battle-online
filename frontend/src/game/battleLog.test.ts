@@ -79,6 +79,11 @@ const cases: [string, PlaybackItem, Line[]][] = [
     attack({ critical: true, damage: 31207, specialAttackName: "星落" }),
     [["星落！史萊姆受到 31,207 點傷害！", "trigger"]],
   ],
+  [
+    "player critical without special attack name",
+    attack({ critical: true, damage: 500, specialAttackName: null }),
+    [["暴擊！史萊姆受到 500 點傷害！", "trigger"]],
+  ],
   ["player miss", attack({ hit: false, damage: 0 }), [["你的攻擊落空了。", "muted"]]],
   [
     "monster hit",

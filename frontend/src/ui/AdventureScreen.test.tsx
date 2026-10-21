@@ -229,6 +229,43 @@ test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
   expect(stage.handle.updateHealth).toHaveBeenCalledWith(state)
 })
 
+test("AdventureScreen_RestRefillsStageHealth", async () => {
+  const restResponse: AdvanceResponse = {
+    ...response,
+    events: [
+      response.events[0],
+      {
+        type: "attack",
+        atSeconds: 0.4,
+        attacker: "Monster",
+        kind: "Physical",
+        hit: true,
+        critical: false,
+        damage: 100,
+        elementMultiplier: 1,
+        targetHpAfter: 0,
+        specialAttackName: null,
+      },
+      { type: "defeat", atSeconds: 0.4, loser: "Player" },
+      { type: "rest", atSeconds: 2, cost: 0, expPenalty: false, waitSeconds: 15 },
+    ],
+  }
+  render(<AdventureScreen api={createFakeApi(restResponse)} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(500)
+  act(() => stage.attach())
+  expect(stage.handle.updateHealth).toHaveBeenLastCalledWith(
+    expect.objectContaining({ playerHp: 0, playerHpMax: 120 }),
+  )
+
+  await advanceTime(2000)
+
+  expect(stage.handle.updateHealth).toHaveBeenLastCalledWith(
+    expect.objectContaining({ playerHp: 120, playerHpMax: 120 }),
+  )
+  expect(stage.handle.play).toHaveBeenLastCalledWith([{ type: "fade", seconds: 15 }])
+})
+
 test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   stage.fail = true
   const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})

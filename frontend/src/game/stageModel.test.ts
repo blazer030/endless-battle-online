@@ -115,6 +115,14 @@ describe("stageModel", () => {
     ])
   })
 
+  it("stageEffectsFor_PlayerCriticalWithoutName_FallsBackToCriticalPlate", () => {
+    expect(stageEffectsFor(attack({ critical: true, specialAttackName: null }))).toContainEqual({
+      type: "plate",
+      text: "CRITICAL",
+      tone: "gold",
+    })
+  })
+
   it("stageEffectsFor_PlayerMiss_ShowsMissOverMonster", () => {
     expect(stageEffectsFor(attack({ hit: false, damage: 0 }))).toEqual([
       { type: "slash" },
