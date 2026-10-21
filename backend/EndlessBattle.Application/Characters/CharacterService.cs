@@ -2,7 +2,6 @@ using System.Globalization;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Characters;
-using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Application.Characters;
 
@@ -57,9 +56,7 @@ public sealed class CharacterService(
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)
             ?? throw new NotFoundException("尚未建立角色");
 
-        // 只在回傳值反映行動力回復，不寫回；寫入留給結算
-        var stamina = StaminaRules.Regenerate(new StaminaState(character.ActNum, character.ActNumTime), clock.UtcNow);
-        var regenerated = character with { ActNum = stamina.ActNum, ActNumTime = stamina.LastRegenAt };
-        return new CharacterProfile(regenerated, await proficiencies.ListAsync(character.Id, cancellationToken));
+        return new CharacterProfile(
+            CharacterStamina.Regenerated(character, clock.UtcNow), await proficiencies.ListAsync(character.Id, cancellationToken));
     }
 }
