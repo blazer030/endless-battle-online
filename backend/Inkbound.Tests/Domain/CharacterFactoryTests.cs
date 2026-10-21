@@ -56,6 +56,12 @@ public class CharacterFactoryTests
         Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(4, 3, 3, 1))));
     }
 
+    [Fact]
+    public void Create_RejectsAllocationThatOverflows()
+    {
+        Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(int.MaxValue, int.MaxValue, 1, 1))));
+    }
+
     [Theory]
     [InlineData(0, 3, 3, 3)]
     [InlineData(3, 0, 3, 3)]

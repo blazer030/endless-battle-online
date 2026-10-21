@@ -80,7 +80,8 @@ public static class CharacterFactory
             throw new CharacterCreationException("每項能力至少要分配 1 點");
         }
 
-        if (points.Sum() > TotalPoints)
+        // 先擋單項過大，避免加總溢位
+        if (points.Any(point => point > TotalPoints) || points.Sum() > TotalPoints)
         {
             throw new CharacterCreationException($"能力點數總和不得超過 {TotalPoints}");
         }

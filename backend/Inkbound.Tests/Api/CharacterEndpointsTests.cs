@@ -49,6 +49,9 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(3, body.GetProperty("element").GetInt32());
         var stats = body.GetProperty("stats");
         Assert.Equal(14, stats.GetProperty("at").GetInt32());
+        Assert.Equal(12, stats.GetProperty("mat").GetInt32());
+        Assert.Equal(10, stats.GetProperty("df").GetInt32());
+        Assert.Equal(10, stats.GetProperty("mdf").GetInt32());
         Assert.Equal(13, stats.GetProperty("life").GetInt32());
         Assert.Equal(375, stats.GetProperty("hpMax").GetInt32());
         Assert.Equal(91, stats.GetProperty("spMax").GetInt32());
@@ -59,6 +62,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         new { str = 5, smart = 2, life = 2, agi = 2 },
         new { str = 0, smart = 4, life = 3, agi = 3 },
         new { str = -1, smart = 4, life = 4, agi = 3 },
+        new { str = int.MaxValue, smart = int.MaxValue, life = 1, agi = 1 },
         (object?)null,
     };
 
