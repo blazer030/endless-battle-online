@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
@@ -35,6 +36,8 @@ public class JsonGameContentTests
     private const string ValidItems = """{ "items": [] }""";
 
     private const string ValidRecipes = """{ "recipes": [] }""";
+
+    private const string ValidMissions = """{ "missions": [] }""";
 
     private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300 }""";
 
@@ -115,8 +118,12 @@ public class JsonGameContentTests
     public void Load_TestContent_ExposesMonsters()
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
-        Assert.Equal(["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith"], content.AllMonsters.Select(monster => monster.Id));
-        Assert.Equal(["test-sprite", "test-wolf"], content.MonstersOf(1).Select(monster => monster.Id));
+        Assert.Equal(
+            ["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith", "test-sprite-chief"],
+            content.AllMonsters.Select(monster => monster.Id));
+        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], content.MonstersOf(1).Select(monster => monster.Id));
+        Assert.Equal("test-chief-hunt", content.GetMonster("test-sprite-chief").MissionId);
+        Assert.Null(content.GetMonster("test-sprite").MissionId);
         // SubPlaces、Drops 是清單，record 的 Equals 只比參考，改用結構比對
         Assert.Equivalent(
             new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
@@ -217,6 +224,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             var monster = JsonGameContent.Load(directory.FullName).GetMonster("sprite");
             Assert.Equal(1, monster.PlaceId);
             Assert.Equal([2, 4], monster.SubPlaces);
@@ -339,6 +347,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             return JsonGameContent.Load(directory.FullName);
         }
         finally
@@ -507,6 +516,7 @@ public class JsonGameContentTests
                 Path.Combine(directory.FullName, "world.json"), WorldJson("1", PlaceJson(1, recommended: "[5, 5]")));
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             Assert.Equal(new LevelRange(5, 5), JsonGameContent.Load(directory.FullName).GetPlace(1).Recommended);
         }
         finally
@@ -612,6 +622,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{items}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{recipes}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             return Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName)).Message;
         }
         finally
@@ -638,6 +649,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{ValidItemList}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{ValidRecipe}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             Assert.Equal(5, JsonGameContent.Load(directory.FullName).AllItems.Count);
         }
         finally
@@ -772,6 +784,311 @@ public class JsonGameContentTests
     public void Recipes_RejectDuplicateId() =>
         Assert.Contains("配方 id 重複：forge", ItemRejection(ValidItemList, $"{ValidRecipe}, {ValidRecipe}"));
 
+    [Fact]
+    public void Load_TestContent_ExposesMissions()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+
+        Assert.Equal(
+            ["test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily"],
+            content.AllMissions.Select(mission => mission.Id));
+        Assert.Equivalent(
+            new MissionDefinition(
+                "test-delivery", "測試鐵匠", "測試交付", "帶三塊測試礦石來。", "收下了。",
+                Level: 1, PlaceId: 1, Daily: false, Kill: null, Deliver: [new ItemQuantity("test-ore", 3)],
+                Requirements: new MissionRequirements(),
+                Rewards: new MissionReward(50, [new ItemQuantity("safe-refine-stone", 1)]),
+                DailyKills: [], DailyRewards: []),
+            content.GetMission("test-delivery"),
+            strict: true);
+        Assert.Equal(190, content.GetMission("test-hunt").Exp);
+
+        var skillReward = content.GetMission("test-skill-reward");
+        Assert.Equal(new MissionRequirements(JobId: "warrior", PrerequisiteId: "test-hunt"), skillReward.Requirements);
+        Assert.Equal(new SkillReward("iron-skin", 1), skillReward.Rewards.Skill);
+        Assert.Equal(new KillTarget("test-wolf", 2), skillReward.Kill);
+
+        var daily = content.GetMission("test-daily");
+        Assert.True(daily.Daily);
+        Assert.Null(daily.PlaceId);
+        Assert.Equal([new KillTarget("test-sprite", 2), new KillTarget("test-wolf", 2)], daily.DailyKills);
+        Assert.Equivalent(
+            new[] { new MissionReward(100, []), new MissionReward(0, [new ItemQuantity("test-supply", 2)]) },
+            daily.DailyRewards,
+            strict: true);
+
+        Assert.Contains("ghost-mission", Assert.Throws<GameContentException>(() => content.GetMission("ghost-mission")).Message);
+    }
+
+    // 任務驗證用的內容：地區 1（有子地區）、2（沒有）、3（禁區）；任務怪 chief 屬於 chief-hunt；全域怪 puff 讓每個地區都有怪
+    private const string MissionWorld = """
+        { "startingPlaceId": 1, "startingSubPlace": 1,
+          "areas": [{ "id": "central", "name": "中", "placeIds": [1, 2, 3] }],
+          "places": [
+            { "id": 1, "name": "甲", "subPlaces": ["a", "b", "c", "d"], "recommended": [1, 10], "restricted": false },
+            { "id": 2, "name": "乙", "subPlaces": [], "recommended": [5, 15], "restricted": false },
+            { "id": 3, "name": "丙", "subPlaces": ["a", "b", "c", "d"], "recommended": [60, 80], "restricted": true }] }
+        """;
+
+    private const string MissionMonsters = """
+        { "monsters": [
+          { "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 1, "subPlaces": [1] },
+          { "id": "chief", "name": "首領", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 60, "placeId": 1, "subPlaces": [1], "missionId": "chief-hunt" },
+          { "id": "puff", "name": "絨球", "level": 1, "hp": 59, "sp": 12, "at": 16, "mat": 6, "df": 6, "mdf": 3, "agi": 7, "au": 5, "element": 0, "jobExp": 10, "meet": 95, "placeId": 0 }] }
+        """;
+
+    private const string MissionSkills =
+        $$"""{ "skills": [{ "id": "guard", "name": "守", "jobId": "warrior", "type": "active", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", "levels": [{{ValidLevel}}] }] }""";
+
+    private const string ValidHunt =
+        """{ "id": "hunt", "giver": "村長", "title": "討伐", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "sprite", "count": 3 }, "deliver": [{ "itemId": "herb", "quantity": 2 }], "requirements": { "jobId": "warrior" }, "rewards": { "money": 50, "items": [{ "itemId": "herb", "quantity": 1 }], "skill": { "skillId": "guard", "level": 1 } } }""";
+
+    private const string ValidChiefHunt =
+        """{ "id": "chief-hunt", "giver": "隊長", "title": "首領", "level": 2, "placeId": 1, "kill": { "monsterId": "chief", "count": 1 }, "requirements": { "sex": 2, "birth": 4, "prerequisiteId": "hunt" } }""";
+
+    private const string ValidRival =
+        """{ "id": "rival", "giver": "對手", "title": "對手", "level": 1, "placeId": 1, "kill": { "monsterId": "sprite", "count": 4 }, "requirements": { "conflictsWith": "hunt" } }""";
+
+    private const string ValidDaily =
+        """{ "id": "daily", "giver": "公會", "title": "每日", "level": 1, "placeId": null, "daily": true, "dailyKills": [{ "monsterId": "sprite", "count": 2 }], "dailyRewards": [{ "money": 100, "items": [{ "itemId": "herb", "quantity": 1 }] }] }""";
+
+    private const string ValidMissionList = $"{ValidHunt}, {ValidChiefHunt}, {ValidRival}, {ValidDaily}";
+
+    private static T WithMissionContent<T>(string missions, string monsters, Func<string, T> action)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), monsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), MissionSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), MissionWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), HerbItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), $$"""{ "missions": [{{missions}}] }""");
+            return action(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static string MissionRejection(string missions, string monsters = MissionMonsters) =>
+        WithMissionContent(missions, monsters, directory =>
+            Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory)).Message);
+
+    // 片段必須在任務清單中恰好出現一次，避免改到別的任務
+    private static string ReplaceOnce(string json, string validField, string invalidField)
+    {
+        var first = json.IndexOf(validField, StringComparison.Ordinal);
+        Assert.True(first >= 0, $"找不到片段：{validField}");
+        Assert.Equal(-1, json.IndexOf(validField, first + 1, StringComparison.Ordinal));
+        return json.Replace(validField, invalidField);
+    }
+
+    private static string MissionFieldRejection(string validField, string invalidField) =>
+        MissionRejection(ReplaceOnce(ValidMissionList, validField, invalidField));
+
+    [Fact]
+    public void Missions_AcceptValidSample()
+    {
+        var content = WithMissionContent(ValidMissionList, MissionMonsters, JsonGameContent.Load);
+
+        Assert.Equal(["hunt", "chief-hunt", "rival", "daily"], content.AllMissions.Select(mission => mission.Id));
+        Assert.Equal(new MissionRequirements(Sex: 2, Birth: 4, PrerequisiteId: "hunt"), content.GetMission("chief-hunt").Requirements);
+        Assert.Equal("chief-hunt", content.GetMonster("chief").MissionId);
+    }
+
+    [Fact]
+    public void Missions_RejectDuplicateId()
+    {
+        var message = MissionRejection($"{ValidMissionList}, {ValidHunt}");
+        Assert.Contains("任務 id 重複：hunt", message);
+    }
+
+    [Fact]
+    public void Missions_RejectIdLongerThan32()
+    {
+        var longId = new string('a', 33);
+        Assert.Contains(longId, MissionFieldRejection("\"id\": \"rival\"", $"\"id\": \"{longId}\""));
+        // 剛好 32 字可以
+        var maximumId = new string('a', 32);
+        var content = WithMissionContent(
+            ReplaceOnce(ValidMissionList, "\"id\": \"rival\"", $"\"id\": \"{maximumId}\""), MissionMonsters, JsonGameContent.Load);
+        Assert.Equal(maximumId, content.GetMission(maximumId).Id);
+    }
+
+    [Fact]
+    public void Missions_RejectWithoutObjective()
+    {
+        var message = MissionFieldRejection(
+            "\"kill\": { \"monsterId\": \"sprite\", \"count\": 3 }, \"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }], ", "");
+        Assert.Contains("hunt", message);
+        Assert.Contains("kill", message);
+    }
+
+    [Fact]
+    public void Missions_RejectKillTargetOutsidePlace()
+    {
+        var message = MissionFieldRejection("\"placeId\": 1, \"daily\": false", "\"placeId\": 2, \"daily\": false");
+        Assert.Contains("hunt", message);
+        Assert.Contains("sprite", message);
+    }
+
+    [Fact]
+    public void Missions_RejectUnknownDeliverItem()
+    {
+        var message = MissionFieldRejection("\"deliver\": [{ \"itemId\": \"herb\"", "\"deliver\": [{ \"itemId\": \"phantom\"");
+        Assert.Contains("hunt", message);
+        Assert.Contains("phantom", message);
+    }
+
+    [Fact]
+    public void Missions_RejectDailyWithFixedObjective()
+    {
+        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"kill\": { \"monsterId\": \"sprite\", \"count\": 2 },");
+        Assert.Contains("daily", message);
+        Assert.Contains("kill", message);
+    }
+
+    [Fact]
+    public void Missions_RejectDailyPoolWithMissionMonster()
+    {
+        var message = MissionFieldRejection(
+            "\"dailyKills\": [{ \"monsterId\": \"sprite\"", "\"dailyKills\": [{ \"monsterId\": \"chief\"");
+        Assert.Contains("daily", message);
+        Assert.Contains("chief", message);
+    }
+
+    [Fact]
+    public void Missions_RejectPetReward()
+    {
+        var message = MissionFieldRejection(
+            "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }",
+            "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }, \"pet\": { \"monsterId\": \"sprite\", \"level\": 1 }");
+        Assert.Contains("hunt", message);
+        Assert.Contains("寵物", message);
+    }
+
+    [Fact]
+    public void Missions_RejectSkillRewardWithoutMatchingJob()
+    {
+        var message = MissionFieldRejection("\"requirements\": { \"jobId\": \"warrior\" }, ", "");
+        Assert.Contains("hunt", message);
+        Assert.Contains("guard", message);
+    }
+
+    // hunt → chief-hunt → hunt
+    [Fact]
+    public void Missions_RejectPrerequisiteCycle()
+    {
+        var message = MissionFieldRejection(
+            "\"requirements\": { \"jobId\": \"warrior\" }",
+            "\"requirements\": { \"jobId\": \"warrior\", \"prerequisiteId\": \"chief-hunt\" }");
+        Assert.Contains("hunt", message);
+        Assert.Contains("循環", message);
+    }
+
+    // 任務怪的 missionId 必須指向以牠為擊殺目標的一般任務；chief-hunt 改打 sprite，沒有任務以 chief 為目標
+    [Theory]
+    [InlineData("ghost-mission")]
+    [InlineData("hunt")]
+    [InlineData("daily")]
+    [InlineData("chief-hunt")]
+    public void Monsters_RejectMissionIdWithoutMatchingMission(string missionId)
+    {
+        var monsters = MissionMonsters.Replace("\"missionId\": \"chief-hunt\"", $"\"missionId\": \"{missionId}\"");
+        var missions = ReplaceOnce(ValidMissionList, "\"monsterId\": \"chief\"", "\"monsterId\": \"sprite\"");
+        var message = MissionRejection(missions, monsters);
+        Assert.Contains("怪物 chief", message);
+        Assert.Contains(missionId, message);
+    }
+
+    [Fact]
+    public void Monsters_RejectGlobalMissionMonster()
+    {
+        // 另加一隻一般的全域怪，讓地區 2、3 仍有怪
+        var monsters = MissionMonsters.Replace(
+            "\"placeId\": 0 }",
+            "\"placeId\": 0, \"missionId\": \"hunt\" }, " + ValidMonster.Replace("\"sprite\"", "\"wanderer\""));
+        Assert.NotEqual(MissionMonsters, monsters);
+        Assert.Contains("怪物 puff 是全域怪", MissionRejection(ValidMissionList, monsters));
+    }
+
+    // 只有任務怪的地區平常遇不到任何怪
+    [Fact]
+    public void Content_RejectsPlaceWithOnlyMissionMonsters()
+    {
+        const string monsters = """
+            { "monsters": [
+              { "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 1, "subPlaces": [1] },
+              { "id": "wraith", "name": "亡靈", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 3, "subPlaces": [1] },
+              { "id": "chief", "name": "首領", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 60, "placeId": 2, "missionId": "cave-hunt" }] }
+            """;
+        const string missions =
+            """{ "id": "cave-hunt", "giver": "隊長", "title": "洞", "level": 1, "placeId": 2, "kill": { "monsterId": "chief", "count": 1 } }""";
+        Assert.Contains("地區 2", MissionRejection(missions, monsters));
+    }
+
+    // (原片段、改成、應含的任務 id、應含的欄位或說明)
+    public static TheoryData<string, string, string, string> InvalidMissionFields => new()
+    {
+        { "\"id\": \"rival\"", "\"id\": \" \"", "任務 id", "空" },
+        { "\"giver\": \"村長\"", "\"giver\": \"\"", "hunt", "giver" },
+        { "\"title\": \"討伐\"", "\"title\": \" \"", "hunt", "title" },
+        { "\"level\": 2", "\"level\": 0", "chief-hunt", "level" },
+        { "\"placeId\": 1, \"daily\": false", "\"placeId\": 7, \"daily\": false", "hunt", "placeId" },
+        { "\"placeId\": 1, \"daily\": false", "\"placeId\": null, \"daily\": false", "hunt", "placeId" },
+        { "\"placeId\": 1, \"daily\": false", "\"placeId\": 3, \"daily\": false", "hunt", "禁區" },
+        { "\"daily\": false,", "\"daily\": false, \"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }],", "hunt", "dailyKills" },
+        { "\"daily\": false,", "\"daily\": false, \"dailyRewards\": [{ \"money\": 1 }],", "hunt", "dailyRewards" },
+        { "\"count\": 3", "\"count\": 0", "hunt", "count" },
+        { "\"monsterId\": \"sprite\", \"count\": 3", "\"monsterId\": \"ghost-monster\", \"count\": 3", "hunt", "ghost-monster" },
+        { "\"monsterId\": \"sprite\", \"count\": 4", "\"monsterId\": \"chief\", \"count\": 4", "rival", "chief-hunt" },
+        { "\"quantity\": 2", "\"quantity\": 0", "hunt", "quantity" },
+        { "\"quantity\": 2", "\"quantity\": 100", "hunt", "quantity" },
+        { "\"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }]", "\"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }, { \"itemId\": \"herb\", \"quantity\": 1 }]", "hunt", "重複" },
+        { "\"placeId\": null, \"daily\": true", "\"placeId\": 1, \"daily\": true", "daily", "placeId" },
+        { "\"daily\": true,", "\"daily\": true, \"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 1 }],", "daily", "deliver" },
+        { "\"daily\": true,", "\"daily\": true, \"requirements\": { \"prerequisiteId\": \"hunt\" },", "daily", "prerequisiteId" },
+        { "\"daily\": true,", "\"daily\": true, \"requirements\": { \"conflictsWith\": \"hunt\" },", "daily", "conflictsWith" },
+        { "\"daily\": true,", "\"daily\": true, \"rewards\": { \"money\": 5 },", "daily", "rewards" },
+        { "\"daily\": true,", "\"daily\": true, \"rewards\": { \"money\": 0, \"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }] },", "daily", "rewards" },
+        { "\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyKills\": []", "daily", "dailyKills" },
+        { "\"dailyRewards\": [{ \"money\": 100, \"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }] }]", "\"dailyRewards\": []", "daily", "dailyRewards" },
+        { "\"monsterId\": \"sprite\", \"count\": 2", "\"monsterId\": \"ghost-monster\", \"count\": 2", "daily", "ghost-monster" },
+        { "\"monsterId\": \"sprite\", \"count\": 2", "\"monsterId\": \"sprite\", \"count\": 0", "daily", "count" },
+        { "\"money\": 100, \"items\": [{ \"itemId\": \"herb\"", "\"money\": 100, \"items\": [{ \"itemId\": \"phantom\"", "daily", "phantom" },
+        { "\"jobId\": \"warrior\"", "\"jobId\": \"nobody\"", "hunt", "nobody" },
+        { "\"sex\": 2", "\"sex\": 3", "chief-hunt", "sex" },
+        { "\"sex\": 2", "\"sex\": 0", "chief-hunt", "sex" },
+        { "\"birth\": 4", "\"birth\": 5", "chief-hunt", "birth" },
+        { "\"birth\": 4", "\"birth\": 0", "chief-hunt", "birth" },
+        { "\"prerequisiteId\": \"hunt\"", "\"prerequisiteId\": \"ghost-mission\"", "chief-hunt", "ghost-mission" },
+        { "\"prerequisiteId\": \"hunt\"", "\"prerequisiteId\": \"chief-hunt\"", "chief-hunt", "prerequisiteId" },
+        { "\"prerequisiteId\": \"hunt\"", "\"prerequisiteId\": \"daily\"", "chief-hunt", "daily" },
+        { "\"conflictsWith\": \"hunt\"", "\"conflictsWith\": \"ghost-mission\"", "rival", "ghost-mission" },
+        { "\"conflictsWith\": \"hunt\"", "\"conflictsWith\": \"rival\"", "rival", "conflictsWith" },
+        { "\"conflictsWith\": \"hunt\"", "\"conflictsWith\": \"daily\"", "rival", "daily" },
+        { "\"money\": 50", "\"money\": -1", "hunt", "money" },
+        { "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }], \"skill\"", "\"items\": [{ \"itemId\": \"phantom\", \"quantity\": 1 }], \"skill\"", "hunt", "phantom" },
+        { "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }], \"skill\"", "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 0 }], \"skill\"", "hunt", "quantity" },
+        { "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }], \"skill\"", "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 100 }], \"skill\"", "hunt", "quantity" },
+        { "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }], \"skill\"", "\"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }, { \"itemId\": \"herb\", \"quantity\": 2 }], \"skill\"", "hunt", "重複" },
+        { "\"skillId\": \"guard\", \"level\": 1", "\"skillId\": \"ghost-skill\", \"level\": 1", "hunt", "ghost-skill" },
+        { "\"skillId\": \"guard\", \"level\": 1", "\"skillId\": \"guard\", \"level\": 2", "hunt", "level" },
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidMissionFields))]
+    public void Missions_RejectInvalidFields(string validField, string invalidField, string offendingId, string expected)
+    {
+        var message = MissionFieldRejection(validField, invalidField);
+        Assert.Contains(offendingId, message);
+        Assert.Contains(expected, message);
+    }
+
     private static void AssertLoadRejects(
         string monstersJson,
         string jobsJson,
@@ -779,7 +1096,8 @@ public class JsonGameContentTests
         string skillsJson = ValidSkills,
         string worldJson = ValidWorld,
         string itemsJson = ValidItems,
-        string recipesJson = ValidRecipes)
+        string recipesJson = ValidRecipes,
+        string missionsJson = ValidMissions)
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
         try
@@ -790,6 +1108,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), worldJson);
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), itemsJson);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), recipesJson);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), missionsJson);
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingId, exception.Message);
         }

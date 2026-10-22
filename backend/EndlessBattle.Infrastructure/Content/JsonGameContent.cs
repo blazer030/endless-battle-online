@@ -2,6 +2,7 @@ using System.Text.Json;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -23,6 +24,9 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumHoles = 4;
     private const int MaximumRefineLevel = 10;
     private const int MaximumRefineKind = 18;
+    private const int MaximumMissionIdLength = 32;
+    private const int MaximumMissionQuantity = 99;
+    private const int MaximumBirth = 4;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -32,6 +36,7 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<int, PlaceDefinition> places;
     private readonly Dictionary<string, ItemDefinition> items;
     private readonly Dictionary<string, Recipe> recipes;
+    private readonly Dictionary<string, MissionDefinition> missions;
 
     private JsonGameContent(
         IReadOnlyList<MonsterDefinition> allMonsters,
@@ -46,12 +51,15 @@ public sealed class JsonGameContent : IGameContent
         Dictionary<int, PlaceDefinition> places,
         IReadOnlyList<ItemDefinition> allItems,
         Dictionary<string, ItemDefinition> items,
-        IReadOnlyList<Recipe> allRecipes)
+        IReadOnlyList<Recipe> allRecipes,
+        IReadOnlyList<MissionDefinition> allMissions)
     {
         AllItems = allItems;
         this.items = items;
         AllRecipes = allRecipes;
         recipes = allRecipes.ToDictionary(recipe => recipe.Id);
+        AllMissions = allMissions;
+        missions = allMissions.ToDictionary(mission => mission.Id);
         StartingPlaceId = world.StartingPlaceId;
         StartingSubPlace = world.StartingSubPlace;
         AllAreas = allAreas;
@@ -83,6 +91,8 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<Recipe> AllRecipes { get; }
 
+    public IReadOnlyList<MissionDefinition> AllMissions { get; }
+
     public static JsonGameContent Load(string directory)
     {
         var monsterFile = Read<MonsterFile>(Path.Combine(directory, "monsters.json"));
@@ -91,6 +101,7 @@ public sealed class JsonGameContent : IGameContent
         var worldFile = Read<WorldFile>(Path.Combine(directory, "world.json"));
         var itemFile = Read<ItemFile>(Path.Combine(directory, "items.json"));
         var recipeFile = Read<RecipeFile>(Path.Combine(directory, "recipes.json"));
+        var missionFile = Read<MissionFile>(Path.Combine(directory, "missions.json"));
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
@@ -105,9 +116,10 @@ public sealed class JsonGameContent : IGameContent
             ValidateMonster(monster, places);
         }
 
-        // 地區沒有怪物就無法遇敵，載入時就擋下
+        // 地區沒有怪物就無法遇敵，載入時就擋下；任務怪平常遇不到，不算數
         var emptyPlace = allPlaces.FirstOrDefault(place =>
-            !monsterFile.Monsters.Any(monster => monster.PlaceId == place.Id || monster.PlaceId == MonsterPool.GlobalPlaceId));
+            !monsterFile.Monsters.Any(monster =>
+                monster.MissionId is null && (monster.PlaceId == place.Id || monster.PlaceId == MonsterPool.GlobalPlaceId)));
         if (emptyPlace is not null)
         {
             throw new GameContentException($"地區 {emptyPlace.Id} 沒有任何怪物（含全域怪）");
@@ -169,9 +181,45 @@ public sealed class JsonGameContent : IGameContent
             ValidateRecipe(recipe, items);
         }
 
+        var allMissions = missionFile.Missions.Select(ToMissionDefinition).ToList();
+        var missions = new Dictionary<string, MissionDefinition>();
+        foreach (var mission in allMissions)
+        {
+            if (string.IsNullOrWhiteSpace(mission.Id))
+            {
+                throw new GameContentException("任務 id 不可為空");
+            }
+
+            if (mission.Id.Length > MaximumMissionIdLength)
+            {
+                throw new GameContentException($"任務 id 長度不可超過 {MaximumMissionIdLength}：{mission.Id}");
+            }
+
+            if (!missions.TryAdd(mission.Id, mission))
+            {
+                throw new GameContentException($"任務 id 重複：{mission.Id}");
+            }
+        }
+
+        foreach (var mission in allMissions)
+        {
+            ValidateMission(mission, missions, monsters, items, skills, jobs, places);
+        }
+
+        var cyclic = allMissions.FirstOrDefault(mission => HasPrerequisiteCycle(mission, missions));
+        if (cyclic is not null)
+        {
+            throw new GameContentException($"任務 {cyclic.Id} 的前置鏈有循環");
+        }
+
+        foreach (var monster in monsterFile.Monsters)
+        {
+            ValidateMissionMonster(monster, missions);
+        }
+
         return new JsonGameContent(
             monsterFile.Monsters, allJobs, allSkills, monsters, jobs, skills,
-            worldFile, allAreas, allPlaces, places, allItems, items, allRecipes);
+            worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -195,6 +243,9 @@ public sealed class JsonGameContent : IGameContent
 
     public Recipe GetRecipe(string recipeId) =>
         recipes.TryGetValue(recipeId, out var recipe) ? recipe : throw new GameContentException($"找不到配方：{recipeId}");
+
+    public MissionDefinition GetMission(string missionId) =>
+        missions.TryGetValue(missionId, out var mission) ? mission : throw new GameContentException($"找不到任務：{missionId}");
 
     public IReadOnlyList<ItemDefinition> ItemsForShop(ItemCategory category, int level) =>
         AllItems.Where(item => item.ShopSellable && item.Category == category && item.ShopLevel == level).ToList();
@@ -602,6 +653,182 @@ public sealed class JsonGameContent : IGameContent
         }
     }
 
+    private static void ValidateMission(
+        MissionDefinition mission,
+        Dictionary<string, MissionDefinition> missions,
+        Dictionary<string, MonsterDefinition> monsters,
+        Dictionary<string, ItemDefinition> items,
+        Dictionary<string, SkillDefinition> skills,
+        Dictionary<string, JobDefinition> jobs,
+        Dictionary<int, PlaceDefinition> places)
+    {
+        var id = mission.Id;
+
+        void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException($"任務 {id} {message}");
+            }
+        }
+
+        Require(!string.IsNullOrWhiteSpace(mission.Giver), "的 giver 不可為空");
+        Require(!string.IsNullOrWhiteSpace(mission.Title), "的 title 不可為空");
+        Require(mission.Level >= 1, "的 level 必須至少 1");
+
+        var requirements = mission.Requirements;
+        Require(requirements.JobId is null || jobs.ContainsKey(requirements.JobId), $"引用了不存在的職業：{requirements.JobId}");
+        Require(requirements.Sex is null or 1 or 2, "的 sex 必須是 1 或 2");
+        Require(requirements.Birth is null || requirements.Birth is >= 1 and <= MaximumBirth, $"的 birth 必須在 1～{MaximumBirth}");
+        (string Field, string? TargetId)[] references =
+            [("prerequisiteId", requirements.PrerequisiteId), ("conflictsWith", requirements.ConflictsWith)];
+        foreach (var (field, targetId) in references)
+        {
+            if (targetId is null)
+            {
+                continue;
+            }
+
+            Require(targetId != id, $"的 {field} 不能是自己");
+            Require(missions.TryGetValue(targetId, out var target), $"的 {field} 引用了不存在的任務：{targetId}");
+            Require(!target!.Daily, $"的 {field} 不能是每日任務：{targetId}");
+        }
+
+        MonsterDefinition RequireKill(KillTarget kill)
+        {
+            Require(monsters.TryGetValue(kill.MonsterId, out var monster), $"引用了不存在的怪物：{kill.MonsterId}");
+            Require(kill.Count >= 1, $"的擊殺目標 {kill.MonsterId} 的 count 必須至少 1");
+            return monster!;
+        }
+
+        void RequireQuantities(string field, IReadOnlyList<ItemQuantity> entries)
+        {
+            foreach (var (itemId, quantity) in entries)
+            {
+                Require(items.ContainsKey(itemId), $"的 {field} 引用了不存在的道具：{itemId}");
+                Require(quantity is >= 1 and <= MaximumMissionQuantity,
+                    $"的 {field} {itemId} 的 quantity 必須在 1～{MaximumMissionQuantity}");
+            }
+
+            Require(entries.Select(entry => entry.ItemId).Distinct().Count() == entries.Count, $"的 {field} 道具重複");
+        }
+
+        void RequireReward(string field, MissionReward reward)
+        {
+            Require(reward.Money >= 0, $"的 {field} money 不可為負");
+            RequireQuantities($"{field} items", reward.Items);
+            if (reward.Skill is { } skillReward)
+            {
+                Require(skills.TryGetValue(skillReward.SkillId, out var skill), $"的 {field} 引用了不存在的技能：{skillReward.SkillId}");
+                Require(skillReward.Level == 1, $"的技能獎勵 {skillReward.SkillId} 的 level 必須為 1");
+                Require(requirements.JobId == skill!.JobId,
+                    $"的技能獎勵 {skillReward.SkillId} 屬於職業 {skill.JobId}，requirements.jobId 必須相同");
+            }
+
+            Require(reward.Pet is null, "有寵物獎勵；寵物獎勵要到計畫 9 才開放");
+        }
+
+        if (mission.Daily)
+        {
+            Require(mission.PlaceId is null, "是每日任務，placeId 必須為 null");
+            Require(mission.Kill is null && mission.Deliver.Count == 0, "是每日任務，不能有 kill 或 deliver");
+            Require(requirements.PrerequisiteId is null && requirements.ConflictsWith is null,
+                "是每日任務，不能有 prerequisiteId 或 conflictsWith");
+            Require(mission.Rewards is { Money: 0, Items.Count: 0, Skill: null, Pet: null },
+                "是每日任務，rewards 必須為空（改用 dailyRewards）");
+            Require(mission.DailyKills.Count >= 1, "是每日任務，dailyKills 至少要有一項");
+            Require(mission.DailyRewards.Count >= 1, "是每日任務，dailyRewards 至少要有一項");
+            foreach (var kill in mission.DailyKills)
+            {
+                var monster = RequireKill(kill);
+                Require(monster.MissionId is null, $"的 dailyKills 不能用任務怪：{kill.MonsterId}");
+            }
+
+            foreach (var reward in mission.DailyRewards)
+            {
+                RequireReward("dailyRewards", reward);
+            }
+
+            return;
+        }
+
+        Require(mission.PlaceId is { } placeId && places.ContainsKey(placeId),
+            $"的 placeId 必須是存在的地區：{mission.PlaceId?.ToString() ?? "null"}");
+        var place = places[mission.PlaceId!.Value];
+        Require(!place.Restricted, $"的地區 {place.Id} 是禁區");
+        Require(mission.Kill is not null || mission.Deliver.Count > 0, "至少要有擊殺目標（kill）或交付道具（deliver）");
+        Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
+        Require(mission.DailyRewards.Count == 0, "不是每日任務，不能有 dailyRewards");
+        if (mission.Kill is { } fixedKill)
+        {
+            var monster = RequireKill(fixedKill);
+            Require(monster.PlaceId == place.Id, $"的擊殺目標 {fixedKill.MonsterId} 不在地區 {place.Id}");
+            Require(monster.MissionId is null || monster.MissionId == id,
+                $"的擊殺目標 {fixedKill.MonsterId} 是任務 {monster.MissionId} 的任務怪");
+        }
+
+        RequireQuantities("deliver", mission.Deliver);
+        RequireReward("rewards", mission.Rewards);
+    }
+
+    // 每個任務至多一個前置，沿著前置走回到走過的任務就是循環
+    private static bool HasPrerequisiteCycle(MissionDefinition mission, Dictionary<string, MissionDefinition> missions)
+    {
+        var visited = new HashSet<string> { mission.Id };
+        var current = mission;
+        while (current.Requirements.PrerequisiteId is { } prerequisiteId)
+        {
+            if (!visited.Add(prerequisiteId))
+            {
+                return true;
+            }
+
+            current = missions[prerequisiteId];
+        }
+
+        return false;
+    }
+
+    private static void ValidateMissionMonster(MonsterDefinition monster, Dictionary<string, MissionDefinition> missions)
+    {
+        if (monster.MissionId is not { } missionId)
+        {
+            return;
+        }
+
+        if (monster.PlaceId == MonsterPool.GlobalPlaceId)
+        {
+            throw new GameContentException($"怪物 {monster.Id} 是全域怪，不能是任務怪（missionId {missionId}）");
+        }
+
+        if (!missions.TryGetValue(missionId, out var mission) || mission.Daily || mission.Kill?.MonsterId != monster.Id)
+        {
+            throw new GameContentException($"怪物 {monster.Id} 的 missionId {missionId} 必須指向以牠為擊殺目標的一般任務");
+        }
+    }
+
+    private static MissionDefinition ToMissionDefinition(MissionEntry entry)
+    {
+        static MissionReward ToReward(RewardEntry? reward) =>
+            reward is null ? new MissionReward(0, []) : new MissionReward(reward.Money, reward.Items ?? [], reward.Skill, reward.Pet);
+
+        return new MissionDefinition(
+            entry.Id ?? "",
+            entry.Giver ?? "",
+            entry.Title ?? "",
+            entry.Description ?? "",
+            entry.CompletionMessage ?? "",
+            entry.Level,
+            entry.PlaceId,
+            entry.Daily,
+            entry.Kill,
+            entry.Deliver ?? [],
+            entry.Requirements ?? new MissionRequirements(),
+            ToReward(entry.Rewards),
+            entry.DailyKills ?? [],
+            (entry.DailyRewards ?? []).Select(ToReward).ToList());
+    }
+
     private static SkillDefinition ToSkillDefinition(SkillEntry entry)
     {
         T ParseEnum<T>(string value, string field) where T : struct, Enum =>
@@ -788,4 +1015,25 @@ public sealed class JsonGameContent : IGameContent
         string Id, string ResultItemId, int ResultQuantity, IReadOnlyList<MaterialEntry> Materials, int SuccessRate);
 
     private sealed record MaterialEntry(string ItemId, int Quantity);
+
+    // 省略的清單視為空、省略的物件視為 null
+    private sealed record MissionFile(IReadOnlyList<MissionEntry> Missions);
+
+    private sealed record MissionEntry(
+        string? Id,
+        string? Giver,
+        string? Title,
+        string? Description,
+        string? CompletionMessage,
+        int Level,
+        int? PlaceId,
+        bool Daily,
+        KillTarget? Kill,
+        IReadOnlyList<ItemQuantity>? Deliver,
+        MissionRequirements? Requirements,
+        RewardEntry? Rewards,
+        IReadOnlyList<KillTarget>? DailyKills,
+        IReadOnlyList<RewardEntry>? DailyRewards);
+
+    private sealed record RewardEntry(long Money, IReadOnlyList<ItemQuantity>? Items, SkillReward? Skill, PetReward? Pet);
 }

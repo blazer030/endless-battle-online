@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -22,6 +23,9 @@ public interface IGameContent
 
     IReadOnlyList<Recipe> AllRecipes { get; }
 
+    // 依內容檔中的順序
+    IReadOnlyList<MissionDefinition> AllMissions { get; }
+
     int StartingPlaceId { get; }
 
     int? StartingSubPlace { get; }
@@ -39,6 +43,8 @@ public interface IGameContent
     ItemDefinition GetItem(string itemId);
 
     Recipe GetRecipe(string recipeId);
+
+    MissionDefinition GetMission(string missionId);
 
     // 該地區與全域怪物，依內容檔中的順序
     IReadOnlyList<MonsterDefinition> MonstersOf(int placeId);

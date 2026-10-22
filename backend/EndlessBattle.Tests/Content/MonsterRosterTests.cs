@@ -7,7 +7,8 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Content;
 
-// 釘住 backend/content/monsters.json：plan 6 Global Constraints 的怪物總表規則
+// 釘住 backend/content/monsters.json：plan 6 Global Constraints 的怪物總表規則；
+// 任務怪（plan 8）不算在每地區 3 隻、精英數與子地區覆蓋內，但同樣要落在公式範圍內
 public partial class MonsterRosterTests
 {
     private const int MonstersPerPlace = 3;
@@ -20,18 +21,21 @@ public partial class MonsterRosterTests
 
     public static TheoryData<string> MonsterIds => new(Content.AllMonsters.Select(monster => monster.Id));
 
+    private static IEnumerable<MonsterDefinition> RegularMonsters => Content.AllMonsters.Where(monster => monster.MissionId is null);
+
     [GeneratedRegex("^[a-z]+(-[a-z]+)*$")]
     private static partial Regex KebabCase();
 
     [Fact]
     public void Roster_CoversEveryPlaceWithThreeMonsters()
     {
-        Assert.Equal(65, Content.AllMonsters.Count);
+        Assert.Equal(65 + 3, Content.AllMonsters.Count);
+        Assert.Equal(65, RegularMonsters.Count());
         Assert.All(Content.AllMonsters, monster => Assert.Matches(KebabCase(), monster.Id));
 
         foreach (var place in Content.AllPlaces)
         {
-            var monsters = Content.AllMonsters.Where(monster => monster.PlaceId == place.Id).ToList();
+            var monsters = RegularMonsters.Where(monster => monster.PlaceId == place.Id).ToList();
             Assert.Equal(MonstersPerPlace, monsters.Count);
             Assert.All(monsters, monster =>
             {
@@ -94,7 +98,7 @@ public partial class MonsterRosterTests
     {
         foreach (var place in Content.AllPlaces.Where(place => place.HasSubPlaces))
         {
-            var covered = Content.AllMonsters
+            var covered = RegularMonsters
                 .Where(monster => monster.PlaceId == place.Id)
                 .SelectMany(monster => monster.SubPlaces)
                 .ToHashSet();
@@ -108,7 +112,7 @@ public partial class MonsterRosterTests
     {
         foreach (var place in Content.AllPlaces)
         {
-            var alwaysMeet = Content.AllMonsters
+            var alwaysMeet = RegularMonsters
                 .Where(monster => monster.PlaceId == place.Id && monster.Meet == 0)
                 .ToList();
             if (!place.HasSubPlaces)

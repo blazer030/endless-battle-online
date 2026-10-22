@@ -23,7 +23,10 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
 
         var content = JsonSerializer.Deserialize<JsonElement>(text);
         Assert.Equal(
-            ["test-sprite:測試雪精", "test-wolf:測試寒狼", "test-bat:測試蝙蝠", "test-guardian:測試守衛", "test-wraith:測試亡靈"],
+            [
+                "test-sprite:測試雪精", "test-wolf:測試寒狼", "test-bat:測試蝙蝠", "test-guardian:測試守衛", "test-wraith:測試亡靈",
+                "test-sprite-chief:測試雪精首領",
+            ],
             content.GetProperty("monsters").EnumerateArray().Select(item => $"{item.GetProperty("id").GetString()}:{item.GetProperty("name").GetString()}"));
         Assert.False(content.TryGetProperty("stages", out _));
     }

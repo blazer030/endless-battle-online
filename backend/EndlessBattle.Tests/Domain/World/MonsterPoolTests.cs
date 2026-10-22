@@ -61,6 +61,37 @@ public class MonsterPoolTests
         Assert.Equal(2, random.Consumed);
     }
 
+    private static MonsterDefinition MissionMonster(string id, string missionId, int meet, int placeId, params int[] subPlaces) =>
+        Monster(id, meet, placeId, subPlaces) with { MissionId = missionId };
+
+    // 任務怪沒帶任務集合（或集合為空）時一律不入選，退回全地區的分支也一樣（chief meet 0 本來會入選）
+    [Fact]
+    public void Pool_ExcludesMissionMonstersByDefault()
+    {
+        MonsterDefinition[] monsters = [Monster("a", 0, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1)];
+        MonsterDefinition[] onlyRare = [Monster("a", 90, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1)];
+
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0)));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0, new HashSet<string>())));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(onlyRare, 3, 1, roll: 0)));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0)));
+    }
+
+    [Fact]
+    public void Pool_IncludesMissionMonsterWhenItsMissionIsActive()
+    {
+        MonsterDefinition[] monsters =
+        [
+            Monster("a", 0, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1), MissionMonster("other", "elsewhere", 0, 3, 1),
+        ];
+        var active = new HashSet<string> { "hunt" };
+
+        Assert.Equal(["a", "chief"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0, active)));
+        Assert.Equal(["a", "chief"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0, active)));
+        // 擲 0 → 候選 a、chief；第二擲 0.5 → ⌊0.5 × 2⌋ = 1 → chief
+        Assert.Equal("chief", MonsterPool.Pick(monsters, 3, 1, new ScriptedRandom(0.0, 0.0, 0.5), active).Id);
+    }
+
     [Fact]
     public void Pool_ThrowsOnEmptyPlace() =>
         Assert.Throws<InvalidOperationException>(() => MonsterPool.Pick([], 3, 1, new ScriptedRandom(0.0)));

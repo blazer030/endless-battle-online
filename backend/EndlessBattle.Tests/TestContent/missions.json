@@ -1,0 +1,10 @@
+{
+  "missions": [
+    { "id": "test-hunt", "giver": "測試村長", "title": "測試討伐", "description": "擊敗測試雪精。", "completionMessage": "謝謝你。", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "test-sprite", "count": 3 }, "rewards": { "money": 50 } },
+    { "id": "test-sprite-bounty", "giver": "測試村長", "title": "測試懸賞", "description": "再擊敗兩隻測試雪精。", "completionMessage": "辛苦了。", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "test-sprite", "count": 2 }, "rewards": { "money": 50 } },
+    { "id": "test-delivery", "giver": "測試鐵匠", "title": "測試交付", "description": "帶三塊測試礦石來。", "completionMessage": "收下了。", "level": 1, "placeId": 1, "daily": false, "deliver": [{ "itemId": "test-ore", "quantity": 3 }], "rewards": { "money": 50, "items": [{ "itemId": "safe-refine-stone", "quantity": 1 }] } },
+    { "id": "test-chief-hunt", "giver": "測試村長", "title": "測試首領", "description": "擊敗測試雪精首領。", "completionMessage": "首領倒下了。", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "test-sprite-chief", "count": 1 }, "rewards": { "money": 50 } },
+    { "id": "test-skill-reward", "giver": "測試老兵", "title": "測試傳授", "description": "擊敗兩隻測試寒狼。", "completionMessage": "教你一招。", "level": 5, "placeId": 1, "daily": false, "kill": { "monsterId": "test-wolf", "count": 2 }, "requirements": { "jobId": "warrior", "prerequisiteId": "test-hunt" }, "rewards": { "money": 250, "skill": { "skillId": "iron-skin", "level": 1 } } },
+    { "id": "test-daily", "giver": "測試公會", "title": "測試每日", "description": "每日討伐。", "completionMessage": "明天再來。", "level": 1, "placeId": null, "daily": true, "dailyKills": [{ "monsterId": "test-sprite", "count": 2 }, { "monsterId": "test-wolf", "count": 2 }], "dailyRewards": [{ "money": 100 }, { "money": 0, "items": [{ "itemId": "test-supply", "quantity": 2 }] }] }
+  ]
+}
