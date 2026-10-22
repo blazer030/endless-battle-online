@@ -17,7 +17,6 @@ import {
   isUsable,
   itemCategories,
   MaxShopLevel,
-  MaxStackQuantity,
   maxBuyQuantity,
   meetsRequirements,
   MinShopLevel,
@@ -345,10 +344,16 @@ function EquipmentPage({
 }: PageProps & { inventory: InventoryView }) {
   const panelId = useId()
   const [slot, setSlot] = useState<EquipmentSlot | null>(null)
-  const [supplyQuantity, setSupplyQuantity] = useState(String(MaxStackQuantity))
+  // 每疊補給品各自的數量欄；沒改過時預設整疊（上限 99）
+  const [supplyQuantities, setSupplyQuantities] = useState<Record<number, string>>({})
   const [error, setError] = useState<string | null>(null)
 
-  const act = async (action: () => Promise<Outcome>) => setError(await mutate(action))
+  const act = async (action: () => Promise<Outcome>) => {
+    const message = await mutate(action)
+    setError(message)
+    // 堆疊數量變了，數量欄回到新的整疊預設
+    if (message === null) setSupplyQuantities({})
+  }
 
   const selected = equipmentSlots.find(({ id }) => id === slot) ?? null
   const current = slot === null ? null : equippedIn(inventory, slot)
@@ -399,19 +404,6 @@ function EquipmentPage({
               </button>
             </div>
           )}
-          {selected.id === "Supply" && (
-            <label className="bag__field">
-              補給數量
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={MaxStackQuantity}
-                value={supplyQuantity}
-                onChange={(event) => setSupplyQuantity(event.target.value)}
-              />
-            </label>
-          )}
           {candidatesFor(inventory, selected.id).length === 0 ? (
             <p className="bag__empty">背包裡沒有可裝備的道具</p>
           ) : (
@@ -419,11 +411,31 @@ function EquipmentPage({
               {candidatesFor(inventory, selected.id).map((item) => {
                 const supply = isSupply(item)
                 const allowed = supply || meetsRequirements(item, character)
+                const supplyQuantity =
+                  supplyQuantities[item.inventoryId] ?? String(supplyEquipQuantity(item))
                 return (
                   <li key={item.inventoryId} className="bag__item">
                     <ItemName item={item} />
                     <ItemDetail item={item} />
                     {!supply && <Requirements rows={requirementRows(item, character, jobNames)} />}
+                    {supply && (
+                      <label className="bag__field">
+                        補給數量
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={supplyEquipQuantity(item)}
+                          value={supplyQuantity}
+                          onChange={(event) =>
+                            setSupplyQuantities((current) => ({
+                              ...current,
+                              [item.inventoryId]: event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    )}
                     <button
                       type="button"
                       className="bag__action bag__action--end"

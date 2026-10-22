@@ -694,3 +694,24 @@ test("BagScreen_ForgeSynthesizeUsesTheRecipeCost", async () => {
   await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
   expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeEnabled()
 })
+
+test("BagScreen_SupplyQuantityDefaultsToEachStackCappedAt99", async () => {
+  const smallStack = { ...potion, quantity: 8 }
+  const bigStack = makeItem({ ...potion, inventoryId: 5, name: "中藥水", quantity: 50 })
+  const { api } = renderBag(
+    createFakeApi({
+      getInventory: vi.fn().mockResolvedValue(makeInventory([sword, smallStack, bigStack])),
+    }),
+  )
+  await openSubPage("裝備")
+  await userEvent.click(screen.getByRole("button", { name: /^補給/ }))
+
+  const small = screen.getByText("小藥水 ×8").closest("li")
+  const big = screen.getByText("中藥水 ×50").closest("li")
+  if (small === null || big === null) throw new Error("找不到補給品")
+  expect(within(small).getByRole("spinbutton", { name: "補給數量" })).toHaveValue(8)
+  expect(within(big).getByRole("spinbutton", { name: "補給數量" })).toHaveValue(50)
+  await userEvent.click(within(small).getByRole("button", { name: "裝備" }))
+
+  expect(api.equip).toHaveBeenCalledWith(3, 8)
+})
