@@ -13,7 +13,6 @@ import {
   refineResultText,
   refineStoneOptions,
   socketStoneOptions,
-  stoneNameResolver,
   synthesisButtonText,
   synthesisResultText,
   unsocketResultText,
@@ -121,14 +120,16 @@ describe("socket", () => {
   const socketed = makeItem({
     inventoryId: 5,
     holes: 3,
-    sockets: [{ hole: 2, stoneId: "attack-stone", rolled: makeItem().refineBonus }],
+    sockets: [
+      { hole: 2, stoneId: "attack-stone", stoneName: "攻擊魔石", rolled: makeItem().refineBonus },
+    ],
   })
 
   it("lays out every hole with its stone", () => {
     expect(holeSlots(socketed)).toEqual([
-      { hole: 1, stoneId: null },
-      { hole: 2, stoneId: "attack-stone" },
-      { hole: 3, stoneId: null },
+      { hole: 1, stoneName: null },
+      { hole: 2, stoneName: "攻擊魔石" },
+      { hole: 3, stoneName: null },
     ])
   })
 
@@ -138,12 +139,6 @@ describe("socket", () => {
       { stone: attackStone, allowed: false },
       { stone: guardStone, allowed: true },
     ])
-  })
-
-  it("names stones from the bag and equipment, falling back to a generic name", () => {
-    const name = stoneNameResolver(makeInventory([attackStone]))
-    expect(name("attack-stone")).toBe("攻擊魔石")
-    expect(name("chaos-stone")).toBe("魔石")
   })
 
   it("drills only below four holes", () => {

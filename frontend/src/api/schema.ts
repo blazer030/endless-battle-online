@@ -1813,6 +1813,7 @@ export interface components {
             /** Format: int32 */
             hole: number;
             stoneId: string;
+            stoneName: string;
             rolled: components["schemas"]["StatBonus"];
         };
         StatAllocationRequest: {

@@ -110,7 +110,7 @@ public sealed class DepotService(
     {
         var entries = await depot.ListAsync(character.Id, cancellationToken);
         return new DepotView(
-            entries.Select(entry => new InventoryItem(entry, content.GetItem(entry.ItemId))).ToList(),
+            entries.Select(entry => InventoryItem.From(entry, content.GetItem)).ToList(),
             DepotRules.Capacity(character.DepotBonus));
     }
 

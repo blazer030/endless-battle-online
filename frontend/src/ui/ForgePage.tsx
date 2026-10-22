@@ -15,7 +15,6 @@ import {
   refineResultText,
   refineStoneOptions,
   socketStoneOptions,
-  stoneNameResolver,
   SynthesisCostPerAttempt,
   synthesisButtonText,
   synthesisResultText,
@@ -323,7 +322,6 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
 
   const slots = holeSlots(target)
   const selectedHole = slots.find((slot) => slot.hole === hole) ?? null
-  const stoneName = stoneNameResolver(inventory)
   const options = socketStoneOptions(inventory, target)
   const stone = options.find((option) => option.allowed && option.stone.inventoryId === stoneId)
 
@@ -334,11 +332,13 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
       return { inventory: response.inventory, result: "鑲嵌成功！" }
     })
 
-  const unsocket = (holeNumber: number, removedId: string) =>
+  const unsocket = (holeNumber: number, stoneName: string) =>
     run(async () => {
       const response = await api.unsocket(target.inventoryId, holeNumber)
-      const name = stoneNameResolver(inventory, response.inventory)(removedId)
-      return { inventory: response.inventory, result: unsocketResultText(response.recovered, name) }
+      return {
+        inventory: response.inventory,
+        result: unsocketResultText(response.recovered, stoneName),
+      }
     })
 
   const drill = () =>
@@ -368,20 +368,20 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
               key={slot.hole}
               type="button"
               className="forge__hole"
-              aria-label={`孔 ${slot.hole}：${slot.stoneId === null ? "空" : stoneName(slot.stoneId)}`}
+              aria-label={`孔 ${slot.hole}：${slot.stoneName ?? "空"}`}
               aria-pressed={slot.hole === hole}
               onClick={() => {
                 setHole(slot.hole)
                 setStoneId(null)
               }}
             >
-              {slot.stoneId === null ? "◇" : "◆"}
+              {slot.stoneName === null ? "◇" : "◆"}
             </button>
           ))}
         </div>
       )}
       {selectedHole !== null &&
-        (selectedHole.stoneId === null ? (
+        (selectedHole.stoneName === null ? (
           <div className="bag__panel">
             {options.length === 0 ? (
               <p className="bag__empty">背包裡沒有魔石</p>
@@ -407,14 +407,14 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
           </div>
         ) : (
           <div className="bag__current">
-            <span className="bag__item-name">{stoneName(selectedHole.stoneId)}</span>
+            <span className="bag__item-name">{selectedHole.stoneName}</span>
             <button
               type="button"
               className="bag__action"
               disabled={busy || !hasTool(inventory, ForgeTools.stoneRemover)}
               onClick={() => {
-                if (selectedHole.stoneId !== null)
-                  void unsocket(selectedHole.hole, selectedHole.stoneId)
+                if (selectedHole.stoneName !== null)
+                  void unsocket(selectedHole.hole, selectedHole.stoneName)
               }}
             >
               拆除（需要拆石器）

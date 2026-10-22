@@ -42,7 +42,9 @@ const inventory: InventoryView = makeInventory([sword, heavySword, potion, stren
         name: "精鋼劍",
         refineLevel: 2,
         holes: 2,
-        sockets: [{ hole: 1, stoneId: "ruby", rolled: makeItem().refineBonus }],
+        sockets: [
+          { hole: 1, stoneId: "ruby", stoneName: "紅寶石", rolled: makeItem().refineBonus },
+        ],
       }),
     },
   ],
@@ -411,7 +413,7 @@ const wornSword = makeItem({
   name: "精鋼劍",
   refineLevel: 2,
   holes: 2,
-  sockets: [{ hole: 1, stoneId: "attack-stone", rolled: emptyBonus }],
+  sockets: [{ hole: 1, stoneId: "attack-stone", stoneName: "攻擊魔石", rolled: emptyBonus }],
 })
 const forgeItems = [
   sword,
@@ -622,4 +624,28 @@ test("BagScreen_ForgeShowsMappedErrorReasons", async () => {
   await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("精鍊石等級不符")
+})
+
+test("BagScreen_ForgeHoleNamesItsStoneWithoutABagCopy", async () => {
+  const chaosSword = {
+    ...wornSword,
+    sockets: [{ hole: 1, stoneId: "chaos-stone", stoneName: "混沌魔石", rolled: emptyBonus }],
+  }
+  const onlyWorn = makeInventory(forgeItems, {
+    equipment: [{ slot: "Weapon", quantity: 1, item: chaosSword }],
+  })
+  const { api } = await renderForge({
+    getInventory: vi.fn().mockResolvedValue(onlyWorn),
+    unsocket: vi
+      .fn()
+      .mockResolvedValue({ success: true, recovered: false, inventory: forgeInventory }),
+  })
+  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+
+  await userEvent.click(screen.getByRole("button", { name: "孔 1：混沌魔石" }))
+  expect(screen.getByText("混沌魔石")).toBeInTheDocument()
+  await userEvent.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
+
+  expect(api.unsocket).toHaveBeenCalledWith(9, 1)
+  expect(await screen.findByRole("status")).toHaveTextContent("拆除後混沌魔石消失了。")
 })

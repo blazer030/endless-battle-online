@@ -92,7 +92,7 @@ describe("holeMarks", () => {
   it("draws filled holes before empty ones", () => {
     const item = makeItem({
       holes: 3,
-      sockets: [{ hole: 1, stoneId: "ruby", rolled: makeItem().refineBonus }],
+      sockets: [{ hole: 1, stoneId: "ruby", stoneName: "紅寶石", rolled: makeItem().refineBonus }],
     })
     expect(holeMarks(item)).toBe("◆◇◇")
   })

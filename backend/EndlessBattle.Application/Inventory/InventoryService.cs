@@ -175,7 +175,7 @@ public sealed class InventoryService(
     private async Task<InventoryView> ViewAsync(Character character, CancellationToken cancellationToken)
     {
         var state = await LoadAsync(character.Id, cancellationToken);
-        var items = state.Bag.Select(entry => new InventoryItem(entry, content.GetItem(entry.ItemId))).ToList();
+        var items = state.Bag.Select(entry => InventoryItem.From(entry, content.GetItem)).ToList();
         var bag = Enum.GetValues<ItemCategory>()
             .Select(category => new BagCategory(
                 category,
@@ -186,7 +186,7 @@ public sealed class InventoryService(
             .OrderBy(pair => pair.Key)
             .Select(pair => new EquippedItem(
                 pair.Key,
-                new InventoryItem(pair.Value, content.GetItem(pair.Value.ItemId)),
+                InventoryItem.From(pair.Value, content.GetItem),
                 pair.Key == EquipmentSlot.Supply ? state.Loadout.SupplyQuantity : 1))
             .ToList();
         return new InventoryView(bag, equipped, EquipmentBonusCalculator.Sum(state.Loadout, content.GetItem));

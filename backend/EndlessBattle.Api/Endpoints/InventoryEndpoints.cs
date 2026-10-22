@@ -57,7 +57,7 @@ public static class InventoryEndpoints
         item.Item.RefineMax,
         item.Entry.RefineBonus,
         item.Entry.Holes,
-        item.Entry.Sockets.Select(socket => new SocketResponse(socket.Hole, socket.StoneId, socket.Rolled)).ToList(),
+        item.Sockets.Select(view => new SocketResponse(view.Socket.Hole, view.Socket.StoneId, view.StoneName, view.Socket.Rolled)).ToList(),
         item.Item.Price,
         item.Item.Bound,
         item.Item.Refine?.Level);

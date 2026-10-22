@@ -210,7 +210,7 @@ public sealed record InventoryItemResponse(
     bool Bound,
     int? RefineStoneLevel); // 只有精鍊石有值
 
-public sealed record SocketResponse(int Hole, string StoneId, StatBonus Rolled);
+public sealed record SocketResponse(int Hole, string StoneId, string StoneName, StatBonus Rolled);
 
 // Quantity 只用於補給品，省略時整格裝上
 public sealed record EquipRequest(long? InventoryId, int? Quantity);

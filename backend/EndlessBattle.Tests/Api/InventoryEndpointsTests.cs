@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,26 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(2, stone.GetProperty("refineStoneLevel").GetInt32());
         var sword = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
         Assert.Equal(JsonValueKind.Null, sword.GetProperty("refineStoneLevel").ValueKind);
+    }
+
+    [Fact]
+    public async Task Get_ReturnsStoneNamesWithSockets()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var sword = await GiveAsync(characterId, "test-sword");
+        await using (var context = database.CreateDbContext())
+        {
+            await new InventoryRepository(context).UpdateEnhancementAsync(
+                characterId, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+        }
+
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+
+        var item = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
+        var socket = Assert.Single(item.GetProperty("sockets").EnumerateArray());
+        Assert.Equal("test-stone", socket.GetProperty("stoneId").GetString());
+        Assert.Equal("測試攻擊魔石", socket.GetProperty("stoneName").GetString());
     }
 
     // 鐵劍 at 8 → at 20；怪力戒指 str +50 → 有效 str 62、at 8 + 62 = 70；裸點仍是 12

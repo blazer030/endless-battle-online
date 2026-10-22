@@ -66,13 +66,14 @@ export const mergeablePairs = (stone: InventoryItem) => {
 export const mergeableStones = (inventory: InventoryView) =>
   bagSlotsOf(inventory, "RefineStone").items.filter((stone) => mergeablePairs(stone) > 0)
 
-export type HoleSlot = { hole: number; stoneId: string | null }
+export type HoleSlot = { hole: number; stoneName: string | null }
 
 // 孔位從 1 起算
 export const holeSlots = (item: InventoryItem): HoleSlot[] =>
   Array.from({ length: Math.min(item.holes, MaxHoles) }, (_, index) => {
     const hole = index + 1
-    return { hole, stoneId: item.sockets.find((socket) => socket.hole === hole)?.stoneId ?? null }
+    const socket = item.sockets.find((candidate) => candidate.hole === hole)
+    return { hole, stoneName: socket?.stoneName ?? null }
   })
 
 // 同一件裝備不能鑲嵌同種魔石（魔石種類 = 道具 id）
@@ -84,15 +85,6 @@ export const socketStoneOptions = (
     stone,
     allowed: !target.sockets.some((socket) => socket.stoneId === stone.itemId),
   }))
-
-// 回應的孔位只有魔石 id，名稱從背包與裝備欄找；都沒有時用通稱
-export const stoneNameResolver = (...inventories: InventoryView[]) => {
-  const names = new Map<string, string>()
-  for (const inventory of inventories)
-    for (const item of [...bagItems(inventory), ...inventory.equipment.map(({ item }) => item)])
-      names.set(item.itemId, item.name)
-  return (stoneId: string) => names.get(stoneId) ?? "魔石"
-}
 
 export const canDrill = (item: InventoryItem) => item.holes < MaxHoles
 
