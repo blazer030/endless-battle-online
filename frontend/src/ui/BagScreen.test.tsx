@@ -7,6 +7,7 @@ import {
   emptyBonus,
   makeCharacter,
   makeHonourShop,
+  makeMercenaryOverview,
   makeInventory,
   makeItem,
   makeShopItem,
@@ -97,6 +98,7 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn().mockResolvedValue({ successes: 0, attempts: 1, cost: 0, inventory }),
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
+  getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
   exchangeHonour: vi.fn().mockResolvedValue(makeHonourShop()),
   ...overrides,
 })

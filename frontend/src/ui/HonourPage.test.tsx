@@ -1,12 +1,13 @@
-import { render, screen, within } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import { makeHonourShop } from "../test/fixtures"
+import { makeHonourShop, makeMercenaryOverview } from "../test/fixtures"
 import { HonourPage, type HonourApi } from "./HonourPage"
 
 const createFakeApi = (overrides: Partial<HonourApi> = {}): HonourApi => ({
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
+  getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
   exchangeHonour: vi.fn(),
   ...overrides,
 })
@@ -79,4 +80,32 @@ test("HonourPage_ShowsMappedError", async () => {
 
   expect(within(stone).getByRole("alert")).toHaveTextContent("勳章不足")
   expect(onExchanged).not.toHaveBeenCalled()
+})
+
+test("HonourPage_MercenaryExchangeDisabledWhileHired", async () => {
+  const contract = {
+    mercenaryId: "mercenary-f",
+    name: "阿福",
+    remaining: 97,
+    placeId: null,
+    placeName: null,
+    fighting: false,
+    nextFightAt: null,
+  }
+  const affordable = makeHonourShop()
+  const api = createFakeApi({
+    getHonourShop: vi.fn().mockResolvedValue({
+      ...affordable,
+      exchanges: affordable.exchanges.map((exchange) => ({ ...exchange, affordable: true })),
+    }),
+    getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract })),
+  })
+  renderHonour(api)
+
+  const mercenary = await screen.findByRole("article", { name: "B級傭兵 ×1" })
+  await waitFor(() =>
+    expect(within(mercenary).getByRole("button", { name: "兌換" })).toBeDisabled(),
+  )
+  const stone = screen.getByRole("article", { name: "攻擊魔石 ×1" })
+  expect(within(stone).getByRole("button", { name: "兌換" })).toBeEnabled()
 })

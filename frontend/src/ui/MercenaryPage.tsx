@@ -147,7 +147,7 @@ export function MercenaryPage({ api, onCharacterChanged }: Props) {
         <CatalogueCard
           key={entry.id}
           entry={entry}
-          busy={busy}
+          busy={busy || overview.contract !== null}
           error={errorFor(entry.id)}
           onHire={() => void hire(entry.id)}
         />

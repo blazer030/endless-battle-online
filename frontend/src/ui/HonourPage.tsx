@@ -11,7 +11,7 @@ import {
 import type { HonourExchange, HonourShop } from "../game/types"
 import "./CompanionsScreen.css"
 
-export type HonourApi = Pick<ApiClient, "getHonourShop" | "exchangeHonour">
+export type HonourApi = Pick<ApiClient, "getHonourShop" | "getMercenaries" | "exchangeHonour">
 
 type Props = {
   api: HonourApi
@@ -28,6 +28,8 @@ export function HonourPage({ api, onExchanged }: Props) {
   const [shop, setShop] = useState<HonourShop | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
+  // 已僱用傭兵時，傭兵兌換不能用
+  const [hired, setHired] = useState(false)
   const [error, setError] = useState<{ exchangeId: string; message: string } | null>(null)
 
   const load = useCallback(
@@ -44,13 +46,21 @@ export function HonourPage({ api, onExchanged }: Props) {
 
   useEffect(() => {
     void load()
-  }, [load])
+    // 讀不到僱用狀態就當作未僱用，伺服器仍會擋下
+    void api.getMercenaries().then(
+      (overview) => setHired(overview.contract !== null),
+      () => undefined,
+    )
+  }, [load, api])
 
   const exchange = async (exchangeId: string) => {
     setBusy(true)
     setError(null)
     try {
       setShop(await api.exchangeHonour(exchangeId))
+      if (shop?.exchanges.find((entry) => entry.id === exchangeId)?.kind === "mercenary") {
+        setHired(true)
+      }
       await onExchanged()
     } catch (caught) {
       setError({ exchangeId, message: describeError(caught) })
@@ -89,7 +99,7 @@ export function HonourPage({ api, onExchanged }: Props) {
             <ExchangeCard
               key={entry.id}
               exchange={entry}
-              busy={busy}
+              busy={busy || (hired && entry.kind === "mercenary")}
               error={error?.exchangeId === entry.id ? error.message : null}
               onExchange={() => void exchange(entry.id)}
             />

@@ -263,6 +263,18 @@ test("CompanionsScreen_MercenaryCatalogueHidesHireForHonourOnly", async () => {
   expect(await screen.findByText("狀態：休息中")).toBeInTheDocument()
 })
 
+test("CompanionsScreen_HireButtonsDisabledWhileHired", async () => {
+  renderCompanions(
+    createFakeApi({
+      getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract: resting })),
+    }),
+  )
+  await openMercenaries()
+
+  const mercenaryF = await card("F級傭兵")
+  expect(within(mercenaryF).getByRole("button", { name: "僱用" })).toBeDisabled()
+})
+
 test("CompanionsScreen_RestingMercenaryDeploysToAChosenPlace", async () => {
   const api = createFakeApi({
     getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract: resting })),
@@ -326,7 +338,6 @@ test("CompanionsScreen_FightingMercenaryRestsRenamesAndDismissesWithConfirmation
 
 test("CompanionsScreen_MercenaryShowsMappedError", async () => {
   const api = createFakeApi({
-    getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract: resting })),
     hireMercenary: vi.fn().mockRejectedValue(new ApiError(400, "無法僱用", ["mercenaryHired"])),
   })
   renderCompanions(api)
