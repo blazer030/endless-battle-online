@@ -5,6 +5,7 @@ using EndlessBattle.Application.Economy;
 using EndlessBattle.Application.Forge;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Jobs;
+using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Application.World;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<BankService>();
         services.AddScoped<DepotService>();
         services.AddScoped<ForgeService>();
+        services.AddScoped<MissionService>();
         return services;
     }
 }

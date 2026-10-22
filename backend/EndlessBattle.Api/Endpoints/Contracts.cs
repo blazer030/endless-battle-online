@@ -269,3 +269,43 @@ public sealed record SynthesisResponse(int Successes, int Attempts, long Cost, I
 
 // 拆除一律成功；Recovered 為 false 表示魔石沒有回收（沒擲中或背包已滿）
 public sealed record UnsocketResponse(bool Success, bool Recovered, InventoryResponse Inventory);
+
+public sealed record MissionRequest(string? MissionId);
+
+// ActiveLimit 是同時進行中的上限；NextDailyReset 為 UTC
+public sealed record MissionBoardResponse(
+    IReadOnlyList<MissionResponse> Available,
+    IReadOnlyList<MissionResponse> Active,
+    IReadOnlyList<MissionResponse> Completed,
+    int ActiveLimit,
+    DateTimeOffset NextDailyReset);
+
+// 每日任務的 Kill 與 Rewards 是該週期擲出的結果；ExpiresAt 只有每日任務有值
+public sealed record MissionResponse(
+    string Id,
+    string Giver,
+    string Title,
+    string Description,
+    int Level,
+    int? PlaceId,
+    string? PlaceName,
+    bool Daily,
+    MissionKillResponse? Kill,
+    IReadOnlyList<MissionDeliverResponse> Deliver,
+    MissionRequirementsResponse Requirements,
+    MissionRewardResponse Rewards,
+    bool Ready,
+    DateTimeOffset? ExpiresAt);
+
+public sealed record MissionKillResponse(string MonsterId, string MonsterName, int PlaceId, string PlaceName, int Count, int Progress);
+
+// Owned 是背包中的持有數（不含已裝備與補給欄）
+public sealed record MissionDeliverResponse(string ItemId, string Name, int Quantity, int Owned);
+
+public sealed record MissionRequirementsResponse(string? JobId, int? Sex, int? Birth, string? PrerequisiteId, string? PrerequisiteTitle);
+
+public sealed record MissionRewardResponse(long Exp, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill);
+
+public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity);
+
+public sealed record MissionRewardSkillResponse(string SkillId, string Name, int Level);

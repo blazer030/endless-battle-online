@@ -4,8 +4,13 @@ namespace EndlessBattle.Domain.Missions;
 
 public sealed record MissionEntry(MissionDefinition Definition, MissionObjective Objective, MissionRecord? Record, bool Ready, DateTimeOffset? ExpiresAt);
 
+// Owned：建看板時的背包道具總數，回應交付進度用
 public sealed record MissionBoardView(
-    IReadOnlyList<MissionEntry> Available, IReadOnlyList<MissionEntry> Active, IReadOnlyList<MissionEntry> Completed, DateTimeOffset NextDailyReset);
+    IReadOnlyList<MissionEntry> Available,
+    IReadOnlyList<MissionEntry> Active,
+    IReadOnlyList<MissionEntry> Completed,
+    DateTimeOffset NextDailyReset,
+    IReadOnlyDictionary<string, int> Owned);
 
 public static class MissionBoard
 {
@@ -42,7 +47,7 @@ public static class MissionBoard
             .Select(record => Entry(character, byId[record.MissionId], record, owned))
             .ToList();
 
-        return new MissionBoardView(available, active, completed, nextReset);
+        return new MissionBoardView(available, active, completed, nextReset, owned);
     }
 
     // 未知任務、過期每日紀錄，以及與定義種類不符（每日卻無週期、一般卻有週期）的紀錄一律忽略

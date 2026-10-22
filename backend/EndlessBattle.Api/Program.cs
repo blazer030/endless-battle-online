@@ -64,6 +64,7 @@ app.MapShopEndpoints();
 app.MapBankEndpoints();
 app.MapDepotEndpoints();
 app.MapForgeEndpoints();
+app.MapMissionEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
