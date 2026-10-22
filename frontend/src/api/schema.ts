@@ -3012,6 +3012,8 @@ export interface components {
             age: number;
             /** Format: date-time */
             nextFeedAt: string;
+            /** Format: double */
+            activationPercent: number;
         };
         PetsResponse: {
             pets: components["schemas"]["PetResponse"][];

@@ -315,6 +315,7 @@ export const makePet = (overrides: Partial<PetView> = {}): PetView => ({
   carried: false,
   age: 2,
   nextFeedAt: "2026-10-21T00:00:00Z",
+  activationPercent: 1.2,
   ...overrides,
 })
 
