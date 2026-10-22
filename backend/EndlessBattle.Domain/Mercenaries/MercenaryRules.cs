@@ -43,6 +43,10 @@ public static class MercenaryRules
         return reasons;
     }
 
+    // 僱用與勳章兌換共用：休息中、次數為目錄值
+    public static MercenaryContract NewContract(MercenaryDefinition definition, DateTimeOffset hiredAt) =>
+        new(definition.Id, definition.Name, definition.Fights, PlaceId: null, NextFightAt: null, hiredAt);
+
     public static IReadOnlyList<string> CanDeploy(PlaceDefinition? place) =>
         place is null ? ["placeUnknown"] : place.Restricted ? ["placeRestricted"] : [];
 

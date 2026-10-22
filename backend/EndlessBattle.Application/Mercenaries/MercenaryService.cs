@@ -30,8 +30,8 @@ public sealed class MercenaryService(
             var definition = content.AllMercenaries.FirstOrDefault(mercenary => mercenary.Id == mercenaryId);
             Check(MercenaryRules.CanHire(character, definition, await mercenaries.FindAsync(character.Id, cancellationToken)), "無法僱用");
 
-            var contract = new MercenaryContract(definition!.Id, definition.Name, definition.Fights, PlaceId: null, NextFightAt: null, clock.UtcNow);
-            await characters.UpdateAsync(character with { Money = character.Money - definition.Price!.Value }, cancellationToken);
+            var contract = MercenaryRules.NewContract(definition!, clock.UtcNow);
+            await characters.UpdateAsync(character with { Money = character.Money - definition!.Price!.Value }, cancellationToken);
             await mercenaries.AddAsync(character.Id, contract, cancellationToken);
             return Overview(contract);
         }, cancellationToken);
