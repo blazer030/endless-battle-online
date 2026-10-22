@@ -1,11 +1,13 @@
+using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Infrastructure.Persistence;
 
-public sealed class EquipmentRepository(EndlessBattleDbContext context) : IEquipmentRepository
+public sealed class EquipmentRepository(EndlessBattleDbContext context, IGameContent content) : IEquipmentRepository
 {
     public async Task<Loadout> GetAsync(long characterId, CancellationToken cancellationToken)
     {
@@ -13,8 +15,19 @@ public sealed class EquipmentRepository(EndlessBattleDbContext context) : IEquip
             .Include(row => row.Inventory)
             .Where(row => row.CharacterId == characterId)
             .ToListAsync(cancellationToken);
-        var equipped = rows.ToDictionary(row => Enum.Parse<EquipmentSlot>(row.Slot), row => InventoryRepository.ToEntry(row.Inventory));
-        var supply = rows.SingleOrDefault(row => row.Slot == nameof(EquipmentSlot.Supply))?.SupplyQuantity ?? 0;
+        // 引用的道具已不在內容裡時視為空欄
+        var equipped = new Dictionary<EquipmentSlot, InventoryEntry>();
+        foreach (var row in rows)
+        {
+            if (InventoryRepository.ToEntry(row.Inventory, content) is { } entry)
+            {
+                equipped[Enum.Parse<EquipmentSlot>(row.Slot)] = entry;
+            }
+        }
+
+        var supply = equipped.ContainsKey(EquipmentSlot.Supply)
+            ? rows.Single(row => row.Slot == nameof(EquipmentSlot.Supply)).SupplyQuantity ?? 0
+            : 0;
         return new Loadout(equipped, supply);
     }
 

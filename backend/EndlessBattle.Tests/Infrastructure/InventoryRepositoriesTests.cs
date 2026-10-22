@@ -26,25 +26,25 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     private async Task<long> AddInventoryAsync(long characterId, InventoryEntry entry)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).AddAsync(characterId, entry, CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, entry, CancellationToken);
     }
 
     private async Task<IReadOnlyList<InventoryEntry>> ListInventoryAsync(long characterId)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).ListAsync(characterId, CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).ListAsync(characterId, CancellationToken);
     }
 
     private async Task<Loadout> GetLoadoutAsync(long characterId)
     {
         await using var context = database.CreateDbContext();
-        return await new EquipmentRepository(context).GetAsync(characterId, CancellationToken);
+        return await new EquipmentRepository(context, TestGameContent.Instance).GetAsync(characterId, CancellationToken);
     }
 
     private async Task SetSlotAsync(long characterId, EquipmentSlot slot, long? inventoryId, int? supplyQuantity = null)
     {
         await using var context = database.CreateDbContext();
-        await new EquipmentRepository(context).SetSlotAsync(characterId, slot, inventoryId, supplyQuantity, CancellationToken);
+        await new EquipmentRepository(context, TestGameContent.Instance).SetSlotAsync(characterId, slot, inventoryId, supplyQuantity, CancellationToken);
     }
 
     private async Task<string?> ReadRawColumnAsync(string column, long id)
@@ -61,8 +61,8 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
         var entry = new InventoryEntry(
-            0, "sword", 1, 1, new StatBonus(1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, HpMax: 30),
-            [new SocketedStone(1, "stone_fire", StatBonus.Zero), new SocketedStone(2, "stone_ice", StatBonus.Zero)], 2);
+            0, "test-sword", 1, 1, new StatBonus(1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, HpMax: 30),
+            [new SocketedStone(1, "test-stone", StatBonus.Zero), new SocketedStone(2, "test-stone", StatBonus.Zero)], 2);
 
         var id = await AddInventoryAsync(characterId, entry);
 
@@ -80,7 +80,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
 
-        var id = await AddInventoryAsync(characterId, Plain("potion", 3));
+        var id = await AddInventoryAsync(characterId, Plain("test-supply", 3));
 
         Assert.Null(await ReadRawColumnAsync("sockets", id));
         Assert.Null(await ReadRawColumnAsync("refine_bonus", id));
@@ -90,8 +90,8 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Equipment_SetSlot_SwapsInventoryId()
     {
         var characterId = await CreateCharacterAsync();
-        var first = await AddInventoryAsync(characterId, Plain("sword"));
-        var second = await AddInventoryAsync(characterId, Plain("axe"));
+        var first = await AddInventoryAsync(characterId, Plain("test-sword"));
+        var second = await AddInventoryAsync(characterId, Plain("test-axe"));
 
         await SetSlotAsync(characterId, EquipmentSlot.Weapon, first);
         await SetSlotAsync(characterId, EquipmentSlot.Weapon, second);
@@ -109,10 +109,10 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
         var refineBonus = new StatBonus(1, 0, 2, 0, 0, 0, 0, 5, 0, 3, 0);
         var sockets = new[]
         {
-            new SocketedStone(1, "stone_fire", new StatBonus(0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0)),
-            new SocketedStone(2, "stone_random", new StatBonus(2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 30)),
+            new SocketedStone(1, "test-stone", new StatBonus(0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0)),
+            new SocketedStone(2, "test-stone", new StatBonus(2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 30)),
         };
-        var entry = new InventoryEntry(0, "sword", 1, 3, refineBonus, sockets, 2);
+        var entry = new InventoryEntry(0, "test-sword", 1, 3, refineBonus, sockets, 2);
 
         var id = await AddInventoryAsync(characterId, entry);
 
@@ -128,7 +128,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
 
-        await AddInventoryAsync(characterId, Plain("potion", 5));
+        await AddInventoryAsync(characterId, Plain("test-supply", 5));
 
         var stored = Assert.Single(await ListInventoryAsync(characterId));
         Assert.Equal(StatBonus.Zero, stored.RefineBonus);
@@ -140,13 +140,13 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Inventory_UpdateEnhancementPersists()
     {
         var characterId = await CreateCharacterAsync();
-        var id = await AddInventoryAsync(characterId, Plain("sword"));
+        var id = await AddInventoryAsync(characterId, Plain("test-sword"));
         var bonus = new StatBonus(0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0);
-        var sockets = new[] { new SocketedStone(1, "stone_fire", bonus) };
+        var sockets = new[] { new SocketedStone(1, "test-stone", bonus) };
 
         await using (var context = database.CreateDbContext())
         {
-            await new InventoryRepository(context).UpdateEnhancementAsync(characterId, id, 2, bonus, sockets, 1, CancellationToken);
+            await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(characterId, id, 2, bonus, sockets, 1, CancellationToken);
         }
 
         var stored = Assert.Single(await ListInventoryAsync(characterId));
@@ -159,18 +159,18 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Inventory_UpdateQuantityAndRemove()
     {
         var characterId = await CreateCharacterAsync();
-        var id = await AddInventoryAsync(characterId, Plain("potion", 5));
+        var id = await AddInventoryAsync(characterId, Plain("test-supply", 5));
 
         await using (var context = database.CreateDbContext())
         {
-            await new InventoryRepository(context).UpdateQuantityAsync(characterId, id, 9, CancellationToken);
+            await new InventoryRepository(context, TestGameContent.Instance).UpdateQuantityAsync(characterId, id, 9, CancellationToken);
         }
 
         Assert.Equal(9, Assert.Single(await ListInventoryAsync(characterId)).Quantity);
 
         await using (var context = database.CreateDbContext())
         {
-            await new InventoryRepository(context).RemoveAsync(characterId, id, CancellationToken);
+            await new InventoryRepository(context, TestGameContent.Instance).RemoveAsync(characterId, id, CancellationToken);
         }
 
         Assert.Empty(await ListInventoryAsync(characterId));
@@ -181,10 +181,10 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var owner = await CreateCharacterAsync();
         var other = await CreateCharacterAsync();
-        var id = await AddInventoryAsync(owner, Plain("potion", 5));
+        var id = await AddInventoryAsync(owner, Plain("test-supply", 5));
 
         await using var context = database.CreateDbContext();
-        var repository = new InventoryRepository(context);
+        var repository = new InventoryRepository(context, TestGameContent.Instance);
         await Assert.ThrowsAsync<InvalidOperationException>(() => repository.UpdateQuantityAsync(other, id, 1, CancellationToken));
         await Assert.ThrowsAsync<InvalidOperationException>(() => repository.RemoveAsync(other, id, CancellationToken));
         Assert.Equal(5, Assert.Single(await ListInventoryAsync(owner)).Quantity);
@@ -194,14 +194,14 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Equipment_SetAndClearSlot()
     {
         var characterId = await CreateCharacterAsync();
-        var weaponId = await AddInventoryAsync(characterId, Plain("sword"));
-        var supplyId = await AddInventoryAsync(characterId, Plain("potion", 8));
+        var weaponId = await AddInventoryAsync(characterId, Plain("test-sword"));
+        var supplyId = await AddInventoryAsync(characterId, Plain("test-supply", 8));
 
         await SetSlotAsync(characterId, EquipmentSlot.Weapon, weaponId);
         await SetSlotAsync(characterId, EquipmentSlot.Supply, supplyId, 3);
 
         var loadout = await GetLoadoutAsync(characterId);
-        Assert.Equal("sword", loadout.Equipped[EquipmentSlot.Weapon].ItemId);
+        Assert.Equal("test-sword", loadout.Equipped[EquipmentSlot.Weapon].ItemId);
         Assert.Equal(supplyId, loadout.Equipped[EquipmentSlot.Supply].Id);
         Assert.Equal(3, loadout.SupplyQuantity);
 
@@ -224,7 +224,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var owner = await CreateCharacterAsync();
         var other = await CreateCharacterAsync();
-        var id = await AddInventoryAsync(owner, Plain("sword"));
+        var id = await AddInventoryAsync(owner, Plain("test-sword"));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => SetSlotAsync(other, EquipmentSlot.Weapon, id));
 
@@ -236,20 +236,20 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
         var bonus = new StatBonus(0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0);
-        var sockets = new[] { new SocketedStone(1, "stone_fire", bonus) };
-        var entry = new InventoryEntry(0, "sword", 1, 2, bonus, sockets, 1);
+        var sockets = new[] { new SocketedStone(1, "test-stone", bonus) };
+        var entry = new InventoryEntry(0, "test-sword", 1, 2, bonus, sockets, 1);
 
         long id;
         await using (var context = database.CreateDbContext())
         {
-            id = await new DepotRepository(context).AddAsync(characterId, entry, CancellationToken);
+            id = await new DepotRepository(context, TestGameContent.Instance).AddAsync(characterId, entry, CancellationToken);
         }
 
         await using (var context = database.CreateDbContext())
         {
-            var repository = new DepotRepository(context);
+            var repository = new DepotRepository(context, TestGameContent.Instance);
             var stored = Assert.Single(await repository.ListAsync(characterId, CancellationToken));
-            Assert.Equal((id, "sword", 1, 2, 1), (stored.Id, stored.ItemId, stored.Quantity, stored.RefineLevel, stored.Holes));
+            Assert.Equal((id, "test-sword", 1, 2, 1), (stored.Id, stored.ItemId, stored.Quantity, stored.RefineLevel, stored.Holes));
             Assert.Equal(bonus, stored.RefineBonus);
             Assert.Equal(sockets, stored.Sockets);
             await repository.UpdateQuantityAsync(characterId, id, 4, CancellationToken);
@@ -257,10 +257,61 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
 
         await using (var context = database.CreateDbContext())
         {
-            var repository = new DepotRepository(context);
+            var repository = new DepotRepository(context, TestGameContent.Instance);
             Assert.Equal(4, Assert.Single(await repository.ListAsync(characterId, CancellationToken)).Quantity);
             await repository.RemoveAsync(characterId, id, CancellationToken);
             Assert.Empty(await repository.ListAsync(characterId, CancellationToken));
         }
+    }
+
+    // 直接寫入資料庫，模擬內容檔移除了這個道具 id
+    private async Task<long> InsertRawInventoryAsync(long characterId, string itemId, string? sockets = null)
+    {
+        await using var context = database.CreateDbContext();
+        await context.Database.ExecuteSqlRawAsync(
+            "INSERT INTO character_inventory (character_id, item_id, quantity, sockets, holes) VALUES ({0}, {1}, 1, IF({2} = '', NULL, CAST({2} AS JSON)), 1)",
+            [characterId, itemId, sockets ?? ""], CancellationToken);
+        return await context.CharacterInventories.Where(row => row.CharacterId == characterId).MaxAsync(row => row.Id, CancellationToken);
+    }
+
+    [Fact]
+    public async Task List_SkipsRowsWhoseItemIsNotInContent()
+    {
+        var characterId = await CreateCharacterAsync();
+        var sword = await AddInventoryAsync(characterId, Plain("test-sword"));
+        var removed = await InsertRawInventoryAsync(characterId, "removed-item");
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO character_equipment (character_id, slot, inventory_id) VALUES ({0}, 'Weapon', {1})", [characterId, removed], CancellationToken);
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO character_depot (character_id, item_id, quantity) VALUES ({0}, 'removed-item', 1), ({0}, 'test-supply', 2)",
+                [characterId], CancellationToken);
+        }
+
+        Assert.Equal([sword], (await ListInventoryAsync(characterId)).Select(entry => entry.Id));
+        Assert.Empty((await GetLoadoutAsync(characterId)).Equipped);
+        await using (var context = database.CreateDbContext())
+        {
+            var depot = await new DepotRepository(context, TestGameContent.Instance).ListAsync(characterId, CancellationToken);
+            Assert.Equal(["test-supply"], depot.Select(entry => entry.ItemId));
+            // 資料庫保留那幾列，內容加回來就恢復
+            Assert.Equal(2, await context.CharacterInventories.CountAsync(row => row.CharacterId == characterId, CancellationToken));
+            Assert.Equal(2, await context.CharacterDepots.CountAsync(row => row.CharacterId == characterId, CancellationToken));
+        }
+    }
+
+    [Fact]
+    public async Task List_DropsSocketsWithUnknownStone()
+    {
+        var characterId = await CreateCharacterAsync();
+        const string sockets = """[{"hole": 1, "stoneId": "removed-stone", "rolled": {"at": 3}}, {"hole": 2, "stoneId": "test-stone", "rolled": {"at": 5}}]""";
+        var id = await InsertRawInventoryAsync(characterId, "test-sword", sockets);
+        await SetSlotAsync(characterId, EquipmentSlot.Weapon, id);
+
+        var listed = Assert.Single(await ListInventoryAsync(characterId));
+        Assert.Equal(["test-stone"], listed.Sockets.Select(socket => socket.StoneId));
+        var equipped = (await GetLoadoutAsync(characterId)).Equipped[EquipmentSlot.Weapon];
+        Assert.Equal(["test-stone"], equipped.Sockets.Select(socket => socket.StoneId));
     }
 }

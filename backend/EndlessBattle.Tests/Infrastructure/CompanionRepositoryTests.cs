@@ -145,4 +145,49 @@ public class CompanionRepositoryTests(MySqlDatabaseFixture database)
         Assert.Equal(next, await new ChampionRepository(reader).FindAsync(characterId, CancellationToken));
         Assert.Equal(1, await reader.CharacterChampions.CountAsync(row => row.CharacterId == characterId, CancellationToken));
     }
+
+    // A 開交易寫入第一筆冠軍列但不提交；B 也看不到這一列，於是插入並等 A 的鎖；A 提交後 B 撞主鍵 → 409
+    [Fact]
+    public async Task ChampionRepository_FirstSaveRaceReturnsConflict()
+    {
+        var characterId = await CreateCharacterAsync();
+        var name = $"競{Random.Shared.Next(100000, 999999)}";
+        var seat = new ChampionSeat(name, 50, 2, "斬", 100, 200, 10, 20, 1, 2, 3, 4, 5, 6, true, 0, Moment, null);
+
+        await using var first = database.CreateDbContext();
+        await using var transaction = await first.Database.BeginTransactionAsync(CancellationToken);
+        await new ChampionRepository(first).SaveAsync(characterId, seat, CancellationToken);
+
+        var second = Task.Run(async () =>
+        {
+            await using var context = database.CreateDbContext();
+            await new ChampionRepository(context).SaveAsync(characterId, seat with { Hp = 7 }, CancellationToken);
+        }, CancellationToken);
+        await WaitForBlockedInsertAsync(name);
+        await transaction.CommitAsync(CancellationToken);
+
+        await Assert.ThrowsAsync<ConflictException>(() => second);
+        await using var reader = database.CreateDbContext();
+        Assert.Equal(seat, await new ChampionRepository(reader).FindAsync(characterId, CancellationToken));
+    }
+
+    // 同一個資料庫使用者看得到自己的連線：等到帶有這個冠軍名稱的 INSERT 正在執行（被鎖住）
+    private async Task WaitForBlockedInsertAsync(string name)
+    {
+        await using var context = database.CreateDbContext();
+        var deadline = DateTime.UtcNow.AddSeconds(20);
+        while (true)
+        {
+            var waiting = await context.Database.SqlQueryRaw<int>(
+                    "SELECT COUNT(*) AS Value FROM information_schema.PROCESSLIST WHERE INFO LIKE 'INSERT%' AND INFO LIKE {0}", $"%{name}%")
+                .SingleAsync(CancellationToken);
+            if (waiting > 0)
+            {
+                return;
+            }
+
+            Assert.True(DateTime.UtcNow < deadline, "第二個寫入沒有在 20 秒內等鎖");
+            await Task.Delay(50, CancellationToken);
+        }
+    }
 }

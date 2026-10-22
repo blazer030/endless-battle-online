@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence.Models;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Infrastructure.Persistence;
 
-public sealed class InventoryRepository(EndlessBattleDbContext context) : IInventoryRepository
+public sealed class InventoryRepository(EndlessBattleDbContext context, IGameContent content) : IInventoryRepository
 {
     public async Task<IReadOnlyList<InventoryEntry>> ListAsync(long characterId, CancellationToken cancellationToken)
     {
@@ -13,7 +14,7 @@ public sealed class InventoryRepository(EndlessBattleDbContext context) : IInven
             .Where(row => row.CharacterId == characterId)
             .OrderBy(row => row.Id)
             .ToListAsync(cancellationToken);
-        return rows.Select(ToEntry).ToList();
+        return rows.Select(row => ToEntry(row, content)).OfType<InventoryEntry>().ToList();
     }
 
     public async Task<long> AddAsync(long characterId, InventoryEntry entry, CancellationToken cancellationToken)
@@ -63,7 +64,16 @@ public sealed class InventoryRepository(EndlessBattleDbContext context) : IInven
         await context.CharacterInventories.SingleOrDefaultAsync(row => row.Id == id && row.CharacterId == characterId, cancellationToken)
         ?? throw new InvalidOperationException("道具不屬於此角色");
 
-    internal static InventoryEntry ToEntry(CharacterInventory row) => new(
-        row.Id, row.ItemId, row.Quantity, row.RefineLevel,
-        EnhancementJson.DeserializeBonus(row.RefineBonus), EnhancementJson.DeserializeSockets(row.Sockets), row.Holes);
+    // 道具 id 已不在內容裡的列回 null（資料庫保留，內容加回來就恢復）；鑲嵌的魔石不在內容裡時那個孔不回傳
+    internal static InventoryEntry? ToEntry(CharacterInventory row, IGameContent content) =>
+        ToEntry(row.Id, row.ItemId, row.Quantity, row.RefineLevel, row.RefineBonus, row.Sockets, row.Holes, content);
+
+    internal static InventoryEntry? ToEntry(
+        long id, string itemId, int quantity, int refineLevel, string? refineBonus, string? sockets, int holes, IGameContent content) =>
+        content.FindItem(itemId) is null
+            ? null
+            : new InventoryEntry(
+                id, itemId, quantity, refineLevel, EnhancementJson.DeserializeBonus(refineBonus),
+                EnhancementJson.DeserializeSockets(sockets).Where(socket => content.FindItem(socket.StoneId) is not null).ToList(),
+                holes);
 }

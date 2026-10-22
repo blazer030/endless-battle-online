@@ -353,7 +353,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         await using (var context = database.CreateDbContext())
         {
             var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
-            elixir = await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, "test-exp-elixir"), CancellationToken);
+            elixir = await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, "test-exp-elixir"), CancellationToken);
             await new BuffRepository(context).SaveAsync(
                 characterId, new CharacterBuff(BuffKind.Attack, 1.2, now.AddHours(-1), now.AddSeconds(-1)), CancellationToken);
         }

@@ -26,7 +26,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
     private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1, int holes = 0)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, itemId, quantity) with { Holes = holes }, CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, itemId, quantity) with { Holes = holes }, CancellationToken);
     }
 
     private static async Task<JsonElement> ReadAsync(HttpResponseMessage response)

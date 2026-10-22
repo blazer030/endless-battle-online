@@ -140,8 +140,9 @@ public sealed class JsonGameContent : IGameContent
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
+        var allMonsters = monsterFile.Monsters.Select(ToMonsterDefinition).ToList();
         var monsters = new Dictionary<string, MonsterDefinition>();
-        foreach (var monster in monsterFile.Monsters)
+        foreach (var monster in allMonsters)
         {
             if (!monsters.TryAdd(monster.Id, monster))
             {
@@ -153,7 +154,7 @@ public sealed class JsonGameContent : IGameContent
 
         // 地區沒有怪物就無法遇敵，載入時就擋下；任務怪平常遇不到，不算數
         var emptyPlace = allPlaces.FirstOrDefault(place =>
-            !monsterFile.Monsters.Any(monster =>
+            !allMonsters.Any(monster =>
                 monster.MissionId is null && (monster.PlaceId == place.Id || monster.PlaceId == MonsterPool.GlobalPlaceId)));
         if (emptyPlace is not null)
         {
@@ -202,7 +203,7 @@ public sealed class JsonGameContent : IGameContent
         ValidateKeys(allItems, allPlaces);
         ValidateBoxes(allItems);
 
-        foreach (var monster in monsterFile.Monsters)
+        foreach (var monster in allMonsters)
         {
             ValidateDrops(monster, items);
         }
@@ -250,7 +251,7 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"任務 {cyclic.Id} 的前置鏈有循環");
         }
 
-        foreach (var monster in monsterFile.Monsters)
+        foreach (var monster in allMonsters)
         {
             ValidateMissionMonster(monster, missions);
         }
@@ -284,7 +285,7 @@ public sealed class JsonGameContent : IGameContent
         var seedChampion = ToSeedChampion(championFile.Champion ?? throw new GameContentException("冠軍種子不可為空（champion.json 的 champion）"));
 
         return new JsonGameContent(
-            monsterFile.Monsters, allJobs, allSkills, monsters, jobs, skills,
+            allMonsters, allJobs, allSkills, monsters, jobs, skills,
             worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions,
             allMercenaries, honourShop, seedChampion);
     }
@@ -307,6 +308,8 @@ public sealed class JsonGameContent : IGameContent
 
     public ItemDefinition GetItem(string itemId) =>
         items.TryGetValue(itemId, out var item) ? item : throw new GameContentException($"找不到道具：{itemId}");
+
+    public ItemDefinition? FindItem(string itemId) => items.GetValueOrDefault(itemId);
 
     public Recipe GetRecipe(string recipeId) =>
         recipes.TryGetValue(recipeId, out var recipe) ? recipe : throw new GameContentException($"找不到配方：{recipeId}");
@@ -1083,10 +1086,75 @@ public sealed class JsonGameContent : IGameContent
     private static HonourExchange ToHonourExchange(ExchangeEntry entry) =>
         new(entry.Id ?? "", entry.ItemId, entry.MercenaryId, entry.Quantity, entry.Cost ?? []);
 
+    // 漏寫 placeId 不能默默變成全域怪：全域怪必須明寫 0
+    private static MonsterDefinition ToMonsterDefinition(JsonElement element)
+    {
+        var monster = element.Deserialize<MonsterDefinition>(SerializerOptions) ?? throw new GameContentException("怪物不可為 null");
+        if (!element.TryGetProperty("placeId", out _))
+        {
+            throw new GameContentException($"怪物 {monster.Id} 必須寫明 placeId（全域怪寫 0）");
+        }
+
+        return monster;
+    }
+
+    // 巢狀物件裡漏寫的必填字串在這裡擋下，之後的驗證才不會拿 null 去查表（ArgumentNullException）
     private static MissionDefinition ToMissionDefinition(MissionEntry entry)
     {
-        static MissionReward ToReward(RewardEntry? reward) =>
-            reward is null ? new MissionReward(0, []) : new MissionReward(reward.Money, reward.Items ?? [], reward.Skill, reward.Pet);
+        var id = entry.Id ?? "";
+
+        void Require(string? value, string field)
+        {
+            if (value is null)
+            {
+                throw new GameContentException($"任務 {id} 的 {field} 不可省略");
+            }
+        }
+
+        void RequireItems(IReadOnlyList<ItemQuantity>? items, string field)
+        {
+            foreach (var item in items ?? [])
+            {
+                Require(item.ItemId, $"{field} 的 itemId");
+            }
+        }
+
+        MissionReward ToReward(RewardEntry? reward, string field)
+        {
+            if (reward is null)
+            {
+                return new MissionReward(0, []);
+            }
+
+            RequireItems(reward.Items, $"{field} items");
+            if (reward.Skill is { } skill)
+            {
+                Require(skill.SkillId, $"{field} skill 的 skillId");
+            }
+
+            if (reward.Pet is { } pet)
+            {
+                Require(pet.MonsterId, $"{field} pet 的 monsterId");
+            }
+
+            return new MissionReward(reward.Money, reward.Items ?? [], reward.Skill, reward.Pet);
+        }
+
+        if (entry.Kill is { } kill)
+        {
+            Require(kill.MonsterId, "kill 的 monsterId");
+        }
+
+        RequireItems(entry.Deliver, "deliver");
+        foreach (var dailyKill in entry.DailyKills ?? [])
+        {
+            Require(dailyKill.MonsterId, "dailyKills 的 monsterId");
+        }
+
+        foreach (var species in entry.DailyPets ?? [])
+        {
+            Require(species, "dailyPets 的怪物 id");
+        }
 
         return new MissionDefinition(
             entry.Id ?? "",
@@ -1100,9 +1168,9 @@ public sealed class JsonGameContent : IGameContent
             entry.Kill,
             entry.Deliver ?? [],
             entry.Requirements ?? new MissionRequirements(),
-            ToReward(entry.Rewards),
+            ToReward(entry.Rewards, "rewards"),
             entry.DailyKills ?? [],
-            (entry.DailyRewards ?? []).Select(ToReward).ToList(),
+            (entry.DailyRewards ?? []).Select(reward => ToReward(reward, "dailyRewards")).ToList(),
             entry.DailyPets ?? []);
     }
 
@@ -1213,7 +1281,8 @@ public sealed class JsonGameContent : IGameContent
         JsonSerializer.Deserialize<T>(File.ReadAllText(path), SerializerOptions)
         ?? throw new GameContentException($"內容檔是空的：{path}");
 
-    private sealed record MonsterFile(IReadOnlyList<MonsterDefinition> Monsters);
+    // 逐筆讀成 JsonElement，才能分辨 placeId 是漏寫還是寫 0
+    private sealed record MonsterFile(IReadOnlyList<JsonElement> Monsters);
 
     private sealed record WorldFile(
         int StartingPlaceId, int? StartingSubPlace, IReadOnlyList<AreaEntry> Areas, IReadOnlyList<PlaceEntry> Places);

@@ -17,7 +17,7 @@ public class JsonGameContentTests
     private static readonly string ShippedContentDirectory = Path.Combine(BackendPaths.BackendDirectory, "content");
 
     private const string ValidMonster =
-        """{ "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0 }""";
+        """{ "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 0 }""";
 
     private const string ValidMonsters = $$"""{ "monsters": [{{ValidMonster}}] }""";
 
@@ -181,7 +181,17 @@ public class JsonGameContentTests
     }
 
     private static string MonsterAt(string placeId, string subPlaces) =>
-        $$"""{ "monsters": [{{ValidMonster.Replace("\"meet\": 0", $"\"meet\": 0, \"placeId\": {placeId}, \"subPlaces\": {subPlaces}")}}] }""";
+        $$"""{ "monsters": [{{ValidMonster.Replace("\"placeId\": 0", $"\"placeId\": {placeId}, \"subPlaces\": {subPlaces}")}}] }""";
+
+    // 漏寫 placeId 不能被當成全域怪：全域怪必須明寫 "placeId": 0
+    [Fact]
+    public void Monsters_RejectMissingPlaceId()
+    {
+        var monsters = $$"""{ "monsters": [{{ValidMonster.Replace(", \"placeId\": 0", "")}}] }""";
+        Assert.DoesNotContain("placeId", monsters);
+        AssertLoadRejects(monsters, ValidJobs, "sprite");
+        AssertLoadRejects(monsters, ValidJobs, "placeId");
+    }
 
     [Theory]
     [InlineData("[0]")]
@@ -932,6 +942,22 @@ public class JsonGameContentTests
         Assert.Equal(["hunt", "chief-hunt", "rival", "daily"], content.AllMissions.Select(mission => mission.Id));
         Assert.Equal(new MissionRequirements(Sex: 2, Birth: 4, PrerequisiteId: "hunt"), content.GetMission("chief-hunt").Requirements);
         Assert.Equal("chief-hunt", content.GetMonster("chief").MissionId);
+    }
+
+    // 必填字串漏寫時是內容錯誤（GameContentException），不是 ArgumentNullException；title 是任務的名稱
+    [Theory]
+    [InlineData("\"title\": \"討伐\", ", "", "hunt", "title")]
+    [InlineData("\"giver\": \"村長\", ", "", "hunt", "giver")]
+    [InlineData("\"kill\": { \"monsterId\": \"sprite\", \"count\": 3 }", "\"kill\": { \"count\": 3 }", "hunt", "monsterId")]
+    [InlineData("\"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }]", "\"deliver\": [{ \"quantity\": 2 }]", "hunt", "itemId")]
+    [InlineData("\"skill\": { \"skillId\": \"guard\", \"level\": 1 }", "\"skill\": { \"level\": 1 }", "hunt", "skillId")]
+    [InlineData("\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyKills\": [{ \"count\": 2 }]", "daily", "monsterId")]
+    [InlineData("\"rewards\": { \"money\": 50, \"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }]", "\"rewards\": { \"money\": 50, \"items\": [{ \"quantity\": 1 }]", "hunt", "itemId")]
+    public void Missions_MissingRequiredStringThrowsGameContentException(string validField, string invalidField, string missionId, string field)
+    {
+        var message = MissionFieldRejection(validField, invalidField);
+        Assert.Contains(missionId, message);
+        Assert.Contains(field, message);
     }
 
     [Fact]

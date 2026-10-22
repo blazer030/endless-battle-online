@@ -244,7 +244,8 @@ public sealed record InventoryItemResponse(
     IReadOnlyList<SocketResponse> Sockets,
     long Price,
     bool Bound,
-    int? RefineStoneLevel); // 只有精鍊石有值
+    int? RefineStoneLevel, // 只有精鍊石有值
+    bool Enhanced); // 精鍊過、有鑲嵌或比原本多打了孔
 
 public sealed record SocketResponse(int Hole, string StoneId, string StoneName, StatBonus Rolled);
 

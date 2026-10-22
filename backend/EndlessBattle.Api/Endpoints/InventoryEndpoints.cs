@@ -3,6 +3,7 @@ using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -69,5 +70,6 @@ public static class InventoryEndpoints
         item.Sockets.Select(view => new SocketResponse(view.Socket.Hole, view.Socket.StoneId, view.StoneName, view.Socket.Rolled)).ToList(),
         item.Item.Price,
         item.Item.Bound,
-        item.Item.Refine?.Level);
+        item.Item.Refine?.Level,
+        item.Entry.IsEnhanced(item.Item));
 }

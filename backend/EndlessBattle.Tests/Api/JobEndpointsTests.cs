@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
 using Microsoft.EntityFrameworkCore;
@@ -157,7 +158,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
     private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
     }
 
     private static async Task<JsonElement> InventoryAsync(HttpClient client) =>
@@ -209,5 +210,29 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(sword, Assert.Single(Items(inventory, "Weapon").EnumerateArray()).GetProperty("inventoryId").GetInt64());
         var supplies = Assert.Single(Items(inventory, "Consumable").EnumerateArray());
         Assert.Equal((supply, 10), (supplies.GetProperty("inventoryId").GetInt64(), supplies.GetProperty("quantity").GetInt32()));
+    }
+
+    // 兩個角色同時轉職（各自清掉被動技能欄、重寫技能欄）：彼此的鎖不能互相卡住，10 輪全部 200
+    [Fact]
+    public async Task JobChange_TwoCharactersAtOnce_BothSucceed()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var players = new[] { await CreateClientWithCharacterIdAsync(factory), await CreateClientWithCharacterIdAsync(factory) };
+
+        for (var round = 0; round < 10; round++)
+        {
+            var current = round % 2 == 0 ? "warrior" : "thief";
+            foreach (var (_, characterId) in players)
+            {
+                await using var context = database.CreateDbContext();
+                await new SkillLoadoutRepository(context).ReplaceAsync(
+                    characterId, [new SkillSlot(1, current == "warrior" ? "burst" : "combo", 50), new SkillSlot(4, "iron-skin", 30)], CancellationToken);
+            }
+
+            var target = current == "warrior" ? "thief" : "warrior";
+            var responses = await Task.WhenAll(players.Select(player => ChangeAsync(player.Client, target)));
+
+            Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        }
     }
 }

@@ -26,7 +26,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
     private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
     }
 
     private static async Task<JsonElement> ReadAsync(HttpResponseMessage response)
@@ -85,7 +85,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         var sword = await GiveAsync(characterId, "test-sword");
         await using (var context = database.CreateDbContext())
         {
-            await new InventoryRepository(context).UpdateEnhancementAsync(
+            await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(
                 characterId, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
         }
 
@@ -226,5 +226,75 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         var stone = Assert.Single(Category(result.GetProperty("inventory"), "Stone").GetProperty("items").EnumerateArray());
         Assert.Equal("test-stone", stone.GetProperty("itemId").GetString());
         Assert.Empty(Category(result.GetProperty("inventory"), "Consumable").GetProperty("items").EnumerateArray());
+    }
+
+    // 直接寫入資料庫，模擬內容檔移除了這個道具 id
+    private async Task<long> InsertRawInventoryAsync(long characterId, string itemId, string? sockets = null)
+    {
+        await using var context = database.CreateDbContext();
+        await context.Database.ExecuteSqlRawAsync(
+            "INSERT INTO character_inventory (character_id, item_id, quantity, sockets, holes) VALUES ({0}, {1}, 1, IF({2} = '', NULL, CAST({2} AS JSON)), 1)",
+            [characterId, itemId, sockets ?? ""], CancellationToken);
+        return await context.CharacterInventories.Where(row => row.CharacterId == characterId).MaxAsync(row => row.Id, CancellationToken);
+    }
+
+    // 背包、裝備欄（武器與補給）、倉庫都有已移除的道具，劍上鑲著已移除的魔石：各畫面照常 200，那些列不出現
+    [Fact]
+    public async Task RemovedItem_DoesNotBreakInventoryMeOrAdvance()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await InsertRawInventoryAsync(characterId, "removed-item");
+        var weapon = await InsertRawInventoryAsync(characterId, "removed-item");
+        var supply = await InsertRawInventoryAsync(characterId, "removed-item");
+        await InsertRawInventoryAsync(characterId, "test-sword", """[{"hole": 1, "stoneId": "removed-stone", "rolled": {"at": 3}}]""");
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO character_equipment (character_id, slot, inventory_id, supply_quantity) VALUES ({0}, 'Weapon', {1}, NULL), ({0}, 'Supply', {2}, 3)",
+                [characterId, weapon, supply], CancellationToken);
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO character_depot (character_id, item_id, quantity) VALUES ({0}, 'removed-item', 1)", [characterId], CancellationToken);
+        }
+
+        var inventory = await ReadAsync(await client.GetAsync("/api/inventory", CancellationToken));
+        Assert.Empty(inventory.GetProperty("equipment").EnumerateArray());
+        var sword = Assert.Single(inventory.GetProperty("bag").EnumerateArray().SelectMany(category => category.GetProperty("items").EnumerateArray()));
+        Assert.Equal("test-sword", sword.GetProperty("itemId").GetString());
+        Assert.Empty(sword.GetProperty("sockets").EnumerateArray());
+        await ReadAsync(await client.GetAsync("/api/characters/me", CancellationToken));
+        factory.Clock.Advance(TimeSpan.FromSeconds(60));
+        await ReadAsync(await client.PostAsync("/api/adventure/advance", null, CancellationToken));
+        var depot = await ReadAsync(await client.GetAsync("/api/depot", CancellationToken));
+        Assert.Empty(depot.GetProperty("entries").EnumerateArray());
+    }
+
+    // test-sword 原有 1 孔、test-axe 原有 0 孔：精鍊、鑲嵌、多打的孔都算強化過
+    [Fact]
+    public async Task Inventory_MarksEnhancedEquipment()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var fresh = await GiveAsync(characterId, "test-sword");
+        var refined = await GiveAsync(characterId, "test-sword");
+        var socketed = await GiveAsync(characterId, "test-sword");
+        var drilled = await GiveAsync(characterId, "test-axe");
+        await using (var context = database.CreateDbContext())
+        {
+            var repository = new InventoryRepository(context, TestGameContent.Instance);
+            await repository.UpdateEnhancementAsync(characterId, fresh, 0, StatBonus.Zero, [], 1, CancellationToken);
+            await repository.UpdateEnhancementAsync(characterId, refined, 1, StatBonus.Zero with { At = 2 }, [], 1, CancellationToken);
+            await repository.UpdateEnhancementAsync(
+                characterId, socketed, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+            await repository.UpdateEnhancementAsync(characterId, drilled, 0, StatBonus.Zero, [], 1, CancellationToken);
+        }
+
+        var inventory = await ReadAsync(await client.GetAsync("/api/inventory", CancellationToken));
+
+        var enhanced = Category(inventory, "Weapon").GetProperty("items").EnumerateArray()
+            .ToDictionary(item => item.GetProperty("inventoryId").GetInt64(), item => item.GetProperty("enhanced").GetBoolean());
+        Assert.Equal(
+            new Dictionary<long, bool> { [fresh] = false, [refined] = true, [socketed] = true, [drilled] = true },
+            enhanced);
     }
 }

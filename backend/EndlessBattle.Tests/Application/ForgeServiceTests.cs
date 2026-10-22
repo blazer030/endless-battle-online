@@ -220,26 +220,28 @@ public class ForgeServiceTests
         Assert.Equal(["update"], log);
     }
 
-    // 魔石分類已滿：回收的魔石放不下就消失，不擋拆除
+    // 魔石分類已滿：擲回收前就拒絕，什麼都不寫（拆石器不扣、魔石留在孔裡）
     [Fact]
-    public async Task Unsocket_BagFullLosesRecoveredStone()
+    public async Task Unsocket_RejectsWhenStoneBagFull()
     {
         var character = await AddCharacterAsync();
         var sword = await SocketedSwordAsync(character);
-        await GiveAsync(character, "stone-remover");
+        var remover = await GiveAsync(character, "stone-remover", 2);
         for (var index = 0; index < 15; index++)
         {
             await GiveAsync(character, "test-stone", 99);
         }
 
+        inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.0);
 
-        var result = await service.UnsocketAsync(AccountId, sword, 1, CancellationToken);
+        var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.UnsocketAsync(AccountId, sword, 1, CancellationToken));
 
-        Assert.False(result.Recovered);
-        Assert.Empty(Find(character, sword).Sockets);
-        Assert.Equal(15 * 99, (await ItemsAsync(character)).Where(item => item.ItemId == "test-stone").Sum(item => item.Quantity));
-        Assert.DoesNotContain(await ItemsAsync(character), item => item.ItemId == "stone-remover");
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Single(Find(character, sword).Sockets);
+        Assert.Equal(2, Find(character, remover).Quantity);
+        Assert.Empty(inventory.Writes);
+        Assert.Empty(log);
     }
 
     // 擲 0.99 → r = 100 > 8 失敗：孔數不變，鑽孔器照樣用掉

@@ -10,7 +10,7 @@ namespace EndlessBattle.Application.Forge;
 
 public sealed record ForgeResult(bool Success, InventoryView Inventory);
 
-// Recovered 為 false：沒擲中回收，或背包魔石分類已滿而消失
+// Recovered 為 false：沒擲中回收
 public sealed record UnsocketResult(bool Recovered, InventoryView Inventory);
 
 public sealed record SynthesisResult(int Successes, int Attempts, long Cost, InventoryView Inventory);
@@ -78,7 +78,7 @@ public sealed class ForgeService(
             return new ForgeResult(true, await inventoryService.GetAsync(accountId, cancellationToken));
         }, cancellationToken);
 
-    // 回收的魔石放不下時直接消失，不擋拆除
+    // 擲回收前先確認魔石分類放得下那顆魔石，放不下 400 bagFull、什麼都不寫（拆石器不扣、魔石留在孔裡）
     public Task<UnsocketResult> UnsocketAsync(long accountId, long inventoryId, int hole, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -87,13 +87,23 @@ public sealed class ForgeService(
             var target = FindTarget(state, inventoryId);
             Check(Socket.CheckRemove(target, content.GetItem(target.ItemId), hole), "無法拆除魔石");
             var remover = FindTool(state, ForgeTools.StoneRemover);
+            var stone = content.GetItem(target.Sockets.Single(socket => socket.Hole == hole).StoneId);
+            var added = InventoryRules.TryAdd(SameCategory(AfterConsuming(state.Bag, remover, 1), stone), stone, 1, character.BagBonus);
+            if (added.Discarded > 0)
+            {
+                throw new InputValidationException("背包已滿", ["bagFull"]);
+            }
 
             await LockAsync(character, cancellationToken);
             var outcome = Socket.Remove(target, hole, randomFactory.Create());
             await ConsumeAsync(character.Id, remover, 1, cancellationToken);
             await SaveEnhancementAsync(character.Id, outcome.Entry, cancellationToken);
-            var recovered = outcome.Recovered && await TryAddAsync(character, AfterConsuming(state.Bag, remover, 1), content.GetItem(outcome.StoneId), 1, cancellationToken);
-            return new UnsocketResult(recovered, await inventoryService.GetAsync(accountId, cancellationToken));
+            if (outcome.Recovered)
+            {
+                await ApplyAsync(character.Id, added, cancellationToken);
+            }
+
+            return new UnsocketResult(outcome.Recovered, await inventoryService.GetAsync(accountId, cancellationToken));
         }, cancellationToken);
 
     // 不論成敗都用掉 1 個鑽孔器
@@ -205,20 +215,6 @@ public sealed class ForgeService(
 
     private ItemDefinition? FindRefineStone(int kind, int level) =>
         content.AllItems.FirstOrDefault(item => item.Refine is { } refine && refine.Kind == kind && refine.Level == level);
-
-    // 放得下才寫入並回 true；放不下什麼都不寫
-    private async Task<bool> TryAddAsync(
-        Character character, IReadOnlyList<InventoryEntry> bag, ItemDefinition item, int quantity, CancellationToken cancellationToken)
-    {
-        var added = InventoryRules.TryAdd(SameCategory(bag, item), item, quantity, character.BagBonus);
-        if (added.Discarded > 0)
-        {
-            return false;
-        }
-
-        await ApplyAsync(character.Id, added, cancellationToken);
-        return true;
-    }
 
     private async Task ApplyAsync(long characterId, AddResult added, CancellationToken cancellationToken)
     {

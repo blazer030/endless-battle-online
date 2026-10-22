@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Champion;
+using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Champion;
 using EndlessBattle.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +48,15 @@ public sealed class ChampionRepository(EndlessBattleDbContext context) : IChampi
         row.Defenses = seat.Defenses;
         row.CrownedAt = seat.CrownedAt?.UtcDateTime;
         row.LockedUntil = seat.LockedUntil?.UtcDateTime;
-        await context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
+        {
+            // 兩個請求都以為還沒有冠軍列而同時新增
+            throw new ConflictException("冠軍資料已被其他請求更新");
+        }
     }
 
     private static DateTimeOffset ToUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));

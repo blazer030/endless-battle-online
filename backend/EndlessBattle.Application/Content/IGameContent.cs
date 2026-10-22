@@ -54,6 +54,9 @@ public interface IGameContent
 
     ItemDefinition GetItem(string itemId);
 
+    // 內容檔沒有這個 id 時回 null（例如玩家持有的道具已從內容移除）
+    ItemDefinition? FindItem(string itemId);
+
     Recipe GetRecipe(string recipeId);
 
     MissionDefinition GetMission(string missionId);

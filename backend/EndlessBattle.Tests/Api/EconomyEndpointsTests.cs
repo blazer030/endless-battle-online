@@ -26,7 +26,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
     private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1)
     {
         await using var context = database.CreateDbContext();
-        return await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
+        return await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, itemId, quantity), CancellationToken);
     }
 
     private async Task SetLevelAsync(long characterId, int level)
@@ -154,7 +154,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         var sword = await GiveAsync(characterId, "test-sword");
         await using (var context = database.CreateDbContext())
         {
-            await new InventoryRepository(context).UpdateEnhancementAsync(
+            await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(
                 characterId, sword, 2, StatBonus.Zero with { At = 3 }, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
         }
 

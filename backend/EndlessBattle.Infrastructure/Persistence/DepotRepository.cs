@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence.Models;
@@ -5,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Infrastructure.Persistence;
 
-public sealed class DepotRepository(EndlessBattleDbContext context) : IDepotRepository
+public sealed class DepotRepository(EndlessBattleDbContext context, IGameContent content) : IDepotRepository
 {
     public async Task<IReadOnlyList<InventoryEntry>> ListAsync(long characterId, CancellationToken cancellationToken)
     {
@@ -13,9 +14,10 @@ public sealed class DepotRepository(EndlessBattleDbContext context) : IDepotRepo
             .Where(row => row.CharacterId == characterId)
             .OrderBy(row => row.Id)
             .ToListAsync(cancellationToken);
-        return rows.Select(row => new InventoryEntry(
-            row.Id, row.ItemId, row.Quantity, row.RefineLevel,
-            EnhancementJson.DeserializeBonus(row.RefineBonus), EnhancementJson.DeserializeSockets(row.Sockets), row.Holes)).ToList();
+        return rows
+            .Select(row => InventoryRepository.ToEntry(row.Id, row.ItemId, row.Quantity, row.RefineLevel, row.RefineBonus, row.Sockets, row.Holes, content))
+            .OfType<InventoryEntry>()
+            .ToList();
     }
 
     public async Task<long> AddAsync(long characterId, InventoryEntry entry, CancellationToken cancellationToken)
