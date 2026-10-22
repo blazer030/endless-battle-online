@@ -59,6 +59,8 @@ public sealed class AdventureService(
         var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
         var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
         var supplySlot = SupplySlotOf(equipped);
+        var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);
+        var random = randomFactory.Create();
         var run = AdventureSimulator.Run(
             character,
             content.GetJob(character.JobId),
@@ -69,11 +71,14 @@ public sealed class AdventureService(
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
             now,
-            randomFactory.Create(),
+            random,
             bonus,
             supplySlot.Supply,
             tracked,
-            new AdventureCompanions(ownedPets.FirstOrDefault(pet => pet.Carried), ownedPets.Count, supplySlot.Capture));
+            new AdventureCompanions(carriedPet, ownedPets.Count, supplySlot.Capture));
+
+        // 每次推進最多結算一次飢餓（同 WOG 的線上心跳），接在模擬之後擲骰
+        var hungryPet = carriedPet is null ? null : PetCare.Hunger(carriedPet, now, random);
 
         return await unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -99,10 +104,15 @@ public sealed class AdventureService(
             var drops = await StoreDropsAsync(updated, run, cancellationToken);
             await StoreSupplyAsync(updated.Id, equipped, run.SupplyRemaining, cancellationToken);
 
-            // 捕到的寵物最後寫入，依捕捉順序
+            // 捕到的寵物依捕捉順序寫入，之後才寫攜帶寵物的飢餓
             foreach (var captured in run.Captured)
             {
                 await pets.AddAsync(updated.Id, captured.ToPet(), cancellationToken);
+            }
+
+            if (hungryPet is not null && !ReferenceEquals(hungryPet, carriedPet))
+            {
+                await pets.UpdateAsync(updated.Id, hungryPet, cancellationToken);
             }
 
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,

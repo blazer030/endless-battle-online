@@ -2,6 +2,7 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -321,3 +322,30 @@ public sealed record MissionCompleteResponse(
     MissionRewardSkillResponse? Skill,
     bool SkillGranted,
     int LevelsGained);
+
+// carry、store、release 只看 PetId；rename 另看 Name；feed 另看 FoodId
+public sealed record PetRequest(long? PetId, string? Name, string? FoodId);
+
+public sealed record PetsResponse(IReadOnlyList<PetResponse> Pets, int MaxPets, IReadOnlyList<PetFoodResponse> Foods);
+
+// Species 是怪物名；Age 只顯示；NextFeedAt 之前餵食會被拒絕（tooSoon）
+public sealed record PetResponse(
+    long Id,
+    string MonsterId,
+    string Species,
+    string Name,
+    PetPersonality Personality,
+    int Attack,
+    int Magic,
+    int Defense,
+    int Spirit,
+    int Satiety,
+    int Intimacy,
+    bool Carried,
+    int Age,
+    DateTimeOffset NextFeedAt);
+
+public sealed record PetFoodResponse(string Id, string Name, PetStat Stat, int Amount, long Cost);
+
+// Character 已扣餵食的金錢
+public sealed record PetFeedResponse(PetsResponse Pets, CharacterResponse Character);

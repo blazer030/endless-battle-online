@@ -636,6 +636,59 @@ public class AdventureServiceTests
         Assert.Equal(20, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
     }
 
+    // 攜帶的寵物 HungerSince 1 小時前（超過 900 秒四次）：模擬之後擲 rand(8,12) = 8，只扣一次；獸欄的寵物不扣。
+    // 寫入在角色之後、捕到的寵物之後
+    [Fact]
+    public async Task Advance_TicksCarriedPetHunger()
+    {
+        var character = await AddCharacterAsync();
+        var hungerSince = Start.AddHours(-1);
+        var stabled = TestPets.Create("小狼", "test-wolf", carried: false) with { HungerSince = hungerSince };
+        var stabledId = await pets.AddAsync(character.Id, stabled, CancellationToken);
+        var carriedId = await pets.AddAsync(
+            character.Id, TestPets.Create("小雪", "test-sprite", intimacy: 5) with { HungerSince = hungerSince }, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var stored = await pets.ListAsync(character.Id, CancellationToken);
+        var carried = stored.Single(pet => pet.Id == carriedId);
+        Assert.Equal((4, 72, clock.UtcNow), (carried.Intimacy, carried.Satiety, carried.HungerSince));
+        Assert.Equal(stabled with { Id = stabledId }, stored.Single(pet => pet.Id == stabledId));
+        Assert.Equal([$"pet:update:{carriedId}"], log.Where(entry => entry.StartsWith("pet:update:", StringComparison.Ordinal)));
+        Assert.True(log.IndexOf($"pet:update:{carriedId}") > log.IndexOf("update"));
+        Assert.True(log.IndexOf($"pet:update:{carriedId}") > log.IndexOf($"pet:add:{carriedId}"));
+    }
+
+    // 沒到 900 秒：寵物不寫
+    [Fact]
+    public async Task Advance_LeavesFedPetAlone()
+    {
+        var character = await AddCharacterAsync();
+        await pets.AddAsync(character.Id, TestPets.Create() with { HungerSince = Start }, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.DoesNotContain(log, entry => entry.StartsWith("pet:update:", StringComparison.Ordinal));
+    }
+
+    // 版本衝突：飢餓也不寫
+    [Fact]
+    public async Task Advance_WritesNoHunger_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        var id = await pets.AddAsync(character.Id, TestPets.Create() with { HungerSince = Start.AddHours(-1) }, CancellationToken);
+        var before = (await pets.ListAsync(character.Id, CancellationToken)).Single();
+        repository.FailNextUpdate = true;
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.DoesNotContain(log, entry => entry.StartsWith("pet:update:", StringComparison.Ordinal));
+        Assert.Equal(before, (await pets.ListAsync(character.Id, CancellationToken)).Single(pet => pet.Id == id));
+    }
+
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Create() => new ScriptedRandom(0.0);

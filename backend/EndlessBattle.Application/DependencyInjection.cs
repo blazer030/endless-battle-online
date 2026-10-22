@@ -6,6 +6,7 @@ using EndlessBattle.Application.Forge;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Jobs;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Application.World;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<DepotService>();
         services.AddScoped<ForgeService>();
         services.AddScoped<MissionService>();
+        services.AddScoped<PetService>();
         return services;
     }
 }
