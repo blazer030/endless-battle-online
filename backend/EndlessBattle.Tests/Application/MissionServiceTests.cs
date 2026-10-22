@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -19,6 +20,8 @@ public class MissionServiceTests
     private readonly List<string> log = [];
     private readonly LoggingCharacterRepository characters;
     private readonly InMemoryMissionRepository missions;
+    private readonly InMemoryInventoryRepository inventory = new();
+    private readonly InMemoryEquipmentRepository equipment;
     private readonly FakeClock clock = new(Now);
     private readonly MissionService service;
 
@@ -26,8 +29,7 @@ public class MissionServiceTests
     {
         characters = new LoggingCharacterRepository(log);
         missions = new InMemoryMissionRepository(log);
-        var inventory = new InMemoryInventoryRepository();
-        var equipment = new InMemoryEquipmentRepository(inventory);
+        equipment = new InMemoryEquipmentRepository(inventory);
         var unitOfWork = new InMemoryUnitOfWork(characters, inventory, missions);
         service = new MissionService(characters, missions, inventory, equipment, Content, clock, unitOfWork);
     }
@@ -156,6 +158,22 @@ public class MissionServiceTests
 
         Assert.Equal(3, accepted.Active.Count);
         Assert.Equal(4, (await RecordsAsync(character)).Count);
+    }
+
+    [Fact]
+    public async Task Board_OwnedCountsBagOnly()
+    {
+        var character = await AddCharacterAsync();
+        var equipped = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-sword"), CancellationToken);
+        await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-sword"), CancellationToken);
+        await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-ore", 2), CancellationToken);
+        await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-ore", 3), CancellationToken);
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, equipped, null, CancellationToken);
+
+        var board = await service.GetBoardAsync(AccountId, CancellationToken);
+
+        Assert.Equal(1, board.Owned["test-sword"]);
+        Assert.Equal(5, board.Owned["test-ore"]);
     }
 
     [Fact]

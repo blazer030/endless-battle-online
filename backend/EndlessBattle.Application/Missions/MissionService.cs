@@ -3,7 +3,6 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Characters;
-using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
 
 namespace EndlessBattle.Application.Missions;
@@ -78,12 +77,8 @@ public sealed class MissionService(
     {
         var records = await missions.ListAsync(character.Id, cancellationToken);
         var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        return MissionBoard.Build(character, content.AllMissions, records, Owned(state.Bag), now);
+        return MissionBoard.Build(character, content.AllMissions, records, Delivery.Owned(state.Bag), now);
     }
-
-    // 只算背包，不含已裝備與補給欄
-    private static Dictionary<string, int> Owned(IReadOnlyList<InventoryEntry> bag) =>
-        bag.GroupBy(entry => entry.ItemId).ToDictionary(group => group.Key, group => group.Sum(entry => entry.Quantity));
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
         await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
