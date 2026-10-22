@@ -4,6 +4,41 @@
  */
 
 export interface paths {
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HealthResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/content": {
         parameters: {
             query?: never;
@@ -219,6 +254,45 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/characters/me/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AdventureSettingsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CharacterResponse"];
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -2053,9 +2127,41 @@ export interface components {
              * @default 0
              */
             petsCaptured: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            escapes: number;
+        };
+        AdventureSettingsRequest: {
+            attack: null | components["schemas"]["AttackKind"];
+            /** Format: int32 */
+            potionHpPercent: null | number;
+            /** Format: int32 */
+            potionSpPercent: null | number;
+            /** Format: int32 */
+            restHpPercent: null | number;
+            /** Format: int32 */
+            restSpPercent: null | number;
+            /** Format: int32 */
+            escapeHpPercent: null | number;
+            specialAttackName: null | string;
+        };
+        AdventureSettingsResponse: {
+            attack: null | components["schemas"]["AttackKind"];
+            /** Format: int32 */
+            potionHpPercent: number;
+            /** Format: int32 */
+            potionSpPercent: number;
+            /** Format: int32 */
+            restHpPercent: number;
+            /** Format: int32 */
+            restSpPercent: number;
+            /** Format: int32 */
+            escapeHpPercent: number;
         };
         /** @enum {unknown} */
-        AttackKind: "Physical" | "Magic";
+        AttackKind: "Physical" | "Magic" | null;
         BagCategoryResponse: {
             category: components["schemas"]["ItemCategory"];
             /** Format: int32 */
@@ -2098,7 +2204,7 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"];
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"] | components["schemas"]["BattleEventEscapeEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -2155,6 +2261,12 @@ export interface components {
             staminaDepleted: boolean;
             petName?: null | string;
             petMonsterId?: null | string;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventEscapeEvent: {
+            /** @enum {string} */
+            type?: "escape";
             /** Format: double */
             atSeconds: number;
         };
@@ -2368,6 +2480,7 @@ export interface components {
             /** Format: int32 */
             actNumMax: number;
             jobProficiency: components["schemas"]["JobProficiencyResponse"][];
+            settings: components["schemas"]["AdventureSettingsResponse"];
         };
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
@@ -2433,6 +2546,9 @@ export interface components {
         ForgeResponse: {
             success: boolean;
             inventory: components["schemas"]["InventoryResponse"];
+        };
+        HealthResponse: {
+            status: string;
         };
         HonourCostResponse: {
             itemId: string;

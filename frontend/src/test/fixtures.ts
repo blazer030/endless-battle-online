@@ -58,6 +58,14 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
   actNum: 50,
   actNumMax: 50,
   jobProficiency: [],
+  settings: {
+    attack: null,
+    potionHpPercent: 15,
+    potionSpPercent: 100,
+    restHpPercent: 15,
+    restSpPercent: 15,
+    escapeHpPercent: 0,
+  },
   ...overrides,
 })
 
@@ -75,6 +83,7 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   skillsCast: 0,
   drops: 0,
   potionsUsed: 0,
+  escapes: 0,
   ...overrides,
 })
 
