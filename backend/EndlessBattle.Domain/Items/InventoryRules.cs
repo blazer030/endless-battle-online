@@ -18,7 +18,7 @@ public static class InventoryRules
         var updated = new List<InventoryEntry>();
         if (item.Stackable)
         {
-            foreach (var entry in bag.Where(entry => entry.ItemId == item.Id && !IsEnhanced(entry)))
+            foreach (var entry in bag.Where(entry => entry.ItemId == item.Id && !entry.IsEnhanced()))
             {
                 var added = Math.Min(remaining, StackLimit - entry.Quantity);
                 if (added <= 0)
@@ -69,7 +69,4 @@ public static class InventoryRules
 
         return new AddResult(accepted, discarded, created, updated);
     }
-
-    private static bool IsEnhanced(InventoryEntry entry) =>
-        entry.RefineLevel != 0 || entry.Sockets.Count != 0 || entry.RefineBonus != StatBonus.Zero;
 }

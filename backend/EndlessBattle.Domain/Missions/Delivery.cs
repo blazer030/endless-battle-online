@@ -29,7 +29,7 @@ public static class Delivery
 
             var remaining = item.Quantity;
             var rows = bag.Where(entry => entry.ItemId == item.ItemId)
-                .OrderBy(IsEnhanced)
+                .OrderBy(InventoryEnhancement.IsEnhanced)
                 .ThenBy(entry => entry.Quantity)
                 .ThenBy(entry => entry.Id);
             foreach (var row in rows)
@@ -63,6 +63,4 @@ public static class Delivery
             .Select(entry => updated.GetValueOrDefault(entry.Id, entry))
             .ToList();
     }
-
-    private static bool IsEnhanced(InventoryEntry entry) => entry.RefineLevel != 0 || entry.Sockets.Count != 0;
 }
