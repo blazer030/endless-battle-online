@@ -1,3 +1,4 @@
+import { formatNumber } from "./format"
 import { bagItems, bagSlotsOf, isEquipment } from "./inventory"
 import type { InventoryItem, InventoryView, Recipe, SynthesisResult } from "./types"
 
@@ -7,8 +8,6 @@ export const DrillSuccessPercent = 8
 export const MaxRefineStoneLevel = 10
 export const MaxSynthesisAttempts = 99
 const StonesPerPair = 2
-
-const format = (value: number) => value.toLocaleString("zh-TW")
 
 export type ForgeOption = { stone: InventoryItem; allowed: boolean }
 
@@ -132,8 +131,9 @@ export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryView) =
 
 // 只有成功才扣錢，按鈕顯示全部成功時的花費上限
 export const synthesisButtonText = (costPerAttempt: number, attempts: number) =>
-  `合成（${format(costPerAttempt * attempts)} 金錢上限）`
+  `合成（${formatNumber(costPerAttempt * attempts)} 金錢上限）`
 
 export const synthesisResultText = (
   result: Pick<SynthesisResult, "attempts" | "successes" | "cost">,
-) => `合成 ${result.attempts} 次，成功 ${result.successes} 次，花費 ${format(result.cost)} 金錢。`
+) =>
+  `合成 ${result.attempts} 次，成功 ${result.successes} 次，花費 ${formatNumber(result.cost)} 金錢。`

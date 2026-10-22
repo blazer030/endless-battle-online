@@ -1,7 +1,6 @@
+import { formatNumber } from "./format"
 import { translateReasons } from "./reasons"
 import type { PetFood, PetPersonality, PetsView, PetView } from "./types"
-
-const format = (value: number) => value.toLocaleString("zh-TW")
 
 // WOG js/wog_pet.js 的 pet_type
 const personalityLabels: Record<PetPersonality, string> = {
@@ -27,17 +26,17 @@ export const petCountText = (view: Pick<PetsView, "pets" | "maxPets">) =>
   `寵物 ${view.pets.length}/${view.maxPets}`
 
 export const petStats = (pet: PetView): { label: string; value: string }[] => [
-  { label: "AT", value: format(pet.attack) },
-  { label: "MT", value: format(pet.magic) },
-  { label: "DEF", value: format(pet.defense) },
-  { label: "飽腹", value: format(pet.satiety) },
+  { label: "AT", value: formatNumber(pet.attack) },
+  { label: "MT", value: formatNumber(pet.magic) },
+  { label: "DEF", value: formatNumber(pet.defense) },
+  { label: "飽腹", value: formatNumber(pet.satiety) },
   { label: "個性", value: personalityLabel(pet.personality) },
-  { label: "出擊值", value: format(pet.spirit) },
-  { label: "親密度", value: format(pet.intimacy) },
+  { label: "出擊值", value: formatNumber(pet.spirit) },
+  { label: "親密度", value: formatNumber(pet.intimacy) },
 ]
 
 export const feedOptionLabel = (food: PetFood) =>
-  `${food.name}（${statLabels[food.stat]}+${format(food.amount)}，${format(food.cost)} 金）`
+  `${food.name}（${statLabels[food.stat]}+${formatNumber(food.amount)}，${formatNumber(food.cost)} 金）`
 
 export const canFeed = (pet: Pick<PetView, "nextFeedAt">, now: Date) =>
   now.getTime() >= new Date(pet.nextFeedAt).getTime()

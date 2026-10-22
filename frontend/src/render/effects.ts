@@ -15,6 +15,7 @@ import {
   SlashSeconds,
   StandOffSeconds,
 } from "../motion/timings"
+import { formatNumber } from "../game/format"
 import { Palette } from "./palette"
 
 // 介面與數字用無襯線，怪物名牌用中文襯線，CRITICAL 用 Cinzel
@@ -79,7 +80,7 @@ export const playDamageNumber = (
   value: number,
   critical: boolean,
 ) => {
-  const text = createStageText(value.toLocaleString("zh-TW"), {
+  const text = createStageText(formatNumber(value), {
     fontSize: critical ? 34 : 22,
     fontWeight: "700",
     fill: Palette.crimson,

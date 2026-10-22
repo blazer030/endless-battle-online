@@ -1,3 +1,4 @@
+import { formatNumber } from "./format"
 import type { PlaybackItem } from "./battlePlayback"
 import { baseStatLabels } from "./stats"
 import type {
@@ -27,10 +28,8 @@ export const createMonsterNameResolver = (content: ContentNames): MonsterNameRes
   return (monsterId) => names.get(monsterId) ?? monsterId
 }
 
-const format = (value: number) => value.toLocaleString("zh-TW")
-
 const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
-  const damage = format(event.damage)
+  const damage = formatNumber(event.damage)
   if (event.attacker === "Player") {
     if (!event.hit) return { text: "你的攻擊落空了。", kind: "muted" }
     if (event.critical) {
@@ -52,18 +51,19 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
 const describeSkill = (event: SkillEvent): LogEntry[] => {
   if (event.caster !== "Player") return []
   const lines: LogEntry[] = [{ text: `你施展了${event.skillName}！`, kind: "trigger" }]
-  if (event.heal > 0) lines.push({ text: `回復了 ${format(event.heal)} 點 HP。`, kind: "normal" })
+  if (event.heal > 0)
+    lines.push({ text: `回復了 ${formatNumber(event.heal)} 點 HP。`, kind: "normal" })
   return lines
 }
 
 const describeDrop = (drop: DropResult): LogEntry =>
   drop.discarded
     ? { text: `背包已滿，${drop.name}被丟棄了。`, kind: "muted" }
-    : { text: `獲得 ${drop.name} ×${format(drop.quantity)}`, kind: "drop" }
+    : { text: `獲得 ${drop.name} ×${formatNumber(drop.quantity)}`, kind: "drop" }
 
 const describeReward = (event: RewardEvent): LogEntry[] => [
   {
-    text: `獲得經驗 ${format(event.exp)}、金錢 ${format(event.money)}、熟練度 ${format(event.jobExp)}。`,
+    text: `獲得經驗 ${formatNumber(event.exp)}、金錢 ${formatNumber(event.money)}、熟練度 ${formatNumber(event.jobExp)}。`,
     kind: "drop",
   },
   ...(event.drops ?? []).map(describeDrop),
@@ -87,14 +87,14 @@ const PetMissFlavors = [" 沒有擊中目標", " 發呆", " 東張西望", " 失
 
 const describePetGuard = (event: PetGuardEvent): LogEntry[] => {
   const lines: LogEntry[] = [
-    { text: `${event.petName}替你擋下了 ${format(event.damage)} 點傷害。`, kind: "normal" },
+    { text: `${event.petName}替你擋下了 ${formatNumber(event.damage)} 點傷害。`, kind: "normal" },
   ]
   if (event.retired) lines.push({ text: `${event.petName} 戰敗，退出了戰鬥。`, kind: "muted" })
   return lines
 }
 
 const describePetAttack = (event: PetAttackEvent, monster: string): LogEntry => {
-  const damage = format(event.damage)
+  const damage = formatNumber(event.damage)
   if (!event.hit)
     return {
       text: `${event.petName}${PetMissFlavors[Math.floor(event.atSeconds) % PetMissFlavors.length]}`,
@@ -126,13 +126,13 @@ export const describeMercenaryReport = (report: MercenaryReport): LogEntry[] => 
     report.fights <= MercenaryFightsListed
       ? report.recent.map((fight) => ({
           text: fight.won
-            ? `${prefix} 戰勝 ${fight.monsterName}，獲得金錢 ${format(fight.money)}，經驗值 ${format(fight.exp)}`
+            ? `${prefix} 戰勝 ${fight.monsterName}，獲得金錢 ${formatNumber(fight.money)}，經驗值 ${formatNumber(fight.exp)}`
             : `${prefix} 戰敗 ${fight.monsterName}`,
           kind: "muted",
         }))
       : [
           {
-            text: `${prefix} 離開期間戰鬥 ${format(report.fights)} 場（勝 ${format(report.wins)}），獲得金錢 ${format(report.money)}，經驗值 ${format(report.exp)}`,
+            text: `${prefix} 離開期間戰鬥 ${formatNumber(report.fights)} 場（勝 ${formatNumber(report.wins)}），獲得金錢 ${formatNumber(report.money)}，經驗值 ${formatNumber(report.exp)}`,
             kind: "muted",
           },
         ]
@@ -143,7 +143,7 @@ export const describeMercenaryReport = (report: MercenaryReport): LogEntry[] => 
 const describeGrowth = (growth: GrowthStats) =>
   baseStatLabels
     .filter(({ key }) => growth[key] !== 0)
-    .map(({ key, label }) => `${label}+${format(growth[key])}`)
+    .map(({ key, label }) => `${label}+${formatNumber(growth[key])}`)
     .join(" ")
 
 // playerName 只用於 WOG 原文帶角色名的句子（逃跑）
@@ -155,10 +155,10 @@ export const describePlaybackItem = (
 ): LogEntry[] => {
   if (item.kind === "mercenary") return describeMercenaryReport(item.report)
   if (item.kind === "summary") {
-    const gains = `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}`
-    const missions = item.missionKills > 0 ? `，任務進度 +${format(item.missionKills)}` : ""
-    const pets = item.petsCaptured > 0 ? `，捕捉寵物 ${format(item.petsCaptured)} 隻` : ""
-    const levels = item.levels > 0 ? `，升了 ${format(item.levels)} 級` : ""
+    const gains = `離開期間戰鬥 ${formatNumber(item.fights)} 場（勝 ${formatNumber(item.wins)}）、獲得經驗 ${formatNumber(item.exp)}、金錢 ${formatNumber(item.money)}`
+    const missions = item.missionKills > 0 ? `，任務進度 +${formatNumber(item.missionKills)}` : ""
+    const pets = item.petsCaptured > 0 ? `，捕捉寵物 ${formatNumber(item.petsCaptured)} 隻` : ""
+    const levels = item.levels > 0 ? `，升了 ${formatNumber(item.levels)} 級` : ""
     return [{ text: `${gains}${missions}${pets}${levels}。`, kind: "drop" }]
   }
 
@@ -190,7 +190,7 @@ export const describePlaybackItem = (
     case "potion":
       return [
         {
-          text: `使用了${event.name}，恢復 ${format(event.hp)} HP／${format(event.sp)} SP。`,
+          text: `使用了${event.name}，恢復 ${formatNumber(event.hp)} HP／${formatNumber(event.sp)} SP。`,
           kind: "normal",
         },
       ]
@@ -213,7 +213,7 @@ export const describePlaybackItem = (
       const lines: LogEntry[] = [{ text: "你在旅館休息，恢復了體力。", kind: "muted" }]
       if (event.expPenalty) lines.push({ text: "付不起住宿費，經驗減少了。", kind: "muted" })
       else if (event.cost > 0)
-        lines.push({ text: `付了 ${format(event.cost)} 金錢住宿。`, kind: "muted" })
+        lines.push({ text: `付了 ${formatNumber(event.cost)} 金錢住宿。`, kind: "muted" })
       return lines
     }
   }

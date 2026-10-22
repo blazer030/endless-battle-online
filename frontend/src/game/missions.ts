@@ -1,10 +1,9 @@
+import { formatNumber } from "./format"
 import type { ContentNames, MissionCompletion, MissionRewardView, MissionView } from "./types"
 
 export const MaxActiveMissions = 3
 
 const MillisecondsPerHour = 60 * 60 * 1000
-
-const format = (value: number) => value.toLocaleString("zh-TW")
 
 // 內容的 id 是字串；名稱表沒載到時直接顯示 id
 const nameOf = (options: { id: string; name: string }[], id: string) =>
@@ -31,9 +30,9 @@ export const objectiveLines = (mission: MissionView): string[] => [
 ]
 
 export const rewardLines = (rewards: MissionRewardView): string[] => [
-  ...(rewards.exp > 0 ? [`經驗 ${format(rewards.exp)}`] : []),
-  ...(rewards.money > 0 ? [`金錢 ${format(rewards.money)}`] : []),
-  ...rewards.items.map((item) => `${item.name} ×${format(item.quantity)}`),
+  ...(rewards.exp > 0 ? [`經驗 ${formatNumber(rewards.exp)}`] : []),
+  ...(rewards.money > 0 ? [`金錢 ${formatNumber(rewards.money)}`] : []),
+  ...rewards.items.map((item) => `${item.name} ×${formatNumber(item.quantity)}`),
   ...(rewards.skill === null ? [] : [`技能 ${rewards.skill.name} Lv${rewards.skill.level}`]),
   ...(rewards.pet === null ? [] : [`寵物 ${rewards.pet.name}`]),
 ]
@@ -93,8 +92,8 @@ export const missionErrorMessage = (reasons: string[], fallback: string): string
 export const completionLines = (result: MissionCompletion): string[] => {
   const lines = [
     result.completionMessage,
-    `獲得經驗 ${format(result.exp)}、金錢 ${format(result.money)}`,
-    ...result.items.map((item) => `獲得 ${item.name} ×${format(item.quantity)}`),
+    `獲得經驗 ${formatNumber(result.exp)}、金錢 ${formatNumber(result.money)}`,
+    ...result.items.map((item) => `獲得 ${item.name} ×${formatNumber(item.quantity)}`),
   ]
   if (result.skill !== null)
     lines.push(

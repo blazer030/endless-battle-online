@@ -1,4 +1,4 @@
-import { formatNumber } from "./formatNumber"
+import { formatNumber } from "../game/format"
 import "./StatBar.css"
 
 type Props = { label: string; value: number; max: number; tone: "hp" | "sp" | "exp" }

@@ -1,15 +1,14 @@
+import { formatNumber } from "./format"
 import { translateReasons } from "./reasons"
 import type { HonourCost, HonourExchange, HonourShop } from "./types"
 
-const format = (value: number) => value.toLocaleString("zh-TW")
-
 export const medalText = (medal: HonourShop["medals"][number]) =>
-  `${medal.name} ×${format(medal.owned)}`
+  `${medal.name} ×${formatNumber(medal.owned)}`
 
 export const rewardText = (exchange: Pick<HonourExchange, "rewardName" | "quantity">) =>
-  `${exchange.rewardName} ×${format(exchange.quantity)}`
+  `${exchange.rewardName} ×${formatNumber(exchange.quantity)}`
 
-export const costText = (cost: HonourCost) => `${cost.name} ×${format(cost.quantity)}`
+export const costText = (cost: HonourCost) => `${cost.name} ×${formatNumber(cost.quantity)}`
 
 export const isShort = (cost: HonourCost) => cost.owned < cost.quantity
 

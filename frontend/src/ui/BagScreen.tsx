@@ -37,7 +37,7 @@ import type {
   ItemCategory,
   ShopItem,
 } from "../game/types"
-import { formatNumber } from "./formatNumber"
+import { formatNumber } from "../game/format"
 import "./BagScreen.css"
 import { ForgePage, type ForgeApi } from "./ForgePage"
 import { HonourPage, type HonourApi } from "./HonourPage"

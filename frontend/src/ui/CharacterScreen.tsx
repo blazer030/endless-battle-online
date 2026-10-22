@@ -4,7 +4,7 @@ import { buffLines } from "../game/buffs"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
 import type { BuffView, CharacterView, ContentNames } from "../game/types"
-import { formatNumber } from "./formatNumber"
+import { formatNumber } from "../game/format"
 import { StatBar } from "./StatBar"
 import "./CharacterScreen.css"
 

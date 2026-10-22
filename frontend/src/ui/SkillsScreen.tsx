@@ -21,7 +21,7 @@ import {
 import type { SlotDraft, SlotNumber } from "../game/skills"
 import { statLabel } from "../game/stats"
 import type { CharacterView, JobOption, SkillOverview, SkillView } from "../game/types"
-import { formatNumber } from "./formatNumber"
+import { formatNumber } from "../game/format"
 import "./SkillsScreen.css"
 
 export type SkillsApi = Pick<

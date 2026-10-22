@@ -1,7 +1,6 @@
+import { formatNumber } from "./format"
 import { translateReasons } from "./reasons"
 import type { MercenaryCatalogueEntry, MercenaryContract, WorldArea, WorldPlace } from "./types"
-
-const format = (value: number) => value.toLocaleString("zh-TW")
 
 export type CatalogueRow = {
   name: string
@@ -17,19 +16,19 @@ export type CatalogueRow = {
 
 export const catalogueRow = (entry: MercenaryCatalogueEntry): CatalogueRow => ({
   name: entry.name,
-  price: entry.price === null ? "勳章所兌換" : format(entry.price),
-  fights: format(entry.fights),
+  price: entry.price === null ? "勳章所兌換" : formatNumber(entry.price),
+  fights: formatNumber(entry.fights),
   money: `${entry.moneyPercent}%`,
   drop: `${entry.dropPercent}%`,
   exp: `${entry.expPercent}%`,
-  deathCost: format(entry.deathCost),
+  deathCost: formatNumber(entry.deathCost),
   hireable: entry.price !== null,
 })
 
 export const contractStatus = (contract: MercenaryContract): string[] => [
   `狀態：${contract.fighting ? "戰鬥中" : "休息中"}`,
   ...(contract.fighting && contract.placeName !== null ? [`冒險地：${contract.placeName}`] : []),
-  `剩餘次數 ${format(contract.remaining)}`,
+  `剩餘次數 ${formatNumber(contract.remaining)}`,
 ]
 
 // 禁區（restricted）不能派傭兵

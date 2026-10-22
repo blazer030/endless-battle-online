@@ -1,8 +1,8 @@
+import { formatNumber } from "./format"
 import { describePlaybackItem, type LogEntry } from "./battleLog"
 import { translateReasons } from "./reasons"
 import type { BattleEvent, ChampionChallenge, ChampionView } from "./types"
 
-const format = (value: number) => value.toLocaleString("zh-TW")
 const pad = (value: number) => String(value).padStart(2, "0")
 
 // 以玩家裝置的本地時間顯示
@@ -29,15 +29,15 @@ export const championTitle = (view: ChampionView, now: Date): ChampionTitle => (
 })
 
 export const championStats = (view: ChampionView): string[] => [
-  `HP ${format(view.hp)}/${format(view.hpMax)}`,
-  `物攻 ${format(view.at)}`,
-  `魔攻 ${format(view.mat)}`,
-  `物防 ${format(view.df)}`,
-  `魔防 ${format(view.mdf)}`,
-  `敏捷 ${format(view.agi)}`,
-  `魅力 ${format(view.au)}`,
-  `衛冕 ${format(view.defenses)} 次`,
-  `挑戰費 ${format(view.fee)}`,
+  `HP ${formatNumber(view.hp)}/${formatNumber(view.hpMax)}`,
+  `物攻 ${formatNumber(view.at)}`,
+  `魔攻 ${formatNumber(view.mat)}`,
+  `物防 ${formatNumber(view.df)}`,
+  `魔防 ${formatNumber(view.mdf)}`,
+  `敏捷 ${formatNumber(view.agi)}`,
+  `魅力 ${formatNumber(view.au)}`,
+  `衛冕 ${formatNumber(view.defenses)} 次`,
+  `挑戰費 ${formatNumber(view.fee)}`,
 ]
 
 export const duelResultLine = (won: boolean, characterName: string) =>
