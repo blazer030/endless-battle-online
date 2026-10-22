@@ -1,5 +1,7 @@
 import type {
   AdvanceResponse,
+  ChampionChallenge,
+  ChampionView,
   CharacterView,
   ContentNames,
   CreateCharacterCommand,
@@ -7,11 +9,16 @@ import type {
   DepotView,
   EquipmentSlot,
   ForgeResult,
+  HonourShop,
   InventoryView,
   ItemCategory,
   JobOption,
+  MercenaryHireResult,
+  MercenaryOverview,
   MissionBoard,
   MissionCompletion,
+  PetFeedResult,
+  PetsView,
   Recipe,
   ShopItem,
   SkillOverview,
@@ -83,6 +90,22 @@ export type ApiClient = {
   acceptMission: (missionId: string) => Promise<MissionBoard>
   abandonMission: (missionId: string) => Promise<MissionBoard>
   completeMission: (missionId: string) => Promise<MissionCompletion>
+  getPets: () => Promise<PetsView>
+  carryPet: (petId: number) => Promise<PetsView>
+  storePet: (petId: number) => Promise<PetsView>
+  releasePet: (petId: number) => Promise<PetsView>
+  renamePet: (petId: number, name: string) => Promise<PetsView>
+  feedPet: (petId: number, foodId: string) => Promise<PetFeedResult>
+  getMercenaries: () => Promise<MercenaryOverview>
+  hireMercenary: (mercenaryId: string) => Promise<MercenaryHireResult>
+  deployMercenary: (placeId: number) => Promise<MercenaryOverview>
+  restMercenary: () => Promise<MercenaryOverview>
+  renameMercenary: (name: string) => Promise<MercenaryOverview>
+  dismissMercenary: () => Promise<MercenaryOverview>
+  getHonourShop: () => Promise<HonourShop>
+  exchangeHonour: (exchangeId: string) => Promise<HonourShop>
+  getChampion: () => Promise<ChampionView>
+  challengeChampion: () => Promise<ChampionChallenge>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -218,5 +241,26 @@ export const createApiClient = (options: {
       requestJson<MissionBoard>("/api/missions/abandon", "POST", { missionId }),
     completeMission: (missionId) =>
       requestJson<MissionCompletion>("/api/missions/complete", "POST", { missionId }),
+    getPets: () => requestJson<PetsView>("/api/pets", "GET"),
+    carryPet: (petId) => requestJson<PetsView>("/api/pets/carry", "POST", { petId }),
+    storePet: (petId) => requestJson<PetsView>("/api/pets/store", "POST", { petId }),
+    releasePet: (petId) => requestJson<PetsView>("/api/pets/release", "POST", { petId }),
+    renamePet: (petId, name) => requestJson<PetsView>("/api/pets/rename", "POST", { petId, name }),
+    feedPet: (petId, foodId) =>
+      requestJson<PetFeedResult>("/api/pets/feed", "POST", { petId, foodId }),
+    getMercenaries: () => requestJson<MercenaryOverview>("/api/mercenaries", "GET"),
+    hireMercenary: (mercenaryId) =>
+      requestJson<MercenaryHireResult>("/api/mercenaries/hire", "POST", { mercenaryId }),
+    deployMercenary: (placeId) =>
+      requestJson<MercenaryOverview>("/api/mercenaries/deploy", "POST", { placeId }),
+    restMercenary: () => requestJson<MercenaryOverview>("/api/mercenaries/rest", "POST"),
+    renameMercenary: (name) =>
+      requestJson<MercenaryOverview>("/api/mercenaries/rename", "POST", { name }),
+    dismissMercenary: () => requestJson<MercenaryOverview>("/api/mercenaries/dismiss", "POST"),
+    getHonourShop: () => requestJson<HonourShop>("/api/honour", "GET"),
+    exchangeHonour: (exchangeId) =>
+      requestJson<HonourShop>("/api/honour/exchange", "POST", { exchangeId }),
+    getChampion: () => requestJson<ChampionView>("/api/champion", "GET"),
+    challengeChampion: () => requestJson<ChampionChallenge>("/api/champion/challenge", "POST"),
   }
 }

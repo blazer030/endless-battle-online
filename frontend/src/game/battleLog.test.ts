@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest"
-import { createMonsterNameResolver, describePlaybackItem } from "./battleLog"
+import {
+  createMonsterNameResolver,
+  describeMercenaryReport,
+  describePlaybackItem,
+} from "./battleLog"
 import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
 import { makeContent } from "../test/fixtures"
@@ -9,6 +13,7 @@ import type {
   BattleEvent,
   EncounterEvent,
   GrowthStats,
+  MercenaryReport,
   SkillEvent,
 } from "./types"
 
@@ -400,5 +405,77 @@ describe("describePlaybackItem", () => {
     expect(describePlaybackItem(item, resolver, null)).toEqual([
       { text: "遭遇 mystery！", kind: "normal" },
     ])
+  })
+})
+
+const mercenaryReport = (overrides: Partial<MercenaryReport> = {}): MercenaryReport => ({
+  name: "阿福",
+  fights: 2,
+  wins: 1,
+  exp: 1300,
+  money: 45,
+  levelsGained: 0,
+  remaining: 95,
+  dismissed: false,
+  recent: [
+    {
+      at: "2026-10-21T00:00:00Z",
+      monsterId: "slime",
+      monsterName: "史萊姆",
+      won: true,
+      exp: 1300,
+      money: 45,
+    },
+    {
+      at: "2026-10-21T00:01:40Z",
+      monsterId: "wolf",
+      monsterName: "寒狼",
+      won: false,
+      exp: 0,
+      money: 0,
+    },
+  ],
+  ...overrides,
+})
+
+describe("describeMercenaryReport", () => {
+  test("describeMercenaryReport_ListsEachFight_WhenFiveOrFewer", () => {
+    expect(describeMercenaryReport(mercenaryReport())).toEqual([
+      { text: "【傭兵】阿福 戰勝 史萊姆，獲得金錢 45，經驗值 1,300", kind: "muted" },
+      { text: "【傭兵】阿福 戰敗 寒狼", kind: "muted" },
+    ])
+  })
+
+  test("describeMercenaryReport_SummarisesMoreThanFiveFights", () => {
+    expect(
+      describeMercenaryReport(mercenaryReport({ fights: 6, wins: 4, exp: 5000, money: 120 })),
+    ).toEqual([
+      {
+        text: "【傭兵】阿福 離開期間戰鬥 6 場（勝 4），獲得金錢 120，經驗值 5,000",
+        kind: "muted",
+      },
+    ])
+  })
+
+  test("describeMercenaryReport_EndsWithDismissal_WhenFightsRunOut", () => {
+    const lines = describeMercenaryReport(
+      mercenaryReport({
+        fights: 1,
+        wins: 0,
+        remaining: 0,
+        dismissed: true,
+        recent: [mercenaryReport().recent[1]],
+      }),
+    )
+    expect(lines).toEqual([
+      { text: "【傭兵】阿福 戰敗 寒狼", kind: "muted" },
+      { text: "【傭兵】阿福 戰鬥次數已滿，自動解除僱用", kind: "muted" },
+    ])
+  })
+
+  test("describePlaybackItem_DescribesMercenaryItems", () => {
+    expect(
+      describePlaybackItem({ kind: "mercenary", report: mercenaryReport() }, resolver, null),
+    ).toEqual(describeMercenaryReport(mercenaryReport()))
   })
 })

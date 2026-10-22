@@ -101,6 +101,17 @@ describe("objectiveLines", () => {
   it("describes each delivery with what the bag holds", () => {
     expect(objectiveLines(delivery)).toEqual(["交付 藥草 7/5", "交付 狼牙 1/3"])
   })
+
+  it("asks for the carried pet", () => {
+    expect(
+      objectiveLines(
+        makeMission({
+          kill: null,
+          deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: false },
+        }),
+      ),
+    ).toEqual(["交付寵物 草原史萊姆（需攜帶）"])
+  })
 })
 
 describe("rewardLines", () => {
@@ -114,6 +125,18 @@ describe("rewardLines", () => {
         pet: null,
       }),
     ).toEqual(["經驗 19,000", "金錢 1,500", "小補給藥劑 ×5", "技能 偷竊 Lv2"])
+  })
+
+  it("lists a pet reward", () => {
+    expect(
+      rewardLines({
+        exp: 0,
+        money: 50,
+        items: [],
+        skill: null,
+        pet: { monsterId: "grass-slime", name: "草原史萊姆", level: 1 },
+      }),
+    ).toEqual(["金錢 50", "寵物 草原史萊姆"])
   })
 
   it("skips zero exp and money", () => {
@@ -165,6 +188,16 @@ describe("actionLabel", () => {
     expect(actionLabel(delivery)).toBe("交付")
     expect(actionLabel(makeMission())).toBe("完成")
   })
+
+  it("delivers when a pet is required", () => {
+    expect(
+      actionLabel(
+        makeMission({
+          deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: true },
+        }),
+      ),
+    ).toBe("交付")
+  })
 })
 
 describe("resetHoursText", () => {
@@ -197,6 +230,8 @@ describe("missionErrorMessage", () => {
     ["objectiveIncomplete", "尚未完成任務"],
     ["itemsMissing", "交付的物品不足"],
     ["bagFull", "背包已滿"],
+    ["petMissing", "需要攜帶指定的寵物"],
+    ["petsFull", "牧場已滿，最多只能擁有3隻寵物"],
   ])("translates %s", (code, text) => {
     expect(missionErrorMessage([code], "無法接取任務")).toBe(text)
   })
@@ -235,6 +270,18 @@ describe("completionLines", () => {
       "學會了偷竊 Lv1",
       "升了 2 級",
     ])
+  })
+
+  it("announces a pet reward", () => {
+    expect(
+      completionLines({
+        ...result,
+        items: [],
+        skill: null,
+        levelsGained: 0,
+        pet: { monsterId: "grass-slime", name: "草原史萊姆", level: 1 },
+      }),
+    ).toEqual(["謝謝你，綠地又恢復平靜了。", "獲得經驗 1,900、金錢 50", "獲得寵物 草原史萊姆"])
   })
 
   it("notes a skill already known and omits levels when none were gained", () => {

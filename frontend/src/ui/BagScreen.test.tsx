@@ -3,7 +3,14 @@ import userEvent from "@testing-library/user-event"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { CharacterView, DepotView, InventoryView, Recipe } from "../game/types"
-import { emptyBonus, makeCharacter, makeInventory, makeItem, makeShopItem } from "../test/fixtures"
+import {
+  emptyBonus,
+  makeCharacter,
+  makeHonourShop,
+  makeInventory,
+  makeItem,
+  makeShopItem,
+} from "../test/fixtures"
 import { BagScreen, type BagApi } from "./BagScreen"
 
 const sword = makeItem({ inventoryId: 1, name: "測試劍" })
@@ -89,6 +96,8 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   mergeStones: vi.fn().mockResolvedValue({ success: true, inventory }),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn().mockResolvedValue({ successes: 0, attempts: 1, cost: 0, inventory }),
+  getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
+  exchangeHonour: vi.fn().mockResolvedValue(makeHonourShop()),
   ...overrides,
 })
 
@@ -105,7 +114,7 @@ const openSubPage = async (name: string) => {
   await userEvent.click(await screen.findByRole("tab", { name }))
 }
 
-test("BagScreen_ShowsSixSubPages", async () => {
+test("BagScreen_ShowsSevenSubPages", async () => {
   renderBag()
 
   const tabs = within(await screen.findByRole("tablist", { name: "背包分頁" })).getAllByRole("tab")
@@ -116,6 +125,7 @@ test("BagScreen_ShowsSixSubPages", async () => {
     "倉庫",
     "銀行",
     "鍛造",
+    "勳章所",
   ])
   expect(screen.getByRole("tab", { name: "背包" })).toHaveAttribute("aria-selected", "true")
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()
@@ -131,6 +141,74 @@ test("BagScreen_ShowsSixSubPages", async () => {
   await openSubPage("鍛造")
   const forgeTabs = within(screen.getByRole("tablist", { name: "鍛造項目" })).getAllByRole("tab")
   expect(forgeTabs.map((tab) => tab.textContent)).toEqual(["精鍊", "鑲嵌", "合成"])
+  await openSubPage("勳章所")
+  const held = await screen.findByRole("list", { name: "持有勳章" })
+  expect(within(held).getByText("大陸勳章 ×2")).toBeInTheDocument()
+})
+
+test("BagScreen_ListsMedalsInTheirOwnCategory", async () => {
+  const medal = makeItem({
+    inventoryId: 40,
+    itemId: "continent-medal",
+    category: "Medal",
+    name: "大陸勳章",
+    quantity: 4,
+  })
+  renderBag(createFakeApi({ getInventory: vi.fn().mockResolvedValue(makeInventory([medal])) }))
+
+  const categories = within(await screen.findByRole("tablist", { name: "道具分類" }))
+    .getAllByRole("tab")
+    .map((tab) => tab.textContent)
+  expect(categories.at(-1)).toBe("勳章")
+  await userEvent.click(screen.getByRole("tab", { name: "勳章" }))
+
+  expect(screen.getByText("勳章 1/15")).toBeInTheDocument()
+  expect(screen.getByText("大陸勳章 ×4")).toBeInTheDocument()
+})
+
+test("BagScreen_ShopLeavesOutMedals", async () => {
+  renderBag()
+  await openSubPage("商店")
+
+  expect(await screen.findByText("木劍 200 金錢")).toBeInTheDocument()
+  expect(
+    within(screen.getByRole("tablist", { name: "商店分類" })).queryByRole("tab", { name: "勳章" }),
+  ).not.toBeInTheDocument()
+})
+
+test("BagScreen_CaptureItemCanBeEquippedToTheSupplySlot", async () => {
+  const net = makeItem({
+    inventoryId: 41,
+    itemId: "capture-net",
+    category: "Consumable",
+    consumable: "Capture",
+    name: "捕獸網",
+    quantity: 5,
+    amount: 1,
+    bonus: emptyBonus,
+  })
+  const { api } = renderBag(
+    createFakeApi({ getInventory: vi.fn().mockResolvedValue(makeInventory([net])) }),
+  )
+  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
+  await userEvent.click(screen.getByRole("button", { name: /捕獸網 ×5/ }))
+  expect(screen.queryByText("HP +0、SP +0")).not.toBeInTheDocument()
+
+  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+
+  expect(api.equip).toHaveBeenCalledWith(41, 5)
+})
+
+test("BagScreen_HonourExchangeRefreshesTheBagAndCharacter", async () => {
+  const { api, onCharacterChanged } = renderBag()
+  await openSubPage("勳章所")
+
+  const stone = await screen.findByRole("article", { name: "攻擊魔石 ×1" })
+  await userEvent.click(within(stone).getByRole("button", { name: "兌換" }))
+
+  expect(api.exchangeHonour).toHaveBeenCalledWith("honour-attack-stone")
+  expect(api.getInventory).toHaveBeenCalledTimes(2)
+  expect(onCharacterChanged).toHaveBeenCalledWith(expect.objectContaining({ money: 10 }))
 })
 
 test("BagScreen_ListsItemsByCategoryWithUsage", async () => {

@@ -1,11 +1,16 @@
 import type {
   AdvanceSummary,
   CharacterView,
+  ChampionView,
   ContentNames,
+  HonourShop,
   InventoryItem,
   InventoryView,
+  MercenaryOverview,
   MissionBoard,
   MissionView,
+  PetsView,
+  PetView,
   ShopItem,
   StatBonusView,
   WorldArea,
@@ -200,7 +205,7 @@ export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem 
   ...overrides,
 })
 
-// 十個分類都列出，道具依分類放進對應的格子；容量同後端預設 15
+// 十一個分類都列出，道具依分類放進對應的格子；容量同後端預設 15
 export const makeInventory = (
   items: InventoryItem[] = [],
   overrides: Partial<InventoryView> = {},
@@ -217,6 +222,7 @@ export const makeInventory = (
       "Stone",
       "RefineStone",
       "Material",
+      "Medal",
     ] as const
   ).map((category) => ({
     category,
@@ -279,5 +285,129 @@ export const makeMissionBoard = (overrides: Partial<MissionBoard> = {}): Mission
   completed: [],
   activeLimit: 3,
   nextDailyReset: "2026-10-23T01:00:00Z",
+  ...overrides,
+})
+
+export const makePet = (overrides: Partial<PetView> = {}): PetView => ({
+  id: 1,
+  monsterId: "grass-slime",
+  species: "草原史萊姆",
+  name: "小黏",
+  personality: "Aggressive",
+  attack: 12,
+  magic: 8,
+  defense: 5,
+  spirit: 1,
+  satiety: 80,
+  intimacy: 3,
+  carried: false,
+  age: 2,
+  nextFeedAt: "2026-10-21T00:00:00Z",
+  ...overrides,
+})
+
+// WOG 的八種果實，順序同後端 PetCare.Foods
+export const makePets = (pets: PetView[] = [], overrides: Partial<PetsView> = {}): PetsView => ({
+  pets,
+  maxPets: 3,
+  foods: [
+    { id: "fruit-vigor-small", name: "初級活力果實", stat: "Attack", amount: 2, cost: 20 },
+    { id: "fruit-aroma-small", name: "初級香氣果實", stat: "Magic", amount: 2, cost: 20 },
+    { id: "fruit-sweet-small", name: "初級甜味果實", stat: "Defense", amount: 2, cost: 20 },
+    { id: "fruit-wild-small", name: "初級野性果實", stat: "Spirit", amount: 2, cost: 20 },
+    { id: "fruit-vigor-medium", name: "中級活力果實", stat: "Attack", amount: 4, cost: 50 },
+    { id: "fruit-aroma-medium", name: "中級香氣果實", stat: "Magic", amount: 4, cost: 50 },
+    { id: "fruit-sweet-medium", name: "中級甜味果實", stat: "Defense", amount: 4, cost: 50 },
+    { id: "fruit-wild-medium", name: "中級野性果實", stat: "Spirit", amount: 4, cost: 50 },
+  ],
+  ...overrides,
+})
+
+// F 級可直接僱用，A 級只能在勳章所兌換
+export const makeMercenaryOverview = (
+  overrides: Partial<MercenaryOverview> = {},
+): MercenaryOverview => ({
+  catalogue: [
+    {
+      id: "mercenary-f",
+      name: "F級傭兵",
+      price: 3000,
+      fights: 100,
+      moneyPercent: 30,
+      dropPercent: 30,
+      expPercent: 65,
+      deathCost: 5,
+    },
+    {
+      id: "mercenary-a",
+      name: "A級傭兵",
+      price: null,
+      fights: 500,
+      moneyPercent: 80,
+      dropPercent: 80,
+      expPercent: 90,
+      deathCost: 1,
+    },
+  ],
+  contract: null,
+  ...overrides,
+})
+
+// 持有大陸勳章 2、白銀勳章 0：魔石換得起，B 級傭兵換不起
+export const makeHonourShop = (overrides: Partial<HonourShop> = {}): HonourShop => ({
+  medals: [
+    { itemId: "silver-medal", name: "白銀勳章", owned: 0 },
+    { itemId: "continent-medal", name: "大陸勳章", owned: 2 },
+    { itemId: "kingdom-medal", name: "王國勳章", owned: 0 },
+    { itemId: "rainforest-medal", name: "雨林勳章", owned: 0 },
+    { itemId: "royal-city-medal", name: "王城勳章", owned: 0 },
+  ],
+  exchanges: [
+    {
+      id: "honour-mercenary-b",
+      kind: "mercenary",
+      rewardId: "mercenary-b",
+      rewardName: "B級傭兵",
+      quantity: 1,
+      cost: [
+        { itemId: "continent-medal", name: "大陸勳章", quantity: 3, owned: 2 },
+        { itemId: "kingdom-medal", name: "王國勳章", quantity: 3, owned: 0 },
+      ],
+      affordable: false,
+    },
+    {
+      id: "honour-attack-stone",
+      kind: "item",
+      rewardId: "attack-stone",
+      rewardName: "攻擊魔石",
+      quantity: 1,
+      cost: [{ itemId: "continent-medal", name: "大陸勳章", quantity: 2, owned: 2 }],
+      affordable: true,
+    },
+  ],
+  ...overrides,
+})
+
+// 種子冠軍：王都冠軍 格雷德
+export const makeChampion = (overrides: Partial<ChampionView> = {}): ChampionView => ({
+  name: "王都冠軍 格雷德",
+  level: 30,
+  element: 1,
+  hp: 1400,
+  hpMax: 1400,
+  sp: 175,
+  spMax: 175,
+  at: 180,
+  mat: 25,
+  df: 150,
+  mdf: 40,
+  agi: 30,
+  au: 25,
+  isPlayer: false,
+  defenses: 0,
+  crownedAt: null,
+  lockedUntil: null,
+  fee: 500,
+  reasons: [],
   ...overrides,
 })

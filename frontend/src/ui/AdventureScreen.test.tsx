@@ -12,8 +12,13 @@ import type {
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
 import {
+  makeChampion,
   makeCharacter,
   makeContent,
+  makeHonourShop,
+  makeMercenaryOverview,
+  makePet,
+  makePets,
   makeInventory,
   makeItem,
   makeJob,
@@ -155,6 +160,22 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   acceptMission: vi.fn(),
   abandonMission: vi.fn(),
   completeMission: vi.fn(),
+  getPets: vi.fn().mockResolvedValue(makePets([makePet({ name: "小黏" })])),
+  carryPet: vi.fn(),
+  storePet: vi.fn(),
+  releasePet: vi.fn(),
+  renamePet: vi.fn(),
+  feedPet: vi.fn(),
+  getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
+  hireMercenary: vi.fn(),
+  deployMercenary: vi.fn(),
+  restMercenary: vi.fn(),
+  renameMercenary: vi.fn(),
+  dismissMercenary: vi.fn(),
+  getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
+  exchangeHonour: vi.fn(),
+  getChampion: vi.fn().mockResolvedValue(makeChampion()),
+  challengeChampion: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -398,6 +419,75 @@ test("AdventureScreen_BagTabOpensBagScreen", async () => {
   expect(screen.getByTestId("stage")).not.toBeVisible()
 })
 
+test("AdventureScreen_CompanionsTabIsSixthAndLoadsPets", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  expect(api.getPets).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole("button", { name: "同伴" }))
+  await advanceTime(0)
+
+  expect(api.getPets).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole("button", { name: "同伴" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("tablist", { name: "同伴分頁" })).toBeVisible()
+  expect(screen.getByRole("article", { name: "小黏－草原史萊姆 2歲" })).toBeVisible()
+  expect(screen.getByTestId("stage")).not.toBeVisible()
+})
+
+test("AdventureScreen_ChampionButtonOpensTheChampionDialog", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  expect(api.getChampion).not.toHaveBeenCalled()
+
+  const button = screen.getByRole("button", { name: "冠軍" })
+  expect(button).toHaveAttribute("aria-expanded", "false")
+  fireEvent.click(button)
+  await advanceTime(0)
+
+  expect(api.getChampion).toHaveBeenCalledTimes(1)
+  const dialog = screen.getByRole("dialog", { name: "冠軍" })
+  expect(within(dialog).getByRole("article", { name: "王都冠軍 格雷德 Lv 30" })).toBeVisible()
+  fireEvent.click(within(dialog).getByRole("button", { name: "關閉" }))
+  expect(screen.queryByRole("dialog", { name: "冠軍" })).not.toBeInTheDocument()
+})
+
+test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
+  const api = createFakeApi({
+    ...response,
+    character: { ...response.character, exp: 48, money: 10 },
+    mercenary: {
+      name: "阿福",
+      fights: 1,
+      wins: 1,
+      exp: 40,
+      money: 7,
+      levelsGained: 0,
+      remaining: 99,
+      dismissed: false,
+      recent: [
+        {
+          at: "2026-10-20T23:58:20Z",
+          monsterId: "test-wolf",
+          monsterName: "測試寒狼",
+          won: true,
+          exp: 40,
+          money: 7,
+        },
+      ],
+    },
+  })
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+
+  const lines = screen.getAllByRole("listitem")
+  expect(lines[0]).toHaveTextContent("【傭兵】阿福 戰勝 測試寒狼，獲得金錢 7，經驗值 40")
+  expect(lines[1]).toHaveTextContent("遭遇 測試寒狼！")
+  expect(within(screen.getByRole("banner")).getByText("金錢 10")).toBeInTheDocument()
+})
+
 test("AdventureScreen_MissionsTabIsFifthAndLoadsMissions", async () => {
   const api = createFakeApi()
   render(<AdventureScreen api={api} initialCharacter={character} />)
@@ -411,6 +501,7 @@ test("AdventureScreen_MissionsTabIsFifthAndLoadsMissions", async () => {
     "技能",
     "背包",
     "任務",
+    "同伴",
   ])
   fireEvent.click(screen.getByRole("button", { name: "任務" }))
   await advanceTime(0)

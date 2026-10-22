@@ -1,8 +1,16 @@
 import { RestAfterBatchSeconds } from "../motion/timings"
-import type { AdvanceResponse, AdvanceSummary, BattleEvent, CharacterView } from "./types"
+import type {
+  AdvanceResponse,
+  AdvanceSummary,
+  BattleEvent,
+  CharacterView,
+  MercenaryReport,
+} from "./types"
 
 export type PlaybackItem =
   | { kind: "event"; event: BattleEvent }
+  // 傭兵在角色的冒險之前結算，排在該批最前面
+  | { kind: "mercenary"; report: MercenaryReport }
   | {
       kind: "summary"
       fights: number
@@ -70,10 +78,18 @@ export class BattlePlayback {
     const events = response.events as BattleEvent[]
     // 伺服器只回最後一段的事件時，其餘場次由回應的摘要交代
     const showSummary = response.summary.fights > 0 && !response.eventsCoverAll
-    if (events.length === 0 && !showSummary) return
+    const mercenary = response.mercenary
+    if (events.length === 0 && !showSummary && mercenary === null) return
 
     const batchStart = Math.max(receivedAtMilliseconds, this.timelineEnd)
     const eventGains = events.map(gainOf)
+    if (mercenary !== null) {
+      this.schedule(
+        { kind: "mercenary", report: mercenary },
+        { exp: mercenary.exp, money: mercenary.money, levels: mercenary.levelsGained },
+        batchStart,
+      )
+    }
     if (showSummary) {
       this.schedule(
         this.summarize(response.summary),

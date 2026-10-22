@@ -55,6 +55,22 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   acceptMission: vi.fn(),
   abandonMission: vi.fn(),
   completeMission: vi.fn(),
+  getPets: vi.fn(),
+  carryPet: vi.fn(),
+  storePet: vi.fn(),
+  releasePet: vi.fn(),
+  renamePet: vi.fn(),
+  feedPet: vi.fn(),
+  getMercenaries: vi.fn(),
+  hireMercenary: vi.fn(),
+  deployMercenary: vi.fn(),
+  restMercenary: vi.fn(),
+  renameMercenary: vi.fn(),
+  dismissMercenary: vi.fn(),
+  getHonourShop: vi.fn(),
+  exchangeHonour: vi.fn(),
+  getChampion: vi.fn(),
+  challengeChampion: vi.fn(),
 })
 
 const renderLoop = (api: ApiClient) =>

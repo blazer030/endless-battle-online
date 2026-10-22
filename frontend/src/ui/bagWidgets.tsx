@@ -3,7 +3,6 @@ import {
   bonusText,
   clampQuantity,
   holeMarks,
-  isSupply,
   itemTitle,
   supplyText,
   type Requirement,
@@ -63,7 +62,7 @@ export function ItemName({ item }: { item: InventoryItem }) {
 }
 
 export function ItemDetail({ item }: { item: InventoryItem }): ReactNode {
-  const text = isSupply(item) ? supplyText(item) : bonusText(item.bonus)
+  const text = item.consumable === "Supply" ? supplyText(item) : bonusText(item.bonus)
   return text === "" ? null : <p className="bag__detail">{text}</p>
 }
 

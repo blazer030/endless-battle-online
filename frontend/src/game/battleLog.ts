@@ -6,6 +6,7 @@ import type {
   ContentNames,
   DropResult,
   GrowthStats,
+  MercenaryReport,
   MissionProgressEvent,
   PetAttackEvent,
   PetGuardEvent,
@@ -116,6 +117,29 @@ const describeCapture = (event: CaptureEvent, monsterName: MonsterNameResolver):
   return lines
 }
 
+// 報告的 recent 只帶最後 5 場，超過就改成一行彙總（WOG wog_etc_mercenary_mg1～mg3）
+const MercenaryFightsListed = 5
+
+export const describeMercenaryReport = (report: MercenaryReport): LogEntry[] => {
+  const prefix = `【傭兵】${report.name}`
+  const lines: LogEntry[] =
+    report.fights <= MercenaryFightsListed
+      ? report.recent.map((fight) => ({
+          text: fight.won
+            ? `${prefix} 戰勝 ${fight.monsterName}，獲得金錢 ${format(fight.money)}，經驗值 ${format(fight.exp)}`
+            : `${prefix} 戰敗 ${fight.monsterName}`,
+          kind: "muted",
+        }))
+      : [
+          {
+            text: `${prefix} 離開期間戰鬥 ${format(report.fights)} 場（勝 ${format(report.wins)}），獲得金錢 ${format(report.money)}，經驗值 ${format(report.exp)}`,
+            kind: "muted",
+          },
+        ]
+  if (report.dismissed) lines.push({ text: `${prefix} 戰鬥次數已滿，自動解除僱用`, kind: "muted" })
+  return lines
+}
+
 const describeGrowth = (growth: GrowthStats) =>
   baseStatLabels
     .filter(({ key }) => growth[key] !== 0)
@@ -127,6 +151,7 @@ export const describePlaybackItem = (
   monsterName: MonsterNameResolver,
   currentMonsterId: string | null,
 ): LogEntry[] => {
+  if (item.kind === "mercenary") return describeMercenaryReport(item.report)
   if (item.kind === "summary") {
     const gains = `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}`
     const missions = item.missionKills > 0 ? `，任務進度 +${format(item.missionKills)}` : ""

@@ -271,3 +271,49 @@ test("missionCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/missions/complete", { missionId: "test-hunt" }],
   ])
 })
+
+test("companionCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.getPets()
+  await client.carryPet(3)
+  await client.storePet(3)
+  await client.releasePet(3)
+  await client.renamePet(3, "小黏")
+  await client.feedPet(3, "fruit-aroma-medium")
+  await client.getMercenaries()
+  await client.hireMercenary("mercenary-f")
+  await client.deployMercenary(2)
+  await client.restMercenary()
+  await client.renameMercenary("阿福")
+  await client.dismissMercenary()
+  await client.getHonourShop()
+  await client.exchangeHonour("honour-attack-stone")
+  await client.getChampion()
+  await client.challengeChampion()
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["GET", "/api/pets", undefined],
+    ["POST", "/api/pets/carry", { petId: 3 }],
+    ["POST", "/api/pets/store", { petId: 3 }],
+    ["POST", "/api/pets/release", { petId: 3 }],
+    ["POST", "/api/pets/rename", { petId: 3, name: "小黏" }],
+    ["POST", "/api/pets/feed", { petId: 3, foodId: "fruit-aroma-medium" }],
+    ["GET", "/api/mercenaries", undefined],
+    ["POST", "/api/mercenaries/hire", { mercenaryId: "mercenary-f" }],
+    ["POST", "/api/mercenaries/deploy", { placeId: 2 }],
+    ["POST", "/api/mercenaries/rest", undefined],
+    ["POST", "/api/mercenaries/rename", { name: "阿福" }],
+    ["POST", "/api/mercenaries/dismiss", undefined],
+    ["GET", "/api/honour", undefined],
+    ["POST", "/api/honour/exchange", { exchangeId: "honour-attack-stone" }],
+    ["GET", "/api/champion", undefined],
+    ["POST", "/api/champion/challenge", undefined],
+  ])
+})

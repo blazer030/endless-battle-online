@@ -28,7 +28,11 @@ export const itemCategories: { id: ItemCategory; label: string }[] = [
   { id: "Stone", label: "魔石" },
   { id: "RefineStone", label: "精鍊石" },
   { id: "Material", label: "材料" },
+  { id: "Medal", label: "勳章" },
 ]
+
+// 勳章只靠掉落與任務取得，商店沒有這個分類
+export const shopCategories = itemCategories.filter(({ id }) => id !== "Medal")
 
 export const categoryLabel = (category: ItemCategory) =>
   itemCategories.find(({ id }) => id === category)?.label ?? category
@@ -54,7 +58,9 @@ const equipmentCategories: ReadonlySet<ItemCategory> = new Set([
 
 export const isEquipment = (category: ItemCategory) => equipmentCategories.has(category)
 
-export const isSupply = (item: InventoryItem) => item.consumable === "Supply"
+// 補給欄放補給品或捕捉道具
+export const isSupply = (item: InventoryItem) =>
+  item.consumable === "Supply" || item.consumable === "Capture"
 
 // 能從背包直接使用的消耗品；補給品要放到補給欄
 export const isUsable = (item: InventoryItem) =>

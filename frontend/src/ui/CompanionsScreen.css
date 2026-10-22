@@ -1,0 +1,231 @@
+.companions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.companions__intro p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.companions__title {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.companions__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.companions__contract {
+  border-color: var(--gold);
+}
+
+.companions__card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.companions__name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.companions__badge,
+.companions__status {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.companions__badge {
+  background: var(--gold);
+  color: var(--night);
+  font-weight: 700;
+}
+
+.companions__status {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.companions__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.companions__stats--wide {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.companions__stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--bg-top);
+}
+
+.companions__stat-label {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.companions__stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.companions__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.companions__row .bag__action {
+  flex-shrink: 0;
+  height: 36px;
+}
+
+.companions__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.companions__field input,
+.companions__field select {
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  /* iOS 在字級小於 16px 的欄位聚焦時會放大頁面 */
+  font-size: 16px;
+}
+
+.companions__field input:focus-visible,
+.companions__field select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.companions__lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.companions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.companions__danger {
+  border-color: var(--crimson);
+  color: var(--crimson-text);
+}
+
+.companions__card .error {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* 勳章所（背包子頁） */
+.honour__medals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.honour__exchange {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.honour__exchange:first-of-type {
+  border-top: 0;
+}
+
+.honour__cost {
+  grid-column: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.honour__cost li + li::before {
+  content: "、";
+}
+
+.honour__cost--short {
+  color: var(--text-muted);
+}
+
+.honour__button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.honour__error {
+  grid-column: 1 / -1;
+  margin: 0;
+}

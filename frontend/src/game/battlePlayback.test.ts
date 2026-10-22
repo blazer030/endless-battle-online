@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest"
-import type { AdvanceResponse, AdvanceSummary, BattleEvent, CharacterView } from "./types"
+import type {
+  AdvanceResponse,
+  AdvanceSummary,
+  BattleEvent,
+  CharacterView,
+  MercenaryReport,
+} from "./types"
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { BattlePlayback } from "./battlePlayback"
 
@@ -42,14 +48,36 @@ function response(
   character: Partial<CharacterView> = {},
   summary: Partial<AdvanceSummary> = {},
   eventsCoverAll = true,
+  mercenary: MercenaryReport | null = null,
 ): AdvanceResponse {
   return {
     events,
     summary: makeSummary(summary),
     eventsCoverAll,
     character: { ...startCharacter, ...character },
-    mercenary: null,
+    mercenary,
   }
+}
+
+const mercenaryReport: MercenaryReport = {
+  name: "阿福",
+  fights: 1,
+  wins: 1,
+  exp: 40,
+  money: 7,
+  levelsGained: 0,
+  remaining: 99,
+  dismissed: false,
+  recent: [
+    {
+      at: "2026-10-21T00:00:00Z",
+      monsterId: "test-wolf",
+      monsterName: "測試寒狼",
+      won: true,
+      exp: 40,
+      money: 7,
+    },
+  ],
 }
 
 describe("BattlePlayback", () => {
@@ -321,5 +349,36 @@ describe("BattlePlayback", () => {
 
     expect(playback.takeDue(100000)).toEqual([])
     expect(playback.displayedCharacter).toMatchObject({ exp: 7, money: 3 })
+  })
+
+  it("enqueue_Mercenary_LeadsTheBatchAndHoldsItsGains", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(
+      response(
+        [encounter(0), reward(2, 10, 30)],
+        { exp: 50, money: 37 },
+        {},
+        true,
+        mercenaryReport,
+      ),
+      1000,
+    )
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 0, money: 0 })
+    const first = playback.takeDue(1000)
+    expect(first).toEqual([
+      { kind: "mercenary", report: mercenaryReport },
+      { kind: "event", event: encounter(0) },
+    ])
+    expect(playback.displayedCharacter).toMatchObject({ exp: 40, money: 7 })
+  })
+
+  it("enqueue_MercenaryOnly_IsScheduledWithoutEvents", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(response([], { exp: 40, money: 7 }, {}, true, mercenaryReport), 500)
+
+    expect(playback.displayedCharacter).toMatchObject({ exp: 0, money: 0 })
+    expect(playback.takeDue(500)).toEqual([{ kind: "mercenary", report: mercenaryReport }])
+    expect(playback.displayedCharacter).toMatchObject({ exp: 40, money: 7 })
   })
 })

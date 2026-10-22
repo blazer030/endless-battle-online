@@ -219,3 +219,68 @@ test("MissionsScreen_RetriesAfterLoadFailure", async () => {
 
   expect(await screen.findByRole("article", { name: "綠地上的黏液" })).toBeInTheDocument()
 })
+
+test("MissionsScreen_PetDeliveryAsksForTheCarriedPetAndAnnouncesPetRewards", async () => {
+  const petDelivery = makeMission({
+    id: "test-tamer",
+    title: "馴獸師的考驗",
+    kill: null,
+    deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: true },
+    rewards: {
+      exp: 0,
+      money: 50,
+      items: [],
+      skill: null,
+      pet: { monsterId: "test-wolf", name: "測試寒狼", level: 1 },
+    },
+    ready: true,
+  })
+  const result: MissionCompletion = {
+    board: makeMissionBoard({ completed: [petDelivery] }),
+    character: makeCharacter({ money: 50 }),
+    completionMessage: "牠很健康。",
+    exp: 0,
+    money: 50,
+    items: [],
+    skill: null,
+    skillGranted: false,
+    levelsGained: 0,
+    pet: { monsterId: "test-wolf", name: "測試寒狼", level: 1 },
+  }
+  const { api } = renderMissions(
+    createFakeApi({
+      getMissions: vi.fn().mockResolvedValue(makeMissionBoard({ active: [petDelivery] })),
+      completeMission: vi.fn().mockResolvedValue(result),
+    }),
+  )
+
+  await openSubPage("進行中")
+  const active = card("馴獸師的考驗")
+  expect(within(active).getByText("交付寵物 草原史萊姆（需攜帶）")).toBeInTheDocument()
+  expect(within(active).getByText("寵物 測試寒狼")).toBeInTheDocument()
+  await userEvent.click(within(active).getByRole("button", { name: "交付" }))
+
+  expect(api.completeMission).toHaveBeenCalledWith("test-tamer")
+  expect(within(screen.getByRole("status")).getByText("獲得寵物 測試寒狼")).toBeInTheDocument()
+})
+
+test("MissionsScreen_ShowsMissingPetError", async () => {
+  const petDelivery = makeMission({
+    id: "test-tamer",
+    title: "馴獸師的考驗",
+    kill: null,
+    deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: true },
+    ready: true,
+  })
+  renderMissions(
+    createFakeApi({
+      getMissions: vi.fn().mockResolvedValue(makeMissionBoard({ active: [petDelivery] })),
+      completeMission: vi.fn().mockRejectedValue(new ApiError(400, "無法完成任務", ["petMissing"])),
+    }),
+  )
+
+  await openSubPage("進行中")
+  await userEvent.click(within(card("馴獸師的考驗")).getByRole("button", { name: "交付" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("需要攜帶指定的寵物")
+})

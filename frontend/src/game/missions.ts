@@ -27,6 +27,7 @@ export const objectiveLines = (mission: MissionView): string[] => [
         `擊敗 ${mission.kill.monsterName}（${mission.kill.placeName}） ${mission.kill.progress}/${mission.kill.count}`,
       ]),
   ...mission.deliver.map((item) => `交付 ${item.name} ${item.owned}/${item.quantity}`),
+  ...(mission.deliverPet === null ? [] : [`交付寵物 ${mission.deliverPet.name}（需攜帶）`]),
 ]
 
 export const rewardLines = (rewards: MissionRewardView): string[] => [
@@ -34,6 +35,7 @@ export const rewardLines = (rewards: MissionRewardView): string[] => [
   ...(rewards.money > 0 ? [`金錢 ${format(rewards.money)}`] : []),
   ...rewards.items.map((item) => `${item.name} ×${format(item.quantity)}`),
   ...(rewards.skill === null ? [] : [`技能 ${rewards.skill.name} Lv${rewards.skill.level}`]),
+  ...(rewards.pet === null ? [] : [`寵物 ${rewards.pet.name}`]),
 ]
 
 const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
@@ -52,7 +54,7 @@ export const progressRatio = (mission: MissionView): number => {
 }
 
 export const actionLabel = (mission: MissionView): "交付" | "完成" =>
-  mission.deliver.length > 0 ? "交付" : "完成"
+  mission.deliver.length > 0 || mission.deliverPet !== null ? "交付" : "完成"
 
 // 同 WOG 的「剩餘時間 N 小時」：不足一小時也算一小時
 export const resetHoursText = (nextReset: string, now: Date): string => {
@@ -78,6 +80,8 @@ const reasonTexts: Record<string, string> = {
   objectiveIncomplete: "尚未完成任務",
   itemsMissing: "交付的物品不足",
   bagFull: "背包已滿",
+  petMissing: "需要攜帶指定的寵物",
+  petsFull: "牧場已滿，最多只能擁有3隻寵物",
 }
 
 // 有任何認不得的代碼時改用後端的 detail
@@ -98,6 +102,7 @@ export const completionLines = (result: MissionCompletion): string[] => {
         ? `學會了${result.skill.name} Lv${result.skill.level}`
         : `已經會${result.skill.name}，略過技能獎勵`,
     )
+  if (result.pet !== null) lines.push(`獲得寵物 ${result.pet.name}`)
   if (result.levelsGained > 0) lines.push(`升了 ${result.levelsGained} 級`)
   return lines.filter((line) => line !== "")
 }

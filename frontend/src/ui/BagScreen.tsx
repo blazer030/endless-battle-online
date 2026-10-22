@@ -22,6 +22,7 @@ import {
   MinShopLevel,
   requirementRows,
   sellPrice,
+  shopCategories,
   supplyEquipQuantity,
   usageText,
   type JobName,
@@ -38,6 +39,7 @@ import type {
 import { formatNumber } from "./formatNumber"
 import "./BagScreen.css"
 import { ForgePage, type ForgeApi } from "./ForgePage"
+import { HonourPage, type HonourApi } from "./HonourPage"
 import {
   ItemDetail,
   ItemName,
@@ -64,6 +66,7 @@ export type BagApi = Pick<
   | "withdraw"
   | "getMyCharacter"
   | keyof ForgeApi
+  | keyof HonourApi
 >
 
 type Props = {
@@ -73,7 +76,7 @@ type Props = {
   jobNames?: JobName[]
 }
 
-type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge"
+type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour"
 
 const subPages: { id: SubPage; label: string }[] = [
   { id: "bag", label: "背包" },
@@ -82,6 +85,7 @@ const subPages: { id: SubPage; label: string }[] = [
   { id: "depot", label: "倉庫" },
   { id: "bank", label: "銀行" },
   { id: "forge", label: "鍛造" },
+  { id: "honour", label: "勳章所" },
 ]
 
 const fallbackError = "發生錯誤，請稍後再試"
@@ -148,6 +152,16 @@ export function BagScreen({ api, character, onCharacterChanged, jobNames = [] }:
             character={character}
             busy={busy}
             mutate={mutate}
+          />
+        )
+      case "honour":
+        // 兌換的道具進背包、勳章扣掉，背包與角色都重新讀取
+        return (
+          <HonourPage
+            api={api}
+            onExchanged={async () => {
+              await mutate(async () => ({ inventory: await api.getInventory() }))
+            }}
           />
         )
     }
@@ -518,7 +532,7 @@ function ShopPage({ api, character, busy, mutate, jobNames }: PageProps) {
     <section className="bag__card">
       <Tabs
         label="商店分類"
-        options={itemCategories}
+        options={shopCategories}
         selected={category}
         onSelect={(next) => browse(next, level)}
       />

@@ -12,7 +12,9 @@ import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BagScreen } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
+import { ChampionPanel } from "./ChampionPanel"
 import { CharacterScreen } from "./CharacterScreen"
+import { CompanionsScreen } from "./CompanionsScreen"
 import { formatNumber } from "./formatNumber"
 import { MissionsScreen } from "./MissionsScreen"
 import { SkillsScreen } from "./SkillsScreen"
@@ -35,7 +37,7 @@ const emptyContent: ContentNames = {
   sexes: [],
 }
 
-type Tab = "adventure" | "character" | "skills" | "bag" | "missions"
+type Tab = "adventure" | "character" | "skills" | "bag" | "missions" | "companions"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
@@ -43,6 +45,7 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "skills", label: "技能" },
   { id: "bag", label: "背包" },
   { id: "missions", label: "任務" },
+  { id: "companions", label: "同伴" },
 ]
 
 type Props = { api: ApiClient; initialCharacter: CharacterView }
@@ -54,6 +57,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [lines, setLines] = useState<LogLine[]>([])
   const [tab, setTab] = useState<Tab>("adventure")
   const [worldOpen, setWorldOpen] = useState(false)
+  const [championOpen, setChampionOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
   const stageHandle = useRef<StageHandle>(null)
@@ -174,6 +178,15 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             >
               {`${locationTitle(character)} ▾`}
             </button>
+            <button
+              type="button"
+              className="adventure__champion"
+              aria-haspopup="dialog"
+              aria-expanded={championOpen}
+              onClick={() => setChampionOpen(true)}
+            >
+              冠軍
+            </button>
           </h1>
           <StageErrorBoundary>
             <Suspense fallback={<div style={{ height: StageHeight }} />}>
@@ -188,6 +201,14 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               character={character}
               onCharacterChange={handleCharacterChange}
               onClose={() => setWorldOpen(false)}
+            />
+          )}
+          {/* 每次打開才載入，冠軍的血量與衛冕次數都是最新的 */}
+          {championOpen && (
+            <ChampionPanel
+              api={api}
+              onCharacterChanged={handleCharacterChange}
+              onClose={() => setChampionOpen(false)}
             />
           )}
         </div>
@@ -223,6 +244,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               content={content ?? emptyContent}
               onCharacterChanged={handleCharacterChange}
             />
+          </div>
+        )}
+        {/* 同伴分頁每次打開才載入，寵物的飽腹與傭兵的次數都是最新的 */}
+        {tab === "companions" && (
+          <div className="adventure__sheet">
+            <CompanionsScreen api={api} onCharacterChanged={handleCharacterChange} />
           </div>
         )}
       </main>

@@ -16,12 +16,21 @@ import {
   reasonText,
   requirementRows,
   sellPrice,
+  shopCategories,
   supplyEquipQuantity,
   usageText,
 } from "./inventory"
 
+describe("shopCategories", () => {
+  it("leaves out medals, which no shop sells", () => {
+    expect(shopCategories.map(({ id }) => id)).toEqual(
+      itemCategories.map(({ id }) => id).filter((id) => id !== "Medal"),
+    )
+  })
+})
+
 describe("itemCategories", () => {
-  it("lists the ten categories in bag order with their labels", () => {
+  it("lists the eleven categories in bag order with their labels", () => {
     expect(itemCategories.map(({ id, label }) => `${id}:${label}`)).toEqual([
       "Weapon:武器",
       "Head:頭部",
@@ -33,6 +42,7 @@ describe("itemCategories", () => {
       "Stone:魔石",
       "RefineStone:精鍊石",
       "Material:材料",
+      "Medal:勳章",
     ])
   })
 
@@ -117,14 +127,21 @@ describe("candidatesFor", () => {
     consumable: "StatPotion",
     name: "力量藥水",
   })
-  const inventory = makeInventory([sword, helmet, supply, statPotion])
+  const net = makeItem({
+    inventoryId: 5,
+    category: "Consumable",
+    consumable: "Capture",
+    name: "捕獸網",
+    amount: 1,
+  })
+  const inventory = makeInventory([sword, helmet, supply, statPotion, net])
 
   it("lists bag items of the slot's category", () => {
     expect(candidatesFor(inventory, "Head")).toEqual([helmet])
   })
 
-  it("lists only supplies for the supply slot", () => {
-    expect(candidatesFor(inventory, "Supply")).toEqual([supply])
+  it("lists supplies and capture items for the supply slot", () => {
+    expect(candidatesFor(inventory, "Supply")).toEqual([supply, net])
   })
 })
 
