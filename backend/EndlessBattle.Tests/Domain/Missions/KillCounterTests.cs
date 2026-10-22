@@ -89,4 +89,19 @@ public class KillCounterTests
             tracked);
         Assert.Empty(mismatched);
     }
+
+    // 擊殺加交付的混合任務帶上 RequiresDelivery，戰報才知道擊殺滿了還不能回報
+    [Fact]
+    public void KillCounter_TracksWhetherDeliveryIsRequired()
+    {
+        MissionDefinition Mission(string id, IReadOnlyList<ItemQuantity> deliver) => new(
+            id, "村長", "標題", "說明", "謝謝", 1, 1, false, new KillTarget("test-sprite", 3), deliver,
+            new MissionRequirements(), new MissionReward(50, []), [], []);
+        MissionRecord[] records =
+            [new("mixed", MissionState.Active, 0, null, Now, null), new("kill-only", MissionState.Active, 0, null, Now, null)];
+
+        var tracked = KillCounter.Track(records, [Mission("mixed", [new ItemQuantity("test-ore", 2)]), Mission("kill-only", [])], characterId: 7);
+
+        Assert.Equal([("mixed", true), ("kill-only", false)], tracked.Select(mission => (mission.MissionId, mission.RequiresDelivery)));
+    }
 }

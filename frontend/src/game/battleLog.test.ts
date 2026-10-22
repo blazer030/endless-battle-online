@@ -228,6 +228,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       monsterId: "slime",
       progress: 2,
       required: 3,
+      requiresDelivery: false,
     }),
     [["任務進度：史萊姆 2/3", "drop"]],
   ],
@@ -240,10 +241,27 @@ const cases: [string, PlaybackItem, Line[]][] = [
       monsterId: "slime",
       progress: 3,
       required: 3,
+      requiresDelivery: false,
     }),
     [
       ["任務進度：史萊姆 3/3", "drop"],
       ["任務「清除雪精」的目標已達成，回任務頁回報。", "trigger"],
+    ],
+  ],
+  [
+    "tells a mixed mission to deliver before reporting",
+    event({
+      type: "mission",
+      missionId: "m2",
+      title: "幽靈船長的寶藏",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+      requiresDelivery: true,
+    }),
+    [
+      ["任務進度：史萊姆 3/3", "drop"],
+      ["任務「幽靈船長的寶藏」的擊殺目標已達成，交付道具後回任務頁回報。", "trigger"],
     ],
   ],
   [

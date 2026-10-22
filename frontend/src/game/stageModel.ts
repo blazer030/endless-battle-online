@@ -119,7 +119,8 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         .filter((drop) => !drop.discarded)
         .map((drop) => ({ type: "dropFloat", text: drop.name }))
     case "mission":
-      return event.progress === event.required
+      // 還要交付道具的任務，擊殺滿了不算達成
+      return event.progress === event.required && !event.requiresDelivery
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
     case "encounter":

@@ -516,6 +516,17 @@ public class AdventureSimulatorTests
         Assert.Equal((1, 19.6), (progress.Progress, Math.Round(progress.AtSeconds, 6)));
     }
 
+    // 進度事件帶著任務是否還要交付：混合任務為 true，純擊殺任務為 false
+    [Fact]
+    public void Adventure_FlagsProgressOfMissionsThatRequireDelivery()
+    {
+        var mixed = RunWithMissions(Hero(), seconds: 20, [Hunt() with { RequiresDelivery = true }]);
+        var killOnly = RunWithMissions(Hero(), seconds: 20, [Hunt()]);
+
+        Assert.Equal([true, true, true], mixed.Events.OfType<MissionProgressEvent>().Select(mission => mission.RequiresDelivery));
+        Assert.Equal([false, false, false], killOnly.Events.OfType<MissionProgressEvent>().Select(mission => mission.RequiresDelivery));
+    }
+
     // 同 Adventure_DropsNothingOnLossesAndTimeouts：敗場、超限（有部分經驗）都不計任務
     [Fact]
     public void Adventure_CountsMissionKillsOnlyOnWins()

@@ -260,11 +260,26 @@ describe("stageModel", () => {
       monsterId: "slime",
       progress: 3,
       required: 3,
+      requiresDelivery: false,
       atSeconds: 2,
     }
     expect(stageEffectsFor(mission)).toEqual([{ type: "plate", text: "任務達成", tone: "gold" }])
     expect(stageEffectsFor({ ...mission, progress: 2 })).toEqual([])
     expect(applyToStage(midFight, mission)).toBe(midFight)
+  })
+
+  it("stageEffectsFor_MixedMissionKillsMet_ShowsNoPlate", () => {
+    const mission: BattleEvent = {
+      type: "mission",
+      missionId: "m2",
+      title: "幽靈船長的寶藏",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+      requiresDelivery: true,
+      atSeconds: 2,
+    }
+    expect(stageEffectsFor(mission)).toEqual([])
   })
 
   it("stageEffectsFor_Rest_FadesStageOverWait", () => {

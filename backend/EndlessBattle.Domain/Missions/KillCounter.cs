@@ -47,7 +47,8 @@ public static class KillCounter
             }
 
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
-            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.Progress, record.AcceptedAt, expiresAt));
+            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.Progress, record.AcceptedAt, expiresAt,
+                RequiresDelivery: objective.Deliver.Count > 0));
         }
 
         return tracked;

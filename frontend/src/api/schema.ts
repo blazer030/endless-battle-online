@@ -1562,6 +1562,7 @@ export interface components {
             progress: number;
             /** Format: int32 */
             required: number;
+            requiresDelivery: boolean;
             /** Format: double */
             atSeconds: number;
         };
