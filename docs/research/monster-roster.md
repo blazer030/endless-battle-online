@@ -1,6 +1,6 @@
 # 怪物總表（計畫 6）
 
-`backend/content/monsters.json` 共 65 隻：21 個地區各 3 隻，另加 2 隻全域怪（`placeId 0`）。測試 `Tests/Content/MonsterRosterTests.cs` 釘住下列規則；基準值由 `Domain/World/MonsterFormula.Baseline(level)` 計算。
+`backend/content/monsters.json` 共 65 隻一般怪：21 個地區各 3 隻，另加 2 隻全域怪（`placeId 0`）；計畫 8 另加 3 隻任務怪（見「任務怪」）。測試 `Tests/Content/MonsterRosterTests.cs` 釘住下列規則；基準值由 `Domain/World/MonsterFormula.Baseline(level)` 計算。
 
 ## 公式與倍率
 
@@ -50,6 +50,16 @@
 ## 掉落（計畫 7）
 
 每隻怪 1～3 個掉落，各項獨立擲 `rand(1, ⌊topr × 0.9⌋) ≤ 1`；行動力不足時分母再 ×1.5；`topr × 0.9 < 1` 一定掉落。普通怪掉補給品（Lv < 30 小、< 100 中、其餘大，topr 4～8）與一種材料（鐵礦石、魔法粉塵、野獸毛皮，topr 6～10）；`meet 30` 另加精鍊石（topr 150～200）；精英以水晶碎片（topr 30～60）與精鍊石（topr 100）取代一般材料。精鍊石等級依怪物等級：Lv < 30 為 1、< 80 為 2、其餘 3。全域怪：流浪絨球只掉小補給 topr 3；寶箱哥布林掉鐵礦石 topr 2 與鋼鐵精鍊石 Lv1 topr 50。測試 `Roster_DropsReferenceKnownItems`。
+
+## 任務怪（計畫 8）
+
+`missionId` 非 null 的怪物（WOG `wog_monster.m_mission`）只在該任務進行中且尚未達成時進入遇敵候選，平常遇不到。它們不算在「每地區 3 隻」「至多一隻精英」「子地區覆蓋」的規則內（`MonsterRosterTests` 只看 `MissionId is null` 的怪），但同樣要通過 `Roster_StatsWithinFormulaBands`。一律 `meet 60`、`subPlaces [1, 2, 3, 4]`、掉落水晶碎片 topr 10；載入時檢查 `missionId` 指向以牠為擊殺目標的一般任務、不是全域怪，且每個地區至少要有一隻非任務怪。任務內容見 `mission-table.md`。
+
+| id | 名稱 | 地區 | 子地區 | 等級 | 角色 | meet | 屬性 | 任務 | 掉落（topr） |
+|---|---|---|---|---|---|---|---|---|---|
+| `pyre-high-priest` | 狂火大祭司 | 3 黑暗沼澤 | 1～4 | 20 | 法・精英 | 60 | 3 火 | `bog-cult` | 水晶碎片 10 |
+| `rift-ogre-king` | 裂谷巨魔王 | 11 無淵洞窟 | 1～4 | 35 | 坦・精英 | 60 | 1 地 | `ogre-king` | 水晶碎片 10 |
+| `relic-core-colossus` | 遺跡核心巨像 | 5 古代遺跡 | 1～4 | 75 | 坦・精英 | 60 | 1 地 | `relic-core` | 水晶碎片 10 |
 
 ## 總表
 
