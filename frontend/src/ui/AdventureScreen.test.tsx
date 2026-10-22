@@ -180,6 +180,7 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   getChampion: vi.fn().mockResolvedValue(makeChampion()),
   challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
+  getBuffs: vi.fn().mockResolvedValue([]),
 })
 
 const advanceTime = (milliseconds: number) =>

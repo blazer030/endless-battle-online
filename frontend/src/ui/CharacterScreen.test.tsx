@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react"
-import { expect, test } from "vitest"
-import type { CharacterView, ContentNames } from "../game/types"
+import { expect, test, vi } from "vitest"
+import type { BuffView, CharacterView, ContentNames } from "../game/types"
 import { makeCharacter, makeContent } from "../test/fixtures"
 import { CharacterScreen } from "./CharacterScreen"
 
@@ -54,6 +54,8 @@ const content: ContentNames = makeContent({
   })),
 })
 
+const noBuffs = () => ({ getBuffs: vi.fn<() => Promise<BuffView[]>>().mockResolvedValue([]) })
+
 const valueOf = (term: string, container: HTMLElement = document.body) => {
   const definition = within(container).getByText(term, { selector: "dt" }).nextElementSibling
   if (!(definition instanceof HTMLElement)) throw new Error(`${term} 沒有對應的數值`)
@@ -61,7 +63,7 @@ const valueOf = (term: string, container: HTMLElement = document.body) => {
 }
 
 test("CharacterScreen_ShowsProfile", () => {
-  render(<CharacterScreen character={character} content={content} />)
+  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
 
   expect(screen.getByRole("heading", { name: "青衣" })).toBeInTheDocument()
   expect(screen.getByText("術士")).toBeInTheDocument()
@@ -74,13 +76,19 @@ test("CharacterScreen_ShowsProfile", () => {
 })
 
 test("CharacterScreen_ShowsZeroProficiency_WhenCurrentJobHasNone", () => {
-  render(<CharacterScreen character={{ ...character, jobProficiency: [] }} content={content} />)
+  render(
+    <CharacterScreen
+      api={noBuffs()}
+      character={{ ...character, jobProficiency: [] }}
+      content={content}
+    />,
+  )
 
   expect(valueOf("職業熟練度")).toHaveTextContent(/^0%（0）$/)
 })
 
 test("CharacterScreen_ShowsProportionalBars", () => {
-  render(<CharacterScreen character={character} content={content} />)
+  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
 
   const bars = [
     ["HP", 210, 600, "210 / 600"],
@@ -96,7 +104,7 @@ test("CharacterScreen_ShowsProportionalBars", () => {
 })
 
 test("CharacterScreen_ShowsBareStatsWithEquipmentBonus", () => {
-  render(<CharacterScreen character={character} content={content} />)
+  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
 
   // 裸點（+裝備）；加成為 0 時不顯示括號
   const stats = [
@@ -115,7 +123,7 @@ test("CharacterScreen_ShowsBareStatsWithEquipmentBonus", () => {
 })
 
 test("CharacterScreen_ShowsDerivedStats", () => {
-  render(<CharacterScreen character={character} content={content} />)
+  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
 
   const stats = [
     ["物攻", "15"],
@@ -132,7 +140,7 @@ test("CharacterScreen_ShowsDerivedStats", () => {
 })
 
 test("CharacterScreen_FallsBackToIds_WhenContentMissing", () => {
-  render(<CharacterScreen character={character} content={makeContent()} />)
+  render(<CharacterScreen api={noBuffs()} character={character} content={makeContent()} />)
 
   const profile = screen.getByRole("region", { name: "青衣" })
   expect(valueOf("性別", profile)).toHaveTextContent(/^2$/)
@@ -145,7 +153,29 @@ test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
     ...character,
     jobProficiency: [{ jobId: "sorcerer", proficiency: 9000, skillPoints: 0 }],
   }
-  render(<CharacterScreen character={veteran} content={content} />)
+  render(<CharacterScreen api={noBuffs()} character={veteran} content={content} />)
 
   expect(valueOf("職業熟練度")).toHaveTextContent(/^100%（9,000）$/)
+})
+
+// 角色分頁每次打開都重新掛載：掛載時讀一次密藥，剩餘分鐘以打開時為準
+test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
+  const api = noBuffs()
+  api.getBuffs.mockResolvedValue([
+    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Defense", multiplier: 1.2, endsAt: new Date(Date.now() + 600_000).toISOString() },
+  ])
+  render(<CharacterScreen api={api} character={character} content={content} />)
+
+  const card = screen.getByRole("region", { name: "密藥效果" })
+  expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
+  expect(within(card).getByText("物防 ×1.2（剩 10 分）")).toBeInTheDocument()
+  expect(api.getBuffs).toHaveBeenCalledTimes(1)
+})
+
+test("CharacterScreen_ShowsNoBuffs", async () => {
+  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+
+  const card = screen.getByRole("region", { name: "密藥效果" })
+  expect(await within(card).findByText("沒有生效中的密藥")).toBeInTheDocument()
 })

@@ -1,3 +1,4 @@
+import { buffLabel, remainingMinutes } from "./buffs"
 import { statLabel } from "./stats"
 import type {
   BagCategoryView,
@@ -74,6 +75,7 @@ const usableKinds: ReadonlySet<InventoryItem["consumable"]> = new Set([
   "PetEgg",
   "ProficiencyBook",
   "ExperienceCapsule",
+  "Elixir",
 ])
 
 // 能從背包直接使用的消耗品；補給品與捕捉道具要放到補給欄
@@ -83,8 +85,9 @@ const formatAmount = (value: number) => value.toLocaleString("zh-TW")
 
 // 使用後的結果行；寶箱沿用 WOG xmas_item 的「恭喜抽到」，名稱以空白分隔
 export const itemUseResultLines = (
-  item: Pick<InventoryItem, "consumable" | "amount">,
-  result: Pick<ItemUseResult, "obtained" | "petName" | "skillPoints" | "levelsGained">,
+  item: Pick<InventoryItem, "consumable" | "amount" | "name">,
+  result: Pick<ItemUseResult, "obtained" | "petName" | "skillPoints" | "levelsGained" | "buff">,
+  now: Date,
 ): string[] => {
   const lines: string[] = []
   if (result.obtained.length > 0) lines.push(`恭喜抽到 ${result.obtained.join(" ")}`)
@@ -92,6 +95,10 @@ export const itemUseResultLines = (
   if (result.skillPoints > 0) lines.push(`技能點 +${formatAmount(result.skillPoints)}`)
   if (item.consumable === "ExperienceCapsule")
     lines.push(`經驗值 +${formatAmount(item.amount)}${result.levelsGained > 0 ? "，升級了！" : ""}`)
+  if (result.buff !== null)
+    lines.push(
+      `${item.name}生效：${buffLabel(result.buff.kind)} ×${result.buff.multiplier}，持續 ${remainingMinutes(result.buff.endsAt, now)} 分鐘`,
+    )
   return lines
 }
 

@@ -363,3 +363,15 @@ test("useItem_ReturnsTheUseResult", async () => {
   expect(result.obtained).toEqual(["攻擊魔石", "疾風魔石"])
   expect(result.inventory.bag).toEqual([])
 })
+
+test("getBuffs_GetsTheActiveBuffs", async () => {
+  const buffs = [{ kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" }]
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(buffs))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await expect(client.getBuffs()).resolves.toEqual(buffs)
+  expect(fetchMock).toHaveBeenCalledWith(
+    "/api/characters/me/buffs",
+    expect.objectContaining({ method: "GET" }),
+  )
+})

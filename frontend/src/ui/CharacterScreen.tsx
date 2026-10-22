@@ -1,12 +1,15 @@
-import { useId } from "react"
+import { useEffect, useId, useState } from "react"
+import type { ApiClient } from "../api/client"
+import { buffLines } from "../game/buffs"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
-import type { CharacterView, ContentNames } from "../game/types"
+import type { BuffView, CharacterView, ContentNames } from "../game/types"
 import { formatNumber } from "./formatNumber"
 import { StatBar } from "./StatBar"
 import "./CharacterScreen.css"
 
 type Props = {
+  api: Pick<ApiClient, "getBuffs">
   character: CharacterView
   content: Pick<ContentNames, "elements" | "births" | "sexes">
 }
@@ -32,10 +35,32 @@ const describeProficiency = (value: number) =>
 
 const signed = (value: number) => (value > 0 ? `+${formatNumber(value)}` : formatNumber(value))
 
-export function CharacterScreen({ character, content }: Props) {
+export function CharacterScreen({ api, character, content }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
   const derivedStatsId = useId()
+  const buffsId = useId()
+  // 分頁每次打開都重新掛載，剩餘分鐘以打開時為準
+  const [now] = useState(() => new Date())
+  const [buffs, setBuffs] = useState<BuffView[] | null>(null)
+  const [buffsFailed, setBuffsFailed] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    api.getBuffs().then(
+      (loaded) => {
+        if (active) setBuffs(loaded)
+      },
+      () => {
+        if (active) setBuffsFailed(true)
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [api])
+
+  const activeBuffs = buffs === null ? [] : buffLines(buffs, now)
   const { stats, baseStats } = character
   const profile = [
     { label: "性別", value: nameOf(content.sexes, character.sex) },
@@ -111,6 +136,23 @@ export function CharacterScreen({ character, content }: Props) {
             </div>
           ))}
         </dl>
+      </section>
+
+      <section className="character__card" aria-labelledby={buffsId}>
+        <h2 id={buffsId} className="character__card-title">
+          密藥效果
+        </h2>
+        {buffsFailed ? (
+          <p className="character__muted">無法讀取密藥效果</p>
+        ) : buffs === null ? null : activeBuffs.length === 0 ? (
+          <p className="character__muted">沒有生效中的密藥</p>
+        ) : (
+          <ul className="character__buffs">
+            {activeBuffs.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   )

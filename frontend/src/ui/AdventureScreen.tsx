@@ -258,9 +258,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             />
           )}
         </div>
-        <div className="adventure__sheet" hidden={tab !== "character"}>
-          <CharacterScreen character={character} content={content ?? emptyContent} />
-        </div>
+        {/* 角色分頁每次打開才載入密藥效果，剩餘時間是最新的 */}
+        {tab === "character" && (
+          <div className="adventure__sheet">
+            <CharacterScreen api={api} character={character} content={content ?? emptyContent} />
+          </div>
+        )}
         {/* 技能分頁每次打開才載入，轉職條件與熟練度都是最新的 */}
         {tab === "skills" && (
           <div className="adventure__sheet">

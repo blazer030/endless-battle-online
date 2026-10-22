@@ -829,6 +829,7 @@ test("BagScreen_UsingAStoneBoxListsTheObtainedStones", async () => {
         petName: null,
         skillPoints: 0,
         levelsGained: 0,
+        buff: null,
       }),
     }),
   )

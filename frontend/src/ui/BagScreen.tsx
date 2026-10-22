@@ -312,7 +312,7 @@ function BagPage({
                           onClick={() =>
                             void act(async () => {
                               const result = await api.useItem(item.inventoryId)
-                              setNotice(itemUseResultLines(item, result))
+                              setNotice(itemUseResultLines(item, result, new Date()))
                               return { inventory: result.inventory }
                             })
                           }

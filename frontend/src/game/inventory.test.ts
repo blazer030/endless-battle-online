@@ -299,6 +299,7 @@ describe("isUsable", () => {
     "PetEgg",
     "ProficiencyBook",
     "ExperienceCapsule",
+    "Elixir",
   ] as const)("%s 可以從背包使用", (consumable) => {
     expect(isUsable(makeItem({ category: "Consumable", consumable }))).toBe(true)
   })
@@ -309,36 +310,49 @@ describe("isUsable", () => {
 })
 
 describe("itemUseResultLines", () => {
-  const nothing = { obtained: [], petName: null, skillPoints: 0, levelsGained: 0 }
+  const nothing = { obtained: [], petName: null, skillPoints: 0, levelsGained: 0, buff: null }
+  const now = new Date("2026-10-23T03:00:00Z")
   const used = (consumable: InventoryItem["consumable"], amount = 1) =>
     makeItem({ category: "Consumable", consumable, amount })
 
   it("寶箱列出抽到的道具，以空白分隔", () => {
     expect(
-      itemUseResultLines(used("StoneBox", 2), { ...nothing, obtained: ["攻擊魔石", "疾風魔石"] }),
+      itemUseResultLines(
+        used("StoneBox", 2),
+        { ...nothing, obtained: ["攻擊魔石", "疾風魔石"] },
+        now,
+      ),
     ).toEqual(["恭喜抽到 攻擊魔石 疾風魔石"])
     expect(
-      itemUseResultLines(used("RefineBox", 3), { ...nothing, obtained: ["秘法精鍊石 Lv3"] }),
+      itemUseResultLines(used("RefineBox", 3), { ...nothing, obtained: ["秘法精鍊石 Lv3"] }, now),
     ).toEqual(["恭喜抽到 秘法精鍊石 Lv3"])
   })
 
   it("寵物蛋、心得書與經驗膠囊", () => {
-    expect(itemUseResultLines(used("PetEgg", 280), { ...nothing, petName: "流浪絨球" })).toEqual([
-      "獲得寵物 流浪絨球",
-    ])
     expect(
-      itemUseResultLines(used("ProficiencyBook", 1500), { ...nothing, skillPoints: 1500 }),
+      itemUseResultLines(used("PetEgg", 280), { ...nothing, petName: "流浪絨球" }, now),
+    ).toEqual(["獲得寵物 流浪絨球"])
+    expect(
+      itemUseResultLines(used("ProficiencyBook", 1500), { ...nothing, skillPoints: 1500 }, now),
     ).toEqual(["技能點 +1,500"])
-    expect(itemUseResultLines(used("ExperienceCapsule", 20000), nothing)).toEqual([
+    expect(itemUseResultLines(used("ExperienceCapsule", 20000), nothing, now)).toEqual([
       "經驗值 +20,000",
     ])
     expect(
-      itemUseResultLines(used("ExperienceCapsule", 20000), { ...nothing, levelsGained: 2 }),
+      itemUseResultLines(used("ExperienceCapsule", 20000), { ...nothing, levelsGained: 2 }, now),
     ).toEqual(["經驗值 +20,000，升級了！"])
   })
 
   it("其他道具沒有結果行", () => {
-    expect(itemUseResultLines(used("StatPotion"), nothing)).toEqual([])
+    expect(itemUseResultLines(used("StatPotion"), nothing, now)).toEqual([])
+  })
+
+  it("密藥列出效果、倍率與持續分鐘", () => {
+    const elixir = makeItem({ category: "Consumable", consumable: "Elixir", name: "經驗密藥" })
+    const buff = { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" } as const
+    expect(itemUseResultLines(elixir, { ...nothing, buff }, now)).toEqual([
+      "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",
+    ])
   })
 
   it("牧場已滿的錯誤文案", () => {
