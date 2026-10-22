@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Randomness;
 
 namespace EndlessBattle.Tests.Domain.Missions;
 
@@ -66,5 +67,48 @@ public class DailyMissionsTests
         Assert.Equal(Delivery.Deliver, objective.Deliver);
         Assert.Equal(Delivery.Rewards, objective.Reward);
         Assert.Equal(4 * 190, objective.Exp);
+    }
+
+    [Fact]
+    public void Period_CrossesMonthAndYear()
+    {
+        Assert.Equal(new DateOnly(2026, 12, 31), DailyMissions.PeriodOf(new DateTimeOffset(2026, 12, 31, 16, 30, 0, TimeSpan.Zero)));
+        Assert.Equal(new DateOnly(2026, 12, 31), DailyMissions.PeriodOf(new DateTimeOffset(2027, 1, 1, 0, 59, 0, TimeSpan.Zero)));
+        Assert.Equal(
+            new DateTimeOffset(2027, 1, 1, 1, 0, 0, TimeSpan.Zero),
+            DailyMissions.NextReset(new DateTimeOffset(2026, 12, 31, 16, 30, 0, TimeSpan.Zero)));
+    }
+
+    // 時鐘倒退等情況下，未來週期的紀錄也不屬於現在週期
+    [Fact]
+    public void IsExpired_TreatsAnyOtherPeriodAsExpired()
+    {
+        Assert.True(DailyMissions.IsExpired(Record(new DateOnly(2026, 10, 23)), Utc(22, 3)));
+        Assert.False(DailyMissions.IsExpired(Record(October22), Utc(22, 3)));
+    }
+
+    [Fact]
+    public void Resolve_RollsTargetThenReward()
+    {
+        KillTarget[] kills = [new("test-sprite", 2), new("test-wolf", 2), new("test-sprite-chief", 1)];
+        MissionReward[] rewards = [new(100, []), new(0, [new ItemQuantity("test-supply", 2)])];
+        var daily = Daily with { DailyKills = kills, DailyRewards = rewards };
+        const long characterId = 3;
+
+        var random = new SeededRandom(DailyMissions.Seed(characterId, "test-daily", October22));
+        var killIndex = random.NextInt(kills.Length);
+        var rewardIndex = random.NextInt(rewards.Length);
+        var swapped = new SeededRandom(DailyMissions.Seed(characterId, "test-daily", October22));
+        var swappedRewardIndex = swapped.NextInt(rewards.Length);
+        var swappedKillIndex = swapped.NextInt(kills.Length);
+
+        // 前提：這個種子能分辨「對調擲骰順序」與「報酬固定取第一項」
+        Assert.NotEqual(0, rewardIndex);
+        Assert.NotEqual((killIndex, rewardIndex), (swappedKillIndex, swappedRewardIndex));
+
+        var objective = DailyMissions.Resolve(daily, characterId, October22);
+
+        Assert.Equal(kills[killIndex], objective.Kill);
+        Assert.Equal(rewards[rewardIndex], objective.Reward);
     }
 }

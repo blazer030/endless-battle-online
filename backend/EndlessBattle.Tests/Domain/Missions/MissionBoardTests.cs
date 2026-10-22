@@ -113,4 +113,15 @@ public class MissionBoardTests
         Assert.Equal([true, true], enough.Active.Select(entry => entry.Ready));
         Assert.False(unfinished.Active.Single().Ready);
     }
+
+    [Fact]
+    public void Board_ReadyIsFalseForAvailableAndCompleted()
+    {
+        IReadOnlyList<MissionDefinition> missions = [General("done"), General("open")];
+
+        var board = MissionBoard.Build(Hero, missions, [Completed("done", 1)], NothingOwned, Now);
+
+        Assert.False(board.Completed.Single().Ready);
+        Assert.False(board.Available.Single().Ready);
+    }
 }

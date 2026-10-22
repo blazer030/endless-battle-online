@@ -98,4 +98,14 @@ public class MissionRulesTests
             ["levelTooLow", "jobMismatch", "sexMismatch", "prerequisiteMissing"],
             MissionRules.CanAccept(Hero(1), mission, []));
     }
+
+    [Fact]
+    public void CanAccept_ListsEveryCoOccurringReasonInOrder()
+    {
+        var mission = Mission("hunt", level: 10, requirements: new MissionRequirements("sorcerer", 2, 2, "first", "rival"));
+
+        Assert.Equal(
+            ["tooMany", "levelTooLow", "jobMismatch", "sexMismatch", "birthMismatch", "prerequisiteMissing", "missionConflict"],
+            MissionRules.CanAccept(Hero(1), mission, [Active("rival"), Active("b"), Active("c")]));
+    }
 }
