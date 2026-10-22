@@ -4,6 +4,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Pets;
+using EndlessBattle.Domain.Pets;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -61,7 +62,8 @@ public static class PetEndpoints
             view.Pet.Intimacy,
             view.Pet.Carried,
             view.Age,
-            view.NextFeedAt)).ToList(),
+            view.NextFeedAt,
+            Math.Round(PetBattle.EstimatedActivation(view.Pet), 1))).ToList(),
         overview.MaxPets,
         overview.Foods.Select(food => new PetFoodResponse(food.Id, food.Name, food.Stat, food.Amount, food.Cost)).ToList());
 }

@@ -383,7 +383,8 @@ public sealed record PetRequest(long? PetId, string? Name, string? FoodId);
 
 public sealed record PetsResponse(IReadOnlyList<PetResponse> Pets, int MaxPets, IReadOnlyList<PetFoodResponse> Foods);
 
-// Species 是怪物名；Age 只顯示；NextFeedAt 之前餵食會被拒絕（tooSoon）
+// Species 是怪物名；Age 只顯示；NextFeedAt 之前餵食會被拒絕（tooSoon）；
+// ActivationPercent 是對魅力與玩家相同的怪物的出擊率估計（%，一位小數）
 public sealed record PetResponse(
     long Id,
     string MonsterId,
@@ -398,7 +399,8 @@ public sealed record PetResponse(
     int Intimacy,
     bool Carried,
     int Age,
-    DateTimeOffset NextFeedAt);
+    DateTimeOffset NextFeedAt,
+    double ActivationPercent);
 
 public sealed record PetFoodResponse(string Id, string Name, PetStat Stat, int Amount, long Cost);
 

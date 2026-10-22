@@ -70,6 +70,20 @@ public class PetEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(now.AddSeconds(6), pet.GetProperty("nextFeedAt").GetDateTimeOffset());
     }
 
+    // 親密 10、出擊 10 → 10/255×10 × 2 + 1 = 1.784… → 1.8
+    [Fact]
+    public async Task Pets_ReportActivationPercent()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GivePetAsync(factory, client, TestPets.Create(spirit: 10, intimacy: 10));
+
+        var body = await ReadOkAsync(await client.GetAsync("/api/pets", CancellationToken));
+
+        var pet = Assert.Single(body.GetProperty("pets").EnumerateArray());
+        Assert.Equal(1.8, pet.GetProperty("activationPercent").GetDouble());
+    }
+
     [Fact]
     public async Task Pets_FeedReturnsCharacter()
     {

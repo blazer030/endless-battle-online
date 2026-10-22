@@ -27,6 +27,26 @@ public class PetBattleTests
         Assert.Equal(expected, combatant.Activation, precision: 9);
     }
 
+    // 估計值把魅力比當 1：親密 0、出擊 1 → 0 + 1/255×10 + 1 ≈ 1.039
+    [Fact]
+    public void EstimatedActivation_FreshPetIsAboutOnePercent()
+    {
+        var pet = TestPets.Create(spirit: 1, intimacy: 0);
+
+        Assert.Equal(1 + 10.0 / 255, PetBattle.EstimatedActivation(pet), precision: 9);
+    }
+
+    // 255／255 危急 → 10 + 15 + 1 = 26；再高的出擊值也停在 35
+    [Theory]
+    [InlineData(255, 255, PetPersonality.Desperate, 26)]
+    [InlineData(255, 900, PetPersonality.Aggressive, 35)]
+    public void EstimatedActivation_CapsAt35(int intimacy, int spirit, PetPersonality personality, double expected)
+    {
+        var pet = TestPets.Create(personality: personality, spirit: spirit, intimacy: intimacy);
+
+        Assert.Equal(expected, PetBattle.EstimatedActivation(pet), precision: 9);
+    }
+
     // Attack 10、Magic 20、Defense 13：積極 Attack ×1.2、冷酷 Magic ×1.2、鐵壁代擋量 round(13 × 1.2 = 15.6) = 16；危急三項都不變
     [Theory]
     [InlineData(PetPersonality.Aggressive, 12, 20, 13)]

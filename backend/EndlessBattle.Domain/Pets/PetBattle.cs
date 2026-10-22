@@ -29,13 +29,20 @@ public static class PetBattle
         var attack = pet.Personality == PetPersonality.Aggressive ? pet.Attack * PersonalityBonus : pet.Attack;
         var magic = pet.Personality == PetPersonality.Cold ? pet.Magic * PersonalityBonus : pet.Magic;
         var guard = pet.Personality == PetPersonality.Ironwall ? DerivedStats.RoundLikePhp(pet.Defense * PersonalityBonus) : pet.Defense;
-        var spirit = pet.Personality == PetPersonality.Desperate ? pet.Spirit * DesperateSpiritBonus : pet.Spirit;
 
         var monsterAu = monster.Au == 0 ? 1 : monster.Au;
-        var activation = pet.Intimacy / MaxBondScore * BondWeight
-            + spirit / MaxBondScore * BondWeight
-            + DerivedStats.RoundLikePhp((double)player.Au / monsterAu);
-        return new PetCombatant(pet.Name, attack, magic, guard, Math.Min(MaxActivation, activation));
+        var activation = Activation(pet, DerivedStats.RoundLikePhp((double)player.Au / monsterAu));
+        return new PetCombatant(pet.Name, attack, magic, guard, activation);
+    }
+
+    // 給畫面看的估計值：對魅力與玩家相同的怪物（魅力比 1）
+    public static double EstimatedActivation(Pet pet) => Activation(pet, auRatio: 1);
+
+    private static double Activation(Pet pet, double auRatio)
+    {
+        var spirit = pet.Personality == PetPersonality.Desperate ? pet.Spirit * DesperateSpiritBonus : pet.Spirit;
+        var activation = pet.Intimacy / MaxBondScore * BondWeight + spirit / MaxBondScore * BondWeight + auRatio;
+        return Math.Min(MaxActivation, activation);
     }
 
     // 代擋與出手共用：rand(1,100) < 出擊率
