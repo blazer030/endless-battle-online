@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import type { ContentNames } from "../game/types"
@@ -82,12 +82,12 @@ test("CreateCharacterScreen_BlocksAllocationBeyondTenPoints", async () => {
   renderScreen()
   const addStrength = screen.getByRole("button", { name: "增加力量" })
 
-  for (let click = 0; click < 6; click++) await userEvent.click(addStrength)
+  for (let click = 0; click < 6; click++) await user.click(addStrength)
 
   expect(screen.getByText("剩餘 0 點")).toBeInTheDocument()
   expect(addStrength).toBeDisabled()
   expect(screen.getByRole("button", { name: "增加敏捷" })).toBeDisabled()
-  await userEvent.click(addStrength)
+  await user.click(addStrength)
   expect(screen.getByText("剩餘 0 點")).toBeInTheDocument()
 })
 
@@ -97,8 +97,8 @@ test("CreateCharacterScreen_PreviewsHpAndSpMax", async () => {
   expect(preview).toHaveTextContent("HP 上限 325")
   expect(preview).toHaveTextContent("SP 上限 88")
 
-  await userEvent.click(screen.getByRole("button", { name: "增加生命" }))
-  await userEvent.click(screen.getByRole("button", { name: "增加智力" }))
+  await user.click(screen.getByRole("button", { name: "增加生命" }))
+  await user.click(screen.getByRole("button", { name: "增加智力" }))
 
   expect(preview).toHaveTextContent("HP 上限 350")
   expect(preview).toHaveTextContent("SP 上限 91")
@@ -109,19 +109,19 @@ test("CreateCharacterScreen_SubmitsTheSelections", async () => {
   const createCharacter = vi.fn<ApiClient["createCharacter"]>().mockResolvedValue(created)
   const { onCreated } = renderScreen(createCharacter)
 
-  await userEvent.type(screen.getByLabelText("名稱"), "青衣")
-  await userEvent.type(screen.getByLabelText("必殺技名稱"), "流星火雨")
-  await userEvent.click(within(group("性別")).getByRole("button", { name: "女" }))
-  await userEvent.click(within(group("屬性")).getByRole("button", { name: "火" }))
-  await userEvent.click(within(group("出生地")).getByRole("button", { name: "末日王城" }))
-  await userEvent.click(within(group("職業")).getByRole("button", { name: /術士/ }))
+  await user.type(screen.getByLabelText("名稱"), "青衣")
+  await user.type(screen.getByLabelText("必殺技名稱"), "流星火雨")
+  await user.click(within(group("性別")).getByRole("button", { name: "女" }))
+  await user.click(within(group("屬性")).getByRole("button", { name: "火" }))
+  await user.click(within(group("出生地")).getByRole("button", { name: "末日王城" }))
+  await user.click(within(group("職業")).getByRole("button", { name: /術士/ }))
   for (let click = 0; click < 4; click++) {
-    await userEvent.click(screen.getByRole("button", { name: "增加智力" }))
+    await user.click(screen.getByRole("button", { name: "增加智力" }))
   }
-  await userEvent.click(screen.getByRole("button", { name: "增加生命" }))
-  await userEvent.click(screen.getByRole("button", { name: "增加生命" }))
-  await userEvent.click(screen.getByRole("button", { name: "減少生命" }))
-  await userEvent.click(screen.getByRole("button", { name: "踏上旅途" }))
+  await user.click(screen.getByRole("button", { name: "增加生命" }))
+  await user.click(screen.getByRole("button", { name: "增加生命" }))
+  await user.click(screen.getByRole("button", { name: "減少生命" }))
+  await user.click(screen.getByRole("button", { name: "踏上旅途" }))
 
   await vi.waitFor(() => expect(onCreated).toHaveBeenCalledWith(created))
   expect(createCharacter).toHaveBeenCalledWith({
@@ -146,10 +146,10 @@ test("CreateCharacterScreen_MapsEachStepperToItsOwnStat", async () => {
   ]
   for (const [label, count] of clicks) {
     for (let click = 0; click < count; click++) {
-      await userEvent.click(screen.getByRole("button", { name: label }))
+      await user.click(screen.getByRole("button", { name: label }))
     }
   }
-  await userEvent.click(screen.getByRole("button", { name: "踏上旅途" }))
+  await user.click(screen.getByRole("button", { name: "踏上旅途" }))
 
   await vi.waitFor(() => expect(createCharacter).toHaveBeenCalled())
   const { allocation } = createCharacter.mock.calls[0][0]
@@ -165,8 +165,8 @@ test("CreateCharacterScreen_ShowsValidationDetail", async () => {
     .mockRejectedValue(new ApiError(400, "必殺技名稱必須是 1～8 個字"))
   const { onCreated } = renderScreen(createCharacter)
 
-  await userEvent.type(screen.getByLabelText("名稱"), "青衣")
-  await userEvent.click(screen.getByRole("button", { name: "踏上旅途" }))
+  await user.type(screen.getByLabelText("名稱"), "青衣")
+  await user.click(screen.getByRole("button", { name: "踏上旅途" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("必殺技名稱必須是 1～8 個字")
   expect(onCreated).not.toHaveBeenCalled()

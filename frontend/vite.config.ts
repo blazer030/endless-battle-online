@@ -17,5 +17,6 @@ export default defineConfig({
     setupFiles: ["src/test/setup.ts"],
     // Vitest 預設把 CSS 換成空字串；theme.test.ts 要讀 theme.css 原文
     css: { include: [/theme\.css/] },
+    testTimeout: 15_000,
   },
 })

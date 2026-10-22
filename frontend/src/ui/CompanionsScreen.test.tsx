@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { MercenaryContract } from "../game/types"
@@ -118,9 +118,7 @@ test("CompanionsScreen_CarryCallsApiAndRedraws", async () => {
   })
   renderCompanions(api)
 
-  await userEvent.click(
-    within(await card("寒狼－測試寒狼 0歲")).getByRole("button", { name: "攜帶" }),
-  )
+  await user.click(within(await card("寒狼－測試寒狼 0歲")).getByRole("button", { name: "攜帶" }))
 
   expect(api.carryPet).toHaveBeenCalledWith(2)
   expect(within(await card("寒狼－測試寒狼 0歲")).getByText("攜帶中")).toBeInTheDocument()
@@ -133,7 +131,7 @@ test("CompanionsScreen_StoreCallsApi", async () => {
   })
   renderCompanions(api)
 
-  await userEvent.click(
+  await user.click(
     within(await card("小黏－草原史萊姆 2歲")).getByRole("button", { name: "放回獸欄" }),
   )
 
@@ -158,8 +156,8 @@ test("CompanionsScreen_FeedSendsChosenFoodAndUpdatesCharacter", async () => {
       .getAllByRole("option")
       .map((option) => option.textContent),
   ).toContain("中級香氣果實（MT+4，50 金）")
-  await userEvent.selectOptions(menu, "中級香氣果實（MT+4，50 金）")
-  await userEvent.click(within(stabled).getByRole("button", { name: "餵食" }))
+  await user.selectOptions(menu, "中級香氣果實（MT+4，50 金）")
+  await user.click(within(stabled).getByRole("button", { name: "餵食" }))
 
   expect(api.feedPet).toHaveBeenCalledWith(2, "fruit-aroma-medium")
   expect(onCharacterChanged).toHaveBeenCalledWith(fed)
@@ -187,7 +185,7 @@ test("CompanionsScreen_FeedShowsMappedError", async () => {
   renderCompanions(api)
   const stabled = await card("寒狼－測試寒狼 0歲")
 
-  await userEvent.click(within(stabled).getByRole("button", { name: "餵食" }))
+  await user.click(within(stabled).getByRole("button", { name: "餵食" }))
 
   expect(api.feedPet).toHaveBeenCalledWith(2, "fruit-vigor-small")
   expect(within(stabled).getByRole("alert")).toHaveTextContent("寵物屬性不能超過玩家")
@@ -201,9 +199,9 @@ test("CompanionsScreen_RenameSendsTheName", async () => {
   const stabled = await card("寒狼－測試寒狼 0歲")
 
   const input = within(stabled).getByRole("textbox", { name: "名字" })
-  await userEvent.clear(input)
-  await userEvent.type(input, "小白")
-  await userEvent.click(within(stabled).getByRole("button", { name: "改名" }))
+  await user.clear(input)
+  await user.type(input, "小白")
+  await user.click(within(stabled).getByRole("button", { name: "改名" }))
 
   expect(api.renamePet).toHaveBeenCalledWith(2, "小白")
   expect(await card("小白－測試寒狼 0歲")).toBeInTheDocument()
@@ -214,13 +212,13 @@ test("CompanionsScreen_ReleaseNeedsConfirmation", async () => {
   renderCompanions(api)
   const stabled = await card("寒狼－測試寒狼 0歲")
 
-  await userEvent.click(within(stabled).getByRole("button", { name: "放生" }))
+  await user.click(within(stabled).getByRole("button", { name: "放生" }))
   expect(api.releasePet).not.toHaveBeenCalled()
-  await userEvent.click(within(stabled).getByRole("button", { name: "取消" }))
+  await user.click(within(stabled).getByRole("button", { name: "取消" }))
   expect(within(stabled).queryByRole("button", { name: "確定放生" })).not.toBeInTheDocument()
 
-  await userEvent.click(within(stabled).getByRole("button", { name: "放生" }))
-  await userEvent.click(within(stabled).getByRole("button", { name: "確定放生" }))
+  await user.click(within(stabled).getByRole("button", { name: "放生" }))
+  await user.click(within(stabled).getByRole("button", { name: "確定放生" }))
 
   expect(api.releasePet).toHaveBeenCalledWith(2)
   expect(await screen.findByRole("heading", { name: "寵物 1/3" })).toBeInTheDocument()
@@ -228,7 +226,7 @@ test("CompanionsScreen_ReleaseNeedsConfirmation", async () => {
 })
 
 const openMercenaries = async () => {
-  await userEvent.click(await screen.findByRole("tab", { name: "傭兵" }))
+  await user.click(await screen.findByRole("tab", { name: "傭兵" }))
 }
 
 test("CompanionsScreen_MercenaryCatalogueHidesHireForHonourOnly", async () => {
@@ -256,7 +254,7 @@ test("CompanionsScreen_MercenaryCatalogueHidesHireForHonourOnly", async () => {
     .getAllByRole("listitem")
     .map((item) => item.textContent)
   expect(fields).toEqual(["價格3,000", "戰鬥次數100", "金錢30%", "寶物30%", "經驗65%", "死亡消耗5"])
-  await userEvent.click(within(mercenaryF).getByRole("button", { name: "僱用" }))
+  await user.click(within(mercenaryF).getByRole("button", { name: "僱用" }))
 
   expect(api.hireMercenary).toHaveBeenCalledWith("mercenary-f")
   expect(onCharacterChanged).toHaveBeenCalledWith(hired)
@@ -296,8 +294,8 @@ test("CompanionsScreen_RestingMercenaryDeploysToAChosenPlace", async () => {
       .getAllByRole("option")
       .map((option) => option.textContent),
   ).toEqual(["中央平原", "黑暗沼澤", "試鍊洞窟", "黑曜神廟"])
-  await userEvent.selectOptions(places, "試鍊洞窟")
-  await userEvent.click(within(contract).getByRole("button", { name: "開始戰鬥" }))
+  await user.selectOptions(places, "試鍊洞窟")
+  await user.click(within(contract).getByRole("button", { name: "開始戰鬥" }))
 
   expect(api.deployMercenary).toHaveBeenCalledWith(2)
   expect(await within(contract).findByText("狀態：戰鬥中")).toBeInTheDocument()
@@ -318,19 +316,19 @@ test("CompanionsScreen_FightingMercenaryRestsRenamesAndDismissesWithConfirmation
   await openMercenaries()
   const contract = await screen.findByRole("region", { name: "僱用中的傭兵" })
 
-  await userEvent.click(within(contract).getByRole("button", { name: "停止戰鬥" }))
+  await user.click(within(contract).getByRole("button", { name: "停止戰鬥" }))
   expect(api.restMercenary).toHaveBeenCalledTimes(1)
   expect(await within(contract).findByText("狀態：休息中")).toBeInTheDocument()
 
   const name = within(contract).getByRole("textbox", { name: "名字" })
-  await userEvent.clear(name)
-  await userEvent.type(name, "阿德")
-  await userEvent.click(within(contract).getByRole("button", { name: "改名" }))
+  await user.clear(name)
+  await user.type(name, "阿德")
+  await user.click(within(contract).getByRole("button", { name: "改名" }))
   expect(api.renameMercenary).toHaveBeenCalledWith("阿德")
 
-  await userEvent.click(within(contract).getByRole("button", { name: "解除僱用" }))
+  await user.click(within(contract).getByRole("button", { name: "解除僱用" }))
   expect(api.dismissMercenary).not.toHaveBeenCalled()
-  await userEvent.click(within(contract).getByRole("button", { name: "確定解除" }))
+  await user.click(within(contract).getByRole("button", { name: "確定解除" }))
 
   expect(api.dismissMercenary).toHaveBeenCalledTimes(1)
   expect(screen.queryByRole("region", { name: "僱用中的傭兵" })).not.toBeInTheDocument()
@@ -343,7 +341,7 @@ test("CompanionsScreen_MercenaryShowsMappedError", async () => {
   renderCompanions(api)
   await openMercenaries()
 
-  await userEvent.click(within(await card("F級傭兵")).getByRole("button", { name: "僱用" }))
+  await user.click(within(await card("F級傭兵")).getByRole("button", { name: "僱用" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("只能僱用一位傭兵")
 })

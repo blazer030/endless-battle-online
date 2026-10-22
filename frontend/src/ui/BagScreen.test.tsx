@@ -1,5 +1,5 @@
 import { cleanup, render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { CharacterView, DepotView, InventoryView, Recipe } from "../game/types"
@@ -113,7 +113,7 @@ const renderBag = (
 }
 
 const openSubPage = async (name: string) => {
-  await userEvent.click(await screen.findByRole("tab", { name }))
+  await user.click(await screen.findByRole("tab", { name }))
 }
 
 test("BagScreen_ShowsSevenSubPages", async () => {
@@ -162,7 +162,7 @@ test("BagScreen_ListsMedalsInTheirOwnCategory", async () => {
     .getAllByRole("tab")
     .map((tab) => tab.textContent)
   expect(categories.at(-1)).toBe("勳章")
-  await userEvent.click(screen.getByRole("tab", { name: "勳章" }))
+  await user.click(screen.getByRole("tab", { name: "勳章" }))
 
   expect(screen.getByText("勳章 1/15")).toBeInTheDocument()
   expect(screen.getByText("大陸勳章 ×4")).toBeInTheDocument()
@@ -192,11 +192,11 @@ test("BagScreen_CaptureItemCanBeEquippedToTheSupplySlot", async () => {
   const { api } = renderBag(
     createFakeApi({ getInventory: vi.fn().mockResolvedValue(makeInventory([net])) }),
   )
-  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
-  await userEvent.click(screen.getByRole("button", { name: /捕獸網 ×5/ }))
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /捕獸網 ×5/ }))
   expect(screen.queryByText("HP +0、SP +0")).not.toBeInTheDocument()
 
-  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+  await user.click(screen.getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(41, 5)
 })
@@ -206,7 +206,7 @@ test("BagScreen_HonourExchangeRefreshesTheBagAndCharacter", async () => {
   await openSubPage("勳章所")
 
   const stone = await screen.findByRole("article", { name: "攻擊魔石 ×1" })
-  await userEvent.click(within(stone).getByRole("button", { name: "兌換" }))
+  await user.click(within(stone).getByRole("button", { name: "兌換" }))
 
   expect(api.exchangeHonour).toHaveBeenCalledWith("honour-attack-stone")
   expect(api.getInventory).toHaveBeenCalledTimes(2)
@@ -220,7 +220,7 @@ test("BagScreen_ListsItemsByCategoryWithUsage", async () => {
   expect(screen.getByText("巨劍 +0")).toBeInTheDocument()
   expect(screen.queryByText("小藥水 ×30")).not.toBeInTheDocument()
 
-  await userEvent.click(screen.getByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("tab", { name: "道具" }))
 
   expect(screen.getByText("道具 2/15")).toBeInTheDocument()
   expect(screen.getByText("小藥水 ×30")).toBeInTheDocument()
@@ -229,14 +229,14 @@ test("BagScreen_ListsItemsByCategoryWithUsage", async () => {
 
 test("BagScreen_SellButtonShowsFloorPrice", async () => {
   const { api, onCharacterChanged } = renderBag()
-  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
-  await userEvent.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
 
   // floor(25 × 0.5 × 1) = 12，三個是 floor(37.5) = 37
   expect(screen.getByRole("button", { name: "賣出（12）" })).toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "增加數量" }))
-  await userEvent.click(screen.getByRole("button", { name: "增加數量" }))
-  await userEvent.click(screen.getByRole("button", { name: "賣出（37）" }))
+  await user.click(screen.getByRole("button", { name: "增加數量" }))
+  await user.click(screen.getByRole("button", { name: "增加數量" }))
+  await user.click(screen.getByRole("button", { name: "賣出（37）" }))
 
   expect(api.sell).toHaveBeenCalledWith(3, 3)
   expect(api.getMyCharacter).toHaveBeenCalled()
@@ -245,25 +245,25 @@ test("BagScreen_SellButtonShowsFloorPrice", async () => {
 
 test("BagScreen_ItemActionsMatchTheItemKind", async () => {
   const { api } = renderBag()
-  await userEvent.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
+  await user.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
 
   expect(screen.getByRole("button", { name: "存入倉庫" })).toBeInTheDocument()
   expect(screen.queryByRole("button", { name: "使用" })).not.toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+  await user.click(screen.getByRole("button", { name: "裝備" }))
   expect(api.equip).toHaveBeenCalledWith(1)
 
-  await userEvent.click(screen.getByRole("tab", { name: "道具" }))
-  await userEvent.click(screen.getByRole("button", { name: /力量藥水 ×2/ }))
+  await user.click(screen.getByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /力量藥水 ×2/ }))
   expect(screen.queryByRole("button", { name: "裝備" })).not.toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "使用" }))
+  await user.click(screen.getByRole("button", { name: "使用" }))
   expect(api.useItem).toHaveBeenCalledWith(4)
 })
 
 test("BagScreen_BagPageEquipsWholeSupplyStackCappedAt99", async () => {
   const { api } = renderBag()
-  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
-  await userEvent.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
-  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
+  await user.click(screen.getByRole("button", { name: "裝備" }))
 
   // 與裝備子頁相同：整疊放上補給欄，上限 99
   expect(api.equip).toHaveBeenCalledWith(3, 30)
@@ -283,9 +283,9 @@ test("BagScreen_ReplacesInventoryWithMutationResponse", async () => {
     buy: vi.fn().mockResolvedValue(afterPurchase),
   })
   renderBag(api)
-  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
-  await userEvent.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
-  await userEvent.click(screen.getByRole("button", { name: "賣出（12）" }))
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
+  await user.click(screen.getByRole("button", { name: "賣出（12）" }))
 
   expect(await screen.findByText("小藥水 ×29")).toBeInTheDocument()
   expect(screen.queryByText("小藥水 ×30")).not.toBeInTheDocument()
@@ -293,7 +293,7 @@ test("BagScreen_ReplacesInventoryWithMutationResponse", async () => {
   await openSubPage("商店")
   const line = (await screen.findByText("木劍 200 金錢")).closest("li")
   if (line === null) throw new Error("找不到商品列")
-  await userEvent.click(within(line).getByRole("button", { name: "購買" }))
+  await user.click(within(line).getByRole("button", { name: "購買" }))
   await openSubPage("背包")
 
   expect(await screen.findByText("新買的劍 +0")).toBeInTheDocument()
@@ -313,7 +313,7 @@ test("BagScreen_DepotReplacesBothListsWithMoveResponse", async () => {
   await openSubPage("倉庫")
   const stored = (await screen.findByText("倉庫劍 +0")).closest("li")
   if (stored === null) throw new Error("找不到倉庫道具")
-  await userEvent.click(within(stored).getByRole("button", { name: "取出" }))
+  await user.click(within(stored).getByRole("button", { name: "取出" }))
 
   expect(await screen.findByText("倉庫 0/20")).toBeInTheDocument()
   expect(screen.getByText("倉庫是空的")).toBeInTheDocument()
@@ -330,19 +330,19 @@ test("BagScreen_BuySendsItemIdAndQuantity", async () => {
   expect(await screen.findByText("木劍 200 金錢")).toBeInTheDocument()
   expect(api.getShop).toHaveBeenLastCalledWith("Weapon", 1)
 
-  await userEvent.click(screen.getByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("tab", { name: "道具" }))
   const line = (await screen.findByText("小藥水 20 金錢")).closest("li")
   if (line === null) throw new Error("找不到商品列")
   expect(api.getShop).toHaveBeenLastCalledWith("Consumable", 1)
-  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
-  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  await user.click(within(line).getByRole("button", { name: "增加數量" }))
+  await user.click(within(line).getByRole("button", { name: "增加數量" }))
   expect(within(line).getByText("3")).toBeInTheDocument()
-  await userEvent.click(within(line).getByRole("button", { name: "購買" }))
+  await user.click(within(line).getByRole("button", { name: "購買" }))
 
   expect(api.buy).toHaveBeenCalledWith("small-potion", 3)
   expect(onCharacterChanged).toHaveBeenCalled()
 
-  await userEvent.click(screen.getByRole("tab", { name: "Lv 2" }))
+  await user.click(screen.getByRole("tab", { name: "Lv 2" }))
   expect(api.getShop).toHaveBeenLastCalledWith("Consumable", 2)
 })
 
@@ -361,7 +361,7 @@ test("BagScreen_EquipCandidatesShowRequirementsAndCrimsonForUnmet", async () => 
   const { api } = renderBag()
   await openSubPage("裝備")
 
-  await userEvent.click(screen.getByRole("button", { name: /^武器/ }))
+  await user.click(screen.getByRole("button", { name: /^武器/ }))
 
   const heavy = screen.getByText("巨劍 +0").closest("li")
   const light = screen.getByText("測試劍 +0").closest("li")
@@ -369,7 +369,7 @@ test("BagScreen_EquipCandidatesShowRequirementsAndCrimsonForUnmet", async () => 
   // 測試角色裸點力量 11
   expect(within(heavy).getByText("力量 ≥ 30")).toHaveClass("crimson-text")
   expect(within(heavy).getByRole("button", { name: "裝備" })).toBeDisabled()
-  await userEvent.click(within(light).getByRole("button", { name: "裝備" }))
+  await user.click(within(light).getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(1)
 })
@@ -381,8 +381,8 @@ test("BagScreen_EquipmentSlotsShowRefineAndHoles", async () => {
   expect(screen.getByRole("button", { name: /^武器 精鋼劍 \+2 ◆◇$/ })).toBeInTheDocument()
   expect(screen.getByRole("button", { name: /^頭部 （空）$/ })).toBeInTheDocument()
 
-  await userEvent.click(screen.getByRole("button", { name: /^武器/ }))
-  await userEvent.click(screen.getByRole("button", { name: "卸下" }))
+  await user.click(screen.getByRole("button", { name: /^武器/ }))
+  await user.click(screen.getByRole("button", { name: "卸下" }))
 
   expect(api.unequip).toHaveBeenCalledWith("Weapon")
 })
@@ -390,12 +390,12 @@ test("BagScreen_EquipmentSlotsShowRefineAndHoles", async () => {
 test("BagScreen_SupplyEquipSendsQuantity", async () => {
   const { api } = renderBag()
   await openSubPage("裝備")
-  await userEvent.click(screen.getByRole("button", { name: /^補給/ }))
+  await user.click(screen.getByRole("button", { name: /^補給/ }))
 
   const input = screen.getByRole("spinbutton", { name: "補給數量" })
-  await userEvent.clear(input)
-  await userEvent.type(input, "20")
-  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+  await user.clear(input)
+  await user.type(input, "20")
+  await user.click(screen.getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(3, 20)
 })
@@ -407,13 +407,13 @@ test("BagScreen_DepotStoresAndTakes", async () => {
   expect(await screen.findByText("倉庫 1/20")).toBeInTheDocument()
   const stored = screen.getByText("倉庫劍 +0").closest("li")
   if (stored === null) throw new Error("找不到倉庫道具")
-  await userEvent.click(within(stored).getByRole("button", { name: "取出" }))
+  await user.click(within(stored).getByRole("button", { name: "取出" }))
   expect(api.take).toHaveBeenCalledWith(50, 1)
 
   const supply = screen.getByText("小藥水 ×30").closest("li")
   if (supply === null) throw new Error("找不到背包道具")
-  await userEvent.click(within(supply).getByRole("button", { name: "增加數量" }))
-  await userEvent.click(within(supply).getByRole("button", { name: "存入" }))
+  await user.click(within(supply).getByRole("button", { name: "增加數量" }))
+  await user.click(within(supply).getByRole("button", { name: "存入" }))
   expect(api.store).toHaveBeenCalledWith(3, 2)
 })
 
@@ -436,8 +436,8 @@ test("BagScreen_BankDepositsAtLevel15", async () => {
 
   expect(screen.getByText("存款 3,000")).toBeInTheDocument()
   expect(screen.queryByText("Lv 15 開放")).not.toBeInTheDocument()
-  await userEvent.type(screen.getByRole("spinbutton", { name: "存入金額" }), "1000")
-  await userEvent.click(screen.getByRole("button", { name: "存入" }))
+  await user.type(screen.getByRole("spinbutton", { name: "存入金額" }), "1000")
+  await user.click(screen.getByRole("button", { name: "存入" }))
 
   expect(api.deposit).toHaveBeenCalledWith(1000)
   expect(onCharacterChanged).toHaveBeenCalledWith(updated)
@@ -450,14 +450,14 @@ test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
   })
   renderBag(api)
 
-  await userEvent.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
-  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+  await user.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
+  await user.click(screen.getByRole("button", { name: "裝備" }))
   expect(await screen.findByRole("alert")).toHaveTextContent("力量不足")
 
   await openSubPage("商店")
   const line = (await screen.findByText("木劍 200 金錢")).closest("li")
   if (line === null) throw new Error("找不到商品列")
-  await userEvent.click(within(line).getByRole("button", { name: "購買" }))
+  await user.click(within(line).getByRole("button", { name: "購買" }))
   expect(await screen.findByRole("alert")).toHaveTextContent("背包已滿")
 })
 
@@ -467,7 +467,7 @@ test("BagScreen_ShowsRetry_WhenInventoryFailsToLoad", async () => {
   })
   renderBag(api)
 
-  await userEvent.click(await screen.findByRole("button", { name: "重試" }))
+  await user.click(await screen.findByRole("button", { name: "重試" }))
 
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()
 })
@@ -558,9 +558,9 @@ test("BagScreen_ForgeRefineSendsBodyAndShowsSuccess", async () => {
     "精鋼劍 +2（裝備中）",
   )
   expect(screen.getByText("+2 → +3（成功率 71%）")).toBeInTheDocument()
-  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
-  await userEvent.click(screen.getByRole("checkbox", { name: "使用安全石" }))
-  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  await user.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await user.click(screen.getByRole("checkbox", { name: "使用安全石" }))
+  await user.click(screen.getByRole("button", { name: "精鍊" }))
 
   expect(api.refine).toHaveBeenCalledWith(9, 30, true)
   expect(await screen.findByRole("status")).toHaveTextContent("精鍊成功！精鋼劍 +3")
@@ -574,13 +574,13 @@ test("BagScreen_ForgeRefineFailureNamesTheLostStone", async () => {
     refine: vi.fn().mockResolvedValue({ success: false, inventory: forgeInventory }),
   })
 
-  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
-  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  await user.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await user.click(screen.getByRole("button", { name: "精鍊" }))
   expect(api.refine).toHaveBeenCalledWith(9, 30, false)
   expect(await screen.findByRole("status")).toHaveTextContent("精鍊失敗，鋼鐵精鍊石 Lv3消失了。")
 
-  await userEvent.click(screen.getByRole("checkbox", { name: "使用安全石" }))
-  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  await user.click(screen.getByRole("checkbox", { name: "使用安全石" }))
+  await user.click(screen.getByRole("button", { name: "精鍊" }))
   expect(await screen.findByRole("status")).toHaveTextContent("精鍊失敗，安全石消失了。")
 })
 
@@ -600,7 +600,7 @@ test("BagScreen_ForgeRefineDisablesMismatchedStonesAndMissingSafeStone", async (
 test("BagScreen_ForgeRefineStopsAtRefineMax", async () => {
   await renderForge()
 
-  await userEvent.selectOptions(screen.getByRole("combobox", { name: "選擇裝備" }), "測試劍 +0")
+  await user.selectOptions(screen.getByRole("combobox", { name: "選擇裝備" }), "測試劍 +0")
   expect(screen.getByText("+0 → +1（成功率 91%）")).toBeInTheDocument()
 
   const maxed = makeInventory([{ ...sword, refineLevel: 4 }, refineStone(30, 5)])
@@ -616,7 +616,7 @@ test("BagScreen_ForgeMergesRefineStones", async () => {
   const merge = screen.getByRole("region", { name: "精鍊石合成" })
   const line = within(merge).getByText("鋼鐵精鍊石 Lv2 ×3").closest("li")
   if (line === null) throw new Error("找不到精鍊石合成列")
-  await userEvent.click(within(line).getByRole("button", { name: "合成" }))
+  await user.click(within(line).getByRole("button", { name: "合成" }))
 
   expect(api.mergeStones).toHaveBeenCalledWith(31, 1)
   expect(await screen.findByRole("status")).toHaveTextContent("精鍊石合成成功！")
@@ -624,13 +624,13 @@ test("BagScreen_ForgeMergesRefineStones", async () => {
 
 test("BagScreen_ForgeSocketSendsHoleAndStone", async () => {
   const { api } = await renderForge()
-  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
 
   expect(screen.getByRole("button", { name: "孔 1：攻擊魔石" })).toHaveTextContent("◆")
-  await userEvent.click(screen.getByRole("button", { name: "孔 2：空" }))
+  await user.click(screen.getByRole("button", { name: "孔 2：空" }))
   expect(screen.getByRole("radio", { name: /攻擊魔石.*已有同種魔石/ })).toBeDisabled()
-  await userEvent.click(screen.getByRole("radio", { name: /守護魔石/ }))
-  await userEvent.click(screen.getByRole("button", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("radio", { name: /守護魔石/ }))
+  await user.click(screen.getByRole("button", { name: "鑲嵌" }))
 
   expect(api.socket).toHaveBeenCalledWith(9, 2, 41)
   expect(await screen.findByRole("status")).toHaveTextContent("鑲嵌成功！")
@@ -642,14 +642,14 @@ test("BagScreen_ForgeUnsocketAndDrillNarrateTheRoll", async () => {
       .fn()
       .mockResolvedValue({ success: true, recovered: false, inventory: forgeInventory }),
   })
-  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
 
-  await userEvent.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
-  await userEvent.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
+  await user.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
+  await user.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
   expect(api.unsocket).toHaveBeenCalledWith(9, 1)
   expect(await screen.findByRole("status")).toHaveTextContent("拆除後攻擊魔石消失了。")
 
-  await userEvent.click(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" }))
+  await user.click(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" }))
   expect(api.drill).toHaveBeenCalledWith(9)
   expect(await screen.findByRole("status")).toHaveTextContent("打洞失敗。")
 })
@@ -659,7 +659,7 @@ test("BagScreen_ForgeDrillDisabledAtFourHoles", async () => {
     equipment: [{ slot: "Weapon", quantity: 1, item: { ...wornSword, holes: 4 } }],
   })
   await renderForge({ getInventory: vi.fn().mockResolvedValue(fourHoles) })
-  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
 
   expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
 })
@@ -670,14 +670,14 @@ test("BagScreen_ForgeSynthesizeSendsRecipeAndAttempts", async () => {
       .fn()
       .mockResolvedValue({ successes: 1, attempts: 2, cost: 1000, inventory: forgeInventory }),
   })
-  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  await user.click(screen.getByRole("tab", { name: "合成" }))
 
   const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
   if (line === null) throw new Error("找不到配方列")
-  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  await user.click(within(line).getByRole("button", { name: "增加數量" }))
   // 鐵礦石 7 顆只夠 2 次
   expect(within(line).getByRole("button", { name: "增加數量" })).toBeDisabled()
-  await userEvent.click(within(line).getByRole("button", { name: "合成（2,000 金錢上限）" }))
+  await user.click(within(line).getByRole("button", { name: "合成（2,000 金錢上限）" }))
 
   expect(api.synthesize).toHaveBeenCalledWith("iron-ingot", 2)
   expect(await screen.findByRole("status")).toHaveTextContent(
@@ -688,7 +688,7 @@ test("BagScreen_ForgeSynthesizeSendsRecipeAndAttempts", async () => {
 
 test("BagScreen_ForgeSynthesizeDisabledWithoutMaterials", async () => {
   await renderForge()
-  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  await user.click(screen.getByRole("tab", { name: "合成" }))
 
   const line = (await screen.findByText("晶石 ×1 ← 水晶碎片 ×2（60%）")).closest("li")
   if (line === null) throw new Error("找不到配方列")
@@ -700,8 +700,8 @@ test("BagScreen_ForgeShowsMappedErrorReasons", async () => {
     refine: vi.fn().mockRejectedValue(new ApiError(400, "無法精鍊", ["wrongStoneLevel"])),
   })
 
-  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
-  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  await user.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await user.click(screen.getByRole("button", { name: "精鍊" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("精鍊石等級不符")
 })
@@ -720,11 +720,11 @@ test("BagScreen_ForgeHoleNamesItsStoneWithoutABagCopy", async () => {
       .fn()
       .mockResolvedValue({ success: true, recovered: false, inventory: forgeInventory }),
   })
-  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
 
-  await userEvent.click(screen.getByRole("button", { name: "孔 1：混沌魔石" }))
+  await user.click(screen.getByRole("button", { name: "孔 1：混沌魔石" }))
   expect(screen.getByText("混沌魔石")).toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
+  await user.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
 
   expect(api.unsocket).toHaveBeenCalledWith(9, 1)
   expect(await screen.findByRole("status")).toHaveTextContent("拆除後混沌魔石消失了。")
@@ -732,20 +732,20 @@ test("BagScreen_ForgeHoleNamesItsStoneWithoutABagCopy", async () => {
 
 test("BagScreen_ForgeSynthesizeNeedsMoneyForEveryAttempt", async () => {
   await renderForge({}, makeCharacter({ money: 1500 }))
-  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  await user.click(screen.getByRole("tab", { name: "合成" }))
 
   const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
   if (line === null) throw new Error("找不到配方列")
   expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeEnabled()
-  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  await user.click(within(line).getByRole("button", { name: "增加數量" }))
   expect(within(line).getByRole("button", { name: "合成（2,000 金錢上限）" })).toBeDisabled()
 
   cleanup()
   await renderForge({}, makeCharacter({ money: 2000 }))
-  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  await user.click(screen.getByRole("tab", { name: "合成" }))
   const exact = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
   if (exact === null) throw new Error("找不到配方列")
-  await userEvent.click(within(exact).getByRole("button", { name: "增加數量" }))
+  await user.click(within(exact).getByRole("button", { name: "增加數量" }))
   expect(within(exact).getByRole("button", { name: "合成（2,000 金錢上限）" })).toBeEnabled()
 })
 
@@ -755,8 +755,8 @@ test("BagScreen_ForgeToolButtonsNeedTheirTools", async () => {
     { equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }] },
   )
   await renderForge({ getInventory: vi.fn().mockResolvedValue(withoutTools) })
-  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
-  await userEvent.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
+  await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await user.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
 
   expect(screen.getByRole("button", { name: "拆除（需要拆石器）" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
@@ -767,11 +767,11 @@ test("BagScreen_ForgeSynthesizeUsesTheRecipeCost", async () => {
     { getRecipes: vi.fn().mockResolvedValue([{ ...ingot, costPerAttempt: 500 }]) },
     makeCharacter({ money: 1000 }),
   )
-  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  await user.click(screen.getByRole("tab", { name: "合成" }))
 
   const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
   if (line === null) throw new Error("找不到配方列")
-  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  await user.click(within(line).getByRole("button", { name: "增加數量" }))
   expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeEnabled()
 })
 
@@ -784,14 +784,14 @@ test("BagScreen_SupplyQuantityDefaultsToEachStackCappedAt99", async () => {
     }),
   )
   await openSubPage("裝備")
-  await userEvent.click(screen.getByRole("button", { name: /^補給/ }))
+  await user.click(screen.getByRole("button", { name: /^補給/ }))
 
   const small = screen.getByText("小藥水 ×8").closest("li")
   const big = screen.getByText("中藥水 ×50").closest("li")
   if (small === null || big === null) throw new Error("找不到補給品")
   expect(within(small).getByRole("spinbutton", { name: "補給數量" })).toHaveValue(8)
   expect(within(big).getByRole("spinbutton", { name: "補給數量" })).toHaveValue(50)
-  await userEvent.click(within(small).getByRole("button", { name: "裝備" }))
+  await user.click(within(small).getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(3, 8)
 })

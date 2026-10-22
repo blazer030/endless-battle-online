@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import { makeHonourShop, makeMercenaryOverview } from "../test/fixtures"
@@ -56,7 +56,7 @@ test("HonourPage_ExchangeRedrawsFromTheResponse", async () => {
   const { onExchanged } = renderHonour(api)
 
   const stone = await screen.findByRole("article", { name: "攻擊魔石 ×1" })
-  await userEvent.click(within(stone).getByRole("button", { name: "兌換" }))
+  await user.click(within(stone).getByRole("button", { name: "兌換" }))
 
   expect(api.exchangeHonour).toHaveBeenCalledWith("honour-attack-stone")
   expect(onExchanged).toHaveBeenCalledTimes(1)
@@ -76,7 +76,7 @@ test("HonourPage_ShowsMappedError", async () => {
   const { onExchanged } = renderHonour(api)
 
   const stone = await screen.findByRole("article", { name: "攻擊魔石 ×1" })
-  await userEvent.click(within(stone).getByRole("button", { name: "兌換" }))
+  await user.click(within(stone).getByRole("button", { name: "兌換" }))
 
   expect(within(stone).getByRole("alert")).toHaveTextContent("勳章不足")
   expect(onExchanged).not.toHaveBeenCalled()

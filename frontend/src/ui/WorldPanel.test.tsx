@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import { makeCharacter, makeWorld } from "../test/fixtures"
@@ -69,7 +69,7 @@ test("WorldPanel_ExpandingAPlaceShowsItsSubPlaces", async () => {
   expect(cave).toHaveAttribute("aria-expanded", "false")
   expect(screen.queryByRole("button", { name: "燈影隧道" })).not.toBeInTheDocument()
 
-  await userEvent.click(cave)
+  await user.click(cave)
 
   expect(cave).toHaveAttribute("aria-expanded", "true")
   const subPlaces = within(screen.getByRole("group", { name: "試鍊洞窟的子地區" }))
@@ -81,7 +81,7 @@ test("WorldPanel_ExpandingAPlaceShowsItsSubPlaces", async () => {
 test("WorldPanel_MarksTheCurrentSubPlace", async () => {
   renderPanel()
 
-  await userEvent.click(await placeButton("中央平原"))
+  await user.click(await placeButton("中央平原"))
 
   const current = screen.getByRole("button", { name: "香茅綠地" })
   expect(current).toBeDisabled()
@@ -95,8 +95,8 @@ test("WorldPanel_ChoosingASubPlaceMovesAndCloses", async () => {
     createApi({ moveTo: vi.fn().mockResolvedValue(moved) }),
   )
 
-  await userEvent.click(await placeButton("試鍊洞窟"))
-  await userEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await user.click(await placeButton("試鍊洞窟"))
+  await user.click(screen.getByRole("button", { name: "燈影隧道" }))
 
   expect(api.moveTo).toHaveBeenCalledWith(2, 1)
   expect(onCharacterChange).toHaveBeenCalledWith(moved)
@@ -106,10 +106,10 @@ test("WorldPanel_ChoosingASubPlaceMovesAndCloses", async () => {
 test("WorldPanel_PlaceWithoutSubPlacesMovesWithNull", async () => {
   const { api, onClose } = renderPanel()
 
-  await userEvent.click(await placeButton("黑曜神廟"))
+  await user.click(await placeButton("黑曜神廟"))
 
   expect(screen.queryByRole("group", { name: "黑曜神廟的子地區" })).not.toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "前往" }))
+  await user.click(screen.getByRole("button", { name: "前往" }))
 
   expect(api.moveTo).toHaveBeenCalledWith(20, null)
   expect(onClose).toHaveBeenCalled()
@@ -124,8 +124,8 @@ test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
     }),
   )
 
-  await userEvent.click(await placeButton("試鍊洞窟"))
-  await userEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await user.click(await placeButton("試鍊洞窟"))
+  await user.click(screen.getByRole("button", { name: "燈影隧道" }))
 
   const reasons = within(await screen.findByRole("alert"))
     .getAllByRole("listitem")
@@ -137,8 +137,8 @@ test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
 test("WorldPanel_ShowsRetryHint_OnConflict", async () => {
   renderPanel(createApi({ moveTo: vi.fn().mockRejectedValue(new ApiError(409, "資料衝突")) }))
 
-  await userEvent.click(await placeButton("試鍊洞窟"))
-  await userEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await user.click(await placeButton("試鍊洞窟"))
+  await user.click(screen.getByRole("button", { name: "燈影隧道" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("角色資料已被其他請求更新，請再試一次")
 })
@@ -146,8 +146,8 @@ test("WorldPanel_ShowsRetryHint_OnConflict", async () => {
 test("WorldPanel_ShowsFallback_OnConnectionError", async () => {
   renderPanel(createApi({ moveTo: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) }))
 
-  await userEvent.click(await placeButton("試鍊洞窟"))
-  await userEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await user.click(await placeButton("試鍊洞窟"))
+  await user.click(screen.getByRole("button", { name: "燈影隧道" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("發生錯誤，請稍後再試")
 })
@@ -161,7 +161,7 @@ test("WorldPanel_ShowsLoadingThenRetriesAfterLoadFailure", async () => {
   expect(screen.getByText("載入中…")).toBeInTheDocument()
 
   expect(await screen.findByRole("alert")).toHaveTextContent("無法載入地區資料。")
-  await userEvent.click(screen.getByRole("button", { name: "重試" }))
+  await user.click(screen.getByRole("button", { name: "重試" }))
 
   expect(await area("中央大陸")).toBeInTheDocument()
   expect(getWorld).toHaveBeenCalledTimes(2)
@@ -170,7 +170,7 @@ test("WorldPanel_ShowsLoadingThenRetriesAfterLoadFailure", async () => {
 test("WorldPanel_CloseButtonCloses", async () => {
   const { onClose } = renderPanel()
 
-  await userEvent.click(screen.getByRole("button", { name: "關閉" }))
+  await user.click(screen.getByRole("button", { name: "關閉" }))
 
   expect(onClose).toHaveBeenCalled()
 })

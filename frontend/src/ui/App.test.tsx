@@ -1,5 +1,5 @@
 import { act, render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
@@ -151,7 +151,7 @@ test("App_RetriesLoad_WhenRetryClicked", async () => {
   })
   render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
 
-  await userEvent.click(await screen.findByRole("button", { name: "重試" }))
+  await user.click(await screen.findByRole("button", { name: "重試" }))
 
   expect(await screen.findByRole("button", { name: "踏上旅途" })).toBeInTheDocument()
   expect(api.getMyCharacter).toHaveBeenCalledTimes(2)

@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { MissionBoard, MissionCompletion } from "../game/types"
@@ -41,7 +41,7 @@ const renderMissions = (api: MissionsApi = createFakeApi()) => {
 }
 
 const openSubPage = async (name: string) => {
-  await userEvent.click(await screen.findByRole("tab", { name }))
+  await user.click(await screen.findByRole("tab", { name }))
 }
 
 const card = (title: string) => screen.getByRole("article", { name: title })
@@ -94,7 +94,7 @@ test("MissionsScreen_ListsDailyBeforeRegularMissions", async () => {
 test("MissionsScreen_AcceptRedrawsFromReturnedBoard", async () => {
   const { api } = renderMissions()
 
-  await userEvent.click(
+  await user.click(
     within(await screen.findByRole("article", { name: "綠地上的黏液" })).getByRole("button", {
       name: "接取",
     }),
@@ -136,14 +136,14 @@ test("MissionsScreen_AbandonNeedsConfirmation", async () => {
   const { api } = renderMissions(boardWith({ active: [hunt] }))
 
   await openSubPage("進行中")
-  await userEvent.click(within(card("綠地上的黏液")).getByRole("button", { name: "放棄" }))
+  await user.click(within(card("綠地上的黏液")).getByRole("button", { name: "放棄" }))
   expect(api.abandonMission).not.toHaveBeenCalled()
 
-  await userEvent.click(within(card("綠地上的黏液")).getByRole("button", { name: "取消" }))
+  await user.click(within(card("綠地上的黏液")).getByRole("button", { name: "取消" }))
   expect(within(card("綠地上的黏液")).getByRole("button", { name: "放棄" })).toBeInTheDocument()
 
-  await userEvent.click(within(card("綠地上的黏液")).getByRole("button", { name: "放棄" }))
-  await userEvent.click(within(card("綠地上的黏液")).getByRole("button", { name: "確定放棄" }))
+  await user.click(within(card("綠地上的黏液")).getByRole("button", { name: "放棄" }))
+  await user.click(within(card("綠地上的黏液")).getByRole("button", { name: "確定放棄" }))
 
   expect(api.abandonMission).toHaveBeenCalledWith("test-hunt")
   expect(await screen.findByText("沒有進行中的任務")).toBeInTheDocument()
@@ -180,7 +180,7 @@ test("MissionsScreen_CompleteShowsResultAndUpdatesCharacter", async () => {
   )
 
   await openSubPage("進行中")
-  await userEvent.click(within(card("藥草採集")).getByRole("button", { name: "交付" }))
+  await user.click(within(card("藥草採集")).getByRole("button", { name: "交付" }))
 
   expect(api.completeMission).toHaveBeenCalledWith("test-delivery")
   const message = await screen.findByRole("status")
@@ -198,7 +198,7 @@ test("MissionsScreen_ShowsTooManyError", async () => {
     }),
   )
 
-  await userEvent.click(
+  await user.click(
     within(await screen.findByRole("article", { name: "綠地上的黏液" })).getByRole("button", {
       name: "接取",
     }),
@@ -215,7 +215,7 @@ test("MissionsScreen_RetriesAfterLoadFailure", async () => {
   renderMissions(createFakeApi({ getMissions }))
 
   expect(await screen.findByText("無法載入任務。")).toBeInTheDocument()
-  await userEvent.click(screen.getByRole("button", { name: "重試" }))
+  await user.click(screen.getByRole("button", { name: "重試" }))
 
   expect(await screen.findByRole("article", { name: "綠地上的黏液" })).toBeInTheDocument()
 })
@@ -258,7 +258,7 @@ test("MissionsScreen_PetDeliveryAsksForTheCarriedPetAndAnnouncesPetRewards", asy
   const active = card("馴獸師的考驗")
   expect(within(active).getByText("交付寵物 草原史萊姆（需攜帶）")).toBeInTheDocument()
   expect(within(active).getByText("寵物 測試寒狼")).toBeInTheDocument()
-  await userEvent.click(within(active).getByRole("button", { name: "交付" }))
+  await user.click(within(active).getByRole("button", { name: "交付" }))
 
   expect(api.completeMission).toHaveBeenCalledWith("test-tamer")
   expect(within(screen.getByRole("status")).getByText("獲得寵物 測試寒狼")).toBeInTheDocument()
@@ -280,7 +280,7 @@ test("MissionsScreen_ShowsMissingPetError", async () => {
   )
 
   await openSubPage("進行中")
-  await userEvent.click(within(card("馴獸師的考驗")).getByRole("button", { name: "交付" }))
+  await user.click(within(card("馴獸師的考驗")).getByRole("button", { name: "交付" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("需要攜帶指定的寵物")
 })

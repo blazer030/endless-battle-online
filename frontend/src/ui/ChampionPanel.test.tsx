@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { ChampionChallenge } from "../game/types"
@@ -78,7 +78,7 @@ test("ChampionPanel_ShowsTheSeedChampion", async () => {
 test("ChampionPanel_ChallengeShowsTheDuelAndTheNewChampion", async () => {
   const { api, onCharacterChanged } = renderPanel()
 
-  await userEvent.click(await screen.findByRole("button", { name: "挑戰" }))
+  await user.click(await screen.findByRole("button", { name: "挑戰" }))
 
   expect(api.challengeChampion).toHaveBeenCalledTimes(1)
   expect(onCharacterChanged).toHaveBeenCalledWith(crowned)
@@ -105,7 +105,7 @@ test("ChampionPanel_LossKeepsTheChampion", async () => {
   })
   renderPanel(api)
 
-  await userEvent.click(await screen.findByRole("button", { name: "挑戰" }))
+  await user.click(await screen.findByRole("button", { name: "挑戰" }))
 
   const result = within(screen.getByRole("log", { name: "挑戰結果" }))
     .getAllByRole("listitem")
@@ -142,7 +142,7 @@ test("ChampionPanel_ShowsMappedChallengeError", async () => {
     }),
   )
 
-  await userEvent.click(await screen.findByRole("button", { name: "挑戰" }))
+  await user.click(await screen.findByRole("button", { name: "挑戰" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("HP 為 0，無法挑戰")
 })
@@ -150,7 +150,7 @@ test("ChampionPanel_ShowsMappedChallengeError", async () => {
 test("ChampionPanel_CloseButtonCloses", async () => {
   const { onClose } = renderPanel()
 
-  await userEvent.click(screen.getByRole("button", { name: "關閉" }))
+  await user.click(screen.getByRole("button", { name: "關閉" }))
 
   expect(onClose).toHaveBeenCalledTimes(1)
 })

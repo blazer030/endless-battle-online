@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { JobOption, SkillOverview, SkillView } from "../game/types"
@@ -161,7 +161,7 @@ test("SkillsScreen_ChangeJobReportsCharacterAndReloads", async () => {
   const api = createApi({ changeJob: vi.fn().mockResolvedValue(changed) })
   const { onCharacterChange } = renderScreen(api)
 
-  await userEvent.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
+  await user.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
 
   expect(api.changeJob).toHaveBeenCalledWith("thief")
   expect(onCharacterChange).toHaveBeenCalledWith(changed)
@@ -177,7 +177,7 @@ test("SkillsScreen_KeepsTheJobChange_WhenReloadFails", async () => {
   })
   const { onCharacterChange } = renderScreen(api)
 
-  await userEvent.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
+  await user.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
 
   expect(onCharacterChange).toHaveBeenCalledWith(changed)
   expect(await screen.findByRole("alert")).toHaveTextContent("已轉職，重新載入失敗，請稍後再試")
@@ -213,9 +213,7 @@ test("SkillsScreen_LearnCallsApiAndShowsNewOverview", async () => {
   const api = createApi({ getMyCharacter: vi.fn().mockResolvedValue(refreshed) })
   const { onCharacterChange } = renderScreen(api)
 
-  await userEvent.click(
-    within(await skillCard("爆氣 Lv 0/5")).getByRole("button", { name: "學習" }),
-  )
+  await user.click(within(await skillCard("爆氣 Lv 0/5")).getByRole("button", { name: "學習" }))
 
   expect(api.learnSkill).toHaveBeenCalledWith("burst")
   const burst = await skillCard("爆氣 Lv 1/5")
@@ -231,9 +229,7 @@ test("SkillsScreen_ShowsLearnReasonsFromServer", async () => {
   })
   renderScreen(api)
 
-  await userEvent.click(
-    within(await skillCard("爆氣 Lv 0/5")).getByRole("button", { name: "學習" }),
-  )
+  await user.click(within(await skillCard("爆氣 Lv 0/5")).getByRole("button", { name: "學習" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("無法學習技能：金錢不足")
 })
@@ -242,12 +238,12 @@ test("SkillsScreen_SavesSlotsWithPutBody", async () => {
   const api = createApi({ getSkills: vi.fn().mockResolvedValue(learned) })
   renderScreen(api)
 
-  await userEvent.selectOptions(await screen.findByLabelText("欄位 1 技能"), "burst")
+  await user.selectOptions(await screen.findByLabelText("欄位 1 技能"), "burst")
   const raise = screen.getByRole("button", { name: "提高欄位 1 發動率" })
-  for (let step = 0; step < 6; step++) await userEvent.click(raise)
+  for (let step = 0; step < 6; step++) await user.click(raise)
   expect(screen.getByText("100%")).toBeInTheDocument()
   expect(raise).toBeDisabled()
-  await userEvent.click(screen.getByRole("button", { name: "儲存欄位" }))
+  await user.click(screen.getByRole("button", { name: "儲存欄位" }))
 
   expect(api.setSkillSlots).toHaveBeenCalledWith([
     { slot: 1, skillId: "burst", chance: 100 },
@@ -260,7 +256,7 @@ test("SkillsScreen_LocksTheLoadoutWhileSaving", async () => {
   const api = createApi({ setSkillSlots: vi.fn(() => new Promise<never>(() => {})) })
   renderScreen(api)
 
-  await userEvent.click(await screen.findByRole("button", { name: "儲存欄位" }))
+  await user.click(await screen.findByRole("button", { name: "儲存欄位" }))
 
   for (const slot of [1, 2, 3, 4, 5])
     expect(screen.getByLabelText(`欄位 ${slot} 技能`)).toBeDisabled()
@@ -290,7 +286,7 @@ test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
 test("SkillsScreen_DisablesSaveWhileLoadoutIsInvalid", async () => {
   renderScreen()
 
-  await userEvent.selectOptions(await screen.findByLabelText("欄位 5 技能"), "iron-skin")
+  await user.selectOptions(await screen.findByLabelText("欄位 5 技能"), "iron-skin")
 
   expect(screen.getByText("同一技能不能裝在兩個欄位")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "儲存欄位" })).toBeDisabled()
@@ -304,7 +300,7 @@ test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   })
   renderScreen(api)
 
-  await userEvent.click(await screen.findByRole("button", { name: "儲存欄位" }))
+  await user.click(await screen.findByRole("button", { name: "儲存欄位" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "技能欄位不正確：被動欄只能放目前職業的技能",

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { user } from "../test/user"
 import { expect, test } from "vitest"
 import type { LogLine } from "../game/battleLog"
 import { BattleLog } from "./BattleLog"
@@ -13,7 +13,7 @@ test("BattleLog_FiltersByTab", async () => {
   render(<BattleLog lines={lines} />)
   expect(screen.getAllByRole("listitem")).toHaveLength(3)
 
-  await userEvent.click(screen.getByRole("tab", { name: "掉落" }))
+  await user.click(screen.getByRole("tab", { name: "掉落" }))
 
   expect(screen.getByRole("tab", { name: "掉落" })).toHaveAttribute("aria-selected", "true")
   const items = screen.getAllByRole("listitem")
