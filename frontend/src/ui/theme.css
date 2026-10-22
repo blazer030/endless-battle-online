@@ -36,6 +36,11 @@ body {
   font-family: var(--font-ui);
 }
 
+/* 全域工具 class：小字的緋紅，例如未達成的需求 */
+.crimson-text {
+  color: var(--crimson-text);
+}
+
 #root {
   max-width: 480px;
   min-height: 100dvh;

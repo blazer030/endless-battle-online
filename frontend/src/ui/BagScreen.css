@@ -185,10 +185,6 @@
   color: var(--green);
 }
 
-.crimson-text {
-  color: var(--crimson-text);
-}
-
 .bag__actions {
   display: flex;
   flex-direction: column;
