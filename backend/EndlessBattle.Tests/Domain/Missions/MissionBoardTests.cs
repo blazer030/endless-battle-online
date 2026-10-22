@@ -147,4 +147,21 @@ public class MissionBoardTests
 
         Assert.Equal(["daily", "a"], MissionBoard.Current(records, missions, Now).Select(record => record.MissionId));
     }
+
+    // 寫入時要刪掉的紀錄：過期的每日紀錄與種類不符的紀錄；未知任務的紀錄保留（內容可能再加回來）
+    [Fact]
+    public void Stale_ListsExpiredAndKindChangedRecords()
+    {
+        IReadOnlyList<MissionDefinition> missions = [DailyMission("now-daily"), General("now-general"), DailyMission("daily"), General("a")];
+        IReadOnlyList<MissionRecord> records =
+        [
+            Active("now-daily"),
+            Active("now-general", period: Today),
+            Active("daily", period: Today.AddDays(-1)),
+            Active("removed"),
+            Active("a"),
+        ];
+
+        Assert.Equal(["now-daily", "now-general", "daily"], MissionBoard.Stale(records, missions, Now).Select(record => record.MissionId));
+    }
 }

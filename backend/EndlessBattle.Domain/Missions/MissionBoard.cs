@@ -62,6 +62,18 @@ public static class MissionBoard
             .ToList();
     }
 
+    // 寫入時要刪掉的紀錄：過期的每日紀錄，以及與定義種類不符的紀錄（Current 看不到，留著會讓再接取撞上唯一鍵）；
+    // 未知任務的紀錄保留，內容可能再加回來
+    public static IReadOnlyList<MissionRecord> Stale(
+        IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, DateTimeOffset now)
+    {
+        var dailyById = missions.ToDictionary(mission => mission.Id, mission => mission.Daily);
+        return records
+            .Where(record => DailyMissions.IsExpired(record, now)
+                || (dailyById.TryGetValue(record.MissionId, out var daily) && daily != record.DailyPeriod.HasValue))
+            .ToList();
+    }
+
     private static MissionEntry Entry(Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned)
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);

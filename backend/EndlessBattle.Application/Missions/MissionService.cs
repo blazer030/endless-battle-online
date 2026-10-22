@@ -9,7 +9,7 @@ using EndlessBattle.Domain.Missions;
 namespace EndlessBattle.Application.Missions;
 
 // 寫入型用例各是一筆交易：讀角色與紀錄 → 去掉過期與未知 → 驗證 → 以版本鎖寫入角色（接取與放棄內容不變、只遞增版本；
-// 完成時一併寫入獎勵）→ 刪除過期每日紀錄 → 寫其他表。看板只讀，不刪過期紀錄
+// 完成時一併寫入獎勵）→ 刪除過期與種類不符的紀錄 → 寫其他表。看板只讀，不刪這些紀錄
 public sealed class MissionService(
     ICharacterRepository characters,
     IMissionRepository missions,
@@ -41,7 +41,7 @@ public sealed class MissionService(
                 throw new InputValidationException("無法接取任務", reasons);
             }
 
-            await LockAndRemoveExpiredAsync(character, records, now, cancellationToken);
+            await LockAndRemoveStaleAsync(character, records, now, cancellationToken);
             var period = mission!.Daily ? DailyMissions.PeriodOf(now) : (DateOnly?)null;
             await missions.AddAsync(character.Id, new MissionRecord(mission.Id, MissionState.Active, 0, period, now, null), cancellationToken);
             return await BoardAsync(character, now, cancellationToken);
@@ -60,12 +60,12 @@ public sealed class MissionService(
                 throw new InputValidationException("任務不在進行中", ["missionNotActive"]);
             }
 
-            await LockAndRemoveExpiredAsync(character, records, now, cancellationToken);
+            await LockAndRemoveStaleAsync(character, records, now, cancellationToken);
             await missions.RemoveAsync(character.Id, missionId, cancellationToken);
             return await BoardAsync(character, now, cancellationToken);
         }, cancellationToken);
 
-    // 驗證（含獎勵放不放得下）全部通過才寫入；寫入順序：角色（版本鎖＋獎勵）→ 過期每日紀錄 → 交付 → 獎勵道具 → 技能 → 任務
+    // 驗證（含獎勵放不放得下）全部通過才寫入；寫入順序：角色（版本鎖＋獎勵）→ 過期與種類不符的紀錄 → 交付 → 獎勵道具 → 技能 → 任務
     public Task<MissionCompletion> CompleteAsync(long accountId, string missionId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -98,7 +98,7 @@ public sealed class MissionService(
                 throw new InputValidationException("無法完成任務", outcome.Reasons);
             }
 
-            var updated = await LockAndRemoveExpiredAsync(outcome.Character, records, now, cancellationToken);
+            var updated = await LockAndRemoveStaleAsync(outcome.Character, records, now, cancellationToken);
             foreach (var entry in delivery.Updated)
             {
                 await inventory.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity, cancellationToken);
@@ -138,11 +138,11 @@ public sealed class MissionService(
         }, cancellationToken);
 
     // 交易中第一個寫入是角色版本鎖，同一角色的並行請求因版本不符收到 409；回傳寫入後的角色
-    private async Task<Character> LockAndRemoveExpiredAsync(
+    private async Task<Character> LockAndRemoveStaleAsync(
         Character character, IReadOnlyList<MissionRecord> records, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var updated = await characters.UpdateAsync(character, cancellationToken);
-        foreach (var record in records.Where(record => DailyMissions.IsExpired(record, now)))
+        foreach (var record in MissionBoard.Stale(records, content.AllMissions, now))
         {
             await missions.RemoveAsync(character.Id, record.MissionId, cancellationToken);
         }

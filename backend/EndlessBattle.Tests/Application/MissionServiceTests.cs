@@ -138,6 +138,20 @@ public class MissionServiceTests
         Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.Progress, record.DailyPeriod));
     }
 
+    // 定義從一般改成每日後，留下的無週期紀錄看板看不到；接取時比照過期紀錄先刪掉，不會撞唯一鍵而 409
+    [Fact]
+    public async Task Accept_ReplacesKindChangedRecord()
+    {
+        var character = await AddCharacterAsync();
+        await SeedAsync(character, new MissionRecord("test-daily", MissionState.Active, 1, DailyPeriod: null, Now.AddDays(-3), null));
+
+        await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
+
+        Assert.Equal(["update", "mission:remove:test-daily", "mission:add:test-daily"], log);
+        var record = Assert.Single(await RecordsAsync(character));
+        Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.Progress, record.DailyPeriod));
+    }
+
     [Fact]
     public async Task Abandon_RemovesActiveAndAllowsReaccept()
     {
