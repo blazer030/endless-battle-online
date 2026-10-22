@@ -1250,6 +1250,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/missions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionBoardResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/missions/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MissionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionBoardResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/missions/abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MissionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionBoardResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1294,6 +1407,11 @@ export interface components {
              * @default 0
              */
             potionsUsed: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            missionKills: number;
         };
         /** @enum {unknown} */
         AttackKind: "Physical" | "Magic";
@@ -1339,7 +1457,7 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -1392,6 +1510,19 @@ export interface components {
             /** Format: int32 */
             newLevel: number;
             growth: components["schemas"]["BaseStats"];
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventMissionProgressEvent: {
+            /** @enum {string} */
+            type?: "mission";
+            missionId: string;
+            title: string;
+            monsterId: string;
+            /** Format: int32 */
+            progress: number;
+            /** Format: int32 */
+            required: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -1683,6 +1814,85 @@ export interface components {
             stoneInventoryId: null | number;
             /** Format: int32 */
             quantityPairs: null | number;
+        };
+        MissionBoardResponse: {
+            available: components["schemas"]["MissionResponse"][];
+            active: components["schemas"]["MissionResponse"][];
+            completed: components["schemas"]["MissionResponse"][];
+            /** Format: int32 */
+            activeLimit: number;
+            /** Format: date-time */
+            nextDailyReset: string;
+        };
+        MissionDeliverResponse: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: int32 */
+            owned: number;
+        };
+        MissionKillResponse: {
+            monsterId: string;
+            monsterName: string;
+            /** Format: int32 */
+            placeId: number;
+            placeName: string;
+            /** Format: int32 */
+            count: number;
+            /** Format: int32 */
+            progress: number;
+        };
+        MissionRequest: {
+            missionId: null | string;
+        };
+        MissionRequirementsResponse: {
+            jobId: null | string;
+            /** Format: int32 */
+            sex: null | number;
+            /** Format: int32 */
+            birth: null | number;
+            prerequisiteId: null | string;
+            prerequisiteTitle: null | string;
+        };
+        MissionResponse: {
+            id: string;
+            giver: string;
+            title: string;
+            description: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            placeId: null | number;
+            placeName: null | string;
+            daily: boolean;
+            kill: null | components["schemas"]["MissionKillResponse"];
+            deliver: components["schemas"]["MissionDeliverResponse"][];
+            requirements: components["schemas"]["MissionRequirementsResponse"];
+            rewards: components["schemas"]["MissionRewardResponse"];
+            ready: boolean;
+            /** Format: date-time */
+            expiresAt: null | string;
+        };
+        MissionRewardItemResponse: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+        };
+        MissionRewardResponse: {
+            /** Format: int64 */
+            exp: number;
+            /** Format: int64 */
+            money: number;
+            items: components["schemas"]["MissionRewardItemResponse"][];
+            skill: null | components["schemas"]["MissionRewardSkillResponse"];
+        };
+        MissionRewardSkillResponse: {
+            skillId: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
         };
         MoveRequest: {
             /** Format: int32 */
