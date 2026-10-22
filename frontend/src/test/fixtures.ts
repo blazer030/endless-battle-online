@@ -133,6 +133,8 @@ export const makePlace = (overrides: Partial<WorldPlace> & Pick<WorldPlace, "id"
     restricted: false,
     current: false,
     recommendation: "None",
+    keys: 0,
+    passExpiresAt: null,
     ...overrides,
   }
   return place

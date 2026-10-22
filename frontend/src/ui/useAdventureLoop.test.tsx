@@ -16,6 +16,7 @@ const emptyResponse: AdvanceResponse = {
   eventsCoverAll: true,
   character,
   mercenary: null,
+  areaPassExpiresAt: null,
 }
 
 const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({

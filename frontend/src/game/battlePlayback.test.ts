@@ -56,6 +56,7 @@ function response(
     eventsCoverAll,
     character: { ...startCharacter, ...character },
     mercenary,
+    areaPassExpiresAt: null,
   }
 }
 

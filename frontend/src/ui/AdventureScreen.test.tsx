@@ -84,6 +84,7 @@ const response: AdvanceResponse = {
   eventsCoverAll: true,
   character: { ...character, exp: 8, money: 3, actNum: 49 },
   mercenary: null,
+  areaPassExpiresAt: null,
 }
 
 const levelUpResponse: AdvanceResponse = {
@@ -100,6 +101,7 @@ const levelUpResponse: AdvanceResponse = {
   eventsCoverAll: true,
   character: { ...character, level: 2, exp: 200, nextExp: 1092, money: 3 },
   mercenary: null,
+  areaPassExpiresAt: null,
 }
 
 const thiefOption: JobOption = {

@@ -2087,6 +2087,8 @@ export interface components {
             eventsCoverAll: boolean;
             character: components["schemas"]["CharacterResponse"];
             mercenary: null | components["schemas"]["MercenaryReportResponse"];
+            /** Format: date-time */
+            areaPassExpiresAt: null | string;
         };
         AdvanceSummary: {
             /** Format: int32 */
@@ -2619,7 +2621,7 @@ export interface components {
             bonus: components["schemas"]["StatBonus"];
         };
         /** @enum {unknown} */
-        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal";
+        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal" | "Key";
         JobContent: {
             id: string;
             name: string;
@@ -3194,6 +3196,10 @@ export interface components {
             restricted: boolean;
             current: boolean;
             recommendation: components["schemas"]["Recommendation"];
+            /** Format: int32 */
+            keys: number;
+            /** Format: date-time */
+            passExpiresAt: null | string;
         };
     };
     responses: never;
