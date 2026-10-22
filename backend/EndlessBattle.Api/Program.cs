@@ -52,6 +52,7 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthEndpoints();
 app.MapContentEndpoints();
 app.MapAccountEndpoints();
 app.MapCharacterEndpoints();

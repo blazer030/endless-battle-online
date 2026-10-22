@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IMercenaryRepository, MercenaryRepository>();
         services.AddScoped<IChampionRepository, ChampionRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        services.AddScoped<IDatabaseStatus, EfDatabaseStatus>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IRandomSourceFactory, SystemRandomSourceFactory>();

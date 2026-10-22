@@ -429,3 +429,5 @@ public sealed record ChampionResponse(
 
 // Events 從 0 秒起算、不含遇敵事件；Champion 是戰後的席位
 public sealed record ChampionChallengeResponse(ChampionResponse Champion, IReadOnlyList<BattleEvent> Events, bool Won, CharacterResponse Character);
+
+public sealed record HealthResponse(string Status);
