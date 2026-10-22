@@ -2697,6 +2697,7 @@ export interface components {
             bound: boolean;
             /** Format: int32 */
             refineStoneLevel: null | number;
+            enhanced: boolean;
         };
         InventoryResponse: {
             bag: components["schemas"]["BagCategoryResponse"][];

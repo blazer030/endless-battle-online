@@ -213,6 +213,7 @@ export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem 
   price: 200,
   bound: false,
   refineStoneLevel: null,
+  enhanced: false,
   ...overrides,
 })
 
