@@ -16,6 +16,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<Character> Characters { get; set; }
 
+    public virtual DbSet<CharacterChampion> CharacterChampions { get; set; }
+
     public virtual DbSet<CharacterDepot> CharacterDepots { get; set; }
 
     public virtual DbSet<CharacterEquipment> CharacterEquipments { get; set; }
@@ -24,7 +26,11 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
 
+    public virtual DbSet<CharacterMercenary> CharacterMercenaries { get; set; }
+
     public virtual DbSet<CharacterMission> CharacterMissions { get; set; }
+
+    public virtual DbSet<CharacterPet> CharacterPets { get; set; }
 
     public virtual DbSet<CharacterSkill> CharacterSkills { get; set; }
 
@@ -149,6 +155,46 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasConstraintName("fk_characters_account");
         });
 
+        modelBuilder.Entity<CharacterChampion>(entity =>
+        {
+            entity.HasKey(e => e.CharacterId).HasName("PRIMARY");
+
+            entity.ToTable("character_champions");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Agi).HasColumnName("agi");
+            entity.Property(e => e.At).HasColumnName("at");
+            entity.Property(e => e.Au).HasColumnName("au");
+            entity.Property(e => e.CrownedAt)
+                .HasMaxLength(6)
+                .HasColumnName("crowned_at");
+            entity.Property(e => e.Defenses).HasColumnName("defenses");
+            entity.Property(e => e.Df).HasColumnName("df");
+            entity.Property(e => e.Element).HasColumnName("element");
+            entity.Property(e => e.Hp).HasColumnName("hp");
+            entity.Property(e => e.HpMax).HasColumnName("hp_max");
+            entity.Property(e => e.IsPlayer).HasColumnName("is_player");
+            entity.Property(e => e.Level).HasColumnName("level");
+            entity.Property(e => e.LockedUntil)
+                .HasMaxLength(6)
+                .HasColumnName("locked_until");
+            entity.Property(e => e.Mat).HasColumnName("mat");
+            entity.Property(e => e.Mdf).HasColumnName("mdf");
+            entity.Property(e => e.Name)
+                .HasMaxLength(12)
+                .HasColumnName("name");
+            entity.Property(e => e.Sp).HasColumnName("sp");
+            entity.Property(e => e.SpMax).HasColumnName("sp_max");
+            entity.Property(e => e.SpecialAttackName)
+                .HasMaxLength(16)
+                .HasColumnName("special_attack_name");
+
+            entity.HasOne(d => d.Character).WithOne(p => p.CharacterChampion)
+                .HasForeignKey<CharacterChampion>(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_champions_character");
+        });
+
         modelBuilder.Entity<CharacterDepot>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -254,6 +300,34 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasConstraintName("fk_job_proficiency_character");
         });
 
+        modelBuilder.Entity<CharacterMercenary>(entity =>
+        {
+            entity.HasKey(e => e.CharacterId).HasName("PRIMARY");
+
+            entity.ToTable("character_mercenaries");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.HiredAt)
+                .HasMaxLength(6)
+                .HasColumnName("hired_at");
+            entity.Property(e => e.MercenaryId)
+                .HasMaxLength(32)
+                .HasColumnName("mercenary_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(8)
+                .HasColumnName("name");
+            entity.Property(e => e.NextFightAt)
+                .HasMaxLength(6)
+                .HasColumnName("next_fight_at");
+            entity.Property(e => e.PlaceId).HasColumnName("place_id");
+            entity.Property(e => e.Remaining).HasColumnName("remaining");
+
+            entity.HasOne(d => d.Character).WithOne(p => p.CharacterMercenary)
+                .HasForeignKey<CharacterMercenary>(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_mercenaries_character");
+        });
+
         modelBuilder.Entity<CharacterMission>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -285,6 +359,43 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_character_missions_character");
+        });
+
+        modelBuilder.Entity<CharacterPet>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("character_pets");
+
+            entity.HasIndex(e => e.CharacterId, "ix_character_pets_character");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Attack).HasColumnName("attack");
+            entity.Property(e => e.BornAt)
+                .HasMaxLength(6)
+                .HasColumnName("born_at");
+            entity.Property(e => e.Carried).HasColumnName("carried");
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Defense).HasColumnName("defense");
+            entity.Property(e => e.HungerSince)
+                .HasMaxLength(6)
+                .HasColumnName("hunger_since");
+            entity.Property(e => e.Intimacy).HasColumnName("intimacy");
+            entity.Property(e => e.Magic).HasColumnName("magic");
+            entity.Property(e => e.MonsterId)
+                .HasMaxLength(32)
+                .HasColumnName("monster_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(12)
+                .HasColumnName("name");
+            entity.Property(e => e.Personality).HasColumnName("personality");
+            entity.Property(e => e.Satiety).HasColumnName("satiety");
+            entity.Property(e => e.Spirit).HasColumnName("spirit");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterPets)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_pets_character");
         });
 
         modelBuilder.Entity<CharacterSkill>(entity =>

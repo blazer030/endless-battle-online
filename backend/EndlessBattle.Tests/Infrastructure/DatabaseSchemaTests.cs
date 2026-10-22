@@ -127,6 +127,43 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Contains("ux_character_missions_character_mission", exception.InnerException?.Message);
     }
 
+    [Fact]
+    public async Task Schema_HasCompanionTables()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var at = new DateTime(2026, 10, 22, 1, 2, 3, 456, DateTimeKind.Utc).AddTicks(7890);
+
+        await using var context = database.CreateDbContext();
+        context.CharacterPets.Add(new CharacterPet
+        {
+            CharacterId = characterId, MonsterId = "wolf", Name = "小狼", Personality = 3, Attack = 1, Magic = 2, Defense = 3,
+            Spirit = 4, Satiety = 5, Intimacy = 6, Carried = true, BornAt = at, HungerSince = at,
+        });
+        context.CharacterMercenaries.Add(new CharacterMercenary
+        {
+            CharacterId = characterId, MercenaryId = "knight", Name = "騎士", Remaining = 9, HiredAt = at,
+        });
+        context.CharacterChampions.Add(new CharacterChampion
+        {
+            CharacterId = characterId, Name = "冠軍", Level = 50, Element = 2, SpecialAttackName = "斬", Hp = 1, HpMax = 2, Sp = 3, SpMax = 4,
+            At = 5, Mat = 6, Df = 7, Mdf = 8, Agi = 9, Au = 10, IsPlayer = true, Defenses = 0,
+        });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        var pet = await reader.CharacterPets.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal((3, true, at, at), ((int)pet.Personality, pet.Carried, pet.BornAt, pet.HungerSince));
+        var mercenary = await reader.CharacterMercenaries.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal((9, (int?)null, (DateTime?)null), (mercenary.Remaining, mercenary.PlaceId, mercenary.NextFightAt));
+        var champion = await reader.CharacterChampions.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal((true, (DateTime?)null, (DateTime?)null), (champion.IsPlayer, champion.CrownedAt, champion.LockedUntil));
+
+        await using var second = database.CreateDbContext();
+        second.CharacterMercenaries.Add(new CharacterMercenary { CharacterId = characterId, MercenaryId = "x", Name = "x", Remaining = 1, HiredAt = at });
+        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

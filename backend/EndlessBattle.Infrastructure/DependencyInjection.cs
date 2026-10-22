@@ -1,9 +1,12 @@
 using EndlessBattle.Application.Accounts;
+using EndlessBattle.Application.Champion;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Infrastructure.Persistence;
@@ -38,6 +41,9 @@ public static class DependencyInjection
         services.AddScoped<IEquipmentRepository, EquipmentRepository>();
         services.AddScoped<IDepotRepository, DepotRepository>();
         services.AddScoped<IMissionRepository, MissionRepository>();
+        services.AddScoped<IPetRepository, PetRepository>();
+        services.AddScoped<IMercenaryRepository, MercenaryRepository>();
+        services.AddScoped<IChampionRepository, ChampionRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();

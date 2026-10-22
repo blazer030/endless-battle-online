@@ -71,6 +71,8 @@ public partial class Character
 
     public virtual Account Account { get; set; } = null!;
 
+    public virtual CharacterChampion? CharacterChampion { get; set; }
+
     public virtual ICollection<CharacterDepot> CharacterDepots { get; set; } = new List<CharacterDepot>();
 
     public virtual ICollection<CharacterEquipment> CharacterEquipments { get; set; } = new List<CharacterEquipment>();
@@ -79,7 +81,11 @@ public partial class Character
 
     public virtual ICollection<CharacterJobProficiency> CharacterJobProficiencies { get; set; } = new List<CharacterJobProficiency>();
 
+    public virtual CharacterMercenary? CharacterMercenary { get; set; }
+
     public virtual ICollection<CharacterMission> CharacterMissions { get; set; } = new List<CharacterMission>();
+
+    public virtual ICollection<CharacterPet> CharacterPets { get; set; } = new List<CharacterPet>();
 
     public virtual ICollection<CharacterSkillSlot> CharacterSkillSlots { get; set; } = new List<CharacterSkillSlot>();
 
