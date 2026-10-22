@@ -1,3 +1,4 @@
+using System.Globalization;
 using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
@@ -1571,10 +1572,41 @@ public class JsonGameContentTests
     }
 
     [Fact]
-    public void Items_AcceptElixirBounds()
+    public void Items_LoadElixirSpec()
     {
         var content = JsonGameContent.Load(TestContentDirectory);
         Assert.Equal(new ElixirSpec(BuffKind.Exp, 1.5, 3600), content.GetItem("test-exp-elixir").Elixir);
         Assert.Null(content.GetItem("test-supply").Elixir);
+    }
+
+    // 範圍兩端都可載入：倍率 1.01 與 3.00、秒數 60 與 86 400（剛好超出的見 Items_RejectElixirMultiplierOutOfRange）
+    [Theory]
+    [InlineData(1.01, 60)]
+    [InlineData(3.00, 86400)]
+    [InlineData(1.01, 86400)]
+    [InlineData(3.00, 60)]
+    public void Items_AcceptElixirBounds(double multiplier, int seconds)
+    {
+        var elixir = ValidElixir
+            .Replace("\"multiplier\": 1.5", $"\"multiplier\": {multiplier.ToString("0.00", CultureInfo.InvariantCulture)}")
+            .Replace("\"seconds\": 3600", $"\"seconds\": {seconds}");
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{ValidItemList}}, {{elixir}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{ValidRecipe}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
+            Assert.Equal(
+                new ElixirSpec(BuffKind.Exp, multiplier, seconds), JsonGameContent.Load(directory.FullName).GetItem("brew").Elixir);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
     }
 }
