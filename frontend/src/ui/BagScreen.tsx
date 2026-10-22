@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState, type FormEvent, type ReactNode } from "react"
+import { useCallback, useEffect, useId, useState, type FormEvent } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import {
   bagItems,
@@ -11,13 +11,11 @@ import {
   equipmentSlots,
   equippedIn,
   errorMessage,
-  holeMarks,
   isBankLocked,
   isEquipment,
   isSupply,
   isUsable,
   itemCategories,
-  itemTitle,
   MaxShopLevel,
   MaxStackQuantity,
   maxBuyQuantity,
@@ -26,10 +24,8 @@ import {
   requirementRows,
   sellPrice,
   supplyEquipQuantity,
-  supplyText,
   usageText,
   type JobName,
-  type Requirement,
 } from "../game/inventory"
 import type {
   CharacterView,
@@ -42,6 +38,15 @@ import type {
 } from "../game/types"
 import { formatNumber } from "./formatNumber"
 import "./BagScreen.css"
+import {
+  ItemDetail,
+  ItemName,
+  QuantityStepper,
+  Requirements,
+  Tabs,
+  type Mutate,
+  type Outcome,
+} from "./bagWidgets"
 
 export type BagApi = Pick<
   ApiClient,
@@ -82,12 +87,6 @@ const fallbackError = "發生錯誤，請稍後再試"
 
 const describeError = (error: unknown) =>
   error instanceof ApiError ? errorMessage(error.detail, error.reasons) : fallbackError
-
-// 變更的結果：背包換成回應內容；有角色就直接用，否則重新讀 /me 同步金錢與能力
-type Outcome = { inventory?: InventoryView; character?: CharacterView }
-
-// 回傳錯誤訊息，成功時為 null
-type Mutate = (action: () => Promise<Outcome>) => Promise<string | null>
 
 export function BagScreen({ api, character, onCharacterChanged, jobNames = [] }: Props) {
   const [page, setPage] = useState<SubPage>("bag")
@@ -801,103 +800,5 @@ function BankForm({
         {label}
       </button>
     </form>
-  )
-}
-
-function Tabs<T extends string | number>({
-  label,
-  options,
-  selected,
-  onSelect,
-  variant = "chips",
-}: {
-  label: string
-  options: { id: T; label: string }[]
-  selected: T
-  onSelect: (id: T) => void
-  variant?: "pages" | "chips"
-}) {
-  return (
-    <div className={`bag__tabs bag__tabs--${variant}`} role="tablist" aria-label={label}>
-      {options.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          role="tab"
-          className="bag__tab"
-          aria-selected={option.id === selected}
-          onClick={() => onSelect(option.id)}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function ItemName({ item }: { item: InventoryItem }) {
-  const holes = holeMarks(item)
-  return (
-    <span className="bag__item-head">
-      <span className="bag__item-name">{itemTitle(item)}</span>
-      {holes !== "" && (
-        <>
-          {" "}
-          <span className="bag__holes">{holes}</span>
-        </>
-      )}
-    </span>
-  )
-}
-
-function ItemDetail({ item }: { item: InventoryItem }): ReactNode {
-  const text = isSupply(item) ? supplyText(item) : bonusText(item.bonus)
-  return text === "" ? null : <p className="bag__detail">{text}</p>
-}
-
-function Requirements({ rows }: { rows: Requirement[] }) {
-  if (rows.length === 0) return null
-  return (
-    <ul className="bag__requirements" aria-label="需求">
-      {rows.map(({ text, met }) => (
-        <li key={text} className={met ? "bag__requirement" : "bag__requirement crimson-text"}>
-          {text}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function QuantityStepper({
-  value,
-  max,
-  disabled,
-  onChange,
-}: {
-  value: number
-  max: number
-  disabled: boolean
-  onChange: (value: number) => void
-}) {
-  return (
-    <span className="bag__stepper">
-      <button
-        type="button"
-        aria-label="減少數量"
-        disabled={disabled || value <= 1}
-        onClick={() => onChange(clampQuantity(value - 1, max))}
-      >
-        −
-      </button>
-      <span className="bag__stepper-value">{value}</span>
-      <button
-        type="button"
-        aria-label="增加數量"
-        disabled={disabled || value >= max}
-        onClick={() => onChange(clampQuantity(value + 1, max))}
-      >
-        ＋
-      </button>
-    </span>
   )
 }
