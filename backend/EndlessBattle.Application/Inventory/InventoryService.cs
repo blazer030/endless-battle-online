@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
@@ -12,7 +13,10 @@ public sealed class InventoryService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
+    IPetRepository pets,
     IGameContent content,
+    IClock clock,
+    IRandomSourceFactory randomFactory,
     IUnitOfWork unitOfWork)
 {
     public async Task<InventoryView> GetAsync(long accountId, CancellationToken cancellationToken)
@@ -80,13 +84,16 @@ public sealed class InventoryService(
             var state = await LoadAsync(character.Id, cancellationToken);
             var entry = FindInBag(state, inventoryId);
             var item = content.GetItem(entry.ItemId);
-            var reasons = ConsumableUse.CanUse(character, item);
+            var owned = await pets.ListAsync(character.Id, cancellationToken);
+            var context = new UseContext(character, content.GetJob(character.JobId), owned.Count, content.AllItems, content.AllMonsters);
+            var reasons = ConsumableUse.CanUse(context, item);
             if (reasons.Count > 0)
             {
                 throw new InputValidationException("這個道具不能使用", reasons);
             }
 
-            var updated = await characters.UpdateAsync(ConsumableUse.Apply(character, item), cancellationToken);
+            var outcome = ConsumableUse.Apply(context, item, clock.UtcNow, randomFactory.Create());
+            var updated = await characters.UpdateAsync(outcome.Character, cancellationToken);
             if (entry.Quantity > 1)
             {
                 await inventory.UpdateQuantityAsync(updated.Id, entry.Id, entry.Quantity - 1, cancellationToken);

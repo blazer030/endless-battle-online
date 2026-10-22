@@ -3,6 +3,7 @@ using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -19,13 +20,16 @@ public class InventoryServiceTests
     private readonly LoggingCharacterRepository characters;
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
+    private readonly InMemoryPetRepository pets = new();
+    private readonly ScriptedRandomFactory random = new();
     private readonly InventoryService service;
 
     public InventoryServiceTests()
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        service = new InventoryService(characters, inventory, equipment, Content, new InMemoryUnitOfWork());
+        service = new InventoryService(
+            characters, inventory, equipment, pets, Content, new FakeClock(DateTimeOffset.UnixEpoch), random, new InMemoryUnitOfWork());
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -410,5 +414,12 @@ public class InventoryServiceTests
         var view = await service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken);
 
         Assert.Equal([("test-sword", 1)], BagOf(view, ItemCategory.Weapon));
+    }
+
+    private sealed class ScriptedRandomFactory : IRandomSourceFactory
+    {
+        public IRandomSource Next { get; set; } = new ScriptedRandom(0.0);
+
+        public IRandomSource Create() => Next;
     }
 }

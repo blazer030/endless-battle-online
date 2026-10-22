@@ -31,7 +31,8 @@ public class ForgeServiceTests
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         unitOfWork = new InMemoryUnitOfWork(characters, inventory);
-        var inventoryService = new InventoryService(characters, inventory, equipment, Content, unitOfWork);
+        var inventoryService = new InventoryService(
+            characters, inventory, equipment, new InMemoryPetRepository(), Content, new FakeClock(DateTimeOffset.UnixEpoch), random, unitOfWork);
         service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService, unitOfWork);
     }
 
