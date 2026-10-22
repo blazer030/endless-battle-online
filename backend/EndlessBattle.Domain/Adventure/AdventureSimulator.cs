@@ -3,6 +3,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
@@ -38,8 +39,10 @@ public static class AdventureSimulator
         DateTimeOffset to,
         IRandomSource random,
         EquipmentBonus? equipment = null,
-        SupplyState? supply = null)
+        SupplyState? supply = null,
+        IReadOnlyList<ActiveMission>? missions = null)
     {
+        missions ??= [];
         // 裝備在整段推進中不變；null 表示沒有裝備
         var bonus = equipment ?? EquipmentBonus.Zero;
         var totalSeconds = (to - from).TotalSeconds;
@@ -47,7 +50,7 @@ public static class AdventureSimulator
         var events = new List<BattleEvent>();
         var droppedItemIds = new List<string>();
         var eventsCoverAll = true;
-        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0;
+        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
 
@@ -76,7 +79,9 @@ public static class AdventureSimulator
 
             (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
-            var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random);
+            // 任務怪只在其任務尚未達成且未過期時出現；任務邏輯不擲骰，沒有任務怪時擲骰序列不變
+            var spawnable = KillCounter.SpawnableMissionIds(missions, from.AddSeconds(cursor));
+            var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random, spawnable);
             var player = CombatBridge.ToCombatant(character, bonus);
             // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
             var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, supply, random);
@@ -150,6 +155,19 @@ public static class AdventureSimulator
 
                 droppedItemIds.AddRange(dropped);
 
+                // 只有勝場計入任務；擊殺時刻以打完的時間判斷每日任務是否過期
+                if (outcome.Winner == CombatSide.Player)
+                {
+                    var kill = KillCounter.Apply(missions, definition.Id, from.AddSeconds(fightEnd));
+                    missions = kill.Missions;
+                    missionKills += kill.Advanced.Count;
+                    if (keepEvents)
+                    {
+                        events.AddRange(kill.Advanced.Select(mission => new MissionProgressEvent(
+                            fightEnd, mission.MissionId, mission.Title, mission.MonsterId, mission.Progress, mission.Required)));
+                    }
+                }
+
                 expTotal += exp;
                 moneyTotal += money;
                 jobExpTotal += jobExp;
@@ -166,8 +184,8 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed);
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
-        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity);
+        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity, missions);
     }
 }

@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -460,5 +461,121 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 1, new ScriptedRandom(0.0, script), Dummy with { Drops = [new("ore", 10)] });
 
         Assert.Empty(run.DroppedItemIds);
+    }
+
+    private static readonly MonsterDefinition Sprite = Monster("test-sprite");
+
+    private static ActiveMission Hunt(int progress = 0) => new("test-hunt", "測試討伐", "test-sprite", Required: 3, progress, ExpiresAt: null);
+
+    private static AdventureRun RunWithMissions(
+        Character character, double seconds, IReadOnlyList<ActiveMission> missions, DateTimeOffset? from = null, IRandomSource? random = null,
+        params MonsterDefinition[] monsters)
+    {
+        var start = from ?? From;
+        return AdventureSimulator.Run(
+            character, Warrior, Place, monsters.Length == 0 ? [Sprite] : monsters, ItemOf, [],
+            new StaminaState(character.ActNum, character.ActNumTime), start, start.AddSeconds(seconds), random ?? new ScriptedRandom(0.0),
+            missions: missions);
+    }
+
+    // 20 秒 8 場全勝（同 dummy，每場 0 秒擊倒、間隔 2.8 秒）：前 3 場各 +1，之後已達成不再計；
+    // 進度事件緊接在同一時間的 RewardEvent 之後（第 7 場的升級在後面，不受影響）
+    [Fact]
+    public void Adventure_CountsMissionKillsAndEmitsProgress()
+    {
+        var run = RunWithMissions(Hero(), seconds: 20, [Hunt()]);
+
+        Assert.Equal(8, run.Summary.Wins);
+        Assert.Equal([Hunt(progress: 3)], run.Missions);
+        var progress = run.Events.OfType<MissionProgressEvent>().ToList();
+        Assert.Equal([1, 2, 3], progress.Select(mission => mission.Progress));
+        Assert.All(progress, mission => Assert.Equal(
+            ("test-hunt", "測試討伐", "test-sprite", 3), (mission.MissionId, mission.Title, mission.MonsterId, mission.Required)));
+        foreach (var mission in progress)
+        {
+            var index = run.Events.ToList().IndexOf(mission);
+            var reward = Assert.IsType<RewardEvent>(run.Events[index - 1]);
+            Assert.Equal(reward.AtSeconds, mission.AtSeconds);
+        }
+
+        Assert.Equal(3, run.Summary.MissionKills);
+    }
+
+    // 同 Adventure_DropsNothingOnLossesAndTimeouts：敗場、超限（有部分經驗）都不計任務
+    [Fact]
+    public void Adventure_CountsMissionKillsOnlyOnWins()
+    {
+        var brute = Monster("brute", hp: 60, at: 40, df: 1000);
+        var rock = Monster("rock", hp: 60, at: 40, df: 1000);
+        var bruteHunt = new ActiveMission("brute-hunt", "討伐", "brute", Required: 3, Progress: 0, ExpiresAt: null);
+        var rockHunt = new ActiveMission("rock-hunt", "討伐", "rock", Required: 3, Progress: 0, ExpiresAt: null);
+
+        var lost = RunWithMissions(Hero(), seconds: 1, [bruteHunt], monsters: brute);
+        Assert.Equal(1, lost.Summary.Losses);
+        Assert.Equal([bruteHunt], lost.Missions);
+        Assert.Empty(lost.Events.OfType<MissionProgressEvent>());
+        Assert.Equal(0, lost.Summary.MissionKills);
+
+        var timedOut = RunWithMissions(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, [rockHunt], monsters: rock);
+        Assert.Equal(1, timedOut.Summary.Timeouts);
+        Assert.Equal([rockHunt], timedOut.Missions);
+        Assert.Empty(timedOut.Events.OfType<MissionProgressEvent>());
+        Assert.Equal(0, timedOut.Summary.MissionKills);
+    }
+
+    // 離線結算跨過 09:00（01:00 UTC）：從 00:59:50 起 20 秒 8 場，各場在開打當下（0 秒）擊倒、打完於
+    // 00:59:50、52.8、55.6、58.4 的 4 場計入；第 5 場打完於 01:00:01.2，已在重置之後，之後的都不算
+    [Fact]
+    public void Adventure_StopsCountingDailyAfterReset()
+    {
+        var from = new DateTimeOffset(2026, 10, 22, 0, 59, 50, TimeSpan.Zero);
+        var reset = new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero);
+        var daily = new ActiveMission("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, ExpiresAt: reset);
+
+        var run = RunWithMissions(Hero(), seconds: 20, [daily], from);
+
+        Assert.Equal(8, run.Summary.Wins);
+        Assert.Equal([daily with { Progress = 4 }], run.Missions);
+        Assert.Equal(4, run.Summary.MissionKills);
+        Assert.All(run.Events.OfType<MissionProgressEvent>(), mission => Assert.True(from.AddSeconds(mission.AtSeconds) < reset));
+    }
+
+    // 地區 1 子地區 1：雪精（meet 0）、寒狼（meet 30）、首領（meet 60，任務 test-chief-hunt）；數值同 dummy，每場都贏
+    private static readonly MonsterDefinition[] ChiefPlace =
+    [
+        Monster("test-sprite", placeId: 1, subPlaces: 1),
+        Monster("test-wolf", meet: 30, placeId: 1, subPlaces: 1),
+        Monster("test-sprite-chief", meet: 60, placeId: 1, subPlaces: 1) with { MissionId = "test-chief-hunt" },
+    ];
+
+    // SeededRandom(7)、60 秒（18 場全勝）：帶著 test-chief-hunt 0/1 時，首領在 36.2 秒那場出現並被擊倒（進度事件 36.6 秒），
+    // 之後任務已達成，遭遇都不是牠。用 60 秒而非更長，讓擊倒首領的那場落在 30 秒事件窗口內（此後的窗口內碰巧沒有擲到首領的機會，
+    // 所以另以「已達成／已過期的任務 → 序列與沒帶任務相同」確認過濾）
+    [Fact]
+    public void Adventure_MissionMonsterOnlyWhileActive()
+    {
+        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, ExpiresAt: null);
+
+        var without = RunWithMissions(Hero(), seconds: 60, [], random: new SeededRandom(7), monsters: ChiefPlace);
+        var with = RunWithMissions(Hero(), seconds: 60, [chiefHunt], random: new SeededRandom(7), monsters: ChiefPlace);
+
+        Assert.DoesNotContain(without.Events.OfType<EncounterEvent>(), encounter => encounter.MonsterId == "test-sprite-chief");
+        var events = with.Events.ToList();
+        var completed = events.FindIndex(battleEvent => battleEvent is MissionProgressEvent { MissionId: "test-chief-hunt" });
+        Assert.True(completed >= 0);
+        var lastEncounterBefore = events.Take(completed).OfType<EncounterEvent>().Last();
+        Assert.Equal("test-sprite-chief", lastEncounterBefore.MonsterId);
+        Assert.NotEmpty(events.Skip(completed).OfType<EncounterEvent>());
+        Assert.DoesNotContain(events.Skip(completed).OfType<EncounterEvent>(), encounter => encounter.MonsterId == "test-sprite-chief");
+        Assert.Equal([chiefHunt with { Progress = 1 }], with.Missions);
+        Assert.Equal(1, with.Summary.MissionKills);
+
+        // 已達成或已過期的任務不讓首領出現：遭遇序列與沒帶任務時完全相同
+        var reached = RunWithMissions(Hero(), seconds: 60, [chiefHunt with { Progress = 1 }], random: new SeededRandom(7), monsters: ChiefPlace);
+        var expired = RunWithMissions(Hero(), seconds: 60, [chiefHunt with { ExpiresAt = From }], random: new SeededRandom(7), monsters: ChiefPlace);
+        Assert.Equal(Monsters(without), Monsters(reached));
+        Assert.Equal(Monsters(without), Monsters(expired));
+
+        static string[] Monsters(AdventureRun run) => run.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId).ToArray();
     }
 }

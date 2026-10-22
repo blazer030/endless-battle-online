@@ -2,6 +2,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
@@ -9,6 +10,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 
@@ -21,6 +23,7 @@ public sealed class AdventureService(
     ISkillLoadoutRepository loadout,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
+    IMissionRepository missions,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -50,6 +53,7 @@ public sealed class AdventureService(
         var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
             ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
             : character.LastSettledAt;
+        var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
         var run = AdventureSimulator.Run(
             character,
             content.GetJob(character.JobId),
@@ -62,7 +66,8 @@ public sealed class AdventureService(
             now,
             randomFactory.Create(),
             bonus,
-            SupplyOf(equipped));
+            SupplyOf(equipped),
+            tracked);
 
         return await unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -82,12 +87,25 @@ public sealed class AdventureService(
                 await proficiencies.AddAsync(updated.Id, gain.JobId, gain.Proficiency, gain.SkillPoints, cancellationToken);
             }
 
+            // 任務進度同樣在角色寫入成功後；推進期間被放棄（刪除）的任務因角色版本已變而 409，不會寫回
+            await StoreMissionProgressAsync(updated.Id, tracked, run.Missions, cancellationToken);
+
             var drops = await StoreDropsAsync(updated, run, cancellationToken);
             await StoreSupplyAsync(updated.Id, equipped, run.SupplyRemaining, cancellationToken);
 
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
                 await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
         }, cancellationToken);
+    }
+
+    private async Task StoreMissionProgressAsync(
+        long characterId, IReadOnlyList<ActiveMission> before, IReadOnlyList<ActiveMission> after, CancellationToken cancellationToken)
+    {
+        var progressBefore = before.ToDictionary(mission => mission.MissionId, mission => mission.Progress);
+        foreach (var mission in after.Where(mission => mission.Progress != progressBefore[mission.MissionId]))
+        {
+            await missions.UpdateProgressAsync(characterId, mission.MissionId, mission.Progress, cancellationToken);
+        }
     }
 
     private SupplyState? SupplyOf(Loadout equipped)

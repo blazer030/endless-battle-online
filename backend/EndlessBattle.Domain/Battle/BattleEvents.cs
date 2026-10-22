@@ -15,6 +15,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(RewardEvent), "reward")]
 [JsonDerivedType(typeof(LevelUpEvent), "levelUp")]
 [JsonDerivedType(typeof(RestEvent), "rest")]
+[JsonDerivedType(typeof(MissionProgressEvent), "mission")]
 public abstract record BattleEvent(double AtSeconds);
 
 public sealed record EncounterEvent(
@@ -64,3 +65,6 @@ public sealed record DropResult(string ItemId, string Name, int Quantity, bool D
 public sealed record LevelUpEvent(double AtSeconds, int NewLevel, BaseStats Growth) : BattleEvent(AtSeconds);
 
 public sealed record RestEvent(double AtSeconds, long Cost, bool ExpPenalty, double WaitSeconds) : BattleEvent(AtSeconds);
+
+// 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後
+public sealed record MissionProgressEvent(double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required) : BattleEvent(AtSeconds);

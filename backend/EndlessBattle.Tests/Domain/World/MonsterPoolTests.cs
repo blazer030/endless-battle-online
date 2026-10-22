@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.World;
+using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.World;
@@ -90,6 +91,21 @@ public class MonsterPoolTests
         Assert.Equal(["a", "chief"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0, active)));
         // 擲 0 → 候選 a、chief；第二擲 0.5 → ⌊0.5 × 2⌋ = 1 → chief
         Assert.Equal("chief", MonsterPool.Pick(monsters, 3, 1, new ScriptedRandom(0.0, 0.0, 0.5), active).Id);
+    }
+
+    // 測試內容地區 1：雪精（meet 0，子地區 1,2）、寒狼（meet 30，1,3）、首領（meet 60，1，任務 test-chief-hunt）。
+    // 擲 100 時子地區 1 三隻都過 meet，首領只在任務進行中入選；子地區 4 沒有候選、退回全地區時也一樣
+    [Fact]
+    public void Pool_ExcludesMissionMonstersUnlessActive()
+    {
+        var monsters = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent")).MonstersOf(1);
+        var none = new HashSet<string>();
+        var chiefHunt = new HashSet<string> { "test-chief-hunt" };
+
+        Assert.Equal(["test-sprite", "test-wolf"], Ids(MonsterPool.Candidates(monsters, 1, 1, roll: 100, none)));
+        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], Ids(MonsterPool.Candidates(monsters, 1, 1, roll: 100, chiefHunt)));
+        Assert.Equal(["test-sprite", "test-wolf"], Ids(MonsterPool.Candidates(monsters, 1, 4, roll: 100, none)));
+        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], Ids(MonsterPool.Candidates(monsters, 1, 4, roll: 100, chiefHunt)));
     }
 
     [Fact]

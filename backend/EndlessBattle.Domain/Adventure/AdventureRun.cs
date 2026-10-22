@@ -1,22 +1,24 @@
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Adventure;
 
-public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0)
+public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0, int MissionKills = 0)
 {
     public static AdvanceSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 // Drops 是進了背包的件數（被丟棄的不算）；模擬器不知道背包，固定為 0，由 AdventureService 依背包結果填入
+// MissionKills 是整段推進中任務進度增加的總次數（含窗口外的場次）
 // 熟練度與技能點的增量，由呼叫端寫入熟練度帳
 public sealed record JobGain(string JobId, long Proficiency, long SkillPoints);
 
 // Events 只含最後 CatchUpWindowSeconds 秒內開始的場次；EventsCoverAll 表示沒有任何戰鬥被略去（略去的住宿不算）。
 // DroppedItemIds 是所有勝場（含窗口外）擲到的道具，依順序，尚未套用到背包。
 // ConsumedSeconds 是實際用掉的時間，最後一場會打完，所以可能超過可用時間
-// SupplyRemaining 是推進結束時補給欄的剩餘數量，沒有補給時為 null
+// SupplyRemaining 是推進結束時補給欄的剩餘數量，沒有補給時為 null；Missions 是推進結束時各擊殺任務的狀態
 public sealed record AdventureRun(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,
@@ -26,4 +28,8 @@ public sealed record AdventureRun(
     double ConsumedSeconds,
     bool EventsCoverAll,
     IReadOnlyList<string> DroppedItemIds,
-    int? SupplyRemaining = null);
+    int? SupplyRemaining = null,
+    IReadOnlyList<ActiveMission>? Missions = null)
+{
+    public IReadOnlyList<ActiveMission> Missions { get; init; } = Missions ?? [];
+}

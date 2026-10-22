@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -31,6 +32,7 @@ public class AdventureServiceTests
     private readonly InMemorySkillLoadoutRepository loadout = new();
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
+    private readonly InMemoryMissionRepository missions;
     private readonly FakeClock clock = new(Start);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
@@ -40,9 +42,10 @@ public class AdventureServiceTests
         repository = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory);
+        missions = new InMemoryMissionRepository(log);
+        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions);
         service = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -96,7 +99,7 @@ public class AdventureServiceTests
         await AddCharacterAsync();
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
 
         await advance.AdvanceAsync(AccountId, CancellationToken);
 
@@ -429,9 +432,92 @@ public class AdventureServiceTests
         Assert.Equal([("test-supply", 1)], await BagAsync(character.Id));
     }
 
+    private static MissionRecord ActiveRecord(string missionId, int progress = 0) =>
+        new(missionId, MissionState.Active, progress, DailyPeriod: null, AcceptedAt: Start, CompletedAt: null);
+
+    private async Task AddMissionAsync(Character character, MissionRecord record)
+    {
+        await missions.AddAsync(character.Id, record, CancellationToken);
+        log.Clear();
+    }
+
+    // 20 秒 8 場全勝雪精：test-hunt 0/3 → 3/3；進度在角色更新與熟練度之後寫入
+    [Fact]
+    public async Task Advance_PersistsMissionProgress()
+    {
+        var character = await AddCharacterAsync();
+        await AddMissionAsync(character, ActiveRecord("test-hunt"));
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().Progress);
+        Assert.Equal(["update", "proficiency:warrior", "mission:progress:test-hunt"], log);
+        Assert.Equal(3, result.Summary.MissionKills);
+        Assert.Equal([1, 2, 3], result.Events.OfType<MissionProgressEvent>().Select(mission => mission.Progress));
+    }
+
+    // 推進讀到進行中的 test-hunt 之後，玩家放棄了它（刪除紀錄、角色版本 +1）：推進 409，不寫回也不重建任務。
+    // 另一個沒被放棄的 test-sprite-bounty 也不能有任何進度寫入（不論先後，任務寫入都不得早於角色的版本檢查）
+    [Fact]
+    public async Task Advance_WritesNoMissionProgress_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        await AddMissionAsync(character, ActiveRecord("test-hunt"));
+        await AddMissionAsync(character, ActiveRecord("test-sprite-bounty"));
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var advance = new AdventureService(
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock,
+            new HookRandomFactory(() =>
+            {
+                missions.RemoveAsync(character.Id, "test-hunt", CancellationToken).GetAwaiter().GetResult();
+                repository.UpdateAsync(character, CancellationToken).GetAwaiter().GetResult();
+                log.Clear();
+            }),
+            unitOfWork);
+
+        await Assert.ThrowsAsync<ConflictException>(() => advance.AdvanceAsync(AccountId, CancellationToken));
+
+        var records = await missions.ListAsync(character.Id, CancellationToken);
+        Assert.DoesNotContain(records, record => record.MissionId == "test-hunt");
+        Assert.Equal(0, records.Single(record => record.MissionId == "test-sprite-bounty").Progress);
+        Assert.DoesNotContain(log, entry => entry.StartsWith("mission:", StringComparison.Ordinal));
+    }
+
+    // 已完成的 test-hunt（進度刻意留在 0，確認看的是狀態而不是進度）、只有交付目標的 test-delivery、內容已移除的任務：
+    // 8 場都打雪精，但沒有任何進度寫入
+    [Fact]
+    public async Task Advance_IgnoresCompletedDeliveryAndUnknownMissions()
+    {
+        var character = await AddCharacterAsync();
+        await AddMissionAsync(character, ActiveRecord("test-hunt") with { State = MissionState.Completed, CompletedAt = Start });
+        await AddMissionAsync(character, ActiveRecord("test-delivery"));
+        await AddMissionAsync(character, ActiveRecord("removed-mission"));
+        var before = await missions.ListAsync(character.Id, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(8, result.Summary.Wins);
+        Assert.Equal(0, result.Summary.MissionKills);
+        Assert.Empty(result.Events.OfType<MissionProgressEvent>());
+        Assert.DoesNotContain(log, entry => entry.StartsWith("mission:", StringComparison.Ordinal));
+        Assert.Equal(before, await missions.ListAsync(character.Id, CancellationToken));
+    }
+
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Create() => new ScriptedRandom(0.0);
+    }
+
+    // 模擬開始時（讀取全部完成後）執行 hook，模擬推進讀取之後別的請求先寫入
+    private sealed class HookRandomFactory(Action hook) : IRandomSourceFactory
+    {
+        public IRandomSource Create()
+        {
+            hook();
+            return new ScriptedRandom(0.0);
+        }
     }
 
     // 模擬開始時取亂數源，藉此在 log 裡標出模擬的時間點
