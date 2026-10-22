@@ -5,6 +5,7 @@ using EndlessBattle.Application.Economy;
 using EndlessBattle.Application.Forge;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Jobs;
+using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<ForgeService>();
         services.AddScoped<MissionService>();
         services.AddScoped<PetService>();
+        services.AddScoped<MercenaryService>();
         return services;
     }
 }

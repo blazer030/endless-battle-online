@@ -66,6 +66,7 @@ app.MapDepotEndpoints();
 app.MapForgeEndpoints();
 app.MapMissionEndpoints();
 app.MapPetEndpoints();
+app.MapMercenaryEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

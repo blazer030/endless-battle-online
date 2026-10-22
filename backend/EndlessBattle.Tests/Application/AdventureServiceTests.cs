@@ -4,6 +4,8 @@ using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
@@ -35,6 +37,7 @@ public class AdventureServiceTests
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryMissionRepository missions;
     private readonly InMemoryPetRepository pets;
+    private readonly InMemoryMercenaryRepository mercenaries;
     private readonly FakeClock clock = new(Start);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
@@ -46,9 +49,10 @@ public class AdventureServiceTests
         equipment = new InMemoryEquipmentRepository(inventory);
         missions = new InMemoryMissionRepository(log);
         pets = new InMemoryPetRepository(log);
-        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets);
+        mercenaries = new InMemoryMercenaryRepository(log);
+        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets, mercenaries);
         service = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -102,7 +106,7 @@ public class AdventureServiceTests
         await AddCharacterAsync();
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
 
         await advance.AdvanceAsync(AccountId, CancellationToken);
 
@@ -470,7 +474,7 @@ public class AdventureServiceTests
         await AddMissionAsync(character, ActiveRecord("test-sprite-bounty"));
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock,
             new HookRandomFactory(() =>
             {
                 missions.RemoveAsync(character.Id, "test-hunt", CancellationToken).GetAwaiter().GetResult();
@@ -560,7 +564,7 @@ public class AdventureServiceTests
         var loggedInventory = new InMemoryInventoryRepository(log);
         var loggedEquipment = new InMemoryEquipmentRepository(loggedInventory);
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, mercenaries, Content, clock, new ScriptedRandomFactory(), unitOfWork);
         var character = await AddCharacterAsync();
         var netId = await EquipCaptureNetAsync(loggedInventory, loggedEquipment, character, quantity: 20);
         log.Clear();
@@ -687,6 +691,139 @@ public class AdventureServiceTests
 
         Assert.DoesNotContain(log, entry => entry.StartsWith("pet:update:", StringComparison.Ordinal));
         Assert.Equal(before, (await pets.ListAsync(character.Id, CancellationToken)).Single(pet => pet.Id == id));
+    }
+
+    // 出擊中的合約；準備過程的紀錄清掉
+    private async Task<MercenaryContract> DeployMercenaryAsync(Character character, int remaining, DateTimeOffset nextFightAt)
+    {
+        var contract = new MercenaryContract("test-mercenary", "阿傭", remaining, PlaceId: 1, nextFightAt, HiredAt: Start);
+        await mercenaries.AddAsync(character.Id, contract, CancellationToken);
+        log.Clear();
+        return contract;
+    }
+
+    // 傭兵在 now − 300 秒出擊 → now − 200、now − 100、now 三場都打雪精（滿血第 1 回合擊倒）：
+    // 經驗 round(116 × 50%) = 58、金錢 0、熟練度 12 全額、掉落 test-supply；test-hunt 在傭兵這三場就達成 3/3，冒險的 8 場不再計入。
+    // 接著角色自己的 20 秒 8 場。NextExp 很大以免升級。熟練度合併成一筆，合約最後寫
+    [Fact]
+    public async Task Advance_SettlesMercenaryBeforeAdventure()
+    {
+        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        await AddMissionAsync(character, ActiveRecord("test-hunt") with { AcceptedAt = Start.AddHours(-1) });
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var now = clock.UtcNow;
+        var contract = await DeployMercenaryAsync(character, remaining: 10, now.AddSeconds(-200));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var report = result.Mercenary!;
+        Assert.Equal("阿傭", report.Name);
+        Assert.Equal([now.AddSeconds(-200), now.AddSeconds(-100), now], report.Fights.Select(fight => fight.At));
+        Assert.All(report.Fights, fight => Assert.Equal(
+            ("test-sprite", MercenaryFightResult.Won, 58L, 0L), (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
+        Assert.Equal((174L, 0L, 0, 7, false), (report.Exp, report.Money, report.LevelsGained, report.Remaining, report.Dismissed));
+        Assert.Equal((8, 928L, 0, 8), (result.Summary.Wins, result.Summary.Exp, result.Summary.MissionKills, result.Summary.Drops));
+        var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
+        Assert.Equal(174 + 928, stored!.Exp);
+        Assert.Equal([new JobProficiency("warrior", 36 + 96, 36 + 96)], result.JobProficiency);
+        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().Progress);
+        Assert.Equal(11, (await inventory.ListAsync(character.Id, CancellationToken)).Where(entry => entry.ItemId == "test-supply").Sum(entry => entry.Quantity));
+        Assert.Equal(contract with { Remaining = 7, NextFightAt = now.AddSeconds(100) }, await mercenaries.FindAsync(character.Id, CancellationToken));
+        Assert.Equal(["update", "proficiency:warrior", "mission:progress:test-hunt", "mercenary:update"], log);
+    }
+
+    // 只剩 1 次：三場到期只打第一場，合約刪除、報告標示解除僱用；角色自己的冒險照常
+    [Fact]
+    public async Task Advance_RemovesMercenaryWhenFightsRunOut()
+    {
+        var character = await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+        await DeployMercenaryAsync(character, remaining: 1, clock.UtcNow.AddSeconds(-200));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var report = result.Mercenary!;
+        Assert.Single(report.Fights);
+        Assert.Equal((0, true), (report.Remaining, report.Dismissed));
+        Assert.Null(await mercenaries.FindAsync(character.Id, CancellationToken));
+        Assert.Equal("mercenary:remove", log[^1]);
+        Assert.Equal(8, result.Events.OfType<EncounterEvent>().Count());
+        Assert.Equal(8, result.Summary.Wins);
+    }
+
+    // 休息中的合約、或下一場還沒到：不擲骰、不寫合約，結果與沒有傭兵相同
+    [Fact]
+    public async Task Advance_IgnoresRestingOrNotYetDueMercenary()
+    {
+        var character = await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var resting = new MercenaryContract("test-mercenary", "阿傭", 3, PlaceId: null, NextFightAt: null, HiredAt: Start);
+        await mercenaries.AddAsync(character.Id, resting, CancellationToken);
+        log.Clear();
+        var baseline = new AdventureServiceTests();
+        await baseline.AddCharacterAsync();
+        baseline.clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+        var expected = await baseline.service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Null(result.Mercenary);
+        Assert.Equivalent(expected.Events, result.Events, strict: true);
+        Assert.Equal(expected.Summary, result.Summary);
+        Assert.DoesNotContain(log, entry => entry.StartsWith("mercenary:", StringComparison.Ordinal));
+        Assert.Equal(resting, await mercenaries.FindAsync(character.Id, CancellationToken));
+
+        var notDue = resting with { PlaceId = 1, NextFightAt = clock.UtcNow.AddSeconds(50) };
+        await mercenaries.UpdateAsync(character.Id, notDue, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+        log.Clear();
+        Assert.Null((await service.AdvanceAsync(AccountId, CancellationToken)).Mercenary);
+        Assert.DoesNotContain(log, entry => entry.StartsWith("mercenary:", StringComparison.Ordinal));
+        Assert.Equal(notDue, await mercenaries.FindAsync(character.Id, CancellationToken));
+    }
+
+    // 推進讀到出擊中的合約、捕獸網與飢餓到期的攜帶寵物之後，玩家同時解僱了傭兵（刪除合約、角色版本 +1）：
+    // 推進 409，捕到的寵物、飢餓、合約次數都不寫，合約也不會被重建
+    [Fact]
+    public async Task Advance_WritesNoCompanionState_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        await EquipCaptureNetAsync(inventory, equipment, character, quantity: 20);
+        await pets.AddAsync(character.Id, TestPets.Create() with { HungerSince = Start.AddHours(-1) }, CancellationToken);
+        var petsBefore = await pets.ListAsync(character.Id, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+        await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
+        var advance = new AdventureService(
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock,
+            new HookRandomFactory(() =>
+            {
+                mercenaries.RemoveAsync(character.Id, CancellationToken).GetAwaiter().GetResult();
+                repository.UpdateAsync(character, CancellationToken).GetAwaiter().GetResult();
+                log.Clear();
+            }),
+            unitOfWork);
+
+        await Assert.ThrowsAsync<ConflictException>(() => advance.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.DoesNotContain(log, entry => entry.StartsWith("pet:", StringComparison.Ordinal) || entry.StartsWith("mercenary:", StringComparison.Ordinal));
+        Assert.Null(await mercenaries.FindAsync(character.Id, CancellationToken));
+        Assert.Equal(petsBefore, await pets.ListAsync(character.Id, CancellationToken));
+        Assert.Equal(20, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
+    // 合約沒被動過、只有角色版本衝突：合約次數與下一場時刻都不寫（在交易回滾之前就不能有寫入）
+    [Fact]
+    public async Task Advance_WritesNoMercenary_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var contract = await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
+        repository.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.DoesNotContain(log, entry => entry.StartsWith("mercenary:", StringComparison.Ordinal));
+        Assert.Equal(contract, await mercenaries.FindAsync(character.Id, CancellationToken));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

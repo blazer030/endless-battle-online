@@ -100,11 +100,27 @@ public sealed record CharacterResponse(
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 
 // Events 只含最後 30 秒開始的場次與住宿，其餘只計入 Summary；EventsCoverAll 為 false 表示有戰鬥被略去（只略去住宿仍為 true）
+// Mercenary 只在這次推進有傭兵戰鬥時才有值
 public sealed record AdvanceResponse(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,
     bool EventsCoverAll,
-    CharacterResponse Character);
+    CharacterResponse Character,
+    MercenaryReportResponse? Mercenary);
+
+// Fights 是這次推進的場數；Recent 是最後 5 場，依時間；Dismissed 表示次數用完、已解除僱用
+public sealed record MercenaryReportResponse(
+    string Name,
+    int Fights,
+    int Wins,
+    long Exp,
+    long Money,
+    int LevelsGained,
+    int Remaining,
+    bool Dismissed,
+    IReadOnlyList<MercenaryFightResponse> Recent);
+
+public sealed record MercenaryFightResponse(DateTimeOffset At, string MonsterId, string MonsterName, bool Won, long Exp, long Money);
 
 public sealed record LearnSkillRequest(string? SkillId);
 
@@ -349,3 +365,19 @@ public sealed record PetFoodResponse(string Id, string Name, PetStat Stat, int A
 
 // Character 已扣餵食的金錢
 public sealed record PetFeedResponse(PetsResponse Pets, CharacterResponse Character);
+
+// hire 只看 MercenaryId；deploy 只看 PlaceId；rename 只看 Name；rest、dismiss 不需要 body
+public sealed record MercenaryRequest(string? MercenaryId, int? PlaceId, string? Name);
+
+public sealed record MercenaryOverviewResponse(IReadOnlyList<MercenaryCatalogueResponse> Catalogue, MercenaryContractResponse? Contract);
+
+// Price 為 null：只能在勳章所兌換
+public sealed record MercenaryCatalogueResponse(
+    string Id, string Name, long? Price, int Fights, int MoneyPercent, int DropPercent, int ExpPercent, int DeathCost);
+
+// PlaceId／PlaceName／NextFightAt 只在出擊中有值
+public sealed record MercenaryContractResponse(
+    string MercenaryId, string Name, int Remaining, int? PlaceId, string? PlaceName, bool Fighting, DateTimeOffset? NextFightAt);
+
+// Character 已扣僱用的金錢
+public sealed record MercenaryHireResponse(MercenaryOverviewResponse Mercenaries, CharacterResponse Character);

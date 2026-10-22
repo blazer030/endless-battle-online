@@ -50,4 +50,15 @@ public class DropRollerTests
 
         Assert.Equal(2, random.Consumed);
     }
+
+    // 傭兵：topr 10 × 0.9 × 1.7 → ⌊15.3⌋ = 15。0.066 → ⌊0.99⌋ + 1 = 1 命中；0.067 → ⌊1.005⌋ + 1 = 2 落空
+    // （分母 14 時 0.067 也命中、分母 16 時 0.066 也落空）
+    [Fact]
+    public void DropRoller_AppliesDenominatorFactor()
+    {
+        DropEntry[] drops = [new("supply", 10)];
+
+        Assert.Equal(["supply"], DropRoller.Roll(drops, fDown: 1, new ScriptedRandom(0.066), denominatorFactor: 1.7));
+        Assert.Empty(DropRoller.Roll(drops, fDown: 1, new ScriptedRandom(0.067), denominatorFactor: 1.7));
+    }
 }

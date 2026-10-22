@@ -2,6 +2,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
@@ -11,6 +12,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Skills;
@@ -27,6 +29,7 @@ public sealed class AdventureService(
     IEquipmentRepository equipment,
     IMissionRepository missions,
     IPetRepository pets,
+    IMercenaryRepository mercenaries,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -60,22 +63,34 @@ public sealed class AdventureService(
         var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
         var supplySlot = SupplySlotOf(equipped);
         var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);
+        var contract = await mercenaries.FindAsync(character.Id, cancellationToken);
+        var job = content.GetJob(character.JobId);
+        var skills = await LoadEquippedSkillsAsync(character, cancellationToken);
         var random = randomFactory.Create();
+
+        // 傭兵的時間軸先結算，角色從傭兵帶回的經驗、等級與任務進度接著冒險；沒有出擊中的傭兵時不擲任何骰。
+        // 內容裡已經沒有這位傭兵或這個地區時不結算
+        var mercenaryRun = contract is { Fighting: true, PlaceId: { } placeId }
+            && content.AllMercenaries.FirstOrDefault(mercenary => mercenary.Id == contract.MercenaryId) is { } mercenary
+            && content.AllPlaces.Any(place => place.Id == placeId)
+                ? MercenarySimulator.Run(character, job, contract, mercenary, content.MonstersOf(placeId), skills, bonus, carriedPet, tracked, now, random)
+                : null;
         var run = AdventureSimulator.Run(
-            character,
-            content.GetJob(character.JobId),
+            mercenaryRun?.Character ?? character,
+            job,
             content.GetPlace(character.PlaceId),
             content.MonstersOf(character.PlaceId),
             content.GetItem,
-            await LoadEquippedSkillsAsync(character, cancellationToken),
+            skills,
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
             now,
             random,
             bonus,
             supplySlot.Supply,
-            tracked,
+            mercenaryRun?.Missions ?? tracked,
             new AdventureCompanions(carriedPet, ownedPets.Count, supplySlot.Capture));
+        var mercenaryDrops = mercenaryRun?.DroppedItemIds ?? [];
 
         // 每次推進最多結算一次飢餓（同 WOG 的線上心跳），接在模擬之後擲骰
         var hungryPet = carriedPet is null ? null : PetCare.Hunger(carriedPet, now, random);
@@ -93,7 +108,7 @@ public sealed class AdventureService(
                 cancellationToken);
 
             // 角色以版本檢查寫入成功後才記熟練度，衝突的推進不會重複累加
-            foreach (var gain in run.JobGains)
+            foreach (var gain in MergeJobGains(job.Id, mercenaryRun?.JobExp ?? 0, run.JobGains))
             {
                 await proficiencies.AddAsync(updated.Id, gain.JobId, gain.Proficiency, gain.SkillPoints, cancellationToken);
             }
@@ -101,7 +116,7 @@ public sealed class AdventureService(
             // 任務進度同樣在角色寫入成功後；推進期間被放棄（刪除）的任務因角色版本已變而 409，不會寫回
             await StoreMissionProgressAsync(updated.Id, tracked, run.Missions, cancellationToken);
 
-            var drops = await StoreDropsAsync(updated, run, cancellationToken);
+            var drops = await StoreDropsAsync(updated, run, mercenaryDrops, cancellationToken);
             await StoreSupplyAsync(updated.Id, equipped, run.SupplyRemaining, cancellationToken);
 
             // 捕到的寵物依捕捉順序寫入，之後才寫攜帶寵物的飢餓
@@ -115,9 +130,51 @@ public sealed class AdventureService(
                 await pets.UpdateAsync(updated.Id, hungryPet, cancellationToken);
             }
 
+            var report = await StoreMercenaryAsync(updated.Id, contract, mercenaryRun, cancellationToken);
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
-                await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
+                await proficiencies.ListAsync(updated.Id, cancellationToken), bonus, report);
         }, cancellationToken);
+    }
+
+    // 兩條時間軸都是同一個職業，熟練度合併成一筆寫入
+    private static IReadOnlyList<JobGain> MergeJobGains(string jobId, long mercenaryJobExp, IReadOnlyList<JobGain> adventure)
+    {
+        if (mercenaryJobExp == 0)
+        {
+            return adventure;
+        }
+
+        var proficiency = mercenaryJobExp + adventure.Sum(gain => gain.Proficiency);
+        var skillPoints = mercenaryJobExp + adventure.Sum(gain => gain.SkillPoints);
+        return [new JobGain(jobId, proficiency, skillPoints)];
+    }
+
+    // 合約在所有寫入之後；次數用完就刪除。下一場還沒到（合約沒變）時不寫也不回報
+    private async Task<MercenaryReport?> StoreMercenaryAsync(
+        long characterId, MercenaryContract? before, MercenaryRun? run, CancellationToken cancellationToken)
+    {
+        if (run is null || run.Contract == before)
+        {
+            return null;
+        }
+
+        if (run.Contract is null)
+        {
+            await mercenaries.RemoveAsync(characterId, cancellationToken);
+        }
+        else
+        {
+            await mercenaries.UpdateAsync(characterId, run.Contract, cancellationToken);
+        }
+
+        return new MercenaryReport(
+            before!.Name,
+            run.Fights,
+            run.Fights.Sum(fight => fight.Exp),
+            run.Fights.Sum(fight => fight.Money),
+            run.LevelsGained,
+            run.Contract?.Remaining ?? 0,
+            Dismissed: run.Contract is null);
     }
 
     private async Task StoreMissionProgressAsync(
@@ -164,18 +221,19 @@ public sealed class AdventureService(
         await inventory.RemoveAsync(characterId, entry.Id, cancellationToken);
     }
 
-    // 掉落在角色與熟練度之後才寫入背包；事件裡的 Discarded 以背包實際放不放得下為準。
-    // 事件只含窗口內的勝場，是全部掉落的尾段，所以旗標從尾端對齊
+    // 掉落在角色與熟練度之後才寫入背包，傭兵的在前、冒險的在後；事件裡的 Discarded 以背包實際放不放得下為準。
+    // 事件只含窗口內的勝場，是全部掉落的尾段，所以旗標從尾端對齊。Accepted 只算冒險的掉落
     private async Task<(IReadOnlyList<BattleEvent> Events, int Accepted)> StoreDropsAsync(
-        Character character, AdventureRun run, CancellationToken cancellationToken)
+        Character character, AdventureRun run, IReadOnlyList<string> mercenaryDrops, CancellationToken cancellationToken)
     {
-        if (run.DroppedItemIds.Count == 0)
+        IReadOnlyList<string> dropped = [.. mercenaryDrops, .. run.DroppedItemIds];
+        if (dropped.Count == 0)
         {
             return (run.Events, 0);
         }
 
         var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        var applied = DropApplier.Apply(state.Bag, run.DroppedItemIds, content.GetItem, character.BagBonus);
+        var applied = DropApplier.Apply(state.Bag, dropped, content.GetItem, character.BagBonus);
         foreach (var entry in applied.UpdatedEntries)
         {
             await inventory.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity, cancellationToken);
@@ -187,7 +245,7 @@ public sealed class AdventureService(
         }
 
         var eventDrops = run.Events.OfType<RewardEvent>().Sum(reward => reward.Drops.Count);
-        var flagIndex = run.DroppedItemIds.Count - eventDrops;
+        var flagIndex = dropped.Count - eventDrops;
         var events = run.Events.Select(battleEvent =>
         {
             if (battleEvent is not RewardEvent { Drops.Count: > 0 } reward)
@@ -199,7 +257,7 @@ public sealed class AdventureService(
             return reward with { Drops = results };
         }).ToList();
 
-        return (events, applied.Discarded.Count(discarded => !discarded));
+        return (events, applied.Discarded.Skip(mercenaryDrops.Count).Count(discarded => !discarded));
     }
 
     // 內容檔移除的技能以 null 交給 Domain 略過；技能只有十幾個，線性查找即可
