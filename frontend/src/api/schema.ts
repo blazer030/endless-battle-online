@@ -737,7 +737,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["InventoryResponse"];
+                        "application/json": components["schemas"]["UseItemResponse"];
                     };
                 };
             };
@@ -1230,6 +1230,45 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["MergeStonesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ForgeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/merge-cross": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MergeCrossRequest"];
                 };
             };
             responses: {
@@ -2487,7 +2526,7 @@ export interface components {
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
         /** @enum {unknown} */
-        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture";
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
@@ -2751,6 +2790,14 @@ export interface components {
             /** Format: int32 */
             placeId: null | number;
             name: null | string;
+        };
+        MergeCrossRequest: {
+            /** Format: int64 */
+            firstInventoryId: null | number;
+            /** Format: int64 */
+            secondInventoryId: null | number;
+            /** Format: int32 */
+            quantityPairs: null | number;
         };
         MergeStonesRequest: {
             /** Format: int64 */
@@ -3181,6 +3228,15 @@ export interface components {
         UseItemRequest: {
             /** Format: int64 */
             inventoryId: null | number;
+        };
+        UseItemResponse: {
+            inventory: components["schemas"]["InventoryResponse"];
+            obtained: string[];
+            petName: null | string;
+            /** Format: int64 */
+            skillPoints: number;
+            /** Format: int32 */
+            levelsGained: number;
         };
         WorldAreaResponse: {
             id: string;
