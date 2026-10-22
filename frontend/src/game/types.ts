@@ -53,6 +53,7 @@ export type TimeoutEvent = Required<Schemas["BattleEventTimeoutEvent"]>
 export type RewardEvent = Required<Schemas["BattleEventRewardEvent"]>
 export type DropResult = Schemas["DropResult"]
 export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
+export type MissionProgressEvent = Required<Schemas["BattleEventMissionProgressEvent"]>
 export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
 export type BattleEvent =
   | EncounterEvent
@@ -64,4 +65,5 @@ export type BattleEvent =
   | TimeoutEvent
   | RewardEvent
   | LevelUpEvent
+  | MissionProgressEvent
   | RestEvent

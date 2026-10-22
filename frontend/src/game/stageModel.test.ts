@@ -252,6 +252,21 @@ describe("stageModel", () => {
     ])
   })
 
+  it("stageEffectsFor_MissionCompleted_ShowsGoldPlate", () => {
+    const mission: BattleEvent = {
+      type: "mission",
+      missionId: "m1",
+      title: "清除雪精",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+      atSeconds: 2,
+    }
+    expect(stageEffectsFor(mission)).toEqual([{ type: "plate", text: "任務達成", tone: "gold" }])
+    expect(stageEffectsFor({ ...mission, progress: 2 })).toEqual([])
+    expect(applyToStage(midFight, mission)).toBe(midFight)
+  })
+
   it("stageEffectsFor_Rest_FadesStageOverWait", () => {
     const rest: BattleEvent = {
       type: "rest",

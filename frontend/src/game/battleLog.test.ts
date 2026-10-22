@@ -211,12 +211,44 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "summary",
-    { kind: "summary", fights: 1500, wins: 1498, exp: 20000, money: 4, levels: 2 },
+    { kind: "summary", fights: 1500, wins: 1498, exp: 20000, money: 4, levels: 2, missionKills: 0 },
     [["離開期間戰鬥 1,500 場（勝 1,498）、獲得經驗 20,000、金錢 4，升了 2 級。", "drop"]],
   ],
   [
+    "summary mentions mission progress",
+    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 0, levels: 1, missionKills: 3 },
+    [["離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 0，任務進度 +3，升了 1 級。", "drop"]],
+  ],
+  [
+    "describes mission progress with the monster name",
+    event({
+      type: "mission",
+      missionId: "m1",
+      title: "清除雪精",
+      monsterId: "slime",
+      progress: 2,
+      required: 3,
+    }),
+    [["任務進度：史萊姆 2/3", "drop"]],
+  ],
+  [
+    "adds a completion line when the target is met",
+    event({
+      type: "mission",
+      missionId: "m1",
+      title: "清除雪精",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+    }),
+    [
+      ["任務進度：史萊姆 3/3", "drop"],
+      ["任務「清除雪精」的目標已達成，回任務頁回報。", "trigger"],
+    ],
+  ],
+  [
     "summary without level ups",
-    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 40, levels: 0 },
+    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 40, levels: 0, missionKills: 0 },
     [["離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 40。", "drop"]],
   ],
 ]

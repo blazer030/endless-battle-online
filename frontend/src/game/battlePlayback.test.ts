@@ -106,14 +106,14 @@ describe("BattlePlayback", () => {
       response(
         [tailEncounter, tailReward],
         {},
-        { fights: 43, wins: 42, exp: 215, money: 86, levelsGained: 1 },
+        { fights: 43, wins: 42, exp: 215, money: 86, levelsGained: 1, missionKills: 3 },
         false,
       ),
       1000,
     )
 
     expect(playback.takeDue(1000)).toEqual([
-      { kind: "summary", fights: 43, wins: 42, exp: 215, money: 86, levels: 1 },
+      { kind: "summary", fights: 43, wins: 42, exp: 215, money: 86, levels: 1, missionKills: 3 },
       { kind: "event", event: { ...tailEncounter, atSeconds: 0 } },
     ])
     expect(playback.takeDue(1799)).toEqual([])
@@ -150,7 +150,7 @@ describe("BattlePlayback", () => {
     expect(playback.displayedCharacter).toMatchObject({ exp: 30, money: 5 })
     expect(playback.takeDue(999)).toEqual([])
     expect(playback.takeDue(1000)).toEqual([
-      { kind: "summary", fights: 5, wins: 5, exp: 20, money: 4, levels: 0 },
+      { kind: "summary", fights: 5, wins: 5, exp: 20, money: 4, levels: 0, missionKills: 0 },
     ])
     expect(playback.displayedCharacter).toMatchObject({ exp: 50, money: 9 })
     const next = encounter(0)
@@ -170,7 +170,7 @@ describe("BattlePlayback", () => {
     expect(playback.takeDue(5000)).toEqual([{ kind: "event", event: firstEvent }])
     expect(playback.takeDue(9000)).toEqual([{ kind: "event", event: lastOfFirstBatch }])
     expect(playback.takeDue(10000)).toEqual([
-      { kind: "summary", fights: 2, wins: 1, exp: 1, money: 1, levels: 0 },
+      { kind: "summary", fights: 2, wins: 1, exp: 1, money: 1, levels: 0, missionKills: 0 },
       { kind: "event", event: { ...tail, atSeconds: 0 } },
     ])
   })

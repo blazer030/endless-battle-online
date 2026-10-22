@@ -64,6 +64,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "timeout":
     case "reward":
     case "levelUp":
+    case "mission":
       return state
   }
 }
@@ -117,6 +118,10 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
       return (event.drops ?? [])
         .filter((drop) => !drop.discarded)
         .map((drop) => ({ type: "dropFloat", text: drop.name }))
+    case "mission":
+      return event.progress === event.required
+        ? [{ type: "plate", text: "任務達成", tone: "gold" }]
+        : []
     case "encounter":
     case "round":
       return []

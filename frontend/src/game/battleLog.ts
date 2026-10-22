@@ -5,6 +5,7 @@ import type {
   ContentNames,
   DropResult,
   GrowthStats,
+  MissionProgressEvent,
   RewardEvent,
   SkillEvent,
 } from "./types"
@@ -64,6 +65,15 @@ const describeReward = (event: RewardEvent): LogEntry[] => [
   ...(event.drops ?? []).map(describeDrop),
 ]
 
+const describeMission = (event: MissionProgressEvent, monster: string): LogEntry[] => {
+  const lines: LogEntry[] = [
+    { text: `任務進度：${monster} ${event.progress}/${event.required}`, kind: "drop" },
+  ]
+  if (event.progress === event.required)
+    lines.push({ text: `任務「${event.title}」的目標已達成，回任務頁回報。`, kind: "trigger" })
+  return lines
+}
+
 const describeGrowth = (growth: GrowthStats) =>
   baseStatLabels
     .filter(({ key }) => growth[key] !== 0)
@@ -77,8 +87,9 @@ export const describePlaybackItem = (
 ): LogEntry[] => {
   if (item.kind === "summary") {
     const gains = `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}`
+    const missions = item.missionKills > 0 ? `，任務進度 +${format(item.missionKills)}` : ""
     const levels = item.levels > 0 ? `，升了 ${format(item.levels)} 級` : ""
-    return [{ text: `${gains}${levels}。`, kind: "drop" }]
+    return [{ text: `${gains}${missions}${levels}。`, kind: "drop" }]
   }
 
   const event = item.event
@@ -112,6 +123,8 @@ export const describePlaybackItem = (
       ]
     case "reward":
       return describeReward(event)
+    case "mission":
+      return describeMission(event, monsterName(event.monsterId))
     case "levelUp": {
       const growth = describeGrowth(event.growth)
       const level = `升級！Lv ${event.newLevel}`

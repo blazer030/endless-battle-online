@@ -63,6 +63,7 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   money: 0,
   jobExp: 0,
   levelsGained: 0,
+  missionKills: 0,
   skillsCast: 0,
   drops: 0,
   potionsUsed: 0,

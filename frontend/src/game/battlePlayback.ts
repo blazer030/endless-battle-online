@@ -3,7 +3,15 @@ import type { AdvanceResponse, AdvanceSummary, BattleEvent, CharacterView } from
 
 export type PlaybackItem =
   | { kind: "event"; event: BattleEvent }
-  | { kind: "summary"; fights: number; wins: number; exp: number; money: number; levels: number }
+  | {
+      kind: "summary"
+      fights: number
+      wins: number
+      exp: number
+      money: number
+      levels: number
+      missionKills: number
+    }
 
 // 項目播出時角色數值的增量；尚未播出的增量從已確認的角色資料扣回
 type Gain = { exp: number; money: number; levels: number }
@@ -143,6 +151,7 @@ export class BattlePlayback {
       exp: summary.exp,
       money: summary.money,
       levels: summary.levelsGained,
+      missionKills: summary.missionKills,
     }
   }
 
