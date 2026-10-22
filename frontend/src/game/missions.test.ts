@@ -111,12 +111,13 @@ describe("rewardLines", () => {
         money: 1500,
         items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
         skill: { skillId: "steal", name: "偷竊", level: 2 },
+        pet: null,
       }),
     ).toEqual(["經驗 19,000", "金錢 1,500", "小補給藥劑 ×5", "技能 偷竊 Lv2"])
   })
 
   it("skips zero exp and money", () => {
-    expect(rewardLines({ exp: 0, money: 0, items: [], skill: null })).toEqual([])
+    expect(rewardLines({ exp: 0, money: 0, items: [], skill: null, pet: null })).toEqual([])
   })
 })
 
@@ -223,6 +224,7 @@ describe("completionLines", () => {
     skill: { skillId: "steal", name: "偷竊", level: 1 },
     skillGranted: true,
     levelsGained: 2,
+    pet: null,
   }
 
   it("lists the message, rewards, skill and levels", () => {

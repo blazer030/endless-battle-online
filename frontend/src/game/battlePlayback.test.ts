@@ -48,6 +48,7 @@ function response(
     summary: makeSummary(summary),
     eventsCoverAll,
     character: { ...startCharacter, ...character },
+    mercenary: null,
   }
 }
 

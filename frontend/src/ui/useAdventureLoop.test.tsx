@@ -15,6 +15,7 @@ const emptyResponse: AdvanceResponse = {
   summary: makeSummary(),
   eventsCoverAll: true,
   character,
+  mercenary: null,
 }
 
 const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({

@@ -78,6 +78,7 @@ const response: AdvanceResponse = {
   summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
   eventsCoverAll: true,
   character: { ...character, exp: 8, money: 3, actNum: 49 },
+  mercenary: null,
 }
 
 const levelUpResponse: AdvanceResponse = {
@@ -93,6 +94,7 @@ const levelUpResponse: AdvanceResponse = {
   summary: makeSummary({ fights: 1, wins: 1, exp: 1200, money: 3, jobExp: 2, levelsGained: 1 }),
   eventsCoverAll: true,
   character: { ...character, level: 2, exp: 200, nextExp: 1092, money: 3 },
+  mercenary: null,
 }
 
 const thiefOption: JobOption = {

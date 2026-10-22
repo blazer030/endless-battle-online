@@ -170,6 +170,7 @@ test("MissionsScreen_CompleteShowsResultAndUpdatesCharacter", async () => {
     skill: null,
     skillGranted: false,
     levelsGained: 0,
+    pet: null,
   }
   const { api, onCharacterChanged } = renderMissions(
     createFakeApi({

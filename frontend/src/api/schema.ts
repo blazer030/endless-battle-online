@@ -1402,6 +1402,602 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/pets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pets/carry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetsResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pets/store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetsResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pets/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetsResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pets/rename": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetsResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pets/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PetRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PetFeedResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryOverviewResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries/hire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MercenaryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryHireResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries/deploy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MercenaryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryOverviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries/rest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryOverviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries/rename": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MercenaryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryOverviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/mercenaries/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MercenaryOverviewResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/honour": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HonourShopResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/honour/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["HonourExchangeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HonourShopResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/champion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChampionResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/champion/challenge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChampionChallengeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1416,6 +2012,7 @@ export interface components {
             summary: components["schemas"]["AdvanceSummary"];
             eventsCoverAll: boolean;
             character: components["schemas"]["CharacterResponse"];
+            mercenary: null | components["schemas"]["MercenaryReportResponse"];
         };
         AdvanceSummary: {
             /** Format: int32 */
@@ -1686,6 +2283,49 @@ export interface components {
             /** Format: int32 */
             quantity: null | number;
         };
+        ChampionChallengeResponse: {
+            champion: components["schemas"]["ChampionResponse"];
+            events: components["schemas"]["BattleEvent"][];
+            won: boolean;
+            character: components["schemas"]["CharacterResponse"];
+        };
+        ChampionResponse: {
+            name: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            element: number;
+            /** Format: int32 */
+            hp: number;
+            /** Format: int32 */
+            hpMax: number;
+            /** Format: int32 */
+            sp: number;
+            /** Format: int32 */
+            spMax: number;
+            /** Format: int32 */
+            at: number;
+            /** Format: int32 */
+            mat: number;
+            /** Format: int32 */
+            df: number;
+            /** Format: int32 */
+            mdf: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+            isPlayer: boolean;
+            /** Format: int32 */
+            defenses: number;
+            /** Format: date-time */
+            crownedAt: null | string;
+            /** Format: date-time */
+            lockedUntil: null | string;
+            /** Format: int64 */
+            fee: number;
+            reasons: string[];
+        };
         ChangeJobRequest: {
             jobId: null | string;
         };
@@ -1794,6 +2434,37 @@ export interface components {
             success: boolean;
             inventory: components["schemas"]["InventoryResponse"];
         };
+        HonourCostResponse: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: int32 */
+            owned: number;
+        };
+        HonourExchangeRequest: {
+            exchangeId: null | string;
+        };
+        HonourExchangeResponse: {
+            id: string;
+            kind: string;
+            rewardId: string;
+            rewardName: string;
+            /** Format: int32 */
+            quantity: number;
+            cost: components["schemas"]["HonourCostResponse"][];
+            affordable: boolean;
+        };
+        HonourMedalResponse: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            owned: number;
+        };
+        HonourShopResponse: {
+            medals: components["schemas"]["HonourMedalResponse"][];
+            exchanges: components["schemas"]["HonourExchangeResponse"][];
+        };
         InventoryItemResponse: {
             /** Format: int64 */
             inventoryId: number;
@@ -1893,6 +2564,76 @@ export interface components {
         LoginResponse: {
             accessToken: string;
         };
+        MercenaryCatalogueResponse: {
+            id: string;
+            name: string;
+            /** Format: int64 */
+            price: null | number;
+            /** Format: int32 */
+            fights: number;
+            /** Format: int32 */
+            moneyPercent: number;
+            /** Format: int32 */
+            dropPercent: number;
+            /** Format: int32 */
+            expPercent: number;
+            /** Format: int32 */
+            deathCost: number;
+        };
+        MercenaryContractResponse: {
+            mercenaryId: string;
+            name: string;
+            /** Format: int32 */
+            remaining: number;
+            /** Format: int32 */
+            placeId: null | number;
+            placeName: null | string;
+            fighting: boolean;
+            /** Format: date-time */
+            nextFightAt: null | string;
+        };
+        MercenaryFightResponse: {
+            /** Format: date-time */
+            at: string;
+            monsterId: string;
+            monsterName: string;
+            won: boolean;
+            /** Format: int64 */
+            exp: number;
+            /** Format: int64 */
+            money: number;
+        };
+        MercenaryHireResponse: {
+            mercenaries: components["schemas"]["MercenaryOverviewResponse"];
+            character: components["schemas"]["CharacterResponse"];
+        };
+        MercenaryOverviewResponse: {
+            catalogue: components["schemas"]["MercenaryCatalogueResponse"][];
+            contract: null | components["schemas"]["MercenaryContractResponse"];
+        };
+        MercenaryReportResponse: {
+            name: string;
+            /** Format: int32 */
+            fights: number;
+            /** Format: int32 */
+            wins: number;
+            /** Format: int64 */
+            exp: number;
+            /** Format: int64 */
+            money: number;
+            /** Format: int32 */
+            levelsGained: number;
+            /** Format: int32 */
+            remaining: number;
+            dismissed: boolean;
+            recent: components["schemas"]["MercenaryFightResponse"][];
+        };
+        MercenaryRequest: {
+            mercenaryId: null | string;
+            /** Format: int32 */
+            placeId: null | number;
+            name: null | string;
+        };
         MergeStonesRequest: {
             /** Format: int64 */
             stoneInventoryId: null | number;
@@ -1921,6 +2662,7 @@ export interface components {
             skillGranted: boolean;
             /** Format: int32 */
             levelsGained: number;
+            pet: null | components["schemas"]["MissionRewardPetResponse"];
         };
         MissionDeliverResponse: {
             itemId: string;
@@ -1940,6 +2682,11 @@ export interface components {
             count: number;
             /** Format: int32 */
             progress: number;
+        };
+        MissionPetResponse: {
+            monsterId: string;
+            name: string;
+            carried: boolean;
         };
         MissionRequest: {
             missionId: null | string;
@@ -1971,12 +2718,19 @@ export interface components {
             ready: boolean;
             /** Format: date-time */
             expiresAt: null | string;
+            deliverPet: null | components["schemas"]["MissionPetResponse"];
         };
         MissionRewardItemResponse: {
             itemId: string;
             name: string;
             /** Format: int32 */
             quantity: number;
+        };
+        MissionRewardPetResponse: {
+            monsterId: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
         };
         MissionRewardResponse: {
             /** Format: int64 */
@@ -1985,6 +2739,7 @@ export interface components {
             money: number;
             items: components["schemas"]["MissionRewardItemResponse"][];
             skill: null | components["schemas"]["MissionRewardSkillResponse"];
+            pet: null | components["schemas"]["MissionRewardPetResponse"];
         };
         MissionRewardSkillResponse: {
             skillId: string;
@@ -2002,6 +2757,60 @@ export interface components {
             id: string;
             name: string;
         };
+        PetFeedResponse: {
+            pets: components["schemas"]["PetsResponse"];
+            character: components["schemas"]["CharacterResponse"];
+        };
+        PetFoodResponse: {
+            id: string;
+            name: string;
+            stat: components["schemas"]["PetStat"];
+            /** Format: int32 */
+            amount: number;
+            /** Format: int64 */
+            cost: number;
+        };
+        /** @enum {unknown} */
+        PetPersonality: "Aggressive" | "Cold" | "Ironwall" | "Desperate";
+        PetRequest: {
+            /** Format: int64 */
+            petId: null | number;
+            name: null | string;
+            foodId: null | string;
+        };
+        PetResponse: {
+            /** Format: int64 */
+            id: number;
+            monsterId: string;
+            species: string;
+            name: string;
+            personality: components["schemas"]["PetPersonality"];
+            /** Format: int32 */
+            attack: number;
+            /** Format: int32 */
+            magic: number;
+            /** Format: int32 */
+            defense: number;
+            /** Format: int32 */
+            spirit: number;
+            /** Format: int32 */
+            satiety: number;
+            /** Format: int32 */
+            intimacy: number;
+            carried: boolean;
+            /** Format: int32 */
+            age: number;
+            /** Format: date-time */
+            nextFeedAt: string;
+        };
+        PetsResponse: {
+            pets: components["schemas"]["PetResponse"][];
+            /** Format: int32 */
+            maxPets: number;
+            foods: components["schemas"]["PetFoodResponse"][];
+        };
+        /** @enum {unknown} */
+        PetStat: "Attack" | "Magic" | "Defense" | "Spirit";
         RecipeMaterialResponse: {
             itemId: string;
             name: string;
