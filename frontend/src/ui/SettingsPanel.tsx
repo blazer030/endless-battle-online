@@ -29,6 +29,10 @@ const describeError = (error: unknown) => {
   return settingsErrorMessage(error.reasons, error.detail)
 }
 
+// 值一律來自 attackChoices；找不到時退回自動
+const attackChoiceOf = (value: string): AttackChoice =>
+  attackChoices.find((choice) => choice.value === value)?.value ?? "auto"
+
 type PercentField = Exclude<keyof SettingsForm, "attack" | "specialAttackName">
 
 // 文案照 WOG js/wog_fight.js 的戰鬥設定
@@ -83,7 +87,7 @@ export function SettingsPanel({ api, character, onCharacterChanged, onClose }: P
           <select
             className="settings__select"
             value={form.attack}
-            onChange={(event) => setForm({ ...form, attack: event.target.value as AttackChoice })}
+            onChange={(event) => setForm({ ...form, attack: attackChoiceOf(event.target.value) })}
           >
             {attackChoices.map((choice) => (
               <option key={choice.value} value={choice.value}>

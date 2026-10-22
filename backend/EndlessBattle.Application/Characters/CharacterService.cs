@@ -72,27 +72,36 @@ public sealed class CharacterService(
     {
         await FindCharacterAsync(accountId, cancellationToken);
         var reasons = settings.Validate().ToList();
-        string? trimmedName = null;
-        try
-        {
-            trimmedName = CharacterFactory.ValidateSpecialAttackName(specialAttackName);
-        }
-        catch (CharacterCreationException)
+        var trimmedName = TrimmedSpecialAttackName(specialAttackName);
+        if (trimmedName is null)
         {
             reasons.Add("nameInvalid");
         }
 
-        if (reasons.Count > 0)
+        if (trimmedName is null || reasons.Count > 0)
         {
             throw new InputValidationException("設定無效", reasons);
         }
 
         var settled = await adventure.AdvanceAsync(accountId, cancellationToken);
         var updated = await characters.UpdateAsync(
-            settled.Character with { Settings = settings, SpecialAttackName = trimmedName! }, cancellationToken);
+            settled.Character with { Settings = settings, SpecialAttackName = trimmedName }, cancellationToken);
         return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), settled.JobProficiency, settled.Equipment);
     }
 
-    private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
+    // 沿用創角規則；不符時回 null
+    private static string? TrimmedSpecialAttackName(string name)
+    {
+        try
+        {
+            return CharacterFactory.ValidateSpecialAttackName(name);
+        }
+        catch (CharacterCreationException)
+        {
+            return null;
+        }
+    }
+
+        private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
         await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
 }
