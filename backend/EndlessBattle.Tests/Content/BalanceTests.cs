@@ -72,10 +72,12 @@ public class BalanceTests
             Content.MonstersOf(Content.StartingPlaceId),
             Content.StartingPlaceId,
             Content.StartingSubPlace,
-            FarthestRoll);
+            FarthestRoll)
+            .Where(monster => monster.MissionId is null)
+            .ToList();
+        Assert.NotEmpty(candidates);
 
         var tooStrong = candidates
-            .Where(monster => monster.MissionId is null)
             .Select(monster => (monster.Id, Hit: HighestSingleHit(monster, reference)))
             .Where(entry => entry.Hit > HalfOfReferenceHp)
             .Select(entry => $"{entry.Id} 最大單擊 {entry.Hit}")
@@ -87,7 +89,10 @@ public class BalanceTests
     [Fact]
     public void Balance_MissionMonstersWithinTenLevelsOfTheirMission()
     {
-        foreach (var monster in Content.AllMonsters.Where(monster => monster.MissionId is not null))
+        var missionMonsters = Content.AllMonsters.Where(monster => monster.MissionId is not null).ToList();
+        Assert.NotEmpty(missionMonsters);
+
+        foreach (var monster in missionMonsters)
         {
             var mission = Content.AllMissions.Single(candidate => candidate.Id == monster.MissionId);
             Assert.True(
