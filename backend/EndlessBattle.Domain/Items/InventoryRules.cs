@@ -11,6 +11,17 @@ public static class InventoryRules
     public static int Capacity(ItemCategory category, int bagBonus) =>
         category is ItemCategory.Consumable or ItemCategory.Stone ? SlotsPerCategory + bagBonus : SlotsPerCategory;
 
+    // 扣掉數量後的背包（扣光的格子移除），用來計算放不放得下
+    public static IReadOnlyList<InventoryEntry> AfterConsuming(IReadOnlyList<InventoryEntry> bag, InventoryEntry consumed, int quantity) =>
+        bag.Select(entry => entry.Id == consumed.Id ? entry with { Quantity = entry.Quantity - quantity } : entry)
+            .Where(entry => entry.Quantity > 0)
+            .ToList();
+
+    // 背包中屬於 category 的道具：TryAdd 的格數只算同分類
+    public static IReadOnlyList<InventoryEntry> InCategory(
+        IReadOnlyList<InventoryEntry> bag, ItemCategory category, Func<string, ItemDefinition> items) =>
+        bag.Where(entry => items(entry.ItemId).Category == category).ToList();
+
     // bag 是背包中與 item 同分類的道具（不含已裝備的）；先堆疊到同種道具上，再開新格，放不下的丟棄
     public static AddResult TryAdd(IReadOnlyList<InventoryEntry> bag, ItemDefinition item, int quantity, int bagBonus)
     {

@@ -88,7 +88,7 @@ public sealed class ForgeService(
             Check(Socket.CheckRemove(target, content.GetItem(target.ItemId), hole), "無法拆除魔石");
             var remover = FindTool(state, ForgeTools.StoneRemover);
             var stone = content.GetItem(target.Sockets.Single(socket => socket.Hole == hole).StoneId);
-            var added = InventoryRules.TryAdd(SameCategory(AfterConsuming(state.Bag, remover, 1), stone), stone, 1, character.BagBonus);
+            var added = InventoryRules.TryAdd(SameCategory(InventoryRules.AfterConsuming(state.Bag, remover, 1), stone), stone, 1, character.BagBonus);
             if (added.Discarded > 0)
             {
                 throw new InputValidationException("背包已滿", ["bagFull"]);
@@ -138,7 +138,8 @@ public sealed class ForgeService(
             Check(StoneMerge.Check(stoneItem, stone.Quantity, quantityPairs, FindRefineStone), "無法合成");
             var next = StoneMerge.SameKindNext(stoneItem, stoneItem, FindRefineStone) ?? throw new InvalidOperationException("Check 已確認可合成");
             var consumed = quantityPairs * StoneMerge.StonesPerPair;
-            var added = InventoryRules.TryAdd(SameCategory(AfterConsuming(state.Bag, stone, consumed), next), next, quantityPairs, character.BagBonus);
+            var added = InventoryRules.TryAdd(
+                SameCategory(InventoryRules.AfterConsuming(state.Bag, stone, consumed), next), next, quantityPairs, character.BagBonus);
             if (added.Discarded > 0)
             {
                 throw new InputValidationException("背包已滿", ["bagFull"]);
@@ -169,7 +170,7 @@ public sealed class ForgeService(
             var results = Enumerable.Range(0, quantityPairs)
                 .Select(_ => StoneMerge.CrossKindPrevious(firstItem, secondItem, refineStones, random))
                 .ToList();
-            var bag = AfterConsuming(AfterConsuming(state.Bag, first, quantityPairs), second, quantityPairs);
+            var bag = InventoryRules.AfterConsuming(InventoryRules.AfterConsuming(state.Bag, first, quantityPairs), second, quantityPairs);
             var added = InventoryRules.TryAddEach(SameCategory(bag, results[0]), results, character.BagBonus);
             if (added.Discarded > 0)
             {
@@ -229,14 +230,8 @@ public sealed class ForgeService(
         }
     }
 
-    private List<InventoryEntry> SameCategory(IReadOnlyList<InventoryEntry> bag, ItemDefinition item) =>
-        bag.Where(entry => content.GetItem(entry.ItemId).Category == item.Category).ToList();
-
-    // 扣掉數量後的背包（扣光的格子移除），用來計算放不放得下
-    private static List<InventoryEntry> AfterConsuming(IReadOnlyList<InventoryEntry> bag, InventoryEntry consumed, int quantity) =>
-        bag.Select(entry => entry.Id == consumed.Id ? entry with { Quantity = entry.Quantity - quantity } : entry)
-            .Where(entry => entry.Quantity > 0)
-            .ToList();
+    private IReadOnlyList<InventoryEntry> SameCategory(IReadOnlyList<InventoryEntry> bag, ItemDefinition item) =>
+        InventoryRules.InCategory(bag, item.Category, content.GetItem);
 
     private Task SaveEnhancementAsync(long characterId, InventoryEntry entry, CancellationToken cancellationToken) =>
         inventory.UpdateEnhancementAsync(characterId, entry.Id, entry.RefineLevel, entry.RefineBonus, entry.Sockets, entry.Holes, cancellationToken);

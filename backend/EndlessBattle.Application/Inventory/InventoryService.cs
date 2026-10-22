@@ -117,11 +117,7 @@ public sealed class InventoryService(
             AddResult? added = null;
             if (granted.Count > 0)
             {
-                var bagAfterUse = state.Bag
-                    .Select(other => other.Id == entry.Id ? other with { Quantity = other.Quantity - 1 } : other)
-                    .Where(other => other.Quantity > 0)
-                    .Where(other => content.GetItem(other.ItemId).Category == granted[0].Category)
-                    .ToList();
+                var bagAfterUse = InventoryRules.InCategory(InventoryRules.AfterConsuming(state.Bag, entry, 1), granted[0].Category, content.GetItem);
                 added = InventoryRules.TryAddEach(bagAfterUse, granted, character.BagBonus);
                 if (added.Discarded > 0)
                 {
@@ -182,10 +178,7 @@ public sealed class InventoryService(
         }
 
         var left = entry with { Quantity = entry.Quantity - quantity };
-        var bagAfterSplit = state.Bag
-            .Select(other => other.Id == entry.Id ? left : other)
-            .Where(other => other.Quantity > 0)
-            .ToList();
+        var bagAfterSplit = InventoryRules.AfterConsuming(state.Bag, entry, quantity);
         var previous = state.Loadout.Equipped.GetValueOrDefault(EquipmentSlot.Supply);
         (InventoryEntry Entry, AddResult Result)? returning = previous is null
             ? null
