@@ -25,7 +25,7 @@ public class InventoryServiceTests
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        service = new InventoryService(characters, inventory, equipment, Content);
+        service = new InventoryService(characters, inventory, equipment, Content, new InMemoryUnitOfWork());
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;

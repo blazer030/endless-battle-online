@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IInventoryRepository, InventoryRepository>();
         services.AddScoped<IEquipmentRepository, EquipmentRepository>();
         services.AddScoped<IDepotRepository, DepotRepository>();
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IRandomSourceFactory, SystemRandomSourceFactory>();

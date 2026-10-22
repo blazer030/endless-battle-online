@@ -5,7 +5,7 @@ using EndlessBattle.Domain.Characters;
 namespace EndlessBattle.Tests.Support;
 
 // 記錄更新順序；FailNextUpdate 模擬別的請求先寫入造成的版本衝突
-public sealed class LoggingCharacterRepository(List<string> log) : ICharacterRepository
+public sealed class LoggingCharacterRepository(List<string> log) : ICharacterRepository, IRestorableRepository
 {
     private readonly InMemoryCharacterRepository inner = new();
 
@@ -28,4 +28,6 @@ public sealed class LoggingCharacterRepository(List<string> log) : ICharacterRep
         log.Add("update");
         return inner.UpdateAsync(character, cancellationToken);
     }
+
+    public Action Snapshot() => inner.Snapshot();
 }

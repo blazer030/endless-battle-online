@@ -32,6 +32,7 @@ public class AdventureServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly FakeClock clock = new(Start);
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
 
     public AdventureServiceTests()
@@ -39,7 +40,9 @@ public class AdventureServiceTests
         repository = new LoggingCharacterRepository(log);
         proficiencies = new InMemoryJobProficiencyRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        service = new AdventureService(repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new ScriptedRandomFactory());
+        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory);
+        service = new AdventureService(
+            repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -68,6 +71,22 @@ public class AdventureServiceTests
         Assert.Equal(28, stored.Exp);
         Assert.Equal(result.Character, stored);
         Assert.Equal([new JobProficiency("warrior", 96, 96)], result.JobProficiency);
+    }
+
+    // 角色已寫入後掉落才寫入失敗：整筆推進回滾，角色、熟練度與背包都維持原狀，例外照常拋出
+    [Fact]
+    public async Task Advance_RollsBackCharacterWhenInventoryWriteFails()
+    {
+        var before = await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+        inventory.FailWrite = "add";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.Equal(["begin", "rollback"], unitOfWork.Log);
+        Assert.Equal(before, await repository.FindByAccountAsync(AccountId, CancellationToken));
+        Assert.Empty(await proficiencies.ListAsync(before.Id, CancellationToken));
+        Assert.Empty(await inventory.ListAsync(before.Id, CancellationToken));
     }
 
     // HP 0 → 先住宿 15 秒回滿 350／91；15 秒那場擊倒雪精：999 + 116 > 1000 → Lv2，成長取下限 (2,0,1,1,1,0,0)。

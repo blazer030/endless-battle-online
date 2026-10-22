@@ -5,7 +5,7 @@ using EndlessBattle.Domain.Progression;
 namespace EndlessBattle.Tests.Support;
 
 // 應用層測試用：與 JobProficiencyRepository 一樣累加差值；呼叫順序記在 log 裡
-public sealed class InMemoryJobProficiencyRepository(List<string>? log = null) : IJobProficiencyRepository
+public sealed class InMemoryJobProficiencyRepository(List<string>? log = null) : IJobProficiencyRepository, IRestorableRepository
 {
     private readonly Dictionary<(long CharacterId, string JobId), JobProficiency> rows = [];
 
@@ -48,5 +48,18 @@ public sealed class InMemoryJobProficiencyRepository(List<string>? log = null) :
         }
 
         rows[(characterId, jobId)] = existing with { SkillPoints = existing.SkillPoints - cost };
+    }
+
+    public Action Snapshot()
+    {
+        var saved = new Dictionary<(long CharacterId, string JobId), JobProficiency>(rows);
+        return () =>
+        {
+            rows.Clear();
+            foreach (var (key, row) in saved)
+            {
+                rows[key] = row;
+            }
+        };
     }
 }

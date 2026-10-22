@@ -12,88 +12,91 @@ public sealed record DepotView(IReadOnlyList<InventoryItem> Entries, int Capacit
 
 public sealed record DepotMove(InventoryView Inventory, DepotView Depot);
 
-// 存取都先以版本鎖寫入角色（內容不變、只遞增版本），成功後才動倉庫與背包
+// 每次存取是一筆交易：先以版本鎖寫入角色（內容不變、只遞增版本），成功後才動倉庫與背包
 public sealed class DepotService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IDepotRepository depot,
     IGameContent content,
-    InventoryService inventoryService)
+    InventoryService inventoryService,
+    IUnitOfWork unitOfWork)
 {
     public async Task<DepotView> GetAsync(long accountId, CancellationToken cancellationToken) =>
         await ViewAsync(await FindCharacterAsync(accountId, cancellationToken), cancellationToken);
 
-    public async Task<DepotMove> StoreAsync(long accountId, long inventoryId, int quantity, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
-            ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
-                ? new InputValidationException("請先卸下這件裝備", ["equipped"])
-                : new InputValidationException("背包裡沒有這件道具", ["itemNotFound"]));
-        var item = content.GetItem(entry.ItemId);
-        var stored = await depot.ListAsync(character.Id, cancellationToken);
-        var plan = DepotRules.TryStore(stored, item, entry, quantity, character.DepotBonus);
-        Check(plan, "無法存入倉庫");
-
-        await characters.UpdateAsync(character, cancellationToken);
-        foreach (var updated in plan.Updated)
+    public Task<DepotMove> StoreAsync(long accountId, long inventoryId, int quantity, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            await depot.UpdateQuantityAsync(character.Id, updated.Id, updated.Quantity, cancellationToken);
-        }
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
+            var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
+                ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
+                    ? new InputValidationException("請先卸下這件裝備", ["equipped"])
+                    : new InputValidationException("背包裡沒有這件道具", ["itemNotFound"]));
+            var item = content.GetItem(entry.ItemId);
+            var stored = await depot.ListAsync(character.Id, cancellationToken);
+            var plan = DepotRules.TryStore(stored, item, entry, quantity, character.DepotBonus);
+            Check(plan, "無法存入倉庫");
 
-        foreach (var created in plan.Created)
+            await characters.UpdateAsync(character, cancellationToken);
+            foreach (var updated in plan.Updated)
+            {
+                await depot.UpdateQuantityAsync(character.Id, updated.Id, updated.Quantity, cancellationToken);
+            }
+
+            foreach (var created in plan.Created)
+            {
+                await depot.AddAsync(character.Id, created, cancellationToken);
+            }
+
+            if (quantity < entry.Quantity)
+            {
+                await inventory.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity - quantity, cancellationToken);
+            }
+            else
+            {
+                await inventory.RemoveAsync(character.Id, entry.Id, cancellationToken);
+            }
+
+            return await MoveResultAsync(accountId, character, cancellationToken);
+        }, cancellationToken);
+
+    public Task<DepotMove> TakeAsync(long accountId, long depotId, int quantity, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            await depot.AddAsync(character.Id, created, cancellationToken);
-        }
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var stored = await depot.ListAsync(character.Id, cancellationToken);
+            var entry = stored.FirstOrDefault(candidate => candidate.Id == depotId)
+                ?? throw new InputValidationException("倉庫裡沒有這件道具", ["itemNotFound"]);
+            var item = content.GetItem(entry.ItemId);
+            var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
+            var sameCategory = state.Bag.Where(other => content.GetItem(other.ItemId).Category == item.Category).ToList();
+            var plan = DepotRules.TryTake(sameCategory, item, entry, quantity, character.BagBonus);
+            Check(plan, "無法取出");
 
-        if (quantity < entry.Quantity)
-        {
-            await inventory.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity - quantity, cancellationToken);
-        }
-        else
-        {
-            await inventory.RemoveAsync(character.Id, entry.Id, cancellationToken);
-        }
+            await characters.UpdateAsync(character, cancellationToken);
+            foreach (var updated in plan.Updated)
+            {
+                await inventory.UpdateQuantityAsync(character.Id, updated.Id, updated.Quantity, cancellationToken);
+            }
 
-        return await MoveResultAsync(accountId, character, cancellationToken);
-    }
+            foreach (var created in plan.Created)
+            {
+                await inventory.AddAsync(character.Id, created, cancellationToken);
+            }
 
-    public async Task<DepotMove> TakeAsync(long accountId, long depotId, int quantity, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var stored = await depot.ListAsync(character.Id, cancellationToken);
-        var entry = stored.FirstOrDefault(candidate => candidate.Id == depotId)
-            ?? throw new InputValidationException("倉庫裡沒有這件道具", ["itemNotFound"]);
-        var item = content.GetItem(entry.ItemId);
-        var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        var sameCategory = state.Bag.Where(other => content.GetItem(other.ItemId).Category == item.Category).ToList();
-        var plan = DepotRules.TryTake(sameCategory, item, entry, quantity, character.BagBonus);
-        Check(plan, "無法取出");
+            if (quantity < entry.Quantity)
+            {
+                await depot.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity - quantity, cancellationToken);
+            }
+            else
+            {
+                await depot.RemoveAsync(character.Id, entry.Id, cancellationToken);
+            }
 
-        await characters.UpdateAsync(character, cancellationToken);
-        foreach (var updated in plan.Updated)
-        {
-            await inventory.UpdateQuantityAsync(character.Id, updated.Id, updated.Quantity, cancellationToken);
-        }
-
-        foreach (var created in plan.Created)
-        {
-            await inventory.AddAsync(character.Id, created, cancellationToken);
-        }
-
-        if (quantity < entry.Quantity)
-        {
-            await depot.UpdateQuantityAsync(character.Id, entry.Id, entry.Quantity - quantity, cancellationToken);
-        }
-        else
-        {
-            await depot.RemoveAsync(character.Id, entry.Id, cancellationToken);
-        }
-
-        return await MoveResultAsync(accountId, character, cancellationToken);
-    }
+            return await MoveResultAsync(accountId, character, cancellationToken);
+        }, cancellationToken);
 
     private static void Check(DepotPlan plan, string message)
     {

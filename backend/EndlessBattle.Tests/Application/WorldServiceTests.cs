@@ -30,7 +30,7 @@ public class WorldServiceTests
         var inventory = new InMemoryInventoryRepository();
         var adventure = new AdventureService(
             characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(),
-            inventory, new InMemoryEquipmentRepository(inventory), Content, clock, new ZeroRandomFactory());
+            inventory, new InMemoryEquipmentRepository(inventory), Content, clock, new ZeroRandomFactory(), new InMemoryUnitOfWork());
         service = new WorldService(characters, Content, clock, adventure);
     }
 

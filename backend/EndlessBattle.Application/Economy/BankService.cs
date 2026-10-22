@@ -5,21 +5,23 @@ using EndlessBattle.Domain.Economy;
 
 namespace EndlessBattle.Application.Economy;
 
-public sealed class BankService(ICharacterRepository characters)
+public sealed class BankService(ICharacterRepository characters, IUnitOfWork unitOfWork)
 {
-    public async Task<Character> DepositAsync(long accountId, long amount, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        Check(Bank.CanDeposit(character, amount), "無法存款");
-        return await characters.UpdateAsync(character with { Money = character.Money - amount, Bank = character.Bank + amount }, cancellationToken);
-    }
+    public Task<Character> DepositAsync(long accountId, long amount, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
+        {
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            Check(Bank.CanDeposit(character, amount), "無法存款");
+            return await characters.UpdateAsync(character with { Money = character.Money - amount, Bank = character.Bank + amount }, cancellationToken);
+        }, cancellationToken);
 
-    public async Task<Character> WithdrawAsync(long accountId, long amount, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        Check(Bank.CanWithdraw(character, amount), "無法提款");
-        return await characters.UpdateAsync(character with { Money = character.Money + amount, Bank = character.Bank - amount }, cancellationToken);
-    }
+    public Task<Character> WithdrawAsync(long accountId, long amount, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
+        {
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            Check(Bank.CanWithdraw(character, amount), "無法提款");
+            return await characters.UpdateAsync(character with { Money = character.Money + amount, Bank = character.Bank - amount }, cancellationToken);
+        }, cancellationToken);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {

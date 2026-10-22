@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
@@ -89,6 +90,24 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
             ReplaceSlotsAsync(characterId, new SkillSlot(3, "bash", 10), new SkillSlot(3, "heal", 15)));
+
+        Assert.Equal(original, await ListSlotsAsync(characterId));
+    }
+
+    // 在用例的交易裡（例如轉職）呼叫時加入外層交易，不另開交易；外層失敗時一起回滾
+    [Fact]
+    public async Task Loadout_ReplaceJoinsOuterTransaction()
+    {
+        var characterId = await CreateCharacterAsync();
+        var original = new[] { new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20) };
+        await ReplaceSlotsAsync(characterId, original);
+        await using var context = database.CreateDbContext();
+
+        await Assert.ThrowsAsync<ConflictException>(() => new EfUnitOfWork(context).RunAsync<bool>(async cancellationToken =>
+        {
+            await new SkillLoadoutRepository(context).ReplaceAsync(characterId, [new SkillSlot(1, "slash", 40)], cancellationToken);
+            throw new ConflictException("外層失敗");
+        }, CancellationToken));
 
         Assert.Equal(original, await ListSlotsAsync(characterId));
     }

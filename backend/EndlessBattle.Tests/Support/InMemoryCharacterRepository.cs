@@ -5,7 +5,7 @@ using EndlessBattle.Domain.Characters;
 namespace EndlessBattle.Tests.Support;
 
 // 應用層測試用：行為與 CharacterRepository 一致，包括版本檢查
-public sealed class InMemoryCharacterRepository : ICharacterRepository
+public sealed class InMemoryCharacterRepository : ICharacterRepository, IRestorableRepository
 {
     private readonly Dictionary<long, Character> charactersByAccount = [];
     private long nextId = 1;
@@ -36,5 +36,21 @@ public sealed class InMemoryCharacterRepository : ICharacterRepository
         var stored = character with { Version = character.Version + 1 };
         charactersByAccount[character.AccountId] = stored;
         return Task.FromResult(stored);
+    }
+
+    public Action Snapshot()
+    {
+        var saved = new Dictionary<long, Character>(charactersByAccount);
+        var savedNextId = nextId;
+        return () =>
+        {
+            charactersByAccount.Clear();
+            foreach (var (accountId, character) in saved)
+            {
+                charactersByAccount[accountId] = character;
+            }
+
+            nextId = savedNextId;
+        };
     }
 }

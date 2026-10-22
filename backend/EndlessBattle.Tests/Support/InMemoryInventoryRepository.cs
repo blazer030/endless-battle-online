@@ -5,7 +5,7 @@ namespace EndlessBattle.Tests.Support;
 
 // 應用層測試用：與 InventoryRepository 一致，道具不屬於該角色時丟 InvalidOperationException；
 // 刪除仍在裝備欄的道具時模擬外鍵失敗
-public sealed class InMemoryInventoryRepository : IInventoryRepository
+public sealed class InMemoryInventoryRepository : IInventoryRepository, IRestorableRepository
 {
     private readonly Dictionary<long, (long CharacterId, InventoryEntry Entry)> rows = [];
     private long nextId = 1;
@@ -16,6 +16,9 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
     // 依序記錄寫入：add:<itemId>、quantity:<id>、enhance:<id>、remove:<id>
     public List<string> Writes { get; } = [];
 
+    // 設為 add、quantity、enhance 或 remove 時，該種寫入一律丟 InvalidOperationException，模擬資料庫寫入失敗
+    public string? FailWrite { get; set; }
+
     public Task<IReadOnlyList<InventoryEntry>> ListAsync(long characterId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<InventoryEntry>>(rows.Values
             .Where(row => row.CharacterId == characterId)
@@ -25,6 +28,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
 
     public Task<long> AddAsync(long characterId, InventoryEntry entry, CancellationToken cancellationToken)
     {
+        ThrowIfFailing("add");
         var id = nextId++;
         rows[id] = (characterId, entry with { Id = id });
         Writes.Add($"add:{entry.ItemId}");
@@ -33,6 +37,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
 
     public Task UpdateQuantityAsync(long characterId, long id, int quantity, CancellationToken cancellationToken)
     {
+        ThrowIfFailing("quantity");
         rows[id] = (characterId, Find(characterId, id) with { Quantity = quantity });
         Writes.Add($"quantity:{id}");
         return Task.CompletedTask;
@@ -42,6 +47,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         long characterId, long id, int refineLevel, StatBonus refineBonus, IReadOnlyList<SocketedStone> sockets, int holes,
         CancellationToken cancellationToken)
     {
+        ThrowIfFailing("enhance");
         rows[id] = (characterId, Find(characterId, id) with { RefineLevel = refineLevel, RefineBonus = refineBonus, Sockets = sockets, Holes = holes });
         Writes.Add($"enhance:{id}");
         return Task.CompletedTask;
@@ -49,6 +55,7 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
 
     public Task RemoveAsync(long characterId, long id, CancellationToken cancellationToken)
     {
+        ThrowIfFailing("remove");
         Find(characterId, id);
         if (IsEquipped(id))
         {
@@ -64,4 +71,28 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository
         rows.TryGetValue(id, out var row) && row.CharacterId == characterId
             ? row.Entry
             : throw new InvalidOperationException("道具不屬於此角色");
+
+    public Action Snapshot()
+    {
+        var saved = new Dictionary<long, (long CharacterId, InventoryEntry Entry)>(rows);
+        var savedNextId = nextId;
+        return () =>
+        {
+            rows.Clear();
+            foreach (var (id, row) in saved)
+            {
+                rows[id] = row;
+            }
+
+            nextId = savedNextId;
+        };
+    }
+
+    private void ThrowIfFailing(string write)
+    {
+        if (FailWrite == write)
+        {
+            throw new InvalidOperationException($"模擬寫入失敗：{write}");
+        }
+    }
 }

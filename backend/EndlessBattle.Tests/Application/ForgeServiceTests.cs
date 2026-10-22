@@ -23,14 +23,16 @@ public class ForgeServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly ScriptedRandomFactory random = new();
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly ForgeService service;
 
     public ForgeServiceTests()
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        var inventoryService = new InventoryService(characters, inventory, equipment, Content);
-        service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService);
+        unitOfWork = new InMemoryUnitOfWork(characters, inventory);
+        var inventoryService = new InventoryService(characters, inventory, equipment, Content, unitOfWork);
+        service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -123,6 +125,24 @@ public class ForgeServiceTests
 
         await Assert.ThrowsAsync<ConflictException>(() => service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken));
 
+        Assert.Equal([("test-sword", 1), ("test-refine-stone", 1)], await ItemsAsync(character));
+        Assert.Equal(0, Find(character, sword).RefineLevel);
+    }
+
+    // 精鍊石已扣、寫入強化時失敗：整筆回滾，角色版本與精鍊石都還原，例外照常拋出
+    [Fact]
+    public async Task Refine_RollsBackWhenEnhancementWriteFails()
+    {
+        var character = await AddCharacterAsync();
+        var sword = await GiveAsync(character, "test-sword");
+        var stone = await GiveAsync(character, "test-refine-stone");
+        random.Next = new ScriptedRandom(0.99);
+        inventory.FailWrite = "enhance";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken));
+
+        Assert.Equal(["begin", "rollback"], unitOfWork.Log);
+        Assert.Equal(character, await characters.FindByAccountAsync(AccountId, CancellationToken));
         Assert.Equal([("test-sword", 1), ("test-refine-stone", 1)], await ItemsAsync(character));
         Assert.Equal(0, Find(character, sword).RefineLevel);
     }

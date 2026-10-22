@@ -33,7 +33,8 @@ public sealed class JobService(
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IGameContent content,
-    IClock clock)
+    IClock clock,
+    IUnitOfWork unitOfWork)
 {
     public async Task<IReadOnlyList<JobOption>> ListAsync(long accountId, CancellationToken cancellationToken)
     {
@@ -62,31 +63,32 @@ public sealed class JobService(
     }
 
     // 轉職時全部裝備卸回背包（spec §5.2），放不下就 400 bagFull、不轉職。
-    // 先過版本鎖更新角色，成功後才清裝備欄、把補給併回背包、清被動欄；衝突或背包滿時什麼都不寫
-    public async Task<CharacterProfile> ChangeAsync(long accountId, string jobId, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var target = content.AllJobs.FirstOrDefault(job => job.Id == jobId)
-            ?? throw new InputValidationException("找不到職業");
-        var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
-
-        var check = JobChange.Evaluate(character, target, rows);
-        if (!check.Eligible)
+    // 整個轉職是一筆交易：先過版本鎖更新角色，成功後才清裝備欄、把補給併回背包、清被動欄；衝突或背包滿時什麼都不寫
+    public Task<CharacterProfile> ChangeAsync(long accountId, string jobId, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            throw new InputValidationException("轉職條件不符", check.Reasons);
-        }
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var target = content.AllJobs.FirstOrDefault(job => job.Id == jobId)
+                ?? throw new InputValidationException("找不到職業");
+            var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
 
-        var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        var unequipped = Unequipping.TryReturnAll(state.Bag, state.Loadout, character.BagBonus, content.GetItem)
-            ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", ["bagFull"]);
+            var check = JobChange.Evaluate(character, target, rows);
+            if (!check.Eligible)
+            {
+                throw new InputValidationException("轉職條件不符", check.Reasons);
+            }
 
-        var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
-        await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
-        var slots = await loadout.ListAsync(character.Id, cancellationToken);
-        await loadout.ReplaceAsync(character.Id, slots.Where(slot => !SkillLoadout.IsPassiveSlot(slot.Slot)).ToList(), cancellationToken);
-        return new CharacterProfile(
-            CharacterStamina.Regenerated(updated, clock.UtcNow), rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
-    }
+            var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
+            var unequipped = Unequipping.TryReturnAll(state.Bag, state.Loadout, character.BagBonus, content.GetItem)
+                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", ["bagFull"]);
+
+            var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
+            await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
+            var slots = await loadout.ListAsync(character.Id, cancellationToken);
+            await loadout.ReplaceAsync(character.Id, slots.Where(slot => !SkillLoadout.IsPassiveSlot(slot.Slot)).ToList(), cancellationToken);
+            return new CharacterProfile(
+                CharacterStamina.Regenerated(updated, clock.UtcNow), rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
+        }, cancellationToken);
 
     // 欄位必須先清空：裝備欄引用背包列，刪除仍被引用的補給列會撞外鍵
     private async Task UnequipAllAsync(long characterId, Loadout loadout, UnequipAllResult unequipped, CancellationToken cancellationToken)

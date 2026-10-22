@@ -12,7 +12,8 @@ public sealed class InventoryService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
-    IGameContent content)
+    IGameContent content,
+    IUnitOfWork unitOfWork)
 {
     public async Task<InventoryView> GetAsync(long accountId, CancellationToken cancellationToken)
     {
@@ -20,80 +21,83 @@ public sealed class InventoryService(
         return await ViewAsync(character, cancellationToken);
     }
 
-    public async Task<InventoryView> EquipAsync(long accountId, long inventoryId, int? supplyQuantity, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var state = await LoadAsync(character.Id, cancellationToken);
-        var entry = FindInBag(state, inventoryId);
-        var item = content.GetItem(entry.ItemId);
-        if (item.Consumable == ConsumableKind.Supply)
+    public Task<InventoryView> EquipAsync(long accountId, long inventoryId, int? supplyQuantity, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            await EquipSupplyAsync(character, state, entry, item, supplyQuantity ?? entry.Quantity, cancellationToken);
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var state = await LoadAsync(character.Id, cancellationToken);
+            var entry = FindInBag(state, inventoryId);
+            var item = content.GetItem(entry.ItemId);
+            if (item.Consumable == ConsumableKind.Supply)
+            {
+                await EquipSupplyAsync(character, state, entry, item, supplyQuantity ?? entry.Quantity, cancellationToken);
+                return await ViewAsync(character, cancellationToken);
+            }
+
+            var reasons = EquipmentRules.CanEquip(character, item);
+            if (reasons.Count > 0)
+            {
+                throw new InputValidationException("無法裝備", reasons);
+            }
+
+            // 原本的裝備隨欄位改指向新裝備而回到背包；新裝備同時離開背包，該分類格數不變
+            await LockAsync(character, cancellationToken);
+            await equipment.SetSlotAsync(character.Id, EquipmentRules.SlotOf(item.Category), entry.Id, null, cancellationToken);
             return await ViewAsync(character, cancellationToken);
-        }
+        }, cancellationToken);
 
-        var reasons = EquipmentRules.CanEquip(character, item);
-        if (reasons.Count > 0)
+    public Task<InventoryView> UnequipAsync(long accountId, EquipmentSlot slot, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            throw new InputValidationException("無法裝備", reasons);
-        }
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var state = await LoadAsync(character.Id, cancellationToken);
+            var equipped = state.Loadout.Equipped.GetValueOrDefault(slot)
+                ?? throw new InputValidationException("這一欄沒有裝備", ["slotEmpty"]);
 
-        // 原本的裝備隨欄位改指向新裝備而回到背包；新裝備同時離開背包，該分類格數不變
-        await LockAsync(character, cancellationToken);
-        await equipment.SetSlotAsync(character.Id, EquipmentRules.SlotOf(item.Category), entry.Id, null, cancellationToken);
-        return await ViewAsync(character, cancellationToken);
-    }
+            if (slot == EquipmentSlot.Supply)
+            {
+                var returned = TryReturn(state.Bag, equipped, state.Loadout.SupplyQuantity, character.BagBonus);
+                await LockAsync(character, cancellationToken);
+                await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
+                await ApplyReturnAsync(character.Id, equipped, returned, cancellationToken);
+            }
+            else
+            {
+                // 裝備的列本來就在背包表裡，只要確認放得下，清空欄位即可
+                TryReturn(state.Bag, equipped, 1, character.BagBonus);
+                await LockAsync(character, cancellationToken);
+                await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
+            }
 
-    public async Task<InventoryView> UnequipAsync(long accountId, EquipmentSlot slot, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var state = await LoadAsync(character.Id, cancellationToken);
-        var equipped = state.Loadout.Equipped.GetValueOrDefault(slot)
-            ?? throw new InputValidationException("這一欄沒有裝備", ["slotEmpty"]);
-
-        if (slot == EquipmentSlot.Supply)
-        {
-            var returned = TryReturn(state.Bag, equipped, state.Loadout.SupplyQuantity, character.BagBonus);
-            await LockAsync(character, cancellationToken);
-            await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
-            await ApplyReturnAsync(character.Id, equipped, returned, cancellationToken);
-        }
-        else
-        {
-            // 裝備的列本來就在背包表裡，只要確認放得下，清空欄位即可
-            TryReturn(state.Bag, equipped, 1, character.BagBonus);
-            await LockAsync(character, cancellationToken);
-            await equipment.SetSlotAsync(character.Id, slot, null, null, cancellationToken);
-        }
-
-        return await ViewAsync(character, cancellationToken);
-    }
+            return await ViewAsync(character, cancellationToken);
+        }, cancellationToken);
 
     // 先以版本鎖寫入角色，成功後才扣道具；衝突時道具不動
-    public async Task<InventoryView> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken)
-    {
-        var character = await FindCharacterAsync(accountId, cancellationToken);
-        var state = await LoadAsync(character.Id, cancellationToken);
-        var entry = FindInBag(state, inventoryId);
-        var item = content.GetItem(entry.ItemId);
-        var reasons = ConsumableUse.CanUse(character, item);
-        if (reasons.Count > 0)
+    public Task<InventoryView> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
         {
-            throw new InputValidationException("這個道具不能使用", reasons);
-        }
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var state = await LoadAsync(character.Id, cancellationToken);
+            var entry = FindInBag(state, inventoryId);
+            var item = content.GetItem(entry.ItemId);
+            var reasons = ConsumableUse.CanUse(character, item);
+            if (reasons.Count > 0)
+            {
+                throw new InputValidationException("這個道具不能使用", reasons);
+            }
 
-        var updated = await characters.UpdateAsync(ConsumableUse.Apply(character, item), cancellationToken);
-        if (entry.Quantity > 1)
-        {
-            await inventory.UpdateQuantityAsync(updated.Id, entry.Id, entry.Quantity - 1, cancellationToken);
-        }
-        else
-        {
-            await inventory.RemoveAsync(updated.Id, entry.Id, cancellationToken);
-        }
+            var updated = await characters.UpdateAsync(ConsumableUse.Apply(character, item), cancellationToken);
+            if (entry.Quantity > 1)
+            {
+                await inventory.UpdateQuantityAsync(updated.Id, entry.Id, entry.Quantity - 1, cancellationToken);
+            }
+            else
+            {
+                await inventory.RemoveAsync(updated.Id, entry.Id, cancellationToken);
+            }
 
-        return await ViewAsync(updated, cancellationToken);
-    }
+            return await ViewAsync(updated, cancellationToken);
+        }, cancellationToken);
 
     // 從背包那一格分出 quantity 個放到補給欄（整格裝上時直接引用該列）；原本的補給品先算好能放回背包才動手
     private async Task EquipSupplyAsync(
@@ -151,8 +155,8 @@ public sealed class InventoryService(
         await inventory.RemoveAsync(characterId, equipped.Id, cancellationToken);
     }
 
-    // 裝備欄與背包沒有交易可包：先以版本鎖寫入（欄位不變、只遞增版本）佔住這次變更，
-    // 重複送出的請求會在動到背包之前收到 409
+    // 交易中第一個寫入：以版本鎖寫入角色（欄位不變、只遞增版本）鎖住角色列，
+    // 同一角色的並行或重複請求排在後面，因版本不符收到 409
     private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
         characters.UpdateAsync(character, cancellationToken);
 

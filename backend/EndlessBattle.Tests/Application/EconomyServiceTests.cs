@@ -21,6 +21,7 @@ public class EconomyServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryDepotRepository depot = new();
+    private readonly InMemoryUnitOfWork unitOfWork = new();
     private readonly InventoryService inventoryService;
     private readonly ShopService shop;
     private readonly BankService bank;
@@ -30,10 +31,10 @@ public class EconomyServiceTests
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        inventoryService = new InventoryService(characters, inventory, equipment, Content);
-        shop = new ShopService(characters, inventory, equipment, Content, inventoryService);
-        bank = new BankService(characters);
-        depotService = new DepotService(characters, inventory, equipment, depot, Content, inventoryService);
+        inventoryService = new InventoryService(characters, inventory, equipment, Content, unitOfWork);
+        shop = new ShopService(characters, inventory, equipment, Content, inventoryService, unitOfWork);
+        bank = new BankService(characters, unitOfWork);
+        depotService = new DepotService(characters, inventory, equipment, depot, Content, inventoryService, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
