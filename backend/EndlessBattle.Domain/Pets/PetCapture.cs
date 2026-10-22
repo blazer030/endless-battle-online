@@ -29,8 +29,6 @@ public static class PetCapture
 {
     public const int BreakOneIn = 40, ChancePercent = 12, StatRollMax = 10;
 
-    // 同 Global Constraints 的寵物上限（攜帶＋獸欄）
-    private const int MaxPets = 3;
     private const int PersonalityCount = 4;
 
     // 勝場且沒有攜帶寵物時才呼叫。① rand(1,40) == 1 損壞 −1；② 還有道具才擲 rand(1,100) ≤ 12，
@@ -52,7 +50,7 @@ public static class PetCapture
             }
         }
 
-        if (PhpRandom.Between(random, 1, 100) > ChancePercent || petCount >= MaxPets)
+        if (PhpRandom.Between(random, 1, 100) > ChancePercent || petCount >= PetRules.MaxPets)
         {
             return new CaptureRoll(capture, broken, Captured: null);
         }
