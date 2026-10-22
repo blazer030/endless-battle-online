@@ -170,12 +170,12 @@ public static class WogBattle
         // 玩家出手前（技能判定之前）喝補給，不佔用這回合的攻擊、不擲骰
         void DrinkPotion(double atSeconds)
         {
-            if (!PotionRules.ShouldUse(player with { Hp = playerHp, Sp = playerSp }, supply, potionsUsed))
+            if (supply is null || !PotionRules.ShouldUse(player with { Hp = playerHp, Sp = playerSp }, supply, potionsUsed))
             {
                 return;
             }
 
-            var hpGained = Math.Min(supply!.Hp, player.HpMax - playerHp);
+            var hpGained = Math.Min(supply.Hp, player.HpMax - playerHp);
             var spGained = Math.Min(supply.Sp, player.SpMax - playerSp);
             playerHp += hpGained;
             playerSp += spGained;

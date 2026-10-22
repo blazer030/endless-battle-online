@@ -23,7 +23,7 @@ public static class Socket
     public static SocketOutcome Insert(InventoryEntry equipment, int hole, ItemDefinition stone, IRandomSource random)
     {
         ForgeGuard.Ensure(InsertReasons(equipment, hole, stone));
-        var spec = stone.Stone!;
+        var spec = stone.Stone ?? throw new InvalidOperationException("InsertReasons 已確認是魔石");
         var socket = new SocketedStone(hole, stone.Id, spec.Random ? Roll(spec.Min ?? StatBonus.Zero, spec.Max ?? StatBonus.Zero, random) : spec.Fixed);
         return new SocketOutcome(equipment with { Sockets = [.. equipment.Sockets.Append(socket).OrderBy(other => other.Hole)] }, socket);
     }

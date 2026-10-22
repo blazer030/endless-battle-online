@@ -165,7 +165,7 @@ public sealed class AdventureService(
     private async Task<MercenaryReport?> StoreMercenaryAsync(
         long characterId, MercenaryContract? before, MercenaryRun? run, CancellationToken cancellationToken)
     {
-        if (run is null || run.Contract == before)
+        if (run is null || before is null || run.Contract == before)
         {
             return null;
         }
@@ -180,7 +180,7 @@ public sealed class AdventureService(
         }
 
         return new MercenaryReport(
-            before!.Name,
+            before.Name,
             run.Fights,
             run.Fights.Sum(fight => fight.Exp),
             run.Fights.Sum(fight => fight.Money),

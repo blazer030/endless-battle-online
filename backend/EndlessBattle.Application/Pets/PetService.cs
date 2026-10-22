@@ -50,8 +50,13 @@ public sealed class PetService(
     public Task<PetOverview> RenameAsync(long accountId, long petId, string? name, CancellationToken cancellationToken) =>
         WriteAsync(accountId, petId, pet =>
         {
-            Check(PetRules.CanRename(name), "名字必須是 1～12 個字");
-            return pet with { Name = name!.Trim() };
+            var reasons = PetRules.CanRename(name);
+            if (name is null || reasons.Count > 0)
+            {
+                throw new InputValidationException("名字必須是 1～12 個字", reasons);
+            }
+
+            return pet with { Name = name.Trim() };
         }, cancellationToken);
 
     public Task<PetOverview> ReleaseAsync(long accountId, long petId, CancellationToken cancellationToken) =>

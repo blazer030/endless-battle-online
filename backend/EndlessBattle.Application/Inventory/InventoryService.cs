@@ -187,9 +187,11 @@ public sealed class InventoryService(
             .Where(other => other.Quantity > 0)
             .ToList();
         var previous = state.Loadout.Equipped.GetValueOrDefault(EquipmentSlot.Supply);
-        var returned = previous is null ? null : TryReturn(bagAfterSplit, previous, state.Loadout.SupplyQuantity, character.BagBonus);
+        (InventoryEntry Entry, AddResult Result)? returning = previous is null
+            ? null
+            : (previous, TryReturn(bagAfterSplit, previous, state.Loadout.SupplyQuantity, character.BagBonus));
         await LockAsync(character, cancellationToken);
-        if (previous is not null)
+        if (returning is not null)
         {
             await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, null, null, cancellationToken);
         }
@@ -202,9 +204,9 @@ public sealed class InventoryService(
         }
 
         await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, supplyId, quantity, cancellationToken);
-        if (previous is not null)
+        if (returning is { } back)
         {
-            await ApplyReturnAsync(character.Id, previous, returned!, cancellationToken);
+            await ApplyReturnAsync(character.Id, back.Entry, back.Result, cancellationToken);
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Champion;
@@ -540,7 +541,7 @@ public sealed class JsonGameContent : IGameContent
 
     private static void ValidateItem(ItemDefinition item, Dictionary<string, JobDefinition> jobs)
     {
-        void Require(bool condition, string message)
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
         {
             if (!condition)
             {
@@ -609,7 +610,7 @@ public sealed class JsonGameContent : IGameContent
         if (item.Category == ItemCategory.RefineStone)
         {
             Require(item.Refine is not null, $"精鍊石 {id} 必須有 refine");
-            ValidateRefineStone(id, item.Refine!);
+            ValidateRefineStone(id, item.Refine);
         }
         else
         {
@@ -619,7 +620,7 @@ public sealed class JsonGameContent : IGameContent
         if (item.Category == ItemCategory.Stone)
         {
             Require(item.Stone is not null, $"魔石 {id} 必須有 stone");
-            ValidateStone(id, item.Stone!);
+            ValidateStone(id, item.Stone);
         }
         else
         {
@@ -629,7 +630,7 @@ public sealed class JsonGameContent : IGameContent
         if (item.Category == ItemCategory.Key)
         {
             Require(item.Key is not null, $"鑰匙 {id} 必須有 key");
-            Require(item.Key!.Seconds is >= MinimumKeySeconds and <= MaximumKeySeconds,
+            Require(item.Key.Seconds is >= MinimumKeySeconds and <= MaximumKeySeconds,
                 $"鑰匙 {id} 的 seconds 必須在 {MinimumKeySeconds}～{MaximumKeySeconds}");
         }
         else
@@ -640,7 +641,7 @@ public sealed class JsonGameContent : IGameContent
         if (item.Consumable == ConsumableKind.Elixir)
         {
             Require(item.Elixir is not null, $"密藥 {id} 必須有 elixir");
-            Require(item.Elixir!.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
+            Require(item.Elixir.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
                 $"密藥 {id} 的 multiplier 必須在 {MinimumElixirMultiplier:0.00}～{MaximumElixirMultiplier:0.00}");
             Require(item.Elixir.Seconds is >= MinimumElixirSeconds and <= MaximumElixirSeconds,
                 $"密藥 {id} 的 seconds 必須在 {MinimumElixirSeconds}～{MaximumElixirSeconds}");
@@ -656,9 +657,13 @@ public sealed class JsonGameContent : IGameContent
     {
         var restricted = places.Where(place => place.Restricted).Select(place => place.Id).ToHashSet();
         var keyed = new HashSet<int>();
-        foreach (var item in items.Where(item => item.Key is not null))
+        foreach (var item in items)
         {
-            var placeId = item.Key!.PlaceId;
+            if (item.Key is not { PlaceId: var placeId })
+            {
+                continue;
+            }
+
             if (!restricted.Contains(placeId))
             {
                 throw new GameContentException($"鑰匙 {item.Id} 的 placeId {placeId} 不是禁區");
@@ -681,7 +686,7 @@ public sealed class JsonGameContent : IGameContent
     private static void ValidateBoxes(IReadOnlyList<ItemDefinition> items)
     {
         var hasClassOneStone = items.Any(item => item.Stone?.BoxClass == 1);
-        var refineLevels = items.Where(item => item.Refine is not null).Select(item => item.Refine!.Level).ToHashSet();
+        var refineLevels = items.Select(item => item.Refine).OfType<RefineStoneSpec>().Select(refine => refine.Level).ToHashSet();
         foreach (var item in items)
         {
             if (item.Consumable == ConsumableKind.StoneBox && !hasClassOneStone)
@@ -815,7 +820,7 @@ public sealed class JsonGameContent : IGameContent
     {
         var id = mission.Id;
 
-        void Require(bool condition, string message)
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
         {
             if (!condition)
             {
@@ -842,14 +847,14 @@ public sealed class JsonGameContent : IGameContent
 
             Require(targetId != id, $"的 {field} 不能是自己");
             Require(missions.TryGetValue(targetId, out var target), $"的 {field} 引用了不存在的任務：{targetId}");
-            Require(!target!.Daily, $"的 {field} 不能是每日任務：{targetId}");
+            Require(!target.Daily, $"的 {field} 不能是每日任務：{targetId}");
         }
 
         MonsterDefinition RequireKill(KillTarget kill)
         {
             Require(monsters.TryGetValue(kill.MonsterId, out var monster), $"引用了不存在的怪物：{kill.MonsterId}");
             Require(kill.Count >= 1, $"的擊殺目標 {kill.MonsterId} 的 count 必須至少 1");
-            return monster!;
+            return monster;
         }
 
         void RequireQuantities(string field, IReadOnlyList<ItemQuantity> entries)
@@ -872,7 +877,7 @@ public sealed class JsonGameContent : IGameContent
             {
                 Require(skills.TryGetValue(skillReward.SkillId, out var skill), $"的 {field} 引用了不存在的技能：{skillReward.SkillId}");
                 Require(skillReward.Level == 1, $"的技能獎勵 {skillReward.SkillId} 的 level 必須為 1");
-                Require(requirements.JobId == skill!.JobId,
+                Require(requirements.JobId == skill.JobId,
                     $"的技能獎勵 {skillReward.SkillId} 屬於職業 {skill.JobId}，requirements.jobId 必須相同");
             }
 
@@ -888,7 +893,7 @@ public sealed class JsonGameContent : IGameContent
         void RequirePetSpecies(string field, string monsterId)
         {
             Require(monsters.TryGetValue(monsterId, out var monster), $"的 {field} 引用了不存在的怪物：{monsterId}");
-            Require(monster!.MissionId is null, $"的 {field} 寵物不能是任務怪：{monsterId}");
+            Require(monster.MissionId is null, $"的 {field} 寵物不能是任務怪：{monsterId}");
         }
 
         if (mission.Daily)
@@ -921,9 +926,11 @@ public sealed class JsonGameContent : IGameContent
             return;
         }
 
-        Require(mission.PlaceId is { } placeId && places.ContainsKey(placeId),
-            $"的 placeId 必須是存在的地區：{mission.PlaceId?.ToString() ?? "null"}");
-        var place = places[mission.PlaceId!.Value];
+        if (mission.PlaceId is not { } placeId || !places.TryGetValue(placeId, out var place))
+        {
+            throw new GameContentException($"任務 {id} 的 placeId 必須是存在的地區：{mission.PlaceId?.ToString() ?? "null"}");
+        }
+
         Require(!place.Restricted, $"的地區 {place.Id} 是禁區");
         Require(mission.Kill is not null || mission.Deliver.Count > 0, "至少要有擊殺目標（kill）或交付道具（deliver）");
         Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
@@ -992,7 +999,7 @@ public sealed class JsonGameContent : IGameContent
 
     private static void ValidateMercenary(MercenaryDefinition mercenary)
     {
-        void Require(bool condition, string message)
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
         {
             if (!condition)
             {
@@ -1019,7 +1026,7 @@ public sealed class JsonGameContent : IGameContent
     private static void ValidateExchange(
         HonourExchange exchange, Dictionary<string, ItemDefinition> items, Dictionary<string, MercenaryDefinition> mercenaries)
     {
-        void Require(bool condition, string message)
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
         {
             if (!condition)
             {
@@ -1033,9 +1040,9 @@ public sealed class JsonGameContent : IGameContent
             Require(items.ContainsKey(itemId), $"引用了不存在的道具：{itemId}");
             Require(exchange.Quantity is >= 1 and <= MaximumExchangeQuantity, $"的 quantity 必須在 1～{MaximumExchangeQuantity}");
         }
-        else
+        else if (exchange.MercenaryId is { } mercenaryId)
         {
-            Require(mercenaries.ContainsKey(exchange.MercenaryId!), $"引用了不存在的傭兵：{exchange.MercenaryId}");
+            Require(mercenaries.ContainsKey(mercenaryId), $"引用了不存在的傭兵：{mercenaryId}");
             Require(exchange.Quantity == 1, "兌換傭兵，quantity 必須為 1");
         }
 
@@ -1043,7 +1050,7 @@ public sealed class JsonGameContent : IGameContent
         foreach (var (costItemId, quantity) in exchange.Cost)
         {
             Require(items.TryGetValue(costItemId, out var costItem), $"的 cost 引用了不存在的道具：{costItemId}");
-            Require(costItem!.Category == ItemCategory.Medal, $"的 cost {costItemId} 必須是勳章");
+            Require(costItem.Category == ItemCategory.Medal, $"的 cost {costItemId} 必須是勳章");
             Require(quantity is >= 1 and <= MaximumExchangeQuantity,
                 $"的 cost {costItemId} 的 quantity 必須在 1～{MaximumExchangeQuantity}");
         }
@@ -1055,7 +1062,7 @@ public sealed class JsonGameContent : IGameContent
     {
         var name = entry.Name ?? "";
 
-        void Require(bool condition, string message)
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
         {
             if (!condition)
             {
@@ -1074,7 +1081,7 @@ public sealed class JsonGameContent : IGameContent
             "的能力 at、mat、df、mdf、agi、au 不可為負");
 
         return new ChampionSeat(
-            name, entry.Level, entry.Element, entry.SpecialAttackName!,
+            name, entry.Level, entry.Element, entry.SpecialAttackName,
             Hp: entry.Hp, HpMax: entry.Hp, Sp: entry.Sp, SpMax: entry.Sp,
             At: entry.At, Mat: entry.Mat, Df: entry.Df, Mdf: entry.Mdf, Agi: entry.Agi, Au: entry.Au);
     }

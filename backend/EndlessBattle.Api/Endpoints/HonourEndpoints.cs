@@ -34,7 +34,9 @@ public static class HonourEndpoints
             var exchange = offer.Exchange;
             var (kind, rewardId, rewardName) = exchange.MercenaryId is { } mercenaryId
                 ? ("mercenary", mercenaryId, content.GetMercenary(mercenaryId).Name)
-                : ("item", exchange.ItemId!, content.GetItem(exchange.ItemId!).Name);
+                : exchange.ItemId is { } itemId
+                    ? ("item", itemId, content.GetItem(itemId).Name)
+                    : throw new InvalidOperationException($"兌換 {exchange.Id} 沒有道具也沒有傭兵");
             return new HonourExchangeResponse(
                 exchange.Id,
                 kind,

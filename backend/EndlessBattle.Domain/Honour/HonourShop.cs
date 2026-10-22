@@ -47,7 +47,7 @@ public static class HonourShop
             return reasons.Count > 0 ? Rejected(payment, reasons) : new HonourOutcome(payment, null, contract, []);
         }
 
-        var item = items(exchange.ItemId!);
+        var item = items(exchange.ItemId ?? throw new InvalidOperationException($"兌換 {exchange.Id} 沒有道具也沒有傭兵"));
         var sameCategory = Delivery.After(bag, payment).Where(entry => items(entry.ItemId).Category == item.Category).ToList();
         var added = InventoryRules.TryAdd(sameCategory, item, exchange.Quantity, character.BagBonus);
         if (added.Discarded > 0)

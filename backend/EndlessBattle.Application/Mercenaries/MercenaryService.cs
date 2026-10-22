@@ -28,10 +28,14 @@ public sealed class MercenaryService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var definition = content.AllMercenaries.FirstOrDefault(mercenary => mercenary.Id == mercenaryId);
-            Check(MercenaryRules.CanHire(character, definition, await mercenaries.FindAsync(character.Id, cancellationToken)), "無法僱用");
+            var reasons = MercenaryRules.CanHire(character, definition, await mercenaries.FindAsync(character.Id, cancellationToken));
+            if (definition is not { Price: { } price } || reasons.Count > 0)
+            {
+                throw new InputValidationException("無法僱用", reasons);
+            }
 
-            var contract = MercenaryRules.NewContract(definition!, clock.UtcNow);
-            await characters.UpdateAsync(character with { Money = character.Money - definition!.Price!.Value }, cancellationToken);
+            var contract = MercenaryRules.NewContract(definition, clock.UtcNow);
+            await characters.UpdateAsync(character with { Money = character.Money - price }, cancellationToken);
             await mercenaries.AddAsync(character.Id, contract, cancellationToken);
             return Overview(contract);
         }, cancellationToken);
@@ -50,8 +54,13 @@ public sealed class MercenaryService(
     public Task<MercenaryOverview> RenameAsync(long accountId, string? name, CancellationToken cancellationToken) =>
         WriteAsync(accountId, contract =>
         {
-            Check(MercenaryRules.CanRename(name), "名字必須是 1～8 個字");
-            return contract with { Name = name!.Trim() };
+            var reasons = MercenaryRules.CanRename(name);
+            if (name is null || reasons.Count > 0)
+            {
+                throw new InputValidationException("名字必須是 1～8 個字", reasons);
+            }
+
+            return contract with { Name = name.Trim() };
         }, cancellationToken);
 
     public Task<MercenaryOverview> DismissAsync(long accountId, CancellationToken cancellationToken) =>

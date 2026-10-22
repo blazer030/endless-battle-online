@@ -49,7 +49,7 @@ public sealed class ForgeService(
 
             if (outcome.ConsumedSafeStone)
             {
-                await ConsumeAsync(character.Id, safeStone!, 1, cancellationToken);
+                await ConsumeAsync(character.Id, safeStone ?? throw new InvalidOperationException("用安全精鍊石時才會扣它"), 1, cancellationToken);
             }
 
             if (outcome.Success)

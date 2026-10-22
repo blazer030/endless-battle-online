@@ -72,7 +72,7 @@ public sealed class WorldService(
 
         // 驗證用的是第一次讀到的角色；期間若有並行變更，由最後寫入時的版本鎖擋下
         var reasons = PlaceMove.Evaluate(character, target, subPlace, pass, key is not null, now);
-        if (reasons.Count > 0)
+        if (target is null || reasons.Count > 0)
         {
             throw new InputValidationException("無法移動", reasons);
         }
@@ -82,7 +82,7 @@ public sealed class WorldService(
         {
             // 角色的版本更新最先，同一角色的並行請求在這一列上排隊；之後才重讀背包扣鑰匙
             var updated = await characters.UpdateAsync(settled.Character with { PlaceId = placeId, SubPlace = subPlace }, cancellationToken);
-            if (AreaKeys.NeedsKey(target!, pass, now))
+            if (AreaKeys.NeedsKey(target, pass, now))
             {
                 var held = await FindKeyAsync(updated.Id, placeId, keyItems, cancellationToken)
                     ?? throw new ConflictException("鑰匙已被其他請求使用");
@@ -95,7 +95,8 @@ public sealed class WorldService(
                     await inventory.RemoveAsync(updated.Id, held.Id, cancellationToken);
                 }
 
-                await areaPasses.SaveAsync(updated.Id, AreaKeys.Enter(keyItems[held.ItemId].Key!, now), cancellationToken);
+                var keySpec = keyItems[held.ItemId].Key ?? throw new InvalidOperationException("KeyItems 只收有 key 的道具");
+                await areaPasses.SaveAsync(updated.Id, AreaKeys.Enter(keySpec, now), cancellationToken);
             }
 
             return new CharacterProfile(CharacterStamina.Regenerated(updated, now), settled.JobProficiency, settled.Equipment);

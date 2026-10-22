@@ -37,6 +37,7 @@ public static class Refine
         InventoryEntry equipment, ItemDefinition equipmentDef, ItemDefinition stone, bool useSafeStone, IRandomSource random)
     {
         ForgeGuard.Ensure(Check(equipment, equipmentDef, stone));
+        var spec = stone.Refine ?? throw new InvalidOperationException("Check 已確認是精鍊石");
         var target = equipment.RefineLevel + 1;
         var roll = PhpRandom.Between(random, 1, 100);
         if (10 * target > roll)
@@ -45,7 +46,7 @@ public static class Refine
             return new RefineOutcome(false, equipment, ConsumedStone: !useSafeStone, ConsumedSafeStone: useSafeStone);
         }
 
-        var bonus = equipment.RefineBonus + Roll(stone.Refine!, random);
+        var bonus = equipment.RefineBonus + Roll(spec, random);
         return new RefineOutcome(true, equipment with { RefineLevel = target, RefineBonus = bonus }, ConsumedStone: true, ConsumedSafeStone: false);
     }
 

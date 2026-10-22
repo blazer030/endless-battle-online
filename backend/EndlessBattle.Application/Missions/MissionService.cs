@@ -39,13 +39,13 @@ public sealed class MissionService(
             var current = MissionBoard.Current(records, content.AllMissions, now);
             var mission = content.AllMissions.FirstOrDefault(definition => definition.Id == missionId);
             var reasons = MissionRules.CanAccept(character, mission, current);
-            if (reasons.Count > 0)
+            if (mission is null || reasons.Count > 0)
             {
                 throw new InputValidationException("無法接取任務", reasons);
             }
 
             await LockAndRemoveStaleAsync(character, records, now, cancellationToken);
-            var period = mission!.Daily ? DailyMissions.PeriodOf(now) : (DateOnly?)null;
+            var period = mission.Daily ? DailyMissions.PeriodOf(now) : (DateOnly?)null;
             await missions.AddAsync(character.Id, new MissionRecord(mission.Id, MissionState.Active, 0, period, now, null), cancellationToken);
             return await BoardAsync(character, now, cancellationToken);
         }, cancellationToken);
