@@ -32,6 +32,10 @@ export type ForgeResult = Schemas["ForgeResponse"]
 export type UnsocketResult = Schemas["UnsocketResponse"]
 export type Recipe = Schemas["RecipeResponse"]
 export type SynthesisResult = Schemas["SynthesisResponse"]
+export type MissionBoard = Schemas["MissionBoardResponse"]
+export type MissionView = Schemas["MissionResponse"]
+export type MissionRewardView = Schemas["MissionRewardResponse"]
+export type MissionCompletion = Schemas["MissionCompleteResponse"]
 
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }

@@ -14,6 +14,7 @@ import { BagScreen } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
 import { formatNumber } from "./formatNumber"
+import { MissionsScreen } from "./MissionsScreen"
 import { SkillsScreen } from "./SkillsScreen"
 import { StageErrorBoundary } from "./StageErrorBoundary"
 import { StatBar } from "./StatBar"
@@ -34,13 +35,14 @@ const emptyContent: ContentNames = {
   sexes: [],
 }
 
-type Tab = "adventure" | "character" | "skills" | "bag"
+type Tab = "adventure" | "character" | "skills" | "bag" | "missions"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
   { id: "character", label: "角色" },
   { id: "skills", label: "技能" },
   { id: "bag", label: "背包" },
+  { id: "missions", label: "任務" },
 ]
 
 type Props = { api: ApiClient; initialCharacter: CharacterView }
@@ -210,6 +212,16 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               character={character}
               onCharacterChanged={handleCharacterChange}
               jobNames={content?.jobs ?? []}
+            />
+          </div>
+        )}
+        {/* 任務分頁每次打開才載入，擊殺進度與交付數量都是最新的 */}
+        {tab === "missions" && (
+          <div className="adventure__sheet">
+            <MissionsScreen
+              api={api}
+              content={content ?? emptyContent}
+              onCharacterChanged={handleCharacterChange}
             />
           </div>
         )}

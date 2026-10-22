@@ -50,6 +50,10 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   mergeStones: vi.fn(),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn(),
+  getMissions: vi.fn(),
+  acceptMission: vi.fn(),
+  abandonMission: vi.fn(),
+  completeMission: vi.fn(),
 })
 
 const renderLoop = (api: ApiClient) =>

@@ -10,6 +10,8 @@ import type {
   InventoryView,
   ItemCategory,
   JobOption,
+  MissionBoard,
+  MissionCompletion,
   Recipe,
   ShopItem,
   SkillOverview,
@@ -77,6 +79,10 @@ export type ApiClient = {
   mergeStones: (stoneInventoryId: number, quantityPairs: number) => Promise<ForgeResult>
   getRecipes: () => Promise<Recipe[]>
   synthesize: (recipeId: string, attempts: number) => Promise<SynthesisResult>
+  getMissions: () => Promise<MissionBoard>
+  acceptMission: (missionId: string) => Promise<MissionBoard>
+  abandonMission: (missionId: string) => Promise<MissionBoard>
+  completeMission: (missionId: string) => Promise<MissionCompletion>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -205,5 +211,12 @@ export const createApiClient = (options: {
     getRecipes: () => requestJson<Recipe[]>("/api/forge/recipes", "GET"),
     synthesize: (recipeId, attempts) =>
       requestJson<SynthesisResult>("/api/forge/synthesize", "POST", { recipeId, attempts }),
+    getMissions: () => requestJson<MissionBoard>("/api/missions", "GET"),
+    acceptMission: (missionId) =>
+      requestJson<MissionBoard>("/api/missions/accept", "POST", { missionId }),
+    abandonMission: (missionId) =>
+      requestJson<MissionBoard>("/api/missions/abandon", "POST", { missionId }),
+    completeMission: (missionId) =>
+      requestJson<MissionCompletion>("/api/missions/complete", "POST", { missionId }),
   }
 }

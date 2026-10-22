@@ -249,3 +249,25 @@ test("forgeCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/forge/synthesize", { recipeId: "iron-ingot", attempts: 5 }],
   ])
 })
+
+test("missionCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.getMissions()
+  await client.acceptMission("test-hunt")
+  await client.abandonMission("test-hunt")
+  await client.completeMission("test-hunt")
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["GET", "/api/missions", undefined],
+    ["POST", "/api/missions/accept", { missionId: "test-hunt" }],
+    ["POST", "/api/missions/abandon", { missionId: "test-hunt" }],
+    ["POST", "/api/missions/complete", { missionId: "test-hunt" }],
+  ])
+})

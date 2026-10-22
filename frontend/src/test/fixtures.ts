@@ -4,6 +4,8 @@ import type {
   ContentNames,
   InventoryItem,
   InventoryView,
+  MissionBoard,
+  MissionView,
   ShopItem,
   StatBonusView,
   WorldArea,
@@ -234,5 +236,46 @@ export const makeShopItem = (overrides: Partial<ShopItem> = {}): ShopItem => ({
   requires: { str: 10, smart: 0, agi: 0, au: 0 },
   holes: 0,
   refineMax: 4,
+  ...overrides,
+})
+
+// 中央平原的擊殺任務：草原史萊姆 3/8
+export const makeMission = (overrides: Partial<MissionView> = {}): MissionView => ({
+  id: "test-hunt",
+  giver: "村長",
+  title: "綠地上的黏液",
+  description: "綠地上的史萊姆越來越多了。",
+  level: 1,
+  placeId: 1,
+  placeName: "中央平原",
+  daily: false,
+  kill: {
+    monsterId: "grass-slime",
+    monsterName: "草原史萊姆",
+    placeId: 1,
+    placeName: "中央平原",
+    count: 8,
+    progress: 3,
+  },
+  deliver: [],
+  requirements: {
+    jobId: null,
+    sex: null,
+    birth: null,
+    prerequisiteId: null,
+    prerequisiteTitle: null,
+  },
+  rewards: { exp: 190, money: 50, items: [], skill: null },
+  ready: false,
+  expiresAt: null,
+  ...overrides,
+})
+
+export const makeMissionBoard = (overrides: Partial<MissionBoard> = {}): MissionBoard => ({
+  available: [],
+  active: [],
+  completed: [],
+  activeLimit: 3,
+  nextDailyReset: "2026-10-23T01:00:00Z",
   ...overrides,
 })

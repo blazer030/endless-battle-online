@@ -17,6 +17,8 @@ import {
   makeInventory,
   makeItem,
   makeJob,
+  makeMission,
+  makeMissionBoard,
   makeSummary,
   makeWorld,
 } from "../test/fixtures"
@@ -147,6 +149,10 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   mergeStones: vi.fn(),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn(),
+  getMissions: vi.fn().mockResolvedValue(makeMissionBoard({ available: [makeMission()] })),
+  acceptMission: vi.fn(),
+  abandonMission: vi.fn(),
+  completeMission: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -384,6 +390,29 @@ test("AdventureScreen_BagTabOpensBagScreen", async () => {
   expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("aria-current", "page")
   expect(screen.getByRole("tablist", { name: "背包分頁" })).toBeVisible()
   expect(screen.getByText("測試木劍 +0")).toBeVisible()
+  expect(screen.getByTestId("stage")).not.toBeVisible()
+})
+
+test("AdventureScreen_MissionsTabIsFifthAndLoadsMissions", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  expect(api.getMissions).not.toHaveBeenCalled()
+
+  const navigation = within(screen.getByRole("navigation")).getAllByRole("button")
+  expect(navigation.map((button) => button.textContent)).toEqual([
+    "冒險",
+    "角色",
+    "技能",
+    "背包",
+    "任務",
+  ])
+  fireEvent.click(screen.getByRole("button", { name: "任務" }))
+  await advanceTime(0)
+
+  expect(api.getMissions).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole("button", { name: "任務" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("article", { name: "綠地上的黏液" })).toBeVisible()
   expect(screen.getByTestId("stage")).not.toBeVisible()
 })
 
