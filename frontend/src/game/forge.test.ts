@@ -187,6 +187,19 @@ describe("synthesis", () => {
     expect(maxSynthesisAttempts(recipe, plenty)).toBe(99)
   })
 
+  it("adds up a material listed more than once", () => {
+    const doubled: Recipe = {
+      ...recipe,
+      materials: [
+        { itemId: "iron-ore", name: "鐵礦石", quantity: 2 },
+        { itemId: "iron-ore", name: "鐵礦石", quantity: 2 },
+      ],
+    }
+    expect(
+      maxSynthesisAttempts(doubled, makeInventory([material(60, "iron-ore", "鐵礦石", 9)])),
+    ).toBe(2)
+  })
+
   it("shows the money ceiling and the result", () => {
     expect(synthesisButtonText(3)).toBe("合成（3,000 金錢上限）")
     expect(synthesisResultText({ attempts: 3, successes: 2, cost: 2000 })).toBe(

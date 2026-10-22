@@ -649,3 +649,35 @@ test("BagScreen_ForgeHoleNamesItsStoneWithoutABagCopy", async () => {
   expect(api.unsocket).toHaveBeenCalledWith(9, 1)
   expect(await screen.findByRole("status")).toHaveTextContent("拆除後混沌魔石消失了。")
 })
+
+test("BagScreen_ForgeSynthesizeNeedsMoneyForEveryAttempt", async () => {
+  await renderForge({}, makeCharacter({ money: 1500 }))
+  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+
+  const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
+  if (line === null) throw new Error("找不到配方列")
+  expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeEnabled()
+  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  expect(within(line).getByRole("button", { name: "合成（2,000 金錢上限）" })).toBeDisabled()
+
+  cleanup()
+  await renderForge({}, makeCharacter({ money: 2000 }))
+  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+  const exact = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
+  if (exact === null) throw new Error("找不到配方列")
+  await userEvent.click(within(exact).getByRole("button", { name: "增加數量" }))
+  expect(within(exact).getByRole("button", { name: "合成（2,000 金錢上限）" })).toBeEnabled()
+})
+
+test("BagScreen_ForgeToolButtonsNeedTheirTools", async () => {
+  const withoutTools = makeInventory(
+    forgeItems.filter((item) => item.itemId !== "stone-remover" && item.itemId !== "hole-driller"),
+    { equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }] },
+  )
+  await renderForge({ getInventory: vi.fn().mockResolvedValue(withoutTools) })
+  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+  await userEvent.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
+
+  expect(screen.getByRole("button", { name: "拆除（需要拆石器）" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
+})
