@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Missions;
@@ -27,6 +28,24 @@ public static class MissionEndpoints
         missions.MapPost("/abandon", async (
             MissionRequest request, ClaimsPrincipal user, MissionService service, IGameContent content, CancellationToken cancellationToken) =>
             TypedResults.Ok(ToResponse(await service.AbandonAsync(user.GetAccountId(), RequireMissionId(request), cancellationToken), content)));
+
+        missions.MapPost("/complete", async (
+            MissionRequest request, ClaimsPrincipal user, MissionService service, CharacterService characters, IGameContent content,
+            CancellationToken cancellationToken) =>
+        {
+            var completion = await service.CompleteAsync(user.GetAccountId(), RequireMissionId(request), cancellationToken);
+            var profile = await characters.GetAsync(user.GetAccountId(), cancellationToken);
+            return TypedResults.Ok(new MissionCompleteResponse(
+                ToResponse(completion.Board, content),
+                CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content),
+                completion.CompletionMessage,
+                completion.Exp,
+                completion.Money,
+                completion.Items.Select(item => ToResponse(item, content)).ToList(),
+                completion.Skill is { } skill ? ToResponse(skill, content) : null,
+                completion.SkillGranted,
+                completion.LevelsGained));
+        });
 
         return app;
     }
@@ -68,11 +87,17 @@ public static class MissionEndpoints
             new MissionRewardResponse(
                 objective.Exp,
                 reward.Money,
-                reward.Items.Select(item => new MissionRewardItemResponse(item.ItemId, content.GetItem(item.ItemId).Name, item.Quantity)).ToList(),
-                reward.Skill is { } skill ? new MissionRewardSkillResponse(skill.SkillId, content.GetSkill(skill.SkillId).Name, skill.Level) : null),
+                reward.Items.Select(item => ToResponse(item, content)).ToList(),
+                reward.Skill is { } skill ? ToResponse(skill, content) : null),
             entry.Ready,
             entry.ExpiresAt);
     }
+
+    private static MissionRewardItemResponse ToResponse(ItemQuantity item, IGameContent content) =>
+        new(item.ItemId, content.GetItem(item.ItemId).Name, item.Quantity);
+
+    private static MissionRewardSkillResponse ToResponse(SkillReward skill, IGameContent content) =>
+        new(skill.SkillId, content.GetSkill(skill.SkillId).Name, skill.Level);
 
     private static MissionKillResponse ToResponse(KillTarget kill, int progress, IGameContent content)
     {

@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Missions;
 using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -25,6 +28,17 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
 
     private static Task<HttpResponseMessage> PostAsync(HttpClient client, string action, string missionId) =>
         client.PostAsJsonAsync($"/api/missions/{action}", new { missionId }, CancellationToken);
+
+    // 直接寫入擊殺進度：計數要靠冒險推進，這裡跳過
+    private static async Task SetProgressAsync(EndlessBattleApiFactory factory, HttpClient client, string missionId, int progress)
+    {
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+            .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+        await scope.ServiceProvider.GetRequiredService<IMissionRepository>()
+            .UpdateProgressAsync(character!.Id, missionId, progress, CancellationToken);
+    }
 
     private static List<string?> Ids(JsonElement board, string list) =>
         board.GetProperty(list).EnumerateArray().Select(mission => mission.GetProperty("id").GetString()).ToList();
@@ -88,6 +102,43 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(["tooMany"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    [Fact]
+    public async Task Missions_CompleteReturnsRewardsAndCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        var before = await ReadAsync(await client.GetAsync("/api/characters/me", CancellationToken));
+        (await PostAsync(client, "accept", "test-hunt")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-hunt", 3);
+
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-hunt"));
+
+        var character = completion.GetProperty("character");
+        Assert.Equal(before.GetProperty("money").GetInt64() + 50, character.GetProperty("money").GetInt64());
+        Assert.Equal(190, character.GetProperty("exp").GetInt64());
+        Assert.Equal("謝謝你。", completion.GetProperty("completionMessage").GetString());
+        Assert.Equal((190L, 50L, 0), (
+            completion.GetProperty("exp").GetInt64(), completion.GetProperty("money").GetInt64(), completion.GetProperty("levelsGained").GetInt32()));
+        Assert.Empty(completion.GetProperty("items").EnumerateArray());
+        Assert.Equal(JsonValueKind.Null, completion.GetProperty("skill").ValueKind);
+        Assert.False(completion.GetProperty("skillGranted").GetBoolean());
+        Assert.Equal(["test-hunt"], Ids(completion.GetProperty("board"), "completed"));
+    }
+
+    [Fact]
+    public async Task Missions_CompleteIncompleteReturnsReason()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        (await PostAsync(client, "accept", "test-hunt")).EnsureSuccessStatusCode();
+
+        var response = await PostAsync(client, "complete", "test-hunt");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(["objectiveIncomplete"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]

@@ -309,3 +309,15 @@ public sealed record MissionRewardResponse(long Exp, long Money, IReadOnlyList<M
 public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity);
 
 public sealed record MissionRewardSkillResponse(string SkillId, string Name, int Level);
+
+// Exp、Money、Items、Skill 是這次任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能；Character 已含獎勵
+public sealed record MissionCompleteResponse(
+    MissionBoardResponse Board,
+    CharacterResponse Character,
+    string CompletionMessage,
+    long Exp,
+    long Money,
+    IReadOnlyList<MissionRewardItemResponse> Items,
+    MissionRewardSkillResponse? Skill,
+    bool SkillGranted,
+    int LevelsGained);

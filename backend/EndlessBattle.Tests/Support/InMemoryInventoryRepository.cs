@@ -5,7 +5,7 @@ namespace EndlessBattle.Tests.Support;
 
 // 應用層測試用：與 InventoryRepository 一致，道具不屬於該角色時丟 InvalidOperationException；
 // 刪除仍在裝備欄的道具時模擬外鍵失敗
-public sealed class InMemoryInventoryRepository : IInventoryRepository, IRestorableRepository
+public sealed class InMemoryInventoryRepository(List<string>? log = null) : IInventoryRepository, IRestorableRepository
 {
     private readonly Dictionary<long, (long CharacterId, InventoryEntry Entry)> rows = [];
     private long nextId = 1;
@@ -13,8 +13,8 @@ public sealed class InMemoryInventoryRepository : IInventoryRepository, IRestora
     // 由 InMemoryEquipmentRepository 設定
     public Func<long, bool> IsEquipped { get; set; } = _ => false;
 
-    // 依序記錄寫入：add:<itemId>、quantity:<id>、enhance:<id>、remove:<id>
-    public List<string> Writes { get; } = [];
+    // 依序記錄寫入：add:<itemId>、quantity:<id>、enhance:<id>、remove:<id>；傳入 log 時與其他 repository 共用
+    public List<string> Writes { get; } = log ?? [];
 
     // 設為 add、quantity、enhance 或 remove 時，該種寫入一律丟 InvalidOperationException，模擬資料庫寫入失敗
     public string? FailWrite { get; set; }
