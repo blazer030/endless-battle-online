@@ -5,7 +5,7 @@ public sealed record KillResult(IReadOnlyList<ActiveMission> Missions, IReadOnly
 
 public static class KillCounter
 {
-    // 以這隻怪為目標、尚未達成且未過期的任務各 +1（WOG 同一隻怪只算到其中一個任務，裁定全部都算）
+    // 以這隻怪為目標、已接取、尚未達成且未過期的任務各 +1（WOG 同一隻怪只算到其中一個任務，裁定全部都算）
     public static KillResult Apply(IReadOnlyList<ActiveMission> missions, string monsterId, DateTimeOffset killedAt)
     {
         var advanced = new List<ActiveMission>();
@@ -47,17 +47,19 @@ public static class KillCounter
             }
 
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
-            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.Progress, expiresAt));
+            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.Progress, record.AcceptedAt, expiresAt));
         }
 
         return tracked;
     }
 
-    // 任務怪只在其任務尚未達成且未過期時出現
+    // 任務怪只在其任務已接取、尚未達成且未過期時出現
     public static IReadOnlySet<string> SpawnableMissionIds(IReadOnlyList<ActiveMission> missions, DateTimeOffset at) =>
         missions.Where(mission => IsOpen(mission, at)).Select(mission => mission.MissionId).ToHashSet();
 
-    // 嚴格早於 ExpiresAt 才算未過期
+    // 接取當下（含）起、嚴格早於 ExpiresAt 為止
     private static bool IsOpen(ActiveMission mission, DateTimeOffset at) =>
-        mission.Progress < mission.Required && (mission.ExpiresAt is not { } expiresAt || at < expiresAt);
+        mission.Progress < mission.Required
+        && mission.AcceptedAt <= at
+        && (mission.ExpiresAt is not { } expiresAt || at < expiresAt);
 }

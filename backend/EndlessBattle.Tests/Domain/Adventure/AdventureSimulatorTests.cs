@@ -465,7 +465,7 @@ public class AdventureSimulatorTests
 
     private static readonly MonsterDefinition Sprite = Monster("test-sprite");
 
-    private static ActiveMission Hunt(int progress = 0) => new("test-hunt", "測試討伐", "test-sprite", Required: 3, progress, ExpiresAt: null);
+    private static ActiveMission Hunt(int progress = 0) => new("test-hunt", "測試討伐", "test-sprite", Required: 3, progress, AcceptedAt: From, ExpiresAt: null);
 
     private static AdventureRun RunWithMissions(
         Character character, double seconds, IReadOnlyList<ActiveMission> missions, DateTimeOffset? from = null, IRandomSource? random = null,
@@ -501,14 +501,29 @@ public class AdventureSimulatorTests
         Assert.Equal(3, run.Summary.MissionKills);
     }
 
+    // 同上 8 場（開打即打完於 0、2.8、…、19.6 秒），任務在第 19 秒才接取：只有 19.6 秒那場計入
+    [Fact]
+    public void Adventure_CountsOnlyFightsAfterAcceptance()
+    {
+        var hunt = Hunt() with { AcceptedAt = From.AddSeconds(19) };
+
+        var run = RunWithMissions(Hero(), seconds: 20, [hunt]);
+
+        Assert.Equal(8, run.Summary.Wins);
+        Assert.Equal([hunt with { Progress = 1 }], run.Missions);
+        Assert.Equal(1, run.Summary.MissionKills);
+        var progress = Assert.Single(run.Events.OfType<MissionProgressEvent>());
+        Assert.Equal((1, 19.6), (progress.Progress, Math.Round(progress.AtSeconds, 6)));
+    }
+
     // 同 Adventure_DropsNothingOnLossesAndTimeouts：敗場、超限（有部分經驗）都不計任務
     [Fact]
     public void Adventure_CountsMissionKillsOnlyOnWins()
     {
         var brute = Monster("brute", hp: 60, at: 40, df: 1000);
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
-        var bruteHunt = new ActiveMission("brute-hunt", "討伐", "brute", Required: 3, Progress: 0, ExpiresAt: null);
-        var rockHunt = new ActiveMission("rock-hunt", "討伐", "rock", Required: 3, Progress: 0, ExpiresAt: null);
+        var bruteHunt = new ActiveMission("brute-hunt", "討伐", "brute", Required: 3, Progress: 0, AcceptedAt: From, ExpiresAt: null);
+        var rockHunt = new ActiveMission("rock-hunt", "討伐", "rock", Required: 3, Progress: 0, AcceptedAt: From, ExpiresAt: null);
 
         var lost = RunWithMissions(Hero(), seconds: 1, [bruteHunt], monsters: brute);
         Assert.Equal(1, lost.Summary.Losses);
@@ -532,7 +547,7 @@ public class AdventureSimulatorTests
     {
         var from = new DateTimeOffset(2026, 10, 22, 0, 59, 49, TimeSpan.Zero);
         var reset = new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero);
-        var daily = new ActiveMission("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, ExpiresAt: reset);
+        var daily = new ActiveMission("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, AcceptedAt: from, ExpiresAt: reset);
         var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, NextExp = 1_000_000 };
         var pebble = Monster("test-sprite", hp: 2, at: 40, df: 1000);
 
@@ -552,7 +567,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_CountsKillsOutsideTheEventWindow()
     {
-        var longHunt = new ActiveMission("long-hunt", "長期討伐", "test-sprite", Required: 100, Progress: 0, ExpiresAt: null);
+        var longHunt = new ActiveMission("long-hunt", "長期討伐", "test-sprite", Required: 100, Progress: 0, AcceptedAt: From, ExpiresAt: null);
 
         var run = RunWithMissions(Hero() with { NextExp = 1_000_000 }, seconds: 60, [longHunt]);
 
@@ -588,7 +603,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_MissionMonsterOnlyWhileActive()
     {
-        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, ExpiresAt: null);
+        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, AcceptedAt: From, ExpiresAt: null);
 
         var without = RunWithMissions(Hero(), seconds: 60, [], random: new SeededRandom(7), monsters: ChiefPlace);
         var with = RunWithMissions(Hero(), seconds: 60, [chiefHunt], random: new SeededRandom(7), monsters: ChiefPlace);
@@ -604,11 +619,14 @@ public class AdventureSimulatorTests
         Assert.Equal([chiefHunt with { Progress = 1 }], with.Missions);
         Assert.Equal(1, with.Summary.MissionKills);
 
-        // 已達成或已過期的任務不讓首領出現：遭遇序列與沒帶任務時完全相同
+        // 已達成、已過期或尚未接取的任務不讓首領出現：遭遇序列與沒帶任務時完全相同
         var reached = RunWithMissions(Hero(), seconds: 60, [chiefHunt with { Progress = 1 }], random: new SeededRandom(7), monsters: ChiefPlace);
         var expired = RunWithMissions(Hero(), seconds: 60, [chiefHunt with { ExpiresAt = From }], random: new SeededRandom(7), monsters: ChiefPlace);
+        var notYetAccepted = RunWithMissions(
+            Hero(), seconds: 60, [chiefHunt with { AcceptedAt = From.AddSeconds(60) }], random: new SeededRandom(7), monsters: ChiefPlace);
         Assert.Equal(Monsters(without), Monsters(reached));
         Assert.Equal(Monsters(without), Monsters(expired));
+        Assert.Equal(Monsters(without), Monsters(notYetAccepted));
 
         static string[] Monsters(AdventureRun run) => run.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId).ToArray();
     }
@@ -624,7 +642,7 @@ public class AdventureSimulatorTests
             Monster("test-sprite", placeId: 1, subPlaces: 1),
             Monster("test-sprite-chief", meet: 60, placeId: 1, subPlaces: 1) with { MissionId = "test-chief-hunt" },
         ];
-        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, ExpiresAt: null);
+        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, AcceptedAt: From, ExpiresAt: null);
         var baseline = new ScriptedRandom(0.0);
         RunWithMissions(Hero(), seconds: 1, [], random: baseline, monsters: place);
         double[] Script() => [0.99, 0.99, .. Enumerable.Repeat(0.0, baseline.Consumed - 2), 0.99, 0.99];
