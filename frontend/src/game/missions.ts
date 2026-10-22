@@ -39,11 +39,15 @@ export const rewardLines = (rewards: MissionRewardView): string[] => [
 const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
 
 export const progressRatio = (mission: MissionView): number => {
-  if (mission.kill !== null)
-    return mission.kill.count > 0 ? clampRatio(mission.kill.progress / mission.kill.count) : 1
   const required = mission.deliver.reduce((sum, item) => sum + item.quantity, 0)
-  if (required === 0) return mission.ready ? 1 : 0
   const held = mission.deliver.reduce((sum, item) => sum + Math.min(item.owned, item.quantity), 0)
+  if (mission.kill !== null) {
+    const { count, progress } = mission.kill
+    if (required === 0) return count > 0 ? clampRatio(progress / count) : 1
+    // 擊殺與交付合計，兩邊都滿才到 1（同後端的 Ready）
+    return clampRatio((Math.min(progress, count) + held) / (count + required))
+  }
+  if (required === 0) return mission.ready ? 1 : 0
   return clampRatio(held / required)
 }
 

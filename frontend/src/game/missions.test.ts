@@ -137,6 +137,22 @@ describe("progressRatio", () => {
     expect(progressRatio(delivery)).toBe(6 / 8)
   })
 
+  it("combines kills and deliveries for a mixed mission", () => {
+    // (3 + min(7,5) + min(1,3)) / (8 + 5 + 3)
+    expect(progressRatio({ ...makeMission(), deliver: delivery.deliver })).toBe(9 / 16)
+  })
+
+  it("caps kill progress before combining it with deliveries", () => {
+    const mission = makeMission()
+    const mixed = {
+      ...mission,
+      kill: mission.kill && { ...mission.kill, progress: 12 },
+      deliver: delivery.deliver.map((item) => ({ ...item, owned: 0 })),
+    }
+    // min(12,8) / (8 + 8)，不是 12 / 16
+    expect(progressRatio(mixed)).toBe(8 / 16)
+  })
+
   it("is full for a ready mission without objectives", () => {
     expect(progressRatio(makeMission({ kill: null, ready: true }))).toBe(1)
     expect(progressRatio(makeMission({ kill: null }))).toBe(0)
