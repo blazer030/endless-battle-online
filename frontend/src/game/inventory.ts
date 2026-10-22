@@ -1,5 +1,5 @@
 import { formatNumber } from "./format"
-import { buffLabel, remainingMinutes } from "./buffs"
+import { buffLabel, durationMinutes } from "./buffs"
 import { statLabel } from "./stats"
 import type {
   BagCategoryView,
@@ -96,7 +96,7 @@ export const itemUseResultLines = (
     lines.push(`經驗值 +${formatNumber(item.amount)}${result.levelsGained > 0 ? "，升級了！" : ""}`)
   if (result.buff !== null)
     lines.push(
-      `${item.name}生效：${buffLabel(result.buff.kind)} ×${result.buff.multiplier}，持續 ${remainingMinutes(result.buff.endsAt, now)} 分鐘`,
+      `${item.name}生效：${buffLabel(result.buff.kind)} ×${result.buff.multiplier}，持續 ${durationMinutes(result.buff.endsAt, now)} 分鐘`,
     )
   return lines
 }

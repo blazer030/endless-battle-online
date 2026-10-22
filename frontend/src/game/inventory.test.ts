@@ -355,6 +355,15 @@ describe("itemUseResultLines", () => {
     ])
   })
 
+  it("裝置時鐘比伺服器慢幾秒時，一小時的密藥仍顯示 60 分鐘", () => {
+    const elixir = makeItem({ category: "Consumable", consumable: "Elixir", name: "經驗密藥" })
+    const buff = { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" } as const
+    const slowClock = new Date("2026-10-23T02:59:58Z")
+    expect(itemUseResultLines(elixir, { ...nothing, buff }, slowClock)).toEqual([
+      "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",
+    ])
+  })
+
   it("牧場已滿的錯誤文案", () => {
     expect(reasonText("petsFull")).toBe("牧場已滿，最多只能擁有3隻寵物")
   })
