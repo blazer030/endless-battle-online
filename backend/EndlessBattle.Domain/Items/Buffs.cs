@@ -20,6 +20,9 @@ public sealed record ElixirSpec(BuffKind Kind, double Multiplier, int Seconds);
 public sealed record CharacterBuff(BuffKind Kind, double Multiplier, DateTimeOffset StartsAt, DateTimeOffset EndsAt)
 {
     public bool ActiveAt(DateTimeOffset at) => StartsAt <= at && at < EndsAt;
+
+    // 到期時刻（含）起不再列出
+    public bool ExpiredAt(DateTimeOffset at) => EndsAt <= at;
 }
 
 public static class Buffs

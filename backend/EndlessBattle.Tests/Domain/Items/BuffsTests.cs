@@ -23,6 +23,17 @@ public class BuffsTests
         Assert.Equal(1, Buffs.Multiplier([], BuffKind.Exp, StartsAt));
     }
 
+    // 到期那一刻起算過期；還沒開始的不算過期
+    [Fact]
+    public void ExpiredAt_FromEndsAtOn()
+    {
+        var buff = Buff(BuffKind.Exp, 1.5);
+
+        Assert.False(buff.ExpiredAt(StartsAt.AddTicks(-1)));
+        Assert.False(buff.ExpiredAt(StartsAt.AddHours(1).AddTicks(-1)));
+        Assert.True(buff.ExpiredAt(StartsAt.AddHours(1)));
+    }
+
     // at 25 × 1.2 = 30；df 11 × 1.2 = 13.2 → 13；沒有密藥的 mat／mdf 不變
     [Fact]
     public void ApplyTo_MultipliesAttackWithPhpRounding()

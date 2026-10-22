@@ -39,8 +39,9 @@ public sealed class AdventureService(
     IRandomSourceFactory randomFactory,
     IUnitOfWork unitOfWork)
 {
-    // 讀取與模擬（純 CPU）在交易外，交易裡只有寫入：角色的版本更新是第一個寫入，
-    // 同一角色的並行請求會在這一列上排隊；模擬依據的狀態若已過期，版本不符而 409
+    // 讀取與模擬（純 CPU）都在寫入之前，交易裡只有寫入：角色的版本更新是第一個寫入，
+    // 同一角色的並行請求會在這一列上排隊；模擬依據的狀態若已過期，版本不符而 409。
+    // 喝密藥時在外層交易內呼叫：外層在此之前沒有寫入、不持有列鎖，在交易內模擬不會延長鎖
     public async Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)

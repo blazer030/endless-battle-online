@@ -103,7 +103,7 @@ public sealed class InventoryService(
             }
 
             // 密藥只對喝下之後開打的場次生效，且會覆蓋同種的舊密藥：先以舊密藥把經過的時間結算到現在（同改設定），
-            // 推進的角色寫入就是交易裡第一個寫入；之後以結算後的角色與背包使用
+            // 推進的角色寫入就是交易裡第一個寫入（之前不能加寫入，否則模擬期間一直持有列鎖）；之後以結算後的角色與背包使用
             if (item.Consumable == ConsumableKind.Elixir)
             {
                 character = (await adventure.AdvanceAsync(accountId, cancellationToken)).Character;
