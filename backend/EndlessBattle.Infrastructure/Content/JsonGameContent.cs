@@ -643,6 +643,9 @@ public sealed class JsonGameContent : IGameContent
             Require(item.Elixir is not null, $"密藥 {id} 必須有 elixir");
             Require(item.Elixir.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
                 $"密藥 {id} 的 multiplier 必須在 {MinimumElixirMultiplier:0.00}～{MaximumElixirMultiplier:0.00}");
+            // 資料庫欄位是 DECIMAL(4,2)
+            Require((decimal)item.Elixir.Multiplier == Math.Round((decimal)item.Elixir.Multiplier, 2),
+                $"密藥 {id} 的 multiplier 小數最多兩位：{item.Elixir.Multiplier}");
             Require(item.Elixir.Seconds is >= MinimumElixirSeconds and <= MaximumElixirSeconds,
                 $"密藥 {id} 的 seconds 必須在 {MinimumElixirSeconds}～{MaximumElixirSeconds}");
         }

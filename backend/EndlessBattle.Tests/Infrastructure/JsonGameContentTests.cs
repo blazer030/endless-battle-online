@@ -1600,6 +1600,16 @@ public class JsonGameContentTests
         Assert.Contains(expected, message);
     }
 
+    // 欄位是 DECIMAL(4,2)：小數超過兩位存不進去，載入時就擋
+    [Fact]
+    public void Items_RejectElixirMultiplierWithMoreThanTwoDecimals()
+    {
+        var message = ItemRejection($"{ValidItemList}, {Replace(ValidElixir, "\"multiplier\": 1.5", "\"multiplier\": 1.255")}");
+
+        Assert.Contains("brew", message);
+        Assert.Contains("小數最多兩位", message);
+    }
+
     [Fact]
     public void Items_LoadElixirSpec()
     {
