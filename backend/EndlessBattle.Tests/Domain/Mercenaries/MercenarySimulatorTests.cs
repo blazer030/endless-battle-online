@@ -147,6 +147,22 @@ public class MercenarySimulatorTests
         Assert.Equal(Contract(10_000 - 865, Now.AddSeconds(100)), run.Contract);
     }
 
+    // 不在 now 的格線上：NextFightAt = now − 2 天 − 30 秒，跳過的場次照原本的格點走，
+    // 第一場是不早於 now − 86400 的格點 now − 86330，最後一場 now − 30，共 864 場
+    [Fact]
+    public void Mercenary_SkipsToTheFirstGridPointWithinOneDay()
+    {
+        var nextFightAt = Now.AddDays(-2).AddSeconds(-30);
+
+        var run = Run(Hero(), Contract(10_000, nextFightAt));
+
+        Assert.Equal(864, run.Fights.Count);
+        Assert.Equal(Now.AddSeconds(-86_400 + 70), run.Fights[0].At);
+        Assert.All(run.Fights, fight => Assert.Equal(0, (fight.At - nextFightAt).Ticks % TimeSpan.FromSeconds(100).Ticks));
+        Assert.Equal(Now.AddSeconds(-30), run.Fights[^1].At);
+        Assert.Equal(Contract(10_000 - 864, Now.AddSeconds(70)), run.Contract);
+    }
+
     [Fact]
     public void Mercenary_NeverMeetsGlobalMonsters()
     {
@@ -158,18 +174,40 @@ public class MercenarySimulatorTests
         Assert.All(run.Fights, fight => Assert.Equal("dummy", fight.MonsterId));
     }
 
-    // 擊殺時刻＝場次時刻：接取在第 2 場之前，第 1 場不算
+    // 擊殺時刻＝場次時刻（now − 300、−200、−100、now 四場）：兩個任務都在第 2 場之前接取，第 1 場不算；
+    // 每日任務在第 3、4 場之間（now − 50）過期，第 4 場也不算。以 now 計擊殺的話一般任務會是 4、每日任務是 0
     [Fact]
     public void Mercenary_CountsMissionKills()
     {
         var start = Now.AddSeconds(-300);
-        var hunt = new ActiveMission("hunt", "討伐", "dummy", Required: 2, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: null);
+        var hunt = new ActiveMission("hunt", "討伐", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: null);
+        var daily = new ActiveMission("daily", "每日", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: Now.AddSeconds(-50));
 
-        var run = Run(Hero(), Contract(10, start), missions: [hunt]);
+        var run = Run(Hero(), Contract(10, start), missions: [hunt, daily]);
 
         Assert.Equal(4, run.Fights.Count);
-        Assert.Equal([hunt with { Progress = 2 }], run.Missions);
-        Assert.Equal(2, run.MissionKills);
+        Assert.Equal([hunt with { Progress = 3 }, daily with { Progress = 2 }], run.Missions);
+        Assert.Equal(5, run.MissionKills);
+    }
+
+    // 寶物 30% → 分母 ⌊10 × 0.9 × 1.7⌋ = 15。掉落是該場最後一骰（NextExp 很大、不升級），先數出全 0.0 時一場用掉幾骰，
+    // 再把最後一骰換成 0.067：分母 15 → ⌊1.005⌋ + 1 = 2 落空；寶物 100%（分母 9）→ ⌊0.603⌋ + 1 = 1 掉落
+    [Fact]
+    public void Mercenary_AppliesDropDenominatorFactor()
+    {
+        var looter = Dummy with { Drops = [new DropEntry("ore", 10)] };
+        var stingy = Full with { DropPercent = 30 };
+        var counter = new ScriptedRandom(0.0);
+        Run(Hero(), Contract(10, Now), stingy, monsters: [looter], random: counter);
+        double[] script = [.. Enumerable.Repeat(0.0, counter.Consumed - 1), 0.067];
+
+        var discounted = Run(Hero(), Contract(10, Now), stingy, monsters: [looter], random: new ScriptedRandom(0.0, script));
+        var plain = Run(Hero(), Contract(10, Now), Full, monsters: [looter], random: new ScriptedRandom(0.0, script));
+
+        Assert.Empty(Assert.Single(discounted.Fights).Drops);
+        Assert.Empty(discounted.DroppedItemIds);
+        Assert.Equal(["ore"], Assert.Single(plain.Fights).Drops);
+        Assert.Equal(["ore"], plain.DroppedItemIds);
     }
 
     // 999 + 146 > 1000 → Lv2，成長取下限 (2,0,1,1,1,0,0)

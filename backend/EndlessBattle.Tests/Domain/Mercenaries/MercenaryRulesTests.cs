@@ -23,6 +23,9 @@ public class MercenaryRulesTests
     public void Rules_DiscountRoundsLikePhp()
     {
         Assert.Equal(78, MercenaryRules.Discount(155, 50));
+        // 72.5、2.5：銀行家捨入會得 72、2
+        Assert.Equal(73, MercenaryRules.Discount(145, 50));
+        Assert.Equal(3, MercenaryRules.Discount(5, 50));
         Assert.Equal(0, MercenaryRules.Discount(0, 50));
         Assert.Equal(155, MercenaryRules.Discount(155, 100));
     }
