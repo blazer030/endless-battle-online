@@ -8,7 +8,7 @@ using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Items;
 
-// 使用道具時需要的狀態：目前職業（升級成長）、寵物數、全部道具（寶箱的候選）、寵物蛋的物種候選
+// 使用道具時需要的狀態：目前職業（升級成長）、寵物數（只有寵物蛋會看）、全部道具（寶箱的候選）、寵物蛋的物種候選
 public sealed record UseContext(
     Character Character, JobDefinition Job, int PetCount, IReadOnlyList<ItemDefinition> AllItems, IReadOnlyList<MonsterDefinition> EggMonsters);
 

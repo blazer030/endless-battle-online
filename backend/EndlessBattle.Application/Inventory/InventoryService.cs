@@ -85,7 +85,7 @@ public sealed class InventoryService(
             return await ViewAsync(character, cancellationToken);
         }, cancellationToken);
 
-    // 一筆交易：讀角色、背包、寵物數 → CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 bagFull、
+    // 一筆交易：讀角色、背包（寵物蛋另讀寵物數）→ CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 bagFull、
     // 什麼都不寫 → 以版本鎖寫入角色 → 背包（扣道具、加結果）→ 寵物 → 技能點 → 密藥。衝突時道具不動
     public Task<ItemUseResult> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
@@ -94,8 +94,8 @@ public sealed class InventoryService(
             var state = await LoadAsync(character.Id, cancellationToken);
             var entry = FindInBag(state, inventoryId);
             var item = content.GetItem(entry.ItemId);
-            var owned = await pets.ListAsync(character.Id, cancellationToken);
-            var context = new UseContext(character, content.GetJob(character.JobId), owned.Count, content.AllItems, content.AllMonsters);
+            var petCount = item.Consumable == ConsumableKind.PetEgg ? (await pets.ListAsync(character.Id, cancellationToken)).Count : 0;
+            var context = new UseContext(character, content.GetJob(character.JobId), petCount, content.AllItems, content.AllMonsters);
             var reasons = ConsumableUse.CanUse(context, item);
             if (reasons.Count > 0)
             {
