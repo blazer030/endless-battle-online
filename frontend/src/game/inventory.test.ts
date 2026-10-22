@@ -225,6 +225,21 @@ describe("reasonText", () => {
     ["statTooLow:life", "生命不足"],
     ["statTooLow:vit", "體質不足"],
     ["statTooLow:be", "信仰不足"],
+    ["wrongStoneLevel", "精鍊石等級不符"],
+    ["atRefineMax", "已達精鍊上限"],
+    ["notRefineStone", "這不是精鍊石"],
+    ["holeOutOfRange", "沒有這個孔位"],
+    ["holeOccupied", "這個孔已經鑲嵌了魔石"],
+    ["duplicateStone", "同一件裝備不能鑲嵌同種魔石"],
+    ["notStone", "這不是魔石"],
+    ["holeEmpty", "這個孔沒有魔石"],
+    ["maxHoles", "孔數已達上限"],
+    ["missingTool:stone-remover", "缺少拆石器"],
+    ["missingTool:hole-driller", "缺少鑽孔器"],
+    ["missingTool:safe-refine-stone", "缺少安全精鍊石"],
+    ["missingTool:mystery-tool", "缺少需要的道具"],
+    ["cannotMerge", "這種精鍊石無法再合成"],
+    ["missingMaterials", "材料不足"],
   ])("translates %s", (code, text) => {
     expect(reasonText(code)).toBe(text)
   })

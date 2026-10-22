@@ -28,6 +28,10 @@ export type BaseStatsView = Schemas["BaseStatsResponse"]
 export type ShopItem = Schemas["ShopItemResponse"]
 export type DepotView = Schemas["DepotResponse"]
 export type DepotMove = Schemas["DepotMoveResponse"]
+export type ForgeResult = Schemas["ForgeResponse"]
+export type UnsocketResult = Schemas["UnsocketResponse"]
+export type Recipe = Schemas["RecipeResponse"]
+export type SynthesisResult = Schemas["SynthesisResponse"]
 
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }

@@ -1,9 +1,9 @@
-import { render, screen, within } from "@testing-library/react"
+import { cleanup, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { CharacterView, DepotView, InventoryView } from "../game/types"
-import { makeCharacter, makeInventory, makeItem, makeShopItem } from "../test/fixtures"
+import type { CharacterView, DepotView, InventoryView, Recipe } from "../game/types"
+import { emptyBonus, makeCharacter, makeInventory, makeItem, makeShopItem } from "../test/fixtures"
 import { BagScreen, type BagApi } from "./BagScreen"
 
 const sword = makeItem({ inventoryId: 1, name: "測試劍" })
@@ -80,6 +80,13 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   deposit: vi.fn(),
   withdraw: vi.fn(),
   getMyCharacter: vi.fn().mockResolvedValue(makeCharacter({ money: 10 })),
+  refine: vi.fn().mockResolvedValue({ success: true, inventory }),
+  socket: vi.fn().mockResolvedValue({ success: true, inventory }),
+  unsocket: vi.fn().mockResolvedValue({ success: true, recovered: true, inventory }),
+  drill: vi.fn().mockResolvedValue({ success: false, inventory }),
+  mergeStones: vi.fn().mockResolvedValue({ success: true, inventory }),
+  getRecipes: vi.fn().mockResolvedValue([]),
+  synthesize: vi.fn().mockResolvedValue({ successes: 0, attempts: 1, cost: 0, inventory }),
   ...overrides,
 })
 
@@ -120,7 +127,8 @@ test("BagScreen_ShowsSixSubPages", async () => {
   await openSubPage("銀行")
   expect(screen.getByRole("button", { name: "提領" })).toBeInTheDocument()
   await openSubPage("鍛造")
-  expect(screen.getByText("鍛造功能即將開放")).toBeInTheDocument()
+  const forgeTabs = within(screen.getByRole("tablist", { name: "鍛造項目" })).getAllByRole("tab")
+  expect(forgeTabs.map((tab) => tab.textContent)).toEqual(["精鍊", "鑲嵌", "合成"])
 })
 
 test("BagScreen_ListsItemsByCategoryWithUsage", async () => {
@@ -380,4 +388,237 @@ test("BagScreen_ShowsRetry_WhenInventoryFailsToLoad", async () => {
   await userEvent.click(await screen.findByRole("button", { name: "重試" }))
 
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()
+})
+
+const refineStone = (inventoryId: number, level: number, quantity = 1) =>
+  makeItem({
+    inventoryId,
+    itemId: `iron-refine-stone-${level}`,
+    name: `鋼鐵精鍊石 Lv${level}`,
+    category: "RefineStone",
+    quantity,
+  })
+const bagItem = (
+  inventoryId: number,
+  itemId: string,
+  name: string,
+  category: "Stone" | "Material",
+  quantity = 1,
+) => makeItem({ inventoryId, itemId, name, category, quantity })
+const wornSword = makeItem({
+  inventoryId: 9,
+  name: "精鋼劍",
+  refineLevel: 2,
+  holes: 2,
+  sockets: [{ hole: 1, stoneId: "attack-stone", rolled: emptyBonus }],
+})
+const forgeItems = [
+  sword,
+  refineStone(30, 3),
+  refineStone(31, 2, 3),
+  bagItem(40, "attack-stone", "攻擊魔石", "Stone"),
+  bagItem(41, "guard-stone", "守護魔石", "Stone"),
+  bagItem(50, "safe-refine-stone", "安全精鍊石", "Material"),
+  bagItem(51, "stone-remover", "拆石器", "Material"),
+  bagItem(52, "hole-driller", "鑽孔器", "Material"),
+  bagItem(60, "iron-ore", "鐵礦石", "Material", 7),
+  bagItem(61, "magic-dust", "魔法粉塵", "Material", 5),
+]
+const forgeInventory = makeInventory(forgeItems, {
+  equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }],
+})
+const ingot: Recipe = {
+  id: "iron-ingot",
+  resultItemId: "iron-ingot",
+  resultName: "鐵錠",
+  resultQuantity: 1,
+  materials: [
+    { itemId: "iron-ore", name: "鐵礦石", quantity: 3 },
+    { itemId: "magic-dust", name: "魔法粉塵", quantity: 1 },
+  ],
+  successRate: 60,
+  costPerAttempt: 1000,
+}
+const crystal: Recipe = {
+  ...ingot,
+  id: "crystal",
+  resultItemId: "crystal",
+  resultName: "晶石",
+  materials: [{ itemId: "crystal-shard", name: "水晶碎片", quantity: 2 }],
+}
+
+const renderForge = async (
+  overrides: Partial<BagApi> = {},
+  character: CharacterView = makeCharacter({ money: 5000 }),
+) => {
+  const rendered = renderBag(
+    createFakeApi({
+      getInventory: vi.fn().mockResolvedValue(forgeInventory),
+      getRecipes: vi.fn().mockResolvedValue([ingot, crystal]),
+      ...overrides,
+    }),
+    character,
+  )
+  await openSubPage("鍛造")
+  return rendered
+}
+
+test("BagScreen_ForgeRefineSendsBodyAndShowsSuccess", async () => {
+  const refined = makeInventory(forgeItems.slice(1), {
+    equipment: [{ slot: "Weapon", quantity: 1, item: { ...wornSword, refineLevel: 3 } }],
+  })
+  const { api, onCharacterChanged } = await renderForge({
+    refine: vi.fn().mockResolvedValue({ success: true, inventory: refined }),
+  })
+
+  expect(screen.getByRole("combobox", { name: "選擇裝備" })).toHaveDisplayValue(
+    "精鋼劍 +2（裝備中）",
+  )
+  expect(screen.getByText("+2 → +3（成功率 71%）")).toBeInTheDocument()
+  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await userEvent.click(screen.getByRole("checkbox", { name: "使用安全石" }))
+  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+
+  expect(api.refine).toHaveBeenCalledWith(9, 30, true)
+  expect(await screen.findByRole("status")).toHaveTextContent("精鍊成功！精鋼劍 +3")
+  expect(screen.getByText("+3 → +4（成功率 61%）")).toBeInTheDocument()
+  expect(api.getMyCharacter).toHaveBeenCalled()
+  expect(onCharacterChanged).toHaveBeenCalled()
+})
+
+test("BagScreen_ForgeRefineFailureNamesTheLostStone", async () => {
+  const { api } = await renderForge({
+    refine: vi.fn().mockResolvedValue({ success: false, inventory: forgeInventory }),
+  })
+
+  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  expect(api.refine).toHaveBeenCalledWith(9, 30, false)
+  expect(await screen.findByRole("status")).toHaveTextContent("精鍊失敗，鋼鐵精鍊石 Lv3消失了。")
+
+  await userEvent.click(screen.getByRole("checkbox", { name: "使用安全石" }))
+  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+  expect(await screen.findByRole("status")).toHaveTextContent("精鍊失敗，安全石消失了。")
+})
+
+test("BagScreen_ForgeRefineDisablesMismatchedStonesAndMissingSafeStone", async () => {
+  const withoutSafeStone = makeInventory(
+    forgeItems.filter((item) => item.itemId !== "safe-refine-stone"),
+    { equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }] },
+  )
+  await renderForge({ getInventory: vi.fn().mockResolvedValue(withoutSafeStone) })
+
+  expect(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv2.*等級不符/ })).toBeDisabled()
+  expect(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ })).toBeEnabled()
+  expect(screen.getByRole("checkbox", { name: "使用安全石" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "精鍊" })).toBeDisabled()
+})
+
+test("BagScreen_ForgeRefineStopsAtRefineMax", async () => {
+  await renderForge()
+
+  await userEvent.selectOptions(screen.getByRole("combobox", { name: "選擇裝備" }), "測試劍 +0")
+  expect(screen.getByText("+0 → +1（成功率 91%）")).toBeInTheDocument()
+
+  const maxed = makeInventory([{ ...sword, refineLevel: 4 }, refineStone(30, 5)])
+  cleanup()
+  await renderForge({ getInventory: vi.fn().mockResolvedValue(maxed) })
+  expect(screen.getByText("已達上限")).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "精鍊" })).toBeDisabled()
+})
+
+test("BagScreen_ForgeMergesRefineStones", async () => {
+  const { api } = await renderForge()
+
+  const merge = screen.getByRole("region", { name: "精鍊石合成" })
+  const line = within(merge).getByText("鋼鐵精鍊石 Lv2 ×3").closest("li")
+  if (line === null) throw new Error("找不到精鍊石合成列")
+  await userEvent.click(within(line).getByRole("button", { name: "合成" }))
+
+  expect(api.mergeStones).toHaveBeenCalledWith(31, 1)
+  expect(await screen.findByRole("status")).toHaveTextContent("精鍊石合成成功！")
+})
+
+test("BagScreen_ForgeSocketSendsHoleAndStone", async () => {
+  const { api } = await renderForge()
+  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+
+  expect(screen.getByRole("button", { name: "孔 1：攻擊魔石" })).toHaveTextContent("◆")
+  await userEvent.click(screen.getByRole("button", { name: "孔 2：空" }))
+  expect(screen.getByRole("radio", { name: /攻擊魔石.*已有同種魔石/ })).toBeDisabled()
+  await userEvent.click(screen.getByRole("radio", { name: /守護魔石/ }))
+  await userEvent.click(screen.getByRole("button", { name: "鑲嵌" }))
+
+  expect(api.socket).toHaveBeenCalledWith(9, 2, 41)
+  expect(await screen.findByRole("status")).toHaveTextContent("鑲嵌成功！")
+})
+
+test("BagScreen_ForgeUnsocketAndDrillNarrateTheRoll", async () => {
+  const { api } = await renderForge({
+    unsocket: vi
+      .fn()
+      .mockResolvedValue({ success: true, recovered: false, inventory: forgeInventory }),
+  })
+  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+
+  await userEvent.click(screen.getByRole("button", { name: "孔 1：攻擊魔石" }))
+  await userEvent.click(screen.getByRole("button", { name: "拆除（需要拆石器）" }))
+  expect(api.unsocket).toHaveBeenCalledWith(9, 1)
+  expect(await screen.findByRole("status")).toHaveTextContent("拆除後攻擊魔石消失了。")
+
+  await userEvent.click(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" }))
+  expect(api.drill).toHaveBeenCalledWith(9)
+  expect(await screen.findByRole("status")).toHaveTextContent("打洞失敗。")
+})
+
+test("BagScreen_ForgeDrillDisabledAtFourHoles", async () => {
+  const fourHoles = makeInventory(forgeItems, {
+    equipment: [{ slot: "Weapon", quantity: 1, item: { ...wornSword, holes: 4 } }],
+  })
+  await renderForge({ getInventory: vi.fn().mockResolvedValue(fourHoles) })
+  await userEvent.click(screen.getByRole("tab", { name: "鑲嵌" }))
+
+  expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
+})
+
+test("BagScreen_ForgeSynthesizeSendsRecipeAndAttempts", async () => {
+  const { api } = await renderForge({
+    synthesize: vi
+      .fn()
+      .mockResolvedValue({ successes: 1, attempts: 2, cost: 1000, inventory: forgeInventory }),
+  })
+  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+
+  const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
+  if (line === null) throw new Error("找不到配方列")
+  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  // 鐵礦石 7 顆只夠 2 次
+  expect(within(line).getByRole("button", { name: "增加數量" })).toBeDisabled()
+  await userEvent.click(within(line).getByRole("button", { name: "合成（2,000 金錢上限）" }))
+
+  expect(api.synthesize).toHaveBeenCalledWith("iron-ingot", 2)
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "合成 2 次，成功 1 次，花費 1,000 金錢。",
+  )
+  expect(api.getMyCharacter).toHaveBeenCalled()
+})
+
+test("BagScreen_ForgeSynthesizeDisabledWithoutMaterials", async () => {
+  await renderForge()
+  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+
+  const line = (await screen.findByText("晶石 ×1 ← 水晶碎片 ×2（60%）")).closest("li")
+  if (line === null) throw new Error("找不到配方列")
+  expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeDisabled()
+})
+
+test("BagScreen_ForgeShowsMappedErrorReasons", async () => {
+  await renderForge({
+    refine: vi.fn().mockRejectedValue(new ApiError(400, "無法精鍊", ["wrongStoneLevel"])),
+  })
+
+  await userEvent.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
+  await userEvent.click(screen.getByRole("button", { name: "精鍊" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("精鍊石等級不符")
 })

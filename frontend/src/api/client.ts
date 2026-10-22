@@ -6,12 +6,16 @@ import type {
   DepotMove,
   DepotView,
   EquipmentSlot,
+  ForgeResult,
   InventoryView,
   ItemCategory,
   JobOption,
+  Recipe,
   ShopItem,
   SkillOverview,
   SkillSlotCommand,
+  SynthesisResult,
+  UnsocketResult,
   WorldArea,
 } from "../game/types"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
@@ -61,6 +65,18 @@ export type ApiClient = {
   take: (depotId: number, quantity: number) => Promise<DepotMove>
   deposit: (amount: number) => Promise<CharacterView>
   withdraw: (amount: number) => Promise<CharacterView>
+  refine: (
+    inventoryId: number,
+    stoneInventoryId: number,
+    useSafeStone: boolean,
+  ) => Promise<ForgeResult>
+  // hole 從 1 起算
+  socket: (inventoryId: number, hole: number, stoneInventoryId: number) => Promise<ForgeResult>
+  unsocket: (inventoryId: number, hole: number) => Promise<UnsocketResult>
+  drill: (inventoryId: number) => Promise<ForgeResult>
+  mergeStones: (stoneInventoryId: number, quantityPairs: number) => Promise<ForgeResult>
+  getRecipes: () => Promise<Recipe[]>
+  synthesize: (recipeId: string, attempts: number) => Promise<SynthesisResult>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -166,5 +182,28 @@ export const createApiClient = (options: {
       requestJson<DepotMove>("/api/depot/take", "POST", { depotId, quantity }),
     deposit: (amount) => requestJson<CharacterView>("/api/bank/deposit", "POST", { amount }),
     withdraw: (amount) => requestJson<CharacterView>("/api/bank/withdraw", "POST", { amount }),
+    refine: (inventoryId, stoneInventoryId, useSafeStone) =>
+      requestJson<ForgeResult>("/api/forge/refine", "POST", {
+        inventoryId,
+        stoneInventoryId,
+        useSafeStone,
+      }),
+    socket: (inventoryId, hole, stoneInventoryId) =>
+      requestJson<ForgeResult>("/api/forge/socket", "POST", {
+        inventoryId,
+        hole,
+        stoneInventoryId,
+      }),
+    unsocket: (inventoryId, hole) =>
+      requestJson<UnsocketResult>("/api/forge/unsocket", "POST", { inventoryId, hole }),
+    drill: (inventoryId) => requestJson<ForgeResult>("/api/forge/drill", "POST", { inventoryId }),
+    mergeStones: (stoneInventoryId, quantityPairs) =>
+      requestJson<ForgeResult>("/api/forge/merge-stones", "POST", {
+        stoneInventoryId,
+        quantityPairs,
+      }),
+    getRecipes: () => requestJson<Recipe[]>("/api/forge/recipes", "GET"),
+    synthesize: (recipeId, attempts) =>
+      requestJson<SynthesisResult>("/api/forge/synthesize", "POST", { recipeId, attempts }),
   }
 }

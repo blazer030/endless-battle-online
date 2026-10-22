@@ -38,6 +38,7 @@ import type {
 } from "../game/types"
 import { formatNumber } from "./formatNumber"
 import "./BagScreen.css"
+import { ForgePage, type ForgeApi } from "./ForgePage"
 import {
   ItemDetail,
   ItemName,
@@ -63,6 +64,7 @@ export type BagApi = Pick<
   | "deposit"
   | "withdraw"
   | "getMyCharacter"
+  | keyof ForgeApi
 >
 
 type Props = {
@@ -140,7 +142,15 @@ export function BagScreen({ api, character, onCharacterChanged, jobNames = [] }:
       case "bank":
         return <BankPage api={api} character={character} busy={busy} mutate={mutate} />
       case "forge":
-        return <p className="bag__empty">鍛造功能即將開放</p>
+        return (
+          <ForgePage
+            api={api}
+            inventory={current}
+            character={character}
+            busy={busy}
+            mutate={mutate}
+          />
+        )
     }
   }
 

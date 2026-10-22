@@ -166,8 +166,32 @@ export const canAfford = (money: number, price: number, quantity: number) =>
 
 export const isBankLocked = (level: number) => level < BankMinimumLevel
 
+// 鍛造消耗的道具（與後端 ForgeTools 一致）
+export const ForgeTools = {
+  safeRefineStone: "safe-refine-stone",
+  stoneRemover: "stone-remover",
+  holeDriller: "hole-driller",
+} as const
+
+const toolNames: Record<string, string> = {
+  [ForgeTools.safeRefineStone]: "安全精鍊石",
+  [ForgeTools.stoneRemover]: "拆石器",
+  [ForgeTools.holeDriller]: "鑽孔器",
+}
+
 const fixedReasonTexts: Record<string, string> = {
   alreadyEquipped: "這件道具已經裝備中",
+  atRefineMax: "已達精鍊上限",
+  cannotMerge: "這種精鍊石無法再合成",
+  duplicateStone: "同一件裝備不能鑲嵌同種魔石",
+  holeEmpty: "這個孔沒有魔石",
+  holeOccupied: "這個孔已經鑲嵌了魔石",
+  holeOutOfRange: "沒有這個孔位",
+  maxHoles: "孔數已達上限",
+  missingMaterials: "材料不足",
+  notRefineStone: "這不是精鍊石",
+  notStone: "這不是魔石",
+  wrongStoneLevel: "精鍊石等級不符",
   bagFull: "背包已滿",
   depotFull: "倉庫已滿",
   equipped: "請先卸下這件裝備",
@@ -188,10 +212,13 @@ const fixedReasonTexts: Record<string, string> = {
 }
 
 const StatTooLowPrefix = "statTooLow:"
+const MissingToolPrefix = "missingTool:"
 
 export const reasonText = (code: string) => {
   if (code.startsWith(StatTooLowPrefix))
     return `${statLabel(code.slice(StatTooLowPrefix.length))}不足`
+  if (code.startsWith(MissingToolPrefix))
+    return `缺少${toolNames[code.slice(MissingToolPrefix.length)] ?? "需要的道具"}`
   return fixedReasonTexts[code] ?? `無法完成（${code}）`
 }
 

@@ -221,3 +221,31 @@ test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/bank/withdraw", { amount: 500 }],
   ])
 })
+
+test("forgeCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.refine(7, 30, true)
+  await client.socket(7, 2, 31)
+  await client.unsocket(7, 1)
+  await client.drill(7)
+  await client.mergeStones(30, 3)
+  await client.getRecipes()
+  await client.synthesize("iron-ingot", 5)
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["POST", "/api/forge/refine", { inventoryId: 7, stoneInventoryId: 30, useSafeStone: true }],
+    ["POST", "/api/forge/socket", { inventoryId: 7, hole: 2, stoneInventoryId: 31 }],
+    ["POST", "/api/forge/unsocket", { inventoryId: 7, hole: 1 }],
+    ["POST", "/api/forge/drill", { inventoryId: 7 }],
+    ["POST", "/api/forge/merge-stones", { stoneInventoryId: 30, quantityPairs: 3 }],
+    ["GET", "/api/forge/recipes", undefined],
+    ["POST", "/api/forge/synthesize", { recipeId: "iron-ingot", attempts: 5 }],
+  ])
+})

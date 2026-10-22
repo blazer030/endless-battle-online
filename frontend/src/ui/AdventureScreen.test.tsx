@@ -140,6 +140,13 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   take: vi.fn(),
   deposit: vi.fn(),
   withdraw: vi.fn(),
+  refine: vi.fn(),
+  socket: vi.fn(),
+  unsocket: vi.fn(),
+  drill: vi.fn(),
+  mergeStones: vi.fn(),
+  getRecipes: vi.fn().mockResolvedValue([]),
+  synthesize: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>

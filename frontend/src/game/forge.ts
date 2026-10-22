@@ -1,0 +1,136 @@
+import { bagItems, bagSlotsOf, isEquipment } from "./inventory"
+import type { InventoryItem, InventoryView, Recipe, SynthesisResult } from "./types"
+
+// 與後端 Socket／StoneMerge／Synthesis 的常數一致
+export const MaxHoles = 4
+export const DrillSuccessPercent = 8
+export const MaxRefineStoneLevel = 10
+export const SynthesisCostPerAttempt = 1000
+export const MaxSynthesisAttempts = 99
+const StonesPerPair = 2
+
+const format = (value: number) => value.toLocaleString("zh-TW")
+
+export type ForgeOption = { stone: InventoryItem; allowed: boolean }
+
+// 鍛造對象：先列裝備欄（補給欄除外），再列背包裡的裝備
+export const forgeTargets = (inventory: InventoryView): InventoryItem[] => [
+  ...inventory.equipment.filter(({ item }) => isEquipment(item.category)).map(({ item }) => item),
+  ...bagItems(inventory).filter((item) => isEquipment(item.category)),
+]
+
+export const countInBag = (inventory: InventoryView, itemId: string) =>
+  bagItems(inventory)
+    .filter((item) => item.itemId === itemId)
+    .reduce((total, item) => total + item.quantity, 0)
+
+export const hasTool = (inventory: InventoryView, toolId: string) =>
+  countInBag(inventory, toolId) > 0
+
+// 目標等級 n = 目前 + 1，成功率 101 − 10n %
+const refineSuccessPercent = (item: InventoryItem) => 101 - 10 * (item.refineLevel + 1)
+
+export const refinePreview = (item: InventoryItem) =>
+  `+${item.refineLevel} → +${item.refineLevel + 1}（成功率 ${refineSuccessPercent(item)}%）`
+
+export const isAtRefineMax = (item: InventoryItem) => item.refineLevel >= item.refineMax
+
+// 回應沒有精鍊石等級，依內容 id 的慣例（…-refine-stone-<等級>）讀出
+export const refineStoneLevel = (itemId: string): number | null => {
+  const match = /-(\d+)$/.exec(itemId)
+  return match === null ? null : Number(match[1])
+}
+
+// 讀不出等級時交給後端判斷
+export const refineStoneOptions = (
+  inventory: InventoryView,
+  target: InventoryItem,
+): ForgeOption[] =>
+  bagSlotsOf(inventory, "RefineStone").items.map((stone) => {
+    const level = refineStoneLevel(stone.itemId)
+    return { stone, allowed: level === null || level === target.refineLevel + 1 }
+  })
+
+export const refineResultText = (
+  success: boolean,
+  equipmentName: string,
+  newLevel: number,
+  stoneName: string,
+  usedSafeStone: boolean,
+) => {
+  if (success) return `精鍊成功！${equipmentName} +${newLevel}`
+  return `精鍊失敗，${usedSafeStone ? "安全石" : stoneName}消失了。`
+}
+
+// 同一格兩顆合一顆 +1 級；LV10 不能再合
+export const mergeablePairs = (stone: InventoryItem) => {
+  const level = refineStoneLevel(stone.itemId)
+  if (level !== null && level >= MaxRefineStoneLevel) return 0
+  return Math.floor(stone.quantity / StonesPerPair)
+}
+
+export const mergeableStones = (inventory: InventoryView) =>
+  bagSlotsOf(inventory, "RefineStone").items.filter((stone) => mergeablePairs(stone) > 0)
+
+export type HoleSlot = { hole: number; stoneId: string | null }
+
+// 孔位從 1 起算
+export const holeSlots = (item: InventoryItem): HoleSlot[] =>
+  Array.from({ length: Math.min(item.holes, MaxHoles) }, (_, index) => {
+    const hole = index + 1
+    return { hole, stoneId: item.sockets.find((socket) => socket.hole === hole)?.stoneId ?? null }
+  })
+
+// 同一件裝備不能鑲嵌同種魔石（魔石種類 = 道具 id）
+export const socketStoneOptions = (
+  inventory: InventoryView,
+  target: InventoryItem,
+): ForgeOption[] =>
+  bagSlotsOf(inventory, "Stone").items.map((stone) => ({
+    stone,
+    allowed: !target.sockets.some((socket) => socket.stoneId === stone.itemId),
+  }))
+
+// 回應的孔位只有魔石 id，名稱從背包與裝備欄找；都沒有時用通稱
+export const stoneNameResolver = (...inventories: InventoryView[]) => {
+  const names = new Map<string, string>()
+  for (const inventory of inventories)
+    for (const item of [...bagItems(inventory), ...inventory.equipment.map(({ item }) => item)])
+      names.set(item.itemId, item.name)
+  return (stoneId: string) => names.get(stoneId) ?? "魔石"
+}
+
+export const canDrill = (item: InventoryItem) => item.holes < MaxHoles
+
+export const unsocketResultText = (recovered: boolean, stoneName: string) =>
+  recovered ? `拆除成功，${stoneName}回到背包。` : `拆除後${stoneName}消失了。`
+
+export const drillResultText = (success: boolean) => (success ? "打洞成功！" : "打洞失敗。")
+
+export const recipeText = (recipe: Recipe) => {
+  const materials = recipe.materials
+    .map((material) => `${material.name} ×${material.quantity}`)
+    .join("、")
+  return `${recipe.resultName} ×${recipe.resultQuantity} ← ${materials}（${recipe.successRate}%）`
+}
+
+// 材料不論成敗都會用掉，次數上限取最缺的材料能支撐幾次；同種材料出現多次時合併計算
+export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryView) => {
+  const required = new Map<string, number>()
+  for (const material of recipe.materials)
+    required.set(material.itemId, (required.get(material.itemId) ?? 0) + material.quantity)
+  return Math.min(
+    MaxSynthesisAttempts,
+    ...[...required].map(([itemId, quantity]) =>
+      Math.floor(countInBag(inventory, itemId) / quantity),
+    ),
+  )
+}
+
+// 只有成功才扣錢，按鈕顯示全部成功時的花費上限
+export const synthesisButtonText = (attempts: number) =>
+  `合成（${format(SynthesisCostPerAttempt * attempts)} 金錢上限）`
+
+export const synthesisResultText = (
+  result: Pick<SynthesisResult, "attempts" | "successes" | "cost">,
+) => `合成 ${result.attempts} 次，成功 ${result.successes} 次，花費 ${format(result.cost)} 金錢。`
