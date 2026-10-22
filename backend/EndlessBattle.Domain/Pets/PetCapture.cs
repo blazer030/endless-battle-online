@@ -65,6 +65,8 @@ public static class PetCapture
         var magic = PhpRandom.Between(random, 1, StatRollMax) * multiplier;
         var defense = PhpRandom.Between(random, 1, StatRollMax) * multiplier;
         var personality = (PetPersonality)PhpRandom.Between(random, 1, PersonalityCount);
-        return new CapturedPet(monster.Id, monster.Name, personality, attack, magic, defense, at);
+        // 預設名字是怪物名，截到名字上限（以字碼計，與 CanRename 一致）
+        var name = string.Concat(monster.Name.EnumerateRunes().Take(PetRules.NameMaxLength));
+        return new CapturedPet(monster.Id, name, personality, attack, magic, defense, at);
     }
 }

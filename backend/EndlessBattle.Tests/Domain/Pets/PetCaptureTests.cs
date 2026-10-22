@@ -57,6 +57,19 @@ public class PetCaptureTests
             captured.ToPet());
     }
 
+    // 預設名字取怪物名，超過 12 個字碼就截斷（含非 BMP 字元，以字碼而非 UTF-16 單位計）
+    [Fact]
+    public void NewPet_TruncatesLongMonsterName()
+    {
+        var longName = "一二三四五六七八九十甲😀乙丙";
+        var monster = Sprite with { Name = longName };
+
+        var captured = PetCapture.NewPet(monster, multiplier: 1, At, new ScriptedRandom(0.0, 0.0, 0.0, 0.0));
+
+        Assert.Equal("一二三四五六七八九十甲😀", captured.Name);
+        Assert.Empty(PetRules.CanRename(captured.Name));
+    }
+
     // 寵物已有 3 隻：照擲損壞（21）與捕捉（1），但不建立寵物、不扣道具
     [Fact]
     public void Roll_SkipsWhenPetsFull()
