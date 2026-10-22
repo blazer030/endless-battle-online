@@ -133,6 +133,15 @@ export class BattlePlayback {
     return due.map((scheduled) => scheduled.item)
   }
 
+  // 移動後舊地區的戰鬥不再播；增量已含在已確認的角色資料裡，顯示值直接等於它
+  discardQueued(): number {
+    const discarded = this.pending.length
+    this.pending = []
+    this.levelBaseline = null
+    this.timelineEnd = 0
+    return discarded
+  }
+
   // 顯示值 = 已確認的角色資料減去尚未播出的增量，數字隨戰報行逐步變化
   get displayedCharacter(): CharacterView {
     const pending = this.pendingGain()

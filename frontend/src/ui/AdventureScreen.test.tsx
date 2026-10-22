@@ -620,3 +620,72 @@ test("AdventureScreen_TellsWhenTheAreaPassHasEnded", async () => {
   expect(screen.getByText("禁區通行時間已結束，請到地圖用鑰匙再次進入")).toBeInTheDocument()
   expect(screen.queryByText(/禁區通行剩/)).not.toBeInTheDocument()
 })
+
+test("AdventureScreen_OpeningTheCharacterTabReloadsBuffs", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+  await advanceTime(0)
+  expect(api.getBuffs).toHaveBeenCalledTimes(1)
+
+  fireEvent.click(screen.getByRole("button", { name: "冒險" }))
+  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+  await advanceTime(0)
+
+  expect(api.getBuffs).toHaveBeenCalledTimes(2)
+})
+
+test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
+  const api = createFakeApi({
+    ...response,
+    events: [response.events[0], { type: "reward", atSeconds: 5, exp: 8, money: 3, jobExp: 2 }],
+  })
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  await advanceTime(100)
+  expect(screen.getAllByRole("listitem")).toHaveLength(1)
+
+  fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: /^試鍊洞窟/ }))
+  fireEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await advanceTime(0)
+  await advanceTime(6_000)
+
+  const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
+  expect(lines).toEqual(["遭遇 測試寒狼！", "你前往試鍊洞窟・燈影隧道。"])
+})
+
+// 移動前送出的輪詢在移動之後才回來：回應裡是舊地區，不顯示它的通行倒數
+test("AdventureScreen_StaleResponseFromTheOldPlaceShowsNoPassCountdown", async () => {
+  const api = createFakeApi()
+  let resolveAdvance: (value: AdvanceResponse) => void = () => {}
+  vi.mocked(api.advance).mockReturnValue(
+    new Promise<AdvanceResponse>((resolve) => {
+      resolveAdvance = resolve
+    }),
+  )
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: /^試鍊洞窟/ }))
+  fireEvent.click(screen.getByRole("button", { name: "燈影隧道" }))
+  await advanceTime(0)
+  await act(async () => {
+    resolveAdvance({
+      ...response,
+      events: [],
+      summary: makeSummary(),
+      character,
+      areaPassExpiresAt: "2026-10-21T00:30:00Z",
+    })
+  })
+  await advanceTime(100)
+
+  expect(screen.getByRole("button", { name: "試鍊洞窟・燈影隧道 ▾" })).toBeInTheDocument()
+  expect(screen.queryByText(/禁區通行/)).not.toBeInTheDocument()
+})

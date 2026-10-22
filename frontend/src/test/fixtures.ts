@@ -140,7 +140,7 @@ export const makePlace = (overrides: Partial<WorldPlace> & Pick<WorldPlace, "id"
   return place
 }
 
-// 中央大陸、魔法王國、禁區各取幾個地區；黑曜神廟當成已取得鑰匙，方便測沒有子地區的移動
+// 中央大陸、魔法王國、禁區各取幾個地區；黑曜神廟當成一般地區，方便測沒有子地區的移動
 export const makeWorld = (): WorldArea[] => [
   {
     id: "central",

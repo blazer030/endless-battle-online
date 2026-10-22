@@ -96,6 +96,35 @@ describe("BattlePlayback", () => {
     })
   })
 
+  it("discardQueued_DropsUnplayedItemsAndShowsTheConfirmedCharacter", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(
+      response([encounter(0), reward(2, 10, 30), levelUp(3, 2)], { level: 2, exp: 5, money: 30 }),
+      0,
+    )
+    playback.takeDue(0)
+
+    expect(playback.discardQueued()).toBe(2)
+    expect(playback.takeDue(60_000)).toEqual([])
+    expect(playback.displayedCharacter).toEqual({
+      ...startCharacter,
+      level: 2,
+      exp: 5,
+      money: 30,
+    })
+  })
+
+  it("discardQueued_NextBatchStartsWithoutWaitingForTheDiscardedTimeline", () => {
+    const playback = new BattlePlayback(startCharacter)
+    playback.enqueue(response([encounter(0), reward(30, 1, 1)]), 0)
+    playback.discardQueued()
+    const next = encounter(0)
+
+    playback.enqueue(response([next]), 1000)
+
+    expect(playback.takeDue(1000)).toEqual([{ kind: "event", event: next }])
+  })
+
   it("takeDue_ReleasesEventsAtTheirOffsets", () => {
     const playback = new BattlePlayback(startCharacter)
     const first = encounter(0)

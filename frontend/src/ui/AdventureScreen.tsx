@@ -49,6 +49,13 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "companions", label: "同伴" },
 ]
 
+type AreaPass = {
+  expiresAt: string | null
+  at: number
+  placeId: CharacterView["placeId"]
+  subPlace: CharacterView["subPlace"]
+}
+
 type Props = { api: ApiClient; initialCharacter: CharacterView }
 
 export function AdventureScreen({ api, initialCharacter }: Props) {
@@ -62,10 +69,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
-  // 最近一次推進回應的禁區通行證；每次回應都換新物件，剩餘分鐘跟著輪詢重算
-  const [areaPass, setAreaPass] = useState<{ expiresAt: string | null; at: number }>({
+  // 最近一次推進回應的禁區通行證與它所屬的地點；每次回應都換新物件，剩餘分鐘跟著輪詢重算
+  const [areaPass, setAreaPass] = useState<AreaPass>({
     expiresAt: null,
     at: 0,
+    placeId: initialCharacter.placeId,
+    subPlace: initialCharacter.subPlace,
   })
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
@@ -112,16 +121,15 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   // 轉職、學技能、移動回傳的最新角色；轉職與移動時在戰報留一行本地訊息
   const handleCharacterChange = (updated: CharacterView) => {
     const previous = playback.displayedCharacter
+    const moved = updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace
     playback.confirm(updated)
+    // 舊地區還沒播的戰鬥不再接在「你前往」後面
+    if (moved) playback.discardQueued()
     setCharacter(playback.displayedCharacter)
     const notes: LogEntry[] = []
     if (updated.jobId !== previous.jobId)
       notes.push({ text: `你轉職為${updated.jobName}。`, kind: "muted" })
-    if (updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace) {
-      notes.push({ text: `你前往${locationTitle(updated)}。`, kind: "muted" })
-      // 換地區後等下一次推進回應再顯示新地區的通行狀態
-      setAreaPass({ expiresAt: null, at: Date.now() })
-    }
+    if (moved) notes.push({ text: `你前往${locationTitle(updated)}。`, kind: "muted" })
     if (notes.length > 0) appendLines(notes)
   }
 
@@ -159,7 +167,11 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     setCharacter(playback.displayedCharacter)
   }
 
-  const areaPassText = passStatus(areaPass.expiresAt, new Date(areaPass.at))
+  // 移動前送出的輪詢可能在移動後才回來，只顯示目前地點的通行狀態
+  const areaPassText =
+    areaPass.placeId === character.placeId && areaPass.subPlace === character.subPlace
+      ? passStatus(areaPass.expiresAt, new Date(areaPass.at))
+      : null
 
   return (
     <div className="adventure">
@@ -189,7 +201,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
           playback={playback}
           onItems={handleItems}
           onResponse={(response: AdvanceResponse) =>
-            setAreaPass({ expiresAt: response.areaPassExpiresAt, at: Date.now() })
+            setAreaPass({
+              expiresAt: response.areaPassExpiresAt,
+              at: Date.now(),
+              placeId: response.character.placeId,
+              subPlace: response.character.subPlace,
+            })
           }
         />
       )}
