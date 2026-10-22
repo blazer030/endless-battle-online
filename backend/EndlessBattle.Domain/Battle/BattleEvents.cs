@@ -19,6 +19,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(PetGuardEvent), "petGuard")]
 [JsonDerivedType(typeof(PetAttackEvent), "petAttack")]
 [JsonDerivedType(typeof(CaptureEvent), "capture")]
+[JsonDerivedType(typeof(EscapeEvent), "escape")]
 public abstract record BattleEvent(double AtSeconds);
 
 public sealed record EncounterEvent(
@@ -66,6 +67,9 @@ public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string Skil
 public sealed record PotionEvent(double AtSeconds, string ItemId, string Name, int Hp, int Sp, int Remaining) : BattleEvent(AtSeconds);
 
 public sealed record DefeatEvent(double AtSeconds, CombatSide Loser) : BattleEvent(AtSeconds);
+
+// 玩家逃跑成功，這一場就此結束（WOG end_date「逃跑成功」）
+public sealed record EscapeEvent(double AtSeconds) : BattleEvent(AtSeconds);
 
 public sealed record TimeoutEvent(double AtSeconds, int Rounds, int DamageDealt) : BattleEvent(AtSeconds);
 

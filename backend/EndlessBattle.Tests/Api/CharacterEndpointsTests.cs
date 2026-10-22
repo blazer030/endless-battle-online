@@ -274,6 +274,57 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(name, body.GetProperty("name").GetString());
     }
 
+    private static object SettingsBody(string? attack = "Magic", int potionHp = 30, int potionSp = -1, int restHp = 20, int restSp = -1, int escapeHp = 10, string specialAttackName = "破軍") =>
+        new { attack, potionHpPercent = potionHp, potionSpPercent = potionSp, restHpPercent = restHp, restSpPercent = restSp, escapeHpPercent = escapeHp, specialAttackName };
+
+    [Fact]
+    public async Task Settings_UpdateAndReadBack()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
+        var created = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(
+            """{"attack":null,"potionHpPercent":15,"potionSpPercent":100,"restHpPercent":15,"restSpPercent":15,"escapeHpPercent":0}""",
+            created.GetProperty("settings").GetRawText());
+
+        var response = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(), CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(
+            """{"attack":"Magic","potionHpPercent":30,"potionSpPercent":-1,"restHpPercent":20,"restSpPercent":-1,"escapeHpPercent":10}""",
+            me.GetProperty("settings").GetRawText());
+        Assert.Equal(body.GetProperty("settings").GetRawText(), me.GetProperty("settings").GetRawText());
+        Assert.Equal("破軍", me.GetProperty("specialAttackName").GetString());
+    }
+
+    [Fact]
+    public async Task Settings_Returns400_WithReasons()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
+
+        var response = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(potionHp: 101), CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("invalidPercent", problem.GetProperty("reasons")[0].GetString());
+    }
+
+    [Fact]
+    public async Task Settings_RequireLogin()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = factory.CreateClient();
+
+        var response = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(), CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [Fact]
     public async Task Endpoints_Require_Authentication()
     {

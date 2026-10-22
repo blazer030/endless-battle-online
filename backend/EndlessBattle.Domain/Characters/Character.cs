@@ -25,4 +25,7 @@ public sealed record Character(
     long Bank,
     int BagBonus,
     int DepotBonus,
-    int Version);
+    int Version)
+{
+    public AdventureSettings Settings { get; init; } = AdventureSettings.Default;
+}

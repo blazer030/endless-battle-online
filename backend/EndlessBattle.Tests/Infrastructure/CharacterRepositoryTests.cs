@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
@@ -130,6 +131,41 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         await using var readContext = database.CreateDbContext();
         var stored = await new CharacterRepository(readContext).FindByAccountAsync(accountId, cancellationToken);
         Assert.Equal(changed with { Version = 1 }, stored);
+    }
+
+    // 新增帶非預設值；更新含 0 與 -1 兩個邊界；攻擊方式 null（自動）也要能存回去
+    [Fact]
+    public async Task Settings_RoundTrip()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 3, 4, 5, 6, 7, TimeSpan.Zero);
+        await using var setupContext = database.CreateDbContext();
+        var accountId = await new AccountRepository(setupContext).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var initial = new AdventureSettings(AttackKind.Physical, 30, 50, -1, 20, 10);
+        var added = await new CharacterRepository(setupContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("設定"), 1, 1, now) with { Settings = initial }, cancellationToken);
+        Assert.Equal(initial, (await ReadAsync(accountId))!.Settings);
+
+        var magic = new AdventureSettings(AttackKind.Magic, 0, -1, 100, 0, 100);
+        await using (var context = database.CreateDbContext())
+        {
+            added = await new CharacterRepository(context).UpdateAsync(added with { Settings = magic }, cancellationToken);
+        }
+
+        Assert.Equal(magic, (await ReadAsync(accountId))!.Settings);
+
+        await using (var context = database.CreateDbContext())
+        {
+            await new CharacterRepository(context).UpdateAsync(added with { Settings = magic with { Attack = null } }, cancellationToken);
+        }
+
+        Assert.Equal(magic with { Attack = null }, (await ReadAsync(accountId))!.Settings);
+
+        async Task<Character?> ReadAsync(long account)
+        {
+            await using var readContext = database.CreateDbContext();
+            return await new CharacterRepository(readContext).FindByAccountAsync(account, cancellationToken);
+        }
     }
 
     // 沒有子地區的地區（20 黑曜神廟）存 NULL；移動到有子地區的地區後再寫回數值

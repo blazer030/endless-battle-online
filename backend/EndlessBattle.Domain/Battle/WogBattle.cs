@@ -25,7 +25,7 @@ public static class WogBattle
         CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, SupplyState? supply, IRandomSource random) =>
         Run(player, monster, playerPreferred, skills, supply, random, pet: null);
 
-    // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）
+    // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）；escapeHpPercent 為 0 表示不逃（不擲逃跑的骰）
     public static BattleOutcome Run(
         CombatantState player,
         CombatantState monster,
@@ -33,7 +33,8 @@ public static class WogBattle
         IReadOnlyList<EquippedSkill> skills,
         SupplyState? supply,
         IRandomSource random,
-        PetCombatant? pet)
+        PetCombatant? pet,
+        int escapeHpPercent = 0)
     {
         var events = new List<BattleEvent>();
         var playerHp = player.Hp;
@@ -59,6 +60,14 @@ public static class WogBattle
             caster.ExpireAtRoundStart();
             events.Add(new RoundEvent(roundStart, round));
             DrinkPotion(roundStart);
+
+            // 第 2 回合起，喝完補給後 HP 仍低於門檻才擲逃跑
+            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random))
+            {
+                events.Add(new EscapeEvent(roundStart));
+                return Outcome(null, round) with { Escaped = true };
+            }
+
             Record(caster.CastBeforeAttack(playerHp, playerSp, random), roundStart);
 
             modifiers = caster.Current;

@@ -60,7 +60,7 @@ public sealed class AdventureService(
             : character.LastSettledAt;
         var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
         var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
-        var supplySlot = SupplySlotOf(equipped);
+        var supplySlot = SupplySlotOf(equipped, character.Settings);
         var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);
         var contract = await mercenaries.FindAsync(character.Id, cancellationToken);
         var job = content.GetJob(character.JobId);
@@ -186,8 +186,8 @@ public sealed class AdventureService(
         }
     }
 
-    // 補給欄放的是補給品或捕捉道具（至多一種）；捕捉道具不會被當成補給品喝
-    private (SupplyState? Supply, CaptureState? Capture) SupplySlotOf(Loadout equipped)
+    // 補給欄放的是補給品或捕捉道具（至多一種）；捕捉道具不會被當成補給品喝。補給門檻取自角色設定
+    private (SupplyState? Supply, CaptureState? Capture) SupplySlotOf(Loadout equipped, AdventureSettings settings)
     {
         if (!equipped.Equipped.TryGetValue(EquipmentSlot.Supply, out var entry))
         {
@@ -197,7 +197,11 @@ public sealed class AdventureService(
         var item = content.GetItem(entry.ItemId);
         return item.Consumable == ConsumableKind.Capture
             ? (null, new CaptureState(item.Id, item.Name, item.Amount, equipped.SupplyQuantity))
-            : (new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity), null);
+            : (new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity)
+            {
+                HpPercent = settings.PotionHpPercent,
+                SpPercent = settings.PotionSpPercent,
+            }, null);
     }
 
     // 補給欄在掉落之後寫回；用完就清空補給欄並刪掉那一列（先清欄位，否則外鍵擋刪除）

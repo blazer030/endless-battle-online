@@ -162,6 +162,43 @@ public class AdventureSimulatorTests
         Assert.Equal(2.8, run.ConsumedSeconds, 9);
     }
 
+    // 智力 5 → Mat 5 < At 12，自動會用物理；設定指定魔法後整場都用魔法
+    [Fact]
+    public void Adventure_UsesPreferredAttackKind()
+    {
+        var mage = Hero() with
+        {
+            Base = Hero().Base with { Smart = 5 },
+            Settings = AdventureSettings.Default with { Attack = AttackKind.Magic },
+        };
+
+        var run = Run(mage, seconds: 1);
+
+        var attacks = run.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == CombatSide.Player).ToList();
+        Assert.NotEmpty(attacks);
+        Assert.All(attacks, attack => Assert.Equal(AttackKind.Magic, attack.Kind));
+    }
+
+    // wall（df 1000）打不死、怪物 at 10 對 Df 10 傷害很小：第 2 回合開頭 HP 仍低於 50%（60／350），擲 1 ≤ 10 逃跑成功。
+    // 逃跑算敗場、沒有任何報酬，但不是死亡（HP 不歸零）；用掉 2 回合 1.6 秒 + 場間 2 秒
+    [Fact]
+    public void Adventure_EscapeCountsAsLossWithoutRewards()
+    {
+        var coward = Hero() with { Settings = AdventureSettings.Default with { EscapeHpPercent = 50 } };
+
+        var run = Run(coward, seconds: 1, monsters: Monster("wall", hp: 60, at: 10, df: 1000));
+
+        Assert.Equal(new EscapeEvent(0.8), run.Events.OfType<EscapeEvent>().Single());
+        Assert.Empty(run.Events.OfType<RewardEvent>());
+        Assert.Empty(run.Events.OfType<DefeatEvent>());
+        Assert.Equal(
+            new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Exp: 0, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0, Escapes: 1),
+            run.Summary);
+        Assert.True(run.Character.Hp > 0);
+        Assert.Empty(run.JobGains);
+        Assert.Equal(3.6, run.ConsumedSeconds, 9);
+    }
+
     // 每場 1 回合 0.8 秒 + 場間 2 秒 = 2.8 秒（行動力 50 足夠 43 場）；120 秒內在 0、2.8、…、117.6 開打共 43 場。
     // 只保留開打時間 ≥ 120 − 30 = 90 的場次：33 × 2.8 = 92.4 起的 10 場；摘要仍計入全部
     [Fact]

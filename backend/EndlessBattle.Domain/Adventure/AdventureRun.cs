@@ -6,13 +6,13 @@ using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Adventure;
 
-public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0, int MissionKills = 0, int PetsCaptured = 0)
+public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0, int MissionKills = 0, int PetsCaptured = 0, int Escapes = 0)
 {
     public static AdvanceSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 // Drops 是進了背包的件數（被丟棄的不算）；模擬器不知道背包，固定為 0，由 AdventureService 依背包結果填入
-// MissionKills 是整段推進中任務進度增加的總次數（含窗口外的場次）
+// MissionKills 是整段推進中任務進度增加的總次數（含窗口外的場次）；Escapes 是逃跑成功的場數（已計入 Losses）
 // 熟練度與技能點的增量，由呼叫端寫入熟練度帳
 public sealed record JobGain(string JobId, long Proficiency, long SkillPoints);
 

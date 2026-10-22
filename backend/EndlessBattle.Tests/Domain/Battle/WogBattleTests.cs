@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Battle;
@@ -161,6 +162,63 @@ public class WogBattleTests
             },
             outcome.Events);
         Assert.Equal(2, outcome.Rounds);
+    }
+
+    // 逃跑局面：雙方每下 1 點（同上），玩家 HP 20／100、門檻 30%。第 1 回合不逃；
+    // 第 1 回合擲 7 次（先攻 1、雙方各命中／暴擊／傷害 3），第 2 回合開頭 HP 19 < 30% → 第 8 次擲逃跑 rand(1,100)
+    private static CombatantState Fleeing() => Player(hp: 100, at: 10, agi: 10) with { Hp = 20 };
+
+    private static ScriptedRandom EscapeRoll(double roll) => new(0.0, [.. Enumerable.Repeat(0.0, 7), roll]);
+
+    private static BattleOutcome RunFleeing(IRandomSource random, int escapeHpPercent) =>
+        WogBattle.Run(Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHpPercent);
+
+    // 0.095 → rand(1,100) = 10 ≤ 10 成功：這場在第 2 回合開頭結束，之後沒有任何出手
+    [Fact]
+    public void Battle_EscapesWhenBelowThresholdAndRollSucceeds()
+    {
+        var random = EscapeRoll(0.095);
+
+        var outcome = RunFleeing(random, escapeHpPercent: 30);
+
+        var escapeIndex = outcome.Events.ToList().IndexOf(new EscapeEvent(0.8));
+        Assert.Equal(outcome.Events.Count - 1, escapeIndex);
+        Assert.Equal(new RoundEvent(0.8, 2), outcome.Events[escapeIndex - 1]);
+        Assert.True(outcome.Escaped);
+        Assert.Null(outcome.Winner);
+        Assert.Equal(2, outcome.Rounds);
+        Assert.Equal(19, outcome.Player.Hp);
+        Assert.Equal(8, random.Consumed);
+    }
+
+    // 0.105 → 11 > 10 失敗：第 2 回合照常出手；第 3 回合開頭 HP 18 再擲（0.0 → 1）成功
+    [Fact]
+    public void Battle_EscapeRollFailsAt11()
+    {
+        var outcome = RunFleeing(EscapeRoll(0.105), escapeHpPercent: 30);
+
+        var events = outcome.Events.ToList();
+        var roundTwo = events.IndexOf(new RoundEvent(0.8, 2));
+        var roundThree = events.IndexOf(new RoundEvent(1.6, 3));
+        Assert.Equal(2, events.Skip(roundTwo).Take(roundThree - roundTwo).OfType<AttackEvent>().Count());
+        Assert.Equal(new EscapeEvent(1.6), events.OfType<EscapeEvent>().Single());
+        Assert.True(outcome.Escaped);
+        Assert.Equal(3, outcome.Rounds);
+    }
+
+    // 門檻 0 不逃也不擲骰：同種子的事件與擲骰次數都和沒有逃跑參數時相同
+    [Fact]
+    public void Battle_NoEscapeRollWhenThresholdZero()
+    {
+        var before = new SeededRandom(20261022);
+        var after = new SeededRandom(20261022);
+
+        var expected = WogBattle.Run(Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, before, pet: null);
+        var actual = RunFleeing(after, escapeHpPercent: 0);
+
+        Assert.Equal(expected.Events, actual.Events);
+        Assert.False(actual.Escaped);
+        Assert.Equal(before.NextDouble(), after.NextDouble());
     }
 
     // 未指定攻擊方式且 at 50 < mat 100：開戰時擲一次 rand(1,10)，≤ 8 魔法、否則物理（WOG m_type，80/20），整場沿用。

@@ -95,7 +95,22 @@ public sealed record CharacterResponse(
     string AreaName,
     int ActNum,
     int ActNumMax,
-    IReadOnlyList<JobProficiencyResponse> JobProficiency);
+    IReadOnlyList<JobProficiencyResponse> JobProficiency,
+    AdventureSettingsResponse Settings);
+
+// 冒險設定：Attack null 表示自動；補給與住宿 -1 表示略過該條件；逃跑 0 表示不逃
+public sealed record AdventureSettingsResponse(
+    AttackKind? Attack, int PotionHpPercent, int PotionSpPercent, int RestHpPercent, int RestSpPercent, int EscapeHpPercent);
+
+// 範圍由 Domain 驗證；數值欄位缺漏時回 400
+public sealed record AdventureSettingsRequest(
+    AttackKind? Attack,
+    int? PotionHpPercent,
+    int? PotionSpPercent,
+    int? RestHpPercent,
+    int? RestSpPercent,
+    int? EscapeHpPercent,
+    string? SpecialAttackName);
 
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 

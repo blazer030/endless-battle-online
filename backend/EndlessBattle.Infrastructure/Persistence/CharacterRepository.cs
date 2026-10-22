@@ -1,5 +1,6 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using Microsoft.EntityFrameworkCore;
 using CharacterRow = EndlessBattle.Infrastructure.Persistence.Models.Character;
@@ -89,6 +90,13 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.Bank = character.Bank;
         row.BagBonus = character.BagBonus;
         row.DepotBonus = character.DepotBonus;
+        var settings = character.Settings;
+        row.AttackPreference = settings.Attack is { } attack ? (sbyte)((int)attack + 1) : null;
+        row.PotionHpPercent = (sbyte)settings.PotionHpPercent;
+        row.PotionSpPercent = (sbyte)settings.PotionSpPercent;
+        row.RestHpPercent = (sbyte)settings.RestHpPercent;
+        row.RestSpPercent = (sbyte)settings.RestSpPercent;
+        row.EscapeHpPercent = (sbyte)settings.EscapeHpPercent;
     }
 
     private static Character ToDomain(CharacterRow row) => new(
@@ -115,7 +123,17 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         Bank: row.Bank,
         BagBonus: row.BagBonus,
         DepotBonus: row.DepotBonus,
-        Version: row.Version);
+        Version: row.Version)
+    {
+        // attack_preference：NULL 自動、1 物理、2 魔法
+        Settings = new AdventureSettings(
+            row.AttackPreference is { } attack ? (AttackKind)(attack - 1) : null,
+            row.PotionHpPercent,
+            row.PotionSpPercent,
+            row.RestHpPercent,
+            row.RestSpPercent,
+            row.EscapeHpPercent),
+    };
 
     private static DateTimeOffset ToUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 }

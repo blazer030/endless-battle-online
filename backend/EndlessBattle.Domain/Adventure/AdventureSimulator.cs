@@ -18,12 +18,6 @@ public static class AdventureSimulator
     public const double CatchUpWindowSeconds = 30;
     public const double MaxSimulatedSeconds = 86_400;
 
-    // spec §7.1 的 HP 門檻，先固定；死亡（HP ≤ 0）一定在門檻之下
-    public const double AutoRestHpRatio = 0.15;
-
-    // SP 只有住宿才會回復，所以只在裝備了技能時才看 SP 門檻；沒有技能的角色 SP 低也不影響戰鬥
-    public const double AutoRestSpRatio = 0.15;
-
     public static AdventureRun Run(
         Character character,
         JobDefinition job,
@@ -52,7 +46,7 @@ public static class AdventureSimulator
         var events = new List<BattleEvent>();
         var droppedItemIds = new List<string>();
         var eventsCoverAll = true;
-        int fights = 0, wins = 0, losses = 0, timeouts = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
+        int fights = 0, wins = 0, losses = 0, timeouts = 0, escapes = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
 
@@ -64,9 +58,7 @@ public static class AdventureSimulator
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
             // 死亡、HP 低於門檻，或（有技能時）SP 低於門檻，先住宿再開打
-            var derived = DerivedStats.From(character.Base, bonus);
-            if (character.Hp < derived.HpMax * AutoRestHpRatio
-                || (skills.Count > 0 && character.Sp < derived.SpMax * AutoRestSpRatio))
+            if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), skills.Count > 0))
             {
                 var rest = Hotel.Rest(character, bonus);
                 character = rest.Character;
@@ -89,7 +81,7 @@ public static class AdventureSimulator
             // 寵物每場重新建立，代擋量不帶到下一場
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
             // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
-            var outcome = WogBattle.Run(player, monster, playerPreferred: null, skills, supply, random, pet);
+            var outcome = WogBattle.Run(player, monster, character.Settings.Attack, skills, supply, random, pet, character.Settings.EscapeHpPercent);
             supply = outcome.Supply;
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
@@ -126,6 +118,11 @@ public static class AdventureSimulator
             IReadOnlyList<string> dropped = [];
             switch (outcome.Winner)
             {
+                case null when outcome.Escaped:
+                    // 逃跑：計入敗場、沒有任何報酬；HP 不歸零，不算死亡
+                    losses++;
+                    escapes++;
+                    break;
                 case CombatSide.Player:
                     wins++;
                     exp = RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, fDown, random);
@@ -203,7 +200,7 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count);
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count, Escapes: escapes);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
         return new AdventureRun(
             events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);

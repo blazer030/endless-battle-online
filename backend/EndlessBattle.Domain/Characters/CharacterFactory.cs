@@ -103,7 +103,8 @@ public static class CharacterFactory
         }
     }
 
-    private static string ValidateSpecialAttackName(string name)
+    // 回傳去掉前後空白的名稱；不合規則時丟 CharacterCreationException
+    public static string ValidateSpecialAttackName(string name)
     {
         var trimmed = name.Trim();
 

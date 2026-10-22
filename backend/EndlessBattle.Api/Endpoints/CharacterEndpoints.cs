@@ -28,6 +28,22 @@ public static class CharacterEndpoints
             return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 
+        characters.MapPut("/me/settings", async (AdventureSettingsRequest request, ClaimsPrincipal user, CharacterService service, IGameContent content, CancellationToken cancellationToken) =>
+        {
+            if (request is not
+                {
+                    PotionHpPercent: { } potionHp, PotionSpPercent: { } potionSp, RestHpPercent: { } restHp, RestSpPercent: { } restSp,
+                    EscapeHpPercent: { } escapeHp, SpecialAttackName: { } specialAttackName,
+                })
+            {
+                throw new InputValidationException("設定資料不完整");
+            }
+
+            var settings = new AdventureSettings(request.Attack, potionHp, potionSp, restHp, restSp, escapeHp);
+            var profile = await service.UpdateSettingsAsync(user.GetAccountId(), settings, specialAttackName, cancellationToken);
+            return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
+        });
+
         return app;
     }
 
@@ -85,6 +101,13 @@ public static class CharacterEndpoints
             content.GetArea(place.AreaId).Name,
             character.ActNum,
             StaminaRules.Max,
-            jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList());
+            jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList(),
+            new AdventureSettingsResponse(
+                character.Settings.Attack,
+                character.Settings.PotionHpPercent,
+                character.Settings.PotionSpPercent,
+                character.Settings.RestHpPercent,
+                character.Settings.RestSpPercent,
+                character.Settings.EscapeHpPercent));
     }
 }

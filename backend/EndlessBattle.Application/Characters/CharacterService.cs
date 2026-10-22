@@ -1,4 +1,5 @@
 using System.Globalization;
+using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
@@ -11,7 +12,8 @@ public sealed class CharacterService(
     IJobProficiencyRepository proficiencies,
     IEquipmentRepository equipment,
     IGameContent content,
-    IClock clock)
+    IClock clock,
+    AdventureService adventure)
 {
     private const int MinimumNameLength = 2;
     private const int MaximumNameLength = 12;
@@ -56,12 +58,41 @@ public sealed class CharacterService(
 
     public async Task<CharacterProfile> GetAsync(long accountId, CancellationToken cancellationToken)
     {
-        var character = await characters.FindByAccountAsync(accountId, cancellationToken)
-            ?? throw new NotFoundException("尚未建立角色");
+        var character = await FindCharacterAsync(accountId, cancellationToken);
 
         return new CharacterProfile(
             CharacterStamina.Regenerated(character, clock.UtcNow),
             await proficiencies.ListAsync(character.Id, cancellationToken),
             await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
     }
+
+    // 先以舊設定把經過的時間結算到現在（新設定不回溯），再以結算後的版本寫入新設定；推進或寫入撞版本都丟 ConflictException
+    public async Task<CharacterProfile> UpdateSettingsAsync(
+        long accountId, AdventureSettings settings, string specialAttackName, CancellationToken cancellationToken)
+    {
+        await FindCharacterAsync(accountId, cancellationToken);
+        var reasons = settings.Validate().ToList();
+        string? trimmedName = null;
+        try
+        {
+            trimmedName = CharacterFactory.ValidateSpecialAttackName(specialAttackName);
+        }
+        catch (CharacterCreationException)
+        {
+            reasons.Add("nameInvalid");
+        }
+
+        if (reasons.Count > 0)
+        {
+            throw new InputValidationException("設定無效", reasons);
+        }
+
+        var settled = await adventure.AdvanceAsync(accountId, cancellationToken);
+        var updated = await characters.UpdateAsync(
+            settled.Character with { Settings = settings, SpecialAttackName = trimmedName! }, cancellationToken);
+        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), settled.JobProficiency, settled.Equipment);
+    }
+
+    private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
 }

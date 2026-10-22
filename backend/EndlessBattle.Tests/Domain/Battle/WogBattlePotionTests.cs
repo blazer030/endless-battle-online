@@ -3,13 +3,14 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Battle;
 
-// 補給門檻：HP < 15% 且 SP 未滿、本場已用 < 9 次；喝藥不擲骰，所以腳本與 WogBattleTests 相同
+// 補給門檻（預設）：HP < 15% 且 SP 未滿、本場已用 < 9 次；喝藥不擲骰，所以腳本與 WogBattleTests 相同
 public class WogBattlePotionTests
 {
     private static CombatantState Player(int hp, int sp, int hpMax = 100, int spMax = 100, int at = 100, int df = 50) =>
         new(hp, hpMax, sp, spMax, at, Mat: 0, df, Mdf: 50, Agi: 20, Au: 10, Element: 0, "烈焰斬", Str: 100, Smart: 0);
 
-    private static SupplyState Supply(int hp = 50, int sp = 25, int quantity = 5) => new("test-supply", "測試補給藥劑", hp, sp, quantity);
+    private static SupplyState Supply(int hp = 50, int sp = 25, int quantity = 5, int hpPercent = 15, int spPercent = 100) =>
+        new("test-supply", "測試補給藥劑", hp, sp, quantity) { HpPercent = hpPercent, SpPercent = spPercent };
 
     // 門檻 100 × 15% = 15：14 才喝，剛好 15 不喝
     [Theory]
@@ -17,7 +18,29 @@ public class WogBattlePotionTests
     [InlineData(15, false)]
     public void ShouldUse_FalseWhenHpAtThreshold(int hp, bool expected)
     {
-        Assert.Equal(expected, PotionRules.ShouldUse(Player(hp, sp: 50), Supply(), usedThisFight: 0));
+        Assert.Equal(expected, PotionRules.ShouldUse(Player(hp, sp: 50), Supply(hpPercent: 15, spPercent: 100), usedThisFight: 0));
+    }
+
+    // SP 填 -1 略過 SP 條件：SP 全滿、HP 10% 也會喝
+    [Fact]
+    public void ShouldUse_SkipsSpConditionWhenMinusOne()
+    {
+        Assert.True(PotionRules.ShouldUse(Player(hp: 10, sp: 100), Supply(spPercent: -1), usedThisFight: 0));
+    }
+
+    // HP 填 0：hp × 100 < 0 永遠不成立
+    [Fact]
+    public void ShouldUse_ZeroHpPercentNeverDrinks()
+    {
+        Assert.False(PotionRules.ShouldUse(Player(hp: 1, sp: 50), Supply(hpPercent: 0), usedThisFight: 0));
+    }
+
+    [Theory]
+    [InlineData(49, true)]
+    [InlineData(50, false)]
+    public void ShouldUse_HonoursCustomHpPercent(int hp, bool expected)
+    {
+        Assert.Equal(expected, PotionRules.ShouldUse(Player(hp, sp: 50), Supply(hpPercent: 50), usedThisFight: 0));
     }
 
     // 擲骰同 WogBattleTests.Battle_PlayerStrikesFirst_WhenRollBelowSeventy：玩家先攻、150 傷害第 1 回合擊倒。
