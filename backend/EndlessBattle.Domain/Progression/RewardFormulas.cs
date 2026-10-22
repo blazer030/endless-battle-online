@@ -7,6 +7,9 @@ namespace EndlessBattle.Domain.Progression;
 // WOG 的經驗、金錢、職業熟練度公式（spec §4，對應 wog_fight_m.php 的 get_exp／get_money）
 public static class RewardFormulas
 {
+    private const double TimeoutLevelFactor = 0.6;
+    private const double TimeoutDamageDivisor = 1.5;
+
     public static long Exp(
         MonsterDefinition m,
         // 擊殺時忽略；超限時傳 round(min(累計傷害, hpmax)/1.5)，愈高經驗愈多
@@ -45,6 +48,13 @@ public static class RewardFormulas
         }
 
         return (long)Math.Round(e * 2 * fDown, MidpointRounding.AwayFromZero);
+    }
+
+    // 超限時 WOG 以怪物等級 × 0.6、round(min(累計傷害, hpmax) / 1.5) 計算部分經驗
+    public static long TimeoutExp(MonsterDefinition monster, int damageDealt, int playerLevel, double fDown, IRandomSource random)
+    {
+        var damageValue = (int)Math.Round(Math.Min(damageDealt, monster.Hp) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
+        return Exp(monster, damageValue, playerLevel, killed: false, fDown, random, levelOverride: monster.Level * TimeoutLevelFactor);
     }
 
     public static long Money(MonsterDefinition m, double fDown, IRandomSource random)

@@ -24,10 +24,6 @@ public static class AdventureSimulator
     // SP 只有住宿才會回復，所以只在裝備了技能時才看 SP 門檻；沒有技能的角色 SP 低也不影響戰鬥
     public const double AutoRestSpRatio = 0.15;
 
-    // 超限時 WOG 以怪物等級 × 0.6、累計傷害 / 1.5 計算部分經驗
-    private const double TimeoutLevelFactor = 0.6;
-    private const double TimeoutDamageDivisor = 1.5;
-
     public static AdventureRun Run(
         Character character,
         JobDefinition job,
@@ -145,10 +141,7 @@ public static class AdventureSimulator
                 default:
                     // 超限：部分經驗，沒有金錢與熟練度，不計敗場
                     timeouts++;
-                    var damageValue = (int)Math.Round(
-                        Math.Min(outcome.DamageDealtToMonster, definition.Hp) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
-                    exp = RewardFormulas.Exp(definition, damageValue, character.Level, killed: false, fDown, random,
-                        levelOverride: definition.Level * TimeoutLevelFactor);
+                    exp = RewardFormulas.TimeoutExp(definition, outcome.DamageDealtToMonster, character.Level, fDown, random);
                     break;
             }
 
