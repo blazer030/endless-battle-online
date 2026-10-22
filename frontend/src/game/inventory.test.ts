@@ -16,6 +16,7 @@ import {
   reasonText,
   requirementRows,
   sellPrice,
+  supplyEquipQuantity,
   usageText,
 } from "./inventory"
 
@@ -180,6 +181,14 @@ describe("sellPrice", () => {
   })
 })
 
+describe("supplyEquipQuantity", () => {
+  it("puts the whole stack on the supply slot, capped at 99", () => {
+    expect(supplyEquipQuantity(makeItem({ quantity: 30 }))).toBe(30)
+    expect(supplyEquipQuantity(makeItem({ quantity: 99 }))).toBe(99)
+    expect(supplyEquipQuantity(makeItem({ quantity: 120 }))).toBe(99)
+  })
+})
+
 describe("maxBuyQuantity", () => {
   it("allows one piece of equipment and 99 of anything else", () => {
     expect(maxBuyQuantity("Weapon")).toBe(1)
@@ -213,6 +222,9 @@ describe("reasonText", () => {
     ["statTooLow:smart", "智力不足"],
     ["statTooLow:agi", "敏捷不足"],
     ["statTooLow:au", "魅力不足"],
+    ["statTooLow:life", "生命不足"],
+    ["statTooLow:vit", "體質不足"],
+    ["statTooLow:be", "信仰不足"],
   ])("translates %s", (code, text) => {
     expect(reasonText(code)).toBe(text)
   })

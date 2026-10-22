@@ -150,6 +150,10 @@ export const meetsRequirements = (
 export const sellPrice = (price: number, quantity: number) =>
   Math.floor(price * SellRate * quantity)
 
+// 補給欄預設放整疊，上限 99（背包頁與裝備頁共用）
+export const supplyEquipQuantity = (item: Pick<InventoryItem, "quantity">) =>
+  Math.min(MaxStackQuantity, item.quantity)
+
 // 商店的裝備一次只能買一件
 export const maxBuyQuantity = (category: ItemCategory) =>
   isEquipment(category) ? 1 : MaxStackQuantity

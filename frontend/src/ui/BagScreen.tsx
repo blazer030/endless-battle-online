@@ -25,6 +25,7 @@ import {
   MinShopLevel,
   requirementRows,
   sellPrice,
+  supplyEquipQuantity,
   supplyText,
   usageText,
   type JobName,
@@ -262,7 +263,7 @@ function BagPage({
                           onClick={() =>
                             void act(async () => ({
                               inventory: isSupply(item)
-                                ? await api.equip(item.inventoryId, quantity)
+                                ? await api.equip(item.inventoryId, supplyEquipQuantity(item))
                                 : await api.equip(item.inventoryId),
                             }))
                           }
@@ -423,10 +424,7 @@ function EquipmentPage({
                           inventory: supply
                             ? await api.equip(
                                 item.inventoryId,
-                                clampQuantity(
-                                  Number(supplyQuantity),
-                                  Math.min(MaxStackQuantity, item.quantity),
-                                ),
+                                clampQuantity(Number(supplyQuantity), supplyEquipQuantity(item)),
                               )
                             : await api.equip(item.inventoryId),
                         }))

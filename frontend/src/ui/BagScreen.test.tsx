@@ -169,6 +169,70 @@ test("BagScreen_ItemActionsMatchTheItemKind", async () => {
   expect(api.useItem).toHaveBeenCalledWith(4)
 })
 
+test("BagScreen_BagPageEquipsWholeSupplyStackCappedAt99", async () => {
+  const { api } = renderBag()
+  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
+  await userEvent.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
+  await userEvent.click(screen.getByRole("button", { name: "裝備" }))
+
+  // 與裝備子頁相同：整疊放上補給欄，上限 99
+  expect(api.equip).toHaveBeenCalledWith(3, 30)
+})
+
+test("BagScreen_ReplacesInventoryWithMutationResponse", async () => {
+  const afterSale = makeInventory([sword, heavySword, { ...potion, quantity: 29 }, strengthPotion])
+  const afterPurchase = makeInventory([
+    sword,
+    heavySword,
+    { ...potion, quantity: 29 },
+    strengthPotion,
+    makeItem({ inventoryId: 70, name: "新買的劍" }),
+  ])
+  const api = createFakeApi({
+    sell: vi.fn().mockResolvedValue(afterSale),
+    buy: vi.fn().mockResolvedValue(afterPurchase),
+  })
+  renderBag(api)
+  await userEvent.click(await screen.findByRole("tab", { name: "道具" }))
+  await userEvent.click(screen.getByRole("button", { name: /小藥水 ×30/ }))
+  await userEvent.click(screen.getByRole("button", { name: "賣出（12）" }))
+
+  expect(await screen.findByText("小藥水 ×29")).toBeInTheDocument()
+  expect(screen.queryByText("小藥水 ×30")).not.toBeInTheDocument()
+
+  await openSubPage("商店")
+  const line = (await screen.findByText("木劍 200 金錢")).closest("li")
+  if (line === null) throw new Error("找不到商品列")
+  await userEvent.click(within(line).getByRole("button", { name: "購買" }))
+  await openSubPage("背包")
+
+  expect(await screen.findByText("新買的劍 +0")).toBeInTheDocument()
+  expect(screen.getByText("武器 3/15")).toBeInTheDocument()
+  expect(api.getInventory).toHaveBeenCalledTimes(1)
+})
+
+test("BagScreen_DepotReplacesBothListsWithMoveResponse", async () => {
+  const takenSword = makeItem({ inventoryId: 80, name: "倉庫劍" })
+  const api = createFakeApi({
+    take: vi.fn().mockResolvedValue({
+      inventory: makeInventory([sword, heavySword, potion, strengthPotion, takenSword]),
+      depot: { capacity: 20, entries: [] },
+    }),
+  })
+  renderBag(api)
+  await openSubPage("倉庫")
+  const stored = (await screen.findByText("倉庫劍 +0")).closest("li")
+  if (stored === null) throw new Error("找不到倉庫道具")
+  await userEvent.click(within(stored).getByRole("button", { name: "取出" }))
+
+  expect(await screen.findByText("倉庫 0/20")).toBeInTheDocument()
+  expect(screen.getByText("倉庫是空的")).toBeInTheDocument()
+  const bag = screen.getByRole("region", { name: "背包" })
+  expect(within(bag).getByText("倉庫劍 +0")).toBeInTheDocument()
+  expect(api.getDepot).toHaveBeenCalledTimes(1)
+  expect(api.getInventory).toHaveBeenCalledTimes(1)
+})
+
 test("BagScreen_BuySendsItemIdAndQuantity", async () => {
   const { api, onCharacterChanged } = renderBag()
   await openSubPage("商店")
