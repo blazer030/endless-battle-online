@@ -155,6 +155,26 @@ public class AdventureServiceTests
         Assert.Equal(new AreaPass(17, Start), await passes.FindAsync(character.Id, 17, CancellationToken));
     }
 
+    // 通行證已到期：冒險不打，但在別的地區出擊的傭兵照常結算（now − 200、−100、now 三場），攜帶寵物的飢餓照常扣
+    [Fact]
+    public async Task Advance_AfterExpiryStillSettlesMercenaryAndHunger()
+    {
+        var character = await AddCharacterAsync(character => character with { PlaceId = 17, SubPlace = 1, NextExp = 1_000_000 });
+        await passes.SaveAsync(character.Id, new AreaPass(17, Start), CancellationToken);
+        var petId = await pets.AddAsync(
+            character.Id, TestPets.Create("小雪", "test-sprite", intimacy: 5) with { HungerSince = Start.AddHours(-1) }, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(600));
+        await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(0, result.Summary.Fights);
+        Assert.Equal(3, result.Mercenary!.Fights.Count);
+        Assert.Equal(clock.UtcNow, (await pets.ListAsync(character.Id, CancellationToken)).Single(pet => pet.Id == petId).HungerSince);
+        Assert.Contains("mercenary:update", log);
+        Assert.Contains($"pet:update:{petId}", log);
+    }
+
     // 一般地區沒有通行證
     [Fact]
     public async Task Advance_NormalPlaceHasNoAreaPass()

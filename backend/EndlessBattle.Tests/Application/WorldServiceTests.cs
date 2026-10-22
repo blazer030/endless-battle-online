@@ -170,6 +170,24 @@ public class WorldServiceTests
         Assert.Equal(["update", $"quantity:{keyId}", "pass:17"], log);
     }
 
+    // 驗證時讀到鑰匙，交易裡重讀時鑰匙已被別的請求用掉：409，不寫通行證，角色與背包回滾
+    [Fact]
+    public async Task Move_ConflictsWhenKeyIsGoneOnReread()
+    {
+        var character = await AddCharacterAsync();
+        await GiveKeysAsync(character.Id, 1);
+        var keyId = (await inventory.ListAsync(character.Id, CancellationToken)).Single().Id;
+        characters.BeforeNextUpdate = () => inventory.RemoveAsync(character.Id, keyId, CancellationToken).GetAwaiter().GetResult();
+
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() => service.MoveAsync(AccountId, 17, 1, CancellationToken));
+
+        Assert.Equal("鑰匙已被其他請求使用", conflict.Message);
+        Assert.Null(await passes.FindAsync(character.Id, 17, CancellationToken));
+        Assert.Equal(1, await KeysAsync(character.Id));
+        var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
+        Assert.Equal((1, (int?)1, 0), (stored!.PlaceId, stored.SubPlace, stored.Version));
+    }
+
     [Fact]
     public async Task Move_RejectsSubPlace_ForPlaceWithoutSubPlaces()
     {
