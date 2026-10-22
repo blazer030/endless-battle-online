@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Inventory;
 using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -19,6 +22,22 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
 
     private static Task<HttpResponseMessage> MoveAsync(HttpClient client, int placeId, int? subPlace) =>
         client.PutAsJsonAsync("/api/world/location", new { placeId, subPlace }, CancellationToken);
+
+    // 直接寫入鑰匙：取得鑰匙要靠勳章所，這裡跳過
+    private static async Task GiveKeysAsync(EndlessBattleApiFactory factory, HttpClient client, int quantity)
+    {
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+            .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+        await scope.ServiceProvider.GetRequiredService<IInventoryRepository>()
+            .AddAsync(character!.Id, TestItems.Entry(0, "test-key", quantity), CancellationToken);
+    }
+
+    private static async Task<JsonElement> PlaceAsync(HttpClient client, int placeId) =>
+        (await client.GetFromJsonAsync<JsonElement>("/api/world", CancellationToken)).EnumerateArray()
+            .SelectMany(area => area.GetProperty("places").EnumerateArray())
+            .Single(place => place.GetProperty("id").GetInt32() == placeId);
 
     [Fact]
     public async Task World_ListsAreasWithCurrentAndRecommendation()
@@ -93,6 +112,45 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(
             HttpStatusCode.BadRequest,
             (await client.PutAsJsonAsync("/api/world/location", new { }, CancellationToken)).StatusCode);
+    }
+
+    [Fact]
+    public async Task World_ShowsKeysAndPass()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GiveKeysAsync(factory, client, 2);
+
+        var restricted = await PlaceAsync(client, 17);
+        Assert.Equal((2, JsonValueKind.Null), (restricted.GetProperty("keys").GetInt32(), restricted.GetProperty("passExpiresAt").ValueKind));
+        var plain = await PlaceAsync(client, 2);
+        Assert.Equal((0, JsonValueKind.Null), (plain.GetProperty("keys").GetInt32(), plain.GetProperty("passExpiresAt").ValueKind));
+
+        (await MoveAsync(client, 17, 1)).EnsureSuccessStatusCode();
+
+        restricted = await PlaceAsync(client, 17);
+        Assert.Equal(1, restricted.GetProperty("keys").GetInt32());
+        Assert.Equal(factory.Clock.UtcNow.AddSeconds(3600), restricted.GetProperty("passExpiresAt").GetDateTimeOffset());
+    }
+
+    // 用鑰匙進入禁區；之後的推進回應帶著通行證到期時刻
+    [Fact]
+    public async Task World_EnterRestrictedWithKey()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GiveKeysAsync(factory, client, 1);
+
+        var response = await MoveAsync(client, 17, 1);
+
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal((17, "測試禁地"), (body.GetProperty("placeId").GetInt32(), body.GetProperty("placeName").GetString()));
+        var expiresAt = factory.Clock.UtcNow.AddSeconds(3600);
+        factory.Clock.Advance(TimeSpan.FromSeconds(10));
+        var advance = await (await client.PostAsync("/api/adventure/advance", null, CancellationToken)).Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(expiresAt, advance.GetProperty("areaPassExpiresAt").GetDateTimeOffset());
+        Assert.Equal(0, (await PlaceAsync(client, 17)).GetProperty("keys").GetInt32());
     }
 
     [Fact]

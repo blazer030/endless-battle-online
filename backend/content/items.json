@@ -149,6 +149,10 @@
     {"id": "kingdom-medal", "name": "王國勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
     {"id": "rainforest-medal", "name": "雨林勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
     {"id": "royal-city-medal", "name": "王城勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
-    {"id": "silver-medal", "name": "白銀勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false}
+    {"id": "silver-medal", "name": "白銀勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
+    {"id": "abandoned-cave-key", "name": "廢棄洞窟鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 17, "seconds": 21600}},
+    {"id": "sunset-fort-key", "name": "日沒碉堡鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 18, "seconds": 21600}},
+    {"id": "still-city-key", "name": "靜止之城鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 19, "seconds": 21600}},
+    {"id": "obsidian-temple-key", "name": "黑曜神廟鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 20, "seconds": 21600}}
   ]
 }

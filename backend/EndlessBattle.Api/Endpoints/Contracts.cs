@@ -115,13 +115,14 @@ public sealed record AdventureSettingsRequest(
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 
 // Events 只含最後 30 秒開始的場次與住宿，其餘只計入 Summary；EventsCoverAll 為 false 表示有戰鬥被略去（只略去住宿仍為 true）
-// Mercenary 只在這次推進有傭兵戰鬥時才有值
+// Mercenary 只在這次推進有傭兵戰鬥時才有值；AreaPassExpiresAt 只在目前地區是禁區且有通行證時有值（可能已過期）
 public sealed record AdvanceResponse(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,
     bool EventsCoverAll,
     CharacterResponse Character,
-    MercenaryReportResponse? Mercenary);
+    MercenaryReportResponse? Mercenary,
+    DateTimeOffset? AreaPassExpiresAt);
 
 // Fights 是這次推進的場數；Recent 是最後 5 場，依時間；Dismissed 表示次數用完、已解除僱用
 public sealed record MercenaryReportResponse(
@@ -193,7 +194,8 @@ public sealed record ChangeJobRequest(string? JobId);
 
 public sealed record WorldAreaResponse(string Id, string Name, IReadOnlyList<WorldPlaceResponse> Places);
 
-// Recommendation 只是提示，移動不看等級；禁區為 None
+// Recommendation 只是提示，移動不看等級；禁區為 None。Keys 是背包裡這個地區的鑰匙數，
+// PassExpiresAt 是通行證到期時刻（可能已過期），兩者只有禁區才有
 public sealed record WorldPlaceResponse(
     int Id,
     string Name,
@@ -201,7 +203,9 @@ public sealed record WorldPlaceResponse(
     LevelRangeResponse Recommended,
     bool Restricted,
     bool Current,
-    Recommendation Recommendation);
+    Recommendation Recommendation,
+    int Keys,
+    DateTimeOffset? PassExpiresAt);
 
 public sealed record SubPlaceResponse(int Index, string Name);
 

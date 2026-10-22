@@ -7,7 +7,7 @@ using EndlessBattle.Domain.Progression;
 
 namespace EndlessBattle.Application.Adventure;
 
-// Mercenary 只在這次推進有傭兵戰鬥時才有值
+// Mercenary 只在這次推進有傭兵戰鬥時才有值；AreaPassExpiresAt 只在目前地區是禁區且有通行證時有值
 public sealed record AdvanceResult(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,
@@ -15,7 +15,8 @@ public sealed record AdvanceResult(
     Character Character,
     IReadOnlyList<JobProficiency> JobProficiency,
     EquipmentBonus Equipment,
-    MercenaryReport? Mercenary = null);
+    MercenaryReport? Mercenary = null,
+    DateTimeOffset? AreaPassExpiresAt = null);
 
 // Remaining 在解除僱用時為 0；Exp、Money 是打折後的合計
 public sealed record MercenaryReport(

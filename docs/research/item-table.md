@@ -1,6 +1,6 @@
 # 道具總表（計畫 7）
 
-`backend/content/items.json` 共 150 件（計畫 9 加入捕捉道具 3 件、勳章 5 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
+`backend/content/items.json` 共 154 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
 
 ## 裝備公式
 
@@ -220,6 +220,19 @@
 | `rainforest-medal` | 雨林勳章 | 1306 |
 | `royal-city-medal` | 王城勳章 | 1307 |
 | `silver-medal` | 白銀勳章 | 2222 |
+
+## 鑰匙（計畫 10）
+
+背包分類 `Key`：15 格、不能擴充、可堆疊 99（同勳章）；`price 0`、不在商店販賣，只能從勳章所兌換（見 `companion-table.md`）。內容檔以 `key: { placeId, seconds }` 指定禁區與停留秒數；載入時驗證 `Key` 分類必須有 `key`、其他分類不得有，`placeId` 必須是禁區、`seconds` 60～604 800，每個禁區恰好一把。
+
+進入禁區：該地區通行證未到期 → 免費；否則扣 1 把鑰匙，通行證到期時刻 = 現在 + seconds。推進只結算到通行證到期為止（WOG `wog_fight.php` 每次出戰再扣一把；放置版不自動再扣）。停留秒數是 Claude 的設計（WOG `wog_key_main.area_time` 資料遺失），四把都是 21 600 秒（6 小時）。
+
+| id | 名稱 | 禁區 |
+|---|---|---|
+| `abandoned-cave-key` | 廢棄洞窟鑰匙 | 17 廢棄洞窟 |
+| `sunset-fort-key` | 日沒碉堡鑰匙 | 18 日沒碉堡 |
+| `still-city-key` | 靜止之城鑰匙 | 19 靜止之城 |
+| `obsidian-temple-key` | 黑曜神廟鑰匙 | 20 黑曜神廟 |
 
 ## 配方
 

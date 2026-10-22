@@ -22,7 +22,8 @@ public static class AdventureEndpoints
                 result.Summary,
                 result.EventsCoverAll,
                 CharacterEndpoints.ToResponse(result.Character, result.JobProficiency, result.Equipment, content),
-                result.Mercenary is null ? null : ToResponse(result.Mercenary, content)));
+                result.Mercenary is null ? null : ToResponse(result.Mercenary, content),
+                result.AreaPassExpiresAt));
         });
 
         return app;

@@ -164,6 +164,27 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
     }
 
+    // 每個角色每個地區一列；DATETIME(6) 保留到微秒
+    [Fact]
+    public async Task Schema_HasAreaPassTable()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var at = new DateTime(2026, 10, 22, 1, 2, 3, 456, DateTimeKind.Utc).AddTicks(7890);
+
+        await using var context = database.CreateDbContext();
+        context.CharacterAreaPasses.Add(new CharacterAreaPass { CharacterId = characterId, PlaceId = 17, ExpiresAt = at });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        var pass = await reader.CharacterAreaPasses.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal((17, at), (pass.PlaceId, pass.ExpiresAt));
+
+        await using var second = database.CreateDbContext();
+        second.CharacterAreaPasses.Add(new CharacterAreaPass { CharacterId = characterId, PlaceId = 17, ExpiresAt = at });
+        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

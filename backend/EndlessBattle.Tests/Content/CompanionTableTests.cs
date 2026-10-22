@@ -86,9 +86,13 @@ public class CompanionTableTests
             ("honour-iron-refine-5", "iron-refine-stone-5", null, fourMedals),
             ("honour-arcane-refine-5", "arcane-refine-stone-5", null, fourMedals),
             ("honour-vigor-refine-5", "vigor-refine-stone-5", null, fourMedals),
+            ("honour-key-abandoned-cave", "abandoned-cave-key", null, fourMedals),
+            ("honour-key-sunset-fort", "sunset-fort-key", null, Cost((Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
+            ("honour-key-still-city", "still-city-key", null, Cost((Silver, 1), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
+            ("honour-key-obsidian-temple", "obsidian-temple-key", null, Cost((Silver, 3), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
         ];
 
-        Assert.Equal(14, Content.HonourShop.Count);
+        Assert.Equal(18, Content.HonourShop.Count);
         Assert.Equal(expected.Length, Content.HonourShop.Count);
         foreach (var (row, exchange) in expected.Zip(Content.HonourShop))
         {
@@ -104,6 +108,23 @@ public class CompanionTableTests
         Assert.Equal(
             Content.AllMercenaries.Where(mercenary => mercenary.Price is null).Select(mercenary => mercenary.Id),
             Content.HonourShop.Where(exchange => exchange.MercenaryId is not null).Select(exchange => exchange.MercenaryId!));
+    }
+
+    // 計畫 10：四把禁區鑰匙各一筆兌換、數量 1
+    [Fact]
+    public void HonourShop_SellsTheFourKeys()
+    {
+        var keyExchanges = Content.HonourShop
+            .Where(exchange => exchange.ItemId is { } itemId && Content.GetItem(itemId).Category == ItemCategory.Key)
+            .ToList();
+
+        Assert.Equal(
+            [
+                ("honour-key-abandoned-cave", 17), ("honour-key-sunset-fort", 18),
+                ("honour-key-still-city", 19), ("honour-key-obsidian-temple", 20),
+            ],
+            keyExchanges.Select(exchange => (exchange.Id, Content.GetItem(exchange.ItemId!).Key!.PlaceId)));
+        Assert.All(keyExchanges, exchange => Assert.Equal(1, exchange.Quantity));
     }
 
     // 戰士 Lv30 期望值＋商店 4 級裝備估算

@@ -37,6 +37,8 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumPercent = 100;
     private const int MaximumExchangeQuantity = 99;
     private const int MaximumChampionNameLength = 12;
+    private const int MinimumKeySeconds = 60;
+    private const int MaximumKeySeconds = 604_800;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -190,6 +192,8 @@ public sealed class JsonGameContent : IGameContent
 
             ValidateItem(item, jobs);
         }
+
+        ValidateKeys(allItems, allPlaces);
 
         foreach (var monster in monsterFile.Monsters)
         {
@@ -547,8 +551,8 @@ public sealed class JsonGameContent : IGameContent
         if (item.IsEquipment)
         {
             Require(item.Consumable == ConsumableKind.None && item.SupplyHp == 0 && item.SupplySp == 0 && item.Amount == 0
-                    && item.Refine is null && item.Stone is null,
-                $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone");
+                    && item.Refine is null && item.Stone is null && item.Key is null,
+                $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone、key");
             return;
         }
 
@@ -607,6 +611,43 @@ public sealed class JsonGameContent : IGameContent
         else
         {
             Require(item.Stone is null, $"道具 {id} 不是魔石，不能有 stone");
+        }
+
+        if (item.Category == ItemCategory.Key)
+        {
+            Require(item.Key is not null, $"鑰匙 {id} 必須有 key");
+            Require(item.Key!.Seconds is >= MinimumKeySeconds and <= MaximumKeySeconds,
+                $"鑰匙 {id} 的 seconds 必須在 {MinimumKeySeconds}～{MaximumKeySeconds}");
+        }
+        else
+        {
+            Require(item.Key is null, $"道具 {id} 不是鑰匙，不能有 key");
+        }
+    }
+
+    // 鑰匙必須指向禁區，每個禁區恰好一把
+    private static void ValidateKeys(IReadOnlyList<ItemDefinition> items, IReadOnlyList<PlaceDefinition> places)
+    {
+        var restricted = places.Where(place => place.Restricted).Select(place => place.Id).ToHashSet();
+        var keyed = new HashSet<int>();
+        foreach (var item in items.Where(item => item.Key is not null))
+        {
+            var placeId = item.Key!.PlaceId;
+            if (!restricted.Contains(placeId))
+            {
+                throw new GameContentException($"鑰匙 {item.Id} 的 placeId {placeId} 不是禁區");
+            }
+
+            if (!keyed.Add(placeId))
+            {
+                throw new GameContentException($"禁區 {placeId} 的鑰匙不只一把：{item.Id}");
+            }
+        }
+
+        var missing = restricted.Except(keyed).Order().ToList();
+        if (missing.Count > 0)
+        {
+            throw new GameContentException($"禁區 {string.Join("、", missing)} 沒有鑰匙");
         }
     }
 
@@ -1106,7 +1147,8 @@ public sealed class JsonGameContent : IGameContent
             entry.ShopSellable,
             entry.Bound,
             refine,
-            stone);
+            stone,
+            entry.Key);
     }
 
     private static Recipe ToRecipe(RecipeEntry entry) =>
@@ -1178,7 +1220,8 @@ public sealed class JsonGameContent : IGameContent
         bool ShopSellable,
         bool Bound,
         RefineEntry? Refine,
-        StoneEntry? Stone);
+        StoneEntry? Stone,
+        AreaKeySpec? Key);
 
     // 能力範圍在內容檔裡寫成 [min, max]
     private sealed record RefineEntry(

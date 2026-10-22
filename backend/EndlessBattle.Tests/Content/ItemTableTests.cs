@@ -179,4 +179,26 @@ public partial class ItemTableTests
             item => Assert.Equal((ItemCategory.Material, true, (RefineStoneSpec?)null), (item.Category, item.ShopSellable, item.Refine)));
         Assert.Contains(Content.ItemsForShop(ItemCategory.Material, 3), item => item.Id == ForgeTools.StoneRemover);
     }
+
+    // 計畫 10：禁區 17～20 各一把鑰匙，21 600 秒；不在商店販賣，只能從勳章所兌換
+    [Fact]
+    public void Keys_OnePerRestrictedPlace()
+    {
+        var keys = Content.AllItems.Where(item => item.Category == ItemCategory.Key).ToList();
+
+        Assert.Equal(
+            [
+                ("abandoned-cave-key", "廢棄洞窟鑰匙", 17),
+                ("sunset-fort-key", "日沒碉堡鑰匙", 18),
+                ("still-city-key", "靜止之城鑰匙", 19),
+                ("obsidian-temple-key", "黑曜神廟鑰匙", 20),
+            ],
+            keys.Select(item => (item.Id, item.Name, item.Key!.PlaceId)));
+        Assert.Equal(
+            Content.AllPlaces.Where(place => place.Restricted).Select(place => place.Id).Order(),
+            keys.Select(item => item.Key!.PlaceId).Order());
+        Assert.All(keys, key => Assert.Equal(
+            (21_600, ConsumableKind.None, 0L, 1, false),
+            (key.Key!.Seconds, key.Consumable, key.Price, key.ShopLevel, key.ShopSellable)));
+    }
 }

@@ -7,7 +7,7 @@ public static class InventoryRules
 {
     public const int SlotsPerCategory = 15, StackLimit = 99;
 
-    // 道具（消耗品）與魔石可以擴充；勳章與其他分類固定 15 格
+    // 道具（消耗品）與魔石可以擴充；勳章、鑰匙與其他分類固定 15 格
     public static int Capacity(ItemCategory category, int bagBonus) =>
         category is ItemCategory.Consumable or ItemCategory.Stone ? SlotsPerCategory + bagBonus : SlotsPerCategory;
 

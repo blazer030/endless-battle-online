@@ -6,6 +6,7 @@ using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
+using EndlessBattle.Application.World;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
@@ -16,6 +17,7 @@ using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Stamina;
+using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Application.Adventure;
 
@@ -29,6 +31,7 @@ public sealed class AdventureService(
     IMissionRepository missions,
     IPetRepository pets,
     IMercenaryRepository mercenaries,
+    IAreaPassRepository areaPasses,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -46,18 +49,22 @@ public sealed class AdventureService(
         var bonus = EquipmentBonusCalculator.Sum(equipped, content.GetItem);
         var now = clock.UtcNow;
         var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
+        var place = content.GetPlace(character.PlaceId);
+        var pass = place.Restricted ? await areaPasses.FindAsync(character.Id, place.Id, cancellationToken) : null;
 
         // 時鐘倒退或剛結算過：什麼都不做，也不寫入
         if (elapsedSeconds <= 0)
         {
             return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
-                await proficiencies.ListAsync(character.Id, cancellationToken), bonus);
+                await proficiencies.ListAsync(character.Id, cancellationToken), bonus, AreaPassExpiresAt: pass?.ExpiresAt);
         }
 
         // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
         var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
             ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
             : character.LastSettledAt;
+        // 禁區只模擬到通行證到期為止；到期（或沒有通行證）後的時間捨棄，不自動再扣鑰匙
+        var until = AreaKeys.SimulateUntil(place, pass, now);
         var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
         var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
         var supplySlot = SupplySlotOf(equipped, character.Settings);
@@ -77,13 +84,13 @@ public sealed class AdventureService(
         var run = AdventureSimulator.Run(
             mercenaryRun?.Character ?? character,
             job,
-            content.GetPlace(character.PlaceId),
+            place,
             content.MonstersOf(character.PlaceId),
             content.GetItem,
             skills,
             new StaminaState(character.ActNum, character.ActNumTime),
             from,
-            now,
+            until > from ? until : from,
             random,
             bonus,
             supplySlot.Supply,
@@ -96,13 +103,14 @@ public sealed class AdventureService(
 
         return await unitOfWork.RunAsync(async cancellationToken =>
         {
-            // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果
+            // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果。
+            // 通行證在現在之前到期時直接結算到現在
             var updated = await characters.UpdateAsync(
                 run.Character with
                 {
                     ActNum = run.Stamina.ActNum,
                     ActNumTime = run.Stamina.LastRegenAt,
-                    LastSettledAt = from.AddSeconds(run.ConsumedSeconds),
+                    LastSettledAt = until < now ? now : from.AddSeconds(run.ConsumedSeconds),
                 },
                 cancellationToken);
 
@@ -131,7 +139,7 @@ public sealed class AdventureService(
 
             var report = await StoreMercenaryAsync(updated.Id, contract, mercenaryRun, cancellationToken);
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
-                await proficiencies.ListAsync(updated.Id, cancellationToken), bonus, report);
+                await proficiencies.ListAsync(updated.Id, cancellationToken), bonus, report, pass?.ExpiresAt);
         }, cancellationToken);
     }
 

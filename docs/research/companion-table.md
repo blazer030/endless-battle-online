@@ -9,6 +9,7 @@
 - 捕捉道具：分類必須是 `Consumable`、`consumable Capture`、`amount ≥ 1`，不得有 supplyHp／supplySp／bonus。
 - 勳章：分類 `Medal`、`consumable None`，其餘同材料（不能有需求、孔、精鍊上限）。
 - 傭兵：id 不重複且 1～32 字、name 1～8 字（WOG 輸入框 maxlength 8）、price 為 null 或 ≥ 1、fights ≥ 1、moneyPercent／dropPercent／expPercent 1～100、deathCost ≥ 1。
+- 鑰匙（計畫 10）：規則見 `item-table.md` 的「鑰匙」。
 - 勳章所：id 不重複且 1～32 字、itemId 與 mercenaryId 恰好一個且存在、道具數量 1～99、傭兵數量必須 1；cost 至少一項，每項是存在的勳章、數量 1～99、不重複。
 - 冠軍種子：必須有一筆；name 1～12 字、specialAttackName 不可為空、level ≥ 1、element 0～6、hp ≥ 1、sp ≥ 0、at／mat／df／mdf／agi／au ≥ 0；載入後 `Hp = HpMax`、`Sp = SpMax`。
 
@@ -70,7 +71,7 @@
 
 ## 勳章所
 
-一筆兌換是「一件道具 × 數量」或「一位傭兵」，花費只能是勳章；目前每筆數量都是 1。WOG 的鑰匙類（h_type 2）等計畫 10 的禁區鑰匙；榮譽裝備（h_type 3～7）資料遺失，不做。
+一筆兌換是「一件道具 × 數量」或「一位傭兵」，花費只能是勳章；目前每筆數量都是 1。WOG 的鑰匙類（h_type 2）是計畫 10 加入的四把禁區鑰匙；榮譽裝備（h_type 3～7）資料遺失，不做。
 
 | id | 獲得 | 花費 |
 |---|---|---|
@@ -88,6 +89,10 @@
 | `honour-iron-refine-5` | 鋼鐵精鍊石 Lv5 ×1 | 大陸 ×1、王國 ×1、雨林 ×1、王城 ×1 |
 | `honour-arcane-refine-5` | 秘法精鍊石 Lv5 ×1 | 大陸 ×1、王國 ×1、雨林 ×1、王城 ×1 |
 | `honour-vigor-refine-5` | 活力精鍊石 Lv5 ×1 | 大陸 ×1、王國 ×1、雨林 ×1、王城 ×1 |
+| `honour-key-abandoned-cave` | 廢棄洞窟鑰匙 ×1 | 大陸 ×1、王國 ×1、雨林 ×1、王城 ×1 |
+| `honour-key-sunset-fort` | 日沒碉堡鑰匙 ×1 | 大陸 ×2、王國 ×2、雨林 ×2、王城 ×2 |
+| `honour-key-still-city` | 靜止之城鑰匙 ×1 | 白銀 ×1、大陸 ×2、王國 ×2、雨林 ×2、王城 ×2 |
+| `honour-key-obsidian-temple` | 黑曜神廟鑰匙 ×1 | 白銀 ×3、大陸 ×2、王國 ×2、雨林 ×2、王城 ×2 |
 
 ## 冠軍種子
 

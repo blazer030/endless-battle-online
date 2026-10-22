@@ -31,7 +31,7 @@ public class CharacterServiceTests
         var adventure = new AdventureService(
             repository, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(),
             inventory ?? new InMemoryInventoryRepository(), equipment, new InMemoryMissionRepository(), new InMemoryPetRepository(),
-            new InMemoryMercenaryRepository(), Content, clock, new FixedSeedRandomFactory(20261022), new InMemoryUnitOfWork());
+            new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), Content, clock, new FixedSeedRandomFactory(20261022), new InMemoryUnitOfWork());
         return (new CharacterService(repository, proficiencies, equipment, Content, clock, adventure), adventure);
     }
 

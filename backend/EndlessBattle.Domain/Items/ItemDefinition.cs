@@ -58,6 +58,9 @@ public sealed record RefineStoneSpec(
 // 固定魔石取 Fixed；隨機魔石鑲嵌當下各能力在 [Min, Max] 擲骰
 public sealed record StoneSpec(bool Random, StatBonus Fixed, StatBonus? Min, StatBonus? Max);
 
+// 禁區鑰匙：進入 PlaceId 後可停留 Seconds 秒
+public sealed record AreaKeySpec(int PlaceId, int Seconds);
+
 public sealed record ItemDefinition(
     string Id,
     string Name,
@@ -77,7 +80,8 @@ public sealed record ItemDefinition(
     bool ShopSellable,
     bool Bound,
     RefineStoneSpec? Refine,
-    StoneSpec? Stone)
+    StoneSpec? Stone,
+    AreaKeySpec? Key = null)
 {
     public bool IsEquipment => Category is ItemCategory.Weapon or ItemCategory.Head or ItemCategory.Body
         or ItemCategory.Hand or ItemCategory.Foot or ItemCategory.Accessory;

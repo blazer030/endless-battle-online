@@ -8,6 +8,7 @@ using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
+using EndlessBattle.Application.World;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Infrastructure.Randomness;
@@ -44,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IPetRepository, PetRepository>();
         services.AddScoped<IMercenaryRepository, MercenaryRepository>();
         services.AddScoped<IChampionRepository, ChampionRepository>();
+        services.AddScoped<IAreaPassRepository, AreaPassRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IDatabaseStatus, EfDatabaseStatus>();
         services.AddSingleton<IPasswordHashing, IdentityPasswordHashing>();

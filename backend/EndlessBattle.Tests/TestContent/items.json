@@ -24,6 +24,7 @@
     {"id": "test-boots", "name": "測試鐵靴", "category": "Foot", "bonus": {"df": 2}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false},
     {"id": "test-medal-a", "name": "測試勳章甲", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
     {"id": "test-medal-b", "name": "測試勳章乙", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
-    {"id": "test-capture-net", "name": "測試捕獸網", "category": "Consumable", "consumable": "Capture", "amount": 2, "price": 50, "shopLevel": 2, "shopSellable": true}
+    {"id": "test-capture-net", "name": "測試捕獸網", "category": "Consumable", "consumable": "Capture", "amount": 2, "price": 50, "shopLevel": 2, "shopSellable": true},
+    {"id": "test-key", "name": "測試鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 17, "seconds": 3600}}
   ]
 }

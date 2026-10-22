@@ -2,10 +2,12 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.World;
 
-// 移動免費、不看等級；代碼依序：unknownPlace、restricted、subPlaceNotAllowed、subPlaceRequired、subPlaceOutOfRange、samePlace
+// 移動免費、不看等級；代碼依序：unknownPlace、restricted（禁區且沒有有效通行證也沒有鑰匙）、subPlaceNotAllowed、
+// subPlaceRequired、subPlaceOutOfRange、samePlace（禁區通行證已到期時不算，可用鑰匙再次進入）
 public static class PlaceMove
 {
-    public static IReadOnlyList<string> Evaluate(Character character, PlaceDefinition? target, int? subPlace)
+    public static IReadOnlyList<string> Evaluate(
+        Character character, PlaceDefinition? target, int? subPlace, AreaPass? pass, bool hasKey, DateTimeOffset now)
     {
         if (target is null)
         {
@@ -13,7 +15,8 @@ public static class PlaceMove
         }
 
         var reasons = new List<string>();
-        if (target.Restricted)
+        var needsKey = AreaKeys.NeedsKey(target, pass, now);
+        if (needsKey && !hasKey)
         {
             reasons.Add("restricted");
         }
@@ -33,7 +36,7 @@ public static class PlaceMove
             reasons.Add("subPlaceOutOfRange");
         }
 
-        if (character.PlaceId == target.Id && character.SubPlace == subPlace)
+        if (character.PlaceId == target.Id && character.SubPlace == subPlace && !needsKey)
         {
             reasons.Add("samePlace");
         }

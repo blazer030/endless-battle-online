@@ -552,9 +552,10 @@ public class JsonGameContentTests
                 "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion", "test-stamina-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
-                "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net",
+                "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
             ],
             content.AllItems.Select(item => item.Id));
+        Assert.Equal((ItemCategory.Key, new AreaKeySpec(17, 3600)), (content.GetItem("test-key").Category, content.GetItem("test-key").Key));
 
         var sword = content.GetItem("test-sword");
         Assert.Equal(ItemCategory.Weapon, sword.Category);
@@ -853,6 +854,10 @@ public class JsonGameContentTests
             { "id": 3, "name": "丙", "subPlaces": ["a", "b", "c", "d"], "recommended": [60, 80], "restricted": true }] }
         """;
 
+    // 每個禁區恰好一把鑰匙
+    private const string MissionItems =
+        """{ "items": [{ "id": "herb", "name": "藥草", "category": "Material", "price": 1, "shopLevel": 1, "shopSellable": false }, { "id": "gate-key", "name": "丙鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": { "placeId": 3, "seconds": 3600 } }] }""";
+
     private const string MissionMonsters = """
         { "monsters": [
           { "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 1, "subPlaces": [1] },
@@ -886,7 +891,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
             File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), MissionSkills);
             File.WriteAllText(Path.Combine(directory.FullName, "world.json"), MissionWorld);
-            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), HerbItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), MissionItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), $$"""{ "missions": [{{missions}}] }""");
             WriteCompanionContent(directory.FullName);
@@ -1416,6 +1421,62 @@ public class JsonGameContentTests
         Assert.Contains(offendingId, message);
         Assert.Contains(expected, message);
     }
+
+    // 鑰匙驗證用的地區：1 一般、17 禁區
+    private const string KeyWorld = """
+        { "startingPlaceId": 1, "startingSubPlace": 1,
+          "areas": [{ "id": "central", "name": "中", "placeIds": [1, 17] }],
+          "places": [
+            { "id": 1, "name": "甲", "subPlaces": ["a", "b", "c", "d"], "recommended": [1, 10], "restricted": false },
+            { "id": 17, "name": "禁", "subPlaces": [], "recommended": [60, 80], "restricted": true }] }
+        """;
+
+    private const string ValidKey =
+        """{ "id": "cave-key", "name": "鑰", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": { "placeId": 17, "seconds": 3600 } }""";
+
+    private static void AssertKeyRejects(string items, string offendingId, string expected)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), KeyWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{items}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
+            var message = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName)).Message;
+            Assert.Contains(offendingId, message);
+            Assert.Contains(expected, message);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Items_RejectKeyForUnrestrictedPlace() =>
+        AssertKeyRejects($"{ValidKey}, {ValidKey.Replace("cave-key", "plain-key").Replace("\"placeId\": 17", "\"placeId\": 1")}", "plain-key", "禁區");
+
+    [Fact]
+    public void Items_RejectSecondKeyForSamePlace() =>
+        AssertKeyRejects($"{ValidKey}, {ValidKey.Replace("cave-key", "spare-key")}", "spare-key", "17");
+
+    [Fact]
+    public void Items_RejectKeySpecOnNonKeyCategory() =>
+        AssertKeyRejects($"{ValidKey}, {ValidOre.Replace("\"price\": 10", "\"key\": { \"placeId\": 17, \"seconds\": 60 }, \"price\": 10")}", "ore", "key");
+
+    // 其餘鑰匙規則：沒有 key、秒數超出 60～604 800、禁區沒有鑰匙
+    [Theory]
+    [InlineData(", \"key\": { \"placeId\": 17, \"seconds\": 3600 }", "", "key")]
+    [InlineData("\"seconds\": 3600", "\"seconds\": 59", "seconds")]
+    [InlineData("\"seconds\": 3600", "\"seconds\": 604801", "seconds")]
+    [InlineData("\"category\": \"Key\", \"price\": 0, \"shopLevel\": 1, \"shopSellable\": false, \"key\": { \"placeId\": 17, \"seconds\": 3600 }", "\"category\": \"Material\", \"price\": 0, \"shopLevel\": 1, \"shopSellable\": false", "17")]
+    public void Items_RejectInvalidKeys(string validField, string invalidField, string expected) =>
+        AssertKeyRejects(Replace(ValidKey, validField, invalidField), expected == "17" ? "17" : "cave-key", expected);
 
     private static void WriteCompanionContent(
         string directory, string mercenaries = ValidMercenaries, string honourShop = ValidHonourShop, string champion = ValidChampion)

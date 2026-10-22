@@ -16,8 +16,9 @@ public class PlaceMoveTests
         new LevelRange(1, 10),
         restricted);
 
-    private static IReadOnlyList<string> Evaluate(PlaceDefinition target, int? subPlace) =>
-        PlaceMove.Evaluate(TestCharacters.Default(1, "測試者", 1, 1, Now), target, subPlace);
+    private static IReadOnlyList<string> Evaluate(
+        PlaceDefinition target, int? subPlace, AreaPass? pass = null, bool hasKey = false, int placeId = 1) =>
+        PlaceMove.Evaluate(TestCharacters.Default(1, "測試者", placeId, 1, Now), target, subPlace, pass, hasKey, Now);
 
     // 禁區且沒有子地區（如黑曜神廟）卻帶子地區：兩個原因都列出，restricted 在前
     [Fact]
@@ -38,5 +39,38 @@ public class PlaceMoveTests
     public void Validate_ReportsOutOfRange_WithoutSamePlace()
     {
         Assert.Equal(["subPlaceOutOfRange"], Evaluate(Place(1, 4, restricted: false), 5));
+    }
+
+    [Fact]
+    public void Evaluate_RestrictedWithoutPassOrKey()
+    {
+        Assert.Equal(["restricted"], Evaluate(Place(17, 4, restricted: true), 1));
+    }
+
+    [Fact]
+    public void Evaluate_RestrictedWithKeyAllowed()
+    {
+        Assert.Empty(Evaluate(Place(17, 4, restricted: true), 1, hasKey: true));
+    }
+
+    [Fact]
+    public void Evaluate_RestrictedWithValidPassAllowed()
+    {
+        Assert.Empty(Evaluate(Place(17, 4, restricted: true), 1, new AreaPass(17, Now.AddSeconds(1))));
+    }
+
+    // 通行證在 now 到期即失效：同一子地區也能用鑰匙再次進入
+    [Fact]
+    public void Evaluate_SameRestrictedPlaceAfterExpiryIsNotSamePlace()
+    {
+        Assert.Empty(Evaluate(Place(17, 4, restricted: true), 1, new AreaPass(17, Now), hasKey: true, placeId: 17));
+    }
+
+    [Fact]
+    public void Evaluate_SameRestrictedPlaceWithValidPassIsSamePlace()
+    {
+        Assert.Equal(
+            ["samePlace"],
+            Evaluate(Place(17, 4, restricted: true), 1, new AreaPass(17, Now.AddSeconds(1)), hasKey: true, placeId: 17));
     }
 }

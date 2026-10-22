@@ -12,6 +12,7 @@ using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
+using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -38,6 +39,7 @@ public class AdventureServiceTests
     private readonly InMemoryMissionRepository missions;
     private readonly InMemoryPetRepository pets;
     private readonly InMemoryMercenaryRepository mercenaries;
+    private readonly InMemoryAreaPassRepository passes = new();
     private readonly FakeClock clock = new(Start);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
@@ -50,9 +52,9 @@ public class AdventureServiceTests
         missions = new InMemoryMissionRepository(log);
         pets = new InMemoryPetRepository(log);
         mercenaries = new InMemoryMercenaryRepository(log);
-        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets, mercenaries);
+        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets, mercenaries, passes);
         service = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -83,6 +85,54 @@ public class AdventureServiceTests
         Assert.Equal([new JobProficiency("warrior", 96, 96)], result.JobProficiency);
     }
 
+    // 禁地・禁一只有測試怨靈；通行證在 Start + 120 到期、離線 600 秒：只打開打時刻早於到期的場次，到期後的時間捨棄
+    [Fact]
+    public async Task Advance_StopsAtAreaPassExpiry()
+    {
+        var character = await AddCharacterAsync(character => character with { PlaceId = 17, SubPlace = 1 });
+        var expiresAt = Start.AddSeconds(120);
+        await passes.SaveAsync(character.Id, new AreaPass(17, expiresAt), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(600));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.True(result.Summary.Fights > 0);
+        var lastEncounter = result.Events.OfType<EncounterEvent>().Last();
+        Assert.True(Start.AddSeconds(lastEncounter.AtSeconds) < expiresAt);
+        Assert.Equal(expiresAt, result.AreaPassExpiresAt);
+        Assert.Equal(clock.UtcNow, (await repository.FindByAccountAsync(AccountId, CancellationToken))!.LastSettledAt);
+    }
+
+    // 上次結算時通行證已到期：不打怪、不自動扣鑰匙，結算時刻直接移到現在
+    [Fact]
+    public async Task Advance_AfterExpiryFightsNothingAndMovesSettlementToNow()
+    {
+        var character = await AddCharacterAsync(character => character with { PlaceId = 17, SubPlace = 1 });
+        await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-key", 1), CancellationToken);
+        await passes.SaveAsync(character.Id, new AreaPass(17, Start), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(600));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(0, result.Summary.Fights);
+        Assert.Empty(result.Events);
+        Assert.Equal(Start, result.AreaPassExpiresAt);
+        var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
+        Assert.Equal((clock.UtcNow, character.Exp), (stored!.LastSettledAt, stored.Exp));
+        Assert.Equal(1, Assert.Single(await inventory.ListAsync(character.Id, CancellationToken)).Quantity);
+        Assert.Equal(new AreaPass(17, Start), await passes.FindAsync(character.Id, 17, CancellationToken));
+    }
+
+    // 一般地區沒有通行證
+    [Fact]
+    public async Task Advance_NormalPlaceHasNoAreaPass()
+    {
+        await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        Assert.Null((await service.AdvanceAsync(AccountId, CancellationToken)).AreaPassExpiresAt);
+    }
+
     // 角色已寫入後掉落才寫入失敗：整筆推進回滾，角色、熟練度與背包都維持原狀，例外照常拋出
     [Fact]
     public async Task Advance_RollsBackCharacterWhenInventoryWriteFails()
@@ -106,7 +156,7 @@ public class AdventureServiceTests
         await AddCharacterAsync();
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
 
         await advance.AdvanceAsync(AccountId, CancellationToken);
 
@@ -474,7 +524,7 @@ public class AdventureServiceTests
         await AddMissionAsync(character, ActiveRecord("test-sprite-bounty"));
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, Content, clock,
             new HookRandomFactory(() =>
             {
                 missions.RemoveAsync(character.Id, "test-hunt", CancellationToken).GetAwaiter().GetResult();
@@ -564,7 +614,7 @@ public class AdventureServiceTests
         var loggedInventory = new InMemoryInventoryRepository(log);
         var loggedEquipment = new InMemoryEquipmentRepository(loggedInventory);
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, mercenaries, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, mercenaries, passes, Content, clock, new ScriptedRandomFactory(), unitOfWork);
         var character = await AddCharacterAsync();
         var netId = await EquipCaptureNetAsync(loggedInventory, loggedEquipment, character, quantity: 20);
         log.Clear();
@@ -794,7 +844,7 @@ public class AdventureServiceTests
         clock.Advance(TimeSpan.FromSeconds(20));
         await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, Content, clock,
             new HookRandomFactory(() =>
             {
                 mercenaries.RemoveAsync(character.Id, CancellationToken).GetAwaiter().GetResult();

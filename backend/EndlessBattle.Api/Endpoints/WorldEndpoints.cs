@@ -42,5 +42,7 @@ public static class WorldEndpoints
             new LevelRangeResponse(place.Recommended.Min, place.Recommended.Max),
             place.Restricted,
             place.Current,
-            place.Recommendation)).ToList());
+            place.Recommendation,
+            place.Keys,
+            place.PassExpiresAt)).ToList());
 }

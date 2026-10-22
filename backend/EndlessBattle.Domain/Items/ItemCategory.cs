@@ -1,6 +1,6 @@
 namespace EndlessBattle.Domain.Items;
 
-// Accessory = 道具欄 1 的裝備；Medal = 勳章（15 格、不能擴充）
+// Accessory = 道具欄 1 的裝備；Medal = 勳章、Key = 禁區鑰匙（都是 15 格、不能擴充）
 public enum ItemCategory
 {
     Weapon,
@@ -14,4 +14,5 @@ public enum ItemCategory
     RefineStone,
     Material,
     Medal,
+    Key,
 }
