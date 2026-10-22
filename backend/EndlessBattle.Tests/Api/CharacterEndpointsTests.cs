@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Domain.Items;
+using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -334,5 +337,52 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var me = await client.GetAsync("/api/characters/me", CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, create.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, me.StatusCode);
+    }
+
+    // 建角 10 秒後喝經驗密藥（同一筆交易裡先結算這 10 秒）：使用結果帶出效果；列表只含 now < endsAt 的密藥（已到期的物攻密藥不列），1 小時後全部到期
+    [Fact]
+    public async Task Buffs_ListsOnlyActive()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("密藥");
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        factory.Clock.Advance(TimeSpan.FromSeconds(10));
+        var now = factory.Clock.UtcNow;
+        long elixir;
+        await using (var context = database.CreateDbContext())
+        {
+            var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+            elixir = await new InventoryRepository(context).AddAsync(characterId, TestItems.Entry(0, "test-exp-elixir"), CancellationToken);
+            await new BuffRepository(context).SaveAsync(
+                characterId, new CharacterBuff(BuffKind.Attack, 1.2, now.AddHours(-1), now.AddSeconds(-1)), CancellationToken);
+        }
+
+        var used = await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = elixir }, CancellationToken);
+        used.EnsureSuccessStatusCode();
+        var buff = (await used.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("buff");
+        Assert.Equal(("Exp", 1.5), (buff.GetProperty("kind").GetString(), buff.GetProperty("multiplier").GetDouble()));
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.True(me.GetProperty("exp").GetInt64() > 0);
+
+        var buffs = await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken);
+        var active = Assert.Single(buffs.EnumerateArray());
+        Assert.Equal("Exp", active.GetProperty("kind").GetString());
+        Assert.Equal(1.5, active.GetProperty("multiplier").GetDouble());
+        Assert.Equal(now.AddHours(1), active.GetProperty("endsAt").GetDateTimeOffset());
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+        Assert.Empty((await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken)).EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Buffs_Returns404WithoutCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/characters/me/buffs", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

@@ -167,4 +167,20 @@ public class ConsumableUseTests
             new[] { ConsumableKind.StoneBox, ConsumableKind.RefineBox, ConsumableKind.ProficiencyBook, ConsumableKind.ExperienceCapsule },
             kind => Assert.Empty(ConsumableUse.CanUse(Full(Hero, petCount: PetRules.MaxPets), Usable(kind, 1))));
     }
+
+    // 密藥從現在起算 Seconds 秒；不看先前同種的密藥（到期時刻不累加），由 repository 以同種覆蓋。角色不變、不擲骰
+    [Fact]
+    public void Elixir_StartsNowAndReplacesSameKind()
+    {
+        var elixir = TestItems.Consumable("exp-elixir", ConsumableKind.Elixir) with { Elixir = new ElixirSpec(BuffKind.Exp, 1.5, 3600) };
+        var random = new ScriptedRandom(0.0);
+
+        Assert.Empty(ConsumableUse.CanUse(Full(Hero), elixir));
+        var outcome = ConsumableUse.Apply(Full(Hero), elixir, Now, random);
+
+        Assert.Equal(new CharacterBuff(BuffKind.Exp, 1.5, Now, Now.AddSeconds(3600)), outcome.Buff);
+        Assert.Equal(Buffs.Start(elixir.Elixir!, Now), outcome.Buff);
+        Assert.Equal(Hero, outcome.Character);
+        Assert.Equal(0, random.Consumed);
+    }
 }

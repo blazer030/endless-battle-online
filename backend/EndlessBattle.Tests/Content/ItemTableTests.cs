@@ -232,4 +232,25 @@ public partial class ItemTableTests
             ],
             Content.AllItems.Where(item => item.Category == ItemCategory.Stone).Select(item => (item.Id, item.Stone!.BoxClass)));
     }
+
+    // 計畫 10 Task 6：密藥在商店 6 級販售，效果持續 1 小時
+    [Fact]
+    public void Elixirs_MatchTable()
+    {
+        (string Id, string Name, ElixirSpec Elixir, long Price)[] expected =
+        [
+            ("exp-elixir", "經驗密藥", new(BuffKind.Exp, 1.5, 3600), 20000),
+            ("proficiency-elixir", "熟練密藥", new(BuffKind.JobExp, 1.5, 3600), 20000),
+            ("might-elixir", "力量密藥", new(BuffKind.Attack, 1.2, 3600), 10000),
+            ("sorcery-elixir", "魔力密藥", new(BuffKind.Magic, 1.2, 3600), 10000),
+            ("guard-elixir", "守護密藥", new(BuffKind.Defense, 1.2, 3600), 10000),
+            ("ward-elixir", "結界密藥", new(BuffKind.MagicDefense, 1.2, 3600), 10000),
+        ];
+
+        var elixirs = Content.AllItems.Where(item => item.Consumable == ConsumableKind.Elixir).ToList();
+
+        Assert.Equal(expected, elixirs.Select(item => (item.Id, item.Name, item.Elixir!, item.Price)));
+        Assert.All(elixirs, item => Assert.Equal((ItemCategory.Consumable, 6, true), (item.Category, item.ShopLevel, item.ShopSellable)));
+        Assert.Equal(elixirs, Content.ItemsForShop(ItemCategory.Consumable, 6).Where(item => item.Consumable == ConsumableKind.Elixir));
+    }
 }

@@ -81,7 +81,8 @@ public sealed record ItemDefinition(
     bool Bound,
     RefineStoneSpec? Refine,
     StoneSpec? Stone,
-    AreaKeySpec? Key = null)
+    AreaKeySpec? Key = null,
+    ElixirSpec? Elixir = null)
 {
     public bool IsEquipment => Category is ItemCategory.Weapon or ItemCategory.Head or ItemCategory.Body
         or ItemCategory.Hand or ItemCategory.Foot or ItemCategory.Accessory;

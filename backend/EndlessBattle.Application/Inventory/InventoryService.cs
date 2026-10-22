@@ -1,6 +1,8 @@
+using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Items;
 using EndlessBattle.Application.Pets;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
@@ -8,8 +10,9 @@ using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Application.Inventory;
 
-// GrantedItemIds 依抽出順序；PetName 是寵物蛋孵出的寵物名；SkillPoints 加在目前職業
-public sealed record ItemUseResult(InventoryView Inventory, IReadOnlyList<string> GrantedItemIds, string? PetName, long SkillPoints, int LevelsGained);
+// GrantedItemIds 依抽出順序；PetName 是寵物蛋孵出的寵物名；SkillPoints 加在目前職業；Buff 是喝下的密藥
+public sealed record ItemUseResult(
+    InventoryView Inventory, IReadOnlyList<string> GrantedItemIds, string? PetName, long SkillPoints, int LevelsGained, CharacterBuff? Buff = null);
 
 // 裝備欄引用背包表的列：裝上 = 欄位指向該列，卸下 = 清空欄位。已裝備的列不算在背包裡，也不佔背包格數
 public sealed class InventoryService(
@@ -18,10 +21,12 @@ public sealed class InventoryService(
     IEquipmentRepository equipment,
     IPetRepository pets,
     IJobProficiencyRepository proficiency,
+    IBuffRepository buffs,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    AdventureService adventure)
 {
     public async Task<InventoryView> GetAsync(long accountId, CancellationToken cancellationToken)
     {
@@ -81,7 +86,7 @@ public sealed class InventoryService(
         }, cancellationToken);
 
     // 一筆交易：讀角色、背包、寵物數 → CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 bagFull、
-    // 什麼都不寫 → 以版本鎖寫入角色 → 背包（扣道具、加結果）→ 寵物 → 技能點。衝突時道具不動
+    // 什麼都不寫 → 以版本鎖寫入角色 → 背包（扣道具、加結果）→ 寵物 → 技能點 → 密藥。衝突時道具不動
     public Task<ItemUseResult> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -95,6 +100,16 @@ public sealed class InventoryService(
             if (reasons.Count > 0)
             {
                 throw new InputValidationException("這個道具不能使用", reasons);
+            }
+
+            // 密藥只對喝下之後開打的場次生效，且會覆蓋同種的舊密藥：先以舊密藥把經過的時間結算到現在（同改設定），
+            // 推進的角色寫入就是交易裡第一個寫入；之後以結算後的角色與背包使用
+            if (item.Consumable == ConsumableKind.Elixir)
+            {
+                character = (await adventure.AdvanceAsync(accountId, cancellationToken)).Character;
+                state = await LoadAsync(character.Id, cancellationToken);
+                entry = FindInBag(state, inventoryId);
+                context = context with { Character = character };
             }
 
             var outcome = ConsumableUse.Apply(context, item, clock.UtcNow, randomFactory.Create());
@@ -147,8 +162,14 @@ public sealed class InventoryService(
                 await proficiency.AddAsync(updated.Id, updated.JobId, 0, outcome.SkillPoints, cancellationToken);
             }
 
+            if (outcome.Buff is { } buff)
+            {
+                await buffs.SaveAsync(updated.Id, buff, cancellationToken);
+            }
+
             return new ItemUseResult(
-                await ViewAsync(updated, cancellationToken), outcome.GrantedItemIds, outcome.Pet?.Name, outcome.SkillPoints, outcome.LevelsGained);
+                await ViewAsync(updated, cancellationToken), outcome.GrantedItemIds, outcome.Pet?.Name, outcome.SkillPoints, outcome.LevelsGained,
+                outcome.Buff);
         }, cancellationToken);
 
     // 從背包那一格分出 quantity 個放到補給欄（整格裝上時直接引用該列）；原本的補給品先算好能放回背包才動手

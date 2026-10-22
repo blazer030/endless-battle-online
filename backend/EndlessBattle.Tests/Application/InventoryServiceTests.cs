@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Characters;
@@ -22,20 +23,27 @@ public class InventoryServiceTests
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryPetRepository pets = new();
     private readonly InMemoryJobProficiencyRepository proficiency = new();
+    private readonly InMemoryBuffRepository buffs;
     private readonly ScriptedRandomFactory random = new();
+    private readonly FakeClock clock = new(Now);
+    private readonly AdventureService adventure;
     private readonly InventoryService service;
 
     public InventoryServiceTests()
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
+        buffs = new InMemoryBuffRepository(log);
+        var unitOfWork = new InMemoryUnitOfWork();
+        adventure = new AdventureService(
+            characters, proficiency, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
+            new InMemoryMissionRepository(), pets, new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), buffs,
+            Content, clock, random, unitOfWork);
         service = new InventoryService(
-            characters, inventory, equipment, pets, proficiency, Content, Clock, random, new InMemoryUnitOfWork());
+            characters, inventory, equipment, pets, proficiency, buffs, Content, clock, random, unitOfWork, adventure);
     }
 
     private static readonly DateTimeOffset Now = new(2026, 10, 22, 3, 0, 0, TimeSpan.Zero);
-
-    private static readonly FakeClock Clock = new(Now);
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
@@ -510,6 +518,56 @@ public class InventoryServiceTests
         Assert.Equal(300, result.SkillPoints);
         Assert.Equal([new("warrior", 0, 300)], await proficiency.ListAsync(character.Id, CancellationToken));
         Assert.Equal([("test-job-notes", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
+    }
+
+    // 喝下時（上次結算就是現在，不必推進）：以版本鎖寫角色 → 扣密藥 → 存密藥，從現在起 1 小時
+    [Fact]
+    public async Task Use_ElixirSavesBuff()
+    {
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now });
+        var elixir = await GiveAsync(character, "test-exp-elixir", 2);
+
+        var result = await service.UseAsync(AccountId, elixir, CancellationToken);
+
+        var expected = new CharacterBuff(BuffKind.Exp, 1.5, Now, Now.AddHours(1));
+        Assert.Equal(expected, result.Buff);
+        Assert.Equal([expected], await buffs.ListAsync(character.Id, CancellationToken));
+        Assert.Equal([("test-exp-elixir", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
+        Assert.Equal(["update", "buff:Exp"], log);
+    }
+
+    // 測試雪精每場 2.8 秒、擲骰 0.0 時勝場經驗 116，經驗密藥 → 174（見 AdventureServiceTests 上方）；NextExp 很大，不升級。
+    // 上次結算後 60 秒才喝、90 秒推進：0～58.8 開打的 22 場在喝之前，經驗不變；61.6～89.6 的 11 場在喝之後才加成
+    [Fact]
+    public async Task Use_ElixirDoesNotApplyToUnsettledFightsBeforeIt()
+    {
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextExp = 1_000_000_000 });
+        var elixir = await GiveAsync(character, "test-exp-elixir");
+        clock.Advance(TimeSpan.FromSeconds(60));
+
+        await service.UseAsync(AccountId, elixir, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(30));
+        await adventure.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal((22 * 116) + (11 * 174), (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Exp);
+    }
+
+    // 再喝一瓶同種密藥會覆蓋舊的：喝之前先把經過的時間以舊密藥結算掉，0～58.8 的 22 場仍是 174；之後的 11 場由新密藥加成
+    [Fact]
+    public async Task Use_ElixirSettlesElapsedTimeUnderTheBuffItReplaces()
+    {
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextExp = 1_000_000_000 });
+        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Exp, 1.5, Now.AddMinutes(-30), Now.AddMinutes(30)), CancellationToken);
+        var elixir = await GiveAsync(character, "test-exp-elixir");
+        clock.Advance(TimeSpan.FromSeconds(60));
+
+        await service.UseAsync(AccountId, elixir, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(30));
+        await adventure.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(33 * 174, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Exp);
+        Assert.Equal(
+            [new CharacterBuff(BuffKind.Exp, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660))], await buffs.ListAsync(character.Id, CancellationToken));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

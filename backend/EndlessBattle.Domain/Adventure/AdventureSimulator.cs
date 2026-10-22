@@ -32,9 +32,12 @@ public static class AdventureSimulator
         EquipmentBonus? equipment = null,
         SupplyState? supply = null,
         IReadOnlyList<ActiveMission>? missions = null,
-        AdventureCompanions? companions = null)
+        AdventureCompanions? companions = null,
+        IReadOnlyList<CharacterBuff>? buffs = null)
     {
         missions ??= [];
+        // 密藥依每場的開打時刻判斷是否生效，不擲骰；沒有密藥時擲骰序列不變
+        buffs ??= [];
         var carriedPet = companions?.CarriedPet;
         var capture = companions?.Capture;
         var petCount = companions?.PetCount ?? 0;
@@ -74,9 +77,10 @@ public static class AdventureSimulator
             (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
             // 任務怪只在其任務尚未達成且未過期時出現；任務邏輯不擲骰，沒有任務怪時擲骰序列不變
-            var spawnable = KillCounter.SpawnableMissionIds(missions, from.AddSeconds(cursor));
+            var fightStartsAt = from.AddSeconds(cursor);
+            var spawnable = KillCounter.SpawnableMissionIds(missions, fightStartsAt);
             var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random, spawnable);
-            var player = CombatBridge.ToCombatant(character, bonus);
+            var player = Buffs.ApplyTo(CombatBridge.ToCombatant(character, bonus), buffs, fightStartsAt);
             var monster = CombatantState.From(definition);
             // 寵物每場重新建立，代擋量不帶到下一場
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
@@ -125,9 +129,12 @@ public static class AdventureSimulator
                     break;
                 case CombatSide.Player:
                     wins++;
-                    exp = RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, fDown, random);
+                    // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
+                    exp = Buffs.Scale(
+                        RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, fDown, random),
+                        Buffs.Multiplier(buffs, BuffKind.Exp, fightStartsAt));
                     money = RewardFormulas.Money(definition, fDown, random);
-                    jobExp = RewardFormulas.JobExp(definition, fDown);
+                    jobExp = Buffs.Scale(RewardFormulas.JobExp(definition, fDown), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt));
                     // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
                     dropped = DropRoller.Roll(definition.Drops, fDown, random);
                     break;

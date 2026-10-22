@@ -185,6 +185,33 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
     }
 
+    // 每個角色每種密藥一列；倍率 DECIMAL(4,2)、時刻 DATETIME(6) 保留到微秒
+    [Fact]
+    public async Task Schema_HasCharacterBuffTable()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var startsAt = new DateTime(2026, 10, 22, 1, 2, 3, 456, DateTimeKind.Utc).AddTicks(7890);
+
+        await using var context = database.CreateDbContext();
+        context.CharacterBuffs.Add(new CharacterBuff
+        {
+            CharacterId = characterId, Kind = "MagicDefense", Multiplier = 1.25m, StartsAt = startsAt, EndsAt = startsAt.AddHours(1),
+        });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        var buff = await reader.CharacterBuffs.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal(("MagicDefense", 1.25m, startsAt, startsAt.AddHours(1)), (buff.Kind, buff.Multiplier, buff.StartsAt, buff.EndsAt));
+
+        await using var second = database.CreateDbContext();
+        second.CharacterBuffs.Add(new CharacterBuff
+        {
+            CharacterId = characterId, Kind = "MagicDefense", Multiplier = 1.5m, StartsAt = startsAt, EndsAt = startsAt,
+        });
+        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

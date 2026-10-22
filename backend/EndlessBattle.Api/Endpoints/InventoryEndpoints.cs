@@ -37,7 +37,8 @@ public static class InventoryEndpoints
                 result.GrantedItemIds.Select(itemId => content.GetItem(itemId).Name).ToList(),
                 result.PetName,
                 result.SkillPoints,
-                result.LevelsGained));
+                result.LevelsGained,
+                result.Buff is { } buff ? new BuffResponse(buff.Kind, buff.Multiplier, buff.EndsAt) : null));
         });
 
         return app;

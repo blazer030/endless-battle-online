@@ -888,4 +888,114 @@ public class AdventureSimulatorTests
         Assert.Equal(1, run.Summary.PetsCaptured);
         Assert.Equal(3, run.SupplyRemaining);
     }
+
+    private static AdventureRun RunWithBuffs(
+        Character character, double seconds, IReadOnlyList<CharacterBuff>? buffs, IRandomSource random, params MonsterDefinition[] monsters) =>
+        AdventureSimulator.Run(
+            character,
+            Warrior,
+            Place,
+            monsters.Length == 0 ? [Dummy] : monsters,
+            ItemOf,
+            [],
+            new StaminaState(character.ActNum, character.ActNumTime),
+            From,
+            From.AddSeconds(seconds),
+            random,
+            buffs: buffs);
+
+    // 每個勝場的（開打秒數, 經驗, 金錢, 熟練度）；事件裡 RewardEvent 接在它那一場的 EncounterEvent 之後
+    private static List<(double Start, long Exp, long Money, long JobExp)> RewardsByFightStart(AdventureRun run)
+    {
+        var rewards = new List<(double, long, long, long)>();
+        var start = 0.0;
+        foreach (var battleEvent in run.Events)
+        {
+            if (battleEvent is EncounterEvent encounter)
+            {
+                start = encounter.AtSeconds;
+            }
+            else if (battleEvent is RewardEvent reward)
+            {
+                rewards.Add((start, reward.Exp, reward.Money, reward.JobExp));
+            }
+        }
+
+        return rewards;
+    }
+
+    // 經驗密藥在 From + 30 秒到期；50 秒的事件窗口是 [20, 50)，兩邊都有勝場。經驗密藥不影響戰鬥，同種子下逐場對齊：
+    // 30 秒前開打的勝場經驗 = round(無密藥 × 1.5)，之後的相同。NextExp 設得很大，避免升級讓兩條時間軸分岔
+    [Fact]
+    public void Adventure_ElixirAppliesOnlyWithinItsWindow()
+    {
+        var hero = Hero() with { NextExp = 1_000_000_000 };
+        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Exp, 1.5, From.AddSeconds(-3570), From.AddSeconds(30))];
+
+        var plain = RewardsByFightStart(RunWithBuffs(hero, 50, null, new SeededRandom(7)));
+        var buffed = RewardsByFightStart(RunWithBuffs(hero, 50, buffs, new SeededRandom(7)));
+
+        Assert.Equal(plain.Count, buffed.Count);
+        Assert.Contains(plain, reward => reward.Start < 30);
+        Assert.Contains(plain, reward => reward.Start >= 30);
+        Assert.All(plain.Zip(buffed), pair =>
+        {
+            Assert.Equal(pair.First.Start, pair.Second.Start);
+            Assert.Equal(pair.First.Start < 30 ? DerivedStats.RoundLikePhp(pair.First.Exp * 1.5) : pair.First.Exp, pair.Second.Exp);
+            Assert.Equal((pair.First.Money, pair.First.JobExp), (pair.Second.Money, pair.Second.JobExp));
+        });
+    }
+
+    // 經驗與熟練密藥全程生效：勝場經驗 146 → 219、熟練度 12 → 18，金錢 2 不變；
+    // 超限的部分經驗 43 不受經驗密藥影響（手算見 Adventure_TimeoutGivesPartialExpOnly）
+    [Fact]
+    public void Adventure_ElixirDoesNotChangeMoneyOrTimeoutExp()
+    {
+        IReadOnlyList<CharacterBuff> buffs =
+        [
+            new(BuffKind.Exp, 1.5, From, From.AddHours(1)),
+            new(BuffKind.JobExp, 1.5, From, From.AddHours(1)),
+        ];
+
+        var win = RunWithBuffs(Hero(), seconds: 1, buffs, new ScriptedRandom(0.0));
+        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var timeout = RunWithBuffs(tough, seconds: 1, buffs, new ScriptedRandom(0.0), Monster("rock", hp: 60, at: 40, df: 1000));
+
+        Assert.Equal(new RewardEvent(0, Exp: 219, Money: 2, JobExp: 18), win.Events.OfType<RewardEvent>().Single());
+        Assert.Equal([new JobGain("warrior", 18, 18)], win.JobGains);
+        Assert.Equal(new RewardEvent(32, Exp: 43, Money: 0, JobExp: 0), timeout.Events.OfType<RewardEvent>().Single());
+    }
+
+    // 沒有密藥時（空清單或 null）擲骰序列與計畫 9 相同：事件、摘要、角色逐一相等
+    [Fact]
+    public void Adventure_NoBuffsKeepsRollSequence()
+    {
+        var withNull = RunWithBuffs(Hero(), 600, null, new SeededRandom(11));
+        var withEmpty = RunWithBuffs(Hero(), 600, [], new SeededRandom(11));
+
+        Assert.Equal(withNull.Events, withEmpty.Events);
+        Assert.Equal(withNull.Summary, withEmpty.Summary);
+        Assert.Equal(withNull.Character, withEmpty.Character);
+        Assert.Equal(withNull.ConsumedSeconds, withEmpty.ConsumedSeconds);
+    }
+
+    // 物攻密藥只在開打時刻落在窗口內的場次生效：打不倒的怪物在超限前累計的傷害變大；已到期的密藥事件與沒喝相同
+    [Fact]
+    public void Adventure_AttackElixirStrengthensThePlayer()
+    {
+        var sturdy = Monster("sturdy", hp: 100_000);
+        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Attack, 1.2, From, From.AddHours(1))];
+        IReadOnlyList<CharacterBuff> expired = [new(BuffKind.Attack, 1.2, From.AddHours(-1), From)];
+
+        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+
+        var plain = RunWithBuffs(tough, 1, null, new ScriptedRandom(0.5), sturdy);
+        var buffed = RunWithBuffs(tough, 1, buffs, new ScriptedRandom(0.5), sturdy);
+        var after = RunWithBuffs(tough, 1, expired, new ScriptedRandom(0.5), sturdy);
+
+        Assert.True(buffed.Summary.Timeouts == 1 && plain.Summary.Timeouts == 1);
+        Assert.True(
+            buffed.Events.OfType<TimeoutEvent>().Single().DamageDealt > plain.Events.OfType<TimeoutEvent>().Single().DamageDealt);
+        Assert.Equal(plain.Events, after.Events);
+    }
 }

@@ -30,6 +30,7 @@
     {"id": "test-vigor-refine-stone", "name": "測試活力精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 3, "str": [1, 1], "agi": [1, 1]}},
     {"id": "test-stone-box", "name": "測試魔石寶箱", "category": "Consumable", "consumable": "StoneBox", "amount": 1, "price": 1000, "shopLevel": 1, "shopSellable": false},
     {"id": "test-pet-egg", "name": "測試寵物蛋", "category": "Consumable", "consumable": "PetEgg", "amount": 280, "price": 10000, "shopLevel": 1, "shopSellable": false},
-    {"id": "test-job-notes", "name": "測試心得書", "category": "Consumable", "consumable": "ProficiencyBook", "amount": 300, "price": 2000, "shopLevel": 1, "shopSellable": false}
+    {"id": "test-job-notes", "name": "測試心得書", "category": "Consumable", "consumable": "ProficiencyBook", "amount": 300, "price": 2000, "shopLevel": 1, "shopSellable": false},
+    {"id": "test-exp-elixir", "name": "測試經驗密藥", "category": "Consumable", "consumable": "Elixir", "price": 20000, "shopLevel": 6, "shopSellable": false, "elixir": {"kind": "Exp", "multiplier": 1.5, "seconds": 3600}}
   ]
 }

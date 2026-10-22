@@ -554,6 +554,7 @@ public class JsonGameContentTests
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
                 "test-arcane-refine-stone-2", "test-vigor-refine-stone", "test-stone-box", "test-pet-egg", "test-job-notes",
+                "test-exp-elixir",
             ],
             content.AllItems.Select(item => item.Id));
         Assert.Equal((ItemCategory.Key, new AreaKeySpec(17, 3600)), (content.GetItem("test-key").Category, content.GetItem("test-key").Key));
@@ -1548,5 +1549,32 @@ public class JsonGameContentTests
         {
             directory.Delete(recursive: true);
         }
+    }
+
+    private const string ValidElixir =
+        """{ "id": "brew", "name": "密藥", "category": "Consumable", "consumable": "Elixir", "price": 20000, "shopLevel": 6, "shopSellable": true, "elixir": { "kind": "Exp", "multiplier": 1.5, "seconds": 3600 } }""";
+
+    // 密藥必須有 elixir：倍率 1.01～3.00、秒數 60～86 400、kind 是 BuffKind；非密藥不得有 elixir
+    [Theory]
+    [InlineData("\"multiplier\": 1.5", "\"multiplier\": 1", "multiplier")]
+    [InlineData("\"multiplier\": 1.5", "\"multiplier\": 3.01", "multiplier")]
+    [InlineData("\"seconds\": 3600", "\"seconds\": 59", "seconds")]
+    [InlineData("\"seconds\": 3600", "\"seconds\": 86401", "seconds")]
+    [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Luck\"", "kind")]
+    [InlineData(", \"elixir\": { \"kind\": \"Exp\", \"multiplier\": 1.5, \"seconds\": 3600 }", "", "elixir")]
+    [InlineData("\"consumable\": \"Elixir\"", "\"consumable\": \"StatPotion\", \"bonus\": { \"str\": 1 }", "elixir")]
+    public void Items_RejectElixirMultiplierOutOfRange(string validField, string invalidField, string expected)
+    {
+        var message = ItemRejection($"{ValidItemList}, {Replace(ValidElixir, validField, invalidField)}");
+        Assert.Contains("brew", message);
+        Assert.Contains(expected, message);
+    }
+
+    [Fact]
+    public void Items_AcceptElixirBounds()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+        Assert.Equal(new ElixirSpec(BuffKind.Exp, 1.5, 3600), content.GetItem("test-exp-elixir").Elixir);
+        Assert.Null(content.GetItem("test-supply").Elixir);
     }
 }

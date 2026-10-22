@@ -28,6 +28,12 @@ public static class CharacterEndpoints
             return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 
+        characters.MapGet("/me/buffs", async (ClaimsPrincipal user, CharacterService service, CancellationToken cancellationToken) =>
+        {
+            var buffs = await service.ListBuffsAsync(user.GetAccountId(), cancellationToken);
+            return TypedResults.Ok(buffs.Select(buff => new BuffResponse(buff.Kind, buff.Multiplier, buff.EndsAt)).ToList());
+        });
+
         characters.MapPut("/me/settings", async (AdventureSettingsRequest request, ClaimsPrincipal user, CharacterService service, IGameContent content, CancellationToken cancellationToken) =>
         {
             if (request is not

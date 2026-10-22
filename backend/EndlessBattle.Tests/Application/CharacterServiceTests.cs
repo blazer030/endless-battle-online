@@ -31,8 +31,8 @@ public class CharacterServiceTests
         var adventure = new AdventureService(
             repository, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(),
             inventory ?? new InMemoryInventoryRepository(), equipment, new InMemoryMissionRepository(), new InMemoryPetRepository(),
-            new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), Content, clock, new FixedSeedRandomFactory(20261022), new InMemoryUnitOfWork());
-        return (new CharacterService(repository, proficiencies, equipment, Content, clock, adventure), adventure);
+            new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), new InMemoryBuffRepository(), Content, clock, new FixedSeedRandomFactory(20261022), new InMemoryUnitOfWork());
+        return (new CharacterService(repository, proficiencies, equipment, new InMemoryBuffRepository(), Content, clock, adventure), adventure);
     }
 
     private static CharacterService Service(InMemoryCharacterRepository repository, InMemoryEquipmentRepository equipment, FakeClock clock) =>

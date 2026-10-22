@@ -35,7 +35,7 @@ public class WorldServiceTests
         var unitOfWork = new InMemoryUnitOfWork(characters, proficiencies, inventory, passes);
         var adventure = new AdventureService(
             characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(),
-            inventory, equipment, new InMemoryMissionRepository(), new InMemoryPetRepository(), new InMemoryMercenaryRepository(), passes,
+            inventory, equipment, new InMemoryMissionRepository(), new InMemoryPetRepository(), new InMemoryMercenaryRepository(), passes, new InMemoryBuffRepository(),
             Content, clock, new ZeroRandomFactory(), unitOfWork);
         service = new WorldService(characters, inventory, equipment, passes, Content, clock, unitOfWork, adventure);
     }

@@ -3,7 +3,9 @@ using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Items;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Application.Characters;
 
@@ -11,6 +13,7 @@ public sealed class CharacterService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
     IEquipmentRepository equipment,
+    IBuffRepository buffs,
     IGameContent content,
     IClock clock,
     AdventureService adventure)
@@ -64,6 +67,14 @@ public sealed class CharacterService(
             CharacterStamina.Regenerated(character, clock.UtcNow),
             await proficiencies.ListAsync(character.Id, cancellationToken),
             await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
+    }
+
+    // 只列還沒到期的密藥（now < EndsAt），依種類
+    public async Task<IReadOnlyList<CharacterBuff>> ListBuffsAsync(long accountId, CancellationToken cancellationToken)
+    {
+        var character = await FindCharacterAsync(accountId, cancellationToken);
+        var now = clock.UtcNow;
+        return (await buffs.ListAsync(character.Id, cancellationToken)).Where(buff => now < buff.EndsAt).ToList();
     }
 
     // 先以舊設定把經過的時間結算到現在（新設定不回溯），再以結算後的版本寫入新設定；推進或寫入撞版本都丟 ConflictException

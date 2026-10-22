@@ -221,6 +221,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(["測試攻擊魔石"], result.GetProperty("obtained").EnumerateArray().Select(name => name.GetString()));
         Assert.Equal(JsonValueKind.Null, result.GetProperty("petName").ValueKind);
+        Assert.Equal(JsonValueKind.Null, result.GetProperty("buff").ValueKind);
         Assert.Equal((0L, 0), (result.GetProperty("skillPoints").GetInt64(), result.GetProperty("levelsGained").GetInt32()));
         var stone = Assert.Single(Category(result.GetProperty("inventory"), "Stone").GetProperty("items").EnumerateArray());
         Assert.Equal("test-stone", stone.GetProperty("itemId").GetString());

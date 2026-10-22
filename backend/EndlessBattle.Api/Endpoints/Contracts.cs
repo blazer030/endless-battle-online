@@ -255,8 +255,13 @@ public sealed record UnequipRequest(EquipmentSlot? Slot);
 
 public sealed record UseItemRequest(long? InventoryId);
 
-// Obtained：開出的道具名稱，依抽出順序；PetName：寵物蛋孵出的寵物；SkillPoints：加在目前職業的技能點；LevelsGained：經驗膠囊造成的升級數
-public sealed record UseItemResponse(InventoryResponse Inventory, IReadOnlyList<string> Obtained, string? PetName, long SkillPoints, int LevelsGained);
+// Obtained：開出的道具名稱，依抽出順序；PetName：寵物蛋孵出的寵物；SkillPoints：加在目前職業的技能點；LevelsGained：經驗膠囊造成的升級數；
+// Buff：喝下的密藥
+public sealed record UseItemResponse(
+    InventoryResponse Inventory, IReadOnlyList<string> Obtained, string? PetName, long SkillPoints, int LevelsGained, BuffResponse? Buff);
+
+// 生效中的密藥：開打時刻早於 EndsAt 的場次乘上 Multiplier
+public sealed record BuffResponse(BuffKind Kind, double Multiplier, DateTimeOffset EndsAt);
 
 public sealed record ShopItemResponse(
     string Id, string Name, ItemCategory Category, long Price, StatBonus Bonus, StatRequirement7 Requires, int Holes, int RefineMax);

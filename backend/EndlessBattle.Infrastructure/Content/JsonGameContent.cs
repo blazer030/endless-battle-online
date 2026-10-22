@@ -41,6 +41,10 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumChampionNameLength = 12;
     private const int MinimumKeySeconds = 60;
     private const int MaximumKeySeconds = 604_800;
+    private const double MinimumElixirMultiplier = 1.01;
+    private const double MaximumElixirMultiplier = 3.00;
+    private const int MinimumElixirSeconds = 60;
+    private const int MaximumElixirSeconds = 86_400;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -554,8 +558,8 @@ public sealed class JsonGameContent : IGameContent
         if (item.IsEquipment)
         {
             Require(item.Consumable == ConsumableKind.None && item.SupplyHp == 0 && item.SupplySp == 0 && item.Amount == 0
-                    && item.Refine is null && item.Stone is null && item.Key is null,
-                $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone、key");
+                    && item.Refine is null && item.Stone is null && item.Key is null && item.Elixir is null,
+                $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone、key、elixir");
             return;
         }
 
@@ -628,6 +632,19 @@ public sealed class JsonGameContent : IGameContent
         else
         {
             Require(item.Key is null, $"道具 {id} 不是鑰匙，不能有 key");
+        }
+
+        if (item.Consumable == ConsumableKind.Elixir)
+        {
+            Require(item.Elixir is not null, $"密藥 {id} 必須有 elixir");
+            Require(item.Elixir!.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
+                $"密藥 {id} 的 multiplier 必須在 {MinimumElixirMultiplier:0.00}～{MaximumElixirMultiplier:0.00}");
+            Require(item.Elixir.Seconds is >= MinimumElixirSeconds and <= MaximumElixirSeconds,
+                $"密藥 {id} 的 seconds 必須在 {MinimumElixirSeconds}～{MaximumElixirSeconds}");
+        }
+        else
+        {
+            Require(item.Elixir is null, $"道具 {id} 不是密藥，不能有 elixir");
         }
     }
 
@@ -1178,7 +1195,10 @@ public sealed class JsonGameContent : IGameContent
             entry.Bound,
             refine,
             stone,
-            entry.Key);
+            entry.Key,
+            entry.Elixir is { } elixir
+                ? new ElixirSpec(ParseEnum<BuffKind>(elixir.Kind, "elixir.kind"), elixir.Multiplier, elixir.Seconds)
+                : null);
     }
 
     private static Recipe ToRecipe(RecipeEntry entry) =>
@@ -1251,7 +1271,10 @@ public sealed class JsonGameContent : IGameContent
         bool Bound,
         RefineEntry? Refine,
         StoneEntry? Stone,
-        AreaKeySpec? Key);
+        AreaKeySpec? Key,
+        ElixirEntry? Elixir);
+
+    private sealed record ElixirEntry(string Kind, double Multiplier, int Seconds);
 
     // 能力範圍在內容檔裡寫成 [min, max]
     private sealed record RefineEntry(

@@ -1,6 +1,6 @@
 # 道具總表（計畫 7）
 
-`backend/content/items.json` 共 161 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
+`backend/content/items.json` 共 167 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件、密藥 6 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
 
 ## 裝備公式
 
@@ -257,6 +257,26 @@
 - 心得書：目前職業的技能點 + `amount`，熟練度不變（WOG 綁定職業 id，這裡簡化成目前職業）。
 - 經驗膠囊：經驗 + `amount` 後立刻升級（WOG 等下一場勝利才升級）。
 - 載入驗證：這幾種 `amount ≥ 1`，魔石寶箱 1～3 且至少有一顆 `boxClass 1` 的魔石；精鍊寶盒的 `amount` 必須是存在的精鍊石等級；不得有 supply／bonus；魔石 `boxClass` 0～3。
+
+## 密藥（計畫 10）
+
+WOG 限時倍率道具（`wog_fight_m.php:811-826` 經驗倍率、`forum_support/function.php:398-410` 能力倍率）；名稱、倍率、秒數與價格是 Claude 的設計。都在「道具」分類、商店 6 級販售。
+
+| id | 名稱 | 效果 | 倍率 | 秒數 | 價格 |
+|---|---|---|---|---|---|
+| `exp-elixir` | 經驗密藥 | Exp（勝場經驗） | ×1.5 | 3600 | 20000 |
+| `proficiency-elixir` | 熟練密藥 | JobExp（勝場熟練度與技能點） | ×1.5 | 3600 | 20000 |
+| `might-elixir` | 力量密藥 | Attack（物攻 at） | ×1.2 | 3600 | 10000 |
+| `sorcery-elixir` | 魔力密藥 | Magic（魔攻 mat） | ×1.2 | 3600 | 10000 |
+| `guard-elixir` | 守護密藥 | Defense（物防 df） | ×1.2 | 3600 | 10000 |
+| `ward-elixir` | 結界密藥 | MagicDefense（魔防 mdf） | ×1.2 | 3600 | 10000 |
+
+- 生效窗口 `[喝下時刻, 喝下時刻 + 秒數)`：只有開打時刻落在窗口內的場次吃加成；推進中途到期時，到期後開打的場次照常。
+- 同種再喝＝覆蓋（從現在重新計時，不累加；WOG `update … set end_time`）。喝之前先把經過的時間以舊密藥結算到現在（同改戰鬥設定），所以喝之前尚未結算的場次不吃新密藥，也不會失去舊密藥。
+- 能力密藥乘在該場玩家的 at／mat／df／mdf 後 PHP `round`；經驗與熟練密藥乘在勝場的經驗與熟練度（`f_down` 之後）後 PHP `round`。超限的部分經驗與金錢不乘。不擲骰：沒有密藥時擲骰序列不變。
+- 只作用於角色自己的冒險；傭兵與冠軍戰不吃。
+- WOG 的 HP／SP 上限密藥（`d_lv 7、8`）不做：會牽動住宿、補給與面板的上限計算，且 WOG 的 SP 密藥本身寫錯欄位（`class/wog_act_arm.php:1186`）。
+- 載入驗證：`consumable: "Elixir"` 必須有 `elixir`（`kind` 是上表六種之一、`multiplier` 1.01～3.00、`seconds` 60～86 400），`amount` 為 0；其他道具不得有 `elixir`。
 
 ## 配方
 

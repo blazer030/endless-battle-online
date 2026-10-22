@@ -12,8 +12,9 @@ namespace EndlessBattle.Domain.Items;
 public sealed record UseContext(
     Character Character, JobDefinition Job, int PetCount, IReadOnlyList<ItemDefinition> AllItems, IReadOnlyList<MonsterDefinition> EggMonsters);
 
-// GrantedItemIds 依抽出順序、各 1 個；Pet 放獸欄；SkillPoints 加在目前職業
-public sealed record UseOutcome(Character Character, IReadOnlyList<string> GrantedItemIds, CapturedPet? Pet, long SkillPoints, int LevelsGained);
+// GrantedItemIds 依抽出順序、各 1 個；Pet 放獸欄；SkillPoints 加在目前職業；Buff 以同種覆蓋寫入
+public sealed record UseOutcome(
+    Character Character, IReadOnlyList<string> GrantedItemIds, CapturedPet? Pet, long SkillPoints, int LevelsGained, CharacterBuff? Buff = null);
 
 public static class ConsumableUse
 {
@@ -26,7 +27,8 @@ public static class ConsumableUse
         ConsumableKind.StatPotion or ConsumableKind.StaminaPotion => [],
         ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : ["noEffect"],
         ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : ["noEffect"],
-        ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule => [],
+        ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule
+            or ConsumableKind.Elixir => [],
         ConsumableKind.PetEgg => context.PetCount >= PetRules.MaxPets ? ["petsFull"] : [],
         _ => ["notUsable"],
     };
@@ -49,6 +51,7 @@ public static class ConsumableUse
             // 熟練度不變，只加技能點
             ConsumableKind.ProficiencyBook => new UseOutcome(character, [], null, item.Amount, 0),
             ConsumableKind.ExperienceCapsule => GainExp(context, item.Amount, random),
+            ConsumableKind.Elixir when item.Elixir is { } elixir => new UseOutcome(character, [], null, 0, 0, Buffs.Start(elixir, now)),
             _ => throw new InvalidOperationException($"道具 {item.Id} 不能使用"),
         };
     }
