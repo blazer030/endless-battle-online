@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
 import type { BuffView, CharacterView, ContentNames } from "../game/types"
 import { makeCharacter, makeContent } from "../test/fixtures"
@@ -158,7 +158,7 @@ test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
   expect(valueOf("職業熟練度")).toHaveTextContent(/^100%（9,000）$/)
 })
 
-// 角色分頁每次打開都重新掛載：掛載時讀一次密藥，剩餘分鐘以打開時為準
+// 掛載時讀一次密藥
 test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
   const api = noBuffs()
   api.getBuffs.mockResolvedValue([
@@ -178,4 +178,33 @@ test("CharacterScreen_ShowsNoBuffs", async () => {
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("沒有生效中的密藥")).toBeInTheDocument()
+})
+
+test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
+  vi.useFakeTimers()
+  try {
+    vi.setSystemTime(new Date("2026-10-23T03:00:00Z"))
+    const api = noBuffs()
+    api.getBuffs.mockResolvedValue([
+      { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T03:30:00Z" },
+      { kind: "Defense", multiplier: 1.2, endsAt: "2026-10-23T03:01:30Z" },
+    ])
+    render(<CharacterScreen api={api} character={character} content={content} />)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    const card = screen.getByRole("region", { name: "密藥效果" })
+    expect(within(card).getByText("經驗 ×1.5（剩 30 分）")).toBeInTheDocument()
+    expect(within(card).getByText("物防 ×1.2（剩 2 分）")).toBeInTheDocument()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120_000)
+    })
+
+    expect(within(card).getByText("經驗 ×1.5（剩 28 分）")).toBeInTheDocument()
+    expect(within(card).queryByText(/物防/)).not.toBeInTheDocument()
+    expect(api.getBuffs).toHaveBeenCalledTimes(1)
+  } finally {
+    vi.useRealTimers()
+  }
 })

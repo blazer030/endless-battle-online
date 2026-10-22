@@ -17,3 +17,5 @@ export const DropFloatStaggerSeconds = 0.3
 // 住宿等待 5～15 秒，舞台淡出淡入最多只花這麼久
 export const RestFadeMaxSeconds = 1.5
 export const LevelUpHintMilliseconds = 3_000
+// 角色頁密藥剩餘分鐘的重算間隔
+export const BuffTickMilliseconds = 30_000

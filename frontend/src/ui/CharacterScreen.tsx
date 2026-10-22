@@ -5,6 +5,7 @@ import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
 import type { BuffView, CharacterView, ContentNames } from "../game/types"
 import { formatNumber } from "../game/format"
+import { BuffTickMilliseconds } from "../motion/timings"
 import { StatBar } from "./StatBar"
 import "./CharacterScreen.css"
 
@@ -40,8 +41,8 @@ export function CharacterScreen({ api, character, content }: Props) {
   const baseStatsId = useId()
   const derivedStatsId = useId()
   const buffsId = useId()
-  // 分頁每次打開都重新掛載，剩餘分鐘以打開時為準
-  const [now] = useState(() => new Date())
+  // 剩餘分鐘定時重算，到期的效果跟著消失
+  const [now, setNow] = useState(() => new Date())
   const [buffs, setBuffs] = useState<BuffView[] | null>(null)
   const [buffsFailed, setBuffsFailed] = useState(false)
 
@@ -59,6 +60,11 @@ export function CharacterScreen({ api, character, content }: Props) {
       active = false
     }
   }, [api])
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), BuffTickMilliseconds)
+    return () => clearInterval(timer)
+  }, [])
 
   const activeBuffs = buffs === null ? [] : buffLines(buffs, now)
   const { stats, baseStats } = character
