@@ -120,8 +120,10 @@ public class CharacterServiceTests
     }
 
     // 已過 20 秒：先推進的話 LastSettledAt 與版本都會變；驗證失敗時什麼都不寫
-    [Fact]
-    public async Task UpdateSettings_RejectsOutOfRangeAndWritesNothing()
+    [Theory]
+    [InlineData(101)]
+    [InlineData(-2)]
+    public async Task UpdateSettings_RejectsOutOfRangeAndWritesNothing(int potionHpPercent)
     {
         var repository = new InMemoryCharacterRepository();
         var clock = new FakeClock(Now);
@@ -130,7 +132,7 @@ public class CharacterServiceTests
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
-            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHpPercent = 101 }, "必殺", CancellationToken));
+            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHpPercent = potionHpPercent }, "必殺", CancellationToken));
 
         Assert.Equal(["invalidPercent"], exception.Reasons);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);

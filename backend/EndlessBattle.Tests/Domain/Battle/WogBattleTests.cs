@@ -206,19 +206,37 @@ public class WogBattleTests
         Assert.Equal(3, outcome.Rounds);
     }
 
-    // 門檻 0 不逃也不擲骰：同種子的事件與擲骰次數都和沒有逃跑參數時相同
+    // 門檻 0 不逃也不擲骰：同上的局面每回合固定擲 7 次，玩家 20 血每回合扣 1，第 20 回合倒下。
+    // 期望值寫死（計畫 9 的序列）：20 回合 × 7 = 140 次；事件 20 × (回合 + 雙方出手) + 倒下 = 61
     [Fact]
     public void Battle_NoEscapeRollWhenThresholdZero()
     {
-        var before = new SeededRandom(20261022);
-        var after = new SeededRandom(20261022);
+        var random = new ScriptedRandom(0.0);
 
-        var expected = WogBattle.Run(Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, before, pet: null);
-        var actual = RunFleeing(after, escapeHpPercent: 0);
+        var outcome = RunFleeing(random, escapeHpPercent: 0);
 
-        Assert.Equal(expected.Events, actual.Events);
-        Assert.False(actual.Escaped);
-        Assert.Equal(before.NextDouble(), after.NextDouble());
+        Assert.Equal(20, outcome.Rounds);
+        Assert.Equal(61, outcome.Events.Count);
+        Assert.Equal(140, random.Consumed);
+        Assert.Equal(new DefeatEvent(19 * BattleTiming.SecondsPerRound + 0.4, CombatSide.Player), outcome.Events[^1]);
+        Assert.Empty(outcome.Events.OfType<EscapeEvent>());
+        Assert.False(outcome.Escaped);
+    }
+
+    // HP 100／100、門檻 30：每回合只扣 1，40 回合都在門檻之上 → 不擲逃跑骰，40 × 7 = 280 次後超限
+    [Fact]
+    public void Battle_NoEscapeWhileHpAboveThreshold()
+    {
+        var random = new ScriptedRandom(0.0);
+
+        var outcome = WogBattle.Run(
+            Fleeing() with { Hp = 100 }, Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHpPercent: 30);
+
+        Assert.Empty(outcome.Events.OfType<EscapeEvent>());
+        Assert.False(outcome.Escaped);
+        Assert.Equal(40, outcome.Rounds);
+        Assert.Equal(60, outcome.Player.Hp);
+        Assert.Equal(280, random.Consumed);
     }
 
     // 未指定攻擊方式且 at 50 < mat 100：開戰時擲一次 rand(1,10)，≤ 8 魔法、否則物理（WOG m_type，80/20），整場沿用。
