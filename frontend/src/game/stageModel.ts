@@ -22,6 +22,8 @@ export type StageEffect =
   | { type: "standOff" }
   | { type: "levelUpFlash" }
   | { type: "skillFlash" }
+  | { type: "potionFlash" }
+  | { type: "dropFloat"; text: string }
   | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
@@ -53,6 +55,8 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
       return event.caster === "Player" && event.heal > 0
         ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
         : state
+    case "potion":
+      return { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.hp) }
     case "rest":
       return { ...state, playerHp: state.playerHpMax }
     case "round":
@@ -107,9 +111,14 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
       return [{ type: "levelUpFlash" }, { type: "plate", text: "LEVEL UP", tone: "gold" }]
     case "rest":
       return [{ type: "fade", seconds: event.waitSeconds }]
+    case "potion":
+      return [{ type: "potionFlash" }]
+    case "reward":
+      return (event.drops ?? [])
+        .filter((drop) => !drop.discarded)
+        .map((drop) => ({ type: "dropFloat", text: drop.name }))
     case "encounter":
     case "round":
-    case "reward":
       return []
   }
 }

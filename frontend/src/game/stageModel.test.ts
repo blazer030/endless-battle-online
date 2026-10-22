@@ -109,6 +109,53 @@ describe("stageModel", () => {
     expect(applyToStage(midFight, skill())).toBe(midFight)
   })
 
+  it("applyToStage_PotionRaisesPlayerHealthUpToMax", () => {
+    const potion = (hp: number): BattleEvent => ({
+      type: "potion",
+      itemId: "small-potion",
+      name: "小藥水",
+      hp,
+      sp: 25,
+      remaining: 8,
+      atSeconds: 1,
+    })
+    expect(applyToStage(midFight, potion(50))).toEqual({ ...midFight, playerHp: 62 })
+    expect(applyToStage(midFight, potion(800)).playerHp).toBe(80)
+  })
+
+  it("stageEffectsFor_Potion_FlashesPlayerGreen", () => {
+    const potion: BattleEvent = {
+      type: "potion",
+      itemId: "small-potion",
+      name: "小藥水",
+      hp: 50,
+      sp: 25,
+      remaining: 8,
+      atSeconds: 1,
+    }
+    expect(stageEffectsFor(potion)).toEqual([{ type: "potionFlash" }])
+  })
+
+  it("stageEffectsFor_RewardDrops_FloatEachAcceptedItemName", () => {
+    const reward: BattleEvent = {
+      type: "reward",
+      exp: 5,
+      money: 3,
+      jobExp: 1,
+      drops: [
+        { itemId: "iron-ore", name: "鐵礦石", quantity: 2, discarded: false },
+        { itemId: "beast-hide", name: "野獸毛皮", quantity: 1, discarded: true },
+        { itemId: "magic-dust", name: "魔法粉塵", quantity: 1, discarded: false },
+      ],
+      atSeconds: 2,
+    }
+    expect(stageEffectsFor(reward)).toEqual([
+      { type: "dropFloat", text: "鐵礦石" },
+      { type: "dropFloat", text: "魔法粉塵" },
+    ])
+    expect(stageEffectsFor({ ...reward, drops: null })).toEqual([])
+  })
+
   it("stageEffectsFor_PlayerSkill_FlashesCyanWithSkillPlate", () => {
     expect(stageEffectsFor(skill())).toEqual([
       { type: "skillFlash" },

@@ -142,6 +142,34 @@ const cases: [string, PlaybackItem, Line[]][] = [
     [["獲得經驗 12,000、金錢 3、熟練度 1,500。", "drop"]],
   ],
   [
+    "reward with drops",
+    event({
+      type: "reward",
+      exp: 10,
+      money: 2,
+      jobExp: 1,
+      drops: [
+        { itemId: "iron-ore", name: "鐵礦石", quantity: 2, discarded: false },
+        { itemId: "beast-hide", name: "野獸毛皮", quantity: 1, discarded: true },
+      ],
+    }),
+    [
+      ["獲得經驗 10、金錢 2、熟練度 1。", "drop"],
+      ["獲得 鐵礦石 ×2", "drop"],
+      ["背包已滿，野獸毛皮被丟棄了。", "muted"],
+    ],
+  ],
+  [
+    "reward without drop list",
+    event({ type: "reward", exp: 10, money: 2, jobExp: 1, drops: null }),
+    [["獲得經驗 10、金錢 2、熟練度 1。", "drop"]],
+  ],
+  [
+    "potion",
+    event({ type: "potion", itemId: "small-potion", name: "小藥水", hp: 50, sp: 25, remaining: 8 }),
+    [["使用了小藥水，恢復 50 HP／25 SP。", "normal"]],
+  ],
+  [
     "level up",
     event({
       type: "levelUp",

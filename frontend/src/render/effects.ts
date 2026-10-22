@@ -4,6 +4,8 @@ import type { TextStyleOptions } from "pixi.js"
 import {
   BeamSeconds,
   DamageNumberSeconds,
+  DropFloatSeconds,
+  DropFloatStaggerSeconds,
   HitShakeSeconds,
   ImpactBurstSeconds,
   LevelUpFlashSeconds,
@@ -216,7 +218,7 @@ export const playStandOff = (body: Container, direction: -1 | 1) => {
   })
 }
 
-// 角色身上泛起光暈，擴散後淡去；升級用金色，施放技能用青色
+// 角色身上泛起光暈，擴散後淡去；升級用金色，施放技能用青色，補給用綠色
 export const playAuraFlash = (layer: Container, x: number, y: number, color: number) => {
   const glow = new Graphics()
     .ellipse(0, 0, 58, 92)
@@ -236,6 +238,35 @@ export const playAuraFlash = (layer: Container, x: number, y: number, color: num
       { alpha: 0, duration: LevelUpFlashSeconds * 0.5 },
     ],
     onComplete: () => dispose(glow),
+  })
+}
+
+// 掉落：物品名從怪物處緩緩飄起後淡去；order 為同一批掉落中的順序
+export const playDropFloat = (
+  layer: Container,
+  x: number,
+  y: number,
+  label: string,
+  order: number,
+) => {
+  const text = createStageText(label, {
+    fontSize: 15,
+    fontWeight: "700",
+    fill: Palette.gold,
+    stroke: { color: Palette.night, width: 3 },
+  })
+  text.anchor.set(0.5)
+  text.position.set(x, y)
+  text.alpha = 0
+  layer.addChild(text)
+  gsap.to(text, {
+    delay: order * DropFloatStaggerSeconds,
+    keyframes: [
+      { alpha: 1, y: y - 8, duration: DropFloatSeconds * 0.15 },
+      { y: y - 34, duration: DropFloatSeconds * 0.55 },
+      { alpha: 0, y: y - 46, duration: DropFloatSeconds * 0.3 },
+    ],
+    onComplete: () => dispose(text),
   })
 }
 

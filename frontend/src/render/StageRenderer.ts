@@ -13,6 +13,7 @@ import {
   playAuraFlash,
   playBeam,
   playDamageNumber,
+  playDropFloat,
   playFade,
   playHitShake,
   playImpactBurst,
@@ -138,6 +139,7 @@ export class StageRenderer {
     // 傷害數字落在目標內側，避開怪物名字與玩家的劍
     const damageX = { player: this.player.slot.x + 70, monster: monsterX - 80 }
     const auraY = StageHeight - PlayerBox.height / 2
+    let dropOrder = 0
     for (const effect of effects) {
       switch (effect.type) {
         case "slash":
@@ -189,6 +191,24 @@ export class StageRenderer {
         case "skillFlash":
           playAuraFlash(this.effects, this.player.slot.x, auraY, Palette.cyan)
           break
+        case "potionFlash":
+          playAuraFlash(this.effects, this.player.slot.x, auraY, Palette.green)
+          break
+        case "dropFloat": {
+          const order = dropOrder++
+          // 物品名是中文，等字形載入後才畫
+          void fontReady(effect.text).then(() => {
+            if (this.destroyed) return
+            playDropFloat(
+              this.effects,
+              this.monster.slot.x - 16,
+              StageHeight - 110,
+              effect.text,
+              order,
+            )
+          })
+          break
+        }
         case "fade":
           playFade(this.app.stage, effect.seconds)
           break

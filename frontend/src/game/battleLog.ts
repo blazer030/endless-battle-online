@@ -1,6 +1,13 @@
 import type { PlaybackItem } from "./battlePlayback"
 import { baseStatLabels } from "./stats"
-import type { AttackEvent, ContentNames, GrowthStats, SkillEvent } from "./types"
+import type {
+  AttackEvent,
+  ContentNames,
+  DropResult,
+  GrowthStats,
+  RewardEvent,
+  SkillEvent,
+} from "./types"
 
 export type LogLineKind = "normal" | "muted" | "drop" | "trigger"
 export type LogLine = { id: number; text: string; kind: LogLineKind }
@@ -44,6 +51,19 @@ const describeSkill = (event: SkillEvent): LogEntry[] => {
   return lines
 }
 
+const describeDrop = (drop: DropResult): LogEntry =>
+  drop.discarded
+    ? { text: `背包已滿，${drop.name}被丟棄了。`, kind: "muted" }
+    : { text: `獲得 ${drop.name} ×${format(drop.quantity)}`, kind: "drop" }
+
+const describeReward = (event: RewardEvent): LogEntry[] => [
+  {
+    text: `獲得經驗 ${format(event.exp)}、金錢 ${format(event.money)}、熟練度 ${format(event.jobExp)}。`,
+    kind: "drop",
+  },
+  ...(event.drops ?? []).map(describeDrop),
+]
+
 const describeGrowth = (growth: GrowthStats) =>
   baseStatLabels
     .filter(({ key }) => growth[key] !== 0)
@@ -83,13 +103,15 @@ export const describePlaybackItem = (
       ]
     case "timeout":
       return [{ text: "戰鬥陷入膠著，雙方收手。", kind: "muted" }]
-    case "reward":
+    case "potion":
       return [
         {
-          text: `獲得經驗 ${format(event.exp)}、金錢 ${format(event.money)}、熟練度 ${format(event.jobExp)}。`,
-          kind: "drop",
+          text: `使用了${event.name}，恢復 ${format(event.hp)} HP／${format(event.sp)} SP。`,
+          kind: "normal",
         },
       ]
+    case "reward":
+      return describeReward(event)
     case "levelUp": {
       const growth = describeGrowth(event.growth)
       const level = `升級！Lv ${event.newLevel}`

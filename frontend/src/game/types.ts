@@ -43,9 +43,11 @@ export type EncounterEvent = Required<Schemas["BattleEventEncounterEvent"]>
 export type RoundEvent = Required<Schemas["BattleEventRoundEvent"]>
 export type AttackEvent = Required<Schemas["BattleEventAttackEvent"]>
 export type SkillEvent = Required<Schemas["BattleEventSkillEvent"]>
+export type PotionEvent = Required<Schemas["BattleEventPotionEvent"]>
 export type DefeatEvent = Required<Schemas["BattleEventDefeatEvent"]>
 export type TimeoutEvent = Required<Schemas["BattleEventTimeoutEvent"]>
 export type RewardEvent = Required<Schemas["BattleEventRewardEvent"]>
+export type DropResult = Schemas["DropResult"]
 export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
 export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
 export type BattleEvent =
@@ -53,6 +55,7 @@ export type BattleEvent =
   | RoundEvent
   | AttackEvent
   | SkillEvent
+  | PotionEvent
   | DefeatEvent
   | TimeoutEvent
   | RewardEvent
