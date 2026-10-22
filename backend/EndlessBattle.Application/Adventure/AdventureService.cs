@@ -26,45 +26,46 @@ public sealed class AdventureService(
     IRandomSourceFactory randomFactory,
     IUnitOfWork unitOfWork)
 {
-    // 角色寫入、熟練度、掉落與補給同屬一筆交易：角色的版本更新是第一個寫入，
-    // 同一角色的並行請求會在這一列上排隊，後到的因版本不符而 409
-    public Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken) =>
-        unitOfWork.RunAsync(async cancellationToken =>
+    // 讀取與模擬（純 CPU）在交易外，交易裡只有寫入：角色的版本更新是第一個寫入，
+    // 同一角色的並行請求會在這一列上排隊；模擬依據的狀態若已過期，版本不符而 409
+    public async Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken)
+    {
+        var character = await characters.FindByAccountAsync(accountId, cancellationToken)
+            ?? throw new NotFoundException("尚未建立角色");
+
+        // 裝備在一次推進中不變，只讀一次
+        var equipped = await equipment.GetAsync(character.Id, cancellationToken);
+        var bonus = EquipmentBonusCalculator.Sum(equipped, content.GetItem);
+        var now = clock.UtcNow;
+        var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
+
+        // 時鐘倒退或剛結算過：什麼都不做，也不寫入
+        if (elapsedSeconds <= 0)
         {
-            var character = await characters.FindByAccountAsync(accountId, cancellationToken)
-                ?? throw new NotFoundException("尚未建立角色");
+            return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
+                await proficiencies.ListAsync(character.Id, cancellationToken), bonus);
+        }
 
-            // 裝備在一次推進中不變，只讀一次
-            var equipped = await equipment.GetAsync(character.Id, cancellationToken);
-            var bonus = EquipmentBonusCalculator.Sum(equipped, content.GetItem);
-            var now = clock.UtcNow;
-            var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
+        // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
+        var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
+            ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
+            : character.LastSettledAt;
+        var run = AdventureSimulator.Run(
+            character,
+            content.GetJob(character.JobId),
+            content.GetPlace(character.PlaceId),
+            content.MonstersOf(character.PlaceId),
+            content.GetItem,
+            await LoadEquippedSkillsAsync(character, cancellationToken),
+            new StaminaState(character.ActNum, character.ActNumTime),
+            from,
+            now,
+            randomFactory.Create(),
+            bonus,
+            SupplyOf(equipped));
 
-            // 時鐘倒退或剛結算過：什麼都不做，也不寫入
-            if (elapsedSeconds <= 0)
-            {
-                return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
-                    await proficiencies.ListAsync(character.Id, cancellationToken), bonus);
-            }
-
-            // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
-            var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
-                ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
-                : character.LastSettledAt;
-            var run = AdventureSimulator.Run(
-                character,
-                content.GetJob(character.JobId),
-                content.GetPlace(character.PlaceId),
-                content.MonstersOf(character.PlaceId),
-                content.GetItem,
-                await LoadEquippedSkillsAsync(character, cancellationToken),
-                new StaminaState(character.ActNum, character.ActNumTime),
-                from,
-                now,
-                randomFactory.Create(),
-                bonus,
-                SupplyOf(equipped));
-
+        return await unitOfWork.RunAsync(async cancellationToken =>
+        {
             // 結算到最後一場打完的時間；最後一場可能超過現在，下次推進前會先回傳空結果
             var updated = await characters.UpdateAsync(
                 run.Character with
@@ -87,6 +88,7 @@ public sealed class AdventureService(
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
                 await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
         }, cancellationToken);
+    }
 
     private SupplyState? SupplyOf(Loadout equipped)
     {

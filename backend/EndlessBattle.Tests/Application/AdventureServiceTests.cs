@@ -89,6 +89,20 @@ public class AdventureServiceTests
         Assert.Empty(await inventory.ListAsync(before.Id, CancellationToken));
     }
 
+    // 讀取與模擬（純 CPU）都在開交易之前；交易裡只有寫入
+    [Fact]
+    public async Task Advance_SimulatesBeforeOpeningTheTransaction()
+    {
+        await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var advance = new AdventureService(
+            repository, proficiencies, skillBook, loadout, inventory, equipment, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+
+        await advance.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(["simulate", "begin", "commit"], unitOfWork.Log);
+    }
+
     // HP 0 → 先住宿 15 秒回滿 350／91；15 秒那場擊倒雪精：999 + 116 > 1000 → Lv2，成長取下限 (2,0,1,1,1,0,0)。
     // 行動力 50 − 1 = 49，回復時間從第一次結算的 Start 起算
     [Fact]
@@ -346,6 +360,7 @@ public class AdventureServiceTests
 
         await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
 
+        Assert.Empty(inventory.Writes);
         Assert.Empty(await BagAsync(character.Id));
     }
 
@@ -401,11 +416,13 @@ public class AdventureServiceTests
     {
         var character = await AddWeakCharacterAsync();
         var supplyId = await EquipSupplyAsync(character, quantity: 1);
+        inventory.Writes.Clear();
         repository.FailNextUpdate = true;
         clock.Advance(TimeSpan.FromSeconds(1));
 
         await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
 
+        Assert.Empty(inventory.Writes);
         var loadout = await equipment.GetAsync(character.Id, CancellationToken);
         Assert.Equal(supplyId, loadout.Equipped[EquipmentSlot.Supply].Id);
         Assert.Equal(1, loadout.SupplyQuantity);
@@ -415,5 +432,15 @@ public class AdventureServiceTests
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Create() => new ScriptedRandom(0.0);
+    }
+
+    // 模擬開始時取亂數源，藉此在 log 裡標出模擬的時間點
+    private sealed class LoggingRandomFactory(List<string> log) : IRandomSourceFactory
+    {
+        public IRandomSource Create()
+        {
+            log.Add("simulate");
+            return new ScriptedRandom(0.0);
+        }
     }
 }

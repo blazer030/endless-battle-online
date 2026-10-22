@@ -122,9 +122,11 @@ public class ForgeServiceTests
         var stone = await GiveAsync(character, "test-refine-stone");
         random.Next = new ScriptedRandom(0.99);
         characters.FailNextUpdate = true;
+        inventory.Writes.Clear();
 
         await Assert.ThrowsAsync<ConflictException>(() => service.RefineAsync(AccountId, sword, stone, useSafeStone: false, CancellationToken));
 
+        Assert.Empty(inventory.Writes);
         Assert.Equal([("test-sword", 1), ("test-refine-stone", 1)], await ItemsAsync(character));
         Assert.Equal(0, Find(character, sword).RefineLevel);
     }
