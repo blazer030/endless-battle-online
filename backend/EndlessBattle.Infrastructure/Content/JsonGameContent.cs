@@ -26,6 +26,8 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumShopLevel = 7;
     private const int MaximumHoles = 4;
     private const int MaximumRefineLevel = 10;
+    private const int MaximumBoxClass = 3;
+    private const int MaximumStonesPerBox = 3;
     private const int MaximumRefineKind = 18;
     private const int MaximumMissionIdLength = 32;
     private const int MaximumMissionQuantity = 99;
@@ -194,6 +196,7 @@ public sealed class JsonGameContent : IGameContent
         }
 
         ValidateKeys(allItems, allPlaces);
+        ValidateBoxes(allItems);
 
         foreach (var monster in monsterFile.Monsters)
         {
@@ -570,7 +573,8 @@ public sealed class JsonGameContent : IGameContent
         }
 
         var usesAmount = item.Consumable is ConsumableKind.StaminaPotion or ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion
-            or ConsumableKind.Capture;
+            or ConsumableKind.Capture or ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.PetEgg
+            or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule;
         // 先檢查該種消耗品自己需要的欄位，再檢查用不到的欄位為 0
         if (item.Consumable == ConsumableKind.Supply)
         {
@@ -585,11 +589,13 @@ public sealed class JsonGameContent : IGameContent
         else if (usesAmount)
         {
             Require(item.Amount >= 1, $"道具 {id} 的 amount 必須至少 1");
+            Require(item.Consumable != ConsumableKind.StoneBox || item.Amount <= MaximumStonesPerBox,
+                $"魔石寶箱 {id} 的 amount 必須在 1～{MaximumStonesPerBox}");
         }
 
         Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHp == 0 && item.SupplySp == 0),
             $"道具 {id} 不是補給品，supplyHp 與 supplySp 必須為 0");
-        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水、擴充與捕捉道具");
+        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水、擴充、捕捉道具、寶箱、寵物蛋、心得書與經驗膠囊");
         Require(item.Consumable == ConsumableKind.StatPotion || item.Bonus == StatBonus.Zero,
             $"道具 {id} 不能有 bonus（只有能力藥水可以）");
 
@@ -651,6 +657,25 @@ public sealed class JsonGameContent : IGameContent
         }
     }
 
+    // 魔石寶箱至少要能開出一顆 boxClass 1 的魔石；精鍊寶盒的 amount 必須是存在的精鍊石等級
+    private static void ValidateBoxes(IReadOnlyList<ItemDefinition> items)
+    {
+        var hasClassOneStone = items.Any(item => item.Stone?.BoxClass == 1);
+        var refineLevels = items.Where(item => item.Refine is not null).Select(item => item.Refine!.Level).ToHashSet();
+        foreach (var item in items)
+        {
+            if (item.Consumable == ConsumableKind.StoneBox && !hasClassOneStone)
+            {
+                throw new GameContentException($"魔石寶箱 {item.Id} 開不出東西：沒有 boxClass 1 的魔石");
+            }
+
+            if (item.Consumable == ConsumableKind.RefineBox && !refineLevels.Contains(item.Amount))
+            {
+                throw new GameContentException($"精鍊寶盒 {item.Id} 的 amount {item.Amount} 不是存在的精鍊石等級");
+            }
+        }
+    }
+
     private static void ValidateRefineStone(string id, RefineStoneSpec refine)
     {
         if (refine.Level is < 1 or > MaximumRefineLevel)
@@ -681,6 +706,11 @@ public sealed class JsonGameContent : IGameContent
 
     private static void ValidateStone(string id, StoneSpec stone)
     {
+        if (stone.BoxClass is < 0 or > MaximumBoxClass)
+        {
+            throw new GameContentException($"魔石 {id} 的 boxClass 必須在 0～{MaximumBoxClass}");
+        }
+
         if (!stone.Random)
         {
             if (stone.Fixed == StatBonus.Zero)
@@ -1125,7 +1155,7 @@ public sealed class JsonGameContent : IGameContent
                 ToRange(spec.Agi), ToRange(spec.Au), ToRange(spec.Be))
             : null;
         var stone = entry.Stone is { } stoneEntry
-            ? new StoneSpec(stoneEntry.Random, stoneEntry.Fixed ?? StatBonus.Zero, stoneEntry.Min, stoneEntry.Max)
+            ? new StoneSpec(stoneEntry.Random, stoneEntry.Fixed ?? StatBonus.Zero, stoneEntry.Min, stoneEntry.Max, stoneEntry.BoxClass)
             : null;
 
         return new ItemDefinition(
@@ -1239,7 +1269,7 @@ public sealed class JsonGameContent : IGameContent
         int[]? Au,
         int[]? Be);
 
-    private sealed record StoneEntry(bool Random, StatBonus? Fixed, StatBonus? Min, StatBonus? Max);
+    private sealed record StoneEntry(bool Random, StatBonus? Fixed, StatBonus? Min, StatBonus? Max, int BoxClass = 0);
 
     private sealed record RecipeFile(IReadOnlyList<RecipeEntry> Recipes);
 

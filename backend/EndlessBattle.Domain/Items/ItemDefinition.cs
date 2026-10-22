@@ -55,8 +55,8 @@ public sealed record RefineStoneSpec(
     StatRange? Au,
     StatRange? Be);
 
-// 固定魔石取 Fixed；隨機魔石鑲嵌當下各能力在 [Min, Max] 擲骰
-public sealed record StoneSpec(bool Random, StatBonus Fixed, StatBonus? Min, StatBonus? Max);
+// 固定魔石取 Fixed；隨機魔石鑲嵌當下各能力在 [Min, Max] 擲骰。BoxClass 1～3 是魔石寶箱的等級，0 不會從寶箱出現
+public sealed record StoneSpec(bool Random, StatBonus Fixed, StatBonus? Min, StatBonus? Max, int BoxClass = 0);
 
 // 禁區鑰匙：進入 PlaceId 後可停留 Seconds 秒
 public sealed record AreaKeySpec(int PlaceId, int Seconds);
@@ -69,7 +69,7 @@ public sealed record ItemDefinition(
     StatBonus Bonus,
     int SupplyHp,
     int SupplySp,
-    int Amount, // 行動力藥水的加值、擴充的格數、捕捉道具的能力倍率
+    int Amount, // 消耗品的數值，意義依 ConsumableKind
     StatRequirement7 Requires,
     string? JobId,
     int Element,

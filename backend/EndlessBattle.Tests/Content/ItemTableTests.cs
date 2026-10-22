@@ -201,4 +201,35 @@ public partial class ItemTableTests
             (21_600, ConsumableKind.None, 0L, 1, false),
             (key.Key!.Seconds, key.Consumable, key.Price, key.ShopLevel, key.ShopSellable)));
     }
+
+    // 計畫 10 Task 5：寶箱、寵物蛋、心得書、經驗膠囊都不在商店販賣（從勳章所兌換）
+    [Fact]
+    public void NewConsumables_MatchTable()
+    {
+        (string Id, string Name, ConsumableKind Kind, int Amount, long Price)[] expected =
+        [
+            ("stone-box", "魔石寶箱", ConsumableKind.StoneBox, 1, 1000),
+            ("large-stone-box", "大魔石寶箱", ConsumableKind.StoneBox, 2, 3000),
+            ("refine-box", "精鍊寶盒", ConsumableKind.RefineBox, 3, 1500),
+            ("pet-egg", "寵物蛋", ConsumableKind.PetEgg, 280, 10000),
+            ("job-notes", "職業心得書", ConsumableKind.ProficiencyBook, 300, 2000),
+            ("advanced-job-notes", "高級心得書", ConsumableKind.ProficiencyBook, 1500, 8000),
+            ("exp-capsule", "經驗膠囊", ConsumableKind.ExperienceCapsule, 20000, 5000),
+        ];
+        ConsumableKind[] newKinds =
+            [ConsumableKind.StoneBox, ConsumableKind.RefineBox, ConsumableKind.PetEgg, ConsumableKind.ProficiencyBook, ConsumableKind.ExperienceCapsule];
+
+        var items = Content.AllItems.Where(item => newKinds.Contains(item.Consumable)).ToList();
+
+        Assert.Equal(expected, items.Select(item => (item.Id, item.Name, item.Consumable, item.Amount, item.Price)));
+        Assert.All(items, item => Assert.Equal((ItemCategory.Consumable, false), (item.Category, item.ShopSellable)));
+
+        // 魔石寶箱等級：攻擊／魔力／守護／結界 1，生命／疾風 2，混沌／虹彩 3
+        Assert.Equal(
+            [
+                ("attack-stone", 1), ("sorcery-stone", 1), ("guard-stone", 1), ("ward-stone", 1),
+                ("vitality-stone", 2), ("gale-stone", 2), ("chaos-stone", 3), ("prism-stone", 3),
+            ],
+            Content.AllItems.Where(item => item.Category == ItemCategory.Stone).Select(item => (item.Id, item.Stone!.BoxClass)));
+    }
 }

@@ -84,4 +84,20 @@ public class InventoryRulesTests
         Assert.Equal([(0L, "sword", 1), (0L, "sword", 1)], Shape(result.NewEntries));
         Assert.All(result.NewEntries, entry => Assert.Equal(2, entry.Holes));
     }
+
+    // 各加 1 個、同 id 合併：a 疊到既有那格，b ×2 開一格，c 沒有格子 → 丟棄 1
+    [Fact]
+    public void TryAddEach_AddsOneOfEachInOrder()
+    {
+        var a = TestItems.Item("a", ItemCategory.Stone);
+        var b = TestItems.Item("b", ItemCategory.Stone);
+        var c = TestItems.Item("c", ItemCategory.Stone);
+        var bag = Enumerable.Range(1, 13).Select(index => TestItems.Entry(index, $"other-{index}", 99)).Append(TestItems.Entry(20, "a", 5)).ToList();
+
+        var result = InventoryRules.TryAddEach(bag, [a, b, c, b], bagBonus: 0);
+
+        Assert.Equal((3, 1), (result.Accepted, result.Discarded));
+        Assert.Equal([(20L, "a", 6)], Shape(result.UpdatedEntries));
+        Assert.Equal([(0L, "b", 2)], Shape(result.NewEntries));
+    }
 }

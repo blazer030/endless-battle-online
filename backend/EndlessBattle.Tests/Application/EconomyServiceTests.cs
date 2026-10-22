@@ -32,7 +32,7 @@ public class EconomyServiceTests
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         inventoryService = new InventoryService(
-            characters, inventory, equipment, new InMemoryPetRepository(), Content, new FakeClock(DateTimeOffset.UnixEpoch), new FixedSeedRandomFactory(1), unitOfWork);
+            characters, inventory, equipment, new InMemoryPetRepository(), new InMemoryJobProficiencyRepository(), Content, new FakeClock(DateTimeOffset.UnixEpoch), new FixedSeedRandomFactory(1), unitOfWork);
         shop = new ShopService(characters, inventory, equipment, Content, inventoryService, unitOfWork);
         bank = new BankService(characters, unitOfWork);
         depotService = new DepotService(characters, inventory, equipment, depot, Content, inventoryService, unitOfWork);

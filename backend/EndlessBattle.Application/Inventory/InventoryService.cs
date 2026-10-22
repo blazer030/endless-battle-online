@@ -8,12 +8,16 @@ using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Application.Inventory;
 
+// GrantedItemIds 依抽出順序；PetName 是寵物蛋孵出的寵物名；SkillPoints 加在目前職業
+public sealed record ItemUseResult(InventoryView Inventory, IReadOnlyList<string> GrantedItemIds, string? PetName, long SkillPoints, int LevelsGained);
+
 // 裝備欄引用背包表的列：裝上 = 欄位指向該列，卸下 = 清空欄位。已裝備的列不算在背包裡，也不佔背包格數
 public sealed class InventoryService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IPetRepository pets,
+    IJobProficiencyRepository proficiency,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -76,8 +80,9 @@ public sealed class InventoryService(
             return await ViewAsync(character, cancellationToken);
         }, cancellationToken);
 
-    // 先以版本鎖寫入角色，成功後才扣道具；衝突時道具不動
-    public Task<InventoryView> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
+    // 一筆交易：讀角色、背包、寵物數 → CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 bagFull、
+    // 什麼都不寫 → 以版本鎖寫入角色 → 背包（扣道具、加結果）→ 寵物 → 技能點。衝突時道具不動
+    public Task<ItemUseResult> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
@@ -93,6 +98,22 @@ public sealed class InventoryService(
             }
 
             var outcome = ConsumableUse.Apply(context, item, clock.UtcNow, randomFactory.Create());
+            var granted = outcome.GrantedItemIds.Select(content.GetItem).ToList();
+            AddResult? added = null;
+            if (granted.Count > 0)
+            {
+                var bagAfterUse = state.Bag
+                    .Select(other => other.Id == entry.Id ? other with { Quantity = other.Quantity - 1 } : other)
+                    .Where(other => other.Quantity > 0)
+                    .Where(other => content.GetItem(other.ItemId).Category == granted[0].Category)
+                    .ToList();
+                added = InventoryRules.TryAddEach(bagAfterUse, granted, character.BagBonus);
+                if (added.Discarded > 0)
+                {
+                    throw BagFull();
+                }
+            }
+
             var updated = await characters.UpdateAsync(outcome.Character, cancellationToken);
             if (entry.Quantity > 1)
             {
@@ -103,7 +124,31 @@ public sealed class InventoryService(
                 await inventory.RemoveAsync(updated.Id, entry.Id, cancellationToken);
             }
 
-            return await ViewAsync(updated, cancellationToken);
+            if (added is not null)
+            {
+                foreach (var stacked in added.UpdatedEntries)
+                {
+                    await inventory.UpdateQuantityAsync(updated.Id, stacked.Id, stacked.Quantity, cancellationToken);
+                }
+
+                foreach (var created in added.NewEntries)
+                {
+                    await inventory.AddAsync(updated.Id, created, cancellationToken);
+                }
+            }
+
+            if (outcome.Pet is { } pet)
+            {
+                await pets.AddAsync(updated.Id, pet.ToPet(), cancellationToken);
+            }
+
+            if (outcome.SkillPoints > 0)
+            {
+                await proficiency.AddAsync(updated.Id, updated.JobId, 0, outcome.SkillPoints, cancellationToken);
+            }
+
+            return new ItemUseResult(
+                await ViewAsync(updated, cancellationToken), outcome.GrantedItemIds, outcome.Pet?.Name, outcome.SkillPoints, outcome.LevelsGained);
         }, cancellationToken);
 
     // 從背包那一格分出 quantity 個放到補給欄（整格裝上時直接引用該列）；原本的補給品先算好能放回背包才動手

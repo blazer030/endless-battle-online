@@ -1,6 +1,6 @@
 # 道具總表（計畫 7）
 
-`backend/content/items.json` 共 154 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
+`backend/content/items.json` 共 161 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
 
 ## 裝備公式
 
@@ -175,20 +175,22 @@
 | 9 | 9～18 | 9～18 | 5～9 | 8100 |
 | 10 | 10～20 | 10～20 | 5～10 | 10000 |
 
+合成：同類合成兩顆同種類、同等級 → 同種類 +1 級（必成功）。異類合成（計畫 10，WOG `wog_act_plus.php:100-137`）：兩顆不同種類、同等級（≥ 2）→ 每組獨立 `NextInt(候選數)` 抽一顆低一級、種類不是兩個來源的精鍊石；只有 3 種時結果固定是第三種（WOG 依 `d_type` 區間加權，這裡沒有那麼多種類，簡化為均等）。Lv1 不能異類合成；結果放不下 → 400 `bagFull`、什麼都不寫。
+
 ## 魔石
 
-不在商店販賣。固定魔石取定值；隨機魔石在鑲嵌當下每項於 [min, max] 擲骰。
+不在商店販賣。固定魔石取定值；隨機魔石在鑲嵌當下每項於 [min, max] 擲骰。`boxClass` 是魔石寶箱的等級（計畫 10；0 表示不會從寶箱出現）。
 
-| id | 名稱 | 種類 | 能力 | 價格 |
-|---|---|---|---|---|
-| `attack-stone` | 攻擊魔石 | 固定 | at +5 | 2000 |
-| `sorcery-stone` | 魔力魔石 | 固定 | mat +5 | 2000 |
-| `guard-stone` | 守護魔石 | 固定 | df +3 | 2000 |
-| `ward-stone` | 結界魔石 | 固定 | mdf +3 | 2000 |
-| `vitality-stone` | 生命魔石 | 固定 | hpMax +50 | 2000 |
-| `gale-stone` | 疾風魔石 | 固定 | 敏捷 +2 | 2000 |
-| `chaos-stone` | 混沌魔石 | 隨機 | at 1～10、mat 1～10 | 5000 |
-| `prism-stone` | 虹彩魔石 | 隨機 | 力量 0～3、智力 0～3、生命 0～3、體質 0～3、敏捷 0～3、魅力 0～3、信仰 0～3 | 5000 |
+| id | 名稱 | 種類 | 能力 | 價格 | boxClass |
+|---|---|---|---|---|---|
+| `attack-stone` | 攻擊魔石 | 固定 | at +5 | 2000 | 1 |
+| `sorcery-stone` | 魔力魔石 | 固定 | mat +5 | 2000 | 1 |
+| `guard-stone` | 守護魔石 | 固定 | df +3 | 2000 | 1 |
+| `ward-stone` | 結界魔石 | 固定 | mdf +3 | 2000 | 1 |
+| `vitality-stone` | 生命魔石 | 固定 | hpMax +50 | 2000 | 2 |
+| `gale-stone` | 疾風魔石 | 固定 | 敏捷 +2 | 2000 | 2 |
+| `chaos-stone` | 混沌魔石 | 隨機 | at 1～10、mat 1～10 | 5000 | 3 |
+| `prism-stone` | 虹彩魔石 | 隨機 | 力量 0～3、智力 0～3、生命 0～3、體質 0～3、敏捷 0～3、魅力 0～3、信仰 0～3 | 5000 | 3 |
 
 ## 材料
 
@@ -233,6 +235,28 @@
 | `sunset-fort-key` | 日沒碉堡鑰匙 | 18 日沒碉堡 |
 | `still-city-key` | 靜止之城鑰匙 | 19 靜止之城 |
 | `obsidian-temple-key` | 黑曜神廟鑰匙 | 20 黑曜神廟 |
+
+## 寶箱與書（計畫 10）
+
+`wog_act_arm.php` 的 `d_type` 消耗品；名稱與數值是 Claude 的設計（WOG `wog_df_used` 資料遺失）。都在「道具」分類、不在商店販賣，從勳章所兌換（見 `companion-table.md`）；魔石寶箱另由寶箱哥布林掉落（topr 40）。
+
+| id | 名稱 | 種類 | amount | 價格 |
+|---|---|---|---|---|
+| `stone-box` | 魔石寶箱 | StoneBox | 1 | 1000 |
+| `large-stone-box` | 大魔石寶箱 | StoneBox | 2 | 3000 |
+| `refine-box` | 精鍊寶盒 | RefineBox | 3（Lv3） | 1500 |
+| `pet-egg` | 寵物蛋 | PetEgg | 280 | 10000 |
+| `job-notes` | 職業心得書 | ProficiencyBook | 300 | 2000 |
+| `advanced-job-notes` | 高級心得書 | ProficiencyBook | 1500 | 8000 |
+| `exp-capsule` | 經驗膠囊 | ExperienceCapsule | 20000 | 5000 |
+
+- 魔石寶箱：`r = rand(1,100)`，≤ 60 等級 1、61～90 等級 2、91～100 等級 3；候選是 `boxClass` 在 1～等級的魔石（依內容順序），逐顆 `NextInt(剩餘數)` 抽出並移除，抽 `amount` 顆不重複。
+- 精鍊寶盒：等級 = `amount` 的精鍊石中 `NextInt(n)` 一顆。
+- 開出的道具放不進背包 → 400 `bagFull`，寶箱不消耗、什麼都不寫。
+- 寵物蛋：已有 3 隻寵物 → 400 `petsFull`、不消耗；否則從非任務怪 `NextInt(n)` 抽物種，能力 `rand(1,10) × amount`、個性 `rand(1,4)`（同捕捉），放獸欄。
+- 心得書：目前職業的技能點 + `amount`，熟練度不變（WOG 綁定職業 id，這裡簡化成目前職業）。
+- 經驗膠囊：經驗 + `amount` 後立刻升級（WOG 等下一場勝利才升級）。
+- 載入驗證：這幾種 `amount ≥ 1`，魔石寶箱 1～3 且至少有一顆 `boxClass 1` 的魔石；精鍊寶盒的 `amount` 必須是存在的精鍊石等級；不得有 supply／bonus；魔石 `boxClass` 0～3。
 
 ## 配方
 

@@ -208,4 +208,22 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    // 測試魔石寶箱的候選只有測試攻擊魔石：回傳抽到的道具名稱與更新後的背包；其餘結果欄位為空值
+    [Fact]
+    public async Task Use_ReturnsObtainedNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var box = await GiveAsync(characterId, "test-stone-box");
+
+        var result = await ReadAsync(await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = box }, CancellationToken));
+
+        Assert.Equal(["測試攻擊魔石"], result.GetProperty("obtained").EnumerateArray().Select(name => name.GetString()));
+        Assert.Equal(JsonValueKind.Null, result.GetProperty("petName").ValueKind);
+        Assert.Equal((0L, 0), (result.GetProperty("skillPoints").GetInt64(), result.GetProperty("levelsGained").GetInt32()));
+        var stone = Assert.Single(Category(result.GetProperty("inventory"), "Stone").GetProperty("items").EnumerateArray());
+        Assert.Equal("test-stone", stone.GetProperty("itemId").GetString());
+        Assert.Empty(Category(result.GetProperty("inventory"), "Consumable").GetProperty("items").EnumerateArray());
+    }
 }

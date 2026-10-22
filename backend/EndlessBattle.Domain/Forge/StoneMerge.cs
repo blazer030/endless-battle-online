@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Domain.Forge;
@@ -37,5 +38,44 @@ public static class StoneMerge
         }
 
         return find(first.Kind, first.Level + 1);
+    }
+
+    // 異類合成：兩格不同種類、同等級（≥ 2）的精鍊石，各扣 pairs 顆。原因代碼依序為 notRefineStone、cannotMerge、invalidQuantity，只回第一個
+    public static IReadOnlyList<string> CheckCrossKind(
+        ItemDefinition first, int firstQuantity, ItemDefinition second, int secondQuantity, int pairs, IReadOnlyList<ItemDefinition> refineStones)
+    {
+        if (first.Refine is null || second.Refine is null)
+        {
+            return ["notRefineStone"];
+        }
+
+        if (CrossKindCandidates(first, second, refineStones) is not { Count: > 0 })
+        {
+            return ["cannotMerge"];
+        }
+
+        return pairs < 1 || pairs > Math.Min(firstQuantity, secondQuantity) ? ["invalidQuantity"] : [];
+    }
+
+    // 每組獨立擲：候選＝等級 −1、種類不是兩個來源的精鍊石（依內容順序），random.NextInt(候選數)。呼叫前先以 CheckCrossKind 確認
+    public static ItemDefinition CrossKindPrevious(
+        ItemDefinition first, ItemDefinition second, IReadOnlyList<ItemDefinition> refineStones, IRandomSource random)
+    {
+        var candidates = CrossKindCandidates(first, second, refineStones)
+            ?? throw new InvalidOperationException("CheckCrossKind 已確認可合成");
+        return candidates[random.NextInt(candidates.Count)];
+    }
+
+    // 不能異類合成時回 null
+    private static List<ItemDefinition>? CrossKindCandidates(ItemDefinition first, ItemDefinition second, IReadOnlyList<ItemDefinition> refineStones)
+    {
+        if (first.Refine is not { } a || second.Refine is not { } b || a.Kind == b.Kind || a.Level != b.Level || a.Level <= 1)
+        {
+            return null;
+        }
+
+        return refineStones
+            .Where(stone => stone.Refine is { } refine && refine.Level == a.Level - 1 && refine.Kind != a.Kind && refine.Kind != b.Kind)
+            .ToList();
     }
 }

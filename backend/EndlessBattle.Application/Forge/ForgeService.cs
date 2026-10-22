@@ -140,6 +140,39 @@ public sealed class ForgeService(
             return new ForgeResult(true, await inventoryService.GetAsync(accountId, cancellationToken));
         }, cancellationToken);
 
+    // 異類合成（規則見 StoneMerge）：兩格各扣 quantityPairs 顆，每組獨立擲出一顆低一級的其他種類精鍊石；
+    // 先擲完、算好放不放得下（放不下 400 bagFull，什麼都不寫），再以版本鎖寫入角色、扣石頭、放結果
+    public Task<InventoryView> MergeCrossKindAsync(
+        long accountId, long firstInventoryId, long secondInventoryId, int quantityPairs, CancellationToken cancellationToken) =>
+        unitOfWork.RunAsync(async cancellationToken =>
+        {
+            var character = await FindCharacterAsync(accountId, cancellationToken);
+            var state = await LoadAsync(character.Id, cancellationToken);
+            var first = FindInBag(state, firstInventoryId);
+            var second = FindInBag(state, secondInventoryId);
+            var firstItem = content.GetItem(first.ItemId);
+            var secondItem = content.GetItem(second.ItemId);
+            var refineStones = content.AllItems.Where(item => item.Refine is not null).ToList();
+            Check(StoneMerge.CheckCrossKind(firstItem, first.Quantity, secondItem, second.Quantity, quantityPairs, refineStones), "無法合成");
+
+            var random = randomFactory.Create();
+            var results = Enumerable.Range(0, quantityPairs)
+                .Select(_ => StoneMerge.CrossKindPrevious(firstItem, secondItem, refineStones, random))
+                .ToList();
+            var bag = AfterConsuming(AfterConsuming(state.Bag, first, quantityPairs), second, quantityPairs);
+            var added = InventoryRules.TryAddEach(SameCategory(bag, results[0]), results, character.BagBonus);
+            if (added.Discarded > 0)
+            {
+                throw new InputValidationException("背包已滿", ["bagFull"]);
+            }
+
+            await LockAsync(character, cancellationToken);
+            await ConsumeAsync(character.Id, first, quantityPairs, cancellationToken);
+            await ConsumeAsync(character.Id, second, quantityPairs, cancellationToken);
+            await ApplyAsync(character.Id, added, cancellationToken);
+            return await inventoryService.GetAsync(accountId, cancellationToken);
+        }, cancellationToken);
+
     // 合成（規則見 Synthesis）：金錢與背包先以全部成功檢查。花費取決於擲骰結果，所以先擲（不寫入），
     // 再以版本鎖扣錢（只算成功的次數），然後扣材料、放成品；衝突時什麼都不寫
     public Task<SynthesisResult> SynthesizeAsync(long accountId, string recipeId, int attempts, CancellationToken cancellationToken) =>

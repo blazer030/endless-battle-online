@@ -553,6 +553,7 @@ public class JsonGameContentTests
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
+                "test-arcane-refine-stone-2", "test-vigor-refine-stone", "test-stone-box", "test-pet-egg", "test-job-notes",
             ],
             content.AllItems.Select(item => item.Id));
         Assert.Equal((ItemCategory.Key, new AreaKeySpec(17, 3600)), (content.GetItem("test-key").Category, content.GetItem("test-key").Key));
@@ -578,6 +579,8 @@ public class JsonGameContentTests
         var stone = content.GetItem("test-stone").Stone!;
         Assert.False(stone.Random);
         Assert.Equal(StatBonus.Zero with { At = 5 }, stone.Fixed);
+        Assert.Equal(1, stone.BoxClass);
+        Assert.Equal((ConsumableKind.StoneBox, 1), (content.GetItem("test-stone-box").Consumable, content.GetItem("test-stone-box").Amount));
 
         var recipe = Assert.Single(content.AllRecipes);
         Assert.Same(recipe, content.GetRecipe("test-forge-sword"));
@@ -1233,6 +1236,37 @@ public class JsonGameContentTests
         var message = ItemRejection($"{ValidItemList}, {Replace(ValidCapture, "\"amount\": 2, ", "")}");
         Assert.Contains("net", message);
         Assert.Contains("amount", message);
+    }
+
+    private const string ValidStoneBox =
+        """{ "id": "chest", "name": "箱", "category": "Consumable", "consumable": "StoneBox", "amount": 1, "price": 1000, "shopLevel": 1, "shopSellable": false }""";
+
+    private const string ValidRefineBox =
+        """{ "id": "casket", "name": "盒", "category": "Consumable", "consumable": "RefineBox", "amount": 1, "price": 1500, "shopLevel": 1, "shopSellable": false }""";
+
+    private static string ClassOneStone => Replace(ValidStone, "\"fixed\": { \"at\": 5 }", "\"fixed\": { \"at\": 5 }, \"boxClass\": 1");
+
+    // 魔石寶箱至少要有一顆 boxClass 1 的魔石；amount 1～3；boxClass 0～3
+    [Fact]
+    public void Items_RejectStoneBoxWithoutClassOneStone()
+    {
+        var message = ItemRejection($"{ValidItemList}, {ValidStoneBox}");
+        Assert.Contains("chest", message);
+        Assert.Contains("boxClass", message);
+
+        Assert.Contains("amount", ItemRejection($"{ValidItem}, {ValidOre}, {ValidSupply}, {ValidRefineStone}, {ClassOneStone}, {Replace(ValidStoneBox, "\"amount\": 1", "\"amount\": 4")}"));
+        Assert.Contains("boxClass", ItemRejection($"{ValidItem}, {ValidOre}, {ValidSupply}, {ValidRefineStone}, {Replace(ClassOneStone, "\"boxClass\": 1", "\"boxClass\": 4")}"));
+    }
+
+    // 精鍊寶盒的 amount 必須是存在的精鍊石等級（樣本只有 Lv1）
+    [Fact]
+    public void Items_RejectRefineBoxForMissingLevel()
+    {
+        var message = ItemRejection($"{ValidItemList}, {Replace(ValidRefineBox, "\"amount\": 1", "\"amount\": 2")}");
+        Assert.Contains("casket", message);
+        Assert.Contains("amount", message);
+
+        Assert.Contains("amount", ItemRejection($"{ValidItemList}, {Replace(ValidRefineBox, "\"amount\": 1, ", "")}"));
     }
 
     // 捕捉道具只用 amount（倍率）；勳章不是消耗品，其餘規則同材料

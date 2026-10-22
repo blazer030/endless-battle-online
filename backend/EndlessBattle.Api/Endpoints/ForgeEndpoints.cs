@@ -51,6 +51,15 @@ public static class ForgeEndpoints
             return TypedResults.Ok(ToResponse(await service.MergeStonesAsync(user.GetAccountId(), stoneInventoryId, quantityPairs, cancellationToken)));
         });
 
+        forge.MapPost("/merge-cross", async (MergeCrossRequest request, ClaimsPrincipal user, ForgeService service, CancellationToken cancellationToken) =>
+        {
+            var firstInventoryId = request.FirstInventoryId ?? throw new InputValidationException("缺少第一格精鍊石 id");
+            var secondInventoryId = request.SecondInventoryId ?? throw new InputValidationException("缺少第二格精鍊石 id");
+            var quantityPairs = request.QuantityPairs ?? throw new InputValidationException("缺少合成組數");
+            var inventory = await service.MergeCrossKindAsync(user.GetAccountId(), firstInventoryId, secondInventoryId, quantityPairs, cancellationToken);
+            return TypedResults.Ok(new ForgeResponse(true, InventoryEndpoints.ToResponse(inventory)));
+        });
+
         forge.MapGet("/recipes", (IGameContent content) => TypedResults.Ok(content.AllRecipes.Select(recipe => ToResponse(recipe, content)).ToList()));
 
         forge.MapPost("/synthesize", async (SynthesizeRequest request, ClaimsPrincipal user, ForgeService service, CancellationToken cancellationToken) =>

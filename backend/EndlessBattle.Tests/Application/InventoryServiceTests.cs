@@ -21,6 +21,7 @@ public class InventoryServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryPetRepository pets = new();
+    private readonly InMemoryJobProficiencyRepository proficiency = new();
     private readonly ScriptedRandomFactory random = new();
     private readonly InventoryService service;
 
@@ -29,8 +30,12 @@ public class InventoryServiceTests
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         service = new InventoryService(
-            characters, inventory, equipment, pets, Content, new FakeClock(DateTimeOffset.UnixEpoch), random, new InMemoryUnitOfWork());
+            characters, inventory, equipment, pets, proficiency, Content, Clock, random, new InMemoryUnitOfWork());
     }
+
+    private static readonly DateTimeOffset Now = new(2026, 10, 22, 3, 0, 0, TimeSpan.Zero);
+
+    private static readonly FakeClock Clock = new(Now);
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
@@ -48,6 +53,9 @@ public class InventoryServiceTests
 
     private static IEnumerable<(EquipmentSlot Slot, string ItemId, int Quantity)> EquippedOf(InventoryView view) =>
         view.Equipped.Select(equipped => (equipped.Slot, equipped.Item.Entry.ItemId, equipped.Quantity));
+
+    private async Task<List<(long Id, string ItemId, int Quantity)>> RowsAsync(Character character) =>
+        (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => (entry.Id, entry.ItemId, entry.Quantity)).ToList();
 
     private static async Task<IReadOnlyList<string>> ReasonsAsync(Func<Task> action) =>
         (await Assert.ThrowsAsync<InputValidationException>(action)).Reasons;
@@ -263,13 +271,13 @@ public class InventoryServiceTests
         var character = await AddCharacterAsync();
         var potion = await GiveAsync(character, "test-str-potion", 2);
 
-        var view = await service.UseAsync(AccountId, potion, CancellationToken);
+        var view = (await service.UseAsync(AccountId, potion, CancellationToken)).Inventory;
 
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(character.Base with { Str = 13, Vit = 12 }, stored!.Base);
         Assert.Equal([("test-str-potion", 1)], BagOf(view, ItemCategory.Consumable));
 
-        var emptied = await service.UseAsync(AccountId, potion, CancellationToken);
+        var emptied = (await service.UseAsync(AccountId, potion, CancellationToken)).Inventory;
         Assert.Empty(BagOf(emptied, ItemCategory.Consumable));
         Assert.Equal(14, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Base.Str);
     }
@@ -293,7 +301,7 @@ public class InventoryServiceTests
     {
         var character = await AddCharacterAsync(character => character with { BagBonus = 3, DepotBonus = 3 });
 
-        var view = await service.UseAsync(AccountId, await GiveAsync(character, "test-bag-expansion"), CancellationToken);
+        var view = (await service.UseAsync(AccountId, await GiveAsync(character, "test-bag-expansion"), CancellationToken)).Inventory;
         await service.UseAsync(AccountId, await GiveAsync(character, "test-depot-expansion"), CancellationToken);
 
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
@@ -414,6 +422,94 @@ public class InventoryServiceTests
         var view = await service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken);
 
         Assert.Equal([("test-sword", 1)], BagOf(view, ItemCategory.Weapon));
+    }
+
+    // 魔石分類 15 格都是 99 顆的測試攻擊魔石（寶箱唯一的候選）→ 開出的魔石放不下：400 bagFull，寶箱、背包、角色版本都不變
+    [Fact]
+    public async Task Use_StoneBoxRejectedWhenStoneBagFull()
+    {
+        var character = await AddCharacterAsync();
+        var box = await GiveAsync(character, "test-stone-box", 2);
+        for (var index = 0; index < InventoryRules.SlotsPerCategory; index++)
+        {
+            await GiveAsync(character, "test-stone", InventoryRules.StackLimit);
+        }
+
+        var before = await RowsAsync(character);
+
+        Assert.Equal(["bagFull"], await ReasonsAsync(() => service.UseAsync(AccountId, box, CancellationToken)));
+
+        Assert.Equal(before, await RowsAsync(character));
+        Assert.Equal(2, inventory.Find(character.Id, box).Quantity);
+        Assert.Equal(0, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
+        Assert.Empty(log);
+    }
+
+    // 已有 3 隻寵物：400 petsFull，蛋還在、沒有新寵物、角色版本不變
+    [Fact]
+    public async Task Use_PetEggRejectedWhenPetsFull()
+    {
+        var character = await AddCharacterAsync();
+        var egg = await GiveAsync(character, "test-pet-egg");
+        for (var index = 0; index < 3; index++)
+        {
+            await pets.AddAsync(character.Id, TestPets.Create(carried: false), CancellationToken);
+        }
+
+        Assert.Equal(["petsFull"], await ReasonsAsync(() => service.UseAsync(AccountId, egg, CancellationToken)));
+
+        Assert.Equal(1, inventory.Find(character.Id, egg).Quantity);
+        Assert.Equal(3, (await pets.ListAsync(character.Id, CancellationToken)).Count);
+        Assert.Equal(0, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
+        Assert.Empty(log);
+    }
+
+    // 擲 0.0 → r = 1 等級 1，候選只有測試攻擊魔石：疊到原本那格上，寶箱整格消失
+    [Fact]
+    public async Task Use_StoneBoxAddsStonesAndConsumesBox()
+    {
+        var character = await AddCharacterAsync();
+        var box = await GiveAsync(character, "test-stone-box");
+        await GiveAsync(character, "test-stone", 3);
+
+        var result = await service.UseAsync(AccountId, box, CancellationToken);
+
+        Assert.Equal(["test-stone"], result.GrantedItemIds);
+        Assert.Equal([("test-stone", 4)], BagOf(result.Inventory, ItemCategory.Stone));
+        Assert.Empty(BagOf(result.Inventory, ItemCategory.Consumable));
+        Assert.Equal(["update"], log);
+    }
+
+    // 寵物蛋：放獸欄、能力 ×280，回傳寵物名
+    [Fact]
+    public async Task Use_PetEggStoresPetInPen()
+    {
+        var character = await AddCharacterAsync();
+        var egg = await GiveAsync(character, "test-pet-egg");
+        random.Next = new ScriptedRandom(0.0);
+
+        var result = await service.UseAsync(AccountId, egg, CancellationToken);
+
+        var pet = Assert.Single(await pets.ListAsync(character.Id, CancellationToken));
+        Assert.False(pet.Carried);
+        Assert.Equal(Content.AllMonsters.First(monster => monster.MissionId is null).Id, pet.MonsterId);
+        Assert.Equal((280, 280, 280, Now), (pet.Attack, pet.Magic, pet.Defense, pet.BornAt));
+        Assert.Equal(pet.Name, result.PetName);
+        Assert.Empty(BagOf(result.Inventory, ItemCategory.Consumable));
+    }
+
+    // 心得書：目前職業（戰士）的技能點 +300，熟練度不變
+    [Fact]
+    public async Task Use_ProficiencyBookWritesSkillPoints()
+    {
+        var character = await AddCharacterAsync();
+        var notes = await GiveAsync(character, "test-job-notes", 2);
+
+        var result = await service.UseAsync(AccountId, notes, CancellationToken);
+
+        Assert.Equal(300, result.SkillPoints);
+        Assert.Equal([new("warrior", 0, 300)], await proficiency.ListAsync(character.Id, CancellationToken));
+        Assert.Equal([("test-job-notes", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

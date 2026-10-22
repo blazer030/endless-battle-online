@@ -141,4 +141,28 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(2000 - 1000L * successes, me.GetProperty("money").GetInt64());
     }
+
+    // 鋼鐵 Lv2 + 秘法 Lv2 → 活力 Lv1；同種類 400 cannotMerge
+    [Fact]
+    public async Task MergeCross_Route()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var iron = await GiveAsync(characterId, "test-refine-stone-2", 2);
+        var arcane = await GiveAsync(characterId, "test-arcane-refine-stone-2", 1);
+
+        Assert.Equal(
+            ["cannotMerge"],
+            await ReasonsAsync(await client.PostAsJsonAsync(
+                "/api/forge/merge-cross", new { firstInventoryId = iron, secondInventoryId = iron, quantityPairs = 1 }, CancellationToken)));
+
+        var result = await ReadAsync(await client.PostAsJsonAsync(
+            "/api/forge/merge-cross", new { firstInventoryId = iron, secondInventoryId = arcane, quantityPairs = 1 }, CancellationToken));
+
+        Assert.True(result.GetProperty("success").GetBoolean());
+        Assert.Equal(
+            [("test-refine-stone-2", 1), ("test-vigor-refine-stone", 1)],
+            Items(result.GetProperty("inventory"), "RefineStone").EnumerateArray()
+                .Select(item => (item.GetProperty("itemId").GetString(), item.GetProperty("quantity").GetInt32())));
+    }
 }

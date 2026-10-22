@@ -17,6 +17,13 @@
     {"id": "honour-key-abandoned-cave", "itemId": "abandoned-cave-key", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
     {"id": "honour-key-sunset-fort", "itemId": "sunset-fort-key", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 2}, {"itemId": "kingdom-medal", "quantity": 2}, {"itemId": "rainforest-medal", "quantity": 2}, {"itemId": "royal-city-medal", "quantity": 2}]},
     {"id": "honour-key-still-city", "itemId": "still-city-key", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 1}, {"itemId": "continent-medal", "quantity": 2}, {"itemId": "kingdom-medal", "quantity": 2}, {"itemId": "rainforest-medal", "quantity": 2}, {"itemId": "royal-city-medal", "quantity": 2}]},
-    {"id": "honour-key-obsidian-temple", "itemId": "obsidian-temple-key", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 3}, {"itemId": "continent-medal", "quantity": 2}, {"itemId": "kingdom-medal", "quantity": 2}, {"itemId": "rainforest-medal", "quantity": 2}, {"itemId": "royal-city-medal", "quantity": 2}]}
+    {"id": "honour-key-obsidian-temple", "itemId": "obsidian-temple-key", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 3}, {"itemId": "continent-medal", "quantity": 2}, {"itemId": "kingdom-medal", "quantity": 2}, {"itemId": "rainforest-medal", "quantity": 2}, {"itemId": "royal-city-medal", "quantity": 2}]},
+    {"id": "honour-stone-box", "itemId": "stone-box", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}]},
+    {"id": "honour-large-stone-box", "itemId": "large-stone-box", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 1}]},
+    {"id": "honour-refine-box", "itemId": "refine-box", "quantity": 1, "cost": [{"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}]},
+    {"id": "honour-pet-egg", "itemId": "pet-egg", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 3}]},
+    {"id": "honour-job-notes", "itemId": "job-notes", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
+    {"id": "honour-advanced-job-notes", "itemId": "advanced-job-notes", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 2}]},
+    {"id": "honour-exp-capsule", "itemId": "exp-capsule", "quantity": 1, "cost": [{"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]}
   ]
 }

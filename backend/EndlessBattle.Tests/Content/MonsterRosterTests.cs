@@ -55,7 +55,7 @@ public partial class MonsterRosterTests
         }
     }
 
-    // 每隻怪 1～3 個掉落（勳章另計）、topr 3～200，不重複；全域怪有明確的指定（絨球小補給 topr 3、寶箱哥布林材料 topr 2 + 精鍊石 topr 50）
+    // 每隻怪 1～3 個掉落（勳章另計）、topr 3～200，不重複；全域怪有明確的指定（絨球小補給 topr 3、寶箱哥布林材料 topr 2 + 精鍊石 topr 50 + 魔石寶箱 topr 40）
     [Fact]
     public void Roster_DropsReferenceKnownItems()
     {
@@ -72,12 +72,10 @@ public partial class MonsterRosterTests
         });
 
         Assert.Equal([new DropEntry("small-supply", 3)], Content.GetMonster("wandering-puff").Drops);
-        var goblin = Content.GetMonster("treasure-goblin").Drops;
-        Assert.Equal(2, goblin.Count);
-        Assert.Equal(2, goblin[0].Topr);
-        Assert.Equal(ItemCategory.Material, Content.GetItem(goblin[0].ItemId).Category);
-        Assert.Equal(50, goblin[1].Topr);
-        Assert.Equal(ItemCategory.RefineStone, Content.GetItem(goblin[1].ItemId).Category);
+        // 計畫 10 Task 5：寶箱哥布林另掉魔石寶箱
+        Assert.Equal(
+            [new DropEntry("iron-ore", 2), new DropEntry("iron-refine-stone-1", 50), new DropEntry("stone-box", 40)],
+            Content.GetMonster("treasure-goblin").Drops);
     }
 
     private static bool IsMedal(DropEntry drop) => Content.GetItem(drop.ItemId).Category == ItemCategory.Medal;

@@ -255,6 +255,9 @@ public sealed record UnequipRequest(EquipmentSlot? Slot);
 
 public sealed record UseItemRequest(long? InventoryId);
 
+// Obtained：開出的道具名稱，依抽出順序；PetName：寵物蛋孵出的寵物；SkillPoints：加在目前職業的技能點；LevelsGained：經驗膠囊造成的升級數
+public sealed record UseItemResponse(InventoryResponse Inventory, IReadOnlyList<string> Obtained, string? PetName, long SkillPoints, int LevelsGained);
+
 public sealed record ShopItemResponse(
     string Id, string Name, ItemCategory Category, long Price, StatBonus Bonus, StatRequirement7 Requires, int Holes, int RefineMax);
 
@@ -283,6 +286,8 @@ public sealed record UnsocketRequest(long? InventoryId, int? Hole);
 public sealed record DrillRequest(long? InventoryId);
 
 public sealed record MergeStonesRequest(long? StoneInventoryId, int? QuantityPairs);
+
+public sealed record MergeCrossRequest(long? FirstInventoryId, long? SecondInventoryId, int? QuantityPairs);
 
 // Success：精鍊、打洞為擲骰結果；鑲嵌、合成成功才會回 200，一律為 true
 public sealed record ForgeResponse(bool Success, InventoryResponse Inventory);

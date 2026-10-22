@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 
 namespace EndlessBattle.Api.Endpoints;
@@ -26,10 +27,17 @@ public static class InventoryEndpoints
             return TypedResults.Ok(ToResponse(await service.UnequipAsync(user.GetAccountId(), slot, cancellationToken)));
         });
 
-        inventory.MapPost("/use", async (UseItemRequest request, ClaimsPrincipal user, InventoryService service, CancellationToken cancellationToken) =>
+        inventory.MapPost("/use", async (
+            UseItemRequest request, ClaimsPrincipal user, InventoryService service, IGameContent content, CancellationToken cancellationToken) =>
         {
             var inventoryId = request.InventoryId ?? throw new InputValidationException("缺少道具 id");
-            return TypedResults.Ok(ToResponse(await service.UseAsync(user.GetAccountId(), inventoryId, cancellationToken)));
+            var result = await service.UseAsync(user.GetAccountId(), inventoryId, cancellationToken);
+            return TypedResults.Ok(new UseItemResponse(
+                ToResponse(result.Inventory),
+                result.GrantedItemIds.Select(itemId => content.GetItem(itemId).Name).ToList(),
+                result.PetName,
+                result.SkillPoints,
+                result.LevelsGained));
         });
 
         return app;

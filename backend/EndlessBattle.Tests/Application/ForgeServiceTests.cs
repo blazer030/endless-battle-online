@@ -32,7 +32,7 @@ public class ForgeServiceTests
         equipment = new InMemoryEquipmentRepository(inventory);
         unitOfWork = new InMemoryUnitOfWork(characters, inventory);
         var inventoryService = new InventoryService(
-            characters, inventory, equipment, new InMemoryPetRepository(), Content, new FakeClock(DateTimeOffset.UnixEpoch), random, unitOfWork);
+            characters, inventory, equipment, new InMemoryPetRepository(), new InMemoryJobProficiencyRepository(), Content, new FakeClock(DateTimeOffset.UnixEpoch), random, unitOfWork);
         service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService, unitOfWork);
     }
 
@@ -326,6 +326,57 @@ public class ForgeServiceTests
         Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, int.MaxValue));
         Assert.Equal(["cannotMerge"], await ReasonsAsync(top, 1));
         Assert.Equal(["notRefineStone"], await ReasonsAsync(magic, 1));
+        Assert.Empty(log);
+    }
+
+    // 鋼鐵 Lv2 ×3 + 秘法 Lv2 ×2 合 2 組 → 鋼鐵剩 1、秘法整格扣光，得 2 顆活力 Lv1（候選只有這一種）
+    [Fact]
+    public async Task MergeCrossKind_ConsumesBothStacksAndAddsResults()
+    {
+        var character = await AddCharacterAsync();
+        var iron = await GiveAsync(character, "test-refine-stone-2", 3);
+        var arcane = await GiveAsync(character, "test-arcane-refine-stone-2", 2);
+
+        await service.MergeCrossKindAsync(AccountId, iron, arcane, 2, CancellationToken);
+
+        Assert.Equal([("test-refine-stone-2", 1), ("test-vigor-refine-stone", 2)], await ItemsAsync(character));
+        Assert.Equal(["update"], log);
+    }
+
+    // 精鍊石分類 15 格全滿、兩格來源都還有剩 → 活力 Lv1 沒有格子放：400 bagFull，什麼都不寫
+    [Fact]
+    public async Task MergeCrossKind_RejectsWhenRefineBagFull()
+    {
+        var character = await AddCharacterAsync();
+        var iron = await GiveAsync(character, "test-refine-stone-2", 2);
+        var arcane = await GiveAsync(character, "test-arcane-refine-stone-2", 2);
+        for (var index = 0; index < 13; index++)
+        {
+            await GiveAsync(character, "test-refine-stone", 99);
+        }
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(
+            () => service.MergeCrossKindAsync(AccountId, iron, arcane, 1, CancellationToken));
+
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal((2, 2), (Find(character, iron).Quantity, Find(character, arcane).Quantity));
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task MergeCrossKind_RejectsSameKindAndBadQuantity()
+    {
+        var character = await AddCharacterAsync();
+        var iron = await GiveAsync(character, "test-refine-stone-2", 2);
+        var ironLow = await GiveAsync(character, "test-refine-stone", 2);
+        var arcane = await GiveAsync(character, "test-arcane-refine-stone-2", 2);
+
+        async Task<IReadOnlyList<string>> ReasonsAsync(long first, long second, int pairs) =>
+            (await Assert.ThrowsAsync<InputValidationException>(() => service.MergeCrossKindAsync(AccountId, first, second, pairs, CancellationToken))).Reasons;
+
+        Assert.Equal(["cannotMerge"], await ReasonsAsync(iron, ironLow, 1));
+        Assert.Equal(["cannotMerge"], await ReasonsAsync(iron, iron, 1));
+        Assert.Equal(["invalidQuantity"], await ReasonsAsync(iron, arcane, 3));
         Assert.Empty(log);
     }
 

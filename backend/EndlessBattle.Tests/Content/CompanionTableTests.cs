@@ -90,9 +90,10 @@ public class CompanionTableTests
             ("honour-key-sunset-fort", "sunset-fort-key", null, Cost((Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
             ("honour-key-still-city", "still-city-key", null, Cost((Silver, 1), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
             ("honour-key-obsidian-temple", "obsidian-temple-key", null, Cost((Silver, 3), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
+            .. NewConsumableExchanges.Select(row => (row.Id, (string?)row.ItemId, (string?)null, row.Cost)),
         ];
 
-        Assert.Equal(18, Content.HonourShop.Count);
+        Assert.Equal(25, Content.HonourShop.Count);
         Assert.Equal(expected.Length, Content.HonourShop.Count);
         foreach (var (row, exchange) in expected.Zip(Content.HonourShop))
         {
@@ -125,6 +126,30 @@ public class CompanionTableTests
             ],
             keyExchanges.Select(exchange => (exchange.Id, Content.GetItem(exchange.ItemId!).Key!.PlaceId)));
         Assert.All(keyExchanges, exchange => Assert.Equal(1, exchange.Quantity));
+    }
+
+    // 計畫 10 Task 5：寶箱、寵物蛋、心得書、經驗膠囊（大＝大陸、國＝王國、雨＝雨林、城＝王城、銀＝白銀）
+    private static readonly (string Id, string ItemId, ItemQuantity[] Cost)[] NewConsumableExchanges =
+    [
+        ("honour-stone-box", "stone-box", Cost((Continent, 1))),
+        ("honour-large-stone-box", "large-stone-box", Cost((Silver, 1))),
+        ("honour-refine-box", "refine-box", Cost((Kingdom, 1), (Rainforest, 1))),
+        ("honour-pet-egg", "pet-egg", Cost((Silver, 3))),
+        ("honour-job-notes", "job-notes", Cost((Continent, 1), (RoyalCity, 1))),
+        ("honour-advanced-job-notes", "advanced-job-notes", Cost((Silver, 2))),
+        ("honour-exp-capsule", "exp-capsule", Cost((Rainforest, 1), (RoyalCity, 1))),
+    ];
+
+    [Fact]
+    public void HonourShop_SellsTheNewConsumables()
+    {
+        var exchanges = Content.HonourShop.Where(exchange => NewConsumableExchanges.Any(row => row.Id == exchange.Id)).ToList();
+
+        Assert.Equal(NewConsumableExchanges.Select(row => (row.Id, row.ItemId, 1)), exchanges.Select(exchange => (exchange.Id, exchange.ItemId!, exchange.Quantity)));
+        foreach (var (row, exchange) in NewConsumableExchanges.Zip(exchanges))
+        {
+            Assert.Equal(row.Cost, exchange.Cost);
+        }
     }
 
     // 戰士 Lv30 期望值＋商店 4 級裝備估算
