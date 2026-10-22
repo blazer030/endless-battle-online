@@ -33,15 +33,14 @@ public static class KillCounter
         var tracked = new List<ActiveMission>();
         foreach (var record in records)
         {
-            if (record.State != MissionState.Active
-                || !byId.TryGetValue(record.MissionId, out var mission)
-                || mission.Daily != record.DailyPeriod.HasValue)
+            var mission = byId.GetValueOrDefault(record.MissionId);
+            if (record.State != MissionState.Active || !MissionBoard.Known(record, mission))
             {
                 continue;
             }
 
             var objective = DailyMissions.Resolve(mission, characterId, record.DailyPeriod);
-            if (objective.Kill is not { } kill || record.Progress >= kill.Count)
+            if (objective.Kill is not { } kill || MissionBoard.Ready(objective, record.Progress))
             {
                 continue;
             }

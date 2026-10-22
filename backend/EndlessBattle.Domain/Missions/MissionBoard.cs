@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.Missions;
@@ -56,11 +57,9 @@ public static class MissionBoard
     public static IReadOnlyList<MissionRecord> Current(
         IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, DateTimeOffset now)
     {
-        var dailyById = missions.ToDictionary(mission => mission.Id, mission => mission.Daily);
+        var byId = missions.ToDictionary(mission => mission.Id);
         return records
-            .Where(record => dailyById.TryGetValue(record.MissionId, out var daily)
-                && daily == record.DailyPeriod.HasValue
-                && !DailyMissions.IsExpired(record, now))
+            .Where(record => Known(record, byId.GetValueOrDefault(record.MissionId)) && !DailyMissions.IsExpired(record, now))
             .ToList();
     }
 
@@ -69,19 +68,26 @@ public static class MissionBoard
     public static IReadOnlyList<MissionRecord> Stale(
         IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, DateTimeOffset now)
     {
-        var dailyById = missions.ToDictionary(mission => mission.Id, mission => mission.Daily);
+        var byId = missions.ToDictionary(mission => mission.Id);
         return records
             .Where(record => DailyMissions.IsExpired(record, now)
-                || (dailyById.TryGetValue(record.MissionId, out var daily) && daily != record.DailyPeriod.HasValue))
+                || (byId.TryGetValue(record.MissionId, out var mission) && !Known(record, mission)))
             .ToList();
     }
+
+    // 擊殺目標已達成；沒有擊殺目標也算
+    public static bool Ready(MissionObjective objective, int progress) => objective.Kill is null || progress >= objective.Kill.Count;
+
+    // 內容中有這個任務，且紀錄的種類與定義相符（每日任務有週期、一般任務沒有）
+    internal static bool Known(MissionRecord record, [NotNullWhen(true)] MissionDefinition? definition) =>
+        definition is not null && definition.Daily == record.DailyPeriod.HasValue;
 
     private static MissionEntry Entry(
         Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId)
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
         var ready = record.State == MissionState.Active
-            && (objective.Kill is null || record.Progress >= objective.Kill.Count)
+            && Ready(objective, record.Progress)
             && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity)
             && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId);
         var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;

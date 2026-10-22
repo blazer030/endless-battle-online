@@ -187,7 +187,6 @@ public class MercenarySimulatorTests
 
         Assert.Equal(4, run.Fights.Count);
         Assert.Equal([hunt with { Progress = 3 }, daily with { Progress = 2 }], run.Missions);
-        Assert.Equal(5, run.MissionKills);
     }
 
     // 寶物 30% → 分母 ⌊10 × 0.9 × 1.7⌋ = 15。掉落是該場最後一骰（NextExp 很大、不升級），先數出全 0.0 時一場用掉幾骰，

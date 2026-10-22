@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
@@ -35,29 +36,11 @@ public static class MissionRewards
         IRandomSource random)
     {
         var reward = objective.Reward;
-        // 本次新開的格子先給暫時的負數 Id，後面的道具才能疊上去；輸出時再還原成 0
-        var working = bagAfterDelivery.ToList();
-        var updatedIds = new HashSet<long>();
-        var nextTemporaryId = -1L;
+        var placed = DropApplier.Apply(bagAfterDelivery, reward.Items, items, character.BagBonus);
         var reasons = new List<string>();
-        foreach (var rewardItem in reward.Items)
+        if (placed.Discarded.Contains(true))
         {
-            var item = items(rewardItem.ItemId);
-            var sameCategory = working.Where(entry => items(entry.ItemId).Category == item.Category).ToList();
-            var added = InventoryRules.TryAdd(sameCategory, item, rewardItem.Quantity, character.BagBonus);
-            if (added.Discarded > 0)
-            {
-                reasons.Add("bagFull");
-                break;
-            }
-
-            foreach (var entry in added.UpdatedEntries)
-            {
-                working[working.FindIndex(existing => existing.Id == entry.Id)] = entry;
-                updatedIds.Add(entry.Id);
-            }
-
-            working.AddRange(added.NewEntries.Select(entry => entry with { Id = nextTemporaryId-- }));
+            reasons.Add("bagFull");
         }
 
         if (reward.Pet is not null && petCountAfterDelivery >= PetRules.MaxPets)
@@ -77,8 +60,8 @@ public static class MissionRewards
         return new MissionRewardOutcome(
             levelUp.Character,
             levelUp.Events.Count,
-            working.Where(entry => entry.Id < 0).Select(entry => entry with { Id = 0 }).ToList(),
-            working.Where(entry => entry.Id > 0 && updatedIds.Contains(entry.Id)).ToList(),
+            placed.NewEntries,
+            placed.UpdatedEntries,
             reward.Skill is { } skill && !learned.Any(known => known.SkillId == skill.SkillId)
                 ? new LearnedSkill(skill.SkillId, skill.Level)
                 : null,

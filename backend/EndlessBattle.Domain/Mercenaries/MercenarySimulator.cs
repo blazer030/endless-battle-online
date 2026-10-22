@@ -29,8 +29,7 @@ public sealed record MercenaryRun(
     IReadOnlyList<MercenaryFight> Fights,
     long JobExp,
     IReadOnlyList<string> DroppedItemIds,
-    IReadOnlyList<ActiveMission> Missions,
-    int MissionKills);
+    IReadOnlyList<ActiveMission> Missions);
 
 // WOG fire_mercenary：每 100 秒一場，以角色當下的能力滿 HP／SP 出戰，不用補給、不耗行動力、不住宿、不捕捉
 public static class MercenarySimulator
@@ -62,7 +61,7 @@ public static class MercenarySimulator
         var fights = new List<MercenaryFight>();
         var droppedItemIds = new List<string>();
         var remaining = contract.Remaining;
-        int levelsGained = 0, missionKills = 0;
+        var levelsGained = 0;
         long jobExpTotal = 0;
 
         // 補算最多回溯 MaxSimulatedSeconds，更早的場次跳過：推到第一個不早於該時刻的格點
@@ -96,9 +95,7 @@ public static class MercenarySimulator
                     // 熟練度不打折（PHP win_check）
                     jobExpTotal += RewardFormulas.JobExp(monster, FullStamina);
                     dropped = DropRoller.Roll(monster.Drops, FullStamina, random, dropFactor);
-                    var kill = KillCounter.Apply(missions, monster.Id, fightAt);
-                    missions = kill.Missions;
-                    missionKills += kill.Advanced.Count;
+                    missions = KillCounter.Apply(missions, monster.Id, fightAt).Missions;
                     remaining--;
                     break;
                 case CombatSide.Monster:
@@ -123,6 +120,6 @@ public static class MercenarySimulator
         }
 
         var next = remaining > 0 ? contract with { Remaining = remaining, NextFightAt = fightAt } : null;
-        return new MercenaryRun(character, levelsGained, next, fights, jobExpTotal, droppedItemIds, missions, missionKills);
+        return new MercenaryRun(character, levelsGained, next, fights, jobExpTotal, droppedItemIds, missions);
     }
 }
