@@ -1608,6 +1608,8 @@ export interface components {
             /** Format: int64 */
             price: number;
             bound: boolean;
+            /** Format: int32 */
+            refineStoneLevel: null | number;
         };
         InventoryResponse: {
             bag: components["schemas"]["BagCategoryResponse"][];

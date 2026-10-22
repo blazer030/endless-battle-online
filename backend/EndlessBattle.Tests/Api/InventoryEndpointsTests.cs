@@ -60,6 +60,22 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(0, inventory.GetProperty("bonus").GetProperty("at").GetInt32());
     }
 
+    [Fact]
+    public async Task Get_ReturnsRefineStoneLevel_OnlyForRefineStones()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-sword");
+        await GiveAsync(characterId, "test-refine-stone-2", 3);
+
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+
+        var stone = Assert.Single(Category(inventory, "RefineStone").GetProperty("items").EnumerateArray());
+        Assert.Equal(2, stone.GetProperty("refineStoneLevel").GetInt32());
+        var sword = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
+        Assert.Equal(JsonValueKind.Null, sword.GetProperty("refineStoneLevel").ValueKind);
+    }
+
     // 鐵劍 at 8 → at 20；怪力戒指 str +50 → 有效 str 62、at 8 + 62 = 70；裸點仍是 12
     [Fact]
     public async Task Equip_ChangesEffectiveStatsInMe()

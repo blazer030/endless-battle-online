@@ -35,21 +35,15 @@ export const refinePreview = (item: InventoryItem) =>
 
 export const isAtRefineMax = (item: InventoryItem) => item.refineLevel >= item.refineMax
 
-// 回應沒有精鍊石等級，依內容 id 的慣例（…-refine-stone-<等級>）讀出
-export const refineStoneLevel = (itemId: string): number | null => {
-  const match = /-(\d+)$/.exec(itemId)
-  return match === null ? null : Number(match[1])
-}
-
-// 讀不出等級時交給後端判斷
+// 精鍊石等級必須等於目標等級（目前 + 1）
 export const refineStoneOptions = (
   inventory: InventoryView,
   target: InventoryItem,
 ): ForgeOption[] =>
-  bagSlotsOf(inventory, "RefineStone").items.map((stone) => {
-    const level = refineStoneLevel(stone.itemId)
-    return { stone, allowed: level === null || level === target.refineLevel + 1 }
-  })
+  bagSlotsOf(inventory, "RefineStone").items.map((stone) => ({
+    stone,
+    allowed: stone.refineStoneLevel === target.refineLevel + 1,
+  }))
 
 export const refineResultText = (
   success: boolean,
@@ -64,8 +58,8 @@ export const refineResultText = (
 
 // 同一格兩顆合一顆 +1 級；LV10 不能再合
 export const mergeablePairs = (stone: InventoryItem) => {
-  const level = refineStoneLevel(stone.itemId)
-  if (level !== null && level >= MaxRefineStoneLevel) return 0
+  const level = stone.refineStoneLevel
+  if (level === null || level >= MaxRefineStoneLevel) return 0
   return Math.floor(stone.quantity / StonesPerPair)
 }
 

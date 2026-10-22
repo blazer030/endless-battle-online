@@ -393,7 +393,8 @@ test("BagScreen_ShowsRetry_WhenInventoryFailsToLoad", async () => {
 const refineStone = (inventoryId: number, level: number, quantity = 1) =>
   makeItem({
     inventoryId,
-    itemId: `iron-refine-stone-${level}`,
+    itemId: `iron-refine-stone-lv${level}`,
+    refineStoneLevel: level,
     name: `鋼鐵精鍊石 Lv${level}`,
     category: "RefineStone",
     quantity,

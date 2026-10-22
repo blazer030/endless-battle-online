@@ -192,6 +192,7 @@ export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem 
   sockets: [],
   price: 200,
   bound: false,
+  refineStoneLevel: null,
   ...overrides,
 })
 

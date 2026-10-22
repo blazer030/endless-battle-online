@@ -59,5 +59,6 @@ public static class InventoryEndpoints
         item.Entry.Holes,
         item.Entry.Sockets.Select(socket => new SocketResponse(socket.Hole, socket.StoneId, socket.Rolled)).ToList(),
         item.Item.Price,
-        item.Item.Bound);
+        item.Item.Bound,
+        item.Item.Refine?.Level);
 }

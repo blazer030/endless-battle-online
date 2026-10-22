@@ -11,7 +11,6 @@ import {
   recipeText,
   refinePreview,
   refineResultText,
-  refineStoneLevel,
   refineStoneOptions,
   socketStoneOptions,
   stoneNameResolver,
@@ -28,7 +27,8 @@ const helmet = makeItem({ inventoryId: 2, name: "皮帽", category: "Head" })
 const stone = (inventoryId: number, level: number, quantity = 1) =>
   makeItem({
     inventoryId,
-    itemId: `iron-refine-stone-${level}`,
+    itemId: `iron-refine-stone-lv${level}`,
+    refineStoneLevel: level,
     name: `鋼鐵精鍊石 Lv${level}`,
     category: "RefineStone",
     quantity,
@@ -71,12 +71,6 @@ describe("refine", () => {
   it("stops at the refine max", () => {
     expect(isAtRefineMax(sword)).toBe(false)
     expect(isAtRefineMax({ ...sword, refineLevel: 4 })).toBe(true)
-  })
-
-  it("reads the stone level from the item id", () => {
-    expect(refineStoneLevel("iron-refine-stone-3")).toBe(3)
-    expect(refineStoneLevel("arcane-refine-stone-10")).toBe(10)
-    expect(refineStoneLevel("mystery")).toBeNull()
   })
 
   it("enables only stones of the target level", () => {
