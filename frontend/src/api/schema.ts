@@ -261,6 +261,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/characters/me/buffs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BuffResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/characters/me/settings": {
         parameters: {
             query?: never;
@@ -2431,6 +2466,15 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
+        /** @enum {unknown} */
+        BuffKind: "Exp" | "JobExp" | "Attack" | "Magic" | "Defense" | "MagicDefense";
+        BuffResponse: {
+            kind: components["schemas"]["BuffKind"];
+            /** Format: double */
+            multiplier: number;
+            /** Format: date-time */
+            endsAt: string;
+        };
         BuyRequest: {
             itemId: null | string;
             /** Format: int32 */
@@ -2526,7 +2570,7 @@ export interface components {
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
         /** @enum {unknown} */
-        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule";
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule" | "Elixir";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
@@ -3237,6 +3281,7 @@ export interface components {
             skillPoints: number;
             /** Format: int32 */
             levelsGained: number;
+            buff: null | components["schemas"]["BuffResponse"];
         };
         WorldAreaResponse: {
             id: string;
