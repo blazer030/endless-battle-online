@@ -76,6 +76,7 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.ActNumTime)
                 .HasMaxLength(6)
                 .HasColumnName("act_num_time");
+            entity.Property(e => e.AttackPreference).HasColumnName("attack_preference");
             entity.Property(e => e.BagBonus).HasColumnName("bag_bonus");
             entity.Property(e => e.Bank).HasColumnName("bank");
             entity.Property(e => e.BaseAgi)
@@ -116,6 +117,7 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.Element)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("element");
+            entity.Property(e => e.EscapeHpPercent).HasColumnName("escape_hp_percent");
             entity.Property(e => e.Exp).HasColumnName("exp");
             entity.Property(e => e.Hp)
                 .HasDefaultValueSql("'50'")
@@ -137,6 +139,18 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.NextExp)
                 .HasDefaultValueSql("'1000'")
                 .HasColumnName("next_exp");
+            entity.Property(e => e.PotionHpPercent)
+                .HasDefaultValueSql("'15'")
+                .HasColumnName("potion_hp_percent");
+            entity.Property(e => e.PotionSpPercent)
+                .HasDefaultValueSql("'100'")
+                .HasColumnName("potion_sp_percent");
+            entity.Property(e => e.RestHpPercent)
+                .HasDefaultValueSql("'15'")
+                .HasColumnName("rest_hp_percent");
+            entity.Property(e => e.RestSpPercent)
+                .HasDefaultValueSql("'15'")
+                .HasColumnName("rest_sp_percent");
             entity.Property(e => e.Sex)
                 .HasDefaultValueSql("'1'")
                 .HasColumnName("sex");

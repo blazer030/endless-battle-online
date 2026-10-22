@@ -69,6 +69,18 @@ public partial class Character
 
     public int DepotBonus { get; set; }
 
+    public sbyte? AttackPreference { get; set; }
+
+    public sbyte PotionHpPercent { get; set; }
+
+    public sbyte PotionSpPercent { get; set; }
+
+    public sbyte RestHpPercent { get; set; }
+
+    public sbyte RestSpPercent { get; set; }
+
+    public sbyte EscapeHpPercent { get; set; }
+
     public virtual Account Account { get; set; } = null!;
 
     public virtual CharacterChampion? CharacterChampion { get; set; }
