@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +40,20 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         await scope.ServiceProvider.GetRequiredService<IMissionRepository>()
             .UpdateProgressAsync(character!.Id, missionId, progress, CancellationToken);
     }
+
+    // 直接寫入寵物：取得寵物要靠捕捉，這裡跳過
+    private static async Task GivePetAsync(EndlessBattleApiFactory factory, HttpClient client, string monsterId, bool carried)
+    {
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+            .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+        await scope.ServiceProvider.GetRequiredService<IPetRepository>()
+            .AddAsync(character!.Id, TestPets.Create(monsterId: monsterId, carried: carried), CancellationToken);
+    }
+
+    private static JsonElement Mission(JsonElement board, string list, string missionId) =>
+        board.GetProperty(list).EnumerateArray().Single(mission => mission.GetProperty("id").GetString() == missionId);
 
     private static List<string?> Ids(JsonElement board, string list) =>
         board.GetProperty(list).EnumerateArray().Select(mission => mission.GetProperty("id").GetString()).ToList();
@@ -149,5 +164,50 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         var response = await factory.CreateClient().GetAsync("/api/missions", CancellationToken);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Missions_PetDailyShowsSpecies()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+
+        var board = await ReadAsync(await client.GetAsync("/api/missions", CancellationToken));
+
+        var available = Mission(board, "available", "test-daily-pet");
+        Assert.Equal(JsonValueKind.Null, available.GetProperty("kill").ValueKind);
+        var deliverPet = available.GetProperty("deliverPet");
+        var species = deliverPet.GetProperty("monsterId").GetString()!;
+        var names = new Dictionary<string, string> { ["test-sprite"] = "測試雪精", ["test-wolf"] = "測試寒狼" };
+        Assert.Equal(names[species], deliverPet.GetProperty("name").GetString());
+        Assert.False(deliverPet.GetProperty("carried").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, Mission(board, "available", "test-hunt").GetProperty("deliverPet").ValueKind);
+
+        await GivePetAsync(factory, client, species, carried: true);
+        var accepted = await ReadAsync(await PostAsync(client, "accept", "test-daily-pet"));
+
+        var active = Mission(accepted, "active", "test-daily-pet");
+        Assert.True(active.GetProperty("deliverPet").GetProperty("carried").GetBoolean());
+        Assert.True(active.GetProperty("ready").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Missions_CompleteReturnsPetReward()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        var board = await ReadAsync(await client.GetAsync("/api/missions", CancellationToken));
+        var rewardPet = Mission(board, "available", "test-pet-reward").GetProperty("rewards").GetProperty("pet");
+        Assert.Equal(("test-wolf", "測試寒狼", 2), (
+            rewardPet.GetProperty("monsterId").GetString(), rewardPet.GetProperty("name").GetString(), rewardPet.GetProperty("level").GetInt32()));
+        (await PostAsync(client, "accept", "test-pet-reward")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-pet-reward", 1);
+
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-pet-reward"));
+
+        Assert.Equal("測試寒狼", completion.GetProperty("pet").GetProperty("name").GetString());
+        var pets = await ReadAsync(await client.GetAsync("/api/pets", CancellationToken));
+        var pet = Assert.Single(pets.GetProperty("pets").EnumerateArray());
+        Assert.Equal(("test-wolf", false), (pet.GetProperty("monsterId").GetString(), pet.GetProperty("carried").GetBoolean()));
     }
 }

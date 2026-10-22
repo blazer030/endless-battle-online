@@ -10,12 +10,12 @@ public sealed record MissionRequirements(
 
 public sealed record SkillReward(string SkillId, int Level);
 
-// 計畫 9 才有內容；本計畫載入時拒絕
+// Level 是能力倍率（WOG g_pet_lv）：新寵物同捕捉的初始值，Attack、Magic、Defense 各 rand(1,10) × Level
 public sealed record PetReward(string MonsterId, int Level);
 
 public sealed record MissionReward(long Money, IReadOnlyList<ItemQuantity> Items, SkillReward? Skill = null, PetReward? Pet = null);
 
-// 一般任務：Kill 與 Deliver 至少一項；每日任務：Rewards 為空，目標與報酬各自從 DailyKills、DailyRewards 擲出
+// 一般任務：Kill 與 Deliver 至少一項；每日任務：Rewards 為空，目標從 DailyKills 或 DailyPets（恰好一個非空）擲出、報酬從 DailyRewards 擲出
 public sealed record MissionDefinition(
     string Id,
     string Giver,
@@ -30,8 +30,11 @@ public sealed record MissionDefinition(
     MissionRequirements Requirements,
     MissionReward Rewards,
     IReadOnlyList<KillTarget> DailyKills,
-    IReadOnlyList<MissionReward> DailyRewards)
+    IReadOnlyList<MissionReward> DailyRewards,
+    IReadOnlyList<string>? DailyPets = null)
 {
+    public IReadOnlyList<string> DailyPets { get; init; } = DailyPets ?? [];
+
     // WOG wog_mission_tool.php：經驗 = m_lv × 190
     public const long ExpPerLevel = 190;
 

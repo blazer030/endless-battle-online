@@ -4,23 +4,25 @@ namespace EndlessBattle.Domain.Missions;
 
 public sealed record MissionEntry(MissionDefinition Definition, MissionObjective Objective, MissionRecord? Record, bool Ready, DateTimeOffset? ExpiresAt);
 
-// Owned：建看板時的背包道具總數，回應交付進度用
+// Owned：建看板時的背包道具總數、CarriedPetMonsterId：攜帶中寵物的物種，回應交付進度用
 public sealed record MissionBoardView(
     IReadOnlyList<MissionEntry> Available,
     IReadOnlyList<MissionEntry> Active,
     IReadOnlyList<MissionEntry> Completed,
     DateTimeOffset NextDailyReset,
-    IReadOnlyDictionary<string, int> Owned);
+    IReadOnlyDictionary<string, int> Owned,
+    string? CarriedPetMonsterId = null);
 
 public static class MissionBoard
 {
-    // owned：背包中各道具的總數（算 Ready 用）；records 為原始紀錄，這裡負責去掉過期與未知
+    // owned：背包中各道具的總數、carriedPetMonsterId：攜帶中寵物的物種（算 Ready 用）；records 為原始紀錄，這裡負責去掉過期與未知
     public static MissionBoardView Build(
         Character character,
         IReadOnlyList<MissionDefinition> missions,
         IReadOnlyList<MissionRecord> records,
         IReadOnlyDictionary<string, int> owned,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        string? carriedPetMonsterId = null)
     {
         var current = Current(records, missions, now);
         var byId = missions.ToDictionary(mission => mission.Id);
@@ -38,16 +40,16 @@ public static class MissionBoard
         var active = current
             .Where(record => record.State == MissionState.Active)
             .OrderBy(record => record.AcceptedAt)
-            .Select(record => Entry(character, byId[record.MissionId], record, owned))
+            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId))
             .ToList();
 
         var completed = current
             .Where(record => record.State == MissionState.Completed)
             .OrderByDescending(record => record.CompletedAt)
-            .Select(record => Entry(character, byId[record.MissionId], record, owned))
+            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId))
             .ToList();
 
-        return new MissionBoardView(available, active, completed, nextReset, owned);
+        return new MissionBoardView(available, active, completed, nextReset, owned, carriedPetMonsterId);
     }
 
     // 未知任務、過期每日紀錄，以及與定義種類不符（每日卻無週期、一般卻有週期）的紀錄一律忽略
@@ -74,12 +76,14 @@ public static class MissionBoard
             .ToList();
     }
 
-    private static MissionEntry Entry(Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned)
+    private static MissionEntry Entry(
+        Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId)
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
         var ready = record.State == MissionState.Active
             && (objective.Kill is null || record.Progress >= objective.Kill.Count)
-            && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity);
+            && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity)
+            && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId);
         var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
         return new MissionEntry(mission, objective, record, ready, expiresAt);
     }

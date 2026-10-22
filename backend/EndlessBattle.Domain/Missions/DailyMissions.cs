@@ -4,8 +4,9 @@ using EndlessBattle.Domain.Randomness;
 
 namespace EndlessBattle.Domain.Missions;
 
-// 擲骰後的實際目標與報酬；一般任務就是定義本身
-public sealed record MissionObjective(string MissionId, KillTarget? Kill, IReadOnlyList<ItemQuantity> Deliver, MissionReward Reward, long Exp);
+// 擲骰後的實際目標與報酬；一般任務就是定義本身。DeliverPet：完成時攜帶中的寵物必須是這個物種（交出後刪除）
+public sealed record MissionObjective(
+    string MissionId, KillTarget? Kill, IReadOnlyList<ItemQuantity> Deliver, MissionReward Reward, long Exp, string? DeliverPet = null);
 
 public static class DailyMissions
 {
@@ -41,7 +42,7 @@ public static class DailyMissions
         return unchecked((int)hash);
     }
 
-    // 一般任務忽略 period；每日任務先擲目標、再擲報酬
+    // 一般任務忽略 period；每日任務先擲目標（擊殺或交寵物）、再擲報酬
     public static MissionObjective Resolve(MissionDefinition mission, long characterId, DateOnly? period)
     {
         if (!mission.Daily)
@@ -54,7 +55,15 @@ public static class DailyMissions
             throw new ArgumentException("每日任務需要週期", nameof(period));
         }
 
+        // 目標池 dailyKills 與 dailyPets 恰好一個非空（載入時驗證）
         var random = new SeededRandom(Seed(characterId, mission.Id, day));
+        if (mission.DailyPets.Count > 0)
+        {
+            var species = mission.DailyPets[random.NextInt(mission.DailyPets.Count)];
+            var petReward = mission.DailyRewards[random.NextInt(mission.DailyRewards.Count)];
+            return new MissionObjective(mission.Id, null, [], petReward, mission.Exp, species);
+        }
+
         var kill = mission.DailyKills[random.NextInt(mission.DailyKills.Count)];
         var reward = mission.DailyRewards[random.NextInt(mission.DailyRewards.Count)];
         return new MissionObjective(mission.Id, kill, [], reward, mission.Exp);

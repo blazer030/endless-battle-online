@@ -2,9 +2,11 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 
 namespace EndlessBattle.Application.Missions;
 
@@ -16,6 +18,7 @@ public sealed class MissionService(
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     ISkillBookRepository skillBook,
+    IPetRepository pets,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -65,7 +68,8 @@ public sealed class MissionService(
             return await BoardAsync(character, now, cancellationToken);
         }, cancellationToken);
 
-    // 驗證（含獎勵放不放得下）全部通過才寫入；寫入順序：角色（版本鎖＋獎勵）→ 過期與種類不符的紀錄 → 交付 → 獎勵道具 → 技能 → 任務
+    // 驗證依序 missionNotActive、objectiveIncomplete、itemsMissing、petMissing、獎勵（bagFull、petsFull），全部通過才寫入；
+    // 寫入順序：角色（版本鎖＋獎勵）→ 過期與種類不符的紀錄 → 交付 → 獎勵道具 → 技能 → 交出的寵物 → 獎勵寵物 → 任務
     public Task<MissionCompletion> CompleteAsync(long accountId, string missionId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -89,10 +93,19 @@ public sealed class MissionService(
                 throw new InputValidationException("無法完成任務", ["itemsMissing"]);
             }
 
+            // 交寵物要交攜帶中的那隻（PHP pe_st=0 and pe_m_id）
+            var owned = await pets.ListAsync(character.Id, cancellationToken);
+            Pet? deliveredPet = null;
+            if (objective.DeliverPet is { } species)
+            {
+                deliveredPet = owned.FirstOrDefault(pet => pet.Carried && pet.MonsterId == species)
+                    ?? throw new InputValidationException("無法完成任務", ["petMissing"]);
+            }
+
             var learned = await skillBook.ListAsync(character.Id, cancellationToken);
             var outcome = MissionRewards.Apply(
-                character, content.GetJob(character.JobId), objective, Delivery.After(state.Bag, delivery), content.GetItem, learned,
-                randomFactory.Create());
+                character, content.GetJob(character.JobId), objective, Delivery.After(state.Bag, delivery), content.GetItem, content.GetMonster, learned,
+                owned.Count - (deliveredPet is null ? 0 : 1), now, randomFactory.Create());
             if (outcome.Reasons.Count > 0)
             {
                 throw new InputValidationException("無法完成任務", outcome.Reasons);
@@ -124,6 +137,16 @@ public sealed class MissionService(
                 await skillBook.UpsertAsync(character.Id, skill, cancellationToken);
             }
 
+            if (deliveredPet is not null)
+            {
+                await pets.RemoveAsync(character.Id, deliveredPet.Id, cancellationToken);
+            }
+
+            if (outcome.NewPet is { } newPet)
+            {
+                await pets.AddAsync(character.Id, newPet.ToPet(), cancellationToken);
+            }
+
             await missions.CompleteAsync(character.Id, missionId, now, cancellationToken);
             var reward = objective.Reward;
             return new MissionCompletion(
@@ -134,7 +157,8 @@ public sealed class MissionService(
                 reward.Items,
                 reward.Skill,
                 outcome.GrantedSkill is not null,
-                outcome.LevelsGained);
+                outcome.LevelsGained,
+                reward.Pet);
         }, cancellationToken);
 
     // 交易中第一個寫入是角色版本鎖，同一角色的並行請求因版本不符收到 409；回傳寫入後的角色
@@ -154,7 +178,8 @@ public sealed class MissionService(
     {
         var records = await missions.ListAsync(character.Id, cancellationToken);
         var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
-        return MissionBoard.Build(character, content.AllMissions, records, Delivery.Owned(state.Bag), now);
+        var carried = (await pets.ListAsync(character.Id, cancellationToken)).FirstOrDefault(pet => pet.Carried);
+        return MissionBoard.Build(character, content.AllMissions, records, Delivery.Owned(state.Bag), now, carried?.MonsterId);
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>

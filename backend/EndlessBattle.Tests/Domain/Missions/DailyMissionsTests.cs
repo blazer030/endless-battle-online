@@ -111,4 +111,39 @@ public class DailyMissionsTests
         Assert.Equal(kills[killIndex], objective.Kill);
         Assert.Equal(rewards[rewardIndex], objective.Reward);
     }
+
+    [Fact]
+    public void Resolve_DailyPetRollsSpeciesThenReward()
+    {
+        string[] pets = ["test-sprite", "test-wolf", "test-bat"];
+        MissionReward[] rewards = [new(100, []), new(0, [new ItemQuantity("test-supply", 2)])];
+        var daily = Daily with { DailyKills = [], DailyPets = pets, DailyRewards = rewards };
+        const long characterId = 3;
+
+        var random = new SeededRandom(DailyMissions.Seed(characterId, "test-daily", October22));
+        var petIndex = random.NextInt(pets.Length);
+        var rewardIndex = random.NextInt(rewards.Length);
+
+        var objective = DailyMissions.Resolve(daily, characterId, October22);
+
+        Assert.Equivalent(objective, DailyMissions.Resolve(daily, characterId, October22));
+        Assert.Null(objective.Kill);
+        Assert.Empty(objective.Deliver);
+        Assert.Equal(pets[petIndex], objective.DeliverPet);
+        Assert.Equal(rewards[rewardIndex], objective.Reward);
+
+        var species = Enumerable.Range(0, 30)
+            .Select(offset => DailyMissions.Resolve(daily, characterId, new DateOnly(2026, 10, 1).AddDays(offset)).DeliverPet)
+            .Distinct()
+            .ToList();
+        Assert.True(species.Count >= 2);
+        Assert.DoesNotContain(null, species);
+    }
+
+    [Fact]
+    public void DailyPets_DefaultsToEmpty()
+    {
+        Assert.Empty(Daily.DailyPets);
+        Assert.Null(DailyMissions.Resolve(Daily, 7, October22).DeliverPet);
+    }
 }

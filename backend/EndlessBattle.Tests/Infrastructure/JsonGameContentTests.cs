@@ -807,7 +807,10 @@ public class JsonGameContentTests
         var content = JsonGameContent.Load(TestContentDirectory);
 
         Assert.Equal(
-            ["test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily"],
+            [
+                "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
+                "test-pet-reward",
+            ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(
             new MissionDefinition(
@@ -824,6 +827,9 @@ public class JsonGameContentTests
         Assert.Equal(new MissionRequirements(JobId: "warrior", PrerequisiteId: "test-hunt"), skillReward.Requirements);
         Assert.Equal(new SkillReward("iron-skin", 1), skillReward.Rewards.Skill);
         Assert.Equal(new KillTarget("test-wolf", 2), skillReward.Kill);
+
+        Assert.Equal(["test-sprite", "test-wolf"], content.GetMission("test-daily-pet").DailyPets);
+        Assert.Equal(new PetReward("test-wolf", 2), content.GetMission("test-pet-reward").Rewards.Pet);
 
         var daily = content.GetMission("test-daily");
         Assert.True(daily.Daily);
@@ -979,14 +985,80 @@ public class JsonGameContentTests
         Assert.Contains("chief", message);
     }
 
+    private const string PetRewardField = "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }";
+
+    private static string WithPetReward(string monsterId, int level) =>
+        ReplaceOnce(ValidMissionList, PetRewardField, $"{PetRewardField}, \"pet\": {{ \"monsterId\": \"{monsterId}\", \"level\": {level} }}");
+
+    // 每日任務的報酬池也可以有寵物；level 1～280（WOG 寵物蛋倍率 280 為上限）
     [Fact]
-    public void Missions_RejectPetReward()
+    public void Missions_AcceptPetReward()
+    {
+        var missions = ReplaceOnce(
+            WithPetReward("sprite", 280),
+            "\"dailyRewards\": [{ \"money\": 100,",
+            "\"dailyRewards\": [{ \"money\": 0, \"pet\": { \"monsterId\": \"puff\", \"level\": 1 } }, { \"money\": 100,");
+
+        var content = WithMissionContent(missions, MissionMonsters, JsonGameContent.Load);
+
+        Assert.Equal(new PetReward("sprite", 280), content.GetMission("hunt").Rewards.Pet);
+        Assert.Equal(new PetReward("puff", 1), content.GetMission("daily").DailyRewards[0].Pet);
+    }
+
+    [Fact]
+    public void Missions_RejectPetRewardForMissionMonster()
+    {
+        var message = MissionRejection(WithPetReward("chief", 1));
+        Assert.Contains("hunt", message);
+        Assert.Contains("chief", message);
+        Assert.Contains("寵物", message);
+
+        Assert.Contains("ghost-monster", MissionRejection(WithPetReward("ghost-monster", 1)));
+        Assert.Contains("level", MissionRejection(WithPetReward("sprite", 0)));
+        Assert.Contains("level", MissionRejection(WithPetReward("sprite", 281)));
+    }
+
+    [Fact]
+    public void Missions_AcceptDailyPets()
+    {
+        var missions = ReplaceOnce(
+            ValidMissionList, "\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyPets\": [\"sprite\", \"puff\"]");
+
+        var daily = WithMissionContent(missions, MissionMonsters, JsonGameContent.Load).GetMission("daily");
+
+        Assert.Equal(["sprite", "puff"], daily.DailyPets);
+        Assert.Empty(daily.DailyKills);
+    }
+
+    [Fact]
+    public void Missions_RejectDailyWithBothPools()
+    {
+        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"dailyPets\": [\"sprite\"],");
+        Assert.Contains("daily", message);
+        Assert.Contains("dailyPets", message);
+
+        var neither = MissionFieldRejection("\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyPets\": []");
+        Assert.Contains("dailyPets", neither);
+    }
+
+    [Theory]
+    [InlineData("\"ghost-monster\"", "ghost-monster")]
+    [InlineData("\"chief\"", "chief")]
+    [InlineData("\"sprite\", \"sprite\"", "重複")]
+    public void Missions_RejectInvalidDailyPets(string pool, string expected)
     {
         var message = MissionFieldRejection(
-            "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }",
-            "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }, \"pet\": { \"monsterId\": \"sprite\", \"level\": 1 }");
+            "\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", $"\"dailyPets\": [{pool}]");
+        Assert.Contains("daily", message);
+        Assert.Contains(expected, message);
+    }
+
+    [Fact]
+    public void Missions_RejectDailyPetsOnNormalMission()
+    {
+        var message = MissionFieldRejection("\"daily\": false,", "\"daily\": false, \"dailyPets\": [\"sprite\"],");
         Assert.Contains("hunt", message);
-        Assert.Contains("寵物", message);
+        Assert.Contains("dailyPets", message);
     }
 
     [Fact]

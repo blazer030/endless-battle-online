@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -11,7 +12,8 @@ using EndlessBattle.Tests.Support;
 namespace EndlessBattle.Tests.Application;
 
 // TestContent：test-hunt、test-sprite-bounty、test-delivery、test-chief-hunt（Lv1 一般任務）、
-// test-skill-reward（Lv5、戰士、前置 test-hunt）、test-daily（每日）。現在是 2026-10-22T02:00Z ＝ 週期 2026-10-22
+// test-skill-reward（Lv5、戰士、前置 test-hunt）、test-daily（每日）、test-daily-pet（每日交寵物：test-sprite 或 test-wolf）、
+// test-pet-reward（擊敗 test-sprite ×1、寵物 test-wolf 倍率 2）。現在是 2026-10-22T02:00Z ＝ 週期 2026-10-22
 public class MissionServiceTests
 {
     private const long AccountId = 7;
@@ -25,6 +27,8 @@ public class MissionServiceTests
     private readonly InMemoryInventoryRepository inventory;
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemorySkillBookRepository skillBook;
+    private readonly InMemoryPetRepository pets;
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly FakeClock clock = new(Now);
     private readonly MissionService service;
 
@@ -35,10 +39,13 @@ public class MissionServiceTests
         inventory = new InMemoryInventoryRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         skillBook = new InMemorySkillBookRepository(log);
-        var unitOfWork = new InMemoryUnitOfWork(characters, inventory, missions);
-        service = new MissionService(
-            characters, missions, inventory, equipment, skillBook, Content, clock, new FixedSeedRandomFactory(1), unitOfWork);
+        pets = new InMemoryPetRepository(log);
+        unitOfWork = new InMemoryUnitOfWork(characters, inventory, missions, pets);
+        service = Service(Content);
     }
+
+    private MissionService Service(JsonGameContent content) => new(
+        characters, missions, inventory, equipment, skillBook, pets, content, clock, new FixedSeedRandomFactory(1), unitOfWork);
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
@@ -411,5 +418,154 @@ public class MissionServiceTests
         Assert.Equal(1, completion.LevelsGained);
         Assert.Equal(5, (await CurrentAsync()).Level);
         Assert.Contains(completion.Board.Available, entry => entry.Definition.Id == "test-skill-reward");
+    }
+
+    // 第一個讓 test-daily-pet 擲到指定物種的週期（從今天起找），時鐘移到該週期內
+    private DateOnly MoveToPetPeriod(Character character, string species, JsonGameContent? content = null)
+    {
+        var mission = (content ?? Content).GetMission("test-daily-pet");
+        var period = Enumerable.Range(0, 60)
+            .Select(offset => Today.AddDays(offset))
+            .First(day => DailyMissions.Resolve(mission, character.Id, day).DeliverPet == species);
+        clock.Advance(DailyMissions.PeriodStart(period).AddHours(1) - clock.UtcNow);
+        return period;
+    }
+
+    private async Task<long> GivePetAsync(Character character, string monsterId, bool carried) =>
+        await pets.AddAsync(character.Id, TestPets.Create(monsterId: monsterId, carried: carried), CancellationToken);
+
+    private Task<IReadOnlyList<Pet>> PetsAsync(Character character) => pets.ListAsync(character.Id, CancellationToken);
+
+    [Fact]
+    public async Task Complete_DeliversCarriedPet()
+    {
+        var character = await AddCharacterAsync();
+        var period = MoveToPetPeriod(character, "test-wolf");
+        var wolf = await GivePetAsync(character, "test-wolf", carried: true);
+        var stored = await GivePetAsync(character, "test-wolf", carried: false);
+        var accepted = await service.AcceptAsync(AccountId, "test-daily-pet", CancellationToken);
+        Assert.True(Assert.Single(accepted.Active).Ready);
+        var medal = Assert.Single(DailyMissions.Resolve(Content.GetMission("test-daily-pet"), character.Id, period).Reward.Items);
+        log.Clear();
+
+        var completion = await service.CompleteAsync(AccountId, "test-daily-pet", CancellationToken);
+
+        Assert.Equal([stored], (await PetsAsync(character)).Select(pet => pet.Id));
+        Assert.Equal(medal.Quantity, Assert.Single(await BagAsync(character), entry => entry.ItemId == medal.ItemId).Quantity);
+        Assert.Equal(["update", $"add:{medal.ItemId}", $"pet:remove:{wolf}", "mission:complete:test-daily-pet"], log);
+        Assert.Null(completion.Pet);
+        Assert.Equal(MissionState.Completed, Assert.Single(await RecordsAsync(character)).State);
+    }
+
+    // 獸欄裡有對的物種也不行，要攜帶中的
+    [Fact]
+    public async Task Complete_RejectsWrongCarriedPet()
+    {
+        var character = await AddCharacterAsync();
+        MoveToPetPeriod(character, "test-wolf");
+        await GivePetAsync(character, "test-sprite", carried: true);
+        await GivePetAsync(character, "test-wolf", carried: false);
+        var accepted = await service.AcceptAsync(AccountId, "test-daily-pet", CancellationToken);
+        Assert.False(Assert.Single(accepted.Active).Ready);
+        var before = await PetsAsync(character);
+        var version = await VersionAsync();
+        log.Clear();
+
+        var error = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-daily-pet", CancellationToken));
+
+        Assert.Equal(["petMissing"], error.Reasons);
+        Assert.Equal(before, await PetsAsync(character));
+        Assert.Empty(await BagAsync(character));
+        Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
+        Assert.Equal(version, await VersionAsync());
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Complete_PetRewardAddsStoredPet()
+    {
+        var character = await AddCharacterAsync();
+        await GivePetAsync(character, "test-sprite", carried: true);
+        await SeedAsync(character, Active("test-pet-reward", progress: 1));
+
+        var completion = await service.CompleteAsync(AccountId, "test-pet-reward", CancellationToken);
+
+        var reward = Assert.Single(await PetsAsync(character), pet => pet.MonsterId == "test-wolf");
+        Assert.False(reward.Carried);
+        Assert.Equal("測試寒狼", reward.Name);
+        Assert.Equal((1, 80, 0), (reward.Spirit, reward.Satiety, reward.Intimacy));
+        Assert.Equal(clock.UtcNow, reward.BornAt);
+        Assert.All(new[] { reward.Attack, reward.Magic, reward.Defense }, stat => Assert.True(stat is >= 2 and <= 20 && stat % 2 == 0));
+        Assert.Equal(new PetReward("test-wolf", 2), completion.Pet);
+        Assert.Equal(["update", $"pet:add:{reward.Id}", "mission:complete:test-pet-reward"], log);
+    }
+
+    [Fact]
+    public async Task Complete_PetRewardRejectedWhenPetsFull()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "test-ore", 2);
+        for (var count = 0; count < PetRules.MaxPets; count++)
+        {
+            await GivePetAsync(character, "test-sprite", carried: count == 0);
+        }
+
+        await SeedAsync(character, Active("test-pet-reward", progress: 1));
+        var before = await CurrentAsync();
+        var pets = await PetsAsync(character);
+        var bag = await BagAsync(character);
+
+        var error = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-pet-reward", CancellationToken));
+
+        Assert.Equal(["petsFull"], error.Reasons);
+        Assert.Equal(before, await CurrentAsync());
+        Assert.Equal(pets, await PetsAsync(character));
+        Assert.Equal(bag, await BagAsync(character));
+        Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
+        Assert.Empty(log);
+    }
+
+    // 交寵物的每日任務若也送寵物，以交出後的寵物數判斷：3 隻交出 1 隻，還放得下獎勵
+    [Fact]
+    public async Task Complete_PetDeliveryFreesRoomForPetReward()
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            foreach (var file in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "TestContent")))
+            {
+                File.Copy(file, Path.Combine(directory.FullName, Path.GetFileName(file)));
+            }
+
+            var missionsPath = Path.Combine(directory.FullName, "missions.json");
+            var json = File.ReadAllText(missionsPath);
+            var medalB = "{ \"money\": 0, \"items\": [{ \"itemId\": \"test-medal-b\", \"quantity\": 1 }] }";
+            Assert.Contains(medalB, json);
+            File.WriteAllText(missionsPath, json.Replace(medalB, "{ \"money\": 0, \"pet\": { \"monsterId\": \"test-sprite\", \"level\": 1 } }"));
+            var content = JsonGameContent.Load(directory.FullName);
+            var withPetReward = Service(content);
+
+            var character = await AddCharacterAsync();
+            var period = Enumerable.Range(0, 120)
+                .Select(offset => Today.AddDays(offset))
+                .First(day => DailyMissions.Resolve(content.GetMission("test-daily-pet"), character.Id, day) is
+                    { DeliverPet: "test-wolf", Reward.Pet: not null });
+            clock.Advance(DailyMissions.PeriodStart(period).AddHours(1) - clock.UtcNow);
+            var wolf = await GivePetAsync(character, "test-wolf", carried: true);
+            await GivePetAsync(character, "test-sprite", carried: false);
+            await GivePetAsync(character, "test-sprite", carried: false);
+            await withPetReward.AcceptAsync(AccountId, "test-daily-pet", CancellationToken);
+
+            var completion = await withPetReward.CompleteAsync(AccountId, "test-daily-pet", CancellationToken);
+
+            var after = await PetsAsync(character);
+            Assert.Equal(PetRules.MaxPets, after.Count);
+            Assert.DoesNotContain(after, pet => pet.Id == wolf);
+            Assert.Equal(new PetReward("test-sprite", 1), completion.Pet);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
     }
 }

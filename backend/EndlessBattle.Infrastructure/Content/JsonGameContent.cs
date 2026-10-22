@@ -29,6 +29,8 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumRefineKind = 18;
     private const int MaximumMissionIdLength = 32;
     private const int MaximumMissionQuantity = 99;
+    // WOG 寵物蛋的最大倍率
+    private const int MaximumPetRewardLevel = 280;
     private const int MaximumBirth = 4;
     private const int MaximumCompanionIdLength = 32;
     private const int MaximumMercenaryNameLength = 8;
@@ -783,7 +785,19 @@ public sealed class JsonGameContent : IGameContent
                     $"的技能獎勵 {skillReward.SkillId} 屬於職業 {skill.JobId}，requirements.jobId 必須相同");
             }
 
-            Require(reward.Pet is null, "有寵物獎勵；寵物獎勵要到計畫 9 才開放");
+            if (reward.Pet is { } pet)
+            {
+                RequirePetSpecies($"{field} pet", pet.MonsterId);
+                Require(pet.Level is >= 1 and <= MaximumPetRewardLevel,
+                    $"的 {field} 寵物 {pet.MonsterId} 的 level 必須在 1～{MaximumPetRewardLevel}");
+            }
+        }
+
+        // 寵物物種：存在、不是任務怪
+        void RequirePetSpecies(string field, string monsterId)
+        {
+            Require(monsters.TryGetValue(monsterId, out var monster), $"的 {field} 引用了不存在的怪物：{monsterId}");
+            Require(monster!.MissionId is null, $"的 {field} 寵物不能是任務怪：{monsterId}");
         }
 
         if (mission.Daily)
@@ -794,8 +808,14 @@ public sealed class JsonGameContent : IGameContent
                 "是每日任務，不能有 prerequisiteId 或 conflictsWith");
             Require(mission.Rewards is { Money: 0, Items.Count: 0, Skill: null, Pet: null },
                 "是每日任務，rewards 必須為空（改用 dailyRewards）");
-            Require(mission.DailyKills.Count >= 1, "是每日任務，dailyKills 至少要有一項");
+            Require(mission.DailyKills.Count > 0 ^ mission.DailyPets.Count > 0, "是每日任務，dailyKills 與 dailyPets 必須恰好一個非空");
             Require(mission.DailyRewards.Count >= 1, "是每日任務，dailyRewards 至少要有一項");
+            foreach (var species in mission.DailyPets)
+            {
+                RequirePetSpecies("dailyPets", species);
+            }
+
+            Require(mission.DailyPets.Distinct().Count() == mission.DailyPets.Count, "的 dailyPets 物種重複");
             foreach (var kill in mission.DailyKills)
             {
                 var monster = RequireKill(kill);
@@ -816,6 +836,7 @@ public sealed class JsonGameContent : IGameContent
         Require(!place.Restricted, $"的地區 {place.Id} 是禁區");
         Require(mission.Kill is not null || mission.Deliver.Count > 0, "至少要有擊殺目標（kill）或交付道具（deliver）");
         Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
+        Require(mission.DailyPets.Count == 0, "不是每日任務，不能有 dailyPets");
         Require(mission.DailyRewards.Count == 0, "不是每日任務，不能有 dailyRewards");
         if (mission.Kill is { } fixedKill)
         {
@@ -993,7 +1014,8 @@ public sealed class JsonGameContent : IGameContent
             entry.Requirements ?? new MissionRequirements(),
             ToReward(entry.Rewards),
             entry.DailyKills ?? [],
-            (entry.DailyRewards ?? []).Select(ToReward).ToList());
+            (entry.DailyRewards ?? []).Select(ToReward).ToList(),
+            entry.DailyPets ?? []);
     }
 
     private static SkillDefinition ToSkillDefinition(SkillEntry entry)
@@ -1200,7 +1222,8 @@ public sealed class JsonGameContent : IGameContent
         MissionRequirements? Requirements,
         RewardEntry? Rewards,
         IReadOnlyList<KillTarget>? DailyKills,
-        IReadOnlyList<RewardEntry>? DailyRewards);
+        IReadOnlyList<RewardEntry>? DailyRewards,
+        IReadOnlyList<string>? DailyPets);
 
     private sealed record RewardEntry(long Money, IReadOnlyList<ItemQuantity>? Items, SkillReward? Skill, PetReward? Pet);
 

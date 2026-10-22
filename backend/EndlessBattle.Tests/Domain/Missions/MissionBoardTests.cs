@@ -164,4 +164,21 @@ public class MissionBoardTests
 
         Assert.Equal(["now-daily", "now-general", "daily"], MissionBoard.Stale(records, missions, Now).Select(record => record.MissionId));
     }
+
+    [Fact]
+    public void Board_PetDeliveryReadyOnlyWithCarriedSpecies()
+    {
+        var petDaily = DailyMission("pet-daily") with { DailyKills = [], DailyPets = ["test-wolf"] };
+        IReadOnlyList<MissionDefinition> missions = [petDaily];
+        IReadOnlyList<MissionRecord> records = [Active("pet-daily", period: Today)];
+
+        var carried = MissionBoard.Build(Hero, missions, records, NothingOwned, Now, carriedPetMonsterId: "test-wolf");
+        var otherSpecies = MissionBoard.Build(Hero, missions, records, NothingOwned, Now, carriedPetMonsterId: "test-sprite");
+        var noPet = MissionBoard.Build(Hero, missions, records, NothingOwned, Now);
+
+        Assert.Equal("test-wolf", carried.Active.Single().Objective.DeliverPet);
+        Assert.True(carried.Active.Single().Ready);
+        Assert.False(otherSpecies.Active.Single().Ready);
+        Assert.False(noPet.Active.Single().Ready);
+    }
 }

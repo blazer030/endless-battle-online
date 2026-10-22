@@ -312,7 +312,11 @@ public sealed record MissionResponse(
     MissionRequirementsResponse Requirements,
     MissionRewardResponse Rewards,
     bool Ready,
-    DateTimeOffset? ExpiresAt);
+    DateTimeOffset? ExpiresAt,
+    MissionPetResponse? DeliverPet);
+
+// 要交出的寵物物種；Carried：攜帶中的寵物是這個物種
+public sealed record MissionPetResponse(string MonsterId, string Name, bool Carried);
 
 public sealed record MissionKillResponse(string MonsterId, string MonsterName, int PlaceId, string PlaceName, int Count, int Progress);
 
@@ -321,13 +325,17 @@ public sealed record MissionDeliverResponse(string ItemId, string Name, int Quan
 
 public sealed record MissionRequirementsResponse(string? JobId, int? Sex, int? Birth, string? PrerequisiteId, string? PrerequisiteTitle);
 
-public sealed record MissionRewardResponse(long Exp, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill);
+public sealed record MissionRewardResponse(
+    long Exp, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill, MissionRewardPetResponse? Pet);
 
 public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity);
 
 public sealed record MissionRewardSkillResponse(string SkillId, string Name, int Level);
 
-// Exp、Money、Items、Skill 是這次任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能；Character 已含獎勵
+// Level 是能力倍率
+public sealed record MissionRewardPetResponse(string MonsterId, string Name, int Level);
+
+// Exp、Money、Items、Skill、Pet 是這次任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能；Character 已含獎勵
 public sealed record MissionCompleteResponse(
     MissionBoardResponse Board,
     CharacterResponse Character,
@@ -337,7 +345,8 @@ public sealed record MissionCompleteResponse(
     IReadOnlyList<MissionRewardItemResponse> Items,
     MissionRewardSkillResponse? Skill,
     bool SkillGranted,
-    int LevelsGained);
+    int LevelsGained,
+    MissionRewardPetResponse? Pet);
 
 // carry、store、release 只看 PetId；rename 另看 Name；feed 另看 FoodId
 public sealed record PetRequest(long? PetId, string? Name, string? FoodId);
@@ -381,3 +390,17 @@ public sealed record MercenaryContractResponse(
 
 // Character 已扣僱用的金錢
 public sealed record MercenaryHireResponse(MercenaryOverviewResponse Mercenaries, CharacterResponse Character);
+
+// exchange 只看 ExchangeId
+public sealed record HonourExchangeRequest(string? ExchangeId);
+
+public sealed record HonourShopResponse(IReadOnlyList<HonourMedalResponse> Medals, IReadOnlyList<HonourExchangeResponse> Exchanges);
+
+// Owned 是背包中的持有數
+public sealed record HonourMedalResponse(string ItemId, string Name, int Owned);
+
+// Kind："item" | "mercenary"；RewardId 是道具或傭兵 id
+public sealed record HonourExchangeResponse(
+    string Id, string Kind, string RewardId, string RewardName, int Quantity, IReadOnlyList<HonourCostResponse> Cost, bool Affordable);
+
+public sealed record HonourCostResponse(string ItemId, string Name, int Quantity, int Owned);

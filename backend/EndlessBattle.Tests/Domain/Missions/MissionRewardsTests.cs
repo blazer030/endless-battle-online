@@ -2,6 +2,7 @@ using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
@@ -26,17 +27,28 @@ public class MissionRewardsTests
         TestItems.Consumable("test-supply"),
     }.ToDictionary(item => item.Id);
 
-    private static MissionObjective Objective(int level, long money, IReadOnlyList<ItemQuantity>? items = null, SkillReward? skill = null) =>
+    private static readonly DateTimeOffset Now = new(2026, 10, 22, 3, 0, 0, TimeSpan.Zero);
+
+    private static readonly MonsterDefinition Wolf = new("test-wolf", "測試寒狼", 5, 95, 10, 20, 6, 9, 5, 13, 7, 2, 18, 30, 1, [1, 3], []);
+
+    private static MissionObjective Objective(
+        int level, long money, IReadOnlyList<ItemQuantity>? items = null, SkillReward? skill = null, PetReward? pet = null) =>
         DailyMissions.Resolve(
             new MissionDefinition(
                 "m", "村長", "標題", "說明", "謝謝", level, 1, false, new KillTarget("test-sprite", 3), [],
-                new MissionRequirements(), new MissionReward(money, items ?? [], skill), [], []),
+                new MissionRequirements(), new MissionReward(money, items ?? [], skill, pet), [], []),
             Hero.Id,
             null);
 
     private static MissionRewardOutcome Apply(
-        Character character, MissionObjective objective, IReadOnlyList<InventoryEntry>? bag = null, IReadOnlyList<LearnedSkill>? learned = null) =>
-        MissionRewards.Apply(character, Warrior, objective, bag ?? [], id => Items[id], learned ?? [], new SeededRandom(1));
+        Character character,
+        MissionObjective objective,
+        IReadOnlyList<InventoryEntry>? bag = null,
+        IReadOnlyList<LearnedSkill>? learned = null,
+        int petCount = 0,
+        IRandomSource? random = null) =>
+        MissionRewards.Apply(
+            character, Warrior, objective, bag ?? [], id => Items[id], _ => Wolf, learned ?? [], petCount, Now, random ?? new SeededRandom(1));
 
     [Fact]
     public void Apply_GrantsLevelTimes190AndMoney()
@@ -105,5 +117,39 @@ public class MissionRewardsTests
         Assert.Empty(outcome.Reasons);
         Assert.Null(outcome.GrantedSkill);
         Assert.Equal((Hero.Exp + 190, Hero.Money + 250), (outcome.Character.Exp, outcome.Character.Money));
+    }
+
+    // ScriptedRandom 的 rand(1, n) = ⌊擲骰 × n⌋ + 1：0.45 → rand(1,10) 5、0.0 → 個性 1 積極；不升級所以不擲成長
+    [Fact]
+    public void Apply_PetRewardRollsStatsTimesLevel()
+    {
+        var random = new ScriptedRandom(0.0, 0.45, 0.45, 0.45, 0.0);
+
+        var outcome = Apply(Hero, Objective(level: 1, money: 0, pet: new PetReward("test-wolf", 2)), random: random);
+
+        Assert.Empty(outcome.Reasons);
+        var pet = outcome.NewPet!;
+        Assert.Equal(("test-wolf", "測試寒狼", PetPersonality.Aggressive), (pet.MonsterId, pet.Name, pet.Personality));
+        Assert.Equal((10, 10, 10), (pet.Attack, pet.Magic, pet.Defense));
+        Assert.Equal(Now, pet.CapturedAt);
+        Assert.Equal(4, random.Consumed);
+    }
+
+    [Fact]
+    public void Apply_PetRewardRejectedWhenPetsFull()
+    {
+        var objective = Objective(level: 1, money: 50, [new ItemQuantity("safe-refine-stone", 1)], pet: new PetReward("test-wolf", 2));
+        var fullBag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "stone-remover", 99)).ToList();
+
+        Assert.Equal(["petsFull"], Apply(Hero, objective, petCount: PetRules.MaxPets).Reasons);
+        Assert.Equal(["bagFull", "petsFull"], Apply(Hero, objective, fullBag, petCount: PetRules.MaxPets).Reasons);
+        Assert.Empty(Apply(Hero, objective, petCount: PetRules.MaxPets - 1).Reasons);
+    }
+
+    [Fact]
+    public void Apply_WithoutPetRewardHasNoPet()
+    {
+        Assert.Null(Apply(Hero, Objective(level: 1, money: 0), petCount: PetRules.MaxPets).NewPet);
+        Assert.Empty(Apply(Hero, Objective(level: 1, money: 0), petCount: PetRules.MaxPets).Reasons);
     }
 }

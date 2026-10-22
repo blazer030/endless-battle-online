@@ -2,7 +2,7 @@ using EndlessBattle.Domain.Missions;
 
 namespace EndlessBattle.Application.Missions;
 
-// Exp、Money、Items、Skill 是任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能
+// Exp、Money、Items、Skill、Pet 是任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能
 public sealed record MissionCompletion(
     MissionBoardView Board,
     string CompletionMessage,
@@ -11,4 +11,5 @@ public sealed record MissionCompletion(
     IReadOnlyList<ItemQuantity> Items,
     SkillReward? Skill,
     bool SkillGranted,
-    int LevelsGained);
+    int LevelsGained,
+    PetReward? Pet = null);

@@ -44,7 +44,8 @@ public static class MissionEndpoints
                 completion.Items.Select(item => ToResponse(item, content)).ToList(),
                 completion.Skill is { } skill ? ToResponse(skill, content) : null,
                 completion.SkillGranted,
-                completion.LevelsGained));
+                completion.LevelsGained,
+                completion.Pet is { } pet ? ToResponse(pet, content) : null));
         });
 
         return app;
@@ -55,11 +56,13 @@ public static class MissionEndpoints
 
     public static MissionBoardResponse ToResponse(MissionBoardView board, IGameContent content)
     {
-        List<MissionResponse> Map(IReadOnlyList<MissionEntry> entries) => entries.Select(entry => ToResponse(entry, board.Owned, content)).ToList();
+        List<MissionResponse> Map(IReadOnlyList<MissionEntry> entries) =>
+            entries.Select(entry => ToResponse(entry, board.Owned, board.CarriedPetMonsterId, content)).ToList();
         return new MissionBoardResponse(Map(board.Available), Map(board.Active), Map(board.Completed), MissionRules.MaxActive, board.NextDailyReset);
     }
 
-    private static MissionResponse ToResponse(MissionEntry entry, IReadOnlyDictionary<string, int> owned, IGameContent content)
+    private static MissionResponse ToResponse(
+        MissionEntry entry, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId, IGameContent content)
     {
         var mission = entry.Definition;
         var objective = entry.Objective;
@@ -88,9 +91,13 @@ public static class MissionEndpoints
                 objective.Exp,
                 reward.Money,
                 reward.Items.Select(item => ToResponse(item, content)).ToList(),
-                reward.Skill is { } skill ? ToResponse(skill, content) : null),
+                reward.Skill is { } skill ? ToResponse(skill, content) : null,
+                reward.Pet is { } pet ? ToResponse(pet, content) : null),
             entry.Ready,
-            entry.ExpiresAt);
+            entry.ExpiresAt,
+            objective.DeliverPet is { } species
+                ? new MissionPetResponse(species, content.GetMonster(species).Name, species == carriedPetMonsterId)
+                : null);
     }
 
     private static MissionRewardItemResponse ToResponse(ItemQuantity item, IGameContent content) =>
@@ -98,6 +105,9 @@ public static class MissionEndpoints
 
     private static MissionRewardSkillResponse ToResponse(SkillReward skill, IGameContent content) =>
         new(skill.SkillId, content.GetSkill(skill.SkillId).Name, skill.Level);
+
+    private static MissionRewardPetResponse ToResponse(PetReward pet, IGameContent content) =>
+        new(pet.MonsterId, content.GetMonster(pet.MonsterId).Name, pet.Level);
 
     private static MissionKillResponse ToResponse(KillTarget kill, int progress, IGameContent content)
     {
