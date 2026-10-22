@@ -11,7 +11,15 @@ import type {
 } from "../game/types"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
-import { makeCharacter, makeContent, makeJob, makeSummary, makeWorld } from "../test/fixtures"
+import {
+  makeCharacter,
+  makeContent,
+  makeInventory,
+  makeItem,
+  makeJob,
+  makeSummary,
+  makeWorld,
+} from "../test/fixtures"
 import { AdventureScreen } from "./AdventureScreen"
 
 // jsdom 沒有 WebGL，舞台換成假元件；handle 要等測試呼叫 attach 才接上，模擬舞台晚到
@@ -120,6 +128,18 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
     placeName: "試鍊洞窟",
     subPlaceName: "燈影隧道",
   }),
+  getInventory: vi.fn().mockResolvedValue(makeInventory([makeItem({ name: "測試木劍" })])),
+  equip: vi.fn(),
+  unequip: vi.fn(),
+  useItem: vi.fn(),
+  getShop: vi.fn().mockResolvedValue([]),
+  buy: vi.fn(),
+  sell: vi.fn(),
+  getDepot: vi.fn(),
+  store: vi.fn(),
+  take: vi.fn(),
+  deposit: vi.fn(),
+  withdraw: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -162,8 +182,7 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
   expect(screen.getByRole("button", { name: "角色" })).toBeEnabled()
   expect(screen.getByRole("button", { name: "技能" })).toBeEnabled()
-  expect(screen.getByRole("button", { name: "背包" })).toBeDisabled()
-  expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("title", "尚未開放")
+  expect(screen.getByRole("button", { name: "背包" })).toBeEnabled()
 })
 
 test("AdventureScreen_TopBarShowsStamina", async () => {
@@ -344,6 +363,21 @@ test("AdventureScreen_SkillsTabLoadsSkillsScreenOnEachVisit", async () => {
   await advanceTime(0)
 
   expect(api.getJobs).toHaveBeenCalledTimes(2)
+})
+
+test("AdventureScreen_BagTabOpensBagScreen", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  expect(api.getInventory).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole("button", { name: "背包" }))
+  await advanceTime(0)
+
+  expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("tablist", { name: "背包分頁" })).toBeVisible()
+  expect(screen.getByText("測試木劍 +0")).toBeVisible()
+  expect(screen.getByTestId("stage")).not.toBeVisible()
 })
 
 test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {

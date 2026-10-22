@@ -2,6 +2,10 @@ import type {
   AdvanceSummary,
   CharacterView,
   ContentNames,
+  InventoryItem,
+  InventoryView,
+  ShopItem,
+  StatBonusView,
   WorldArea,
   WorldPlace,
 } from "../game/types"
@@ -151,3 +155,81 @@ export const makeWorld = (): WorldArea[] => [
     ],
   },
 ]
+
+export const emptyBonus: StatBonusView = {
+  str: 0,
+  smart: 0,
+  life: 0,
+  vit: 0,
+  agi: 0,
+  au: 0,
+  be: 0,
+  at: 0,
+  mat: 0,
+  df: 0,
+  mdf: 0,
+  hpMax: 0,
+}
+
+export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem => ({
+  inventoryId: 1,
+  itemId: "test-sword",
+  name: "測試劍",
+  category: "Weapon",
+  consumable: "None",
+  quantity: 1,
+  bonus: { ...emptyBonus, at: 8 },
+  requires: { str: 0, smart: 0, agi: 0, au: 0 },
+  jobId: null,
+  supplyHp: 0,
+  supplySp: 0,
+  amount: 0,
+  refineLevel: 0,
+  refineMax: 4,
+  refineBonus: emptyBonus,
+  holes: 0,
+  sockets: [],
+  price: 200,
+  bound: false,
+  ...overrides,
+})
+
+// 十個分類都列出，道具依分類放進對應的格子；容量同後端預設 15
+export const makeInventory = (
+  items: InventoryItem[] = [],
+  overrides: Partial<InventoryView> = {},
+): InventoryView => ({
+  bag: (
+    [
+      "Weapon",
+      "Head",
+      "Body",
+      "Hand",
+      "Foot",
+      "Accessory",
+      "Consumable",
+      "Stone",
+      "RefineStone",
+      "Material",
+    ] as const
+  ).map((category) => ({
+    category,
+    capacity: 15,
+    items: items.filter((item) => item.category === category),
+  })),
+  equipment: [],
+  bonus: emptyBonus,
+  ...overrides,
+})
+
+export const makeShopItem = (overrides: Partial<ShopItem> = {}): ShopItem => ({
+  id: "test-sword",
+  name: "測試劍",
+  category: "Weapon",
+  price: 200,
+  bonus: { ...emptyBonus, at: 8 },
+  requires: { str: 10, smart: 0, agi: 0, au: 0 },
+  holes: 0,
+  refineMax: 4,
+  ...overrides,
+})

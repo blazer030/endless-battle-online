@@ -30,11 +30,13 @@ const currentJobProficiency = (character: CharacterView) =>
 const describeProficiency = (value: number) =>
   `${proficiencyPercent(value)}%（${formatNumber(value)}）`
 
+const signed = (value: number) => (value > 0 ? `+${formatNumber(value)}` : formatNumber(value))
+
 export function CharacterScreen({ character, content }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
   const derivedStatsId = useId()
-  const { stats } = character
+  const { stats, baseStats } = character
   const profile = [
     { label: "性別", value: nameOf(content.sexes, character.sex) },
     { label: "屬性", value: nameOf(content.elements, character.element) },
@@ -85,10 +87,12 @@ export function CharacterScreen({ character, content }: Props) {
           {baseStatLabels.map(({ key, label }) => (
             <div key={key} className="character__entry">
               <dt>{label}</dt>
-              {/* 括號內是裝備加成，裝備系統上線前一律 +0 */}
+              {/* 裸點（+裝備）：括號內是有效數值減裸點，為 0 時不顯示 */}
               <dd>
-                {formatNumber(stats[key])}
-                <span className="character__bonus">(+0)</span>
+                {formatNumber(baseStats[key])}
+                {stats[key] !== baseStats[key] && (
+                  <span className="character__bonus">{`（${signed(stats[key] - baseStats[key])}）`}</span>
+                )}
               </dd>
             </div>
           ))}

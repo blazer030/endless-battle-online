@@ -16,6 +16,18 @@ export type SkillSlotView = Schemas["SkillSlotResponse"]
 export type WorldArea = Schemas["WorldAreaResponse"]
 export type WorldPlace = Schemas["WorldPlaceResponse"]
 export type Recommendation = Schemas["Recommendation"]
+export type InventoryView = Schemas["InventoryResponse"]
+export type BagCategoryView = Schemas["BagCategoryResponse"]
+export type InventoryItem = Schemas["InventoryItemResponse"]
+export type EquippedItem = Schemas["EquippedItemResponse"]
+export type ItemCategory = Schemas["ItemCategory"]
+export type EquipmentSlot = Schemas["EquipmentSlot"]
+export type ItemRequirement = Schemas["StatRequirement7"]
+export type StatBonusView = Schemas["StatBonus"]
+export type BaseStatsView = Schemas["BaseStatsResponse"]
+export type ShopItem = Schemas["ShopItemResponse"]
+export type DepotView = Schemas["DepotResponse"]
+export type DepotMove = Schemas["DepotMoveResponse"]
 
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }

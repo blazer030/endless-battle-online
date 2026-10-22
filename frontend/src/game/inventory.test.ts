@@ -1,0 +1,249 @@
+import { describe, expect, it } from "vitest"
+import { makeCharacter, makeInventory, makeItem } from "../test/fixtures"
+import {
+  bagSlotsOf,
+  BankMinimumLevel,
+  bankBalanceOf,
+  candidatesFor,
+  categoryLabel,
+  equipmentSlots,
+  errorMessage,
+  holeMarks,
+  isBankLocked,
+  itemCategories,
+  itemTitle,
+  maxBuyQuantity,
+  meetsRequirements,
+  reasonText,
+  requirementRows,
+  sellPrice,
+  usageText,
+} from "./inventory"
+
+describe("itemCategories", () => {
+  it("lists the ten categories in bag order with their labels", () => {
+    expect(itemCategories.map(({ id, label }) => `${id}:${label}`)).toEqual([
+      "Weapon:武器",
+      "Head:頭部",
+      "Body:身體",
+      "Hand:手部",
+      "Foot:腳部",
+      "Accessory:飾品",
+      "Consumable:道具",
+      "Stone:魔石",
+      "RefineStone:精鍊石",
+      "Material:材料",
+    ])
+  })
+
+  it("labels a category", () => {
+    expect(categoryLabel("RefineStone")).toBe("精鍊石")
+  })
+})
+
+describe("equipmentSlots", () => {
+  it("lists six equipment slots and the supply slot", () => {
+    expect(equipmentSlots.map(({ id, label }) => `${id}:${label}`)).toEqual([
+      "Weapon:武器",
+      "Head:頭部",
+      "Body:身體",
+      "Hand:手部",
+      "Foot:腳部",
+      "Accessory:飾品",
+      "Supply:補給",
+    ])
+  })
+})
+
+describe("bagSlotsOf", () => {
+  it("returns the items and capacity of a category", () => {
+    const potion = makeItem({ inventoryId: 2, category: "Consumable", name: "小藥水" })
+    const inventory = makeInventory([makeItem(), potion])
+
+    const slots = bagSlotsOf(inventory, "Consumable")
+
+    expect(slots.items).toEqual([potion])
+    expect(slots.capacity).toBe(15)
+    expect(usageText(slots)).toBe("1/15")
+  })
+
+  it("treats a category missing from the response as empty", () => {
+    const slots = bagSlotsOf(makeInventory([], { bag: [] }), "Material")
+
+    expect(slots).toEqual({ category: "Material", capacity: 0, items: [] })
+    expect(usageText(slots)).toBe("0/0")
+  })
+})
+
+describe("itemTitle", () => {
+  it("shows the quantity of a stackable item", () => {
+    expect(itemTitle(makeItem({ category: "Consumable", name: "小藥水", quantity: 12 }))).toBe(
+      "小藥水 ×12",
+    )
+  })
+
+  it("shows the refine level of equipment", () => {
+    expect(itemTitle(makeItem({ name: "鐵劍", refineLevel: 3 }))).toBe("鐵劍 +3")
+    expect(itemTitle(makeItem({ name: "鐵劍" }))).toBe("鐵劍 +0")
+  })
+})
+
+describe("holeMarks", () => {
+  it("draws filled holes before empty ones", () => {
+    const item = makeItem({
+      holes: 3,
+      sockets: [{ hole: 1, stoneId: "ruby", rolled: makeItem().refineBonus }],
+    })
+    expect(holeMarks(item)).toBe("◆◇◇")
+  })
+
+  it("is empty without holes", () => {
+    expect(holeMarks(makeItem())).toBe("")
+  })
+})
+
+describe("candidatesFor", () => {
+  const sword = makeItem({ inventoryId: 1 })
+  const helmet = makeItem({ inventoryId: 2, category: "Head", name: "皮帽" })
+  const supply = makeItem({
+    inventoryId: 3,
+    category: "Consumable",
+    consumable: "Supply",
+    name: "小藥水",
+  })
+  const statPotion = makeItem({
+    inventoryId: 4,
+    category: "Consumable",
+    consumable: "StatPotion",
+    name: "力量藥水",
+  })
+  const inventory = makeInventory([sword, helmet, supply, statPotion])
+
+  it("lists bag items of the slot's category", () => {
+    expect(candidatesFor(inventory, "Head")).toEqual([helmet])
+  })
+
+  it("lists only supplies for the supply slot", () => {
+    expect(candidatesFor(inventory, "Supply")).toEqual([supply])
+  })
+})
+
+describe("requirementRows", () => {
+  const character = makeCharacter({
+    jobId: "warrior",
+    baseStats: { str: 20, smart: 5, life: 10, vit: 10, agi: 12, au: 10, be: 10 },
+    // 有效數值含裝備加成，需求只比對裸點
+    stats: { ...makeCharacter().stats, smart: 50 },
+  })
+
+  it("compares bare stats with each nonzero requirement", () => {
+    const item = makeItem({ requires: { str: 20, smart: 18, agi: 0, au: 0 } })
+
+    expect(requirementRows(item, character)).toEqual([
+      { text: "力量 ≥ 20", met: true },
+      { text: "智力 ≥ 18", met: false },
+    ])
+  })
+
+  it("adds the job requirement", () => {
+    const jobNames = [{ id: "mage", name: "法師" }]
+    const item = makeItem({ jobId: "mage" })
+
+    expect(requirementRows(item, character, jobNames)).toEqual([{ text: "職業：法師", met: false }])
+    expect(requirementRows(item, { ...character, jobId: "mage" }, jobNames)).toEqual([
+      { text: "職業：法師", met: true },
+    ])
+  })
+
+  it("falls back to the job id without names", () => {
+    expect(requirementRows(makeItem({ jobId: "mage" }), character)).toEqual([
+      { text: "職業：mage", met: false },
+    ])
+  })
+
+  it("meetsRequirements only when every row is met", () => {
+    expect(meetsRequirements(makeItem(), character)).toBe(true)
+    expect(
+      meetsRequirements(makeItem({ requires: { str: 21, smart: 0, agi: 0, au: 0 } }), character),
+    ).toBe(false)
+    expect(meetsRequirements(makeItem({ jobId: "mage" }), character)).toBe(false)
+  })
+})
+
+describe("sellPrice", () => {
+  it.each([
+    [200, 1, 100],
+    [25, 1, 12],
+    [25, 3, 37],
+    [1, 1, 0],
+  ])("floors price %i × 0.5 × %i to %i", (price, quantity, expected) => {
+    expect(sellPrice(price, quantity)).toBe(expected)
+  })
+})
+
+describe("maxBuyQuantity", () => {
+  it("allows one piece of equipment and 99 of anything else", () => {
+    expect(maxBuyQuantity("Weapon")).toBe(1)
+    expect(maxBuyQuantity("Accessory")).toBe(1)
+    expect(maxBuyQuantity("Consumable")).toBe(99)
+    expect(maxBuyQuantity("Material")).toBe(99)
+  })
+})
+
+describe("reasonText", () => {
+  it.each([
+    ["alreadyEquipped", "這件道具已經裝備中"],
+    ["bagFull", "背包已滿"],
+    ["depotFull", "倉庫已滿"],
+    ["equipped", "請先卸下這件裝備"],
+    ["invalidAmount", "金額不正確"],
+    ["invalidLevel", "商店等級不正確"],
+    ["invalidQuantity", "數量不正確"],
+    ["itemNotFound", "找不到這件道具"],
+    ["jobMismatch", "職業不符"],
+    ["levelTooLow", "Lv 15 才能存款"],
+    ["noEffect", "使用後沒有效果"],
+    ["notEnoughBank", "存款不足"],
+    ["notEnoughMoney", "金錢不足"],
+    ["notEquipment", "這不是裝備"],
+    ["notForSale", "商店沒有販售這個品項"],
+    ["notUsable", "這個道具不能直接使用"],
+    ["slotEmpty", "這一欄沒有裝備"],
+    ["stackLimit", "已達堆疊上限"],
+    ["statTooLow:str", "力量不足"],
+    ["statTooLow:smart", "智力不足"],
+    ["statTooLow:agi", "敏捷不足"],
+    ["statTooLow:au", "魅力不足"],
+  ])("translates %s", (code, text) => {
+    expect(reasonText(code)).toBe(text)
+  })
+
+  it("keeps an unknown code visible", () => {
+    expect(reasonText("somethingNew")).toBe("無法完成（somethingNew）")
+  })
+})
+
+describe("errorMessage", () => {
+  it("joins the translated reasons", () => {
+    expect(errorMessage("無法裝備", ["jobMismatch", "statTooLow:str"])).toBe("職業不符、力量不足")
+  })
+
+  it("uses the detail when there are no reasons", () => {
+    expect(errorMessage("缺少數量", [])).toBe("缺少數量")
+  })
+})
+
+describe("bank", () => {
+  it("locks deposits below Lv 15", () => {
+    expect(BankMinimumLevel).toBe(15)
+    expect(isBankLocked(14)).toBe(true)
+    expect(isBankLocked(15)).toBe(false)
+  })
+
+  it("reads the balance only when the character carries one", () => {
+    expect(bankBalanceOf(makeCharacter())).toBeNull()
+    // 角色回應尚未帶存款欄位；之後後端補上時直接沿用
+    const withBank = { ...makeCharacter(), bank: 3000 }
+    expect(bankBalanceOf(withBank)).toBe(3000)
+  })
+})

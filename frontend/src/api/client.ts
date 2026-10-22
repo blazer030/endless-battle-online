@@ -3,7 +3,13 @@ import type {
   CharacterView,
   ContentNames,
   CreateCharacterCommand,
+  DepotMove,
+  DepotView,
+  EquipmentSlot,
+  InventoryView,
+  ItemCategory,
   JobOption,
+  ShopItem,
   SkillOverview,
   SkillSlotCommand,
   WorldArea,
@@ -42,6 +48,19 @@ export type ApiClient = {
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverview>
   getWorld: () => Promise<WorldArea[]>
   moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterView>
+  getInventory: () => Promise<InventoryView>
+  // quantity 只用於補給品：從那一格分出幾個放到補給欄
+  equip: (inventoryId: number, quantity?: number) => Promise<InventoryView>
+  unequip: (slot: EquipmentSlot) => Promise<InventoryView>
+  useItem: (inventoryId: number) => Promise<InventoryView>
+  getShop: (category: ItemCategory, level: number) => Promise<ShopItem[]>
+  buy: (itemId: string, quantity: number) => Promise<InventoryView>
+  sell: (inventoryId: number, quantity: number) => Promise<InventoryView>
+  getDepot: () => Promise<DepotView>
+  store: (inventoryId: number, quantity: number) => Promise<DepotMove>
+  take: (depotId: number, quantity: number) => Promise<DepotMove>
+  deposit: (amount: number) => Promise<CharacterView>
+  withdraw: (amount: number) => Promise<CharacterView>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -125,5 +144,27 @@ export const createApiClient = (options: {
     getWorld: () => requestJson<WorldArea[]>("/api/world", "GET"),
     moveTo: (placeId, subPlace) =>
       requestJson<CharacterView>("/api/world/location", "PUT", { placeId, subPlace }),
+    getInventory: () => requestJson<InventoryView>("/api/inventory", "GET"),
+    equip: (inventoryId, quantity) =>
+      requestJson<InventoryView>("/api/inventory/equip", "POST", { inventoryId, quantity }),
+    unequip: (slot) => requestJson<InventoryView>("/api/inventory/unequip", "POST", { slot }),
+    useItem: (inventoryId) =>
+      requestJson<InventoryView>("/api/inventory/use", "POST", { inventoryId }),
+    getShop: (category, level) =>
+      requestJson<ShopItem[]>(
+        `/api/shop?${new URLSearchParams({ category, level: String(level) }).toString()}`,
+        "GET",
+      ),
+    buy: (itemId, quantity) =>
+      requestJson<InventoryView>("/api/shop/buy", "POST", { itemId, quantity }),
+    sell: (inventoryId, quantity) =>
+      requestJson<InventoryView>("/api/shop/sell", "POST", { inventoryId, quantity }),
+    getDepot: () => requestJson<DepotView>("/api/depot", "GET"),
+    store: (inventoryId, quantity) =>
+      requestJson<DepotMove>("/api/depot/store", "POST", { inventoryId, quantity }),
+    take: (depotId, quantity) =>
+      requestJson<DepotMove>("/api/depot/take", "POST", { depotId, quantity }),
+    deposit: (amount) => requestJson<CharacterView>("/api/bank/deposit", "POST", { amount }),
+    withdraw: (amount) => requestJson<CharacterView>("/api/bank/withdraw", "POST", { amount }),
   }
 }

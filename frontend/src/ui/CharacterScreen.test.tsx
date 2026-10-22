@@ -36,6 +36,7 @@ const character: CharacterView = makeCharacter({
     hpMax: 600,
     spMax: 199,
   },
+  baseStats: { str: 12, smart: 31, life: 22, vit: 10, agi: 18, au: 16, be: 25 },
 })
 
 const content: ContentNames = makeContent({
@@ -94,21 +95,22 @@ test("CharacterScreen_ShowsProportionalBars", () => {
   }
 })
 
-test("CharacterScreen_ShowsBaseStatsWithBonusPlaceholder", () => {
+test("CharacterScreen_ShowsBareStatsWithEquipmentBonus", () => {
   render(<CharacterScreen character={character} content={content} />)
 
+  // 裸點（+裝備）；加成為 0 時不顯示括號
   const stats = [
-    ["力量", 14],
-    ["智力", 31],
-    ["生命", 22],
-    ["體質", 13],
-    ["敏捷", 18],
-    ["魅力", 16],
-    ["信仰", 27],
+    ["力量", "12（+2）"],
+    ["智力", "31"],
+    ["生命", "22"],
+    ["體質", "10（+3）"],
+    ["敏捷", "18"],
+    ["魅力", "16"],
+    ["信仰", "25（+2）"],
   ] as const
   const card = screen.getByRole("region", { name: "能力" })
   for (const [label, value] of stats) {
-    expect(valueOf(label, card)).toHaveTextContent(new RegExp(`^${value}\\(\\+0\\)$`))
+    expect(valueOf(label, card).textContent).toBe(value)
   }
 })
 

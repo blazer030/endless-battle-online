@@ -31,6 +31,18 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   setSkillSlots: vi.fn(),
   getWorld: vi.fn(),
   moveTo: vi.fn(),
+  getInventory: vi.fn(),
+  equip: vi.fn(),
+  unequip: vi.fn(),
+  useItem: vi.fn(),
+  getShop: vi.fn(),
+  buy: vi.fn(),
+  sell: vi.fn(),
+  getDepot: vi.fn(),
+  store: vi.fn(),
+  take: vi.fn(),
+  deposit: vi.fn(),
+  withdraw: vi.fn(),
 })
 
 const renderLoop = (api: ApiClient) =>

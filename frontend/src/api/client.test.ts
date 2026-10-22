@@ -181,3 +181,43 @@ test("worldCalls_UseTheirEndpoints", async () => {
     ["PUT", "/api/world/location", { placeId: 20, subPlace: null }],
   ])
 })
+
+test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await client.getInventory()
+  await client.equip(7)
+  await client.equip(8, 20)
+  await client.unequip("Supply")
+  await client.useItem(9)
+  await client.getShop("Weapon", 3)
+  await client.buy("wooden-sword", 1)
+  await client.sell(7, 2)
+  await client.getDepot()
+  await client.store(7, 5)
+  await client.take(11, 3)
+  await client.deposit(1000)
+  await client.withdraw(500)
+
+  const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
+    init.method,
+    path,
+    init.body === undefined ? undefined : JSON.parse(init.body as string),
+  ])
+  expect(calls).toEqual([
+    ["GET", "/api/inventory", undefined],
+    ["POST", "/api/inventory/equip", { inventoryId: 7 }],
+    ["POST", "/api/inventory/equip", { inventoryId: 8, quantity: 20 }],
+    ["POST", "/api/inventory/unequip", { slot: "Supply" }],
+    ["POST", "/api/inventory/use", { inventoryId: 9 }],
+    ["GET", "/api/shop?category=Weapon&level=3", undefined],
+    ["POST", "/api/shop/buy", { itemId: "wooden-sword", quantity: 1 }],
+    ["POST", "/api/shop/sell", { inventoryId: 7, quantity: 2 }],
+    ["GET", "/api/depot", undefined],
+    ["POST", "/api/depot/store", { inventoryId: 7, quantity: 5 }],
+    ["POST", "/api/depot/take", { depotId: 11, quantity: 3 }],
+    ["POST", "/api/bank/deposit", { amount: 1000 }],
+    ["POST", "/api/bank/withdraw", { amount: 500 }],
+  ])
+})

@@ -10,6 +10,7 @@ import { locationTitle } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
+import { BagScreen } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
 import { formatNumber } from "./formatNumber"
@@ -33,15 +34,14 @@ const emptyContent: ContentNames = {
   sexes: [],
 }
 
-type Tab = "adventure" | "character" | "skills"
+type Tab = "adventure" | "character" | "skills" | "bag"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
   { id: "character", label: "角色" },
   { id: "skills", label: "技能" },
+  { id: "bag", label: "背包" },
 ]
-
-const unavailableTabs = ["背包"]
 
 type Props = { api: ApiClient; initialCharacter: CharacterView }
 
@@ -202,6 +202,17 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             />
           </div>
         )}
+        {/* 背包分頁每次打開才載入，背包、商店與倉庫都是最新的 */}
+        {tab === "bag" && (
+          <div className="adventure__sheet">
+            <BagScreen
+              api={api}
+              character={character}
+              onCharacterChanged={handleCharacterChange}
+              jobNames={content?.jobs ?? []}
+            />
+          </div>
+        )}
       </main>
       <nav className="adventure__nav">
         {tabs.map(({ id, label }) => (
@@ -211,17 +222,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             className="adventure__nav-item"
             aria-current={tab === id ? "page" : undefined}
             onClick={() => setTab(id)}
-          >
-            {label}
-          </button>
-        ))}
-        {unavailableTabs.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="adventure__nav-item"
-            disabled
-            title="尚未開放"
           >
             {label}
           </button>
