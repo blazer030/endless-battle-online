@@ -522,6 +522,734 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/equip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EquipRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/unequip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UnequipRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inventory/use": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UseItemRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    category?: components["schemas"]["ItemCategory"];
+                    level?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ShopItemResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shop/buy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BuyRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/shop/sell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SellRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InventoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bank/deposit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BankAmountRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CharacterResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bank/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BankAmountRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CharacterResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/depot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DepotResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/depot/store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StoreRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DepotMoveResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/depot/take": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["TakeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DepotMoveResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/refine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RefineRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ForgeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/socket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SocketRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ForgeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/unsocket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UnsocketRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnsocketResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/drill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DrillRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ForgeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/merge-stones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MergeStonesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ForgeResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RecipeResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/forge/synthesize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SynthesizeRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SynthesisResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -556,9 +1284,29 @@ export interface components {
             levelsGained: number;
             /** Format: int32 */
             skillsCast: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            drops: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            potionsUsed: number;
         };
         /** @enum {unknown} */
         AttackKind: "Physical" | "Magic";
+        BagCategoryResponse: {
+            category: components["schemas"]["ItemCategory"];
+            /** Format: int32 */
+            capacity: number;
+            items: components["schemas"]["InventoryItemResponse"][];
+        };
+        BankAmountRequest: {
+            /** Format: int64 */
+            amount: null | number;
+        };
         BaseStats: {
             /** Format: int32 */
             str: number;
@@ -575,7 +1323,23 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
+        BaseStatsResponse: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            life: number;
+            /** Format: int32 */
+            vit: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+            /** Format: int32 */
+            be: number;
+        };
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -631,6 +1395,20 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
+        BattleEventPotionEvent: {
+            /** @enum {string} */
+            type?: "potion";
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            hp: number;
+            /** Format: int32 */
+            sp: number;
+            /** Format: int32 */
+            remaining: number;
+            /** Format: double */
+            atSeconds: number;
+        };
         BattleEventRestEvent: {
             /** @enum {string} */
             type?: "rest";
@@ -651,6 +1429,7 @@ export interface components {
             money: number;
             /** Format: int64 */
             jobExp: number;
+            drops?: null | components["schemas"]["DropResult"][];
             /** Format: double */
             atSeconds: number;
         };
@@ -687,6 +1466,11 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
+        BuyRequest: {
+            itemId: null | string;
+            /** Format: int32 */
+            quantity: null | number;
+        };
         ChangeJobRequest: {
             jobId: null | string;
         };
@@ -714,6 +1498,7 @@ export interface components {
             jobName: string;
             specialAttackName: string;
             stats: components["schemas"]["StatsResponse"];
+            baseStats: components["schemas"]["BaseStatsResponse"];
             /** Format: int32 */
             placeId: number;
             placeName: string;
@@ -729,6 +1514,8 @@ export interface components {
         };
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
+        /** @enum {unknown} */
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
@@ -752,6 +1539,81 @@ export interface components {
             username: null | string;
             password: null | string;
         };
+        DepotMoveResponse: {
+            inventory: components["schemas"]["InventoryResponse"];
+            depot: components["schemas"]["DepotResponse"];
+        };
+        DepotResponse: {
+            entries: components["schemas"]["InventoryItemResponse"][];
+            /** Format: int32 */
+            capacity: number;
+        };
+        DrillRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+        };
+        DropResult: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            discarded: boolean;
+        };
+        /** @enum {unknown} */
+        EquipmentSlot: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Supply";
+        EquippedItemResponse: {
+            slot: components["schemas"]["EquipmentSlot"];
+            /** Format: int32 */
+            quantity: number;
+            item: components["schemas"]["InventoryItemResponse"];
+        };
+        EquipRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int32 */
+            quantity: null | number;
+        };
+        ForgeResponse: {
+            success: boolean;
+            inventory: components["schemas"]["InventoryResponse"];
+        };
+        InventoryItemResponse: {
+            /** Format: int64 */
+            inventoryId: number;
+            itemId: string;
+            name: string;
+            category: components["schemas"]["ItemCategory"];
+            consumable: components["schemas"]["ConsumableKind"];
+            /** Format: int32 */
+            quantity: number;
+            bonus: components["schemas"]["StatBonus"];
+            requires: components["schemas"]["StatRequirement7"];
+            jobId: null | string;
+            /** Format: int32 */
+            supplyHp: number;
+            /** Format: int32 */
+            supplySp: number;
+            /** Format: int32 */
+            amount: number;
+            /** Format: int32 */
+            refineLevel: number;
+            /** Format: int32 */
+            refineMax: number;
+            refineBonus: components["schemas"]["StatBonus"];
+            /** Format: int32 */
+            holes: number;
+            sockets: components["schemas"]["SocketResponse"][];
+            /** Format: int64 */
+            price: number;
+            bound: boolean;
+        };
+        InventoryResponse: {
+            bag: components["schemas"]["BagCategoryResponse"][];
+            equipment: components["schemas"]["EquippedItemResponse"][];
+            bonus: components["schemas"]["StatBonus"];
+        };
+        /** @enum {unknown} */
+        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material";
         JobContent: {
             id: string;
             name: string;
@@ -812,6 +1674,12 @@ export interface components {
         LoginResponse: {
             accessToken: string;
         };
+        MergeStonesRequest: {
+            /** Format: int64 */
+            stoneInventoryId: null | number;
+            /** Format: int32 */
+            quantityPairs: null | number;
+        };
         MoveRequest: {
             /** Format: int32 */
             placeId: null | number;
@@ -822,14 +1690,58 @@ export interface components {
             id: string;
             name: string;
         };
+        RecipeMaterialResponse: {
+            itemId: string;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+        };
+        RecipeResponse: {
+            id: string;
+            resultItemId: string;
+            resultName: string;
+            /** Format: int32 */
+            resultQuantity: number;
+            materials: components["schemas"]["RecipeMaterialResponse"][];
+            /** Format: int32 */
+            successRate: number;
+            /** Format: int64 */
+            costPerAttempt: number;
+        };
         /** @enum {unknown} */
         Recommendation: "Recommended" | "TooHard" | "TooEasy" | "None";
+        RefineRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int64 */
+            stoneInventoryId: null | number;
+            useSafeStone: null | boolean;
+        };
         RegisterResponse: {
             /** Format: int64 */
             accountId: number;
         };
+        SellRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int32 */
+            quantity: null | number;
+        };
         SetSkillSlotsRequest: {
             slots: null | components["schemas"]["SkillSlotRequest"][];
+        };
+        ShopItemResponse: {
+            id: string;
+            name: string;
+            category: components["schemas"]["ItemCategory"];
+            /** Format: int64 */
+            price: number;
+            bonus: components["schemas"]["StatBonus"];
+            requires: components["schemas"]["StatRequirement7"];
+            /** Format: int32 */
+            holes: number;
+            /** Format: int32 */
+            refineMax: number;
         };
         /** @enum {unknown} */
         SkillEffectKind: "AtMultiplier" | "MatMultiplier" | "DfMultiplier" | "MdfMultiplier" | "AgiMultiplier" | "MultiHit" | "MagicMultiHit" | "EnemyAgiDown" | "EnemyAttackDown" | "Heal" | "WarGodWrath" | "Counter" | "CritChanceUp" | "Bloodthirst" | "BonusDamage" | "Stun";
@@ -885,6 +1797,20 @@ export interface components {
         };
         /** @enum {unknown} */
         SkillType: "Active" | "Passive";
+        SocketRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int32 */
+            hole: null | number;
+            /** Format: int64 */
+            stoneInventoryId: null | number;
+        };
+        SocketResponse: {
+            /** Format: int32 */
+            hole: number;
+            stoneId: string;
+            rolled: components["schemas"]["StatBonus"];
+        };
         StatAllocationRequest: {
             /** Format: int32 */
             str: null | number;
@@ -894,6 +1820,45 @@ export interface components {
             life: null | number;
             /** Format: int32 */
             agi: null | number;
+        };
+        StatBonus: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            life: number;
+            /** Format: int32 */
+            vit: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+            /** Format: int32 */
+            be: number;
+            /** Format: int32 */
+            at: number;
+            /** Format: int32 */
+            mat: number;
+            /** Format: int32 */
+            df: number;
+            /** Format: int32 */
+            mdf: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            hpMax: number;
+        };
+        StatRequirement7: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
         };
         StatRequirementContent: {
             stat: string;
@@ -928,10 +1893,54 @@ export interface components {
             /** Format: int32 */
             spMax: number;
         };
+        StoreRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int32 */
+            quantity: null | number;
+        };
         SubPlaceResponse: {
             /** Format: int32 */
             index: number;
             name: string;
+        };
+        SynthesisResponse: {
+            /** Format: int32 */
+            successes: number;
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int64 */
+            cost: number;
+            inventory: components["schemas"]["InventoryResponse"];
+        };
+        SynthesizeRequest: {
+            recipeId: null | string;
+            /** Format: int32 */
+            attempts: null | number;
+        };
+        TakeRequest: {
+            /** Format: int64 */
+            depotId: null | number;
+            /** Format: int32 */
+            quantity: null | number;
+        };
+        UnequipRequest: {
+            slot: null | components["schemas"]["EquipmentSlot"];
+        };
+        UnsocketRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
+            /** Format: int32 */
+            hole: null | number;
+        };
+        UnsocketResponse: {
+            success: boolean;
+            recovered: boolean;
+            inventory: components["schemas"]["InventoryResponse"];
+        };
+        UseItemRequest: {
+            /** Format: int64 */
+            inventoryId: null | number;
         };
         WorldAreaResponse: {
             id: string;

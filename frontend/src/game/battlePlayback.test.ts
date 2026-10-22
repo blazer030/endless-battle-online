@@ -21,7 +21,7 @@ function encounter(atSeconds: number): BattleEvent {
 }
 
 function reward(atSeconds: number, exp: number, money: number): BattleEvent {
-  return { type: "reward", atSeconds, exp, money, jobExp: 1 }
+  return { type: "reward", atSeconds, exp, money, jobExp: 1, drops: [] }
 }
 
 function levelUp(atSeconds: number, newLevel: number): BattleEvent {

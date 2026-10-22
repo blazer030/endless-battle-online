@@ -138,7 +138,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "reward",
-    event({ type: "reward", exp: 12000, money: 3, jobExp: 1500 }),
+    event({ type: "reward", exp: 12000, money: 3, jobExp: 1500, drops: [] }),
     [["獲得經驗 12,000、金錢 3、熟練度 1,500。", "drop"]],
   ],
   [

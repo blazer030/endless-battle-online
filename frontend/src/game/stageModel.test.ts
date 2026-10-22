@@ -217,7 +217,14 @@ describe("stageModel", () => {
   })
 
   it("stageEffectsFor_EncounterRoundReward_HaveNoEffects", () => {
-    const reward: BattleEvent = { type: "reward", exp: 5, money: 3, jobExp: 1, atSeconds: 2 }
+    const reward: BattleEvent = {
+      type: "reward",
+      exp: 5,
+      money: 3,
+      jobExp: 1,
+      drops: [],
+      atSeconds: 2,
+    }
     const round: BattleEvent = { type: "round", round: 1, atSeconds: 0 }
     for (const event of [encounter, round, reward]) expect(stageEffectsFor(event)).toEqual([])
   })

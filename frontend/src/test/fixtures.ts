@@ -37,6 +37,7 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
     hpMax: 325,
     spMax: 88,
   },
+  baseStats: { str: 11, smart: 11, life: 11, vit: 10, agi: 11, au: 10, be: 10 },
   placeId: 1,
   placeName: "中央平原",
   subPlace: 1,
@@ -58,6 +59,8 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   jobExp: 0,
   levelsGained: 0,
   skillsCast: 0,
+  drops: 0,
+  potionsUsed: 0,
   ...overrides,
 })
 
