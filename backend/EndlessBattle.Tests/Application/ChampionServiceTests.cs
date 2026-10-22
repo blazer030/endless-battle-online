@@ -87,6 +87,20 @@ public class ChampionServiceTests
         Assert.Equal(result.View.Seat, await champions.FindAsync(stored.Id, CancellationToken));
     }
 
+    // 鎖定到現在為止（now == LockedUntil）就可以挑戰
+    [Fact]
+    public async Task Challenge_AllowedWhenLockEndsNow()
+    {
+        var character = await AddCharacterAsync();
+        await champions.SaveAsync(character.Id, Content.SeedChampion with { Name = "前任的我", IsPlayer = true, LockedUntil = Now }, CancellationToken);
+        log.Clear();
+
+        var result = await service.ChallengeAsync(AccountId, CancellationToken);
+
+        Assert.NotEmpty(result.Events);
+        Assert.Equal(["update", "champion:save"], log);
+    }
+
     [Fact]
     public async Task Challenge_RejectsWithReasonsAndWritesNothing()
     {

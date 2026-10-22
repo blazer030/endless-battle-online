@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -53,6 +56,35 @@ public class MercenaryEndpointsTests(MySqlDatabaseFixture database)
         var recent = report.GetProperty("recent").EnumerateArray().ToList();
         Assert.Equal(report.GetProperty("fights").GetInt32(), recent.Count);
         Assert.All(recent, fight => Assert.Contains(fight.GetProperty("monsterName").GetString(), new[] { "測試雪精", "測試寒狼" }));
+    }
+
+    // 合約次數改成 20，出擊後 700 秒打 7 場（+100…+700）：recent 只列最後 5 場，依時間
+    [Fact]
+    public async Task Advance_ReportsOnlyTheLastFiveMercenaryFights()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/mercenaries/hire", new { mercenaryId = "test-mercenary" }, CancellationToken));
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/mercenaries/deploy", new { placeId = 1 }, CancellationToken));
+        var deployedAt = factory.Clock.UtcNow;
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+                .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+            var mercenaries = scope.ServiceProvider.GetRequiredService<IMercenaryRepository>();
+            var contract = await mercenaries.FindAsync(character!.Id, CancellationToken);
+            await mercenaries.UpdateAsync(character.Id, contract! with { Remaining = 20 }, CancellationToken);
+        }
+
+        factory.Clock.Advance(TimeSpan.FromSeconds(700));
+        var advanced = await ReadOkAsync(await client.PostAsync("/api/adventure/advance", null, CancellationToken));
+
+        var report = advanced.GetProperty("mercenary");
+        Assert.Equal(7, report.GetProperty("fights").GetInt32());
+        Assert.Equal(
+            Enumerable.Range(3, 5).Select(fight => deployedAt.AddSeconds(100 * fight)),
+            report.GetProperty("recent").EnumerateArray().Select(fight => fight.GetProperty("at").GetDateTimeOffset()));
     }
 
     [Fact]

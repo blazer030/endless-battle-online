@@ -108,6 +108,26 @@ public class MonsterPoolTests
         Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], Ids(MonsterPool.Candidates(monsters, 1, 4, roll: 100, chiefHunt)));
     }
 
+    // 地區只剩任務沒在進行的任務怪：有怪物但沒有任何可遇到的
+    [Fact]
+    public void Pick_ThrowsWhenOnlyInactiveMissionMonsters()
+    {
+        MonsterDefinition[] monsters = [MissionMonster("chief", "hunt", 0, 3, 1)];
+
+        var exception = Assert.Throws<InvalidOperationException>(() => MonsterPool.Pick(monsters, 3, 1, new ScriptedRandom(0.0)));
+
+        Assert.Equal("地區沒有任何可遇到的怪物", exception.Message);
+    }
+
+    // 全域怪寫了子地區也不看：子地區 2 擲 0 時全域怪（只寫子地區 1）照樣入選，不必退回全地區（否則 meet 90 的 local 也會入選）
+    [Fact]
+    public void Candidates_GlobalMonsterIgnoresSubPlace()
+    {
+        MonsterDefinition[] monsters = [Monster("local", 90, 3, 2), Monster("global", 0, 0, 1)];
+
+        Assert.Equal(["global"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 0)));
+    }
+
     [Fact]
     public void Pool_ThrowsOnEmptyPlace() =>
         Assert.Throws<InvalidOperationException>(() => MonsterPool.Pick([], 3, 1, new ScriptedRandom(0.0)));

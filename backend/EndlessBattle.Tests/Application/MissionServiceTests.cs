@@ -322,6 +322,28 @@ public class MissionServiceTests
         Assert.Empty(log);
     }
 
+    // 獎勵是魔石：魔石分類 15 格都滿疊、道具分類還空著 → 400 bagFull，什麼都不寫
+    [Fact]
+    public async Task Complete_RejectsWhenRewardCategoryFull()
+    {
+        var character = await AddCharacterAsync();
+        for (var slot = 0; slot < InventoryRules.SlotsPerCategory; slot++)
+        {
+            await GiveAsync(character, "test-stone", InventoryRules.StackLimit);
+        }
+
+        await SeedAsync(character, Active("test-stone-reward", progress: 1));
+        var before = await BagAsync(character);
+
+        var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-stone-reward", CancellationToken));
+
+        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(before, await BagAsync(character));
+        Assert.Equal(character, await CurrentAsync());
+        Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
+        Assert.Empty(log);
+    }
+
     [Fact]
     public async Task Complete_SkillRewardLearnsLevelOne()
     {

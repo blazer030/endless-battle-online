@@ -35,6 +35,34 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal(0, stored.Exp);
     }
 
+    // 同伴相關的時間欄位都是 DATETIME(6)；冠軍一個角色一列
+    [Fact]
+    public async Task CompanionTables_HaveExpectedColumnTypes()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var context = database.CreateDbContext();
+
+        var columns = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT(TABLE_NAME, '.', COLUMN_NAME, ' ', COLUMN_TYPE) AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME IN ('born_at', 'hunger_since', 'next_fight_at', 'locked_until')
+            ORDER BY Value
+            """).ToListAsync(cancellationToken);
+        var championKey = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT COLUMN_NAME AS Value FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'character_champions' AND CONSTRAINT_NAME = 'PRIMARY'
+            """).ToListAsync(cancellationToken);
+
+        Assert.Equal(
+            [
+                "character_champions.locked_until datetime(6)", "character_mercenaries.next_fight_at datetime(6)",
+                "character_pets.born_at datetime(6)", "character_pets.hunger_since datetime(6)",
+            ],
+            columns);
+        Assert.Equal(["character_id"], championKey);
+    }
+
     [Fact]
     public async Task Accounts_RejectDuplicateUsername_CaseInsensitively()
     {

@@ -22,6 +22,7 @@ public class JobServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly FakeClock clock = new(Now);
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly JobService service;
 
     public JobServiceTests()
@@ -30,7 +31,8 @@ public class JobServiceTests
         proficiencies = new InMemoryJobProficiencyRepository(log);
         loadout = new InMemorySkillLoadoutRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
-        service = new JobService(characters, proficiencies, loadout, inventory, equipment, Content, clock, new InMemoryUnitOfWork());
+        unitOfWork = new InMemoryUnitOfWork(characters, proficiencies, inventory, equipment);
+        service = new JobService(characters, proficiencies, loadout, inventory, equipment, Content, clock, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -41,6 +43,25 @@ public class JobServiceTests
         await loadout.ReplaceAsync(character.Id, slots, CancellationToken);
         log.Clear();
         return character;
+    }
+
+    // 職業已寫進角色、卸下補給時刪除補給列失敗：整筆回滾，職業、裝備欄與背包都回到原狀
+    [Fact]
+    public async Task ChangeJob_RollsBackJobWhenUnequipFails()
+    {
+        var character = await ArrangeAsync();
+        var supply = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", 5), CancellationToken);
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, supply, 5, CancellationToken);
+        var bag = await inventory.ListAsync(character.Id, CancellationToken);
+        var equipped = await equipment.GetAsync(character.Id, CancellationToken);
+        inventory.FailWrite = "remove";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ChangeAsync(AccountId, "thief", CancellationToken));
+
+        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        Assert.Equal(character, await characters.FindByAccountAsync(AccountId, CancellationToken));
+        Assert.Equal(bag, await inventory.ListAsync(character.Id, CancellationToken));
+        Assert.Equivalent(equipped, await equipment.GetAsync(character.Id, CancellationToken), strict: true);
     }
 
     [Fact]

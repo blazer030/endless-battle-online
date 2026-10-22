@@ -26,6 +26,7 @@ public class InventoryServiceTests
     private readonly InMemoryBuffRepository buffs;
     private readonly ScriptedRandomFactory random = new();
     private readonly FakeClock clock = new(Now);
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService adventure;
     private readonly InventoryService service;
 
@@ -34,7 +35,7 @@ public class InventoryServiceTests
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         buffs = new InMemoryBuffRepository(log);
-        var unitOfWork = new InMemoryUnitOfWork();
+        unitOfWork = new InMemoryUnitOfWork(characters, inventory, equipment, pets, proficiency, buffs);
         adventure = new AdventureService(
             characters, proficiency, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
             new InMemoryMissionRepository(), pets, new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), buffs,
@@ -473,6 +474,22 @@ public class InventoryServiceTests
         Assert.Equal(3, (await pets.ListAsync(character.Id, CancellationToken)).Count);
         Assert.Equal(0, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
         Assert.Empty(log);
+    }
+
+    // 力量藥水已寫進角色、扣藥水失敗：整筆回滾，角色能力與版本、背包都回到原狀
+    [Fact]
+    public async Task Use_RollsBackCharacterWhenBagWriteFails()
+    {
+        var character = await AddCharacterAsync();
+        var potion = await GiveAsync(character, "test-str-potion");
+        var bag = await RowsAsync(character);
+        inventory.FailWrite = "remove";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.UseAsync(AccountId, potion, CancellationToken));
+
+        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        Assert.Equal(character, await characters.FindByAccountAsync(AccountId, CancellationToken));
+        Assert.Equal(bag, await RowsAsync(character));
     }
 
     // 魔石分類 14 格滿疊、道具分類有寶箱與補給品：只算魔石分類的格數，開出的魔石放進第 15 格

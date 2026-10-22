@@ -42,6 +42,19 @@ public class DeliveryTests
         Assert.Empty(plan.Updated);
     }
 
+    // 沒精鍊但鑲了魔石也算強化：排在普通的那件之後
+    [Fact]
+    public void Plan_TreatsSocketedEquipmentAsEnhanced()
+    {
+        var socketed = TestItems.Entry(5, "test-sword") with { Sockets = [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })] };
+        IReadOnlyList<InventoryEntry> bag = [socketed, TestItems.Entry(9, "test-sword")];
+
+        var plan = Delivery.Plan(bag, [new ItemQuantity("test-sword", 1)]);
+
+        Assert.Equal([9L], plan.Removed);
+        Assert.Empty(plan.Updated);
+    }
+
     [Fact]
     public void Plan_ReportsMissing()
     {

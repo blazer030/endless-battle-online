@@ -21,7 +21,7 @@ public class EconomyServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryDepotRepository depot = new();
-    private readonly InMemoryUnitOfWork unitOfWork = new();
+    private readonly InMemoryUnitOfWork unitOfWork;
     private readonly InventoryService inventoryService;
     private readonly ShopService shop;
     private readonly BankService bank;
@@ -31,6 +31,7 @@ public class EconomyServiceTests
     {
         characters = new LoggingCharacterRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
+        unitOfWork = new InMemoryUnitOfWork(characters, inventory, equipment, depot);
         inventoryService = TestInventoryServices.Create(
             characters, inventory, equipment, Content, new FakeClock(DateTimeOffset.UnixEpoch), new FixedSeedRandomFactory(1), unitOfWork);
         shop = new ShopService(characters, inventory, equipment, Content, inventoryService, unitOfWork);
@@ -115,6 +116,20 @@ public class EconomyServiceTests
 
         Assert.Empty(await inventory.ListAsync((await ReloadAsync()).Id, CancellationToken));
         Assert.Equal(2000, (await ReloadAsync()).Money);
+    }
+
+    // 金錢已扣、背包寫入失敗：整筆回滾，金錢、版本與背包都回到原狀
+    [Fact]
+    public async Task Buy_RollsBackMoneyWhenBagWriteFails()
+    {
+        var character = await AddCharacterAsync();
+        inventory.FailWrite = "add";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => shop.BuyAsync(AccountId, "test-sword", 1, CancellationToken));
+
+        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        Assert.Equal(character, await ReloadAsync());
+        Assert.Empty(await inventory.ListAsync(character.Id, CancellationToken));
     }
 
     [Fact]
@@ -391,6 +406,39 @@ public class EconomyServiceTests
 
         Assert.Empty(await depot.ListAsync(character.Id, CancellationToken));
         Assert.Single(await inventory.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 角色寫入（版本鎖與賣得的錢）失敗：整筆回滾，背包那格還在、金錢不變
+    [Fact]
+    public async Task Sell_RollsBackBagWhenCharacterWriteFails()
+    {
+        var character = await AddCharacterAsync();
+        var id = await GiveAsync(character, "test-sword");
+        var bag = await inventory.ListAsync(character.Id, CancellationToken);
+        characters.FailNextUpdate = true;
+
+        await Assert.ThrowsAsync<ConflictException>(() => shop.SellAsync(AccountId, id, 1, CancellationToken));
+
+        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        Assert.Equal(character, await ReloadAsync());
+        Assert.Equal(bag, await inventory.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 角色版本已遞增、倉庫寫入失敗：整筆回滾，角色版本、背包與倉庫都回到原狀
+    [Fact]
+    public async Task Store_RollsBackBagWhenDepotWriteFails()
+    {
+        var character = await AddCharacterAsync();
+        var id = await GiveAsync(character, "test-supply", 5);
+        var bag = await inventory.ListAsync(character.Id, CancellationToken);
+        depot.FailWrite = "add";
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => depotService.StoreAsync(AccountId, id, 2, CancellationToken));
+
+        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        Assert.Equal(character, await ReloadAsync());
+        Assert.Equal(bag, await inventory.ListAsync(character.Id, CancellationToken));
+        Assert.Empty(await depot.ListAsync(character.Id, CancellationToken));
     }
 
     [Fact]

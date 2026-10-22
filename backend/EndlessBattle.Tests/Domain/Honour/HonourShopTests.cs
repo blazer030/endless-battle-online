@@ -65,6 +65,18 @@ public class HonourShopTests
         Assert.Equal(["mercenaryHired"], Exchange(Mercenary, medals, hired).Reasons);
     }
 
+    // 勳章不足又已有傭兵：兩個原因都回報，勳章不足在前
+    [Fact]
+    public void Exchange_ReportsMedalsMissingBeforeMercenaryHired()
+    {
+        var hired = MercenaryRules.NewContract(new MercenaryDefinition("test-mercenary", "測試傭兵", 100, 3, 50, 100, 50, 2), Now);
+
+        var outcome = Exchange(Mercenary, [TestItems.Entry(1, "test-medal-a", 1)], hired);
+
+        Assert.Equal(["medalsMissing", "mercenaryHired"], outcome.Reasons);
+        Assert.Null(outcome.Mercenary);
+    }
+
     [Fact]
     public void Exchange_MercenaryStartsResting()
     {

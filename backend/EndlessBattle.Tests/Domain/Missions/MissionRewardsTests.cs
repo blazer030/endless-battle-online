@@ -135,6 +135,21 @@ public class MissionRewardsTests
         Assert.Equal(4, random.Consumed);
     }
 
+    // 900 + 190 > 1000 升一級：先擲 7 個成長（0.95，範圍都是 1～1），再擲寵物 at／mt／def 與個性（fallback 0.0 → 1 × 等級 2 = 2）。
+    // 順序反過來的話寵物會拿到 0.95 → rand(1,10) = 10
+    [Fact]
+    public void Reward_RollsLevelUpBeforePetStats()
+    {
+        var random = new ScriptedRandom(0.0, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95);
+
+        var outcome = Apply(Hero with { Exp = 900 }, Objective(level: 1, money: 0, pet: new PetReward("test-wolf", 2)), random: random);
+
+        Assert.Equal(1, outcome.LevelsGained);
+        var pet = outcome.NewPet!;
+        Assert.Equal((2, 2, 2, PetPersonality.Aggressive), (pet.Attack, pet.Magic, pet.Defense, pet.Personality));
+        Assert.Equal(11, random.Consumed);
+    }
+
     [Fact]
     public void Apply_PetRewardRejectedWhenPetsFull()
     {

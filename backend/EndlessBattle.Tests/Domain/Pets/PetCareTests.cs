@@ -121,6 +121,20 @@ public class PetCareTests
         Assert.Equal(["full"], PetCare.CanFeed(everything with { HungerSince = Now.AddSeconds(-10) }, food, Owner, 19, Now));
     }
 
+    // 只給一個值（0.5 → rand(8,12) = 10）：飢餓剛好用掉這一個，之後拿到的是 fallback
+    [Fact]
+    public void Hunger_ConsumesExactlyOneRoll()
+    {
+        var pet = Fed(satiety: 50) with { Intimacy = 5, HungerSince = Now.AddHours(-1) };
+        var random = new ScriptedRandom(0.99, 0.5);
+
+        var hungry = PetCare.Hunger(pet, Now, random);
+
+        Assert.Equal(40, hungry.Satiety);
+        Assert.Equal(1, random.Consumed);
+        Assert.Equal(0.99, random.NextDouble());
+    }
+
     [Fact]
     public void Hunger_TicksOncePerCheck()
     {

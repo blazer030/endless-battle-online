@@ -5,7 +5,7 @@ using EndlessBattle.Domain.Items;
 namespace EndlessBattle.Tests.Support;
 
 // 應用層測試用：與 EquipmentRepository 一致，讀取時帶出背包道具的最新內容；不檢查同一件道具是否佔了兩欄
-public sealed class InMemoryEquipmentRepository : IEquipmentRepository
+public sealed class InMemoryEquipmentRepository : IEquipmentRepository, IRestorableRepository
 {
     private readonly InMemoryInventoryRepository inventory;
     private readonly Dictionary<(long CharacterId, EquipmentSlot Slot), (long InventoryId, int? SupplyQuantity)> slots = [];
@@ -35,5 +35,18 @@ public sealed class InMemoryEquipmentRepository : IEquipmentRepository
         inventory.Find(characterId, inventoryId.Value);
         slots[(characterId, slot)] = (inventoryId.Value, supplyQuantity);
         return Task.CompletedTask;
+    }
+
+    public Action Snapshot()
+    {
+        var saved = new Dictionary<(long CharacterId, EquipmentSlot Slot), (long InventoryId, int? SupplyQuantity)>(slots);
+        return () =>
+        {
+            slots.Clear();
+            foreach (var (key, value) in saved)
+            {
+                slots[key] = value;
+            }
+        };
     }
 }

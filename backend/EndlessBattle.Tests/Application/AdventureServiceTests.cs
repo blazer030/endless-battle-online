@@ -834,6 +834,50 @@ public class AdventureServiceTests
         Assert.Equal(["update", "proficiency:warrior", "mission:progress:test-hunt", "mercenary:update"], log);
     }
 
+    // 背包與其他 repository 共用 log：傭兵與冒險的掉落寫進背包之後，最後才寫合約
+    [Fact]
+    public async Task Advance_WritesContractAfterDrops()
+    {
+        var sharedInventory = new InMemoryInventoryRepository(log);
+        var sharedEquipment = new InMemoryEquipmentRepository(sharedInventory);
+        var advance = new AdventureService(
+            repository, proficiencies, skillBook, loadout, sharedInventory, sharedEquipment, missions, pets, mercenaries, passes, buffs, Content, clock,
+            new ScriptedRandomFactory(), new InMemoryUnitOfWork(repository, proficiencies, sharedInventory, missions, pets, mercenaries, passes, buffs));
+        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        clock.Advance(TimeSpan.FromSeconds(20));
+        await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
+
+        await advance.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal("mercenary:update", log[^1]);
+        Assert.Equal(1, log.Count(entry => entry.StartsWith("add:", StringComparison.Ordinal)));
+        Assert.True(log.IndexOf("add:test-supply") < log.IndexOf("mercenary:update"));
+    }
+
+    // 補給品分類 15 格、最後一格 98 個，只剩 1 個空位：傭兵唯一一場的掉落先放進去，冒險 8 場的掉落全部 Discarded、不算進 Drops
+    [Fact]
+    public async Task Advance_MercenaryDropsTakeBagSpaceFirst()
+    {
+        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        for (var index = 0; index < InventoryRules.SlotsPerCategory - 1; index++)
+        {
+            await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", InventoryRules.StackLimit), CancellationToken);
+        }
+
+        var last = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", InventoryRules.StackLimit - 1), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+        await DeployMercenaryAsync(character, remaining: 1, clock.UtcNow);
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(["test-supply"], Assert.Single(result.Mercenary!.Fights).Drops);
+        Assert.Equal(InventoryRules.StackLimit, inventory.Find(character.Id, last).Quantity);
+        var drops = result.Events.OfType<RewardEvent>().SelectMany(reward => reward.Drops).ToList();
+        Assert.Equal(8, drops.Count);
+        Assert.All(drops, drop => Assert.True(drop.Discarded));
+        Assert.Equal(0, result.Summary.Drops);
+    }
+
     // 只剩 1 次：三場到期只打第一場，合約刪除、報告標示解除僱用；角色自己的冒險照常
     [Fact]
     public async Task Advance_RemovesMercenaryWhenFightsRunOut()
