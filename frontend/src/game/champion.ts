@@ -47,14 +47,12 @@ export const duelResultLine = (won: boolean, characterName: string) =>
 const isBattleEvent = (event: ChampionChallenge["events"][number]): event is BattleEvent =>
   event.type !== undefined
 
-// 對戰事件沿用冒險戰報的敘述，對手名字換成挑戰當下的冠軍；最後一行是勝負
+// 對戰事件沿用冒險戰報的敘述；決鬥沒有遭遇事件，對手一開始就是挑戰當下的冠軍。最後一行是勝負
 export const duelLog = (challenge: ChampionChallenge, championName: string): LogEntry[] => {
   const opponent = () => championName
-  let current: string | null = null
-  const lines = challenge.events.filter(isBattleEvent).flatMap((event) => {
-    if (event.type === "encounter") current = event.monsterId
-    return describePlaybackItem({ kind: "event", event }, opponent, current)
-  })
+  const lines = challenge.events
+    .filter(isBattleEvent)
+    .flatMap((event) => describePlaybackItem({ kind: "event", event }, opponent, "champion"))
   return [
     ...lines,
     { text: duelResultLine(challenge.won, challenge.character.name), kind: "trigger" },

@@ -22,18 +22,6 @@ const victory: ChampionChallenge = {
   }),
   events: [
     {
-      type: "encounter",
-      atSeconds: 0,
-      monsterId: "champion",
-      monsterHp: 1400,
-      monsterHpMax: 1400,
-      playerHp: 325,
-      playerHpMax: 325,
-      playerSp: 88,
-      playerSpMax: 88,
-      staminaDepleted: false,
-    },
-    {
       type: "attack",
       atSeconds: 2,
       attacker: "Player",
@@ -98,7 +86,6 @@ test("ChampionPanel_ChallengeShowsTheDuelAndTheNewChampion", async () => {
     .getAllByRole("listitem")
     .map((line) => line.textContent)
   expect(result).toEqual([
-    "遭遇 王都冠軍 格雷德！",
     "你攻擊 王都冠軍 格雷德，造成 1,400 點傷害。",
     "王都冠軍 格雷德倒下了。",
     "青衣 順利當上冠軍",
@@ -123,7 +110,11 @@ test("ChampionPanel_LossKeepsTheChampion", async () => {
   const result = within(screen.getByRole("log", { name: "挑戰結果" }))
     .getAllByRole("listitem")
     .map((line) => line.textContent)
-  expect(result).toEqual(["遭遇 王都冠軍 格雷德！", "你倒下了……", "挑戰失敗，冠軍保住了寶座。"])
+  expect(result).toEqual([
+    "你攻擊 王都冠軍 格雷德，造成 1,400 點傷害。",
+    "你倒下了……",
+    "挑戰失敗，冠軍保住了寶座。",
+  ])
   expect(screen.getByText("衛冕 1 次")).toBeInTheDocument()
 })
 
