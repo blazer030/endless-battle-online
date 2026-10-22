@@ -15,7 +15,6 @@ using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
-using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Application.Adventure;
@@ -65,7 +64,7 @@ public sealed class AdventureService(
         var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);
         var contract = await mercenaries.FindAsync(character.Id, cancellationToken);
         var job = content.GetJob(character.JobId);
-        var skills = await LoadEquippedSkillsAsync(character, cancellationToken);
+        var skills = await EquippedSkills.LoadAsync(loadout, skillBook, content, character, cancellationToken);
         var random = randomFactory.Create();
 
         // 傭兵的時間軸先結算，角色從傭兵帶回的經驗、等級與任務進度接著冒險；沒有出擊中的傭兵時不擲任何骰。
@@ -259,12 +258,4 @@ public sealed class AdventureService(
 
         return (events, applied.Discarded.Skip(mercenaryDrops.Count).Count(discarded => !discarded));
     }
-
-    // 內容檔移除的技能以 null 交給 Domain 略過；技能只有十幾個，線性查找即可
-    private async Task<IReadOnlyList<EquippedSkill>> LoadEquippedSkillsAsync(Character character, CancellationToken cancellationToken) =>
-        SkillLoadout.ForBattle(
-            await loadout.ListAsync(character.Id, cancellationToken),
-            await skillBook.ListAsync(character.Id, cancellationToken),
-            character.JobId,
-            skillId => content.AllSkills.FirstOrDefault(skill => skill.Id == skillId));
 }
