@@ -404,3 +404,28 @@ public sealed record HonourExchangeResponse(
     string Id, string Kind, string RewardId, string RewardName, int Quantity, IReadOnlyList<HonourCostResponse> Cost, bool Affordable);
 
 public sealed record HonourCostResponse(string ItemId, string Name, int Quantity, int Owned);
+
+// 冠軍席位；Fee 是挑戰費；Reasons 是現在挑戰會被擋的原因（championLocked、notEnoughMoney、noHp）
+public sealed record ChampionResponse(
+    string Name,
+    int Level,
+    int Element,
+    int Hp,
+    int HpMax,
+    int Sp,
+    int SpMax,
+    int At,
+    int Mat,
+    int Df,
+    int Mdf,
+    int Agi,
+    int Au,
+    bool IsPlayer,
+    int Defenses,
+    DateTimeOffset? CrownedAt,
+    DateTimeOffset? LockedUntil,
+    long Fee,
+    IReadOnlyList<string> Reasons);
+
+// Events 從 0 秒起算、不含遇敵事件；Champion 是戰後的席位
+public sealed record ChampionChallengeResponse(ChampionResponse Champion, IReadOnlyList<BattleEvent> Events, bool Won, CharacterResponse Character);

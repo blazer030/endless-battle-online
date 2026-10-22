@@ -68,6 +68,7 @@ app.MapMissionEndpoints();
 app.MapPetEndpoints();
 app.MapMercenaryEndpoints();
 app.MapHonourEndpoints();
+app.MapChampionEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
