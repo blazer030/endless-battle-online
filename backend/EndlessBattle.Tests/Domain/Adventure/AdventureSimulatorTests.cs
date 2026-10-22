@@ -730,4 +730,106 @@ public class AdventureSimulatorTests
         Assert.Equal(baseline.Summary, withoutPet.Summary);
         Assert.Equal(baseline.Character, withoutPet.Character);
     }
+
+    private static CaptureState Net(int quantity) => new("capture-net", "捕獸網", Multiplier: 1, quantity);
+
+    private static AdventureRun RunWithCapture(
+        Character character, double seconds, CaptureState? capture, IRandomSource random, int petCount = 0, Pet? carried = null,
+        IReadOnlyList<ActiveMission>? missions = null, params MonsterDefinition[] monsters) =>
+        AdventureSimulator.Run(
+            character, Warrior, Place, monsters.Length == 0 ? [Dummy] : monsters, ItemOf, [],
+            new StaminaState(character.ActNum, character.ActNumTime), From, From.AddSeconds(seconds), random,
+            missions: missions, companions: new AdventureCompanions(carried, petCount, capture));
+
+    // 同 Adventure_DropsNothingOnLossesAndTimeouts 的敗場與超限：擲骰 0.0 若有擲捕捉一定損壞，但兩者都不擲
+    [Fact]
+    public void Adventure_CapturesOnWinsOnly()
+    {
+        var brute = Monster("brute", hp: 60, at: 40, df: 1000);
+        var rock = Monster("rock", hp: 60, at: 40, df: 1000);
+
+        var lost = RunWithCapture(Hero(), seconds: 1, Net(5), new ScriptedRandom(0.0), monsters: brute);
+        var timedOut = RunWithCapture(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, Net(5), new ScriptedRandom(0.0), monsters: rock);
+
+        Assert.Equal((1, 1), (lost.Summary.Losses, timedOut.Summary.Timeouts));
+        foreach (var run in new[] { lost, timedOut })
+        {
+            Assert.Empty(run.Events.OfType<CaptureEvent>());
+            Assert.Equal(5, run.SupplyRemaining);
+            Assert.Empty(run.Captured);
+            Assert.Equal(0, run.Summary.PetsCaptured);
+        }
+    }
+
+    // 沒有捕捉道具（或數量 0）：擲骰與事件都和計畫 8 相同
+    [Fact]
+    public void Adventure_NoCaptureDiceWithoutItem()
+    {
+        var baseline = Run(Hero(), seconds: 60, new SeededRandom(7));
+        var withoutItem = RunWithCapture(Hero(), seconds: 60, capture: null, new SeededRandom(7));
+        var emptyItem = RunWithCapture(Hero(), seconds: 60, Net(0), new SeededRandom(7));
+
+        Assert.True(baseline.Summary.Wins > 0);
+        foreach (var run in new[] { withoutItem, emptyItem })
+        {
+            Assert.Equivalent(baseline.Events, run.Events, strict: true);
+            Assert.Equal(baseline.Summary, run.Summary);
+            Assert.Equal(baseline.Character, run.Character);
+            Assert.Empty(run.Captured);
+        }
+    }
+
+    // 攜帶寵物時不捕捉：事件與只帶寵物、沒裝捕捉道具時相同，道具不減
+    [Fact]
+    public void Adventure_NoCaptureWhileCarryingPet()
+    {
+        var pet = TestPets.Create("小雪", "test-sprite");
+
+        var petOnly = RunWithCapture(Hero(), seconds: 60, capture: null, new SeededRandom(7), carried: pet);
+        var withItem = RunWithCapture(Hero(), seconds: 60, Net(5), new SeededRandom(7), carried: pet);
+
+        Assert.True(petOnly.Summary.Wins > 0);
+        Assert.Equivalent(petOnly.Events, withItem.Events, strict: true);
+        Assert.Equal(petOnly.Summary, withItem.Summary);
+        Assert.Empty(withItem.Captured);
+        Assert.Equal(5, withItem.SupplyRemaining);
+    }
+
+    // 擲骰 0.0：每個勝場都損壞（−1）且捕捉擲 1 必中；30 秒 11 場全勝。寵物數加上這次捕到的不超過 3：
+    // 0 隻 → 前 3 場各捕一隻；2 隻 → 只捕第一場；3 隻 → 照擲但不捕。道具 20 − 每場損壞 − 捕到的數量
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(2, 1)]
+    [InlineData(3, 0)]
+    public void Adventure_CaptureSkipsWhenPetsFull(int petCount, int expectedCaptures)
+    {
+        var run = RunWithCapture(Hero() with { NextExp = 1_000_000 }, seconds: 30, Net(20), new ScriptedRandom(0.0), petCount);
+
+        Assert.Equal(11, run.Summary.Wins);
+        Assert.Equal(expectedCaptures, run.Captured.Count);
+        Assert.Equal(expectedCaptures, run.Summary.PetsCaptured);
+        Assert.Equal(20 - run.Summary.Wins - expectedCaptures, run.SupplyRemaining);
+        var captures = run.Events.OfType<CaptureEvent>().ToList();
+        Assert.Equal(run.Summary.Wins, captures.Count);
+        Assert.All(captures, capture => Assert.True(capture.ItemBroken));
+        Assert.Equal(expectedCaptures, captures.Count(capture => capture.CapturedMonsterId is not null));
+        Assert.All(captures.Take(expectedCaptures), capture => Assert.Equal("dummy", capture.CapturedMonsterId));
+    }
+
+    // 第一場就升級（Exp 999 + 146 > 1000）且有任務：同一場是 RewardEvent → CaptureEvent → MissionProgressEvent → LevelUpEvent。
+    // 擲骰 0.0：損壞 −1、捕到 −1 → 剩 3；能力 rand(1,10) = 1 × 倍率 1、個性 1 積極，捕捉時刻 = 擊殺時刻
+    [Fact]
+    public void Adventure_CaptureEventFollowsReward()
+    {
+        var run = RunWithCapture(Hero() with { Exp = 999 }, seconds: 1, Net(5), new ScriptedRandom(0.0), missions: [Hunt()], monsters: Sprite);
+
+        Assert.Equal(
+            [typeof(RewardEvent), typeof(CaptureEvent), typeof(MissionProgressEvent), typeof(LevelUpEvent)],
+            run.Events.Where(battleEvent => battleEvent is RewardEvent or CaptureEvent or MissionProgressEvent or LevelUpEvent)
+                .Select(battleEvent => battleEvent.GetType()));
+        Assert.Equal(new CaptureEvent(0, "捕獸網", ItemBroken: true, CapturedMonsterId: "test-sprite", Remaining: 3), run.Events.OfType<CaptureEvent>().Single());
+        Assert.Equal([new CapturedPet("test-sprite", "test-sprite", PetPersonality.Aggressive, 1, 1, 1, From)], run.Captured);
+        Assert.Equal(1, run.Summary.PetsCaptured);
+        Assert.Equal(3, run.SupplyRemaining);
+    }
 }

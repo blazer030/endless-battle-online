@@ -18,6 +18,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(MissionProgressEvent), "mission")]
 [JsonDerivedType(typeof(PetGuardEvent), "petGuard")]
 [JsonDerivedType(typeof(PetAttackEvent), "petAttack")]
+[JsonDerivedType(typeof(CaptureEvent), "capture")]
 public abstract record BattleEvent(double AtSeconds);
 
 public sealed record EncounterEvent(
@@ -54,6 +55,9 @@ public sealed record PetGuardEvent(double AtSeconds, string PetName, int Damage,
 // 落空時 Damage 為 0、Critical 為 false
 public sealed record PetAttackEvent(double AtSeconds, string PetName, AttackKind Kind, bool Hit, bool Critical, int Damage, int TargetHpAfter)
     : BattleEvent(AtSeconds);
+
+// 捕捉道具損壞或捕到寵物時才產生，緊接在同一場的 RewardEvent 之後；CapturedMonsterId 為 null 表示沒捕到，Remaining 是擲完後的剩餘數量
+public sealed record CaptureEvent(double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, int Remaining) : BattleEvent(AtSeconds);
 
 // Heal 是實際回復量，非回復技能為 0
 public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);

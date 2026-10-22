@@ -543,6 +543,81 @@ public class AdventureServiceTests
         Assert.Equal(expected.Summary, result.Summary);
     }
 
+    private static async Task<long> EquipCaptureNetAsync(
+        InMemoryInventoryRepository bag, InMemoryEquipmentRepository slots, Character character, int quantity)
+    {
+        var id = await bag.AddAsync(character.Id, TestItems.Entry(0, "test-capture-net", quantity), CancellationToken);
+        await slots.SetSlotAsync(character.Id, EquipmentSlot.Supply, id, quantity, CancellationToken);
+        return id;
+    }
+
+    // 補給欄裝測試捕獸網（倍率 2）×20，擲骰 0.0：每個勝場都損壞，前 3 場再各捕到一隻（之後寵物已滿）。20 秒 8 場 → 20 − 8 − 3 = 9。
+    // 寵物在獸欄、能力 rand(1,10) = 1 × 2、個性 1 積極、名字＝怪物名，出生於擊殺時刻（0、2.8、5.6 秒）。
+    // 背包共用 log 以確認寫入順序：寵物在補給欄寫回之後
+    [Fact]
+    public async Task Advance_PersistsCapturedPetsAndItemCount()
+    {
+        var loggedInventory = new InMemoryInventoryRepository(log);
+        var loggedEquipment = new InMemoryEquipmentRepository(loggedInventory);
+        var advance = new AdventureService(
+            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+        var character = await AddCharacterAsync();
+        var netId = await EquipCaptureNetAsync(loggedInventory, loggedEquipment, character, quantity: 20);
+        log.Clear();
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await advance.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(8, result.Summary.Wins);
+        Assert.Equal(3, result.Summary.PetsCaptured);
+        var stored = await pets.ListAsync(character.Id, CancellationToken);
+        Assert.Equal(3, stored.Count);
+        Assert.All(stored, pet =>
+        {
+            Assert.Equal(
+                ("test-sprite", "測試雪精", PetPersonality.Aggressive, 2, 2, 2, 1, 80, 0, false),
+                (pet.MonsterId, pet.Name, pet.Personality, pet.Attack, pet.Magic, pet.Defense, pet.Spirit, pet.Satiety, pet.Intimacy, pet.Carried));
+            Assert.Equal(pet.BornAt.AddSeconds(-20), pet.HungerSince);
+        });
+        Assert.Equal([0.0, 2.8, 5.6], stored.Select(pet => Math.Round((pet.BornAt - Start).TotalSeconds, 3)));
+        var slots = await loggedEquipment.GetAsync(character.Id, CancellationToken);
+        Assert.Equal(9, slots.SupplyQuantity);
+        Assert.Equal(9, slots.Equipped[EquipmentSlot.Supply].Quantity);
+        Assert.Equal(["update", "proficiency:warrior", "add:test-supply", $"quantity:{netId}", "pet:add:1", "pet:add:2", "pet:add:3"], log);
+    }
+
+    // 同 Adventure_WritesBackRemainingQuantity 的弱角色（HP 低於 15% 而且輸掉）：補給欄是捕捉道具時不會喝
+    [Fact]
+    public async Task Advance_NeverDrinksCaptureItem()
+    {
+        var character = await AddWeakCharacterAsync();
+        await EquipCaptureNetAsync(inventory, equipment, character, quantity: 5);
+        clock.Advance(TimeSpan.FromSeconds(1));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(1, result.Summary.Losses);
+        Assert.Empty(result.Events.OfType<PotionEvent>());
+        Assert.Equal(0, result.Summary.PotionsUsed);
+        Assert.Equal(5, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
+    // 版本衝突：捕到的寵物與道具數量都不寫
+    [Fact]
+    public async Task Advance_WritesNoPets_WhenCharacterUpdateConflicts()
+    {
+        var character = await AddCharacterAsync();
+        await EquipCaptureNetAsync(inventory, equipment, character, quantity: 20);
+        repository.FailNextUpdate = true;
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.AdvanceAsync(AccountId, CancellationToken));
+
+        Assert.DoesNotContain(log, entry => entry.StartsWith("pet:", StringComparison.Ordinal));
+        Assert.Empty(await pets.ListAsync(character.Id, CancellationToken));
+        Assert.Equal(20, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
     {
         public IRandomSource Create() => new ScriptedRandom(0.0);

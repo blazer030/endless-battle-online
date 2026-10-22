@@ -46,6 +46,9 @@ public static class AdventureSimulator
     {
         missions ??= [];
         var carriedPet = companions?.CarriedPet;
+        var capture = companions?.Capture;
+        var petCount = companions?.PetCount ?? 0;
+        var captured = new List<CapturedPet>();
         // 裝備在整段推進中不變；null 表示沒有裝備
         var bonus = equipment ?? EquipmentBonus.Zero;
         var totalSeconds = (to - from).TotalSeconds;
@@ -161,6 +164,22 @@ public static class AdventureSimulator
 
                 droppedItemIds.AddRange(dropped);
 
+                // 捕捉在掉落之後、任務與升級之前；攜帶寵物時不捕捉。這次捕到的也算進寵物上限
+                if (outcome.Winner == CombatSide.Player && carriedPet is null && capture is { Quantity: > 0 })
+                {
+                    var roll = PetCapture.Roll(capture, definition, petCount + captured.Count, from.AddSeconds(fightEnd), random);
+                    capture = roll.Capture;
+                    if (roll.Captured is not null)
+                    {
+                        captured.Add(roll.Captured);
+                    }
+
+                    if (keepEvents && (roll.ItemBroken || roll.Captured is not null))
+                    {
+                        events.Add(new CaptureEvent(fightEnd, capture.Name, roll.ItemBroken, roll.Captured?.MonsterId, capture.Quantity));
+                    }
+                }
+
                 // 只有勝場計入任務；擊殺時刻以打完的時間判斷每日任務是否過期
                 if (outcome.Winner == CombatSide.Player)
                 {
@@ -191,8 +210,9 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills);
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
-        return new AdventureRun(events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity, missions);
+        return new AdventureRun(
+            events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
     }
 }

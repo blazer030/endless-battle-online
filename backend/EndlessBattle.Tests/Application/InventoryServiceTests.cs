@@ -168,6 +168,20 @@ public class InventoryServiceTests
         Assert.Equal(2, (await inventory.ListAsync(character.Id, CancellationToken)).Count);
     }
 
+    // 捕捉道具和補給品一樣放補給欄：×5 裝 3 → 欄位 3，背包剩 2
+    [Fact]
+    public async Task Equip_CaptureItemGoesToSupplySlot()
+    {
+        var character = await AddCharacterAsync();
+        var net = await GiveAsync(character, "test-capture-net", 5);
+
+        var view = await service.EquipAsync(AccountId, net, 3, CancellationToken);
+
+        Assert.Equal([(EquipmentSlot.Supply, "test-capture-net", 3)], EquippedOf(view));
+        Assert.Equal([("test-capture-net", 2)], BagOf(view, ItemCategory.Consumable));
+        Assert.Equal(3, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
     [Fact]
     public async Task Unequip_ReturnsEquipmentToBag()
     {

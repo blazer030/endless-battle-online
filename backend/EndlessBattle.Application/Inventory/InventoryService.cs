@@ -28,7 +28,7 @@ public sealed class InventoryService(
             var state = await LoadAsync(character.Id, cancellationToken);
             var entry = FindInBag(state, inventoryId);
             var item = content.GetItem(entry.ItemId);
-            if (item.Consumable == ConsumableKind.Supply)
+            if (item.Consumable is ConsumableKind.Supply or ConsumableKind.Capture)
             {
                 await EquipSupplyAsync(character, state, entry, item, supplyQuantity ?? entry.Quantity, cancellationToken);
                 return await ViewAsync(character, cancellationToken);

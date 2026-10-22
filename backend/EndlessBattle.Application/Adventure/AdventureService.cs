@@ -12,6 +12,7 @@ using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 
@@ -56,7 +57,8 @@ public sealed class AdventureService(
             ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
             : character.LastSettledAt;
         var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
-        var carriedPet = (await pets.ListAsync(character.Id, cancellationToken)).FirstOrDefault(pet => pet.Carried);
+        var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
+        var supplySlot = SupplySlotOf(equipped);
         var run = AdventureSimulator.Run(
             character,
             content.GetJob(character.JobId),
@@ -69,9 +71,9 @@ public sealed class AdventureService(
             now,
             randomFactory.Create(),
             bonus,
-            SupplyOf(equipped),
+            supplySlot.Supply,
             tracked,
-            new AdventureCompanions(carriedPet));
+            new AdventureCompanions(ownedPets.FirstOrDefault(pet => pet.Carried), ownedPets.Count, supplySlot.Capture));
 
         return await unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -97,6 +99,12 @@ public sealed class AdventureService(
             var drops = await StoreDropsAsync(updated, run, cancellationToken);
             await StoreSupplyAsync(updated.Id, equipped, run.SupplyRemaining, cancellationToken);
 
+            // 捕到的寵物最後寫入，依捕捉順序
+            foreach (var captured in run.Captured)
+            {
+                await pets.AddAsync(updated.Id, captured.ToPet(), cancellationToken);
+            }
+
             return new AdvanceResult(drops.Events, run.Summary with { Drops = drops.Accepted }, run.EventsCoverAll, updated,
                 await proficiencies.ListAsync(updated.Id, cancellationToken), bonus);
         }, cancellationToken);
@@ -112,15 +120,18 @@ public sealed class AdventureService(
         }
     }
 
-    private SupplyState? SupplyOf(Loadout equipped)
+    // 補給欄放的是補給品或捕捉道具（至多一種）；捕捉道具不會被當成補給品喝
+    private (SupplyState? Supply, CaptureState? Capture) SupplySlotOf(Loadout equipped)
     {
         if (!equipped.Equipped.TryGetValue(EquipmentSlot.Supply, out var entry))
         {
-            return null;
+            return (null, null);
         }
 
         var item = content.GetItem(entry.ItemId);
-        return new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity);
+        return item.Consumable == ConsumableKind.Capture
+            ? (null, new CaptureState(item.Id, item.Name, item.Amount, equipped.SupplyQuantity))
+            : (new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity), null);
     }
 
     // 補給欄在掉落之後寫回；用完就清空補給欄並刪掉那一列（先清欄位，否則外鍵擋刪除）
