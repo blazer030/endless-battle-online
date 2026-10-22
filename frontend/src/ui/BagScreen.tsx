@@ -15,6 +15,7 @@ import {
   isEquipment,
   isSupply,
   isUsable,
+  itemUseResultLines,
   itemCategories,
   MaxShopLevel,
   maxBuyQuantity,
@@ -216,6 +217,7 @@ function BagPage({
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string[]>([])
   const slots = bagSlotsOf(inventory, category)
   const label = itemCategories.find(({ id }) => id === category)?.label ?? category
 
@@ -223,9 +225,11 @@ function BagPage({
     setSelectedId(next)
     setQuantity(1)
     setError(null)
+    setNotice([])
   }
 
   const act = async (action: () => Promise<Outcome>) => {
+    setNotice([])
     const message = await mutate(action)
     setError(message)
     if (message === null) setSelectedId(null)
@@ -243,6 +247,13 @@ function BagPage({
         }}
       />
       <p className="bag__usage">{`${label} ${usageText(slots)}`}</p>
+      {notice.length > 0 && (
+        <div className="bag__notice" role="status">
+          {notice.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      )}
       {slots.items.length === 0 ? (
         <p className="bag__empty">這個分類沒有道具</p>
       ) : (
@@ -299,9 +310,11 @@ function BagPage({
                           className="bag__action"
                           disabled={busy}
                           onClick={() =>
-                            void act(async () => ({
-                              inventory: await api.useItem(item.inventoryId),
-                            }))
+                            void act(async () => {
+                              const result = await api.useItem(item.inventoryId)
+                              setNotice(itemUseResultLines(item, result))
+                              return { inventory: result.inventory }
+                            })
                           }
                         >
                           使用

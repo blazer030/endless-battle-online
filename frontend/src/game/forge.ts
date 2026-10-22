@@ -65,6 +65,24 @@ export const mergeablePairs = (stone: InventoryItem) => {
 export const mergeableStones = (inventory: InventoryView) =>
   bagSlotsOf(inventory, "RefineStone").items.filter((stone) => mergeablePairs(stone) > 0)
 
+// 異類合成：同等級、不同種類（每種等級各是一個道具 id）；Lv1 不能異類合成
+export const crossMergePartners = (inventory: InventoryView, first: InventoryItem) => {
+  const level = first.refineStoneLevel
+  if (level === null || level <= 1) return []
+  return bagSlotsOf(inventory, "RefineStone").items.filter(
+    (stone) => stone.refineStoneLevel === level && stone.itemId !== first.itemId,
+  )
+}
+
+export const crossMergeableStones = (inventory: InventoryView) =>
+  bagSlotsOf(inventory, "RefineStone").items.filter(
+    (stone) => crossMergePartners(inventory, stone).length > 0,
+  )
+
+// 每組兩格各扣一顆
+export const crossMergeMaxPairs = (first: InventoryItem, second: InventoryItem) =>
+  Math.min(first.quantity, second.quantity)
+
 export type HoleSlot = { hole: number; stoneName: string | null }
 
 // 孔位從 1 起算

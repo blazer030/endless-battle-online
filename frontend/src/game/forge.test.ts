@@ -18,6 +18,9 @@ import {
   unsocketResultText,
   drillResultText,
   countInBag,
+  crossMergeableStones,
+  crossMergeMaxPairs,
+  crossMergePartners,
 } from "./forge"
 import type { Recipe } from "./types"
 
@@ -206,5 +209,40 @@ describe("synthesis", () => {
     expect(synthesisResultText({ attempts: 3, successes: 2, cost: 2000 })).toBe(
       "合成 3 次，成功 2 次，花費 2,000 金錢。",
     )
+  })
+})
+
+describe("crossMergePartners", () => {
+  const stone = (inventoryId: number, itemId: string, level: number, quantity = 1) =>
+    makeItem({ inventoryId, itemId, category: "RefineStone", refineStoneLevel: level, quantity })
+  const ironTwo = stone(1, "iron-refine-stone-2", 2, 3)
+  const arcaneTwo = stone(2, "arcane-refine-stone-2", 2)
+  const vigorThree = stone(3, "vigor-refine-stone-3", 3)
+  const ironTwoAgain = stone(4, "iron-refine-stone-2", 2)
+  const ironOne = stone(5, "iron-refine-stone-1", 1)
+  const arcaneOne = stone(6, "arcane-refine-stone-1", 1)
+  const inventory = makeInventory([
+    ironTwo,
+    arcaneTwo,
+    vigorThree,
+    ironTwoAgain,
+    ironOne,
+    arcaneOne,
+  ])
+
+  it("只列同等級、不同種類的精鍊石", () => {
+    expect(crossMergePartners(inventory, ironTwo)).toEqual([arcaneTwo])
+    expect(crossMergePartners(inventory, arcaneTwo)).toEqual([ironTwo, ironTwoAgain])
+    expect(crossMergePartners(inventory, vigorThree)).toEqual([])
+  })
+
+  it("Lv1 不能異類合成", () => {
+    expect(crossMergePartners(inventory, ironOne)).toEqual([])
+    expect(crossMergeableStones(inventory)).toEqual([ironTwo, arcaneTwo, ironTwoAgain])
+  })
+
+  it("組數上限是兩格數量較小者", () => {
+    expect(crossMergeMaxPairs(ironTwo, arcaneTwo)).toBe(1)
+    expect(crossMergeMaxPairs(ironTwo, { ...arcaneTwo, quantity: 5 })).toBe(3)
   })
 })

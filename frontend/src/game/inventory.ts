@@ -6,6 +6,7 @@ import type {
   InventoryItem,
   InventoryView,
   ItemCategory,
+  ItemUseResult,
   ItemRequirement,
   StatBonusView,
 } from "./types"
@@ -63,12 +64,36 @@ export const isEquipment = (category: ItemCategory) => equipmentCategories.has(c
 export const isSupply = (item: InventoryItem) =>
   item.consumable === "Supply" || item.consumable === "Capture"
 
-// 能從背包直接使用的消耗品；補給品要放到補給欄
-export const isUsable = (item: InventoryItem) =>
-  item.consumable === "StatPotion" ||
-  item.consumable === "StaminaPotion" ||
-  item.consumable === "BagExpansion" ||
-  item.consumable === "DepotExpansion"
+const usableKinds: ReadonlySet<InventoryItem["consumable"]> = new Set([
+  "StatPotion",
+  "StaminaPotion",
+  "BagExpansion",
+  "DepotExpansion",
+  "StoneBox",
+  "RefineBox",
+  "PetEgg",
+  "ProficiencyBook",
+  "ExperienceCapsule",
+])
+
+// 能從背包直接使用的消耗品；補給品與捕捉道具要放到補給欄
+export const isUsable = (item: InventoryItem) => usableKinds.has(item.consumable)
+
+const formatAmount = (value: number) => value.toLocaleString("zh-TW")
+
+// 使用後的結果行；寶箱沿用 WOG xmas_item 的「恭喜抽到」，名稱以空白分隔
+export const itemUseResultLines = (
+  item: Pick<InventoryItem, "consumable" | "amount">,
+  result: Pick<ItemUseResult, "obtained" | "petName" | "skillPoints" | "levelsGained">,
+): string[] => {
+  const lines: string[] = []
+  if (result.obtained.length > 0) lines.push(`恭喜抽到 ${result.obtained.join(" ")}`)
+  if (result.petName !== null) lines.push(`獲得寵物 ${result.petName}`)
+  if (result.skillPoints > 0) lines.push(`技能點 +${formatAmount(result.skillPoints)}`)
+  if (item.consumable === "ExperienceCapsule")
+    lines.push(`經驗值 +${formatAmount(item.amount)}${result.levelsGained > 0 ? "，升級了！" : ""}`)
+  return lines
+}
 
 export const bagSlotsOf = (inventory: InventoryView, category: ItemCategory): BagCategoryView =>
   inventory.bag.find((entry) => entry.category === category) ?? {
@@ -214,6 +239,7 @@ const fixedReasonTexts: Record<string, string> = {
   notEquipment: "這不是裝備",
   notForSale: "商店沒有販售這個品項",
   notUsable: "這個道具不能直接使用",
+  petsFull: "牧場已滿，最多只能擁有3隻寵物",
   slotEmpty: "這一欄沒有裝備",
   stackLimit: "已達堆疊上限",
 }

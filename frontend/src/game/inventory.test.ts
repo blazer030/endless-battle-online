@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { makeCharacter, makeInventory, makeItem } from "../test/fixtures"
+import type { InventoryItem } from "./types"
 import {
   bagSlotsOf,
   BankMinimumLevel,
@@ -19,6 +20,8 @@ import {
   shopCategories,
   supplyEquipQuantity,
   usageText,
+  isUsable,
+  itemUseResultLines,
 } from "./inventory"
 
 describe("shopCategories", () => {
@@ -282,5 +285,63 @@ describe("bank", () => {
     expect(BankMinimumLevel).toBe(15)
     expect(isBankLocked(14)).toBe(true)
     expect(isBankLocked(15)).toBe(false)
+  })
+})
+
+describe("isUsable", () => {
+  it.each([
+    "StatPotion",
+    "StaminaPotion",
+    "BagExpansion",
+    "DepotExpansion",
+    "StoneBox",
+    "RefineBox",
+    "PetEgg",
+    "ProficiencyBook",
+    "ExperienceCapsule",
+  ] as const)("%s 可以從背包使用", (consumable) => {
+    expect(isUsable(makeItem({ category: "Consumable", consumable }))).toBe(true)
+  })
+
+  it.each(["Supply", "Capture", "None"] as const)("%s 不能從背包使用", (consumable) => {
+    expect(isUsable(makeItem({ category: "Consumable", consumable }))).toBe(false)
+  })
+})
+
+describe("itemUseResultLines", () => {
+  const nothing = { obtained: [], petName: null, skillPoints: 0, levelsGained: 0 }
+  const used = (consumable: InventoryItem["consumable"], amount = 1) =>
+    makeItem({ category: "Consumable", consumable, amount })
+
+  it("寶箱列出抽到的道具，以空白分隔", () => {
+    expect(
+      itemUseResultLines(used("StoneBox", 2), { ...nothing, obtained: ["攻擊魔石", "疾風魔石"] }),
+    ).toEqual(["恭喜抽到 攻擊魔石 疾風魔石"])
+    expect(
+      itemUseResultLines(used("RefineBox", 3), { ...nothing, obtained: ["秘法精鍊石 Lv3"] }),
+    ).toEqual(["恭喜抽到 秘法精鍊石 Lv3"])
+  })
+
+  it("寵物蛋、心得書與經驗膠囊", () => {
+    expect(itemUseResultLines(used("PetEgg", 280), { ...nothing, petName: "流浪絨球" })).toEqual([
+      "獲得寵物 流浪絨球",
+    ])
+    expect(
+      itemUseResultLines(used("ProficiencyBook", 1500), { ...nothing, skillPoints: 1500 }),
+    ).toEqual(["技能點 +1,500"])
+    expect(itemUseResultLines(used("ExperienceCapsule", 20000), nothing)).toEqual([
+      "經驗值 +20,000",
+    ])
+    expect(
+      itemUseResultLines(used("ExperienceCapsule", 20000), { ...nothing, levelsGained: 2 }),
+    ).toEqual(["經驗值 +20,000，升級了！"])
+  })
+
+  it("其他道具沒有結果行", () => {
+    expect(itemUseResultLines(used("StatPotion"), nothing)).toEqual([])
+  })
+
+  it("牧場已滿的錯誤文案", () => {
+    expect(reasonText("petsFull")).toBe("牧場已滿，最多只能擁有3隻寵物")
   })
 })

@@ -254,6 +254,7 @@ test("forgeCalls_UseTheirEndpoints", async () => {
   await client.unsocket(7, 1)
   await client.drill(7)
   await client.mergeStones(30, 3)
+  await client.mergeCrossStones(30, 32, 2)
   await client.getRecipes()
   await client.synthesize("iron-ingot", 5)
 
@@ -268,6 +269,11 @@ test("forgeCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/forge/unsocket", { inventoryId: 7, hole: 1 }],
     ["POST", "/api/forge/drill", { inventoryId: 7 }],
     ["POST", "/api/forge/merge-stones", { stoneInventoryId: 30, quantityPairs: 3 }],
+    [
+      "POST",
+      "/api/forge/merge-cross",
+      { firstInventoryId: 30, secondInventoryId: 32, quantityPairs: 2 },
+    ],
     ["GET", "/api/forge/recipes", undefined],
     ["POST", "/api/forge/synthesize", { recipeId: "iron-ingot", attempts: 5 }],
   ])
@@ -339,4 +345,21 @@ test("companionCalls_UseTheirEndpoints", async () => {
     ["GET", "/api/champion", undefined],
     ["POST", "/api/champion/challenge", undefined],
   ])
+})
+
+test("useItem_ReturnsTheUseResult", async () => {
+  const body = {
+    inventory: { bag: [], equipment: [], bonus: {} },
+    obtained: ["攻擊魔石", "疾風魔石"],
+    petName: null,
+    skillPoints: 0,
+    levelsGained: 0,
+  }
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(body))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  const result = await client.useItem(9)
+
+  expect(result.obtained).toEqual(["攻擊魔石", "疾風魔石"])
+  expect(result.inventory.bag).toEqual([])
 })

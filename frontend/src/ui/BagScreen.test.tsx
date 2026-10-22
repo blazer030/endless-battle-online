@@ -67,7 +67,9 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   getInventory: vi.fn().mockResolvedValue(inventory),
   equip: vi.fn().mockResolvedValue(inventory),
   unequip: vi.fn().mockResolvedValue(inventory),
-  useItem: vi.fn().mockResolvedValue(inventory),
+  useItem: vi
+    .fn()
+    .mockResolvedValue({ inventory, obtained: [], petName: null, skillPoints: 0, levelsGained: 0 }),
   getShop: vi.fn().mockImplementation((category: string) =>
     Promise.resolve(
       category === "Consumable"
@@ -95,6 +97,7 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   unsocket: vi.fn().mockResolvedValue({ success: true, recovered: true, inventory }),
   drill: vi.fn().mockResolvedValue({ success: false, inventory }),
   mergeStones: vi.fn().mockResolvedValue({ success: true, inventory }),
+  mergeCrossStones: vi.fn().mockResolvedValue({ success: true, inventory }),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn().mockResolvedValue({ successes: 0, attempts: 1, cost: 0, inventory }),
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
@@ -794,4 +797,103 @@ test("BagScreen_SupplyQuantityDefaultsToEachStackCappedAt99", async () => {
   await user.click(within(small).getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(3, 8)
+})
+
+const stoneBox = makeItem({
+  inventoryId: 80,
+  itemId: "stone-box",
+  category: "Consumable",
+  consumable: "StoneBox",
+  name: "魔石寶箱",
+  amount: 1,
+  quantity: 2,
+})
+const petEgg = makeItem({
+  inventoryId: 81,
+  itemId: "pet-egg",
+  category: "Consumable",
+  consumable: "PetEgg",
+  name: "寵物蛋",
+  amount: 280,
+})
+
+test("BagScreen_UsingAStoneBoxListsTheObtainedStones", async () => {
+  const boxes = makeInventory([stoneBox, petEgg])
+  const opened = makeInventory([{ ...stoneBox, quantity: 1 }, petEgg])
+  const { api } = renderBag(
+    createFakeApi({
+      getInventory: vi.fn().mockResolvedValue(boxes),
+      useItem: vi.fn().mockResolvedValue({
+        inventory: opened,
+        obtained: ["攻擊魔石"],
+        petName: null,
+        skillPoints: 0,
+        levelsGained: 0,
+      }),
+    }),
+  )
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /魔石寶箱 ×2/ }))
+  await user.click(screen.getByRole("button", { name: "使用" }))
+
+  expect(api.useItem).toHaveBeenCalledWith(80)
+  expect(await screen.findByRole("status")).toHaveTextContent("恭喜抽到 攻擊魔石")
+  expect(screen.getByRole("button", { name: /魔石寶箱 ×1/ })).toBeInTheDocument()
+})
+
+test("BagScreen_PetEggShowsPetsFullError", async () => {
+  renderBag(
+    createFakeApi({
+      getInventory: vi.fn().mockResolvedValue(makeInventory([petEgg])),
+      useItem: vi.fn().mockRejectedValue(new ApiError(400, "這個道具不能使用", ["petsFull"])),
+    }),
+  )
+  await user.click(await screen.findByRole("tab", { name: "道具" }))
+  await user.click(screen.getByRole("button", { name: /寵物蛋 ×1/ }))
+  await user.click(screen.getByRole("button", { name: "使用" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("牧場已滿，最多只能擁有3隻寵物")
+  expect(screen.queryByRole("status")).not.toBeInTheDocument()
+})
+
+test("BagScreen_ForgeMergesDifferentRefineStones", async () => {
+  const arcane = makeItem({
+    inventoryId: 32,
+    itemId: "arcane-refine-stone-lv2",
+    refineStoneLevel: 2,
+    name: "秘法精鍊石 Lv2",
+    category: "RefineStone",
+    quantity: 2,
+  })
+  const vigor = makeItem({
+    inventoryId: 33,
+    itemId: "vigor-refine-stone-lv3",
+    refineStoneLevel: 3,
+    name: "活力精鍊石 Lv3",
+    category: "RefineStone",
+  })
+  const { api } = await renderForge({
+    getInventory: vi.fn().mockResolvedValue(makeInventory([...forgeItems, arcane, vigor])),
+  })
+
+  const cross = screen.getByRole("region", { name: "異類合成" })
+  expect(cross).toHaveTextContent(
+    "兩顆同等級、不同種類的精鍊石合成一顆低一級的其他種類精鍊石（Lv1 不能異類合成）",
+  )
+  await user.selectOptions(
+    within(cross).getByRole("combobox", { name: "第一格" }),
+    "鋼鐵精鍊石 Lv2 ×3",
+  )
+  const second = within(cross).getByRole("combobox", { name: "第二格" })
+  expect(
+    within(second)
+      .getAllByRole("option")
+      .map((option) => option.textContent),
+  ).toEqual(["秘法精鍊石 Lv2 ×2"])
+  await user.click(within(cross).getByRole("button", { name: "增加數量" }))
+  expect(within(cross).getByRole("button", { name: "增加數量" })).toBeDisabled()
+  await user.click(within(cross).getByRole("button", { name: "異類合成" }))
+
+  expect(api.mergeCrossStones).toHaveBeenCalledWith(31, 32, 2)
+  expect(await screen.findByRole("status")).toHaveTextContent("異類合成成功！")
 })

@@ -72,6 +72,13 @@
   color: var(--text-muted);
 }
 
+.bag__notice p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .bag__empty {
   padding: 8px 0;
   text-align: center;

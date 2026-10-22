@@ -13,6 +13,7 @@ import type {
   HonourShop,
   InventoryView,
   ItemCategory,
+  ItemUseResult,
   JobOption,
   MercenaryHireResult,
   MercenaryOverview,
@@ -66,7 +67,7 @@ export type ApiClient = {
   // quantity 只用於補給品：從那一格分出幾個放到補給欄
   equip: (inventoryId: number, quantity?: number) => Promise<InventoryView>
   unequip: (slot: EquipmentSlot) => Promise<InventoryView>
-  useItem: (inventoryId: number) => Promise<InventoryView>
+  useItem: (inventoryId: number) => Promise<ItemUseResult>
   getShop: (category: ItemCategory, level: number) => Promise<ShopItem[]>
   buy: (itemId: string, quantity: number) => Promise<InventoryView>
   sell: (inventoryId: number, quantity: number) => Promise<InventoryView>
@@ -85,6 +86,11 @@ export type ApiClient = {
   unsocket: (inventoryId: number, hole: number) => Promise<UnsocketResult>
   drill: (inventoryId: number) => Promise<ForgeResult>
   mergeStones: (stoneInventoryId: number, quantityPairs: number) => Promise<ForgeResult>
+  mergeCrossStones: (
+    firstInventoryId: number,
+    secondInventoryId: number,
+    quantityPairs: number,
+  ) => Promise<ForgeResult>
   getRecipes: () => Promise<Recipe[]>
   synthesize: (recipeId: string, attempts: number) => Promise<SynthesisResult>
   getMissions: () => Promise<MissionBoard>
@@ -196,7 +202,7 @@ export const createApiClient = (options: {
       requestJson<InventoryView>("/api/inventory/equip", "POST", { inventoryId, quantity }),
     unequip: (slot) => requestJson<InventoryView>("/api/inventory/unequip", "POST", { slot }),
     useItem: (inventoryId) =>
-      requestJson<InventoryView>("/api/inventory/use", "POST", { inventoryId }),
+      requestJson<ItemUseResult>("/api/inventory/use", "POST", { inventoryId }),
     getShop: (category, level) =>
       requestJson<ShopItem[]>(
         `/api/shop?${new URLSearchParams({ category, level: String(level) }).toString()}`,
@@ -231,6 +237,12 @@ export const createApiClient = (options: {
     mergeStones: (stoneInventoryId, quantityPairs) =>
       requestJson<ForgeResult>("/api/forge/merge-stones", "POST", {
         stoneInventoryId,
+        quantityPairs,
+      }),
+    mergeCrossStones: (firstInventoryId, secondInventoryId, quantityPairs) =>
+      requestJson<ForgeResult>("/api/forge/merge-cross", "POST", {
+        firstInventoryId,
+        secondInventoryId,
         quantityPairs,
       }),
     getRecipes: () => requestJson<Recipe[]>("/api/forge/recipes", "GET"),

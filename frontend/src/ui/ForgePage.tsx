@@ -2,6 +2,9 @@ import { useCallback, useEffect, useId, useState } from "react"
 import type { ApiClient } from "../api/client"
 import {
   canDrill,
+  crossMergeableStones,
+  crossMergeMaxPairs,
+  crossMergePartners,
   DrillSuccessPercent,
   drillResultText,
   forgeTargets,
@@ -28,7 +31,14 @@ import "./ForgePage.css"
 
 export type ForgeApi = Pick<
   ApiClient,
-  "refine" | "socket" | "unsocket" | "drill" | "mergeStones" | "getRecipes" | "synthesize"
+  | "refine"
+  | "socket"
+  | "unsocket"
+  | "drill"
+  | "mergeStones"
+  | "mergeCrossStones"
+  | "getRecipes"
+  | "synthesize"
 >
 
 type Section = "refine" | "socket" | "synthesis"
@@ -190,6 +200,7 @@ function RefineSection({ api, inventory, busy, run }: SectionProps) {
       <>
         <NoTargets />
         <MergeStones api={api} inventory={inventory} busy={busy} run={run} />
+        <CrossMergeStones api={api} inventory={inventory} busy={busy} run={run} />
       </>
     )
 
@@ -259,6 +270,7 @@ function RefineSection({ api, inventory, busy, run }: SectionProps) {
         </button>
       </div>
       <MergeStones api={api} inventory={inventory} busy={busy} run={run} />
+      <CrossMergeStones api={api} inventory={inventory} busy={busy} run={run} />
     </>
   )
 }
@@ -308,6 +320,90 @@ function MergeStones({ api, inventory, busy, run }: SectionProps) {
           )
         })}
       </ul>
+    </section>
+  )
+}
+
+// 選擇以 inventoryId 記住；第二格只列同等級、不同種類的精鍊石
+function CrossMergeStones({ api, inventory, busy, run }: SectionProps) {
+  const titleId = useId()
+  const [firstId, setFirstId] = useState<number | null>(null)
+  const [secondId, setSecondId] = useState<number | null>(null)
+  const [pairs, setPairs] = useState(1)
+  const candidates = crossMergeableStones(inventory)
+  const first = candidates.find((item) => item.inventoryId === firstId) ?? candidates[0]
+  if (first === undefined) return null
+  const partners = crossMergePartners(inventory, first)
+  const second = partners.find((item) => item.inventoryId === secondId) ?? partners[0]
+  if (second === undefined) return null
+  const maxPairs = crossMergeMaxPairs(first, second)
+  const count = Math.min(pairs, maxPairs)
+  return (
+    <section className="bag__panel forge__merge" aria-labelledby={titleId}>
+      <h3 id={titleId} className="bag__panel-title">
+        異類合成
+      </h3>
+      <p className="bag__detail">
+        兩顆同等級、不同種類的精鍊石合成一顆低一級的其他種類精鍊石（Lv1 不能異類合成）
+      </p>
+      <label className="bag__field">
+        第一格
+        <select
+          className="forge__select"
+          value={first.inventoryId}
+          disabled={busy}
+          onChange={(event) => {
+            setFirstId(Number(event.target.value))
+            setSecondId(null)
+            setPairs(1)
+          }}
+        >
+          {candidates.map((item) => (
+            <option key={item.inventoryId} value={item.inventoryId}>
+              {itemTitle(item)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="bag__field">
+        第二格
+        <select
+          className="forge__select"
+          value={second.inventoryId}
+          disabled={busy}
+          onChange={(event) => {
+            setSecondId(Number(event.target.value))
+            setPairs(1)
+          }}
+        >
+          {partners.map((item) => (
+            <option key={item.inventoryId} value={item.inventoryId}>
+              {itemTitle(item)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="bag__buy">
+        <QuantityStepper value={count} max={maxPairs} disabled={busy} onChange={setPairs} />
+        <button
+          type="button"
+          className="bag__action"
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              const response = await api.mergeCrossStones(
+                first.inventoryId,
+                second.inventoryId,
+                count,
+              )
+              setPairs(1)
+              return { inventory: response.inventory, result: "異類合成成功！" }
+            })
+          }
+        >
+          異類合成
+        </button>
+      </div>
     </section>
   )
 }

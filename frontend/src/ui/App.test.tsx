@@ -49,6 +49,7 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   unsocket: vi.fn(),
   drill: vi.fn(),
   mergeStones: vi.fn(),
+  mergeCrossStones: vi.fn(),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn(),
   getMissions: vi.fn(),
