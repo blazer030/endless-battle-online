@@ -589,3 +589,32 @@ test("AdventureScreen_MovingToAPlaceWithoutSubPlacesLogsOnlyThePlace", async () 
   const lines = screen.getAllByRole("listitem").map((line) => line.textContent)
   expect(lines).toContain("你前往黑曜神廟。")
 })
+
+test("AdventureScreen_ShowsTheRemainingAreaPassTime", async () => {
+  render(
+    <AdventureScreen
+      api={createFakeApi({ ...response, areaPassExpiresAt: "2026-10-21T00:30:00Z" })}
+      initialCharacter={character}
+    />,
+  )
+
+  await advanceTime(0)
+  await advanceTime(100)
+
+  expect(screen.getByText("禁區通行剩 30 分")).toBeInTheDocument()
+})
+
+test("AdventureScreen_TellsWhenTheAreaPassHasEnded", async () => {
+  render(
+    <AdventureScreen
+      api={createFakeApi({ ...response, areaPassExpiresAt: "2026-10-20T23:00:00Z" })}
+      initialCharacter={character}
+    />,
+  )
+
+  await advanceTime(0)
+  await advanceTime(100)
+
+  expect(screen.getByText("禁區通行時間已結束，請到地圖用鑰匙再次進入")).toBeInTheDocument()
+  expect(screen.queryByText(/禁區通行剩/)).not.toBeInTheDocument()
+})

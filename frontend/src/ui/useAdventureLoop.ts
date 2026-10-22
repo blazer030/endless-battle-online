@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { ApiError } from "../api/client"
 import type { ApiClient } from "../api/client"
 import type { BattlePlayback, PlaybackItem } from "../game/battlePlayback"
+import type { AdvanceResponse } from "../game/types"
 import { PollIntervalMilliseconds } from "../motion/timings"
 
 const RetryMessage = "連線不穩，稍後自動重試"
@@ -10,6 +11,8 @@ type Options = {
   api: ApiClient
   playback: BattlePlayback
   onItems: (items: PlaybackItem[]) => void
+  // 每次推進回應都會呼叫，用來取播放佇列以外的資訊（例如禁區通行證）
+  onResponse?: (response: AdvanceResponse) => void
   now?: () => number
 }
 
@@ -17,24 +20,27 @@ export const useAdventureLoop = ({
   api,
   playback,
   onItems,
+  onResponse,
   now = Date.now,
 }: Options): { error: string | null } => {
   const [error, setError] = useState<string | null>(null)
-  const latest = useRef({ api, playback, onItems, now })
+  const latest = useRef({ api, playback, onItems, onResponse, now })
   // 放在 ref 而非 effect 內，StrictMode 重掛時不會在請求未回來前再送一次
   const requestInFlight = useRef(false)
 
   useEffect(() => {
-    latest.current = { api, playback, onItems, now }
+    latest.current = { api, playback, onItems, onResponse, now }
   })
 
   useEffect(() => {
     const advance = async () => {
       if (requestInFlight.current) return
       requestInFlight.current = true
-      const { api, playback, now } = latest.current
+      const { api, playback, onResponse, now } = latest.current
       try {
-        playback.enqueue(await api.advance(), now())
+        const response = await api.advance()
+        playback.enqueue(response, now())
+        onResponse?.(response)
         setError(null)
       } catch (reason) {
         // 409 表示另一個請求正在結算，等下一輪即可

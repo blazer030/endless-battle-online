@@ -2,7 +2,8 @@ import { render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import { makeCharacter, makeWorld } from "../test/fixtures"
+import { makeCharacter, makePlace, makeWorld } from "../test/fixtures"
+import type { WorldArea } from "../game/types"
 import { WorldPanel, type WorldApi } from "./WorldPanel"
 
 const character = makeCharacter()
@@ -13,13 +14,13 @@ const createApi = (overrides: Partial<WorldApi> = {}): WorldApi => ({
   ...overrides,
 })
 
-const renderPanel = (api: WorldApi = createApi()) => {
+const renderPanel = (api: WorldApi = createApi(), current = character) => {
   const onCharacterChange = vi.fn()
   const onClose = vi.fn()
   render(
     <WorldPanel
       api={api}
-      character={character}
+      character={current}
       onCharacterChange={onCharacterChange}
       onClose={onClose}
     />,
@@ -61,6 +62,96 @@ test("WorldPanel_DisablesRestrictedPlaces", async () => {
 
   expect(abandoned).toBeDisabled()
   expect(abandoned).toHaveTextContent("需要鑰匙")
+})
+
+const forbiddenWorld = (place: Partial<WorldArea["places"][number]>): WorldArea[] => [
+  {
+    id: "forbidden",
+    name: "禁區",
+    places: [
+      makePlace({
+        id: 17,
+        name: "廢棄洞窟",
+        restricted: true,
+        subPlaces: [],
+        recommended: { min: 60, max: 80 },
+        ...place,
+      }),
+    ],
+  },
+]
+
+test("WorldPanel_RestrictedPlaceWithAKeyMoves", async () => {
+  const { api, onClose } = renderPanel(
+    createApi({ getWorld: vi.fn().mockResolvedValue(forbiddenWorld({ keys: 1 })) }),
+  )
+
+  const abandoned = await placeButton("廢棄洞窟")
+  expect(abandoned).toBeEnabled()
+  expect(abandoned).toHaveTextContent("需要鑰匙（持有 1）")
+  await user.click(abandoned)
+  await user.click(screen.getByRole("button", { name: "前往" }))
+
+  expect(api.moveTo).toHaveBeenCalledWith(17, null)
+  expect(onClose).toHaveBeenCalled()
+})
+
+// 通行證到期後同一地區可以用鑰匙再次進入；通行中則仍是目前位置、不能重進
+test("WorldPanel_ReentersTheCurrentRestrictedPlaceWithAKeyAfterThePassEnds", async () => {
+  const inside = makeCharacter({
+    placeId: 17,
+    placeName: "廢棄洞窟",
+    subPlace: null,
+    subPlaceName: null,
+  })
+  const passExpiresAt = new Date(Date.now() - 1000).toISOString()
+  const { api } = renderPanel(
+    createApi({
+      getWorld: vi
+        .fn()
+        .mockResolvedValue(forbiddenWorld({ current: true, keys: 1, passExpiresAt })),
+    }),
+    inside,
+  )
+
+  await user.click(await placeButton("廢棄洞窟"))
+  const enter = screen.getByRole("button", { name: "前往" })
+  expect(enter).toHaveAttribute("aria-current", "location")
+  await user.click(enter)
+
+  expect(api.moveTo).toHaveBeenCalledWith(17, null)
+})
+
+test("WorldPanel_KeepsTheCurrentRestrictedPlaceWhileThePassLasts", async () => {
+  const inside = makeCharacter({
+    placeId: 17,
+    placeName: "廢棄洞窟",
+    subPlace: null,
+    subPlaceName: null,
+  })
+  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  renderPanel(
+    createApi({
+      getWorld: vi
+        .fn()
+        .mockResolvedValue(forbiddenWorld({ current: true, keys: 1, passExpiresAt })),
+    }),
+    inside,
+  )
+
+  await user.click(await placeButton("廢棄洞窟"))
+
+  expect(screen.getByRole("button", { name: "前往" })).toBeDisabled()
+})
+
+test("WorldPanel_RestrictedPlaceWithAPassShowsUntil", async () => {
+  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  renderPanel(createApi({ getWorld: vi.fn().mockResolvedValue(forbiddenWorld({ passExpiresAt })) }))
+
+  const abandoned = await placeButton("廢棄洞窟")
+
+  expect(abandoned).toBeEnabled()
+  expect(abandoned).toHaveTextContent(/通行至 \d{2}:\d{2}/)
 })
 
 test("WorldPanel_ExpandingAPlaceShowsItsSubPlaces", async () => {
@@ -130,7 +221,7 @@ test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
   const reasons = within(await screen.findByRole("alert"))
     .getAllByRole("listitem")
     .map((item) => item.textContent)
-  expect(reasons).toEqual(["此地區需要鑰匙", "請選擇子地區"])
+  expect(reasons).toEqual(["需用鑰匙開啟地區", "請選擇子地區"])
   expect(onClose).not.toHaveBeenCalled()
 })
 

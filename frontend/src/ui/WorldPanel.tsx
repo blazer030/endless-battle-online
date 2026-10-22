@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import type { CharacterView, WorldArea, WorldPlace } from "../game/types"
-import { moveReasonText, recommendationLabel } from "../game/world"
+import { moveReasonText, passActive, placeAccess, recommendationLabel } from "../game/world"
 import "./WorldPanel.css"
 
 export type WorldApi = Pick<ApiClient, "getWorld" | "moveTo">
@@ -163,6 +163,10 @@ type PlaceProps = {
 function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceProps) {
   const subPlacesId = useId()
   const label = recommendationLabel(place.recommendation)
+  const now = new Date()
+  const access = placeAccess(place, now)
+  // 禁區通行證到期後，目前所在的子地區也能用鑰匙再次進入
+  const reentry = place.restricted && !passActive(place.passExpiresAt, now)
   const isHere = (subPlace: number | null) =>
     character.placeId === place.id && character.subPlace === subPlace
   return (
@@ -172,7 +176,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
         className="world__place-button"
         aria-expanded={expanded}
         aria-controls={expanded ? subPlacesId : undefined}
-        disabled={place.restricted}
+        disabled={!access.open}
         onClick={onToggle}
       >
         <span className="world__place-name">{place.name}</span>
@@ -183,7 +187,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
           </span>
         )}
         {place.current && <span className="world__badge">目前</span>}
-        {place.restricted && <span className="world__locked">需要鑰匙</span>}
+        {access.label !== null && <span className="world__locked">{access.label}</span>}
       </button>
       {expanded &&
         (place.subPlaces.length === 0 ? (
@@ -191,6 +195,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
             <SubPlaceButton
               name="前往"
               here={isHere(null)}
+              reentry={reentry}
               busy={busy}
               onClick={() => onMove(null)}
             />
@@ -207,6 +212,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
                 key={subPlace.index}
                 name={subPlace.name}
                 here={isHere(subPlace.index)}
+                reentry={reentry}
                 busy={busy}
                 onClick={() => onMove(subPlace.index)}
               />
@@ -220,11 +226,13 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
 function SubPlaceButton({
   name,
   here,
+  reentry,
   busy,
   onClick,
 }: {
   name: string
   here: boolean
+  reentry: boolean
   busy: boolean
   onClick: () => void
 }) {
@@ -233,7 +241,7 @@ function SubPlaceButton({
       type="button"
       className="world__sub-place"
       aria-current={here ? "location" : undefined}
-      disabled={here || busy}
+      disabled={(here && !reentry) || busy}
       onClick={onClick}
     >
       {name}

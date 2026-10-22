@@ -29,10 +29,11 @@ export const itemCategories: { id: ItemCategory; label: string }[] = [
   { id: "RefineStone", label: "精鍊石" },
   { id: "Material", label: "材料" },
   { id: "Medal", label: "勳章" },
+  { id: "Key", label: "鑰匙" },
 ]
 
-// 勳章只靠掉落與任務取得，商店沒有這個分類
-export const shopCategories = itemCategories.filter(({ id }) => id !== "Medal")
+// 勳章只靠掉落與任務取得、鑰匙只在勳章所兌換，商店沒有這兩個分類
+export const shopCategories = itemCategories.filter(({ id }) => id !== "Medal" && id !== "Key")
 
 export const categoryLabel = (category: ItemCategory) =>
   itemCategories.find(({ id }) => id === category)?.label ?? category

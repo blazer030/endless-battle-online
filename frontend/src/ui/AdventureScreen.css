@@ -171,6 +171,14 @@
   outline-offset: 1px;
 }
 
+.adventure__pass {
+  margin: 0;
+  padding: 0 16px 4px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--gold);
+}
+
 .adventure__error {
   margin: 0;
   padding: 4px 16px;

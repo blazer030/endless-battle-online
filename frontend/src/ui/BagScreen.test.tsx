@@ -161,21 +161,21 @@ test("BagScreen_ListsMedalsInTheirOwnCategory", async () => {
   const categories = within(await screen.findByRole("tablist", { name: "道具分類" }))
     .getAllByRole("tab")
     .map((tab) => tab.textContent)
-  expect(categories.at(-1)).toBe("勳章")
+  expect(categories.slice(-2)).toEqual(["勳章", "鑰匙"])
   await user.click(screen.getByRole("tab", { name: "勳章" }))
 
   expect(screen.getByText("勳章 1/15")).toBeInTheDocument()
   expect(screen.getByText("大陸勳章 ×4")).toBeInTheDocument()
 })
 
-test("BagScreen_ShopLeavesOutMedals", async () => {
+test("BagScreen_ShopLeavesOutMedalsAndKeys", async () => {
   renderBag()
   await openSubPage("商店")
 
   expect(await screen.findByText("木劍 200 金錢")).toBeInTheDocument()
-  expect(
-    within(screen.getByRole("tablist", { name: "商店分類" })).queryByRole("tab", { name: "勳章" }),
-  ).not.toBeInTheDocument()
+  const shopTabs = within(screen.getByRole("tablist", { name: "商店分類" }))
+  expect(shopTabs.queryByRole("tab", { name: "勳章" })).not.toBeInTheDocument()
+  expect(shopTabs.queryByRole("tab", { name: "鑰匙" })).not.toBeInTheDocument()
 })
 
 test("BagScreen_CaptureItemCanBeEquippedToTheSupplySlot", async () => {

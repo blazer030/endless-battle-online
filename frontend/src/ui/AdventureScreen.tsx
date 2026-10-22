@@ -5,8 +5,8 @@ import type { LogEntry, LogLine } from "../game/battleLog"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
-import type { CharacterView, ContentNames } from "../game/types"
-import { locationTitle } from "../game/world"
+import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import { locationTitle, passStatus } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
@@ -62,6 +62,11 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
+  // 最近一次推進回應的禁區通行證；每次回應都換新物件，剩餘分鐘跟著輪詢重算
+  const [areaPass, setAreaPass] = useState<{ expiresAt: string | null; at: number }>({
+    expiresAt: null,
+    at: 0,
+  })
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
@@ -112,8 +117,11 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     const notes: LogEntry[] = []
     if (updated.jobId !== previous.jobId)
       notes.push({ text: `你轉職為${updated.jobName}。`, kind: "muted" })
-    if (updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace)
+    if (updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace) {
       notes.push({ text: `你前往${locationTitle(updated)}。`, kind: "muted" })
+      // 換地區後等下一次推進回應再顯示新地區的通行狀態
+      setAreaPass({ expiresAt: null, at: Date.now() })
+    }
     if (notes.length > 0) appendLines(notes)
   }
 
@@ -151,6 +159,8 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     setCharacter(playback.displayedCharacter)
   }
 
+  const areaPassText = passStatus(areaPass.expiresAt, new Date(areaPass.at))
+
   return (
     <div className="adventure">
       <header className="adventure__top">
@@ -173,7 +183,16 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         </span>
       </header>
       {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到怪物名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
-      {content !== null && <AdventureLoop api={api} playback={playback} onItems={handleItems} />}
+      {content !== null && (
+        <AdventureLoop
+          api={api}
+          playback={playback}
+          onItems={handleItems}
+          onResponse={(response: AdvanceResponse) =>
+            setAreaPass({ expiresAt: response.areaPassExpiresAt, at: Date.now() })
+          }
+        />
+      )}
       <main className="adventure__main">
         {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
@@ -206,6 +225,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               冠軍
             </button>
           </h1>
+          {areaPassText !== null && <p className="adventure__pass">{areaPassText}</p>}
           <StageErrorBoundary>
             <Suspense fallback={<div style={{ height: StageHeight }} />}>
               <PixiStage ref={attachStage} />
@@ -300,10 +320,11 @@ type LoopProps = {
   api: ApiClient
   playback: BattlePlayback
   onItems: (items: PlaybackItem[]) => void
+  onResponse: (response: AdvanceResponse) => void
 }
 
-function AdventureLoop({ api, playback, onItems }: LoopProps) {
-  const { error } = useAdventureLoop({ api, playback, onItems })
+function AdventureLoop({ api, playback, onItems, onResponse }: LoopProps) {
+  const { error } = useAdventureLoop({ api, playback, onItems, onResponse })
   return error === null ? null : (
     <p className="adventure__error" role="status">
       {error}

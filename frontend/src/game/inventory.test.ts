@@ -22,15 +22,15 @@ import {
 } from "./inventory"
 
 describe("shopCategories", () => {
-  it("leaves out medals, which no shop sells", () => {
+  it("leaves out medals and keys, which no shop sells", () => {
     expect(shopCategories.map(({ id }) => id)).toEqual(
-      itemCategories.map(({ id }) => id).filter((id) => id !== "Medal"),
+      itemCategories.map(({ id }) => id).filter((id) => id !== "Medal" && id !== "Key"),
     )
   })
 })
 
 describe("itemCategories", () => {
-  it("lists the eleven categories in bag order with their labels", () => {
+  it("lists the twelve categories in bag order with their labels", () => {
     expect(itemCategories.map(({ id, label }) => `${id}:${label}`)).toEqual([
       "Weapon:武器",
       "Head:頭部",
@@ -43,6 +43,7 @@ describe("itemCategories", () => {
       "RefineStone:精鍊石",
       "Material:材料",
       "Medal:勳章",
+      "Key:鑰匙",
     ])
   })
 

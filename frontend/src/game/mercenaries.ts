@@ -42,7 +42,7 @@ const reasonTexts: Record<string, string> = {
   mercenaryHired: "只能僱用一位傭兵",
   noMercenary: "還沒有僱用傭兵",
   placeUnknown: "沒有選擇冒險地點",
-  placeRestricted: "禁區需要鑰匙",
+  placeRestricted: "傭兵不能前往禁區",
   nameInvalid: "名稱長度不符",
   notEnoughMoney: "金錢不足",
 }
