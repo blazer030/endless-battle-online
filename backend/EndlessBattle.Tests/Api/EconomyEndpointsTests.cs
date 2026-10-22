@@ -108,11 +108,16 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         var early = await client.PostAsJsonAsync("/api/bank/deposit", new { amount = 100 }, CancellationToken);
         Assert.Equal(["levelTooLow"], await ReasonsOf400Async(early));
 
+        var before = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(0, before.GetProperty("bank").GetInt64());
+
         await SetLevelAsync(characterId, 15);
         var deposited = await ReadAsync(await client.PostAsJsonAsync("/api/bank/deposit", new { amount = 500 }, CancellationToken));
         Assert.Equal(1500, deposited.GetProperty("money").GetInt64());
+        Assert.Equal(500, deposited.GetProperty("bank").GetInt64());
         var withdrawn = await ReadAsync(await client.PostAsJsonAsync("/api/bank/withdraw", new { amount = 200 }, CancellationToken));
         Assert.Equal(1700, withdrawn.GetProperty("money").GetInt64());
+        Assert.Equal(300, withdrawn.GetProperty("bank").GetInt64());
 
         var overdraft = await client.PostAsJsonAsync("/api/bank/withdraw", new { amount = 301 }, CancellationToken);
         Assert.Equal(["notEnoughBank"], await ReasonsOf400Async(overdraft));

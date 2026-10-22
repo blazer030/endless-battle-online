@@ -1484,6 +1484,8 @@ export interface components {
             nextExp: number;
             /** Format: int64 */
             money: number;
+            /** Format: int64 */
+            bank: number;
             /** Format: int32 */
             hp: number;
             /** Format: int32 */

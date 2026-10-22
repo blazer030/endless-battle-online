@@ -162,10 +162,6 @@ export const canAfford = (money: number, price: number, quantity: number) =>
 
 export const isBankLocked = (level: number) => level < BankMinimumLevel
 
-// 角色回應目前沒有存款欄位；後端補上 bank 後即會顯示
-export const bankBalanceOf = (character: CharacterView): number | null =>
-  "bank" in character && typeof character.bank === "number" ? character.bank : null
-
 const fixedReasonTexts: Record<string, string> = {
   alreadyEquipped: "這件道具已經裝備中",
   bagFull: "背包已滿",

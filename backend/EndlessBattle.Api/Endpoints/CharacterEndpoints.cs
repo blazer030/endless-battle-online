@@ -65,6 +65,7 @@ public static class CharacterEndpoints
             character.Exp,
             character.NextExp,
             character.Money,
+            character.Bank,
             vitals.Hp,
             vitals.Sp,
             character.Sex,

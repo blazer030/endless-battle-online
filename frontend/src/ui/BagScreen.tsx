@@ -3,7 +3,6 @@ import { ApiError, type ApiClient } from "../api/client"
 import {
   bagItems,
   bagSlotsOf,
-  bankBalanceOf,
   BankMinimumLevel,
   bonusText,
   canAfford,
@@ -733,7 +732,6 @@ function BankPage({
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [error, setError] = useState<string | null>(null)
   const locked = isBankLocked(character.level)
-  const balance = bankBalanceOf(character)
 
   const submit =
     (amount: string, send: (value: number) => Promise<CharacterView>, reset: () => void) =>
@@ -749,7 +747,7 @@ function BankPage({
 
   return (
     <section className="bag__card">
-      <p className="bag__balance">{`存款 ${balance === null ? "—" : formatNumber(balance)}`}</p>
+      <p className="bag__balance">{`存款 ${formatNumber(character.bank)}`}</p>
       <p className="bag__usage">{`金錢 ${formatNumber(character.money)}`}</p>
       {locked && <p className="bag__locked">{`Lv ${BankMinimumLevel} 開放`}</p>}
       <BankForm

@@ -76,6 +76,7 @@ public sealed record CharacterResponse(
     long Exp,
     long NextExp,
     long Money,
+    long Bank,
     int Hp,
     int Sp,
     int Sex,

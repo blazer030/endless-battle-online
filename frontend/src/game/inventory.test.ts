@@ -3,7 +3,6 @@ import { makeCharacter, makeInventory, makeItem } from "../test/fixtures"
 import {
   bagSlotsOf,
   BankMinimumLevel,
-  bankBalanceOf,
   candidatesFor,
   categoryLabel,
   equipmentSlots,
@@ -238,12 +237,5 @@ describe("bank", () => {
     expect(BankMinimumLevel).toBe(15)
     expect(isBankLocked(14)).toBe(true)
     expect(isBankLocked(15)).toBe(false)
-  })
-
-  it("reads the balance only when the character carries one", () => {
-    expect(bankBalanceOf(makeCharacter())).toBeNull()
-    // 角色回應尚未帶存款欄位；之後後端補上時直接沿用
-    const withBank = { ...makeCharacter(), bank: 3000 }
-    expect(bankBalanceOf(withBank)).toBe(3000)
   })
 })

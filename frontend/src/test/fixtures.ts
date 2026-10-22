@@ -18,6 +18,7 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
   exp: 0,
   nextExp: 1000,
   money: 0,
+  bank: 0,
   hp: 50,
   sp: 25,
   sex: 1,

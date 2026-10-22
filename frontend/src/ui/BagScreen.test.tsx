@@ -268,6 +268,7 @@ test("BagScreen_BankLockedBelowLevel15", async () => {
   await openSubPage("銀行")
 
   expect(screen.getByText("Lv 15 開放")).toBeInTheDocument()
+  expect(screen.getByText("存款 0")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "存入" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "提領" })).toBeEnabled()
 })
@@ -275,7 +276,7 @@ test("BagScreen_BankLockedBelowLevel15", async () => {
 test("BagScreen_BankDepositsAtLevel15", async () => {
   const updated = makeCharacter({ level: 15, money: 4000 })
   const api = createFakeApi({ deposit: vi.fn().mockResolvedValue(updated) })
-  const character = { ...makeCharacter({ level: 15, money: 5000 }), bank: 3000 }
+  const character = makeCharacter({ level: 15, money: 5000, bank: 3000 })
   const { onCharacterChanged } = renderBag(api, character)
   await openSubPage("銀行")
 
