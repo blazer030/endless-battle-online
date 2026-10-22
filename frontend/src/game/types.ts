@@ -47,7 +47,11 @@ export type CreateCharacterCommand = Omit<
 export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>
 
 // 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
-export type EncounterEvent = Required<Schemas["BattleEventEncounterEvent"]>
+// 寵物欄位只在帶寵物出戰時才有，維持選填
+export type EncounterEvent = Required<
+  Omit<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
+> &
+  Pick<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
 export type RoundEvent = Required<Schemas["BattleEventRoundEvent"]>
 export type AttackEvent = Required<Schemas["BattleEventAttackEvent"]>
 export type SkillEvent = Required<Schemas["BattleEventSkillEvent"]>
@@ -59,6 +63,9 @@ export type DropResult = Schemas["DropResult"]
 export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
 export type MissionProgressEvent = Required<Schemas["BattleEventMissionProgressEvent"]>
 export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
+export type PetGuardEvent = Required<Schemas["BattleEventPetGuardEvent"]>
+export type PetAttackEvent = Required<Schemas["BattleEventPetAttackEvent"]>
+export type CaptureEvent = Required<Schemas["BattleEventCaptureEvent"]>
 export type BattleEvent =
   | EncounterEvent
   | RoundEvent
@@ -71,3 +78,6 @@ export type BattleEvent =
   | LevelUpEvent
   | MissionProgressEvent
   | RestEvent
+  | PetGuardEvent
+  | PetAttackEvent
+  | CaptureEvent

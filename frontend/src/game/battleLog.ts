@@ -2,10 +2,13 @@ import type { PlaybackItem } from "./battlePlayback"
 import { baseStatLabels } from "./stats"
 import type {
   AttackEvent,
+  CaptureEvent,
   ContentNames,
   DropResult,
   GrowthStats,
   MissionProgressEvent,
+  PetAttackEvent,
+  PetGuardEvent,
   RewardEvent,
   SkillEvent,
 } from "./types"
@@ -79,6 +82,40 @@ const describeMission = (event: MissionProgressEvent, monster: string): LogEntry
   return lines
 }
 
+const PetMissFlavors = [" 沒有擊中目標", " 發呆", " 東張西望", " 失去鬥志"]
+
+const describePetGuard = (event: PetGuardEvent): LogEntry[] => {
+  const lines: LogEntry[] = [
+    { text: `${event.petName}替你擋下了 ${format(event.damage)} 點傷害。`, kind: "normal" },
+  ]
+  if (event.retired) lines.push({ text: `${event.petName} 戰敗，退出了戰鬥。`, kind: "muted" })
+  return lines
+}
+
+const describePetAttack = (event: PetAttackEvent, monster: string): LogEntry => {
+  const damage = format(event.damage)
+  if (!event.hit)
+    return {
+      text: `${event.petName}${PetMissFlavors[Math.floor(event.atSeconds) % PetMissFlavors.length]}`,
+      kind: "muted",
+    }
+  return event.critical
+    ? { text: `${event.petName}會心一擊！對${monster}造成 ${damage} 點傷害。`, kind: "trigger" }
+    : { text: `${event.petName}發動攻擊，對${monster}造成 ${damage} 點傷害。`, kind: "normal" }
+}
+
+const describeCapture = (event: CaptureEvent, monsterName: MonsterNameResolver): LogEntry[] => {
+  const lines: LogEntry[] = []
+  if (event.itemBroken)
+    lines.push({ text: `${event.itemName}受到損壞，數量減少1個！！`, kind: "muted" })
+  if (event.capturedMonsterId !== null)
+    lines.push({
+      text: `捕捉到 ${monsterName(event.capturedMonsterId)}，${event.itemName}數量減少1個！！`,
+      kind: "trigger",
+    })
+  return lines
+}
+
 const describeGrowth = (growth: GrowthStats) =>
   baseStatLabels
     .filter(({ key }) => growth[key] !== 0)
@@ -93,8 +130,9 @@ export const describePlaybackItem = (
   if (item.kind === "summary") {
     const gains = `離開期間戰鬥 ${format(item.fights)} 場（勝 ${format(item.wins)}）、獲得經驗 ${format(item.exp)}、金錢 ${format(item.money)}`
     const missions = item.missionKills > 0 ? `，任務進度 +${format(item.missionKills)}` : ""
+    const pets = item.petsCaptured > 0 ? `，捕捉寵物 ${format(item.petsCaptured)} 隻` : ""
     const levels = item.levels > 0 ? `，升了 ${format(item.levels)} 級` : ""
-    return [{ text: `${gains}${missions}${levels}。`, kind: "drop" }]
+    return [{ text: `${gains}${missions}${pets}${levels}。`, kind: "drop" }]
   }
 
   const event = item.event
@@ -126,6 +164,12 @@ export const describePlaybackItem = (
           kind: "normal",
         },
       ]
+    case "petGuard":
+      return describePetGuard(event)
+    case "petAttack":
+      return [describePetAttack(event, current)]
+    case "capture":
+      return describeCapture(event, monsterName)
     case "reward":
       return describeReward(event)
     case "mission":

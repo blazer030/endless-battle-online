@@ -287,6 +287,9 @@ test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
     monsterHpMax: 60,
     playerHp: 100,
     playerHpMax: 120,
+    petName: null,
+    petMonsterId: null,
+    petActive: false,
   }
   expect(stage.handle.showEncounter).toHaveBeenCalledTimes(1)
   expect(stage.handle.showEncounter).toHaveBeenCalledWith("test-wolf", "測試寒狼", state)

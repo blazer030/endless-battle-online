@@ -11,6 +11,7 @@ export type PlaybackItem =
       money: number
       levels: number
       missionKills: number
+      petsCaptured: number
     }
 
 // 項目播出時角色數值的增量；尚未播出的增量從已確認的角色資料扣回
@@ -152,6 +153,7 @@ export class BattlePlayback {
       money: summary.money,
       levels: summary.levelsGained,
       missionKills: summary.missionKills,
+      petsCaptured: summary.petsCaptured,
     }
   }
 

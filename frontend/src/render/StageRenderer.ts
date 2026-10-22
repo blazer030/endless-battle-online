@@ -23,7 +23,7 @@ import {
   playStandOff,
 } from "./effects"
 import { Palette } from "./palette"
-import { StageHeight } from "./stageLayout"
+import { PetBox, StageHeight } from "./stageLayout"
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.max(minimum, Math.min(value, maximum))
@@ -35,6 +35,9 @@ const BarWidth = 96
 const BarHeight = 5
 const PlayerBox = { left: 10, width: 100, height: 170 }
 const MonsterBox = { right: 4, width: 130, height: 180 }
+const PetNameSize = 14
+const PetPlatePadding = { x: 6, y: 3 }
+const PetRetireSeconds = 0.6
 const MonsterNameRight = 14
 const MonsterNameSize = 28
 const MonsterPlateCenterY = 120
@@ -65,6 +68,7 @@ export class StageRenderer {
   private readonly mountains = new Graphics()
   private readonly fog = new Graphics()
   private readonly player = createFigure()
+  private readonly pet = createFigure()
   private readonly monster = createFigure()
   private readonly playerBar = createHealthBar(PlayerLabel, Palette.crimson, "left")
   private readonly monsterBar = createHealthBar("", Palette.crimson, "right")
@@ -72,6 +76,7 @@ export class StageRenderer {
   private readonly onResize = () => this.layout()
   private state: StageState = initialStageState
   private monsterToken = 0
+  private petToken = 0
   private destroyed = false
 
   private constructor(app: Application) {
@@ -79,6 +84,7 @@ export class StageRenderer {
     app.stage.addChild(
       this.mountains,
       this.player.slot,
+      this.pet.slot,
       this.monster.slot,
       this.fog,
       this.playerBar.root,
@@ -86,7 +92,7 @@ export class StageRenderer {
       this.effects,
     )
     drawPlayerSilhouette(this.player.body)
-    for (const figure of [this.player, this.monster]) breathe(figure.body)
+    for (const figure of [this.player, this.pet, this.monster]) breathe(figure.body)
     app.renderer.on("resize", this.onResize)
     this.layout()
 
@@ -117,6 +123,7 @@ export class StageRenderer {
     clearBody(this.monster.body)
     this.monsterBar.label.text = ""
     this.updateHealth(state)
+    this.showPet(state)
 
     const art = resolveArt(monsterId)
     if (art !== null) void this.showArt(art, this.monster, MonsterBox, isCurrent)
@@ -124,6 +131,24 @@ export class StageRenderer {
       if (!isCurrent()) return
       this.monsterBar.label.text = monsterName
       if (this.monster.body.children.length === 0) this.drawMonsterName(monsterName)
+    })
+  }
+
+  private showPet(state: StageState) {
+    const token = ++this.petToken
+    const isCurrent = () => !this.destroyed && token === this.petToken
+    gsap.killTweensOf(this.pet.slot)
+    clearBody(this.pet.body)
+    this.pet.slot.alpha = 1
+    this.pet.slot.visible = state.petActive
+    if (!state.petActive || state.petName === null) return
+
+    const name = state.petName
+    const art = state.petMonsterId === null ? null : resolveArt(state.petMonsterId)
+    if (art !== null) void this.showArt(art, this.pet, PetBox, isCurrent)
+    // 沒有美術圖（或載入失敗）時以小號名牌代替
+    void fontReady(name).then(() => {
+      if (isCurrent() && this.pet.body.children.length === 0) this.drawPetName(name)
     })
   }
 
@@ -137,7 +162,11 @@ export class StageRenderer {
     const width = this.app.screen.width
     const monsterX = this.monster.slot.x
     // 傷害數字落在目標內側，避開怪物名字與玩家的劍
-    const damageX = { player: this.player.slot.x + 70, monster: monsterX - 80 }
+    const damageX = {
+      player: this.player.slot.x + 70,
+      monster: monsterX - 80,
+      pet: this.pet.slot.x,
+    }
     const auraY = StageHeight - PlayerBox.height / 2
     let dropOrder = 0
     for (const effect of effects) {
@@ -209,6 +238,9 @@ export class StageRenderer {
           })
           break
         }
+        case "petRetire":
+          gsap.to(this.pet.slot, { alpha: 0, duration: PetRetireSeconds, ease: "power1.in" })
+          break
         case "fade":
           playFade(this.app.stage, effect.seconds)
           break
@@ -219,8 +251,15 @@ export class StageRenderer {
   destroy(): void {
     if (this.destroyed) return
     this.destroyed = true
-    const animated = [this.app.stage, this.player.body, this.monster.body, ...this.effects.children]
+    const animated = [
+      this.app.stage,
+      this.player.body,
+      this.pet.body,
+      this.monster.body,
+      ...this.effects.children,
+    ]
     gsap.killTweensOf(animated.flatMap((target) => [target, target.scale]))
+    gsap.killTweensOf(this.pet.slot)
     this.app.renderer.off("resize", this.onResize)
     this.app.destroy({ removeView: true }, { children: true })
   }
@@ -233,6 +272,7 @@ export class StageRenderer {
       .rect(0, StageHeight - FogHeight, width, FogHeight)
       .fill(getFogGradient())
     this.player.slot.position.set(PlayerBox.left + PlayerBox.width / 2, StageHeight)
+    this.pet.slot.position.set(PetBox.left + PetBox.width / 2, StageHeight)
     this.monster.slot.position.set(width - MonsterBox.right - MonsterBox.width / 2, StageHeight)
     this.playerBar.root.position.set(Gutter, 10)
     this.monsterBar.root.position.set(width - Gutter - BarWidth, 10)
@@ -255,6 +295,21 @@ export class StageRenderer {
     const rightmostCenter = this.app.screen.width - MonsterNameRight - plate.width / 2
     plate.position.set(Math.min(slotX, rightmostCenter) - slotX, MonsterPlateCenterY - StageHeight)
     this.monster.body.addChild(plate)
+  }
+
+  private drawPetName(name: string) {
+    const text = createStageText(name, {
+      fontFamily: Fonts.title,
+      fontSize: PetNameSize,
+      fontWeight: "700",
+    })
+    text.anchor.set(0.5)
+    const available = PetBox.width - PetPlatePadding.x * 2
+    if (text.width > available) text.scale.set(available / text.width)
+    const plate = new Container()
+    plate.addChild(createPlate(text, PetPlatePadding.x, PetPlatePadding.y), text)
+    plate.position.set(0, -plate.height / 2 - 24)
+    this.pet.body.addChild(plate)
   }
 
   private async showArt(url: string, figure: Figure, box: Box, isCurrent: () => boolean) {

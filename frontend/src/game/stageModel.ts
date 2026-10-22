@@ -1,4 +1,4 @@
-import type { AttackEvent, BattleEvent } from "./types"
+import type { AttackEvent, BattleEvent, PetAttackEvent, PetGuardEvent } from "./types"
 
 export type StageState = {
   monsterId: string | null
@@ -6,9 +6,12 @@ export type StageState = {
   monsterHpMax: number
   playerHp: number
   playerHpMax: number
+  petName: string | null
+  petMonsterId: string | null
+  petActive: boolean
 }
 
-export type StageSide = "player" | "monster"
+export type StageSide = "player" | "monster" | "pet"
 
 export type StageEffect =
   | { type: "slash" }
@@ -24,6 +27,7 @@ export type StageEffect =
   | { type: "skillFlash" }
   | { type: "potionFlash" }
   | { type: "dropFloat"; text: string }
+  | { type: "petRetire" }
   | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
@@ -32,6 +36,9 @@ export const initialStageState: StageState = {
   monsterHpMax: 0,
   playerHp: 0,
   playerHpMax: 0,
+  petName: null,
+  petMonsterId: null,
+  petActive: false,
 }
 
 // 必殺技名缺漏時的備用字
@@ -46,11 +53,18 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
         monsterHpMax: event.monsterHpMax,
         playerHp: event.playerHp,
         playerHpMax: event.playerHpMax,
+        petName: event.petName ?? null,
+        petMonsterId: event.petMonsterId ?? null,
+        petActive: event.petName != null,
       }
     case "attack":
       return event.attacker === "Player"
         ? { ...state, monsterHp: event.targetHpAfter }
         : { ...state, playerHp: event.targetHpAfter }
+    case "petGuard":
+      return event.retired ? { ...state, petActive: false } : state
+    case "petAttack":
+      return { ...state, monsterHp: event.targetHpAfter }
     case "skill":
       return event.caster === "Player" && event.heal > 0
         ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
@@ -65,6 +79,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "reward":
     case "levelUp":
     case "mission":
+    case "capture":
       return state
   }
 }
@@ -96,6 +111,23 @@ const attackEffects = (event: AttackEvent): StageEffect[] => {
   return effects
 }
 
+const petGuardEffects = (event: PetGuardEvent): StageEffect[] => {
+  const effects: StageEffect[] = [
+    { type: "damageNumber", side: "pet", value: event.damage, critical: false },
+    { type: "hitShake", side: "pet" },
+  ]
+  if (event.retired) effects.push({ type: "petRetire" })
+  return effects
+}
+
+const petAttackEffects = (event: PetAttackEvent): StageEffect[] =>
+  event.hit
+    ? [
+        { type: "damageNumber", side: "monster", value: event.damage, critical: event.critical },
+        { type: "hitShake", side: "monster" },
+      ]
+    : [{ type: "miss", side: "monster" }]
+
 export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
   switch (event.type) {
     case "attack":
@@ -123,6 +155,14 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
       return event.progress === event.required && !event.requiresDelivery
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
+    case "petGuard":
+      return petGuardEffects(event)
+    case "petAttack":
+      return petAttackEffects(event)
+    case "capture":
+      return event.capturedMonsterId === null
+        ? []
+        : [{ type: "plate", text: "捕捉成功", tone: "gold" }]
     case "encounter":
     case "round":
       return []

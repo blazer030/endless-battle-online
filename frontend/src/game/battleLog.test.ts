@@ -3,7 +3,14 @@ import { createMonsterNameResolver, describePlaybackItem } from "./battleLog"
 import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
 import { makeContent } from "../test/fixtures"
-import type { AttackEvent, BattleEvent, EncounterEvent, GrowthStats, SkillEvent } from "./types"
+import type {
+  AttackEvent,
+  PetAttackEvent,
+  BattleEvent,
+  EncounterEvent,
+  GrowthStats,
+  SkillEvent,
+} from "./types"
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
@@ -44,6 +51,21 @@ const attack = (overrides: Partial<AttackEvent>) =>
     stunned: false,
     ...overrides,
   })
+
+const petAttack = (overrides: Partial<PetAttackEvent & { atSeconds: number }>) => {
+  const { atSeconds = 0, ...rest } = overrides
+  const base = event({
+    type: "petAttack",
+    petName: "小狼",
+    kind: "Physical",
+    hit: true,
+    critical: false,
+    damage: 77,
+    targetHpAfter: 5,
+    ...rest,
+  })
+  return base.kind === "event" ? { ...base, event: { ...base.event, atSeconds } } : base
+}
 
 const skill = (overrides: Partial<SkillEvent>) =>
   event({
@@ -211,12 +233,30 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "summary",
-    { kind: "summary", fights: 1500, wins: 1498, exp: 20000, money: 4, levels: 2, missionKills: 0 },
+    {
+      kind: "summary",
+      fights: 1500,
+      wins: 1498,
+      exp: 20000,
+      money: 4,
+      levels: 2,
+      missionKills: 0,
+      petsCaptured: 0,
+    },
     [["離開期間戰鬥 1,500 場（勝 1,498）、獲得經驗 20,000、金錢 4，升了 2 級。", "drop"]],
   ],
   [
     "summary mentions mission progress",
-    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 0, levels: 1, missionKills: 3 },
+    {
+      kind: "summary",
+      fights: 12,
+      wins: 10,
+      exp: 300,
+      money: 0,
+      levels: 1,
+      missionKills: 3,
+      petsCaptured: 0,
+    },
     [["離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 0，任務進度 +3，升了 1 級。", "drop"]],
   ],
   [
@@ -265,8 +305,85 @@ const cases: [string, PlaybackItem, Line[]][] = [
     ],
   ],
   [
+    "summary mentions captured pets",
+    {
+      kind: "summary",
+      fights: 12,
+      wins: 10,
+      exp: 300,
+      money: 0,
+      levels: 1,
+      missionKills: 3,
+      petsCaptured: 2,
+    },
+    [
+      [
+        "離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 0，任務進度 +3，捕捉寵物 2 隻，升了 1 級。",
+        "drop",
+      ],
+    ],
+  ],
+  [
+    "describes a pet guard",
+    event({ type: "petGuard", petName: "小狼", damage: 1234, guardAfter: 50, retired: false }),
+    [["小狼替你擋下了 1,234 點傷害。", "normal"]],
+  ],
+  [
+    "adds the retire line when the guard breaks",
+    event({ type: "petGuard", petName: "小狼", damage: 8, guardAfter: 0, retired: true }),
+    [
+      ["小狼替你擋下了 8 點傷害。", "normal"],
+      ["小狼 戰敗，退出了戰鬥。", "muted"],
+    ],
+  ],
+  ["describes a pet attack", petAttack({}), [["小狼發動攻擊，對史萊姆造成 77 點傷害。", "normal"]]],
+  [
+    "describes a pet critical",
+    petAttack({ critical: true }),
+    [["小狼會心一擊！對史萊姆造成 77 點傷害。", "trigger"]],
+  ],
+  [
+    "describes a pet miss by the second",
+    petAttack({ hit: false, atSeconds: 5.4 }),
+    [["小狼 發呆", "muted"]],
+  ],
+  [
+    "describes capture break and success in order",
+    event({
+      type: "capture",
+      itemName: "捕捉網",
+      itemBroken: true,
+      capturedMonsterId: "slime",
+      remaining: 3,
+    }),
+    [
+      ["捕捉網受到損壞，數量減少1個！！", "muted"],
+      ["捕捉到 史萊姆，捕捉網數量減少1個！！", "trigger"],
+    ],
+  ],
+  [
+    "describes a capture that only breaks the item",
+    event({
+      type: "capture",
+      itemName: "捕捉網",
+      itemBroken: true,
+      capturedMonsterId: null,
+      remaining: 3,
+    }),
+    [["捕捉網受到損壞，數量減少1個！！", "muted"]],
+  ],
+  [
     "summary without level ups",
-    { kind: "summary", fights: 12, wins: 10, exp: 300, money: 40, levels: 0, missionKills: 0 },
+    {
+      kind: "summary",
+      fights: 12,
+      wins: 10,
+      exp: 300,
+      money: 40,
+      levels: 0,
+      missionKills: 0,
+      petsCaptured: 0,
+    },
     [["離開期間戰鬥 12 場（勝 10）、獲得經驗 300、金錢 40。", "drop"]],
   ],
 ]

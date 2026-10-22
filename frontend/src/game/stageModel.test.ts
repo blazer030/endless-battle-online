@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest"
 import { applyToStage, initialStageState, stageEffectsFor } from "./stageModel"
 import type { StageState } from "./stageModel"
-import type { AttackEvent, BattleEvent, SkillEvent } from "./types"
+import type {
+  AttackEvent,
+  BattleEvent,
+  CaptureEvent,
+  EncounterEvent,
+  PetAttackEvent,
+  PetGuardEvent,
+  SkillEvent,
+} from "./types"
 
-const encounter: BattleEvent = {
+const encounter: EncounterEvent = {
   type: "encounter",
   monsterId: "snow-sprite",
   monsterHp: 90,
@@ -49,7 +57,38 @@ const midFight: StageState = {
   monsterHpMax: 50,
   playerHp: 12,
   playerHpMax: 80,
+  petName: null,
+  petMonsterId: null,
+  petActive: false,
 }
+
+const withPet = (event: EncounterEvent): EncounterEvent => ({
+  ...event,
+  petName: "小狼",
+  petMonsterId: "wolf",
+})
+
+const petGuard = (overrides: Partial<PetGuardEvent> = {}): BattleEvent => ({
+  type: "petGuard",
+  petName: "小狼",
+  damage: 12,
+  guardAfter: 30,
+  retired: false,
+  atSeconds: 1,
+  ...overrides,
+})
+
+const petAttack = (overrides: Partial<PetAttackEvent> = {}): BattleEvent => ({
+  type: "petAttack",
+  petName: "小狼",
+  kind: "Physical",
+  hit: true,
+  critical: false,
+  damage: 20,
+  targetHpAfter: 60,
+  atSeconds: 1,
+  ...overrides,
+})
 
 describe("stageModel", () => {
   it("applyToStage_EncounterSetsBothHealthBarsFromEvent", () => {
@@ -59,7 +98,79 @@ describe("stageModel", () => {
       monsterHpMax: 100,
       playerHp: 150,
       playerHpMax: 200,
+      petName: null,
+      petMonsterId: null,
+      petActive: false,
     })
+  })
+
+  it("applyToStage_EncounterWithPet_ShowsPet", () => {
+    expect(applyToStage(midFight, withPet(encounter))).toMatchObject({
+      petName: "小狼",
+      petMonsterId: "wolf",
+      petActive: true,
+    })
+  })
+
+  it("applyToStage_PetGuard_KeepsPlayerHealthAndRetiresPetWhenBroken", () => {
+    const started = applyToStage(initialStageState, withPet(encounter))
+    const guarded = applyToStage(started, petGuard())
+    expect(guarded.playerHp).toBe(150)
+    expect(guarded.petActive).toBe(true)
+    expect(applyToStage(started, petGuard({ retired: true })).petActive).toBe(false)
+  })
+
+  it("applyToStage_PetAttack_SetsMonsterHealth", () => {
+    const started = applyToStage(initialStageState, withPet(encounter))
+    expect(applyToStage(started, petAttack()).monsterHp).toBe(60)
+  })
+
+  it("applyToStage_Capture_LeavesStateUnchanged", () => {
+    const capture: BattleEvent = {
+      type: "capture",
+      itemName: "捕捉網",
+      itemBroken: false,
+      capturedMonsterId: "wolf",
+      remaining: 2,
+      atSeconds: 2,
+    }
+    expect(applyToStage(midFight, capture)).toBe(midFight)
+  })
+
+  it("stageEffectsFor_PetGuard_ShowsDamageOnPetAndRetiresWhenBroken", () => {
+    expect(stageEffectsFor(petGuard())).toEqual([
+      { type: "damageNumber", side: "pet", value: 12, critical: false },
+      { type: "hitShake", side: "pet" },
+    ])
+    expect(stageEffectsFor(petGuard({ retired: true }))).toEqual([
+      { type: "damageNumber", side: "pet", value: 12, critical: false },
+      { type: "hitShake", side: "pet" },
+      { type: "petRetire" },
+    ])
+  })
+
+  it("stageEffectsFor_PetAttack_HitsOrMissesMonster", () => {
+    expect(stageEffectsFor(petAttack({ critical: true }))).toEqual([
+      { type: "damageNumber", side: "monster", value: 20, critical: true },
+      { type: "hitShake", side: "monster" },
+    ])
+    expect(stageEffectsFor(petAttack({ hit: false }))).toEqual([{ type: "miss", side: "monster" }])
+  })
+
+  it("stageEffectsFor_CaptureSuccess_ShowsGoldPlate", () => {
+    const capture = (overrides: Partial<CaptureEvent>): BattleEvent => ({
+      type: "capture",
+      itemName: "捕捉網",
+      itemBroken: false,
+      capturedMonsterId: "wolf",
+      remaining: 2,
+      atSeconds: 2,
+      ...overrides,
+    })
+    expect(stageEffectsFor(capture({}))).toEqual([
+      { type: "plate", text: "捕捉成功", tone: "gold" },
+    ])
+    expect(stageEffectsFor(capture({ capturedMonsterId: null, itemBroken: true }))).toEqual([])
   })
 
   it("applyToStage_AttackUpdatesTargetHealth", () => {
