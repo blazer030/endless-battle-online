@@ -45,7 +45,9 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         var columns = await context.Database.SqlQueryRaw<string>(
             """
             SELECT CONCAT(TABLE_NAME, '.', COLUMN_NAME, ' ', COLUMN_TYPE) AS Value FROM information_schema.COLUMNS
-            WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME IN ('born_at', 'hunger_since', 'next_fight_at', 'locked_until')
+            WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME, COLUMN_NAME) IN (
+                ('character_pets', 'born_at'), ('character_pets', 'hunger_since'),
+                ('character_mercenaries', 'next_fight_at'), ('character_champions', 'locked_until'))
             ORDER BY Value
             """).ToListAsync(cancellationToken);
         var championKey = await context.Database.SqlQueryRaw<string>(

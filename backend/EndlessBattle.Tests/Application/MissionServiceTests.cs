@@ -13,7 +13,7 @@ namespace EndlessBattle.Tests.Application;
 
 // TestContent：test-hunt、test-sprite-bounty、test-delivery、test-chief-hunt（Lv1 一般任務）、
 // test-skill-reward（Lv5、戰士、前置 test-hunt）、test-daily（每日）、test-daily-pet（每日交寵物：test-sprite 或 test-wolf）、
-// test-pet-reward（擊敗 test-sprite ×1、寵物 test-wolf 倍率 2）。現在是 2026-10-22T02:00Z ＝ 週期 2026-10-22
+// test-pet-reward（擊敗 test-sprite ×1、寵物 test-wolf 倍率 2）、test-stone-reward（擊敗 test-sprite ×1、獎勵 test-stone ×1）。現在是 2026-10-22T02:00Z ＝ 週期 2026-10-22
 public class MissionServiceTests
 {
     private const long AccountId = 7;
