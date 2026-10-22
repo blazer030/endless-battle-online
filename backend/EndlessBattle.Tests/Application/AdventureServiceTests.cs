@@ -102,6 +102,21 @@ public class AdventureServiceTests
         Assert.All(result.Events.OfType<RewardEvent>(), reward => Assert.Equal(174, reward.Exp));
     }
 
+    // 內容移除了角色所在的地區（999）：時間沒有前進時照樣回傳空結果，不查地區、不寫入
+    [Fact]
+    public async Task Advance_ZeroElapsedInRemovedPlaceReturnsEmpty()
+    {
+        var character = await AddCharacterAsync(character => character with { PlaceId = 999, SubPlace = null });
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Empty(result.Events);
+        Assert.Equal(AdvanceSummary.Empty, result.Summary);
+        Assert.Equal(character, result.Character);
+        Assert.Null(result.AreaPassExpiresAt);
+        Assert.Empty(log);
+    }
+
     // 禁地・禁一只有測試怨靈；通行證在 Start + 120 到期、離線 600 秒：只打開打時刻早於到期的場次，到期後的時間捨棄
     [Fact]
     public async Task Advance_StopsAtAreaPassExpiry()

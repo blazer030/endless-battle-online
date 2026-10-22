@@ -67,6 +67,27 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("None", restricted.GetProperty("recommendation").GetString());
     }
 
+    // 內容移除了角色所在的地區（999）：時間沒有前進時可以移回存在的地區
+    [Fact]
+    public async Task Move_LeavesRemovedPlaceWithoutElapsedTime()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var characters = scope.ServiceProvider.GetRequiredService<ICharacterRepository>();
+            var character = await characters.FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+            await characters.UpdateAsync(character! with { PlaceId = 999, SubPlace = null }, CancellationToken);
+        }
+
+        var response = await MoveAsync(client, 1, 1);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(1, body.GetProperty("placeId").GetInt32());
+    }
+
     [Fact]
     public async Task Move_ChangesLocation_AndMeAgrees()
     {

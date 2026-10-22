@@ -52,8 +52,9 @@ public sealed class AdventureService(
         var bonus = EquipmentBonusCalculator.Sum(equipped, content.GetItem);
         var now = clock.UtcNow;
         var elapsedSeconds = (now - character.LastSettledAt).TotalSeconds;
-        var place = content.GetPlace(character.PlaceId);
-        var pass = place.Restricted ? await areaPasses.FindAsync(character.Id, place.Id, cancellationToken) : null;
+        // 內容移除了目前地區時找不到：不需要模擬就照樣回傳空結果，角色才能移出去
+        var currentPlace = content.AllPlaces.FirstOrDefault(place => place.Id == character.PlaceId);
+        var pass = currentPlace is { Restricted: true } ? await areaPasses.FindAsync(character.Id, currentPlace.Id, cancellationToken) : null;
 
         // 時鐘倒退或剛結算過：什麼都不做，也不寫入
         if (elapsedSeconds <= 0)
@@ -61,6 +62,9 @@ public sealed class AdventureService(
             return new AdvanceResult([], AdvanceSummary.Empty, EventsCoverAll: true, character,
                 await proficiencies.ListAsync(character.Id, cancellationToken), bonus, AreaPassExpiresAt: pass?.ExpiresAt);
         }
+
+        // 要模擬就必須有這個地區；已移除時 GetPlace 丟出內容錯誤
+        var place = currentPlace ?? content.GetPlace(character.PlaceId);
 
         // 超過上限的離線時間直接捨棄，只模擬最後 MaxSimulatedSeconds 秒
         var from = elapsedSeconds > AdventureSimulator.MaxSimulatedSeconds
