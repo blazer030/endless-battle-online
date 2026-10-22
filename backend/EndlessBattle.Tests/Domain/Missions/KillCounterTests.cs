@@ -7,18 +7,20 @@ public class KillCounterTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 22, 3, 0, 0, TimeSpan.Zero);
 
-    // 兩個任務都要測試雪精：未達成的 +1，已達成的維持；目標不同的狼任務不動
+    // 兩個未達成的任務都要測試雪精：一次擊殺兩邊各 +1（WOG 只算其中一個，裁定全部都算）；
+    // 同樣要雪精但已達成的維持不動，目標不同的狼任務不動
     [Fact]
     public void KillCounter_CountsEveryMatchingMission()
     {
         var hunt = new ActiveMission("test-hunt", "測試討伐", "test-sprite", Required: 3, Progress: 0, ExpiresAt: null);
-        var bounty = new ActiveMission("test-sprite-bounty", "測試懸賞", "test-sprite", Required: 2, Progress: 2, ExpiresAt: null);
+        var bounty = new ActiveMission("test-sprite-bounty", "測試懸賞", "test-sprite", Required: 2, Progress: 1, ExpiresAt: null);
+        var reached = new ActiveMission("sprite-reached", "已達成", "test-sprite", Required: 2, Progress: 2, ExpiresAt: null);
         var wolves = new ActiveMission("test-skill-reward", "測試傳授", "test-wolf", Required: 2, Progress: 0, ExpiresAt: null);
 
-        var result = KillCounter.Apply([hunt, bounty, wolves], "test-sprite", Now);
+        var result = KillCounter.Apply([hunt, reached, bounty, wolves], "test-sprite", Now);
 
-        Assert.Equal([hunt with { Progress = 1 }, bounty, wolves], result.Missions);
-        Assert.Equal([hunt with { Progress = 1 }], result.Advanced);
+        Assert.Equal([hunt with { Progress = 1 }, reached, bounty with { Progress = 2 }, wolves], result.Missions);
+        Assert.Equal([hunt with { Progress = 1 }, bounty with { Progress = 2 }], result.Advanced);
     }
 
     // 嚴格早於 ExpiresAt 才計入：剛好在重置時刻打完不算，前一刻算

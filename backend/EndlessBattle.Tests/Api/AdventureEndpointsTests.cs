@@ -196,6 +196,28 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(jobExp, proficiency.GetProperty("skillPoints").GetInt64());
     }
 
+    // 接取 test-hunt（擊敗測試雪精 ×3）後推進 20 秒：進度事件以 "mission" 為 discriminator 序列化，摘要帶 missionKills
+    [Fact]
+    public async Task Advance_SerializesMissionProgress()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        (await client.PostAsJsonAsync("/api/missions/accept", new { missionId = "test-hunt" }, CancellationToken)).EnsureSuccessStatusCode();
+        factory.Clock.Advance(TimeSpan.FromSeconds(20));
+
+        var body = await AdvanceAsync(client);
+
+        var progress = EventsOfType(body, "mission");
+        Assert.NotEmpty(progress);
+        Assert.All(progress, mission => Assert.Equal(
+            ("test-hunt", "測試討伐", "test-sprite", 3),
+            (mission.GetProperty("missionId").GetString(), mission.GetProperty("title").GetString(),
+                mission.GetProperty("monsterId").GetString(), mission.GetProperty("required").GetInt32())));
+        Assert.Equal(Enumerable.Range(1, progress.Count), progress.Select(mission => mission.GetProperty("progress").GetInt32()));
+        Assert.True(body.GetProperty("eventsCoverAll").GetBoolean());
+        Assert.Equal(progress.Count, body.GetProperty("summary").GetProperty("missionKills").GetInt32());
+    }
+
     [Fact]
     public async Task Advance_Returns404_WhenNoCharacter()
     {

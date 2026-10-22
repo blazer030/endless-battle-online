@@ -523,21 +523,55 @@ public class AdventureSimulatorTests
         Assert.Equal(0, timedOut.Summary.MissionKills);
     }
 
-    // 離線結算跨過 09:00（01:00 UTC）：從 00:59:50 起 20 秒 8 場，各場在開打當下（0 秒）擊倒、打完於
-    // 00:59:50、52.8、55.6、58.4 的 4 場計入；第 5 場打完於 01:00:01.2，已在重置之後，之後的都不算
+    // 離線結算跨過 09:00（01:00 UTC）。耐打的角色（Vit 1000，NextExp 很大避免升級後 HP 門檻上升而住宿）對 hp 2、at 40、df 1000 的雪精：雙方每下 1 點，
+    // 玩家先攻、第 2 回合（0.8 秒）擊倒，每場 1.6 秒 + 場間 2 秒 = 3.6 秒。從 00:59:49 起 20 秒 6 場，開打於 0、3.6、…、18 秒、
+    // 打完於開打 + 0.8 秒：前 3 場打完於 00:59:49.8、53.4、57.0 計入；第 4 場在 00:59:59.8（重置前）開打、
+    // 01:00:00.6（重置後）打完，以打完的時刻判斷 → 不計，之後的也都不算
     [Fact]
     public void Adventure_StopsCountingDailyAfterReset()
     {
-        var from = new DateTimeOffset(2026, 10, 22, 0, 59, 50, TimeSpan.Zero);
+        var from = new DateTimeOffset(2026, 10, 22, 0, 59, 49, TimeSpan.Zero);
         var reset = new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero);
         var daily = new ActiveMission("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, ExpiresAt: reset);
+        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, NextExp = 1_000_000 };
+        var pebble = Monster("test-sprite", hp: 2, at: 40, df: 1000);
 
-        var run = RunWithMissions(Hero(), seconds: 20, [daily], from);
+        var run = RunWithMissions(tough, seconds: 20, [daily], from, monsters: pebble);
 
-        Assert.Equal(8, run.Summary.Wins);
-        Assert.Equal([daily with { Progress = 4 }], run.Missions);
-        Assert.Equal(4, run.Summary.MissionKills);
-        Assert.All(run.Events.OfType<MissionProgressEvent>(), mission => Assert.True(from.AddSeconds(mission.AtSeconds) < reset));
+        Assert.Equal(6, run.Summary.Wins);
+        var straddling = (Start: run.Events.OfType<EncounterEvent>().ElementAt(3).AtSeconds, End: run.Events.OfType<RewardEvent>().ElementAt(3).AtSeconds);
+        Assert.Equal((10.8, 11.6), (Math.Round(straddling.Start, 6), Math.Round(straddling.End, 6)));
+        Assert.True(from.AddSeconds(straddling.Start) < reset && from.AddSeconds(straddling.End) > reset);
+        Assert.Equal([daily with { Progress = 3 }], run.Missions);
+        Assert.Equal(3, run.Summary.MissionKills);
+        Assert.Equal([1, 2, 3], run.Events.OfType<MissionProgressEvent>().Select(mission => mission.Progress));
+    }
+
+    // 60 秒 22 場全勝（開打於 0、2.8、…、58.8；NextExp 很大避免升級改變節奏）：窗口從 30 秒起，只有 30.8 秒起的 11 場輸出事件，
+    // 但窗口外 11 場的擊殺照樣計入進度與 MissionKills
+    [Fact]
+    public void Adventure_CountsKillsOutsideTheEventWindow()
+    {
+        var longHunt = new ActiveMission("long-hunt", "長期討伐", "test-sprite", Required: 100, Progress: 0, ExpiresAt: null);
+
+        var run = RunWithMissions(Hero() with { NextExp = 1_000_000 }, seconds: 60, [longHunt]);
+
+        Assert.Equal(22, run.Summary.Wins);
+        Assert.Equal(11, run.Events.OfType<EncounterEvent>().Count());
+        Assert.Equal([longHunt with { Progress = 22 }], run.Missions);
+        Assert.Equal(22, run.Summary.MissionKills);
+        Assert.Equal(Enumerable.Range(12, 11), run.Events.OfType<MissionProgressEvent>().Select(mission => mission.Progress));
+    }
+
+    // 第一場就升級（Exp 999 + 146 > 1000）：同一場的順序是 RewardEvent → MissionProgressEvent → LevelUpEvent
+    [Fact]
+    public void Adventure_EmitsMissionProgressBeforeLevelUp()
+    {
+        var run = RunWithMissions(Hero() with { Exp = 999 }, seconds: 1, [Hunt()]);
+
+        Assert.Equal(
+            [typeof(RewardEvent), typeof(MissionProgressEvent), typeof(LevelUpEvent)],
+            run.Events.Where(battleEvent => battleEvent is RewardEvent or MissionProgressEvent or LevelUpEvent).Select(battleEvent => battleEvent.GetType()));
     }
 
     // 地區 1 子地區 1：雪精（meet 0）、寒狼（meet 30）、首領（meet 60，任務 test-chief-hunt）；數值同 dummy，每場都贏
@@ -577,5 +611,29 @@ public class AdventureSimulatorTests
         Assert.Equal(Monsters(without), Monsters(expired));
 
         static string[] Monsters(AdventureRun run) => run.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId).ToArray();
+    }
+
+    // 遇敵兩擲都是 0.99：rand(0,100) = 99（雪精 meet 0、首領 meet 60 都入選），NextInt(2) = 1 → 可出現時一定是首領；
+    // 首領不在候選時只剩雪精。其餘擲骰 0.0（同 dummy，第 1 回合擊倒）。先量出一場用掉的亂數數 N，
+    // 讓第二場的遇敵兩擲也是 0.99：第一場擊倒首領、任務達成後，第二場只能是雪精
+    [Fact]
+    public void Adventure_MissionMonsterStopsOnceMissionIsMet()
+    {
+        MonsterDefinition[] place =
+        [
+            Monster("test-sprite", placeId: 1, subPlaces: 1),
+            Monster("test-sprite-chief", meet: 60, placeId: 1, subPlaces: 1) with { MissionId = "test-chief-hunt" },
+        ];
+        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, ExpiresAt: null);
+        var baseline = new ScriptedRandom(0.0);
+        RunWithMissions(Hero(), seconds: 1, [], random: baseline, monsters: place);
+        double[] Script() => [0.99, 0.99, .. Enumerable.Repeat(0.0, baseline.Consumed - 2), 0.99, 0.99];
+
+        var run = RunWithMissions(Hero(), seconds: 4, [chiefHunt], random: new ScriptedRandom(0.0, Script()), monsters: place);
+        var without = RunWithMissions(Hero(), seconds: 4, [], random: new ScriptedRandom(0.0, Script()), monsters: place);
+
+        Assert.Equal(["test-sprite-chief", "test-sprite"], run.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId));
+        Assert.Equal(["test-sprite", "test-sprite"], without.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId));
+        Assert.Equal([chiefHunt with { Progress = 1 }], run.Missions);
     }
 }
