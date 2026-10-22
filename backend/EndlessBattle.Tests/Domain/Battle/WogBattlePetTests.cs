@@ -1,6 +1,7 @@
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Battle;
@@ -73,6 +74,76 @@ public class WogBattlePetTests
             outcome.Events);
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
         Assert.Equal(CombatSide.Monster, outcome.Winner);
+    }
+
+    // 擲骰同 Battle_PetRetiresWhenGuardDepleted，代擋量 15 剛好被一下 15 打光 → 代擋量 0 也算退場：
+    // 之後不再擲代擋（第 2 回合那下打在玩家身上），也不再擲出擊
+    [Fact]
+    public void Battle_PetRetiresWhenGuardHitsExactlyZero()
+    {
+        var outcome = Run(Player(df: 5), Monster(at: 10), Pet(guard: 15),
+            new ScriptedRandom(0.0, 0.99, 0.0, 0.99, 0.5, 0.0, 0.99, 0.99, 0.0, 0.99, 0.5, 0.0));
+
+        Assert.Equal(new PetGuardEvent(0, PetName, Damage: 15, GuardAfter: 0, Retired: true), outcome.Events.OfType<PetGuardEvent>().Single());
+        Assert.Contains(
+            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85, SpecialAttackName: null),
+            outcome.Events);
+        Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
+    }
+
+    // 開打時代擋量 0 的寵物不在場：不代擋、不出手、不擲任何骰，事件與耗用的亂數都和沒有寵物時相同
+    [Fact]
+    public void Battle_PetWithZeroGuardNeverRolls()
+    {
+        var seeded = new SeededRandom(42);
+        var script = Enumerable.Range(0, 5000).Select(_ => seeded.NextDouble()).ToArray();
+        var player = Player(hp: 300, at: 40, df: 20, agi: 12);
+        var monster = Monster(hp: 300, at: 40, df: 20, agi: 11);
+        var withoutPet = new ScriptedRandom(0.5, script);
+        var zeroGuard = new ScriptedRandom(0.5, script);
+
+        var expected = Run(player, monster, pet: null, withoutPet);
+        var actual = Run(player, monster, Pet(guard: 0) with { Activation = 100 }, zeroGuard);
+
+        Assert.Contains(expected.Events, battleEvent => battleEvent is AttackEvent { Attacker: CombatSide.Monster, Hit: true });
+        Assert.Equivalent(expected.Events, actual.Events, strict: true);
+        Assert.Equal(withoutPet.Consumed, zeroGuard.Consumed);
+    }
+
+    // 出擊是嚴格小於：擲到 35（0.345）等於出擊率 35 → 不代擋也不出手。
+    // 擲骰同 Battle_PetGuardAbsorbsHit，代擋與出擊兩顆都換成 0.345；玩家 1000 血，這下 150 打在玩家身上
+    [Fact]
+    public void Battle_PetActivationRollEqualToActivationFails()
+    {
+        var outcome = Run(Player(hp: 1000), Monster(at: 100), Pet(), new ScriptedRandom(0.99, 0.99, 0.0, 0.99, 0.5, 0.345, 0.99, 0.345));
+
+        Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
+        Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
+            outcome.Events.OfType<AttackEvent>().First());
+    }
+
+    // 寵物的暴擊比用本回合套用技能後的能力：欄位 1 加敏 lv5（玩家 agi 100 → 105）、欄位 2 降敵敏 lv5（怪 agi 100 → 95）。
+    // 技能前 r = (10+100)/(10+100) = 1 → 機率 10；技能後 r = 115/105 → 機率 10.95、倍率 1.314。
+    // 擲骰：兩個技能各擲發動 0.0；先攻 105 > 95 → 0.0 玩家先；玩家命中 0.99 落空；怪物（at 0）命中 0.99 落空；
+    // 寵物出擊 0.0、物理 0.0、命中 0.0、暴擊 0.095 → 10（技能後 10 < 10.95 暴擊；技能前 10 < 10 不成立）、傷害擲骰 0.0。
+    // Attack 30 × 1.314 = 39.43 對 df 6：259.10 − 6 = 253.10，比值 6.42 → rand(2,3) 擲 2，+1 → round(256.10) = 256
+    [Fact]
+    public void Battle_PetAttackUsesPostSkillValues()
+    {
+        var quicken = TestSkills.Battle("quicken", "加敏", SkillEffectKind.AgiMultiplier);
+        var slow = TestSkills.Battle("slow", "降敵敏", SkillEffectKind.EnemyAgiDown);
+        EquippedSkill[] skills = [new(quicken, Level: 5, Chance: 100, Slot: 1), new(slow, Level: 5, Chance: 100, Slot: 2)];
+        var player = new CombatantState(1000, 1000, Sp: 100, SpMax: 100, At: 10, Mat: 0, Df: 50, Mdf: 50, Agi: 100, Au: 10, Element: 0, "烈焰斬", Str: 10, Smart: 0);
+        var monster = Monster(at: 0, df: 6, mdf: 4, agi: 100, au: 10);
+
+        var outcome = WogBattle.Run(player, monster, playerPreferred: null, skills, supply: null,
+            new ScriptedRandom(0.99, 0.0, 0.0, 0.0, 0.99, 0.99, 0.0, 0.0, 0.0, 0.095, 0.0), Pet());
+
+        Assert.Equal(
+            new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: true, Damage: 256, TargetHpAfter: 744),
+            outcome.Events.OfType<PetAttackEvent>().First());
     }
 
     // 玩家 agi 12 > 9 → 70% 先攻。擲骰：先攻 0.0 玩家先；玩家命中 0.99 → 100，77.1 > 100 不成立；怪物物理（at 0 ≥ mat 0 不擲）命中 0.99 落空；
