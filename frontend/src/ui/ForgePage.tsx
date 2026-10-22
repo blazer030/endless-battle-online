@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useState } from "react"
 import type { ApiClient } from "../api/client"
 import {
   canDrill,
+  DrillSuccessPercent,
   drillResultText,
   forgeTargets,
   hasTool,
@@ -427,7 +428,7 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
         disabled={busy || !canDrill(target) || !hasTool(inventory, ForgeTools.holeDriller)}
         onClick={() => void drill()}
       >
-        打洞（需要鑽孔器，8%）
+        {`打洞（需要鑽孔器，${DrillSuccessPercent}%）`}
       </button>
     </>
   )
