@@ -464,12 +464,36 @@ public class InventoryServiceTests
             await pets.AddAsync(character.Id, TestPets.Create(carried: false), CancellationToken);
         }
 
+        var before = await RowsAsync(character);
+
         Assert.Equal(["petsFull"], await ReasonsAsync(() => service.UseAsync(AccountId, egg, CancellationToken)));
 
+        Assert.Equal(before, await RowsAsync(character));
         Assert.Equal(1, inventory.Find(character.Id, egg).Quantity);
         Assert.Equal(3, (await pets.ListAsync(character.Id, CancellationToken)).Count);
         Assert.Equal(0, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
         Assert.Empty(log);
+    }
+
+    // 魔石分類 14 格滿疊、道具分類有寶箱與補給品：只算魔石分類的格數，開出的魔石放進第 15 格
+    [Fact]
+    public async Task Use_StoneBoxCountsOnlyTheStoneCategory()
+    {
+        var character = await AddCharacterAsync();
+        var box = await GiveAsync(character, "test-stone-box", 2);
+        await GiveAsync(character, "test-supply");
+        for (var index = 0; index < InventoryRules.SlotsPerCategory - 1; index++)
+        {
+            await GiveAsync(character, "test-stone", InventoryRules.StackLimit);
+        }
+
+        var result = await service.UseAsync(AccountId, box, CancellationToken);
+
+        Assert.Equal(["test-stone"], result.GrantedItemIds);
+        Assert.Equal(
+            [.. Enumerable.Repeat(("test-stone", InventoryRules.StackLimit), InventoryRules.SlotsPerCategory - 1), ("test-stone", 1)],
+            BagOf(result.Inventory, ItemCategory.Stone));
+        Assert.Equal([("test-stone-box", 1), ("test-supply", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
     }
 
     // 擲 0.0 → r = 1 等級 1，候選只有測試攻擊魔石：疊到原本那格上，寶箱整格消失

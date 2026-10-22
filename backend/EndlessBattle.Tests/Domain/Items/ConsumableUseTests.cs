@@ -160,6 +160,18 @@ public class ConsumableUseTests
         Assert.Equal(0, outcome.SkillPoints);
     }
 
+    // 經驗加在原有經驗上：500 + 300 = 800，未達 1000 不升級
+    [Fact]
+    public void ExperienceCapsule_AddsToExistingExp()
+    {
+        var hero = Hero with { Exp = 500 };
+
+        var outcome = ConsumableUse.Apply(Full(hero), Usable(ConsumableKind.ExperienceCapsule, 300), Now, new ScriptedRandom(0.0));
+
+        Assert.Equal(hero with { Exp = 800 }, outcome.Character);
+        Assert.Equal(0, outcome.LevelsGained);
+    }
+
     [Fact]
     public void CanUse_NewConsumablesAreUsable()
     {
