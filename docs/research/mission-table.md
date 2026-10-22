@@ -46,7 +46,7 @@
 
 ## 任務怪
 
-依 `MonsterFormula` 與 `monster-roster.md` 的角色倍率計算（精英倍率疊上去超過 1.6 的項目壓到 `floor(1.6 × 基準)`）；`meet 60`、`subPlaces [1, 2, 3, 4]`、掉落水晶碎片 topr 10。任務怪只在其任務進行中且尚未達成時進入遇敵候選（`MonsterPool` 的 `activeMissionIds`），不算在每地區 3 隻的規則內。
+依 `MonsterFormula` 與 `monster-roster.md` 的角色倍率計算（精英倍率疊上去超過 1.6 的項目壓到 `floor(1.6 × 基準)`）；`meet 60`、`subPlaces [1, 2, 3, 4]`、掉落水晶碎片 topr 10（計畫 9 另加所屬大區的勳章 topr 60，見 `monster-roster.md`）。任務怪只在其任務進行中且尚未達成時進入遇敵候選（`MonsterPool` 的 `activeMissionIds`），不算在每地區 3 隻的規則內。
 
 | id | 名稱 | 地區 | 等級 | 角色 | 屬性 | 任務 | hp | sp | at | mat | df | mdf | agi | au | jobExp |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
