@@ -57,7 +57,7 @@ public static class RoundResolver
     }
 
     // 物理比 agi、魔法比 au；攻方較高時依比值提高，怪物與玩家用同一套
-    private static (double Chance, double Multiplier) CriticalOdds(int attackerStat, int defenderStat)
+    public static (double Chance, double Multiplier) CriticalOdds(int attackerStat, int defenderStat)
     {
         if (attackerStat <= defenderStat)
         {

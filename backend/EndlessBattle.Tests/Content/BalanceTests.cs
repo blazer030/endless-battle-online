@@ -96,17 +96,16 @@ public class BalanceTests
         }
     }
 
-    // 暴擊倍率與 RoundResolver 相同：怪物能力高於玩家才按比例加成，上限 2；取物理與魔法較大者
+    // 以暴擊倍率（RoundResolver.CriticalOdds）計算；取物理與魔法較大者
     private static int HighestSingleHit(MonsterDefinition monster, CombatantState player)
     {
         var random = new HighestRandom();
-        var physical = WogDamage.Fight(monster.At * Crit(monster.Agi, player.Agi), player.Df, StrongestElement(monster), random);
-        var magic = WogDamage.Fight(monster.Mat * Crit(monster.Au, player.Au), player.Mdf, StrongestElement(monster), random);
+        var physical = WogDamage.Fight(
+            monster.At * RoundResolver.CriticalOdds(monster.Agi, player.Agi).Multiplier, player.Df, StrongestElement(monster), random);
+        var magic = WogDamage.Fight(
+            monster.Mat * RoundResolver.CriticalOdds(monster.Au, player.Au).Multiplier, player.Mdf, StrongestElement(monster), random);
         return Math.Max(physical, magic);
     }
-
-    private static double Crit(int monsterStat, int playerStat) =>
-        monsterStat > playerStat ? Math.Min(1.2 * monsterStat / playerStat, 2) : 1.2;
 
     private static double StrongestElement(MonsterDefinition monster) =>
         Enumerable.Range(1, 6).Max(element => ElementTable.Multiplier(monster.Element, element));
