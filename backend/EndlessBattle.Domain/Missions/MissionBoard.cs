@@ -45,11 +45,16 @@ public static class MissionBoard
         return new MissionBoardView(available, active, completed, nextReset);
     }
 
+    // 未知任務、過期每日紀錄，以及與定義種類不符（每日卻無週期、一般卻有週期）的紀錄一律忽略
     public static IReadOnlyList<MissionRecord> Current(
         IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, DateTimeOffset now)
     {
-        var known = missions.Select(mission => mission.Id).ToHashSet();
-        return records.Where(record => known.Contains(record.MissionId) && !DailyMissions.IsExpired(record, now)).ToList();
+        var dailyById = missions.ToDictionary(mission => mission.Id, mission => mission.Daily);
+        return records
+            .Where(record => dailyById.TryGetValue(record.MissionId, out var daily)
+                && daily == record.DailyPeriod.HasValue
+                && !DailyMissions.IsExpired(record, now))
+            .ToList();
     }
 
     private static MissionEntry Entry(Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned)

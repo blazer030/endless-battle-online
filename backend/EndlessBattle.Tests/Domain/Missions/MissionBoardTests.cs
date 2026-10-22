@@ -124,4 +124,27 @@ public class MissionBoardTests
         Assert.False(board.Completed.Single().Ready);
         Assert.False(board.Available.Single().Ready);
     }
+
+    // 內容把任務在一般與每日之間改動後，舊紀錄的形狀對不上定義，比照未知任務忽略
+    [Fact]
+    public void Board_IgnoresRecordsWhoseKindChanged()
+    {
+        IReadOnlyList<MissionDefinition> missions = [DailyMission("now-daily"), General("now-general")];
+        IReadOnlyList<MissionRecord> records = [Active("now-daily"), Active("now-general", period: Today)];
+
+        var board = MissionBoard.Build(Hero, missions, records, NothingOwned, Now);
+
+        Assert.Empty(board.Active);
+        Assert.Equal(["now-daily", "now-general"], board.Available.Select(entry => entry.Definition.Id));
+    }
+
+    [Fact]
+    public void Current_DropsRecordsWhoseKindChanged()
+    {
+        IReadOnlyList<MissionDefinition> missions = [DailyMission("now-daily"), General("now-general"), DailyMission("daily"), General("a")];
+        IReadOnlyList<MissionRecord> records =
+            [Active("now-daily"), Active("now-general", period: Today), Active("daily", period: Today), Active("a")];
+
+        Assert.Equal(["daily", "a"], MissionBoard.Current(records, missions, Now).Select(record => record.MissionId));
+    }
 }
