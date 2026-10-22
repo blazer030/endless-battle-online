@@ -71,6 +71,7 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   exchangeHonour: vi.fn(),
   getChampion: vi.fn(),
   challengeChampion: vi.fn(),
+  updateSettings: vi.fn(),
   ...overrides,
 })
 

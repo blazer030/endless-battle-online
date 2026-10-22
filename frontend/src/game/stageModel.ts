@@ -28,6 +28,7 @@ export type StageEffect =
   | { type: "potionFlash" }
   | { type: "dropFloat"; text: string }
   | { type: "petRetire" }
+  | { type: "monsterFade" }
   | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
@@ -80,6 +81,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "levelUp":
     case "mission":
     case "capture":
+    case "escape":
       return state
   }
 }
@@ -163,6 +165,8 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
       return event.capturedMonsterId === null
         ? []
         : [{ type: "plate", text: "捕捉成功", tone: "gold" }]
+    case "escape":
+      return [{ type: "monsterFade" }]
     case "encounter":
     case "round":
       return []

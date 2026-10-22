@@ -344,6 +344,14 @@ describe("stageModel", () => {
     ])
   })
 
+  it("stageEffectsFor_Escape_FadesTheMonster", () => {
+    expect(stageEffectsFor({ type: "escape", atSeconds: 0.8 })).toEqual([{ type: "monsterFade" }])
+  })
+
+  it("applyToStage_EscapeLeavesStateUnchanged", () => {
+    expect(applyToStage(midFight, { type: "escape", atSeconds: 0.8 })).toBe(midFight)
+  })
+
   it("stageEffectsFor_Timeout_StepsBackWithMutedPlate", () => {
     expect(
       stageEffectsFor({ type: "timeout", rounds: 100, damageDealt: 3, atSeconds: 80 }),

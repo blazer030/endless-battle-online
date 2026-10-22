@@ -146,10 +146,12 @@ const describeGrowth = (growth: GrowthStats) =>
     .map(({ key, label }) => `${label}+${format(growth[key])}`)
     .join(" ")
 
+// playerName 只用於 WOG 原文帶角色名的句子（逃跑）
 export const describePlaybackItem = (
   item: PlaybackItem,
   monsterName: MonsterNameResolver,
   currentMonsterId: string | null,
+  playerName = "你",
 ): LogEntry[] => {
   if (item.kind === "mercenary") return describeMercenaryReport(item.report)
   if (item.kind === "summary") {
@@ -182,6 +184,9 @@ export const describePlaybackItem = (
       ]
     case "timeout":
       return [{ text: "戰鬥陷入膠著，雙方收手。", kind: "muted" }]
+    case "escape":
+      // WOG end_date
+      return [{ text: `${playerName} 逃跑成功`, kind: "muted" }]
     case "potion":
       return [
         {

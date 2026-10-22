@@ -38,6 +38,7 @@ const MonsterBox = { right: 4, width: 130, height: 180 }
 const PetNameSize = 14
 const PetPlatePadding = { x: 6, y: 3 }
 const PetRetireSeconds = 0.6
+const MonsterFadeSeconds = 0.6
 const MonsterNameRight = 14
 const MonsterNameSize = 28
 const MonsterPlateCenterY = 120
@@ -120,6 +121,9 @@ export class StageRenderer {
   showEncounter(monsterId: string, monsterName: string, state: StageState): void {
     const token = ++this.monsterToken
     const isCurrent = () => !this.destroyed && token === this.monsterToken
+    // 上一隻逃跑時淡出了，新的怪物要回到不透明
+    gsap.killTweensOf(this.monster.slot)
+    this.monster.slot.alpha = 1
     clearBody(this.monster.body)
     this.monsterBar.label.text = ""
     this.updateHealth(state)
@@ -241,6 +245,9 @@ export class StageRenderer {
         case "petRetire":
           gsap.to(this.pet.slot, { alpha: 0, duration: PetRetireSeconds, ease: "power1.in" })
           break
+        case "monsterFade":
+          gsap.to(this.monster.slot, { alpha: 0, duration: MonsterFadeSeconds, ease: "power1.in" })
+          break
         case "fade":
           playFade(this.app.stage, effect.seconds)
           break
@@ -259,7 +266,7 @@ export class StageRenderer {
       ...this.effects.children,
     ]
     gsap.killTweensOf(animated.flatMap((target) => [target, target.scale]))
-    gsap.killTweensOf(this.pet.slot)
+    gsap.killTweensOf([this.pet.slot, this.monster.slot])
     this.app.renderer.off("resize", this.onResize)
     this.app.destroy({ removeView: true }, { children: true })
   }

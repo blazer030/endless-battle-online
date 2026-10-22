@@ -393,6 +393,13 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
 ]
 
+// WOG end_date「{角色名} 逃跑成功」
+test("describePlaybackItem_EscapeNamesThePlayer", () => {
+  expect(describePlaybackItem(event({ type: "escape" }), resolver, "slime", "青衣")).toEqual([
+    { text: "青衣 逃跑成功", kind: "muted" },
+  ])
+})
+
 describe("describePlaybackItem", () => {
   test.each(cases)("%s", (_name, item, lines) => {
     expect(describePlaybackItem(item, resolver, "slime")).toEqual(

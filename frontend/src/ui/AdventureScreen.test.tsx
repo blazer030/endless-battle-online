@@ -176,6 +176,7 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   exchangeHonour: vi.fn(),
   getChampion: vi.fn().mockResolvedValue(makeChampion()),
   challengeChampion: vi.fn(),
+  updateSettings: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
@@ -433,6 +434,23 @@ test("AdventureScreen_CompanionsTabIsSixthAndLoadsPets", async () => {
   expect(screen.getByRole("tablist", { name: "同伴分頁" })).toBeVisible()
   expect(screen.getByRole("article", { name: "小黏－草原史萊姆 2歲" })).toBeVisible()
   expect(screen.getByTestId("stage")).not.toBeVisible()
+})
+
+test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  const button = screen.getByRole("button", { name: "設定" })
+  expect(button).toHaveAttribute("aria-expanded", "false")
+  fireEvent.click(button)
+
+  const dialog = screen.getByRole("dialog", { name: "冒險設定" })
+  expect(within(dialog).getByRole("textbox", { name: "必殺技名稱" })).toHaveValue(
+    character.specialAttackName,
+  )
+  fireEvent.click(within(dialog).getByRole("button", { name: "關閉" }))
+  expect(screen.queryByRole("dialog", { name: "冒險設定" })).not.toBeInTheDocument()
 })
 
 test("AdventureScreen_ChampionButtonOpensTheChampionDialog", async () => {

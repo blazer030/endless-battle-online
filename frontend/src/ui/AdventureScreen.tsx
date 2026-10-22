@@ -17,6 +17,7 @@ import { CharacterScreen } from "./CharacterScreen"
 import { CompanionsScreen } from "./CompanionsScreen"
 import { formatNumber } from "./formatNumber"
 import { MissionsScreen } from "./MissionsScreen"
+import { SettingsPanel } from "./SettingsPanel"
 import { SkillsScreen } from "./SkillsScreen"
 import { StageErrorBoundary } from "./StageErrorBoundary"
 import { StatBar } from "./StatBar"
@@ -58,6 +59,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [tab, setTab] = useState<Tab>("adventure")
   const [worldOpen, setWorldOpen] = useState(false)
   const [championOpen, setChampionOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
   const stageHandle = useRef<StageHandle>(null)
@@ -136,7 +138,14 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         if (event.type === "levelUp") setLevelUpHint(event.newLevel)
         stageHandle.current?.play(stageEffectsFor(event))
       }
-      added.push(...describePlaybackItem(item, monsterName, stageState.current.monsterId))
+      added.push(
+        ...describePlaybackItem(
+          item,
+          monsterName,
+          stageState.current.monsterId,
+          playback.displayedCharacter.name,
+        ),
+      )
     }
     appendLines(added)
     setCharacter(playback.displayedCharacter)
@@ -180,6 +189,15 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             </button>
             <button
               type="button"
+              className="adventure__settings"
+              aria-haspopup="dialog"
+              aria-expanded={settingsOpen}
+              onClick={() => setSettingsOpen(true)}
+            >
+              設定
+            </button>
+            <button
+              type="button"
               className="adventure__champion"
               aria-haspopup="dialog"
               aria-expanded={championOpen}
@@ -201,6 +219,14 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               character={character}
               onCharacterChange={handleCharacterChange}
               onClose={() => setWorldOpen(false)}
+            />
+          )}
+          {settingsOpen && (
+            <SettingsPanel
+              api={api}
+              character={character}
+              onCharacterChanged={handleCharacterChange}
+              onClose={() => setSettingsOpen(false)}
             />
           )}
           {/* 每次打開才載入，冠軍的血量與衛冕次數都是最新的 */}

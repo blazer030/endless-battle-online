@@ -182,6 +182,29 @@ test("worldCalls_UseTheirEndpoints", async () => {
   ])
 })
 
+test("updateSettings_PutsTheCommand", async () => {
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+  const command = {
+    attack: null,
+    potionHpPercent: 30,
+    potionSpPercent: -1,
+    restHpPercent: 20,
+    restSpPercent: -1,
+    escapeHpPercent: 10,
+    specialAttackName: "破軍",
+  }
+
+  await client.updateSettings(command)
+
+  const [path, init] = (fetchMock.mock.calls as [string, RequestInit][])[0]
+  expect([init.method, path, JSON.parse(init.body as string)]).toEqual([
+    "PUT",
+    "/api/characters/me/settings",
+    command,
+  ])
+})
+
 test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
   const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })

@@ -1,0 +1,101 @@
+/* 蓋在冒險分頁上，作法同地區面板；舞台與戰報留在底下繼續跑 */
+.settings {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-bottom);
+}
+
+.settings__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings__title {
+  flex: 1;
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.settings__close {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 2.2;
+}
+
+.settings__row {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+label.settings__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings__percent,
+.settings__name,
+.settings__select {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  /* iOS 小於 16px 會在聚焦時自動放大 */
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.settings__percent {
+  width: 3.4em;
+  text-align: center;
+}
+
+.settings__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings__percent:focus-visible,
+.settings__name:focus-visible,
+.settings__select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.settings__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}

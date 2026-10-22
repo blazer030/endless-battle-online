@@ -1,5 +1,6 @@
 import type {
   AdvanceResponse,
+  AdventureSettingsCommand,
   ChampionChallenge,
   ChampionView,
   CharacterView,
@@ -106,6 +107,7 @@ export type ApiClient = {
   exchangeHonour: (exchangeId: string) => Promise<HonourShop>
   getChampion: () => Promise<ChampionView>
   challengeChampion: () => Promise<ChampionChallenge>
+  updateSettings: (command: AdventureSettingsCommand) => Promise<CharacterView>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -262,5 +264,7 @@ export const createApiClient = (options: {
       requestJson<HonourShop>("/api/honour/exchange", "POST", { exchangeId }),
     getChampion: () => requestJson<ChampionView>("/api/champion", "GET"),
     challengeChampion: () => requestJson<ChampionChallenge>("/api/champion/challenge", "POST"),
+    updateSettings: (command) =>
+      requestJson<CharacterView>("/api/characters/me/settings", "PUT", command),
   }
 }

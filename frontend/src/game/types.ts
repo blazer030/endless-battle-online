@@ -60,6 +60,15 @@ export type CreateCharacterCommand = Omit<
   "allocation"
 > & { allocation: StatAllocation }
 export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>
+export type AttackKind = NonNullable<Schemas["AttackKind"]>
+export type AdventureSettingsView = Schemas["AdventureSettingsResponse"]
+// attack 為 null 表示自動
+export type AdventureSettingsCommand = Omit<
+  FilledFields<Schemas["AdventureSettingsRequest"]>,
+  "attack"
+> & {
+  attack: AttackKind | null
+}
 
 // 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
 // 寵物欄位只在帶寵物出戰時才有，維持選填
@@ -81,6 +90,7 @@ export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
 export type PetGuardEvent = Required<Schemas["BattleEventPetGuardEvent"]>
 export type PetAttackEvent = Required<Schemas["BattleEventPetAttackEvent"]>
 export type CaptureEvent = Required<Schemas["BattleEventCaptureEvent"]>
+export type EscapeEvent = Required<Schemas["BattleEventEscapeEvent"]>
 export type BattleEvent =
   | EncounterEvent
   | RoundEvent
@@ -96,3 +106,4 @@ export type BattleEvent =
   | PetGuardEvent
   | PetAttackEvent
   | CaptureEvent
+  | EscapeEvent
