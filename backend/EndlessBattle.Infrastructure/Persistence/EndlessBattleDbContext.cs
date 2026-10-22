@@ -18,6 +18,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<CharacterAreaPass> CharacterAreaPasses { get; set; }
 
+    public virtual DbSet<CharacterBuff> CharacterBuffs { get; set; }
+
     public virtual DbSet<CharacterChampion> CharacterChampions { get; set; }
 
     public virtual DbSet<CharacterDepot> CharacterDepots { get; set; }
@@ -187,6 +189,32 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_character_area_passes_character");
+        });
+
+        modelBuilder.Entity<CharacterBuff>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.Kind }).HasName("PRIMARY");
+
+            entity.ToTable("character_buffs");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.Kind)
+                .HasMaxLength(16)
+                .HasColumnName("kind");
+            entity.Property(e => e.EndsAt)
+                .HasMaxLength(6)
+                .HasColumnName("ends_at");
+            entity.Property(e => e.Multiplier)
+                .HasPrecision(4)
+                .HasColumnName("multiplier");
+            entity.Property(e => e.StartsAt)
+                .HasMaxLength(6)
+                .HasColumnName("starts_at");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterBuffs)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_buffs_character");
         });
 
         modelBuilder.Entity<CharacterChampion>(entity =>

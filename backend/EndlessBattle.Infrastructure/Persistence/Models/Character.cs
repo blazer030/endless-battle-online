@@ -85,6 +85,8 @@ public partial class Character
 
     public virtual ICollection<CharacterAreaPass> CharacterAreaPasses { get; set; } = new List<CharacterAreaPass>();
 
+    public virtual ICollection<CharacterBuff> CharacterBuffs { get; set; } = new List<CharacterBuff>();
+
     public virtual CharacterChampion? CharacterChampion { get; set; }
 
     public virtual ICollection<CharacterDepot> CharacterDepots { get; set; } = new List<CharacterDepot>();
