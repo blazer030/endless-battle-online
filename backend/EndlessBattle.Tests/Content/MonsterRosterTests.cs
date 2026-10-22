@@ -55,13 +55,13 @@ public partial class MonsterRosterTests
         }
     }
 
-    // 每隻怪 1～3 個掉落、topr 3～200，不重複；全域怪有明確的指定（絨球小補給 topr 3、寶箱哥布林材料 topr 2 + 精鍊石 topr 50）
+    // 每隻怪 1～3 個掉落（勳章另計）、topr 3～200，不重複；全域怪有明確的指定（絨球小補給 topr 3、寶箱哥布林材料 topr 2 + 精鍊石 topr 50）
     [Fact]
     public void Roster_DropsReferenceKnownItems()
     {
         Assert.All(Content.AllMonsters, monster =>
         {
-            Assert.InRange(monster.Drops.Count, 1, 3);
+            Assert.InRange(monster.Drops.Count(drop => !IsMedal(drop)), 1, 3);
             Assert.Equal(monster.Drops.Count, monster.Drops.Select(drop => drop.ItemId).Distinct().Count());
             Assert.All(monster.Drops, drop =>
             {
@@ -78,6 +78,35 @@ public partial class MonsterRosterTests
         Assert.Equal(ItemCategory.Material, Content.GetItem(goblin[0].ItemId).Category);
         Assert.Equal(50, goblin[1].Topr);
         Assert.Equal(ItemCategory.RefineStone, Content.GetItem(goblin[1].ItemId).Category);
+    }
+
+    private static bool IsMedal(DropEntry drop) => Content.GetItem(drop.ItemId).Category == ItemCategory.Medal;
+
+    // 中央大陸→大陸、魔法王國→王國、熱帶雨林→雨林、末日王城→王城、禁區→白銀
+    private static readonly Dictionary<string, string> AreaMedals = new()
+    {
+        ["central"] = "continent-medal",
+        ["magic"] = "kingdom-medal",
+        ["jungle"] = "rainforest-medal",
+        ["doom"] = "royal-city-medal",
+        ["restricted"] = "silver-medal",
+    };
+
+    // 每隻 meet 60 的非全域怪（含任務怪）最後一項掉落是所屬大區的勳章 topr 60；其他怪沒有勳章
+    [Fact]
+    public void Roster_EliteMonstersDropTheirAreaMedal()
+    {
+        var elites = Content.AllMonsters.Where(monster => monster.Meet == EliteMeet && monster.PlaceId != 0).ToList();
+        Assert.Equal(17, elites.Count);
+        Assert.All(elites, monster =>
+        {
+            var medal = AreaMedals[Content.GetPlace(monster.PlaceId).AreaId];
+            Assert.Equal(new DropEntry(medal, 60), monster.Drops[^1]);
+            Assert.Single(monster.Drops, IsMedal);
+        });
+        Assert.All(
+            Content.AllMonsters.Except(elites),
+            monster => Assert.DoesNotContain(monster.Drops, IsMedal));
     }
 
     [Fact]

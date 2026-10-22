@@ -66,7 +66,7 @@ public sealed record ItemDefinition(
     StatBonus Bonus,
     int SupplyHp,
     int SupplySp,
-    int Amount, // 行動力藥水的加值、擴充的格數
+    int Amount, // 行動力藥水的加值、擴充的格數、捕捉道具的能力倍率
     StatRequirement7 Requires,
     string? JobId,
     int Element,

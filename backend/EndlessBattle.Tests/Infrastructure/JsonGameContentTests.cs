@@ -1,5 +1,8 @@
+using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
@@ -38,6 +41,15 @@ public class JsonGameContentTests
     private const string ValidRecipes = """{ "recipes": [] }""";
 
     private const string ValidMissions = """{ "missions": [] }""";
+
+    private const string ValidMercenaries = """{ "mercenaries": [] }""";
+
+    private const string ValidHonourShop = """{ "exchanges": [] }""";
+
+    private const string ValidChampionSeat =
+        """{ "name": "冠軍", "level": 5, "element": 0, "specialAttackName": "劍", "hp": 120, "sp": 20, "at": 20, "mat": 5, "df": 8, "mdf": 5, "agi": 10, "au": 6 }""";
+
+    private const string ValidChampion = $$"""{ "champion": {{ValidChampionSeat}} }""";
 
     private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300 }""";
 
@@ -225,6 +237,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
             var monster = JsonGameContent.Load(directory.FullName).GetMonster("sprite");
             Assert.Equal(1, monster.PlaceId);
             Assert.Equal([2, 4], monster.SubPlaces);
@@ -348,6 +361,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
             return JsonGameContent.Load(directory.FullName);
         }
         finally
@@ -517,6 +531,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
             Assert.Equal(new LevelRange(5, 5), JsonGameContent.Load(directory.FullName).GetPlace(1).Recommended);
         }
         finally
@@ -537,7 +552,7 @@ public class JsonGameContentTests
                 "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion", "test-stamina-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
-                "test-armor", "test-gloves", "test-boots",
+                "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net",
             ],
             content.AllItems.Select(item => item.Id));
 
@@ -623,6 +638,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{items}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{recipes}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
             return Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName)).Message;
         }
         finally
@@ -650,6 +666,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{ValidItemList}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), $$"""{ "recipes": [{{ValidRecipe}}] }""");
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName);
             Assert.Equal(5, JsonGameContent.Load(directory.FullName).AllItems.Count);
         }
         finally
@@ -866,6 +883,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), HerbItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), $$"""{ "missions": [{{missions}}] }""");
+            WriteCompanionContent(directory.FullName);
             return action(directory.FullName);
         }
         finally
@@ -1089,6 +1107,252 @@ public class JsonGameContentTests
         Assert.Contains(expected, message);
     }
 
+    [Fact]
+    public void Load_TestContent_ExposesCompanionContent()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+
+        Assert.Equal(
+            [
+                new MercenaryDefinition("test-mercenary", "測試傭兵", 100, 3, 50, 100, 50, 2),
+                new MercenaryDefinition("test-honour-mercenary", "測試榮譽傭兵", null, 5, 100, 100, 100, 1),
+            ],
+            content.AllMercenaries);
+        Assert.Equal(3, content.GetMercenary("test-mercenary").Fights);
+        Assert.Contains("ghost-mercenary", Assert.Throws<GameContentException>(() => content.GetMercenary("ghost-mercenary")).Message);
+
+        Assert.Equivalent(
+            new[]
+            {
+                new HonourExchange("test-exchange-ore", "test-ore", null, 1, [new ItemQuantity("test-medal-a", 2)]),
+                new HonourExchange(
+                    "test-exchange-mercenary", null, "test-honour-mercenary", 1,
+                    [new ItemQuantity("test-medal-a", 1), new ItemQuantity("test-medal-b", 1)]),
+            },
+            content.HonourShop,
+            strict: true);
+
+        Assert.Equivalent(
+            new ChampionSeat("測試冠軍", Level: 5, Element: 0, SpecialAttackName: "測試劍", Hp: 120, HpMax: 120, Sp: 20, SpMax: 20,
+                At: 20, Mat: 5, Df: 8, Mdf: 5, Agi: 10, Au: 6),
+            content.SeedChampion,
+            strict: true);
+
+        var net = content.GetItem("test-capture-net");
+        Assert.Equal((ItemCategory.Consumable, ConsumableKind.Capture, 2), (net.Category, net.Consumable, net.Amount));
+        Assert.Equal(ItemCategory.Medal, content.GetItem("test-medal-a").Category);
+        Assert.Equal(ItemCategory.Medal, content.GetItem("test-medal-b").Category);
+    }
+
+    private const string ValidMedal =
+        """{ "id": "badge", "name": "章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false }""";
+
+    private const string ValidCapture =
+        """{ "id": "net", "name": "網", "category": "Consumable", "consumable": "Capture", "amount": 2, "price": 50, "shopLevel": 1, "shopSellable": true }""";
+
+    [Fact]
+    public void Items_RejectCaptureWithoutAmount()
+    {
+        var message = ItemRejection($"{ValidItemList}, {Replace(ValidCapture, "\"amount\": 2, ", "")}");
+        Assert.Contains("net", message);
+        Assert.Contains("amount", message);
+    }
+
+    // 捕捉道具只用 amount（倍率）；勳章不是消耗品，其餘規則同材料
+    public static TheoryData<string, string, string, string> InvalidCompanionItems => new()
+    {
+        { ValidCapture, "\"amount\": 2", "\"amount\": 2, \"supplyHp\": 10", "supplyHp" },
+        { ValidCapture, "\"amount\": 2", "\"amount\": 2, \"bonus\": { \"at\": 1 }", "bonus" },
+        { ValidCapture, "\"category\": \"Consumable\"", "\"category\": \"Material\"", "consumable" },
+        { ValidMedal, "\"price\": 0", "\"consumable\": \"Capture\", \"amount\": 1, \"price\": 0", "consumable" },
+        { ValidMedal, "\"price\": 0", "\"holes\": 1, \"price\": 0", "holes" },
+        { ValidMedal, "\"price\": 0", "\"requires\": { \"str\": 1 }, \"price\": 0", "需求" },
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidCompanionItems))]
+    public void Items_RejectInvalidCompanionItems(string item, string validField, string invalidField, string expected)
+    {
+        var id = item[(item.IndexOf("\"id\": \"", StringComparison.Ordinal) + 7)..].Split('"')[0];
+        var message = ItemRejection($"{ValidItemList}, {Replace(item, validField, invalidField)}");
+        Assert.Contains(id, message);
+        Assert.Contains(expected, message);
+    }
+
+    private const string ValidMercenary =
+        """{ "id": "hireling", "name": "僱傭兵", "price": 100, "fights": 3, "moneyPercent": 50, "dropPercent": 100, "expPercent": 50, "deathCost": 2 }""";
+
+    private const string ValidHonourMercenary =
+        """{ "id": "veteran", "name": "老兵", "price": null, "fights": 5, "moneyPercent": 100, "dropPercent": 100, "expPercent": 100, "deathCost": 1 }""";
+
+    private const string ValidItemExchange =
+        """{ "id": "swap-ore", "itemId": "ore", "quantity": 1, "cost": [{ "itemId": "badge", "quantity": 2 }] }""";
+
+    private const string ValidMercenaryExchange =
+        """{ "id": "swap-veteran", "mercenaryId": "veteran", "quantity": 1, "cost": [{ "itemId": "badge", "quantity": 1 }] }""";
+
+    private const string ValidMercenaryList = $"{ValidMercenary}, {ValidHonourMercenary}";
+
+    private const string ValidExchangeList = $"{ValidItemExchange}, {ValidMercenaryExchange}";
+
+    private static T WithCompanionContent<T>(string mercenaries, string exchanges, string champion, Func<string, T> action)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(
+                Path.Combine(directory.FullName, "items.json"), $$"""{ "items": [{{ValidOre}}, {{ValidSupply}}, {{ValidMedal}}, {{ValidCapture}}] }""");
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(
+                directory.FullName,
+                $$"""{ "mercenaries": [{{mercenaries}}] }""",
+                $$"""{ "exchanges": [{{exchanges}}] }""",
+                champion);
+            return action(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static string CompanionRejection(
+        string mercenaries = ValidMercenaryList, string exchanges = ValidExchangeList, string champion = ValidChampion) =>
+        WithCompanionContent(mercenaries, exchanges, champion, directory =>
+            Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory)).Message);
+
+    [Fact]
+    public void Companions_AcceptValidSample()
+    {
+        var content = WithCompanionContent(ValidMercenaryList, ValidExchangeList, ValidChampion, JsonGameContent.Load);
+
+        Assert.Equal(["hireling", "veteran"], content.AllMercenaries.Select(mercenary => mercenary.Id));
+        Assert.Null(content.GetMercenary("veteran").Price);
+        Assert.Equal(["swap-ore", "swap-veteran"], content.HonourShop.Select(exchange => exchange.Id));
+        Assert.Equal(("冠軍", 120, 120, 20, 20), (content.SeedChampion.Name, content.SeedChampion.Hp, content.SeedChampion.HpMax,
+            content.SeedChampion.Sp, content.SeedChampion.SpMax));
+        Assert.False(content.SeedChampion.IsPlayer);
+    }
+
+    [Fact]
+    public void Mercenaries_RejectDuplicateId() =>
+        Assert.Contains("傭兵 id 重複：hireling", CompanionRejection(mercenaries: $"{ValidMercenaryList}, {ValidMercenary}"));
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    public void Mercenaries_RejectPercentOutOfRange(int percent)
+    {
+        var message = CompanionRejection(
+            mercenaries: ReplaceOnce(ValidMercenaryList, "\"moneyPercent\": 50", $"\"moneyPercent\": {percent}"));
+        Assert.Contains("hireling", message);
+        Assert.Contains("moneyPercent", message);
+    }
+
+    [Fact]
+    public void HonourShop_RejectNonMedalCost()
+    {
+        var message = CompanionRejection(
+            exchanges: ReplaceOnce(ValidExchangeList, "{ \"itemId\": \"badge\", \"quantity\": 2 }", "{ \"itemId\": \"ore\", \"quantity\": 2 }"));
+        Assert.Contains("swap-ore", message);
+        Assert.Contains("勳章", message);
+    }
+
+    [Fact]
+    public void HonourShop_RejectBothItemAndMercenary()
+    {
+        var message = CompanionRejection(
+            exchanges: ReplaceOnce(ValidExchangeList, "\"itemId\": \"ore\",", "\"itemId\": \"ore\", \"mercenaryId\": \"veteran\","));
+        Assert.Contains("swap-ore", message);
+        Assert.Contains("mercenaryId", message);
+    }
+
+    [Fact]
+    public void HonourShop_RejectMercenaryQuantityOtherThanOne()
+    {
+        var message = CompanionRejection(
+            exchanges: ReplaceOnce(ValidExchangeList, "\"mercenaryId\": \"veteran\", \"quantity\": 1", "\"mercenaryId\": \"veteran\", \"quantity\": 2"));
+        Assert.Contains("swap-veteran", message);
+        Assert.Contains("quantity", message);
+    }
+
+    [Fact]
+    public void HonourShop_RejectDuplicateId() =>
+        Assert.Contains("兌換 id 重複：swap-ore", CompanionRejection(exchanges: $"{ValidExchangeList}, {ValidItemExchange}"));
+
+    [Fact]
+    public void Champion_RejectZeroHp()
+    {
+        var message = CompanionRejection(champion: Replace(ValidChampion, "\"hp\": 120", "\"hp\": 0"));
+        Assert.Contains("冠軍", message);
+        Assert.Contains("hp", message);
+    }
+
+    [Fact]
+    public void Champion_RejectMissingSeat() =>
+        Assert.Contains("冠軍", CompanionRejection(champion: "{ }"));
+
+    // (清單、原片段、改成、應含的 id、應含的欄位或說明)
+    public static TheoryData<string, string, string, string, string> InvalidCompanionFields => new()
+    {
+        { "mercenaries", "\"id\": \"hireling\"", "\"id\": \" \"", "傭兵 id", "空" },
+        { "mercenaries", "\"id\": \"hireling\"", $"\"id\": \"{new string('m', 33)}\"", new string('m', 33), "32" },
+        { "mercenaries", "\"name\": \"僱傭兵\"", "\"name\": \"\"", "hireling", "name" },
+        { "mercenaries", "\"name\": \"僱傭兵\"", "\"name\": \"一二三四五六七八九\"", "hireling", "name" },
+        { "mercenaries", "\"price\": 100", "\"price\": 0", "hireling", "price" },
+        { "mercenaries", "\"fights\": 3", "\"fights\": 0", "hireling", "fights" },
+        { "mercenaries", "\"moneyPercent\": 50, \"dropPercent\": 100", "\"moneyPercent\": 50, \"dropPercent\": 0", "hireling", "dropPercent" },
+        { "mercenaries", "\"expPercent\": 50", "\"expPercent\": 101", "hireling", "expPercent" },
+        { "mercenaries", "\"deathCost\": 2", "\"deathCost\": 0", "hireling", "deathCost" },
+        { "exchanges", "\"id\": \"swap-ore\"", "\"id\": \"\"", "兌換 id", "空" },
+        { "exchanges", "\"id\": \"swap-ore\"", $"\"id\": \"{new string('x', 33)}\"", new string('x', 33), "32" },
+        { "exchanges", "\"itemId\": \"ore\", ", "", "swap-ore", "itemId" },
+        { "exchanges", "\"itemId\": \"ore\"", "\"itemId\": \"phantom\"", "swap-ore", "phantom" },
+        { "exchanges", "\"mercenaryId\": \"veteran\"", "\"mercenaryId\": \"ghost\"", "swap-veteran", "ghost" },
+        { "exchanges", "\"itemId\": \"ore\", \"quantity\": 1", "\"itemId\": \"ore\", \"quantity\": 0", "swap-ore", "quantity" },
+        { "exchanges", "\"itemId\": \"ore\", \"quantity\": 1", "\"itemId\": \"ore\", \"quantity\": 100", "swap-ore", "quantity" },
+        { "exchanges", "\"cost\": [{ \"itemId\": \"badge\", \"quantity\": 2 }]", "\"cost\": []", "swap-ore", "cost" },
+        { "exchanges", "{ \"itemId\": \"badge\", \"quantity\": 2 }", "{ \"itemId\": \"phantom\", \"quantity\": 2 }", "swap-ore", "phantom" },
+        { "exchanges", "{ \"itemId\": \"badge\", \"quantity\": 2 }", "{ \"itemId\": \"badge\", \"quantity\": 0 }", "swap-ore", "quantity" },
+        { "exchanges", "{ \"itemId\": \"badge\", \"quantity\": 2 }", "{ \"itemId\": \"badge\", \"quantity\": 100 }", "swap-ore", "quantity" },
+        { "exchanges", "{ \"itemId\": \"badge\", \"quantity\": 2 }", "{ \"itemId\": \"badge\", \"quantity\": 2 }, { \"itemId\": \"badge\", \"quantity\": 1 }", "swap-ore", "重複" },
+        { "champion", "\"name\": \"冠軍\"", "\"name\": \"\"", "冠軍", "name" },
+        { "champion", "\"name\": \"冠軍\"", "\"name\": \"一二三四五六七八九十一二三\"", "冠軍", "name" },
+        { "champion", "\"level\": 5", "\"level\": 0", "冠軍", "level" },
+        { "champion", "\"specialAttackName\": \"劍\"", "\"specialAttackName\": \" \"", "冠軍", "specialAttackName" },
+        { "champion", "\"element\": 0", "\"element\": 7", "冠軍", "element" },
+        { "champion", "\"sp\": 20", "\"sp\": -1", "冠軍", "sp" },
+        { "champion", "\"at\": 20", "\"at\": -1", "冠軍", "能力" },
+        { "champion", "\"agi\": 10", "\"agi\": -1", "冠軍", "能力" },
+    };
+
+    [Theory]
+    [MemberData(nameof(InvalidCompanionFields))]
+    public void Companions_RejectInvalidFields(string file, string validField, string invalidField, string offendingId, string expected)
+    {
+        var message = file switch
+        {
+            "mercenaries" => CompanionRejection(mercenaries: ReplaceOnce(ValidMercenaryList, validField, invalidField)),
+            "exchanges" => CompanionRejection(exchanges: ReplaceOnce(ValidExchangeList, validField, invalidField)),
+            _ => CompanionRejection(champion: ReplaceOnce(ValidChampion, validField, invalidField)),
+        };
+        Assert.Contains(offendingId, message);
+        Assert.Contains(expected, message);
+    }
+
+    private static void WriteCompanionContent(
+        string directory, string mercenaries = ValidMercenaries, string honourShop = ValidHonourShop, string champion = ValidChampion)
+    {
+        File.WriteAllText(Path.Combine(directory, "mercenaries.json"), mercenaries);
+        File.WriteAllText(Path.Combine(directory, "honour-shop.json"), honourShop);
+        File.WriteAllText(Path.Combine(directory, "champion.json"), champion);
+    }
+
     private static void AssertLoadRejects(
         string monstersJson,
         string jobsJson,
@@ -1109,6 +1373,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), itemsJson);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), recipesJson);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), missionsJson);
+            WriteCompanionContent(directory.FullName);
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingId, exception.Message);
         }

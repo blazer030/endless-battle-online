@@ -48,7 +48,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
 
-        Assert.Equal(10, inventory.GetProperty("bag").GetArrayLength());
+        Assert.Equal(11, inventory.GetProperty("bag").GetArrayLength());
         var weapons = Category(inventory, "Weapon");
         Assert.Equal(15, weapons.GetProperty("capacity").GetInt32());
         var item = Assert.Single(weapons.GetProperty("items").EnumerateArray());

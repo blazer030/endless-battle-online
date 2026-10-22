@@ -1,7 +1,10 @@
 using System.Text.Json;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
@@ -27,6 +30,11 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumMissionIdLength = 32;
     private const int MaximumMissionQuantity = 99;
     private const int MaximumBirth = 4;
+    private const int MaximumCompanionIdLength = 32;
+    private const int MaximumMercenaryNameLength = 8;
+    private const int MaximumPercent = 100;
+    private const int MaximumExchangeQuantity = 99;
+    private const int MaximumChampionNameLength = 12;
 
     private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
 
@@ -37,6 +45,7 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<string, ItemDefinition> items;
     private readonly Dictionary<string, Recipe> recipes;
     private readonly Dictionary<string, MissionDefinition> missions;
+    private readonly Dictionary<string, MercenaryDefinition> mercenaries;
 
     private JsonGameContent(
         IReadOnlyList<MonsterDefinition> allMonsters,
@@ -52,8 +61,15 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<ItemDefinition> allItems,
         Dictionary<string, ItemDefinition> items,
         IReadOnlyList<Recipe> allRecipes,
-        IReadOnlyList<MissionDefinition> allMissions)
+        IReadOnlyList<MissionDefinition> allMissions,
+        IReadOnlyList<MercenaryDefinition> allMercenaries,
+        IReadOnlyList<HonourExchange> honourShop,
+        ChampionSeat seedChampion)
     {
+        AllMercenaries = allMercenaries;
+        mercenaries = allMercenaries.ToDictionary(mercenary => mercenary.Id);
+        HonourShop = honourShop;
+        SeedChampion = seedChampion;
         AllItems = allItems;
         this.items = items;
         AllRecipes = allRecipes;
@@ -93,6 +109,12 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<MissionDefinition> AllMissions { get; }
 
+    public IReadOnlyList<MercenaryDefinition> AllMercenaries { get; }
+
+    public IReadOnlyList<HonourExchange> HonourShop { get; }
+
+    public ChampionSeat SeedChampion { get; }
+
     public static JsonGameContent Load(string directory)
     {
         var monsterFile = Read<MonsterFile>(Path.Combine(directory, "monsters.json"));
@@ -102,6 +124,9 @@ public sealed class JsonGameContent : IGameContent
         var itemFile = Read<ItemFile>(Path.Combine(directory, "items.json"));
         var recipeFile = Read<RecipeFile>(Path.Combine(directory, "recipes.json"));
         var missionFile = Read<MissionFile>(Path.Combine(directory, "missions.json"));
+        var mercenaryFile = Read<MercenaryFile>(Path.Combine(directory, "mercenaries.json"));
+        var honourShopFile = Read<HonourShopFile>(Path.Combine(directory, "honour-shop.json"));
+        var championFile = Read<ChampionFile>(Path.Combine(directory, "champion.json"));
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
@@ -217,9 +242,38 @@ public sealed class JsonGameContent : IGameContent
             ValidateMissionMonster(monster, missions);
         }
 
+        var allMercenaries = mercenaryFile.Mercenaries.Select(ToMercenaryDefinition).ToList();
+        var mercenaries = new Dictionary<string, MercenaryDefinition>();
+        foreach (var mercenary in allMercenaries)
+        {
+            ValidateCompanionId("傭兵", mercenary.Id);
+            if (!mercenaries.TryAdd(mercenary.Id, mercenary))
+            {
+                throw new GameContentException($"傭兵 id 重複：{mercenary.Id}");
+            }
+
+            ValidateMercenary(mercenary);
+        }
+
+        var honourShop = honourShopFile.Exchanges.Select(ToHonourExchange).ToList();
+        var exchangeIds = new HashSet<string>();
+        foreach (var exchange in honourShop)
+        {
+            ValidateCompanionId("勳章所兌換", exchange.Id);
+            if (!exchangeIds.Add(exchange.Id))
+            {
+                throw new GameContentException($"勳章所兌換 id 重複：{exchange.Id}");
+            }
+
+            ValidateExchange(exchange, items, mercenaries);
+        }
+
+        var seedChampion = ToSeedChampion(championFile.Champion ?? throw new GameContentException("冠軍種子不可為空（champion.json 的 champion）"));
+
         return new JsonGameContent(
             monsterFile.Monsters, allJobs, allSkills, monsters, jobs, skills,
-            worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions);
+            worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions,
+            allMercenaries, honourShop, seedChampion);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -246,6 +300,9 @@ public sealed class JsonGameContent : IGameContent
 
     public MissionDefinition GetMission(string missionId) =>
         missions.TryGetValue(missionId, out var mission) ? mission : throw new GameContentException($"找不到任務：{missionId}");
+
+    public MercenaryDefinition GetMercenary(string mercenaryId) =>
+        mercenaries.TryGetValue(mercenaryId, out var mercenary) ? mercenary : throw new GameContentException($"找不到傭兵：{mercenaryId}");
 
     public IReadOnlyList<ItemDefinition> ItemsForShop(ItemCategory category, int level) =>
         AllItems.Where(item => item.ShopSellable && item.Category == category && item.ShopLevel == level).ToList();
@@ -506,7 +563,8 @@ public sealed class JsonGameContent : IGameContent
             Require(item.Consumable == ConsumableKind.None, $"道具 {id} 不是消耗品，consumable 必須為 None");
         }
 
-        var usesAmount = item.Consumable is ConsumableKind.StaminaPotion or ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion;
+        var usesAmount = item.Consumable is ConsumableKind.StaminaPotion or ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion
+            or ConsumableKind.Capture;
         // 先檢查該種消耗品自己需要的欄位，再檢查用不到的欄位為 0
         if (item.Consumable == ConsumableKind.Supply)
         {
@@ -525,7 +583,7 @@ public sealed class JsonGameContent : IGameContent
 
         Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHp == 0 && item.SupplySp == 0),
             $"道具 {id} 不是補給品，supplyHp 與 supplySp 必須為 0");
-        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水與擴充");
+        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水、擴充與捕捉道具");
         Require(item.Consumable == ConsumableKind.StatPotion || item.Bonus == StatBonus.Zero,
             $"道具 {id} 不能有 bonus（只有能力藥水可以）");
 
@@ -807,6 +865,115 @@ public sealed class JsonGameContent : IGameContent
         }
     }
 
+    private static void ValidateCompanionId(string kind, string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new GameContentException($"{kind} id 不可為空");
+        }
+
+        if (id.Length > MaximumCompanionIdLength)
+        {
+            throw new GameContentException($"{kind} id 長度不可超過 {MaximumCompanionIdLength}：{id}");
+        }
+    }
+
+    private static void ValidateMercenary(MercenaryDefinition mercenary)
+    {
+        void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException($"傭兵 {mercenary.Id} {message}");
+            }
+        }
+
+        Require(!string.IsNullOrWhiteSpace(mercenary.Name) && mercenary.Name.Length <= MaximumMercenaryNameLength,
+            $"的 name 必須是 1～{MaximumMercenaryNameLength} 字");
+        Require(mercenary.Price is null or >= 1, "的 price 必須是 null（只能在勳章所兌換）或至少 1");
+        Require(mercenary.Fights >= 1, "的 fights 必須至少 1");
+        (string Field, int Value)[] percents =
+        [
+            ("moneyPercent", mercenary.MoneyPercent), ("dropPercent", mercenary.DropPercent), ("expPercent", mercenary.ExpPercent),
+        ];
+        foreach (var (field, value) in percents)
+        {
+            Require(value is >= 1 and <= MaximumPercent, $"的 {field} 必須在 1～{MaximumPercent}");
+        }
+
+        Require(mercenary.DeathCost >= 1, "的 deathCost 必須至少 1");
+    }
+
+    private static void ValidateExchange(
+        HonourExchange exchange, Dictionary<string, ItemDefinition> items, Dictionary<string, MercenaryDefinition> mercenaries)
+    {
+        void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException($"勳章所兌換 {exchange.Id} {message}");
+            }
+        }
+
+        Require(exchange.ItemId is null != exchange.MercenaryId is null, "的 itemId 與 mercenaryId 必須恰好一個");
+        if (exchange.ItemId is { } itemId)
+        {
+            Require(items.ContainsKey(itemId), $"引用了不存在的道具：{itemId}");
+            Require(exchange.Quantity is >= 1 and <= MaximumExchangeQuantity, $"的 quantity 必須在 1～{MaximumExchangeQuantity}");
+        }
+        else
+        {
+            Require(mercenaries.ContainsKey(exchange.MercenaryId!), $"引用了不存在的傭兵：{exchange.MercenaryId}");
+            Require(exchange.Quantity == 1, "兌換傭兵，quantity 必須為 1");
+        }
+
+        Require(exchange.Cost.Count >= 1, "的 cost 至少要有一項");
+        foreach (var (costItemId, quantity) in exchange.Cost)
+        {
+            Require(items.TryGetValue(costItemId, out var costItem), $"的 cost 引用了不存在的道具：{costItemId}");
+            Require(costItem!.Category == ItemCategory.Medal, $"的 cost {costItemId} 必須是勳章");
+            Require(quantity is >= 1 and <= MaximumExchangeQuantity,
+                $"的 cost {costItemId} 的 quantity 必須在 1～{MaximumExchangeQuantity}");
+        }
+
+        Require(exchange.Cost.Select(cost => cost.ItemId).Distinct().Count() == exchange.Cost.Count, "的 cost 道具重複");
+    }
+
+    private static ChampionSeat ToSeedChampion(ChampionEntry entry)
+    {
+        var name = entry.Name ?? "";
+
+        void Require(bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException($"冠軍 {name} {message}");
+            }
+        }
+
+        Require(!string.IsNullOrWhiteSpace(name) && name.Length <= MaximumChampionNameLength,
+            $"的 name 必須是 1～{MaximumChampionNameLength} 字");
+        Require(!string.IsNullOrWhiteSpace(entry.SpecialAttackName), "的 specialAttackName 不可為空");
+        Require(entry.Level >= 1, "的 level 必須至少 1");
+        Require(entry.Element is >= MinimumElement and <= MaximumElement, $"的 element 必須在 {MinimumElement}～{MaximumElement}");
+        Require(entry.Hp >= 1, "的 hp 必須至少 1");
+        Require(entry.Sp >= 0, "的 sp 不可為負");
+        Require(new[] { entry.At, entry.Mat, entry.Df, entry.Mdf, entry.Agi, entry.Au }.All(value => value >= 0),
+            "的能力 at、mat、df、mdf、agi、au 不可為負");
+
+        return new ChampionSeat(
+            name, entry.Level, entry.Element, entry.SpecialAttackName!,
+            Hp: entry.Hp, HpMax: entry.Hp, Sp: entry.Sp, SpMax: entry.Sp,
+            At: entry.At, Mat: entry.Mat, Df: entry.Df, Mdf: entry.Mdf, Agi: entry.Agi, Au: entry.Au);
+    }
+
+    private static MercenaryDefinition ToMercenaryDefinition(MercenaryEntry entry) =>
+        new(entry.Id ?? "", entry.Name ?? "", entry.Price, entry.Fights, entry.MoneyPercent, entry.DropPercent, entry.ExpPercent,
+            entry.DeathCost);
+
+    private static HonourExchange ToHonourExchange(ExchangeEntry entry) =>
+        new(entry.Id ?? "", entry.ItemId, entry.MercenaryId, entry.Quantity, entry.Cost ?? []);
+
     private static MissionDefinition ToMissionDefinition(MissionEntry entry)
     {
         static MissionReward ToReward(RewardEntry? reward) =>
@@ -1036,4 +1203,18 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<RewardEntry>? DailyRewards);
 
     private sealed record RewardEntry(long Money, IReadOnlyList<ItemQuantity>? Items, SkillReward? Skill, PetReward? Pet);
+
+    private sealed record MercenaryFile(IReadOnlyList<MercenaryEntry> Mercenaries);
+
+    private sealed record MercenaryEntry(
+        string? Id, string? Name, long? Price, int Fights, int MoneyPercent, int DropPercent, int ExpPercent, int DeathCost);
+
+    private sealed record HonourShopFile(IReadOnlyList<ExchangeEntry> Exchanges);
+
+    private sealed record ExchangeEntry(string? Id, string? ItemId, string? MercenaryId, int Quantity, IReadOnlyList<ItemQuantity>? Cost);
+
+    private sealed record ChampionFile(ChampionEntry? Champion);
+
+    private sealed record ChampionEntry(
+        string? Name, int Level, int Element, string? SpecialAttackName, int Hp, int Sp, int At, int Mat, int Df, int Mdf, int Agi, int Au);
 }

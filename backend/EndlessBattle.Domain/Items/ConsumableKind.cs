@@ -1,5 +1,6 @@
 namespace EndlessBattle.Domain.Items;
 
+// Capture：捕捉道具，Amount 是能力倍率
 public enum ConsumableKind
 {
     None,
@@ -8,4 +9,5 @@ public enum ConsumableKind
     StaminaPotion,
     BagExpansion,
     DepotExpansion,
+    Capture,
 }

@@ -97,6 +97,9 @@
     {"id": "agi-potion", "name": "敏捷藥水", "category": "Consumable", "consumable": "StatPotion", "bonus": {"agi": 1}, "price": 5000, "shopLevel": 7, "shopSellable": true},
     {"id": "au-potion", "name": "魅力藥水", "category": "Consumable", "consumable": "StatPotion", "bonus": {"au": 1}, "price": 5000, "shopLevel": 7, "shopSellable": true},
     {"id": "be-potion", "name": "信仰藥水", "category": "Consumable", "consumable": "StatPotion", "bonus": {"be": 1}, "price": 5000, "shopLevel": 7, "shopSellable": true},
+    {"id": "capture-net", "name": "捕獸網", "category": "Consumable", "consumable": "Capture", "amount": 1, "price": 200, "shopLevel": 1, "shopSellable": true},
+    {"id": "capture-cage", "name": "捕獸籠", "category": "Consumable", "consumable": "Capture", "amount": 8, "price": 3000, "shopLevel": 4, "shopSellable": true},
+    {"id": "capture-crystal", "name": "封印水晶", "category": "Consumable", "consumable": "Capture", "amount": 13, "price": 5000, "shopLevel": 6, "shopSellable": false},
     {"id": "iron-refine-stone-1", "name": "鋼鐵精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 1, "at": [1, 2], "df": [1, 2]}},
     {"id": "arcane-refine-stone-1", "name": "秘法精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 2, "mat": [1, 2], "mdf": [1, 2]}},
     {"id": "vigor-refine-stone-1", "name": "活力精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 3, "str": [1, 1], "agi": [1, 1]}},
@@ -141,6 +144,11 @@
     {"id": "crystal-shard", "name": "水晶碎片", "category": "Material", "price": 40, "shopLevel": 1, "shopSellable": false},
     {"id": "stone-remover", "name": "拆石器", "category": "Material", "price": 500, "shopLevel": 3, "shopSellable": true},
     {"id": "hole-driller", "name": "鑽孔器", "category": "Material", "price": 3000, "shopLevel": 5, "shopSellable": true},
-    {"id": "safe-refine-stone", "name": "安全精鍊石", "category": "Material", "price": 2000, "shopLevel": 4, "shopSellable": true}
+    {"id": "safe-refine-stone", "name": "安全精鍊石", "category": "Material", "price": 2000, "shopLevel": 4, "shopSellable": true},
+    {"id": "continent-medal", "name": "大陸勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
+    {"id": "kingdom-medal", "name": "王國勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
+    {"id": "rainforest-medal", "name": "雨林勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
+    {"id": "royal-city-medal", "name": "王城勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
+    {"id": "silver-medal", "name": "白銀勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false}
   ]
 }

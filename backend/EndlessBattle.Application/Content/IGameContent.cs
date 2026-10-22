@@ -1,5 +1,8 @@
+using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
@@ -26,6 +29,15 @@ public interface IGameContent
     // 依內容檔中的順序
     IReadOnlyList<MissionDefinition> AllMissions { get; }
 
+    // 依內容檔中的順序
+    IReadOnlyList<MercenaryDefinition> AllMercenaries { get; }
+
+    // 依內容檔中的順序
+    IReadOnlyList<HonourExchange> HonourShop { get; }
+
+    // 沒有冠軍紀錄時的 NPC 冠軍，滿 HP／SP
+    ChampionSeat SeedChampion { get; }
+
     int StartingPlaceId { get; }
 
     int? StartingSubPlace { get; }
@@ -45,6 +57,8 @@ public interface IGameContent
     Recipe GetRecipe(string recipeId);
 
     MissionDefinition GetMission(string missionId);
+
+    MercenaryDefinition GetMercenary(string mercenaryId);
 
     // 該地區與全域怪物，依內容檔中的順序
     IReadOnlyList<MonsterDefinition> MonstersOf(int placeId);

@@ -130,7 +130,9 @@ public class MissionTableTests
             Assert.DoesNotContain(Dailies.SelectMany(mission => mission.DailyKills), kill => kill.MonsterId == monster.Id);
             Assert.Equal(60, monster.Meet);
             Assert.Equal([1, 2, 3, 4], monster.SubPlaces);
-            Assert.Equal([new DropEntry("crystal-shard", 10)], monster.Drops);
+            // 計畫 9 起最後一項是所屬大區的勳章（MonsterRosterTests.Roster_EliteMonstersDropTheirAreaMedal）
+            Assert.Equal(new DropEntry("crystal-shard", 10), monster.Drops[0]);
+            Assert.Equal(2, monster.Drops.Count);
             var place = Content.GetPlace(monster.PlaceId);
             Assert.InRange(monster.Level, place.Recommended.Min, place.Recommended.Max);
         });

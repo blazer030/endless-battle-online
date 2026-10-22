@@ -1,0 +1,6 @@
+{
+  "exchanges": [
+    {"id": "test-exchange-ore", "itemId": "test-ore", "quantity": 1, "cost": [{"itemId": "test-medal-a", "quantity": 2}]},
+    {"id": "test-exchange-mercenary", "mercenaryId": "test-honour-mercenary", "quantity": 1, "cost": [{"itemId": "test-medal-a", "quantity": 1}, {"itemId": "test-medal-b", "quantity": 1}]}
+  ]
+}

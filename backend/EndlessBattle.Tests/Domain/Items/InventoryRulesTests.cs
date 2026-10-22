@@ -50,6 +50,17 @@ public class InventoryRulesTests
         Assert.Equal(0, InventoryRules.TryAdd(fullOfOthers, TestItems.Item("ore", ItemCategory.Material), 1, bagBonus: 5).Accepted);
     }
 
+    // 勳章 15 格、不能擴充、可堆疊 99
+    [Fact]
+    public void Capacity_MedalIgnoresBagBonus()
+    {
+        Assert.Equal(15, InventoryRules.Capacity(ItemCategory.Medal, 5));
+
+        var medal = TestItems.Item("medal", ItemCategory.Medal);
+        var result = InventoryRules.TryAdd([], medal, 120, bagBonus: 5);
+        Assert.Equal([99, 21], result.NewEntries.Select(entry => entry.Quantity));
+    }
+
     // 裝備每件一格、數量 1，帶著定義的孔數；不會疊到同種裝備上
     [Fact]
     public void TryAdd_EquipmentNeverStacks()
