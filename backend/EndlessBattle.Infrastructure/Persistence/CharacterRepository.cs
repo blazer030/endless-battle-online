@@ -34,7 +34,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("此帳號已有角色，或角色名稱已被使用");
+            throw new ConflictException("此帳號已有角色，或角色名稱已被使用", exception);
         }
 
         return ToDomain(row);
@@ -53,9 +53,9 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         {
             await context.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("角色資料已被其他請求更新，請重新整理");
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理", exception);
         }
 
         return ToDomain(row);

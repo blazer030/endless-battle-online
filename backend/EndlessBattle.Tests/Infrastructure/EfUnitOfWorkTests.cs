@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 
 namespace EndlessBattle.Tests.Infrastructure;
 
@@ -106,7 +107,8 @@ public class EfUnitOfWorkTests(MySqlDatabaseFixture database)
     private static Task<long> MoneyAsync(EndlessBattleDbContext context, long characterId, CancellationToken cancellationToken) =>
         context.Database.SqlQueryRaw<long>("SELECT money AS Value FROM characters WHERE id = {0}", characterId).SingleAsync(cancellationToken);
 
-    // 兩條連線交叉更新兩個角色列（A 鎖甲、B 鎖乙、A 等乙、B 等甲）：MySQL 選一個犧牲者回滾（1213），它收到 409，另一個照常提交
+    // 兩條連線交叉更新兩個角色列（A 鎖甲、B 鎖乙、A 等乙、B 等甲）：MySQL 選一個犧牲者回滾（1213），它收到 409（保留原本的 MySqlException），
+    // 另一個照常提交：兩列都只留下勝者的 +1
     [Fact]
     public async Task Transaction_DeadlockVictimGetsConflict()
     {
@@ -115,23 +117,23 @@ public class EfUnitOfWorkTests(MySqlDatabaseFixture database)
         using var firstLocked = new SemaphoreSlim(0);
         using var secondLocked = new SemaphoreSlim(0);
 
-        async Task<bool> RunAsync(long lockFirst, long lockSecond, SemaphoreSlim signal, SemaphoreSlim wait)
+        async Task<ConflictException?> RunAsync(long lockFirst, long lockSecond, SemaphoreSlim signal, SemaphoreSlim wait)
         {
             await using var context = database.CreateDbContext();
             try
             {
-                return await new EfUnitOfWork(context).RunAsync(async cancellationToken =>
+                return await new EfUnitOfWork(context).RunAsync<ConflictException?>(async cancellationToken =>
                 {
                     await TouchAsync(context, lockFirst, cancellationToken);
                     signal.Release();
-                    await wait.WaitAsync(cancellationToken);
+                    Assert.True(await wait.WaitAsync(TimeSpan.FromSeconds(20), cancellationToken), "另一條連線沒有在 20 秒內鎖住第一列");
                     await TouchAsync(context, lockSecond, cancellationToken);
-                    return true;
+                    return null;
                 }, CancellationToken);
             }
-            catch (ConflictException)
+            catch (ConflictException conflict)
             {
-                return false;
+                return conflict;
             }
         }
 
@@ -139,7 +141,11 @@ public class EfUnitOfWorkTests(MySqlDatabaseFixture database)
             RunAsync(first.Id, second.Id, firstLocked, secondLocked),
             RunAsync(second.Id, first.Id, secondLocked, firstLocked));
 
-        Assert.Equal(1, results.Count(succeeded => succeeded));
+        var conflict = Assert.Single(results.OfType<ConflictException>());
+        Assert.Equal(1213, Assert.IsType<MySqlException>(conflict.InnerException).Number);
+        await using var reader = database.CreateDbContext();
+        Assert.Equal(first.Money + 1, await MoneyAsync(reader, first.Id, CancellationToken));
+        Assert.Equal(second.Money + 1, await MoneyAsync(reader, second.Id, CancellationToken));
     }
 
     private static Task<int> TouchAsync(EndlessBattleDbContext context, long characterId, CancellationToken cancellationToken) =>

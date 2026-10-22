@@ -38,7 +38,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("任務已存在");
+            throw new ConflictException("任務已存在", exception);
         }
     }
 

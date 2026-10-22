@@ -1,7 +1,8 @@
 namespace EndlessBattle.Application.Common;
 
 // Api 層把這些例外對應成 HTTP 狀態碼：409、404、400、401
-public sealed class ConflictException(string message) : Exception(message);
+// innerException 是被轉換的原始錯誤（例如資料庫的唯一鍵或死鎖），留著給記錄與除錯
+public sealed class ConflictException(string message, Exception? innerException = null) : Exception(message, innerException);
 
 public sealed class NotFoundException(string message) : Exception(message);
 

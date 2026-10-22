@@ -55,7 +55,7 @@ public sealed class ChampionRepository(EndlessBattleDbContext context) : IChampi
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
             // 兩個請求都以為還沒有冠軍列而同時新增
-            throw new ConflictException("冠軍資料已被其他請求更新");
+            throw new ConflictException("冠軍資料已被其他請求更新", exception);
         }
     }
 

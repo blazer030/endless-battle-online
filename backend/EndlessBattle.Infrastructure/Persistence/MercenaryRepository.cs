@@ -30,7 +30,7 @@ public sealed class MercenaryRepository(EndlessBattleDbContext context) : IMerce
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("已有傭兵合約");
+            throw new ConflictException("已有傭兵合約", exception);
         }
     }
 

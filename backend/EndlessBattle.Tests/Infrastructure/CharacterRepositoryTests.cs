@@ -3,6 +3,7 @@ using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Infrastructure;
 
@@ -31,7 +32,30 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         Assert.Equal(1, updated.Version);
         Assert.Equal(10, updated.Money);
 
-        await Assert.ThrowsAsync<ConflictException>(() => repositoryB.UpdateAsync(snapshotB with { Money = 20 }, cancellationToken));
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() => repositoryB.UpdateAsync(snapshotB with { Money = 20 }, cancellationToken));
+        Assert.IsType<DbUpdateConcurrencyException>(conflict.InnerException);
+    }
+
+    // 帳號名稱與「一個帳號一個角色」撞唯一鍵：409，原本的資料庫錯誤留在 InnerException
+    [Fact]
+    public async Task AddAsync_DuplicateConflictsKeepDatabaseError()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = DateTimeOffset.UtcNow;
+        var username = ApiClientExtensions.NewUsername();
+        await using var context = database.CreateDbContext();
+        var accountId = await new AccountRepository(context).AddAsync(username, "hash", now, cancellationToken);
+        await new CharacterRepository(context).AddAsync(TestCharacters.Default(accountId, UniqueName("重複"), 1, 1, now), cancellationToken);
+
+        await using var accountContext = database.CreateDbContext();
+        var account = await Assert.ThrowsAsync<ConflictException>(
+            () => new AccountRepository(accountContext).AddAsync(username, "hash", now, cancellationToken));
+        await using var characterContext = database.CreateDbContext();
+        var character = await Assert.ThrowsAsync<ConflictException>(() => new CharacterRepository(characterContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("重複"), 1, 1, now), cancellationToken));
+
+        Assert.IsType<DbUpdateException>(account.InnerException, exactMatch: false);
+        Assert.IsType<DbUpdateException>(character.InnerException, exactMatch: false);
     }
 
     // 每個欄位都用和資料庫預設值不同的值，漏對應的欄位才會被抓到

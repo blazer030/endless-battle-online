@@ -99,7 +99,8 @@ public class CompanionRepositoryTests(MySqlDatabaseFixture database)
             var stored = await repository.FindAsync(characterId, CancellationToken);
             Assert.Equal(resting, stored);
             Assert.False(stored!.Fighting);
-            await Assert.ThrowsAsync<ConflictException>(() => repository.AddAsync(characterId, resting, CancellationToken));
+            var conflict = await Assert.ThrowsAsync<ConflictException>(() => repository.AddAsync(characterId, resting, CancellationToken));
+            Assert.IsType<DbUpdateException>(conflict.InnerException, exactMatch: false);
         }
 
         var fighting = resting with { Remaining = 9, PlaceId = 3, NextFightAt = Moment.AddMinutes(1).AddTicks(70) };
@@ -166,7 +167,8 @@ public class CompanionRepositoryTests(MySqlDatabaseFixture database)
         await WaitForBlockedInsertAsync(name);
         await transaction.CommitAsync(CancellationToken);
 
-        await Assert.ThrowsAsync<ConflictException>(() => second);
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() => second);
+        Assert.IsType<DbUpdateException>(conflict.InnerException, exactMatch: false);
         await using var reader = database.CreateDbContext();
         Assert.Equal(seat, await new ChampionRepository(reader).FindAsync(characterId, CancellationToken));
     }

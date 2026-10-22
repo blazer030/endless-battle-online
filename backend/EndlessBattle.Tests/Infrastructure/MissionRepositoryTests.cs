@@ -2,6 +2,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Infrastructure;
 
@@ -53,7 +54,8 @@ public class MissionRepositoryTests(MySqlDatabaseFixture database)
         var characterId = await CreateCharacterAsync();
         await AddAsync(characterId, Active("m1"));
 
-        await Assert.ThrowsAsync<ConflictException>(() => AddAsync(characterId, Active("m1")));
+        var conflict = await Assert.ThrowsAsync<ConflictException>(() => AddAsync(characterId, Active("m1")));
+        Assert.IsType<DbUpdateException>(conflict.InnerException, exactMatch: false);
     }
 
     [Fact]

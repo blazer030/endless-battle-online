@@ -29,7 +29,7 @@ public sealed class EfUnitOfWork(EndlessBattleDbContext context) : IUnitOfWork
             await RollbackQuietlyAsync(transaction);
             if (MySqlErrors.IsDeadlockOrLockTimeout(exception))
             {
-                throw new ConflictException("資料正被其他請求使用，請重試");
+                throw new ConflictException("資料正被其他請求使用，請重試", exception);
             }
 
             throw;
