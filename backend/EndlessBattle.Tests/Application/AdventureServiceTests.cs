@@ -586,6 +586,24 @@ public class AdventureServiceTests
         Assert.Equal(["update", "proficiency:warrior", "add:test-supply", $"quantity:{netId}", "pet:add:1", "pet:add:2", "pet:add:3"], log);
     }
 
+    // 已有 2 隻獸欄寵物：同上的 8 場只有第一場捕到（2 + 1 = 3 隻），之後照擲但不捕 → 補給欄 20 − 8 − 1 = 11
+    [Fact]
+    public async Task Advance_CountsExistingPetsAgainstTheCap()
+    {
+        var character = await AddCharacterAsync();
+        await pets.AddAsync(character.Id, TestPets.Create("小狼", "test-wolf", carried: false), CancellationToken);
+        await pets.AddAsync(character.Id, TestPets.Create("小雪", "test-sprite", carried: false), CancellationToken);
+        await EquipCaptureNetAsync(inventory, equipment, character, quantity: 20);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(8, result.Summary.Wins);
+        Assert.Equal(1, result.Summary.PetsCaptured);
+        Assert.Equal(3, (await pets.ListAsync(character.Id, CancellationToken)).Count);
+        Assert.Equal(11, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
     // 同 Adventure_WritesBackRemainingQuantity 的弱角色（HP 低於 15% 而且輸掉）：補給欄是捕捉道具時不會喝
     [Fact]
     public async Task Advance_NeverDrinksCaptureItem()

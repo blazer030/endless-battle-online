@@ -816,6 +816,24 @@ public class AdventureSimulatorTests
         Assert.All(captures.Take(expectedCaptures), capture => Assert.Equal("dummy", capture.CapturedMonsterId));
     }
 
+    // 先量出沒有捕捉道具時一場勝場消耗的亂數數 N（dummy 沒有掉落、不升級），再讓緊接的兩擲是 0.5：
+    // 損壞擲 21、捕捉擲 51 → 兩擲都消耗了，但沒損壞也沒捕到，所以沒有 CaptureEvent、數量不變
+    [Fact]
+    public void Adventure_NoCaptureEventWhenNothingHappens()
+    {
+        var baseline = new ScriptedRandom(0.0);
+        Run(Hero(), seconds: 1, baseline);
+        var random = new ScriptedRandom(0.0, [.. Enumerable.Repeat(0.0, baseline.Consumed), 0.5, 0.5]);
+
+        var run = RunWithCapture(Hero(), seconds: 1, Net(5), random);
+
+        Assert.Equal(1, run.Summary.Wins);
+        Assert.Equal(baseline.Consumed + 2, random.Consumed);
+        Assert.Empty(run.Events.OfType<CaptureEvent>());
+        Assert.Empty(run.Captured);
+        Assert.Equal(5, run.SupplyRemaining);
+    }
+
     // 第一場就升級（Exp 999 + 146 > 1000）且有任務：同一場是 RewardEvent → CaptureEvent → MissionProgressEvent → LevelUpEvent。
     // 擲骰 0.0：損壞 −1、捕到 −1 → 剩 3；能力 rand(1,10) = 1 × 倍率 1、個性 1 積極，捕捉時刻 = 擊殺時刻
     [Fact]
@@ -828,6 +846,7 @@ public class AdventureSimulatorTests
             run.Events.Where(battleEvent => battleEvent is RewardEvent or CaptureEvent or MissionProgressEvent or LevelUpEvent)
                 .Select(battleEvent => battleEvent.GetType()));
         Assert.Equal(new CaptureEvent(0, "捕獸網", ItemBroken: true, CapturedMonsterId: "test-sprite", Remaining: 3), run.Events.OfType<CaptureEvent>().Single());
+        Assert.Equal(run.Events.OfType<RewardEvent>().Single().AtSeconds, run.Events.OfType<CaptureEvent>().Single().AtSeconds);
         Assert.Equal([new CapturedPet("test-sprite", "test-sprite", PetPersonality.Aggressive, 1, 1, 1, From)], run.Captured);
         Assert.Equal(1, run.Summary.PetsCaptured);
         Assert.Equal(3, run.SupplyRemaining);
