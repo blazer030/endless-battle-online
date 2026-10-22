@@ -173,6 +173,23 @@ public class CharacterFactoryTests
             combatant);
     }
 
+    // 裝備的 agi +5、au +5 要帶進戰鬥：怪物 agi 15、au 12。
+    // 先攻：有效 agi 17 > 15 → 門檻 70，擲 0.5 → 51 ≤ 70 玩家先（裸點 12 時門檻 30，怪物先）；
+    // 魔法暴擊比 au：15/12 → 機率 12.5，擲 0.11 → 12 < 12.5 暴擊（裸點 10 ≤ 12 時機率 10，不暴擊）
+    [Fact]
+    public void CombatBridge_CarriesEquipmentAgiAndAuIntoBattle()
+    {
+        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
+        var bonus = new EquipmentBonus(StatBonus.Zero with { Agi = 5, Au = 5 });
+        var monster = new CombatantState(
+            Hp: 1, HpMax: 1, Sp: 0, SpMax: 0, At: 0, Mat: 0, Df: 1, Mdf: 1, Agi: 15, Au: 12, Element: 0, SpecialAttackName: null, Str: 0, Smart: 0);
+
+        var outcome = WogBattle.Run(CombatBridge.ToCombatant(character, bonus), monster, AttackKind.Magic, new ScriptedRandom(0.99, 0.5, 0.11));
+
+        var first = outcome.Events.OfType<AttackEvent>().First();
+        Assert.Equal((CombatSide.Player, AttackKind.Magic, true), (first.Attacker, first.Kind, first.Critical));
+    }
+
     // 卸下加 life／smart／be 的裝備後 Hp／Sp 可能高於新上限：進戰鬥時夾回 350／91
     [Fact]
     public void CombatBridge_ClampsHpToEffectiveMax()
