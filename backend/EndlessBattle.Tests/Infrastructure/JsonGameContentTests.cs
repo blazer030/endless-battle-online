@@ -953,6 +953,9 @@ public class JsonGameContentTests
     [InlineData("\"skill\": { \"skillId\": \"guard\", \"level\": 1 }", "\"skill\": { \"level\": 1 }", "hunt", "skillId")]
     [InlineData("\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyKills\": [{ \"count\": 2 }]", "daily", "monsterId")]
     [InlineData("\"rewards\": { \"money\": 50, \"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }]", "\"rewards\": { \"money\": 50, \"items\": [{ \"quantity\": 1 }]", "hunt", "itemId")]
+    [InlineData("\"skill\": { \"skillId\": \"guard\", \"level\": 1 } }", "\"skill\": { \"skillId\": \"guard\", \"level\": 1 }, \"pet\": { \"level\": 1 } }", "hunt", "pet 的 monsterId")]
+    [InlineData("\"dailyRewards\": [{ \"money\": 100, \"items\": [{ \"itemId\": \"herb\", \"quantity\": 1 }] }]", "\"dailyRewards\": [{ \"money\": 100, \"items\": [{ \"quantity\": 1 }] }]", "daily", "dailyRewards items 的 itemId")]
+    [InlineData("\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyPets\": [null]", "daily", "dailyPets")]
     public void Missions_MissingRequiredStringThrowsGameContentException(string validField, string invalidField, string missionId, string field)
     {
         var message = MissionFieldRejection(validField, invalidField);
