@@ -1363,6 +1363,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/missions/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MissionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionCompleteResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1823,6 +1862,20 @@ export interface components {
             activeLimit: number;
             /** Format: date-time */
             nextDailyReset: string;
+        };
+        MissionCompleteResponse: {
+            board: components["schemas"]["MissionBoardResponse"];
+            character: components["schemas"]["CharacterResponse"];
+            completionMessage: string;
+            /** Format: int64 */
+            exp: number;
+            /** Format: int64 */
+            money: number;
+            items: components["schemas"]["MissionRewardItemResponse"][];
+            skill: null | components["schemas"]["MissionRewardSkillResponse"];
+            skillGranted: boolean;
+            /** Format: int32 */
+            levelsGained: number;
         };
         MissionDeliverResponse: {
             itemId: string;
