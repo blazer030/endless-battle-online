@@ -105,6 +105,28 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal((0L, 0, 0), (stored.Bank, stored.BagBonus, stored.DepotBonus));
     }
 
+    [Fact]
+    public async Task Schema_HasMissionTable()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using var context = database.CreateDbContext();
+        context.CharacterMissions.Add(new CharacterMission
+        {
+            CharacterId = characterId, MissionId = "m1", State = "Active", DailyPeriod = new DateTime(2026, 10, 22), AcceptedAt = DateTime.UtcNow,
+        });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        var stored = await reader.CharacterMissions.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal((0, new DateTime(2026, 10, 22), (DateTime?)null), (stored.Progress, stored.DailyPeriod, stored.CompletedAt));
+
+        reader.CharacterMissions.Add(new CharacterMission { CharacterId = characterId, MissionId = "m1", State = "Active", AcceptedAt = DateTime.UtcNow });
+        var exception = await Assert.ThrowsAsync<DbUpdateException>(() => reader.SaveChangesAsync(cancellationToken));
+        Assert.Contains("ux_character_missions_character_mission", exception.InnerException?.Message);
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

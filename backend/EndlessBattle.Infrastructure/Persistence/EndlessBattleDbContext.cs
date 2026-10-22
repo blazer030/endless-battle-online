@@ -24,6 +24,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
 
+    public virtual DbSet<CharacterMission> CharacterMissions { get; set; }
+
     public virtual DbSet<CharacterSkill> CharacterSkills { get; set; }
 
     public virtual DbSet<CharacterSkillSlot> CharacterSkillSlots { get; set; }
@@ -250,6 +252,39 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_job_proficiency_character");
+        });
+
+        modelBuilder.Entity<CharacterMission>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("character_missions");
+
+            entity.HasIndex(e => new { e.CharacterId, e.MissionId }, "ux_character_missions_character_mission").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AcceptedAt)
+                .HasMaxLength(6)
+                .HasColumnName("accepted_at");
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.CompletedAt)
+                .HasMaxLength(6)
+                .HasColumnName("completed_at");
+            entity.Property(e => e.DailyPeriod)
+                .HasColumnType("date")
+                .HasColumnName("daily_period");
+            entity.Property(e => e.MissionId)
+                .HasMaxLength(32)
+                .HasColumnName("mission_id");
+            entity.Property(e => e.Progress).HasColumnName("progress");
+            entity.Property(e => e.State)
+                .HasMaxLength(16)
+                .HasColumnName("state");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterMissions)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_missions_character");
         });
 
         modelBuilder.Entity<CharacterSkill>(entity =>

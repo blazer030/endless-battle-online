@@ -79,6 +79,8 @@ public partial class Character
 
     public virtual ICollection<CharacterJobProficiency> CharacterJobProficiencies { get; set; } = new List<CharacterJobProficiency>();
 
+    public virtual ICollection<CharacterMission> CharacterMissions { get; set; } = new List<CharacterMission>();
+
     public virtual ICollection<CharacterSkillSlot> CharacterSkillSlots { get; set; } = new List<CharacterSkillSlot>();
 
     public virtual ICollection<CharacterSkill> CharacterSkills { get; set; } = new List<CharacterSkill>();
