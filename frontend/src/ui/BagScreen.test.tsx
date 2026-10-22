@@ -681,3 +681,16 @@ test("BagScreen_ForgeToolButtonsNeedTheirTools", async () => {
   expect(screen.getByRole("button", { name: "拆除（需要拆石器）" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
 })
+
+test("BagScreen_ForgeSynthesizeUsesTheRecipeCost", async () => {
+  await renderForge(
+    { getRecipes: vi.fn().mockResolvedValue([{ ...ingot, costPerAttempt: 500 }]) },
+    makeCharacter({ money: 1000 }),
+  )
+  await userEvent.click(screen.getByRole("tab", { name: "合成" }))
+
+  const line = (await screen.findByText("鐵錠 ×1 ← 鐵礦石 ×3、魔法粉塵 ×1（60%）")).closest("li")
+  if (line === null) throw new Error("找不到配方列")
+  await userEvent.click(within(line).getByRole("button", { name: "增加數量" }))
+  expect(within(line).getByRole("button", { name: "合成（1,000 金錢上限）" })).toBeEnabled()
+})

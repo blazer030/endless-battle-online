@@ -5,7 +5,6 @@ import type { InventoryItem, InventoryView, Recipe, SynthesisResult } from "./ty
 export const MaxHoles = 4
 export const DrillSuccessPercent = 8
 export const MaxRefineStoneLevel = 10
-export const SynthesisCostPerAttempt = 1000
 export const MaxSynthesisAttempts = 99
 const StonesPerPair = 2
 
@@ -114,8 +113,8 @@ export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryView) =
 }
 
 // 只有成功才扣錢，按鈕顯示全部成功時的花費上限
-export const synthesisButtonText = (attempts: number) =>
-  `合成（${format(SynthesisCostPerAttempt * attempts)} 金錢上限）`
+export const synthesisButtonText = (costPerAttempt: number, attempts: number) =>
+  `合成（${format(costPerAttempt * attempts)} 金錢上限）`
 
 export const synthesisResultText = (
   result: Pick<SynthesisResult, "attempts" | "successes" | "cost">,

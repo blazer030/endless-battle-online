@@ -201,7 +201,8 @@ describe("synthesis", () => {
   })
 
   it("shows the money ceiling and the result", () => {
-    expect(synthesisButtonText(3)).toBe("合成（3,000 金錢上限）")
+    expect(synthesisButtonText(1000, 3)).toBe("合成（3,000 金錢上限）")
+    expect(synthesisButtonText(500, 3)).toBe("合成（1,500 金錢上限）")
     expect(synthesisResultText({ attempts: 3, successes: 2, cost: 2000 })).toBe(
       "合成 3 次，成功 2 次，花費 2,000 金錢。",
     )

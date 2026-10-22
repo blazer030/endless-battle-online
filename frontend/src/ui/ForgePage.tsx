@@ -16,7 +16,6 @@ import {
   refineResultText,
   refineStoneOptions,
   socketStoneOptions,
-  SynthesisCostPerAttempt,
   synthesisButtonText,
   synthesisResultText,
   unsocketResultText,
@@ -477,7 +476,7 @@ function SynthesisSection({ api, inventory, busy, run, money }: SectionProps & {
       {recipes.map((recipe) => {
         const max = maxSynthesisAttempts(recipe, inventory)
         const count = Math.min(attempts[recipe.id] ?? 1, Math.max(1, max))
-        const allowed = max > 0 && canAfford(money, SynthesisCostPerAttempt, count)
+        const allowed = max > 0 && canAfford(money, recipe.costPerAttempt, count)
         return (
           <li key={recipe.id} className="bag__item">
             <span className="bag__item-name">{recipeText(recipe)}</span>
@@ -499,7 +498,7 @@ function SynthesisSection({ api, inventory, busy, run, money }: SectionProps & {
                   })
                 }
               >
-                {synthesisButtonText(count)}
+                {synthesisButtonText(recipe.costPerAttempt, count)}
               </button>
             </div>
           </li>
