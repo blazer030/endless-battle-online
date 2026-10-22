@@ -1451,6 +1451,11 @@ export interface components {
              * @default 0
              */
             missionKills: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            petsCaptured: number;
         };
         /** @enum {unknown} */
         AttackKind: "Physical" | "Magic";
@@ -1496,7 +1501,7 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"];
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -1513,6 +1518,17 @@ export interface components {
             specialAttackName: null | string;
             /** @default false */
             stunned: boolean;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventCaptureEvent: {
+            /** @enum {string} */
+            type?: "capture";
+            itemName: string;
+            itemBroken: boolean;
+            capturedMonsterId: null | string;
+            /** Format: int32 */
+            remaining: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -1540,6 +1556,8 @@ export interface components {
             /** Format: int32 */
             playerSpMax: number;
             staminaDepleted: boolean;
+            petName?: null | string;
+            petMonsterId?: null | string;
             /** Format: double */
             atSeconds: number;
         };
@@ -1563,6 +1581,32 @@ export interface components {
             /** Format: int32 */
             required: number;
             requiresDelivery: boolean;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventPetAttackEvent: {
+            /** @enum {string} */
+            type?: "petAttack";
+            petName: string;
+            kind: components["schemas"]["AttackKind"];
+            hit: boolean;
+            critical: boolean;
+            /** Format: int32 */
+            damage: number;
+            /** Format: int32 */
+            targetHpAfter: number;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventPetGuardEvent: {
+            /** @enum {string} */
+            type?: "petGuard";
+            petName: string;
+            /** Format: int32 */
+            damage: number;
+            /** Format: int32 */
+            guardAfter: number;
+            retired: boolean;
             /** Format: double */
             atSeconds: number;
         };
@@ -1688,7 +1732,7 @@ export interface components {
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
         /** @enum {unknown} */
-        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion";
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
@@ -1788,7 +1832,7 @@ export interface components {
             bonus: components["schemas"]["StatBonus"];
         };
         /** @enum {unknown} */
-        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material";
+        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal";
         JobContent: {
             id: string;
             name: string;
