@@ -3,6 +3,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
@@ -24,6 +25,7 @@ public sealed class AdventureService(
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IMissionRepository missions,
+    IPetRepository pets,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -54,6 +56,7 @@ public sealed class AdventureService(
             ? now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds)
             : character.LastSettledAt;
         var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
+        var carriedPet = (await pets.ListAsync(character.Id, cancellationToken)).FirstOrDefault(pet => pet.Carried);
         var run = AdventureSimulator.Run(
             character,
             content.GetJob(character.JobId),
@@ -67,7 +70,8 @@ public sealed class AdventureService(
             randomFactory.Create(),
             bonus,
             SupplyOf(equipped),
-            tracked);
+            tracked,
+            new AdventureCompanions(carriedPet));
 
         return await unitOfWork.RunAsync(async cancellationToken =>
         {

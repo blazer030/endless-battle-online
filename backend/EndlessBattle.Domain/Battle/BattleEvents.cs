@@ -16,6 +16,8 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(LevelUpEvent), "levelUp")]
 [JsonDerivedType(typeof(RestEvent), "rest")]
 [JsonDerivedType(typeof(MissionProgressEvent), "mission")]
+[JsonDerivedType(typeof(PetGuardEvent), "petGuard")]
+[JsonDerivedType(typeof(PetAttackEvent), "petAttack")]
 public abstract record BattleEvent(double AtSeconds);
 
 public sealed record EncounterEvent(
@@ -27,7 +29,9 @@ public sealed record EncounterEvent(
     int PlayerHpMax,
     int PlayerSp,
     int PlayerSpMax,
-    bool StaminaDepleted) : BattleEvent(AtSeconds);
+    bool StaminaDepleted,
+    string? PetName = null,
+    string? PetMonsterId = null) : BattleEvent(AtSeconds);
 
 public sealed record RoundEvent(double AtSeconds, int Round) : BattleEvent(AtSeconds);
 
@@ -43,6 +47,13 @@ public sealed record AttackEvent(
     int TargetHpAfter,
     string? SpecialAttackName,
     bool Stunned = false) : BattleEvent(AtSeconds);
+
+// 寵物代擋怪物的這一下（取代那一下的怪物 AttackEvent，玩家 HP 不變）；Retired 表示代擋量用完、寵物退出這一場
+public sealed record PetGuardEvent(double AtSeconds, string PetName, int Damage, int GuardAfter, bool Retired) : BattleEvent(AtSeconds);
+
+// 落空時 Damage 為 0、Critical 為 false
+public sealed record PetAttackEvent(double AtSeconds, string PetName, AttackKind Kind, bool Hit, bool Critical, int Damage, int TargetHpAfter)
+    : BattleEvent(AtSeconds);
 
 // Heal 是實際回復量，非回復技能為 0
 public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);

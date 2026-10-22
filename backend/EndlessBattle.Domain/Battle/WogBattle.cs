@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Randomness;
 
 namespace EndlessBattle.Domain.Battle;
@@ -9,6 +10,9 @@ public static class WogBattle
     // 同一回合的後攻者晚半回合出手
     private const double SecondStrikeOffsetSeconds = BattleTiming.SecondsPerRound / 2;
 
+    // 寵物在雙方出手之後、回合結束前出手
+    private const double PetStrikeOffsetSeconds = BattleTiming.SecondsPerRound * 0.95;
+
     public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IRandomSource random) =>
         Run(player, monster, playerPreferred, [], random);
 
@@ -18,7 +22,18 @@ public static class WogBattle
 
     // supply 為補給欄的補給品，null 表示沒有；剩餘數量由 BattleOutcome.Supply 帶回
     public static BattleOutcome Run(
-        CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, SupplyState? supply, IRandomSource random)
+        CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, SupplyState? supply, IRandomSource random) =>
+        Run(player, monster, playerPreferred, skills, supply, random, pet: null);
+
+    // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）
+    public static BattleOutcome Run(
+        CombatantState player,
+        CombatantState monster,
+        AttackKind? playerPreferred,
+        IReadOnlyList<EquippedSkill> skills,
+        SupplyState? supply,
+        IRandomSource random,
+        PetCombatant? pet)
     {
         var events = new List<BattleEvent>();
         var playerHp = player.Hp;
@@ -27,6 +42,8 @@ public static class WogBattle
         var damageDealt = 0;
         var caster = new SkillCaster(player, skills);
         var potionsUsed = 0;
+        // 代擋量 ≤ 0 表示寵物不在場（退出這一場），不再代擋也不再出手
+        var guard = pet?.Guard ?? 0;
 
         // 玩家的攻擊方式整場只決定一次（WOG 在開戰時擲 m_type）；怪物每次出手前重擲
         var playerKind = playerPreferred ?? RoundResolver.ChooseKind(player.At, player.Mat, random);
@@ -55,6 +72,12 @@ public static class WogBattle
                 var loser = monsterHp == 0 ? CombatSide.Monster : CombatSide.Player;
                 events.Add(new DefeatEvent(events[^1].AtSeconds, loser));
                 return Outcome(Opponent(loser), round);
+            }
+
+            if (PetStrike(roundStart + PetStrikeOffsetSeconds))
+            {
+                events.Add(new DefeatEvent(events[^1].AtSeconds, CombatSide.Monster));
+                return Outcome(CombatSide.Player, round);
             }
         }
 
@@ -105,10 +128,34 @@ public static class WogBattle
             var monsterKind = RoundResolver.ChooseKind(opponent.At, opponent.Mat, random);
             var result = RoundResolver.Strike(opponent, fighter, monsterKind, random);
             var damage = monsterKind == AttackKind.Physical ? modifiers.PhysicalDamageTaken(result.Damage) : result.Damage;
+
+            // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受
+            if (result.Hit && pet is not null && guard > 0 && PetBattle.Activates(pet, random))
+            {
+                guard -= damage;
+                events.Add(new PetGuardEvent(atSeconds, pet.Name, damage, GuardAfter: Math.Max(0, guard), Retired: guard <= 0));
+                return false;
+            }
+
             playerHp = Math.Max(0, playerHp - damage);
             events.Add(new AttackEvent(atSeconds, CombatSide.Monster, monsterKind, result.Hit, result.Critical, damage,
                 result.ElementMultiplier, playerHp, SpecialAttackName: null));
             return playerHp == 0;
+        }
+
+        // 回傳怪物是否倒下；寵物傷害計入對怪物的累計傷害
+        bool PetStrike(double atSeconds)
+        {
+            if (pet is null || guard <= 0 || !PetBattle.Activates(pet, random))
+            {
+                return false;
+            }
+
+            var result = PetBattle.Strike(pet, fighter, opponent, random);
+            monsterHp = Math.Max(0, monsterHp - result.Damage);
+            damageDealt += result.Damage;
+            events.Add(new PetAttackEvent(atSeconds, pet.Name, result.Kind, result.Hit, result.Critical, result.Damage, monsterHp));
+            return monsterHp == 0;
         }
 
         // 玩家出手前（技能判定之前）喝補給，不佔用這回合的攻擊、不擲骰

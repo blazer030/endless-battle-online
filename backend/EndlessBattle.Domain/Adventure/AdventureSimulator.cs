@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
@@ -40,9 +41,11 @@ public static class AdventureSimulator
         IRandomSource random,
         EquipmentBonus? equipment = null,
         SupplyState? supply = null,
-        IReadOnlyList<ActiveMission>? missions = null)
+        IReadOnlyList<ActiveMission>? missions = null,
+        AdventureCompanions? companions = null)
     {
         missions ??= [];
+        var carriedPet = companions?.CarriedPet;
         // 裝備在整段推進中不變；null 表示沒有裝備
         var bonus = equipment ?? EquipmentBonus.Zero;
         var totalSeconds = (to - from).TotalSeconds;
@@ -83,8 +86,11 @@ public static class AdventureSimulator
             var spawnable = KillCounter.SpawnableMissionIds(missions, from.AddSeconds(cursor));
             var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random, spawnable);
             var player = CombatBridge.ToCombatant(character, bonus);
+            var monster = CombatantState.From(definition);
+            // 寵物每場重新建立，代擋量不帶到下一場
+            var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
             // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
-            var outcome = WogBattle.Run(player, CombatantState.From(definition), playerPreferred: null, skills, supply, random);
+            var outcome = WogBattle.Run(player, monster, playerPreferred: null, skills, supply, random, pet);
             supply = outcome.Supply;
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
@@ -95,7 +101,7 @@ public static class AdventureSimulator
             if (keepEvents)
             {
                 events.Add(new EncounterEvent(fightStart, definition.Id, definition.Hp, definition.Hp,
-                    player.Hp, player.HpMax, player.Sp, player.SpMax, StaminaDepleted: fDown < 1));
+                    player.Hp, player.HpMax, player.Sp, player.SpMax, StaminaDepleted: fDown < 1, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
                     events.Add(battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart });

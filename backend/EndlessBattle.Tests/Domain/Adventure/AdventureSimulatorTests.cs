@@ -5,6 +5,7 @@ using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -664,5 +665,69 @@ public class AdventureSimulatorTests
         Assert.Equal(["test-sprite-chief", "test-sprite"], run.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId));
         Assert.Equal(["test-sprite", "test-sprite"], without.Events.OfType<EncounterEvent>().Select(encounter => encounter.MonsterId));
         Assert.Equal([chiefHunt with { Progress = 1 }], run.Missions);
+    }
+
+    // 會還手的怪：hp 200、at 15、df 5，一場打好幾回合，讓寵物有機會代擋與出手
+    private static readonly MonsterDefinition Brute = Monster("test-brute", hp: 200, at: 15, df: 5);
+
+    private static AdventureRun RunWithPet(Character character, double seconds, Pet? pet, IRandomSource random, params MonsterDefinition[] monsters) =>
+        AdventureSimulator.Run(
+            character, Warrior, Place, monsters.Length == 0 ? [Brute] : monsters, ItemOf, [],
+            new StaminaState(character.ActNum, character.ActNumTime), From, From.AddSeconds(seconds), random,
+            companions: new AdventureCompanions(pet));
+
+    // 親密度 255、出擊值 255（積極、玩家 au 10 對 10）→ 出擊率 21；代擋量 5000 整段都用不完
+    [Fact]
+    public void Adventure_CarriedPetJoinsEveryFight()
+    {
+        var pet = TestPets.Create("小雪", "test-sprite", defense: 5000, spirit: 255, intimacy: 255);
+
+        var run = RunWithPet(Hero(), seconds: 60, pet, new SeededRandom(7));
+
+        var encounters = run.Events.OfType<EncounterEvent>().ToList();
+        Assert.NotEmpty(encounters);
+        Assert.All(encounters, encounter => Assert.Equal(("小雪", "test-sprite"), (encounter.PetName, encounter.PetMonsterId)));
+        Assert.NotEmpty(run.Events.OfType<PetGuardEvent>());
+        Assert.NotEmpty(run.Events.OfType<PetAttackEvent>());
+    }
+
+    // 代擋量 1：每場第一次代擋就退場（之後不再代擋），但下一場重新建立、又能代擋一次 → 不只一次退場，且各在不同場次
+    [Fact]
+    public void Adventure_PetGuardResetsEachFight()
+    {
+        var pet = TestPets.Create("小雪", "test-sprite", defense: 1, spirit: 255, intimacy: 255);
+
+        var run = RunWithPet(Hero(), seconds: 60, pet, new SeededRandom(7));
+
+        var guardsPerFight = new List<int>();
+        foreach (var battleEvent in run.Events)
+        {
+            if (battleEvent is EncounterEvent)
+            {
+                guardsPerFight.Add(0);
+            }
+            else if (battleEvent is PetGuardEvent guard)
+            {
+                Assert.True(guard.Retired);
+                Assert.Equal(0, guard.GuardAfter);
+                guardsPerFight[^1]++;
+            }
+        }
+
+        Assert.All(guardsPerFight, count => Assert.InRange(count, 0, 1));
+        Assert.True(guardsPerFight.Count(count => count == 1) >= 2);
+    }
+
+    // 沒有攜帶寵物（companions 為 null 或 CarriedPet 為 null）：事件與擲骰都和計畫 8 相同
+    [Fact]
+    public void Adventure_WithoutCarriedPetKeepsSequence()
+    {
+        var baseline = Run(Hero(), seconds: 60, new SeededRandom(7), Brute);
+        var withoutPet = RunWithPet(Hero(), seconds: 60, pet: null, new SeededRandom(7));
+
+        Assert.Equivalent(baseline.Events, withoutPet.Events, strict: true);
+        Assert.All(withoutPet.Events.OfType<EncounterEvent>(), encounter => Assert.Null(encounter.PetName));
+        Assert.Equal(baseline.Summary, withoutPet.Summary);
+        Assert.Equal(baseline.Character, withoutPet.Character);
     }
 }

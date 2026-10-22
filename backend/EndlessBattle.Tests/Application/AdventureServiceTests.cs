@@ -5,6 +5,7 @@ using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -33,6 +34,7 @@ public class AdventureServiceTests
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
     private readonly InMemoryMissionRepository missions;
+    private readonly InMemoryPetRepository pets;
     private readonly FakeClock clock = new(Start);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
@@ -43,9 +45,10 @@ public class AdventureServiceTests
         proficiencies = new InMemoryJobProficiencyRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         missions = new InMemoryMissionRepository(log);
-        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions);
+        pets = new InMemoryPetRepository(log);
+        unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets);
         service = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -99,7 +102,7 @@ public class AdventureServiceTests
         await AddCharacterAsync();
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
 
         await advance.AdvanceAsync(AccountId, CancellationToken);
 
@@ -467,7 +470,7 @@ public class AdventureServiceTests
         await AddMissionAsync(character, ActiveRecord("test-sprite-bounty"));
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, Content, clock,
             new HookRandomFactory(() =>
             {
                 missions.RemoveAsync(character.Id, "test-hunt", CancellationToken).GetAwaiter().GetResult();
@@ -503,6 +506,41 @@ public class AdventureServiceTests
         Assert.Empty(result.Events.OfType<MissionProgressEvent>());
         Assert.DoesNotContain(log, entry => entry.StartsWith("mission:", StringComparison.Ordinal));
         Assert.Equal(before, await missions.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 兩隻寵物、只有小雪攜帶：每場遭遇都帶小雪（測試雪精第 1 回合就被擊倒，寵物來不及出手）
+    [Fact]
+    public async Task Advance_UsesCarriedPetOnly()
+    {
+        var character = await AddCharacterAsync();
+        await pets.AddAsync(character.Id, TestPets.Create("小狼", "test-wolf", carried: false), CancellationToken);
+        await pets.AddAsync(character.Id, TestPets.Create("小雪", "test-sprite", carried: true), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var encounters = result.Events.OfType<EncounterEvent>().ToList();
+        Assert.Equal(8, encounters.Count);
+        Assert.All(encounters, encounter => Assert.Equal(("小雪", "test-sprite"), (encounter.PetName, encounter.PetMonsterId)));
+    }
+
+    // 寵物都在獸欄：遭遇不帶寵物，事件與完全沒有寵物的角色相同
+    [Fact]
+    public async Task Advance_WithoutCarriedPetMatchesNoPets()
+    {
+        var character = await AddCharacterAsync();
+        await pets.AddAsync(character.Id, TestPets.Create("小狼", "test-wolf", carried: false), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+        var baseline = new AdventureServiceTests();
+        await baseline.AddCharacterAsync();
+        baseline.clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+        var expected = await baseline.service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.All(result.Events.OfType<EncounterEvent>(), encounter => Assert.True(encounter is { PetName: null, PetMonsterId: null }));
+        Assert.Equivalent(expected.Events, result.Events, strict: true);
+        Assert.Equal(expected.Summary, result.Summary);
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory
