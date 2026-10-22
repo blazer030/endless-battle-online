@@ -83,6 +83,8 @@ public partial class Character
 
     public virtual Account Account { get; set; } = null!;
 
+    public virtual ICollection<CharacterAreaPass> CharacterAreaPasses { get; set; } = new List<CharacterAreaPass>();
+
     public virtual CharacterChampion? CharacterChampion { get; set; }
 
     public virtual ICollection<CharacterDepot> CharacterDepots { get; set; } = new List<CharacterDepot>();

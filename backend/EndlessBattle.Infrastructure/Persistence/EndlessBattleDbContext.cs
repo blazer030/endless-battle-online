@@ -16,6 +16,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<Character> Characters { get; set; }
 
+    public virtual DbSet<CharacterAreaPass> CharacterAreaPasses { get; set; }
+
     public virtual DbSet<CharacterChampion> CharacterChampions { get; set; }
 
     public virtual DbSet<CharacterDepot> CharacterDepots { get; set; }
@@ -167,6 +169,24 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey<Character>(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_characters_account");
+        });
+
+        modelBuilder.Entity<CharacterAreaPass>(entity =>
+        {
+            entity.HasKey(e => new { e.CharacterId, e.PlaceId }).HasName("PRIMARY");
+
+            entity.ToTable("character_area_passes");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.PlaceId).HasColumnName("place_id");
+            entity.Property(e => e.ExpiresAt)
+                .HasMaxLength(6)
+                .HasColumnName("expires_at");
+
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterAreaPasses)
+                .HasForeignKey(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_area_passes_character");
         });
 
         modelBuilder.Entity<CharacterChampion>(entity =>
