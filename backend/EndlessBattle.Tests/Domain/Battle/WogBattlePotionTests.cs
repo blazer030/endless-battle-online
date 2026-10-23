@@ -35,6 +35,19 @@ public class WogBattlePotionTests
         Assert.False(PotionRules.ShouldUse(Player(hp: 1, sp: 50), Supply(hpPercent: 0), usedThisFight: 0));
     }
 
+    // 門檻都略過時，補給要補得到東西才喝：只補 HP 的補給在滿血時不喝；雙補給在血魔全滿時不喝、SP 沒滿時照喝
+    [Theory]
+    [InlineData(100, 50, 50, 0, false)]
+    [InlineData(100, 100, 50, 25, false)]
+    [InlineData(100, 90, 50, 25, true)]
+    [InlineData(99, 100, 50, 0, true)]
+    public void ShouldUse_SkipsWhenNothingToRecover(int hp, int sp, int supplyHp, int supplySp, bool expected)
+    {
+        var supply = Supply(hp: supplyHp, sp: supplySp, hpPercent: -1, spPercent: -1);
+
+        Assert.Equal(expected, PotionRules.ShouldUse(Player(hp, sp), supply, usedThisFight: 0));
+    }
+
     [Theory]
     [InlineData(49, true)]
     [InlineData(50, false)]
@@ -120,6 +133,21 @@ public class WogBattlePotionTests
         var hpAtRoundTen = outcome.Events.Take(roundTen).OfType<AttackEvent>().Last(attack => attack.Attacker == CombatSide.Monster).TargetHpAfter;
         Assert.Equal(14, hpAtRoundTen);
         Assert.IsNotType<PotionEvent>(outcome.Events[roundTen + 1]);
+    }
+
+    // 預設門檻（HP 15／SP 100）的多回合戰鬥：期望值是修正前（計畫 9）的序列，寫死喝藥時刻、回復量、擲骰次數與事件數。
+    // 第 2、3 回合開頭 HP 低於 52.5 各喝一瓶，第二瓶後 SP 補滿，第 3 回合倒下
+    [Fact]
+    public void Potion_DefaultSettingsKeepPlan9Sequence()
+    {
+        var random = new ScriptedRandom(0.0);
+
+        var outcome = Run(Player(hp: 60, sp: 25, hpMax: 350, spMax: 58, at: 1), Supply(quantity: 20), random, Monster(hp: 1000, at: 60, df: 1000));
+
+        Assert.Equal(
+            new (double, int, int, int)[] { (1 * BattleTiming.SecondsPerRound, 50, 25, 19), (2 * BattleTiming.SecondsPerRound, 50, 8, 18) },
+            outcome.Events.OfType<PotionEvent>().Select(potion => (potion.AtSeconds, potion.Hp, potion.Sp, potion.Remaining)));
+        Assert.Equal((3, 12, 21, 18), (outcome.Rounds, outcome.Events.Count, random.Consumed, outcome.Supply!.Quantity));
     }
 
     private static CombatantState Monster(int hp = 100, int at = 0, int df = 50) =>

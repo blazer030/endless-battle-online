@@ -523,6 +523,28 @@ public class AdventureServiceTests
         Assert.Empty(await BagAsync(character.Id));
     }
 
+    // 補給 HP、SP 門檻都 -1（兩個條件都略過）：血魔全滿的預設角色每場第 1 回合就擊倒雪精、不掉血也不耗魔，
+    // 補給補不到東西 → 8 場都不喝，數量不變
+    [Fact]
+    public async Task Advance_FullHpAndSpNeverWastesAPotion()
+    {
+        var character = await AddCharacterAsync(character => character with
+        {
+            Hp = DerivedStats.From(character.Base).HpMax,
+            Sp = DerivedStats.From(character.Base).SpMax,
+            Settings = AdventureSettings.Default with { PotionHpPercent = AdventureSettings.Skip, PotionSpPercent = AdventureSettings.Skip },
+        });
+        await EquipSupplyAsync(character, quantity: 5);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal(8, result.Summary.Wins);
+        Assert.Empty(result.Events.OfType<PotionEvent>());
+        Assert.Equal(0, result.Summary.PotionsUsed);
+        Assert.Equal(5, (await equipment.GetAsync(character.Id, CancellationToken)).SupplyQuantity);
+    }
+
     [Fact]
     public async Task Advance_WritesNoSupply_WhenCharacterUpdateConflicts()
     {
