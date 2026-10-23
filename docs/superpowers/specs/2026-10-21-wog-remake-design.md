@@ -2,6 +2,7 @@
 
 - 日期：2026-10-21
 - 狀態：accepted（使用者於 2026-10-21 決定：照搬 WOG 單人系統、畫面改成現代奇幻風）
+- 裁定彙整見 `2026-10-22-wog-remake-rulings.md`
 - 依據：`docs/research/wog-research-{stats-jobs,battle,items,world}.md`（從 WOG 4.5 原始碼推出的規則；SQL 資料遺失，所有「數值表」都要自行設計）
 - 標記：**〔使用者決定〕**／**〔Claude 的判斷〕**（可推翻）／**〔WOG 原規則〕**（照搬，附研究報告出處）
 

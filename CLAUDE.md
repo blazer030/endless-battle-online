@@ -3,7 +3,10 @@
 現代奇幻風的單人放置 RPG，WOG 4.5 的單機翻新版。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
 
 - 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；v1 設計文件見 v2 §0 所指的檔案（技術架構 §6 仍有效，其餘作廢）
+- 裁定彙整：`docs/superpowers/specs/2026-10-22-wog-remake-rulings.md`（各計畫的〔裁定〕與 Claude 的判斷／設計／簡化、明確不做）；要推翻或調整規則先查這裡
+- 延後項目：`docs/superpowers/specs/2026-10-23-deferred-backlog.md`（計畫 10 結束時仍未處理的項目，做完就刪掉那一條）
 - 實作計畫：`docs/superpowers/plans/`
+- 研究與內容總表：`docs/research/README.md`；美術規格：`docs/art/README.md`
 
 ## 結構
 
@@ -57,6 +60,7 @@
 - `./scripts/smoke-compose.sh` — 用獨立專案名與埠起完整 stack，經 nginx 打 `/api/health`、`/`、`/api/content`，結束一律拆掉；不在 `check.sh` 裡，改 Dockerfile、nginx 或 compose 時手動跑。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
 - `./scripts/clean-test-containers.sh` — 刪除測試殘留的 MySQL 容器（只刪 label `ebo.tests=true` 的）。
+- `./scripts/import-art.sh <來源圖> <id>` — 把生成的圖裁切、補成規格畫布並轉成 `frontend/src/assets/art/<id>.webp`（需要 ImageMagick 7 的 `magick`；`id` 是 `player` 或怪物 id），流程見 `docs/art/README.md`。
 - `cd backend && dotnet run --project EndlessBattle.Api` — 啟動 API。
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。
