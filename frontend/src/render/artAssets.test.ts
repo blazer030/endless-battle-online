@@ -69,7 +69,7 @@ describe("artRules", () => {
   it("readWebpSize reads VP8X, VP8L and VP8 canvases", () => {
     expect(readWebpSize(vp8x(600, 1020))).toEqual({ width: 600, height: 1020 })
     expect(readWebpSize(vp8l(720, 1000))).toEqual({ width: 720, height: 1000 })
-    expect(readWebpSize(vp8(64, 64))).toEqual({ width: 64, height: 64 })
+    expect(readWebpSize(vp8(64, 48))).toEqual({ width: 64, height: 48 })
   })
 
   it("readWebpSize rejects non-webp bytes", () => {
