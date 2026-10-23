@@ -956,3 +956,41 @@ test("BagScreen_ReloadsOnDropSignalAtMostOncePerFiveSeconds", async () => {
     vi.useRealTimers()
   }
 })
+
+// 伺服器 03:00:00 喝下一小時的密藥，裝置時鐘慢 2 秒
+test("BagScreen_ElixirShowsSixtyMinutesWhenTheClockIsSlightlyBehind", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] })
+  try {
+    vi.setSystemTime(new Date("2026-10-23T02:59:58Z"))
+    const elixir = makeItem({
+      inventoryId: 90,
+      itemId: "exp-elixir",
+      category: "Consumable",
+      consumable: "Elixir",
+      name: "經驗密藥",
+      quantity: 2,
+    })
+    renderBag(
+      createFakeApi({
+        getInventory: vi.fn().mockResolvedValue(makeInventory([elixir])),
+        useItem: vi.fn().mockResolvedValue({
+          inventory: makeInventory([{ ...elixir, quantity: 1 }]),
+          obtained: [],
+          petName: null,
+          skillPoints: 0,
+          levelsGained: 0,
+          buff: { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" },
+        }),
+      }),
+    )
+    await user.click(await screen.findByRole("tab", { name: "道具" }))
+    await user.click(screen.getByRole("button", { name: /經驗密藥 ×2/ }))
+    await user.click(screen.getByRole("button", { name: "使用" }))
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",
+    )
+  } finally {
+    vi.useRealTimers()
+  }
+})
