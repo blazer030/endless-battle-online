@@ -54,8 +54,8 @@
 
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、compose 設定驗證、後端 build（警告視為錯誤）與測試、前端 `pnpm check`。提交前必須通過，以 exit code 判斷。
-- `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。
+- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、後端 build（警告視為錯誤）與測試、前端 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
 - `./scripts/smoke-compose.sh` — 用獨立專案名與埠起完整 stack，經 nginx 打 `/api/health`、`/`、`/api/content`，結束一律拆掉；不在 `check.sh` 裡，改 Dockerfile、nginx 或 compose 時手動跑。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
