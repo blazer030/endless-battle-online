@@ -46,7 +46,7 @@
 5. 遊戲狀態只存在 `src/game/` 的純 TS 物件；React state 與 Pixi 物件都不持有權威狀態。`src/game/` 不得 import React、Pixi、GSAP 或 `src/api/` 以外的瀏覽器 API。
 6. 整個 app 只有一個 Pixi `Application`；Pixi `Text` 一律明確指定 `resolution: window.devicePixelRatio`。
 7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。
-8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖時顯示橫排名牌。
+8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖時顯示橫排名牌。規格（畫布、大小上限、構圖）、提示詞範本與匯入流程見 `docs/art/README.md`。
 9. `src/api/schema.ts` 是產生檔，不得手改。
 
 ## 指令
