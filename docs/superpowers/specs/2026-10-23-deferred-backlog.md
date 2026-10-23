@@ -43,3 +43,17 @@
 - 技能頁「背景重載不覆蓋未儲存的草稿」沒有測試；`game/format.ts` 沒有 `format.test.ts`。來源：Task 10 審查。
 - `CharacterScreen` 卸載時清掉密藥倒數的 interval，沒有測試釘住（實作正確）。來源：Task 10 審查。
 - `artAssets.test.ts` 沒有釘住 VP8 寬高的 `& 0x3fff`（scale 位元）與 VP8L 的 alpha／version 位元：測試資料沒有設定這些位元，拿掉遮罩測試仍然通過。來源：Task 11 審查。
+
+## 計畫 10 最終審查延後項目
+
+來源：`.superpowers/sdd/2026-10-22-plan-10-wrap-up/final-review.md` 的 Minor 1～9（兩個 Important 已在收尾修正）。
+
+- **魔石寶箱可以靠「滿包重試」挑結果**：`InventoryService.cs:115-124` 先擲骰、放不下才 400 且什麼都不扣；把魔石分類放滿想要的種類，其他結果一律 400、寶箱不扣，重按到開出想要的為止。修法：放不下時寶箱照扣、結果丟棄並提示，或先檢查最壞情況的格數。測試：`Use_StoneBoxRejectionDoesNotLetARetryPickTheResult`。
+- **改設定、喝密藥時先結算的那段戰鬥不會播放**：`CharacterService.cs:97`、`InventoryService.cs:109` 只取 `AdvanceAsync` 回傳的 `.Character`，事件與摘要丟掉，最多約 10 秒的戰報（含掉落、升級）不出現。建議 `ItemUseResult`／設定回應帶 `Summary`，前端寫一行摘要。測試：`SettingsPanel_ShowsTheSettledSummary`。
+- **經驗膠囊（與既有的能力藥水）不先結算就套用**：`ConsumableUse.cs:53`、`InventoryService.cs:105-118` 只有密藥先推進；升級後未結算的那段戰鬥以新等級結算，獎勵回溯變少，與「新設定、新密藥不回溯」不一致。測試：`Use_ExperienceCapsuleDoesNotChangeUnsettledFights`。
+- **背包「使用」不更新頂欄角色**：`BagScreen.tsx:344` 只回 `inventory`、沒有呼叫 `onCharacterChanged`；膠囊、行動力藥水、能力藥水在下一次輪詢前頂欄都是舊值。修法：`UseItemResponse` 帶 `CharacterResponse`。測試：`BagScreen_UsingACapsuleUpdatesTheTopBarLevel`。
+- **密藥的生效時刻比結算時刻晚一次資料庫往返**：`InventoryService.cs:115` 再讀一次 `clock.UtcNow`；結算停在 `[推進的 now, 喝下的 now)` 之間時，下一場早於 `StartsAt` 幾毫秒而不吃加成。修法：`AdvanceResult` 帶結算時刻，`StartsAt = max(結算時刻, now)` 或共用同一個 `now`。測試：`Use_ElixirAppliesToTheFirstFightAfterSettling`（會前進的假時鐘）。
+- **離線超過 24 小時時，捨棄的是最舊、已付費的通行時間**：`AdventureService.cs:70-74` 的 `from = now − 24h` 晚於通行證到期時，剩下的通行時間一場都不打。既有上限語意碰上禁區，可接受。
+- **`UpdateSettingsAsync` 的寫入在 UoW 之外**：`CharacterService.cs:97-99` 推進自己提交後，`characters.UpdateAsync` 自動提交，`EfUnitOfWork` 的 1213／1205 → 409 對映不涵蓋這一筆（同 `MoveAsync` 舊寫法）。包進 `unitOfWork.RunAsync` 即可一致。
+- **🐛 commit 的「兩條測試」規則有缺口**（流程問題，行為都已釘住）：`a5b1973` 只有 repository 層一條；`96b405f` 只有載入器一條；`144ec3a` 只有元件層 `CharacterScreen.test.tsx`、沒有 `game/buffs` 的最小重現；`68b8645` 的外層測試在修正回合 `4e370b5` 才補上。
+- **設定面板沒有提示補給 −1／0 的差別**：補給 HP 填 0 是「永遠不喝」，填 −1 是「略過 HP 條件」，畫面只說明 −1（`frontend/src/ui/SettingsPanel.tsx`）。建議說明加一句「HP 填 0 不使用恢復道具」。
