@@ -14,7 +14,7 @@
 
 - **移動前送出的輪詢在移動後才回來**：`BattlePlayback.enqueue` 會把已確認的角色換回舊地點、把舊地區的戰鬥排在「你前往」之後，地點標題最多 10 秒顯示舊地點。建議 `useAdventureLoop`（`useAdventureLoop.ts:39`）維護一個 generation，移動時遞增，回應回來時 generation 已變就整包丟棄。來源：Task 10 審查。
 - **背景重載與使用者操作沒有先後保護**：`BagScreen.tsx`、`MissionsScreen.tsx`、`SkillsScreen.tsx` 的背景重載若晚於賣出、接任務、學技能的回應，舊資料會蓋掉新結果；初次載入失敗後背景重載成功也不會清掉錯誤狀態。修法：`busy` 時略過背景重載，或只接受最新一次請求的回應。來源：Task 10 審查。
-- **通行倒數的判斷寫在畫面裡**：`AdventureScreen.tsx:173` 的三行判斷建議抽到 `game/world.ts` 並寫單元測試，釘住「同 placeId、不同 subPlace 不顯示」。來源：Task 10 審查。
+- **通行倒數的判斷寫在畫面裡**：`AdventureScreen.tsx` 裡 `areaPassText` 的三行判斷建議抽到 `game/world.ts` 並寫單元測試，釘住「同 placeId、不同 subPlace 不顯示」。來源：Task 10 審查。
 - `WorldPanel.tsx:166` 在 render 裡呼叫 `new Date()`。來源：Task 4 實作者疑慮。
 - 移動後佇列清空了，但舞台上舊怪物的血條會留到下一場遭遇（≤10 秒）。來源：Task 10 審查。
 - 無障礙：賣出確認的文字沒有 `role="status"`（「放生」也沒有）；有合約時停用的「僱用」按鈕沒有 `aria-describedby` 指向「只能僱用一位傭兵」。來源：Task 10 審查。
@@ -41,3 +41,5 @@
 - `WorldService.MoveAsync` 的交易包覆：通行證寫入失敗時鑰匙是否回滾沒有測試（拿掉交易包覆預測會存活）。來源：Task 4 審查。
 - 密藥的經驗倍率以「開打時刻」判斷；改成以打完時刻判斷的變異可能存活（要一場勝場剛好跨過到期時刻才抓得到）。來源：Task 6 審查。
 - 技能頁「背景重載不覆蓋未儲存的草稿」沒有測試；`game/format.ts` 沒有 `format.test.ts`。來源：Task 10 審查。
+- `CharacterScreen` 卸載時清掉密藥倒數的 interval，沒有測試釘住（實作正確）。來源：Task 10 審查。
+- `artAssets.test.ts` 沒有釘住 VP8 寬高的 `& 0x3fff`（scale 位元）與 VP8L 的 alpha／version 位元：測試資料沒有設定這些位元，拿掉遮罩測試仍然通過。來源：Task 11 審查。
