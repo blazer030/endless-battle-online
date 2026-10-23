@@ -8,6 +8,8 @@ cd "$repository_root"
 
 export EBO_WEB_PORT=18080
 export EBO_MYSQL_PORT=13306
+# compose 沒有金鑰會拒絕執行；煙霧測試一律用專用的值，不依賴 .env（只影響這個臨時 stack）
+export EBO_JWT_SIGNING_KEY="${EBO_JWT_SIGNING_KEY:-smoke-only-signing-key-0123456789abcdef}"
 base_url="http://localhost:$EBO_WEB_PORT"
 timeout_seconds=180
 
@@ -28,6 +30,12 @@ until curl -fsS "$base_url/api/health" > /dev/null 2>&1; do
     fi
     sleep 3
 done
+
+mysql_binding="$(compose port mysql 3306)"
+if [[ "$mysql_binding" != 127.0.0.1:* ]]; then
+    echo "smoke failed: mysql is published on $mysql_binding, expected 127.0.0.1 only" >&2
+    exit 1
+fi
 
 index_html="$(curl -fsS "$base_url/")"
 if [[ "$index_html" != *'<div id="root">'* ]]; then

@@ -45,9 +45,12 @@
 
 ```bash
 cp .env.example .env
-# 編輯 .env：至少把 EBO_JWT_SIGNING_KEY 換成自己的隨機字串（至少 32 個字元）
+# 編輯 .env：把 EBO_JWT_SIGNING_KEY 換成自己的隨機字串（至少 32 個字元）；
+# 要對外開放的話，EBO_DB_PASSWORD 與 EBO_DB_ROOT_PASSWORD 也要先換掉
 docker compose --profile app up -d --build
 ```
+
+沒有 `.env`（或其中沒有 `EBO_JWT_SIGNING_KEY`）時，`docker compose` 會直接報錯拒絕執行，不會用公開的預設金鑰簽 token。MySQL 的埠只綁在本機（`127.0.0.1`），對外只有網頁的埠。
 
 啟動後開 <http://localhost:8080>。第一次會建置映像並建立資料庫，需要幾分鐘。
 
@@ -55,7 +58,7 @@ docker compose --profile app up -d --build
 
 | 服務     | 用途                                               | 對外的埠                    |
 | -------- | -------------------------------------------------- | --------------------------- |
-| `mysql`  | MySQL 8.4，存玩家資料（volume `mysql-data`）       | `EBO_MYSQL_PORT`（預設 3306） |
+| `mysql`  | MySQL 8.4，存玩家資料（volume `mysql-data`）       | `EBO_MYSQL_PORT`（預設 3306，只綁 127.0.0.1） |
 | `flyway` | 套用 `backend/db` 的 migration 後結束              | —                           |
 | `api`    | ASP.NET Core API，flyway 成功結束後才啟動          | —（只在內部網路）           |
 | `web`    | nginx：前端靜態檔，`/api/` 轉給 `api`              | `EBO_WEB_PORT`（預設 8080） |
@@ -73,11 +76,11 @@ curl http://localhost:8080/api/health    # {"status":"ok"}；資料庫連不上�
 
 | 變數                   | 說明                                                                 |
 | ---------------------- | -------------------------------------------------------------------- |
-| `EBO_JWT_SIGNING_KEY`  | 登入 token 的簽章金鑰，至少 32 個字元。預設值只供開發，**對外開放前必須更換**。更換後既有登入全部失效。 |
+| `EBO_JWT_SIGNING_KEY`  | 登入 token 的簽章金鑰，至少 32 個字元，**必填**（沒有時 compose 拒絕執行）。`.env.example` 的值只供開發，**對外開放前必須更換**。更換後既有登入全部失效。 |
 | `EBO_DB_USER`          | 遊戲用的資料庫帳號                                                   |
-| `EBO_DB_PASSWORD`      | 遊戲用的資料庫密碼（不要含分號）                                     |
-| `EBO_DB_ROOT_PASSWORD` | MySQL root 密碼                                                      |
-| `EBO_MYSQL_PORT`       | MySQL 對外的埠                                                       |
+| `EBO_DB_PASSWORD`      | 遊戲用的資料庫密碼（不要含分號）。範本值只供開發，**對外開放前必須更換** |
+| `EBO_DB_ROOT_PASSWORD` | MySQL root 密碼。範本值只供開發，**對外開放前必須更換**              |
+| `EBO_MYSQL_PORT`       | MySQL 在本機（127.0.0.1）的埠                                        |
 | `EBO_WEB_PORT`         | 網頁對外的埠                                                         |
 
 資料庫帳密只在第一次建立 `mysql-data` volume 時生效；之後要改，得先清資料（見下方）或自己進 MySQL 改。
@@ -122,13 +125,14 @@ docker compose exec -T mysql sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" en
 ### 疑難排解
 
 - **3306 或 8080 已被占用**：在 `.env` 改 `EBO_MYSQL_PORT`／`EBO_WEB_PORT` 後重新 `up -d`。
+- **`required variable EBO_JWT_SIGNING_KEY is missing a value`**：還沒建立 `.env`，或其中沒有 `EBO_JWT_SIGNING_KEY`；先 `cp .env.example .env` 再修改。
 - **`api` 起不來或一直重啟**：`docker compose logs api`。常見原因是 `EBO_JWT_SIGNING_KEY` 不到 32 個字元，或 `flyway` 失敗（`docker compose logs flyway`）。
 - **網頁打得開但操作失敗**：`curl http://localhost:8080/api/health`；回 503 表示 API 連不上資料庫，剛啟動時回 502 表示 API 還沒就緒。
 - **改了 `.env` 的資料庫帳密後連不上**：帳密只在 volume 第一次建立時寫入，見「設定」。
 
 ## 開發
 
-日常開發不需要 `--profile app`：
+日常開發不需要 `--profile app`，但同樣要先有 `.env`（`cp .env.example .env`，開發可沿用範本值）：
 
 ```bash
 docker compose up -d                                   # 只起 mysql 與 flyway
