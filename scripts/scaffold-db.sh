@@ -6,6 +6,9 @@ set -euo pipefail
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repository_root"
 
+# compose 沒有 EBO_JWT_SIGNING_KEY 會拒絕執行，連 exec 也一樣
+[[ -f .env ]] || { echo "Missing .env: run 'cp .env.example .env' first (compose refuses to run without EBO_JWT_SIGNING_KEY)." >&2; exit 1; }
+
 table_names="$(docker compose exec -T mysql mysql -uebo -pebo_dev -N -e \
     "SELECT table_name FROM information_schema.tables WHERE table_schema = 'endless_battle' AND table_name <> 'flyway_schema_history' ORDER BY table_name" \
     2>/dev/null)"

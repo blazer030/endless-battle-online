@@ -138,7 +138,7 @@ docker compose exec -T mysql sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" en
 docker compose up -d                                   # 只起 mysql 與 flyway
 cd backend && dotnet run --project EndlessBattle.Api   # API：http://localhost:5062
 cd frontend && pnpm install && pnpm dev                # 前端，/api proxy 到 5062
-./scripts/check.sh                                     # 提交前檢查
+./scripts/check.sh                                     # 提交前檢查（需要 jq）
 ./scripts/smoke-compose.sh                             # 改 Dockerfile、nginx 或 compose 後手動跑
 ```
 

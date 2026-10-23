@@ -13,6 +13,7 @@ compose_config() {
         --profile app --env-file "$1" config "${@:2}"
 }
 
+command -v jq > /dev/null || { echo "check failed: jq is required (e.g. brew install jq)" >&2; exit 1; }
 compose_config "$repository_root/.env.example" --quiet
 
 mysql_host_ip="$(compose_config "$repository_root/.env.example" --format json | jq -r '.services.mysql.ports[0].host_ip // empty')"
