@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
+import { PanelRefreshMilliseconds } from "../motion/timings"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
@@ -305,4 +306,31 @@ test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "技能欄位不正確：被動欄只能放目前職業的技能",
   )
+})
+
+test("SkillsScreen_ReloadsWhenProficiencyChangesInBattle", async () => {
+  vi.useFakeTimers()
+  try {
+    const api = createApi()
+    const props = {
+      api,
+      character: makeCharacter({ jobId: "warrior", money: 800 }),
+      onCharacterChange: vi.fn(),
+    }
+    const { rerender } = render(<SkillsScreen {...props} refreshSignal={0} />)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(PanelRefreshMilliseconds)
+    })
+    expect(api.getSkills).toHaveBeenCalledTimes(1)
+
+    rerender(<SkillsScreen {...props} refreshSignal={1} />)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+
+    expect(api.getSkills).toHaveBeenCalledTimes(2)
+    expect(api.getJobs).toHaveBeenCalledTimes(2)
+  } finally {
+    vi.useRealTimers()
+  }
 })

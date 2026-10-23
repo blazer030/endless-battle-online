@@ -111,3 +111,11 @@
 .load-error .actions {
   width: 100%;
 }
+
+/* 分頁內容區沿用外層的直排間距 */
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+  min-width: 0;
+}

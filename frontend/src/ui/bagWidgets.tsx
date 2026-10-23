@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useRef, type KeyboardEvent, type ReactNode } from "react"
 import {
   bonusText,
   clampQuantity,
@@ -15,33 +15,95 @@ export type Outcome = { inventory?: InventoryView; character?: CharacterView }
 // 回傳錯誤訊息，成功時為 null
 export type Mutate = (action: () => Promise<Outcome>) => Promise<string | null>
 
+const tabIdOf = (tabsId: string, option: string | number) => `${tabsId}-tab-${option}`
+const panelIdOf = (tabsId: string, option: string | number) => `${tabsId}-panel-${option}`
+
+// WAI-ARIA tablist：選中的 tab 才在 Tab 鍵順序裡，左右鍵、Home、End 切換並移動焦點
 export function Tabs<T extends string | number>({
+  id,
   label,
   options,
   selected,
   onSelect,
   variant = "chips",
 }: {
+  id: string
   label: string
   options: { id: T; label: string }[]
   selected: T
   onSelect: (id: T) => void
   variant?: "pages" | "chips"
 }) {
+  const buttons = useRef(new Map<T, HTMLButtonElement>())
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const index = options.findIndex((option) => option.id === selected)
+    const last = options.length - 1
+    const next =
+      event.key === "ArrowRight"
+        ? (index + 1) % options.length
+        : event.key === "ArrowLeft"
+          ? (index + last) % options.length
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : null
+    if (next === null) return
+    event.preventDefault()
+    const target = options[next].id
+    onSelect(target)
+    buttons.current.get(target)?.focus()
+  }
+
   return (
-    <div className={`bag__tabs bag__tabs--${variant}`} role="tablist" aria-label={label}>
+    <div
+      className={`bag__tabs bag__tabs--${variant}`}
+      role="tablist"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+    >
       {options.map((option) => (
         <button
           key={option.id}
+          ref={(element) => {
+            if (element === null) buttons.current.delete(option.id)
+            else buttons.current.set(option.id, element)
+          }}
           type="button"
           role="tab"
+          id={tabIdOf(id, option.id)}
           className="bag__tab"
           aria-selected={option.id === selected}
+          aria-controls={panelIdOf(id, option.id)}
+          tabIndex={option.id === selected ? 0 : -1}
           onClick={() => onSelect(option.id)}
         >
           {option.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+// 目前選中分頁的內容區，以 tab 的文字當名稱
+export function TabPanel({
+  tabsId,
+  selected,
+  children,
+}: {
+  tabsId: string
+  selected: string | number
+  children: ReactNode
+}) {
+  return (
+    <div
+      className="tab-panel"
+      role="tabpanel"
+      id={panelIdOf(tabsId, selected)}
+      aria-labelledby={tabIdOf(tabsId, selected)}
+    >
+      {children}
     </div>
   )
 }

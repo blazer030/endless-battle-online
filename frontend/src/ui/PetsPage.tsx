@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import {
+  activationText,
   canFeed,
   feedOptionLabel,
   petCountText,
@@ -8,6 +9,7 @@ import {
   petStats,
   petTitle,
 } from "../game/pets"
+import { isNameTooLong, NameLengthError, PetNameMaxLength } from "../game/names"
 import type { CharacterView, PetFood, PetsView, PetView } from "../game/types"
 
 export type PetsApi = Pick<
@@ -20,7 +22,6 @@ type Props = {
   onCharacterChanged: (character: CharacterView) => void
 }
 
-const NameMaxLength = 12
 // setTimeout 的上限（32 位元有號整數）
 const MaxTimerMilliseconds = 2_147_483_647
 const fallbackError = "發生錯誤，請稍後再試"
@@ -159,7 +160,9 @@ function PetCard({
   onDismissError,
 }: CardProps) {
   const titleId = useId()
+  const nameErrorId = useId()
   const [name, setName] = useState<string | null>(null)
+  const nameTooLong = isNameTooLong(name ?? pet.name, PetNameMaxLength)
   const [foodId, setFoodId] = useState(foods[0]?.id ?? "")
   const [confirming, setConfirming] = useState(false)
 
@@ -181,20 +184,22 @@ function PetCard({
           </li>
         ))}
       </ul>
+      <p className="companions__note">{activationText(pet)}</p>
       <div className="companions__row">
         <label className="companions__field">
           名字
           <input
             type="text"
-            maxLength={NameMaxLength}
             value={name ?? pet.name}
+            aria-invalid={nameTooLong || undefined}
+            aria-describedby={nameTooLong ? nameErrorId : undefined}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
         <button
           type="button"
           className="bag__action"
-          disabled={busy}
+          disabled={busy || nameTooLong}
           onClick={() =>
             void onRename(name ?? pet.name).then((done) => {
               if (done) setName(null)
@@ -204,6 +209,11 @@ function PetCard({
           改名
         </button>
       </div>
+      {nameTooLong && (
+        <p id={nameErrorId} className="error">
+          {NameLengthError}
+        </p>
+      )}
       <div className="companions__row">
         <label className="companions__field">
           餵食項目

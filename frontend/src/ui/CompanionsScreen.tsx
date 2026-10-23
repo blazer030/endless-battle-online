@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useId, useState } from "react"
 import type { CharacterView } from "../game/types"
 import "./BagScreen.css"
 import "./CompanionsScreen.css"
-import { Tabs } from "./bagWidgets"
+import { TabPanel, Tabs } from "./bagWidgets"
 import { MercenaryPage, type MercenaryApi } from "./MercenaryPage"
 import { PetsPage, type PetsApi } from "./PetsPage"
 
@@ -21,10 +21,12 @@ const subPages: { id: SubPage; label: string }[] = [
 ]
 
 export function CompanionsScreen({ api, onCharacterChanged }: Props) {
+  const tabsId = useId()
   const [page, setPage] = useState<SubPage>("pets")
   return (
     <div className="companions">
       <Tabs
+        id={tabsId}
         label="同伴分頁"
         options={subPages}
         selected={page}
@@ -32,11 +34,13 @@ export function CompanionsScreen({ api, onCharacterChanged }: Props) {
         variant="pages"
       />
       {/* 子頁每次切換都重新掛載並載入 */}
-      {page === "pets" ? (
-        <PetsPage api={api} onCharacterChanged={onCharacterChanged} />
-      ) : (
-        <MercenaryPage api={api} onCharacterChanged={onCharacterChanged} />
-      )}
+      <TabPanel tabsId={tabsId} selected={page}>
+        {page === "pets" ? (
+          <PetsPage api={api} onCharacterChanged={onCharacterChanged} />
+        ) : (
+          <MercenaryPage api={api} onCharacterChanged={onCharacterChanged} />
+        )}
+      </TabPanel>
     </div>
   )
 }

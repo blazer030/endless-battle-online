@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react"
+import { act, render, screen, within } from "@testing-library/react"
+import { PanelRefreshMilliseconds } from "../motion/timings"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
@@ -283,4 +284,26 @@ test("MissionsScreen_ShowsMissingPetError", async () => {
   await user.click(within(card("馴獸師的考驗")).getByRole("button", { name: "交付" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("需要攜帶指定的寵物")
+})
+
+test("MissionsScreen_ReloadsWhenAMissionEventPlays", async () => {
+  vi.useFakeTimers()
+  try {
+    const api = createFakeApi()
+    const props = { api, content: makeContent(), onCharacterChanged: vi.fn() }
+    const { rerender } = render(<MissionsScreen {...props} refreshSignal={0} />)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(PanelRefreshMilliseconds)
+    })
+    expect(api.getMissions).toHaveBeenCalledTimes(1)
+
+    rerender(<MissionsScreen {...props} refreshSignal={1} />)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+
+    expect(api.getMissions).toHaveBeenCalledTimes(2)
+  } finally {
+    vi.useRealTimers()
+  }
 })

@@ -96,6 +96,9 @@ test("CompanionsScreen_PetsPageListsCardsAndCount", async () => {
     .getAllByRole("listitem")
     .map((item) => item.textContent)
   expect(stats).toEqual(["AT30", "MT4", "DEF22", "飽腹64", "個性鐵壁", "出擊值5", "親密度12"])
+  expect(
+    within(carried).getByText("出擊率約 1.2%（對魅力與你相同的怪物，上限 35%）"),
+  ).toBeInTheDocument()
 })
 
 test("CompanionsScreen_ShowsEmptyPetsHint", async () => {
@@ -207,6 +210,21 @@ test("CompanionsScreen_RenameSendsTheName", async () => {
   expect(await card("小白－測試寒狼 0歲")).toBeInTheDocument()
 })
 
+test("CompanionsScreen_PetNameOverTwelveCannotBeSent", async () => {
+  renderCompanions()
+  const stabled = await card("寒狼－測試寒狼 0歲")
+  const input = within(stabled).getByRole("textbox", { name: "名字" })
+
+  await user.clear(input)
+  await user.type(input, "一二三四五六七八九十龍🐉")
+  expect(within(stabled).getByRole("button", { name: "改名" })).toBeEnabled()
+
+  await user.type(input, "甲")
+  expect(input).toHaveAttribute("aria-invalid", "true")
+  expect(within(stabled).getByRole("button", { name: "改名" })).toBeDisabled()
+  expect(within(stabled).getByText("名稱長度不符")).toBeInTheDocument()
+})
+
 test("CompanionsScreen_ReleaseNeedsConfirmation", async () => {
   const api = createFakeApi({ releasePet: vi.fn().mockResolvedValue(makePets([slime])) })
   renderCompanions(api)
@@ -271,6 +289,37 @@ test("CompanionsScreen_HireButtonsDisabledWhileHired", async () => {
 
   const mercenaryF = await card("F級傭兵")
   expect(within(mercenaryF).getByRole("button", { name: "僱用" })).toBeDisabled()
+  for (const button of screen.getAllByRole("button", { name: "僱用" }))
+    expect(button).toBeDisabled()
+  expect(screen.getByText("只能僱用一位傭兵")).toBeInTheDocument()
+})
+
+test("CompanionsScreen_HireNoteHiddenWithoutContract", async () => {
+  renderCompanions()
+  await openMercenaries()
+
+  expect(within(await card("F級傭兵")).getByRole("button", { name: "僱用" })).toBeEnabled()
+  expect(screen.queryByText("只能僱用一位傭兵")).not.toBeInTheDocument()
+})
+
+test("CompanionsScreen_PlaceMenuShowsWhyItFailedAndRetries", async () => {
+  const api = createFakeApi({
+    getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract: resting })),
+    getWorld: vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(503, "伺服器忙碌"))
+      .mockResolvedValue(makeWorld()),
+  })
+  renderCompanions(api)
+  await openMercenaries()
+
+  const contract = await screen.findByRole("region", { name: "僱用中的傭兵" })
+  expect(await within(contract).findByText("無法載入地區：伺服器忙碌")).toBeInTheDocument()
+  await user.click(within(contract).getByRole("button", { name: "重試" }))
+
+  expect(await within(contract).findByRole("combobox", { name: "冒險地" })).toBeInTheDocument()
+  expect(within(contract).queryByText(/無法載入地區/)).not.toBeInTheDocument()
+  expect(api.getWorld).toHaveBeenCalledTimes(2)
 })
 
 test("CompanionsScreen_RestingMercenaryDeploysToAChosenPlace", async () => {
@@ -344,4 +393,24 @@ test("CompanionsScreen_MercenaryShowsMappedError", async () => {
   await user.click(within(await card("F級傭兵")).getByRole("button", { name: "僱用" }))
 
   expect(await screen.findByRole("alert")).toHaveTextContent("只能僱用一位傭兵")
+})
+
+test("CompanionsScreen_MercenaryNameOverEightCannotBeSent", async () => {
+  renderCompanions(
+    createFakeApi({
+      getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview({ contract: resting })),
+    }),
+  )
+  await openMercenaries()
+  const contract = await screen.findByRole("region", { name: "僱用中的傭兵" })
+  const input = within(contract).getByRole("textbox", { name: "名字" })
+
+  await user.clear(input)
+  await user.type(input, "一二三四五六七🐉")
+  expect(within(contract).getByRole("button", { name: "改名" })).toBeEnabled()
+
+  await user.type(input, "九")
+  expect(input).toHaveAttribute("aria-invalid", "true")
+  expect(within(contract).getByRole("button", { name: "改名" })).toBeDisabled()
+  expect(within(contract).getByText("名稱長度不符")).toBeInTheDocument()
 })

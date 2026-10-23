@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react"
+import { act, cleanup, render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
@@ -12,6 +12,7 @@ import {
   makeItem,
   makeShopItem,
 } from "../test/fixtures"
+import { PanelRefreshMilliseconds } from "../motion/timings"
 import { BagScreen, type BagApi } from "./BagScreen"
 
 const sword = makeItem({ inventoryId: 1, name: "測試劍" })
@@ -897,4 +898,61 @@ test("BagScreen_ForgeMergesDifferentRefineStones", async () => {
 
   expect(api.mergeCrossStones).toHaveBeenCalledWith(31, 32, 2)
   expect(await screen.findByRole("status")).toHaveTextContent("異類合成成功！")
+})
+
+test("BagScreen_EnhancedEquipmentAsksBeforeSelling", async () => {
+  const refined = makeItem({ inventoryId: 1, name: "測試劍", enhanced: true, refineLevel: 3 })
+  const api = createFakeApi({ getInventory: vi.fn().mockResolvedValue(makeInventory([refined])) })
+  renderBag(api)
+  await user.click(await screen.findByRole("button", { name: /測試劍 \+3/ }))
+
+  await user.click(screen.getByRole("button", { name: /^賣出/ }))
+
+  expect(api.sell).not.toHaveBeenCalled()
+  expect(screen.getByText("精鍊與鑲嵌不會補償，確定賣出？")).toBeInTheDocument()
+  await user.click(screen.getByRole("button", { name: "取消" }))
+  expect(screen.queryByText("精鍊與鑲嵌不會補償，確定賣出？")).not.toBeInTheDocument()
+
+  await user.click(screen.getByRole("button", { name: /^賣出/ }))
+  await user.click(screen.getByRole("button", { name: "確定賣出" }))
+
+  expect(api.sell).toHaveBeenCalledWith(1, 1)
+})
+
+test("BagScreen_PlainEquipmentSellsOnOneClick", async () => {
+  const { api } = renderBag()
+  await user.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
+
+  await user.click(screen.getByRole("button", { name: /^賣出/ }))
+
+  expect(api.sell).toHaveBeenCalledWith(1, 1)
+  expect(screen.queryByText("精鍊與鑲嵌不會補償，確定賣出？")).not.toBeInTheDocument()
+})
+
+test("BagScreen_ReloadsOnDropSignalAtMostOncePerFiveSeconds", async () => {
+  vi.useFakeTimers()
+  try {
+    const api = createFakeApi()
+    const props = { api, character: makeCharacter(), onCharacterChanged: vi.fn() }
+    const { rerender } = render(<BagScreen {...props} refreshSignal={0} />)
+    const settle = (milliseconds: number) =>
+      act(async () => {
+        await vi.advanceTimersByTimeAsync(milliseconds)
+      })
+    await settle(PanelRefreshMilliseconds)
+    expect(api.getInventory).toHaveBeenCalledTimes(1)
+
+    rerender(<BagScreen {...props} refreshSignal={1} />)
+    await settle(0)
+    expect(api.getInventory).toHaveBeenCalledTimes(2)
+
+    rerender(<BagScreen {...props} refreshSignal={2} />)
+    await settle(PanelRefreshMilliseconds - 1)
+    expect(api.getInventory).toHaveBeenCalledTimes(2)
+
+    await settle(1)
+    expect(api.getInventory).toHaveBeenCalledTimes(3)
+  } finally {
+    vi.useRealTimers()
+  }
 })

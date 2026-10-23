@@ -26,7 +26,7 @@ import {
 } from "../game/forge"
 import { canAfford, ForgeTools, itemTitle } from "../game/inventory"
 import type { CharacterView, InventoryItem, InventoryView, Recipe } from "../game/types"
-import { ItemName, QuantityStepper, Tabs, type Mutate, type Outcome } from "./bagWidgets"
+import { ItemName, QuantityStepper, TabPanel, Tabs, type Mutate, type Outcome } from "./bagWidgets"
 import "./ForgePage.css"
 
 export type ForgeApi = Pick<
@@ -68,6 +68,7 @@ type SectionProps = {
 }
 
 export function ForgePage({ api, inventory, character, busy, mutate }: Props) {
+  const tabsId = useId()
   const [section, setSection] = useState<Section>("refine")
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -87,6 +88,7 @@ export function ForgePage({ api, inventory, character, busy, mutate }: Props) {
   return (
     <section className="bag__card">
       <Tabs
+        id={tabsId}
         label="鍛造項目"
         options={sections}
         selected={section}
@@ -96,19 +98,21 @@ export function ForgePage({ api, inventory, character, busy, mutate }: Props) {
           setError(null)
         }}
       />
-      {section === "refine" && <RefineSection {...shared} />}
-      {section === "socket" && <SocketSection {...shared} />}
-      {section === "synthesis" && <SynthesisSection {...shared} money={character.money} />}
-      {result !== null && (
-        <p className="forge__result" role="status">
-          {result}
-        </p>
-      )}
-      {error !== null && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
+      <TabPanel tabsId={tabsId} selected={section}>
+        {section === "refine" && <RefineSection {...shared} />}
+        {section === "socket" && <SocketSection {...shared} />}
+        {section === "synthesis" && <SynthesisSection {...shared} money={character.money} />}
+        {result !== null && (
+          <p className="forge__result" role="status">
+            {result}
+          </p>
+        )}
+        {error !== null && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+      </TabPanel>
     </section>
   )
 }

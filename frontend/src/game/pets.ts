@@ -35,6 +35,9 @@ export const petStats = (pet: PetView): { label: string; value: string }[] => [
   { label: "親密度", value: formatNumber(pet.intimacy) },
 ]
 
+export const activationText = (pet: Pick<PetView, "activationPercent">) =>
+  `出擊率約 ${formatNumber(pet.activationPercent)}%（對魅力與你相同的怪物，上限 35%）`
+
 export const feedOptionLabel = (food: PetFood) =>
   `${food.name}（${statLabels[food.stat]}+${formatNumber(food.amount)}，${formatNumber(food.cost)} 金）`
 

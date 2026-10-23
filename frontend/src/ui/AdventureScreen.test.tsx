@@ -9,7 +9,7 @@ import type {
   JobOption,
   SkillOverview,
 } from "../game/types"
-import { LevelUpHintMilliseconds } from "../motion/timings"
+import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
 import {
   makeChampion,
@@ -688,4 +688,30 @@ test("AdventureScreen_StaleResponseFromTheOldPlaceShowsNoPassCountdown", async (
 
   expect(screen.getByRole("button", { name: "試鍊洞窟・燈影隧道 ▾" })).toBeInTheDocument()
   expect(screen.queryByText(/禁區通行/)).not.toBeInTheDocument()
+})
+
+test("AdventureScreen_OpenBagReloadsWhenADropPlays", async () => {
+  const api = createFakeApi({
+    ...response,
+    events: [
+      response.events[0],
+      {
+        type: "reward",
+        atSeconds: 1,
+        exp: 8,
+        money: 3,
+        jobExp: 2,
+        drops: [{ itemId: "wolf-fang", name: "狼牙", quantity: 1, discarded: false }],
+      },
+    ],
+  })
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: "背包" }))
+  await advanceTime(0)
+  expect(api.getInventory).toHaveBeenCalledTimes(1)
+
+  await advanceTime(PanelRefreshMilliseconds + 1_000)
+
+  expect(api.getInventory).toHaveBeenCalledTimes(2)
 })

@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from "react"
+import { useId, useState, type FormEvent, type ReactNode } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import {
   AllocationTotalPoints,
@@ -7,6 +7,12 @@ import {
   describeTopGrowth,
   MinimumAllocation,
 } from "../game/stats"
+import {
+  CharacterNameMaxLength,
+  isNameTooLong,
+  NameLengthError,
+  SpecialAttackNameMaxLength,
+} from "../game/names"
 import type { CharacterView, ContentNames, StatAllocation } from "../game/types"
 import "./CreateCharacterScreen.css"
 
@@ -100,6 +106,11 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
   const [errorDetail, setErrorDetail] = useState<string | null>(null)
   const [isBusy, setIsBusy] = useState(false)
 
+  const nameErrorId = useId()
+  const specialAttackErrorId = useId()
+  const nameTooLong = isNameTooLong(name, CharacterNameMaxLength)
+  const specialAttackTooLong = isNameTooLong(specialAttackName, SpecialAttackNameMaxLength)
+
   const remaining = AllocationTotalPoints - totalOf(allocation)
   const preview = deriveStats(baseStatsFromAllocation(allocation))
 
@@ -113,6 +124,7 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    if (nameTooLong || specialAttackTooLong) return
     setIsBusy(true)
     setErrorDetail(null)
     try {
@@ -144,19 +156,31 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
-            maxLength={12}
+            aria-invalid={nameTooLong || undefined}
+            aria-describedby={nameTooLong ? nameErrorId : undefined}
             placeholder="2～12 字"
           />
         </label>
+        {nameTooLong && (
+          <p id={nameErrorId} className="error">
+            {NameLengthError}
+          </p>
+        )}
         <label>
           必殺技名稱
           <input
             value={specialAttackName}
             onChange={(event) => setSpecialAttackName(event.target.value)}
-            maxLength={8}
+            aria-invalid={specialAttackTooLong || undefined}
+            aria-describedby={specialAttackTooLong ? specialAttackErrorId : undefined}
             placeholder="1～8 字"
           />
         </label>
+        {specialAttackTooLong && (
+          <p id={specialAttackErrorId} className="error">
+            {NameLengthError}
+          </p>
+        )}
 
         <ChoiceGroup
           legend="性別"
@@ -228,7 +252,7 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
         </fieldset>
 
         <div className="actions">
-          <button type="submit" disabled={isBusy}>
+          <button type="submit" disabled={isBusy || nameTooLong || specialAttackTooLong}>
             踏上旅途
           </button>
         </div>

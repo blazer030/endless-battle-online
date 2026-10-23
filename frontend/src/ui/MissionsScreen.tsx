@@ -19,7 +19,8 @@ import type {
 } from "../game/types"
 import "./BagScreen.css"
 import "./MissionsScreen.css"
-import { Tabs } from "./bagWidgets"
+import { TabPanel, Tabs } from "./bagWidgets"
+import { usePanelRefresh } from "./usePanelRefresh"
 
 export type MissionsApi = Pick<
   ApiClient,
@@ -30,6 +31,8 @@ type Props = {
   api: MissionsApi
   content: ContentNames
   onCharacterChanged: (character: CharacterView) => void
+  // 戰報有任務進度時遞增，開著的任務頁跟著重新載入
+  refreshSignal?: number
 }
 
 type SubPage = "available" | "active" | "completed"
@@ -45,7 +48,8 @@ const fallbackError = "發生錯誤，請稍後再試"
 const describeError = (error: unknown) =>
   error instanceof ApiError ? missionErrorMessage(error.reasons, error.detail) : fallbackError
 
-export function MissionsScreen({ api, content, onCharacterChanged }: Props) {
+export function MissionsScreen({ api, content, onCharacterChanged, refreshSignal = 0 }: Props) {
+  const tabsId = useId()
   const [page, setPage] = useState<SubPage>("available")
   const [board, setBoard] = useState<MissionBoard | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -71,6 +75,11 @@ export function MissionsScreen({ api, content, onCharacterChanged }: Props) {
   useEffect(() => {
     void load()
   }, [load])
+
+  // 背景重載失敗就保留目前的任務板
+  usePanelRefresh(refreshSignal, () => {
+    api.getMissions().then(setBoard, () => {})
+  })
 
   // 同一時間只送一個請求；畫面一律換成回應裡的任務板
   const run = async (missionId: string, action: () => Promise<MissionBoard>) => {
@@ -226,6 +235,7 @@ export function MissionsScreen({ api, content, onCharacterChanged }: Props) {
   return (
     <div className="missions">
       <Tabs
+        id={tabsId}
         label="任務分頁"
         options={subPages}
         selected={page}
@@ -236,31 +246,33 @@ export function MissionsScreen({ api, content, onCharacterChanged }: Props) {
         }}
         variant="pages"
       />
-      {completion !== null && (
-        <section className="missions__result" role="status">
-          {completionLines(completion).map((line, index) => (
-            <p key={index} className={index === 0 ? "missions__speech" : undefined}>
-              {line}
+      <TabPanel tabsId={tabsId} selected={page}>
+        {completion !== null && (
+          <section className="missions__result" role="status">
+            {completionLines(completion).map((line, index) => (
+              <p key={index} className={index === 0 ? "missions__speech" : undefined}>
+                {line}
+              </p>
+            ))}
+          </section>
+        )}
+        {loadError ? (
+          <div className="bag__card">
+            <p className="error" role="alert">
+              無法載入任務。
             </p>
-          ))}
-        </section>
-      )}
-      {loadError ? (
-        <div className="bag__card">
-          <p className="error" role="alert">
-            無法載入任務。
-          </p>
-          <div className="actions">
-            <button type="button" onClick={() => void load()}>
-              重試
-            </button>
+            <div className="actions">
+              <button type="button" onClick={() => void load()}>
+                重試
+              </button>
+            </div>
           </div>
-        </div>
-      ) : board === null ? (
-        <p className="bag__empty">載入中…</p>
-      ) : (
-        renderPage(board)
-      )}
+        ) : board === null ? (
+          <p className="bag__empty">載入中…</p>
+        ) : (
+          renderPage(board)
+        )}
+      </TabPanel>
     </div>
   )
 }
@@ -303,8 +315,8 @@ function MissionCard({
       <p className="missions__description">{mission.description}</p>
       {requirements.length > 0 && (
         <ul className="missions__requirements" aria-label="條件">
-          {requirements.map((line) => (
-            <li key={line}>{line}</li>
+          {requirements.map((line, index) => (
+            <li key={index}>{line}</li>
           ))}
         </ul>
       )}
@@ -312,8 +324,8 @@ function MissionCard({
         <div className="missions__block">
           <h5 className="missions__label">委託內容</h5>
           <ul className="missions__lines">
-            {objectives.map((line) => (
-              <li key={line}>{line}</li>
+            {objectives.map((line, index) => (
+              <li key={index}>{line}</li>
             ))}
           </ul>
           {progress && (
@@ -334,8 +346,8 @@ function MissionCard({
         <div className="missions__block">
           <h5 className="missions__label">委託報酬</h5>
           <ul className="missions__lines">
-            {rewards.map((line) => (
-              <li key={line}>{line}</li>
+            {rewards.map((line, index) => (
+              <li key={index}>{line}</li>
             ))}
           </ul>
         </div>

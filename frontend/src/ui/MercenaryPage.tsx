@@ -6,6 +6,7 @@ import {
   deployablePlaces,
   mercenaryErrorMessage,
 } from "../game/mercenaries"
+import { isNameTooLong, MercenaryNameMaxLength, NameLengthError } from "../game/names"
 import type {
   CharacterView,
   MercenaryCatalogueEntry,
@@ -30,7 +31,6 @@ type Props = {
   onCharacterChanged: (character: CharacterView) => void
 }
 
-const NameMaxLength = 8
 const fallbackError = "發生錯誤，請稍後再試"
 const contractKey = "contract"
 
@@ -40,6 +40,7 @@ const describeError = (error: unknown) =>
 export function MercenaryPage({ api, onCharacterChanged }: Props) {
   const [overview, setOverview] = useState<MercenaryOverview | null>(null)
   const [places, setPlaces] = useState<WorldPlace[] | null>(null)
+  const [placesError, setPlacesError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
   // key 是傭兵 id，或合約卡的 contractKey
@@ -61,21 +62,22 @@ export function MercenaryPage({ api, onCharacterChanged }: Props) {
     void load()
   }, [load])
 
+  // 地區載入失敗時合約卡顯示原因與重試，其餘照常
+  const loadPlaces = useCallback(
+    () =>
+      api.getWorld().then(
+        (areas) => {
+          setPlaces(deployablePlaces(areas))
+          setPlacesError(null)
+        },
+        (caught: unknown) => setPlacesError(describeError(caught)),
+      ),
+    [api],
+  )
+
   useEffect(() => {
-    let isCurrent = true
-    api.getWorld().then(
-      (areas) => {
-        if (isCurrent) setPlaces(deployablePlaces(areas))
-      },
-      () => {
-        // 地區載入失敗時冒險地選單是空的，其餘照常
-        if (isCurrent) setPlaces([])
-      },
-    )
-    return () => {
-      isCurrent = false
-    }
-  }, [api])
+    void loadPlaces()
+  }, [loadPlaces])
 
   // 同一時間只送一個請求；畫面一律換成回應裡的傭兵資料
   const run = async (key: string, action: () => Promise<MercenaryOverview>) => {
@@ -134,6 +136,8 @@ export function MercenaryPage({ api, onCharacterChanged }: Props) {
           key={overview.contract.mercenaryId}
           contract={overview.contract}
           places={places}
+          placesError={placesError}
+          onRetryPlaces={() => void loadPlaces()}
           busy={busy}
           error={errorFor(contractKey)}
           onRename={(name) => run(contractKey, () => api.renameMercenary(name))}
@@ -152,6 +156,7 @@ export function MercenaryPage({ api, onCharacterChanged }: Props) {
           onHire={() => void hire(entry.id)}
         />
       ))}
+      {overview.contract !== null && <p className="companions__note">只能僱用一位傭兵</p>}
     </>
   )
 }
@@ -205,6 +210,8 @@ function CatalogueCard({
 type ContractProps = {
   contract: MercenaryContract
   places: WorldPlace[] | null
+  placesError: string | null
+  onRetryPlaces: () => void
   busy: boolean
   error: ReactNode
   onRename: (name: string) => Promise<boolean>
@@ -217,6 +224,8 @@ type ContractProps = {
 function ContractCard({
   contract,
   places,
+  placesError,
+  onRetryPlaces,
   busy,
   error,
   onRename,
@@ -226,7 +235,9 @@ function ContractCard({
   onDismissError,
 }: ContractProps) {
   const headingId = useId()
+  const nameErrorId = useId()
   const [name, setName] = useState<string | null>(null)
+  const nameTooLong = isNameTooLong(name ?? contract.name, MercenaryNameMaxLength)
   const [placeId, setPlaceId] = useState<number | null>(contract.placeId)
   const [confirming, setConfirming] = useState(false)
   const chosen = places?.find((place) => place.id === placeId)?.id ?? places?.[0]?.id ?? null
@@ -241,15 +252,16 @@ function ContractCard({
           名字
           <input
             type="text"
-            maxLength={NameMaxLength}
             value={name ?? contract.name}
+            aria-invalid={nameTooLong || undefined}
+            aria-describedby={nameTooLong ? nameErrorId : undefined}
             onChange={(event) => setName(event.target.value)}
           />
         </label>
         <button
           type="button"
           className="bag__action"
-          disabled={busy}
+          disabled={busy || nameTooLong}
           onClick={() =>
             void onRename(name ?? contract.name).then((done) => {
               if (done) setName(null)
@@ -259,6 +271,11 @@ function ContractCard({
           改名
         </button>
       </div>
+      {nameTooLong && (
+        <p id={nameErrorId} className="error">
+          {NameLengthError}
+        </p>
+      )}
       <ul className="companions__lines">
         {contractStatus(contract).map((line) => (
           <li key={line}>{line}</li>
@@ -268,6 +285,13 @@ function ContractCard({
         <div className="companions__buttons">
           <button type="button" className="bag__action" disabled={busy} onClick={onRest}>
             停止戰鬥
+          </button>
+        </div>
+      ) : placesError !== null ? (
+        <div className="companions__row">
+          <p className="error" role="alert">{`無法載入地區：${placesError}`}</p>
+          <button type="button" className="bag__action" onClick={onRetryPlaces}>
+            重試
           </button>
         </div>
       ) : places === null ? (

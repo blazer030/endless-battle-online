@@ -4,6 +4,7 @@ import { createMonsterNameResolver, describePlaybackItem, MaxLogLines } from "..
 import type { LogEntry, LogLine } from "../game/battleLog"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
+import { refreshSignalsFor } from "../game/refreshSignals"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
 import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
 import { locationTitle, passStatus } from "../game/world"
@@ -76,6 +77,8 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     placeId: initialCharacter.placeId,
     subPlace: initialCharacter.subPlace,
   })
+  // 戰報讓開著的分頁過時就遞增，分頁自己節流重載
+  const [refreshSignals, setRefreshSignals] = useState({ bag: 0, missions: 0, skills: 0 })
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
@@ -165,6 +168,13 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
     }
     appendLines(added)
     setCharacter(playback.displayedCharacter)
+    const signals = refreshSignalsFor(items)
+    if (signals.bag || signals.missions || signals.skills)
+      setRefreshSignals((previous) => ({
+        bag: previous.bag + Number(signals.bag),
+        missions: previous.missions + Number(signals.missions),
+        skills: previous.skills + Number(signals.skills),
+      }))
   }
 
   // 移動前送出的輪詢可能在移動後才回來，只顯示目前地點的通行狀態
@@ -288,6 +298,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               api={api}
               character={character}
               onCharacterChange={handleCharacterChange}
+              refreshSignal={refreshSignals.skills}
             />
           </div>
         )}
@@ -299,6 +310,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               character={character}
               onCharacterChanged={handleCharacterChange}
               jobNames={content?.jobs ?? []}
+              refreshSignal={refreshSignals.bag}
             />
           </div>
         )}
@@ -309,6 +321,7 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               api={api}
               content={content ?? emptyContent}
               onCharacterChanged={handleCharacterChange}
+              refreshSignal={refreshSignals.missions}
             />
           </div>
         )}

@@ -23,6 +23,7 @@ import { statLabel } from "../game/stats"
 import type { CharacterView, JobOption, SkillOverview, SkillView } from "../game/types"
 import { formatNumber } from "../game/format"
 import "./SkillsScreen.css"
+import { usePanelRefresh } from "./usePanelRefresh"
 
 export type SkillsApi = Pick<
   ApiClient,
@@ -33,6 +34,8 @@ type Props = {
   api: SkillsApi
   character: CharacterView
   onCharacterChange: (character: CharacterView) => void
+  // 戰報有升級或熟練度時遞增，開著的技能頁跟著重新載入
+  refreshSignal?: number
 }
 
 const fallbackError = "發生錯誤，請稍後再試"
@@ -80,7 +83,7 @@ const loadAll = async (api: SkillsApi): Promise<Loaded> => {
 const reasonsTitle = (reasons: string[], text: (code: string) => string) =>
   reasons.length === 0 ? undefined : reasons.map(text).join("、")
 
-export function SkillsScreen({ api, character, onCharacterChange }: Props) {
+export function SkillsScreen({ api, character, onCharacterChange, refreshSignal = 0 }: Props) {
   const jobsId = useId()
   const skillsId = useId()
   const slotsId = useId()
@@ -117,6 +120,17 @@ export function SkillsScreen({ api, character, onCharacterChange }: Props) {
       isCurrent = false
     }
   }, [api, show])
+
+  // 背景重載只換職業與技能資料，不動還沒儲存的欄位；失敗就保留目前內容
+  usePanelRefresh(refreshSignal, () => {
+    loadAll(api).then(
+      (loaded) => {
+        setJobs(loaded.jobs)
+        setOverview(loaded.overview)
+      },
+      () => {},
+    )
+  })
 
   // 同一時間只送一個請求，避免轉職與存欄位互相覆蓋
   const run = async (action: () => Promise<void>, onError: (error: unknown) => void) => {

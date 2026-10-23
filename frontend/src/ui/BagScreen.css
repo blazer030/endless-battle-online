@@ -334,3 +334,13 @@
 .bag > .bag__tabs--pages .bag__tab {
   font-size: 13px;
 }
+
+.bag__danger {
+  border-color: var(--crimson);
+  color: var(--crimson-text);
+}
+
+.bag__warning {
+  margin: 0;
+  font-size: 13px;
+}

@@ -172,3 +172,32 @@ test("CreateCharacterScreen_ShowsValidationDetail", async () => {
   expect(onCreated).not.toHaveBeenCalled()
   expect(screen.getByRole("button", { name: "踏上旅途" })).toBeEnabled()
 })
+
+test("CreateCharacterScreen_CountsNameLengthInCharacters", async () => {
+  renderScreen()
+  const name = screen.getByLabelText("名稱")
+  const submit = screen.getByRole("button", { name: "踏上旅途" })
+
+  await user.type(name, "一二三四五六七八九十龍🐉")
+  expect(name).not.toHaveAttribute("aria-invalid", "true")
+  expect(submit).toBeEnabled()
+  expect(screen.queryByText("名稱長度不符")).not.toBeInTheDocument()
+
+  await user.type(name, "甲")
+  expect(name).toHaveAttribute("aria-invalid", "true")
+  expect(submit).toBeDisabled()
+  expect(screen.getByText("名稱長度不符")).toBeInTheDocument()
+})
+
+test("CreateCharacterScreen_RejectsASpecialAttackNameOverEight", async () => {
+  renderScreen()
+  const special = screen.getByLabelText("必殺技名稱")
+
+  await user.type(special, "一二三四五六七八")
+  expect(screen.getByRole("button", { name: "踏上旅途" })).toBeEnabled()
+
+  await user.type(special, "九")
+  expect(special).toHaveAttribute("aria-invalid", "true")
+  expect(screen.getByRole("button", { name: "踏上旅途" })).toBeDisabled()
+  expect(screen.getByText("名稱長度不符")).toBeInTheDocument()
+})
