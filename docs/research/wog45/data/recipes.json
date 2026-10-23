@@ -1,0 +1,5518 @@
+[
+ {
+  "id": 1,
+  "resultId": 308,
+  "result": "鋼鐵圓桌盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 125,
+    "item": "圓桌盾",
+    "count": 1
+   },
+   {
+    "itemId": 306,
+    "item": "鋼鐵",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 2,
+  "resultId": 309,
+  "result": "喚龍盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 307,
+    "item": "魔樹枝",
+    "count": 1
+   },
+   {
+    "itemId": 126,
+    "item": "龍磷盾",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 3,
+  "resultId": 310,
+  "result": "冥王之盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 270,
+    "item": "骨十字之徽章",
+    "count": 1
+   },
+   {
+    "itemId": 231,
+    "item": "噬血頭巾",
+    "count": 1
+   },
+   {
+    "itemId": 236,
+    "item": "噬血之鎧",
+    "count": 1
+   },
+   {
+    "itemId": 305,
+    "item": "水晶王盾",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 4,
+  "resultId": 311,
+  "result": "神騎士護手",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 122,
+    "item": "騎士護手",
+    "count": 1
+   },
+   {
+    "itemId": 306,
+    "item": "鋼鐵",
+    "count": 1
+   },
+   {
+    "itemId": 256,
+    "item": "神聖之光",
+    "count": 1
+   },
+   {
+    "itemId": 315,
+    "item": "天使之息",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 5,
+  "resultId": 312,
+  "result": "大賢者手套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 131,
+    "item": "賢者手套",
+    "count": 1
+   },
+   {
+    "itemId": 220,
+    "item": "賢者徽章",
+    "count": 1
+   },
+   {
+    "itemId": 208,
+    "item": "妖精之水",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 6,
+  "resultId": 313,
+  "result": "火靈盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 136,
+    "item": "精靈盾",
+    "count": 1
+   },
+   {
+    "itemId": 208,
+    "item": "妖精之水",
+    "count": 1
+   },
+   {
+    "itemId": 316,
+    "item": "火砂",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 7,
+  "resultId": 314,
+  "result": "攻擊護手",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 132,
+    "item": "霸者護手",
+    "count": 1
+   },
+   {
+    "itemId": 219,
+    "item": "戰神徽章",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 8,
+  "resultId": 317,
+  "result": "月下美人",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 307,
+    "item": "魔樹枝",
+    "count": 1
+   },
+   {
+    "itemId": 332,
+    "item": "水晶碎片",
+    "count": 1
+   },
+   {
+    "itemId": 276,
+    "item": "月光面罩",
+    "count": 1
+   },
+   {
+    "itemId": 160,
+    "item": "水晶劍",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 9,
+  "resultId": 318,
+  "result": "落櫻",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 306,
+    "item": "鋼鐵",
+    "count": 1
+   },
+   {
+    "itemId": 166,
+    "item": "艾魯夫鐵鎚",
+    "count": 1
+   },
+   {
+    "itemId": 128,
+    "item": "鬼力手甲",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 10,
+  "resultId": 319,
+  "result": "戰狂之魄",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 183,
+    "item": "金幣",
+    "count": 1
+   },
+   {
+    "itemId": 207,
+    "item": "靈術符",
+    "count": 1
+   },
+   {
+    "itemId": 165,
+    "item": "鬼神斧頭",
+    "count": 1
+   },
+   {
+    "itemId": 115,
+    "item": "霸者之冠",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 11,
+  "resultId": 320,
+  "result": "冰漩之眼",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 332,
+    "item": "水晶碎片",
+    "count": 1
+   },
+   {
+    "itemId": 203,
+    "item": "召喚希瓦",
+    "count": 1
+   },
+   {
+    "itemId": 208,
+    "item": "妖精之水",
+    "count": 1
+   },
+   {
+    "itemId": 206,
+    "item": "魔女之書",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 12,
+  "resultId": 321,
+  "result": "盜風魂",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 247,
+    "item": "路行鳥披風",
+    "count": 1
+   },
+   {
+    "itemId": 188,
+    "item": "疾風指輪",
+    "count": 1
+   },
+   {
+    "itemId": 200,
+    "item": "封魔太刀",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 13,
+  "resultId": 322,
+  "result": "烈火靴",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 316,
+    "item": "火砂",
+    "count": 1
+   },
+   {
+    "itemId": 153,
+    "item": "火靴",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 14,
+  "resultId": 324,
+  "result": "時空侵蝕",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 164,
+    "item": "時光魔笛",
+    "count": 1
+   },
+   {
+    "itemId": 323,
+    "item": "時鐘",
+    "count": 1
+   },
+   {
+    "itemId": 177,
+    "item": "時間衝擊",
+    "count": 1
+   },
+   {
+    "itemId": 193,
+    "item": "魔法水",
+    "count": 1
+   },
+   {
+    "itemId": 230,
+    "item": "星星髮夾",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 15,
+  "resultId": 325,
+  "result": "勇者魂",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 327,
+    "item": "召喚石",
+    "count": 1
+   },
+   {
+    "itemId": 315,
+    "item": "天使之息",
+    "count": 1
+   },
+   {
+    "itemId": 161,
+    "item": "勇者之劍",
+    "count": 1
+   },
+   {
+    "itemId": 222,
+    "item": "黃金之鎧",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 16,
+  "resultId": 326,
+  "result": "召喚巴哈姆特",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 327,
+    "item": "召喚石",
+    "count": 1
+   },
+   {
+    "itemId": 328,
+    "item": "高級召喚書",
+    "count": 1
+   },
+   {
+    "itemId": 336,
+    "item": "巴哈姆特之魂",
+    "count": 1
+   },
+   {
+    "itemId": 195,
+    "item": "召喚師徽章",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 17,
+  "resultId": 334,
+  "result": "惡魔之護印",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 329,
+    "item": "巨人毛髮",
+    "count": 1
+   },
+   {
+    "itemId": 330,
+    "item": "狼牙齒",
+    "count": 1
+   },
+   {
+    "itemId": 216,
+    "item": "鬼牌",
+    "count": 1
+   },
+   {
+    "itemId": 163,
+    "item": "惡魔之爪",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 18,
+  "resultId": 335,
+  "result": "破軍王戟",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 332,
+    "item": "水晶碎片",
+    "count": 1
+   },
+   {
+    "itemId": 278,
+    "item": "攻擊頭巾",
+    "count": 1
+   },
+   {
+    "itemId": 219,
+    "item": "戰神徽章",
+    "count": 1
+   },
+   {
+    "itemId": 194,
+    "item": "英雄徽章",
+    "count": 1
+   },
+   {
+    "itemId": 214,
+    "item": "召喚澳丁",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 19,
+  "resultId": 346,
+  "result": "邪眼面具",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 320,
+    "item": "冰漩之眼",
+    "count": 1
+   },
+   {
+    "itemId": 339,
+    "item": "古書",
+    "count": 1
+   },
+   {
+    "itemId": 276,
+    "item": "月光面罩",
+    "count": 1
+   },
+   {
+    "itemId": 333,
+    "item": "硬殼",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 20,
+  "resultId": 347,
+  "result": "鑽石頭盔",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   },
+   {
+    "itemId": 345,
+    "item": "強化鋼鐵",
+    "count": 1
+   },
+   {
+    "itemId": 311,
+    "item": "神騎士護手",
+    "count": 1
+   },
+   {
+    "itemId": 232,
+    "item": "領導者冠",
+    "count": 1
+   },
+   {
+    "itemId": 213,
+    "item": "召喚亞歷山大",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 21,
+  "resultId": 348,
+  "result": "瑪那頭巾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 339,
+    "item": "古書",
+    "count": 1
+   },
+   {
+    "itemId": 337,
+    "item": "瑪那樹葉",
+    "count": 1
+   },
+   {
+    "itemId": 329,
+    "item": "巨人毛髮",
+    "count": 1
+   },
+   {
+    "itemId": 230,
+    "item": "星星髮夾",
+    "count": 1
+   },
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 22,
+  "resultId": 349,
+  "result": "白羽帽",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   },
+   {
+    "itemId": 343,
+    "item": "魔法染料",
+    "count": 1
+   },
+   {
+    "itemId": 338,
+    "item": "天堂羽毛",
+    "count": 1
+   },
+   {
+    "itemId": 193,
+    "item": "魔法水",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 23,
+  "resultId": 350,
+  "result": "蜘蛛裝",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 340,
+    "item": "破舊卡片",
+    "count": 1
+   },
+   {
+    "itemId": 331,
+    "item": "蜘蛛絲",
+    "count": 1
+   },
+   {
+    "itemId": 329,
+    "item": "巨人毛髮",
+    "count": 1
+   },
+   {
+    "itemId": 215,
+    "item": "魔鞭",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 24,
+  "resultId": 351,
+  "result": "獸人服",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 330,
+    "item": "狼牙齒",
+    "count": 1
+   },
+   {
+    "itemId": 205,
+    "item": "白龍矛",
+    "count": 1
+   },
+   {
+    "itemId": 188,
+    "item": "疾風指輪",
+    "count": 1
+   },
+   {
+    "itemId": 186,
+    "item": "鬥志指輪",
+    "count": 1
+   },
+   {
+    "itemId": 192,
+    "item": "龍磷",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 25,
+  "resultId": 352,
+  "result": "光之聖甲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 327,
+    "item": "召喚石",
+    "count": 1
+   },
+   {
+    "itemId": 337,
+    "item": "瑪那樹葉",
+    "count": 1
+   },
+   {
+    "itemId": 338,
+    "item": "天堂羽毛",
+    "count": 1
+   },
+   {
+    "itemId": 315,
+    "item": "天使之息",
+    "count": 1
+   },
+   {
+    "itemId": 317,
+    "item": "月下美人",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 26,
+  "resultId": 353,
+  "result": "反擊針胄",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 341,
+    "item": "生鏽鐵釘",
+    "count": 1
+   },
+   {
+    "itemId": 334,
+    "item": "惡魔之護印",
+    "count": 1
+   },
+   {
+    "itemId": 333,
+    "item": "硬殼",
+    "count": 1
+   },
+   {
+    "itemId": 319,
+    "item": "戰狂之魄",
+    "count": 1
+   },
+   {
+    "itemId": 306,
+    "item": "鋼鐵",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 27,
+  "resultId": 354,
+  "result": "水晶袍",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 343,
+    "item": "魔法染料",
+    "count": 1
+   },
+   {
+    "itemId": 332,
+    "item": "水晶碎片",
+    "count": 1
+   },
+   {
+    "itemId": 315,
+    "item": "天使之息",
+    "count": 1
+   },
+   {
+    "itemId": 307,
+    "item": "魔樹枝",
+    "count": 1
+   },
+   {
+    "itemId": 229,
+    "item": "貴婦髮帶",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 28,
+  "resultId": 359,
+  "result": "靈劍布都御魂",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 321,
+    "item": "盜風魂",
+    "count": 1
+   },
+   {
+    "itemId": 261,
+    "item": "小烏丸",
+    "count": 1
+   },
+   {
+    "itemId": 368,
+    "item": "竹片",
+    "count": 1
+   },
+   {
+    "itemId": 246,
+    "item": "火焰輪",
+    "count": 1
+   },
+   {
+    "itemId": 376,
+    "item": "巫女髮簪",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 29,
+  "resultId": 360,
+  "result": "鬼神心爪",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 257,
+    "item": "龍之爆彈",
+    "count": 1
+   },
+   {
+    "itemId": 322,
+    "item": "烈火靴",
+    "count": 1
+   },
+   {
+    "itemId": 330,
+    "item": "狼牙齒",
+    "count": 1
+   },
+   {
+    "itemId": 334,
+    "item": "惡魔之護印",
+    "count": 1
+   },
+   {
+    "itemId": 375,
+    "item": "阿拉丁壺",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 30,
+  "resultId": 361,
+  "result": "冷月銀槍",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 367,
+    "item": "竹葉",
+    "count": 1
+   },
+   {
+    "itemId": 368,
+    "item": "竹片",
+    "count": 1
+   },
+   {
+    "itemId": 353,
+    "item": "反擊針胄",
+    "count": 1
+   },
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   },
+   {
+    "itemId": 262,
+    "item": "流螢劍",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 31,
+  "resultId": 362,
+  "result": "聖十字短弓",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 352,
+    "item": "光之聖甲",
+    "count": 1
+   },
+   {
+    "itemId": 349,
+    "item": "白羽帽",
+    "count": 1
+   },
+   {
+    "itemId": 376,
+    "item": "巫女髮簪",
+    "count": 1
+   },
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 32,
+  "resultId": 363,
+  "result": "喚龍之笛",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 264,
+    "item": "聖龍黑魔杖",
+    "count": 1
+   },
+   {
+    "itemId": 257,
+    "item": "龍之爆彈",
+    "count": 1
+   },
+   {
+    "itemId": 309,
+    "item": "喚龍盾",
+    "count": 1
+   },
+   {
+    "itemId": 328,
+    "item": "高級召喚書",
+    "count": 1
+   },
+   {
+    "itemId": 375,
+    "item": "阿拉丁壺",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 33,
+  "resultId": 364,
+  "result": "幽冥神釜",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 346,
+    "item": "邪眼面具",
+    "count": 1
+   },
+   {
+    "itemId": 355,
+    "item": "風神珠",
+    "count": 1
+   },
+   {
+    "itemId": 345,
+    "item": "強化鋼鐵",
+    "count": 1
+   },
+   {
+    "itemId": 372,
+    "item": "綠色液體",
+    "count": 1
+   },
+   {
+    "itemId": 358,
+    "item": "火藥",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 34,
+  "resultId": 365,
+  "result": "星塵之憶",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 370,
+    "item": "信封",
+    "count": 1
+   },
+   {
+    "itemId": 371,
+    "item": "橡膠",
+    "count": 1
+   },
+   {
+    "itemId": 376,
+    "item": "巫女髮簪",
+    "count": 1
+   },
+   {
+    "itemId": 312,
+    "item": "大賢者手套",
+    "count": 1
+   },
+   {
+    "itemId": 356,
+    "item": "雷神珠",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 35,
+  "resultId": 366,
+  "result": "閃靈爆震",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 218,
+    "item": "名刀不知火",
+    "count": 1
+   },
+   {
+    "itemId": 229,
+    "item": "貴婦髮帶",
+    "count": 1
+   },
+   {
+    "itemId": 257,
+    "item": "龍之爆彈",
+    "count": 1
+   },
+   {
+    "itemId": 208,
+    "item": "妖精之水",
+    "count": 1
+   },
+   {
+    "itemId": 358,
+    "item": "火藥",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 36,
+  "resultId": 377,
+  "result": "辟邪石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 373,
+    "item": "黏稠液體",
+    "count": 1
+   },
+   {
+    "itemId": 376,
+    "item": "巫女髮簪",
+    "count": 1
+   },
+   {
+    "itemId": 327,
+    "item": "召喚石",
+    "count": 1
+   },
+   {
+    "itemId": 324,
+    "item": "時空侵蝕",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 37,
+  "resultId": 378,
+  "result": "初心項鍊",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 368,
+    "item": "竹片",
+    "count": 1
+   },
+   {
+    "itemId": 370,
+    "item": "信封",
+    "count": 1
+   },
+   {
+    "itemId": 373,
+    "item": "黏稠液體",
+    "count": 1
+   },
+   {
+    "itemId": 363,
+    "item": "喚龍之笛",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 38,
+  "resultId": 379,
+  "result": "神偷手套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 321,
+    "item": "盜風魂",
+    "count": 1
+   },
+   {
+    "itemId": 302,
+    "item": "步雲靴",
+    "count": 1
+   },
+   {
+    "itemId": 290,
+    "item": "神偷鞋",
+    "count": 1
+   },
+   {
+    "itemId": 374,
+    "item": "昆蟲翅膀",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 39,
+  "resultId": 380,
+  "result": "天福帽",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   },
+   {
+    "itemId": 338,
+    "item": "天堂羽毛",
+    "count": 1
+   },
+   {
+    "itemId": 343,
+    "item": "魔法染料",
+    "count": 1
+   },
+   {
+    "itemId": 312,
+    "item": "大賢者手套",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 40,
+  "resultId": 381,
+  "result": "領導者劍",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 375,
+    "item": "阿拉丁壺",
+    "count": 1
+   },
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   },
+   {
+    "itemId": 311,
+    "item": "神騎士護手",
+    "count": 1
+   },
+   {
+    "itemId": 232,
+    "item": "領導者冠",
+    "count": 1
+   },
+   {
+    "itemId": 200,
+    "item": "封魔太刀",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 41,
+  "resultId": 382,
+  "result": "造物盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 372,
+    "item": "綠色液體",
+    "count": 1
+   },
+   {
+    "itemId": 373,
+    "item": "黏稠液體",
+    "count": 1
+   },
+   {
+    "itemId": 357,
+    "item": "微晶片",
+    "count": 1
+   },
+   {
+    "itemId": 305,
+    "item": "水晶王盾",
+    "count": 1
+   },
+   {
+    "itemId": 217,
+    "item": "鬥法羽衣",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 42,
+  "resultId": 383,
+  "result": "無量鎧",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 355,
+    "item": "風神珠",
+    "count": 1
+   },
+   {
+    "itemId": 356,
+    "item": "雷神珠",
+    "count": 1
+   },
+   {
+    "itemId": 345,
+    "item": "強化鋼鐵",
+    "count": 1
+   },
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   },
+   {
+    "itemId": 303,
+    "item": "無量腿甲",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 43,
+  "resultId": 384,
+  "result": "吹雪丸",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 301,
+    "item": "封神鞋",
+    "count": 1
+   },
+   {
+    "itemId": 320,
+    "item": "冰漩之眼",
+    "count": 1
+   },
+   {
+    "itemId": 203,
+    "item": "召喚希瓦",
+    "count": 1
+   },
+   {
+    "itemId": 205,
+    "item": "白龍矛",
+    "count": 1
+   },
+   {
+    "itemId": 118,
+    "item": "究極緞帶",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 44,
+  "resultId": 385,
+  "result": "龍神鎧",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 356,
+    "item": "雷神珠",
+    "count": 1
+   },
+   {
+    "itemId": 266,
+    "item": "龍神王刃",
+    "count": 1
+   },
+   {
+    "itemId": 363,
+    "item": "喚龍之笛",
+    "count": 1
+   },
+   {
+    "itemId": 309,
+    "item": "喚龍盾",
+    "count": 1
+   },
+   {
+    "itemId": 394,
+    "item": "陽光盒",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 45,
+  "resultId": 386,
+  "result": "大精靈手套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 389,
+    "item": "冰塊",
+    "count": 1
+   },
+   {
+    "itemId": 355,
+    "item": "風神珠",
+    "count": 1
+   },
+   {
+    "itemId": 356,
+    "item": "雷神珠",
+    "count": 1
+   },
+   {
+    "itemId": 365,
+    "item": "星塵之憶",
+    "count": 1
+   },
+   {
+    "itemId": 265,
+    "item": "羽扇",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 46,
+  "resultId": 387,
+  "result": "傳說鞋",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 388,
+    "item": "玻璃鞋",
+    "count": 1
+   },
+   {
+    "itemId": 390,
+    "item": "詛咒娃娃",
+    "count": 1
+   },
+   {
+    "itemId": 253,
+    "item": "Jordan鞋",
+    "count": 1
+   },
+   {
+    "itemId": 321,
+    "item": "盜風魂",
+    "count": 1
+   },
+   {
+    "itemId": 338,
+    "item": "天堂羽毛",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 47,
+  "resultId": 486,
+  "result": "夢幻鞋",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 482,
+    "item": "精靈口語",
+    "count": 1
+   },
+   {
+    "itemId": 451,
+    "item": "輕旋律樂譜",
+    "count": 1
+   },
+   {
+    "itemId": 453,
+    "item": "吉他樂譜",
+    "count": 1
+   },
+   {
+    "itemId": 315,
+    "item": "天使之息",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 48,
+  "resultId": 487,
+  "result": "聖光腿甲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 482,
+    "item": "精靈口語",
+    "count": 1
+   },
+   {
+    "itemId": 453,
+    "item": "吉他樂譜",
+    "count": 1
+   },
+   {
+    "itemId": 451,
+    "item": "輕旋律樂譜",
+    "count": 1
+   },
+   {
+    "itemId": 345,
+    "item": "強化鋼鐵",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 49,
+  "resultId": 493,
+  "result": "望遠鏡",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 355,
+    "item": "風神珠",
+    "count": 1
+   },
+   {
+    "itemId": 357,
+    "item": "微晶片",
+    "count": 1
+   },
+   {
+    "itemId": 332,
+    "item": "水晶碎片",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 50,
+  "resultId": 499,
+  "result": "混沌水晶",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 375,
+    "item": "阿拉丁壺",
+    "count": 1
+   },
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   },
+   {
+    "itemId": 323,
+    "item": "時鐘",
+    "count": 1
+   },
+   {
+    "itemId": 275,
+    "item": "魔法眼鏡",
+    "count": 1
+   },
+   {
+    "itemId": 395,
+    "item": "黑暗盒",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 52,
+  "resultId": 516,
+  "result": "智能頭巾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 357,
+    "item": "微晶片",
+    "count": 1
+   },
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   },
+   {
+    "itemId": 1,
+    "item": "布衣",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 53,
+  "resultId": 517,
+  "result": "AI頭盔",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 357,
+    "item": "微晶片",
+    "count": 1
+   },
+   {
+    "itemId": 372,
+    "item": "綠色液體",
+    "count": 1
+   },
+   {
+    "itemId": 333,
+    "item": "硬殼",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 55,
+  "resultId": 569,
+  "result": "傷害魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 568,
+    "item": "傷害魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 56,
+  "resultId": 570,
+  "result": "傷害魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 569,
+    "item": "傷害魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 57,
+  "resultId": 572,
+  "result": "傷害魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 570,
+    "item": "傷害魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 58,
+  "resultId": 574,
+  "result": "魔力魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 573,
+    "item": "魔力魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 59,
+  "resultId": 575,
+  "result": "魔力魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 574,
+    "item": "魔力魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 60,
+  "resultId": 576,
+  "result": "魔力魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 575,
+    "item": "魔力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 61,
+  "resultId": 578,
+  "result": "敏捷魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 577,
+    "item": "敏捷魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 62,
+  "resultId": 579,
+  "result": "敏捷魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 578,
+    "item": "敏捷魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 63,
+  "resultId": 580,
+  "result": "敏捷魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 579,
+    "item": "敏捷魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 64,
+  "resultId": 582,
+  "result": "力量魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 581,
+    "item": "力量魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 65,
+  "resultId": 583,
+  "result": "力量魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 582,
+    "item": "力量魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 66,
+  "resultId": 584,
+  "result": "力量魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 583,
+    "item": "力量魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 67,
+  "resultId": 586,
+  "result": "智力魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 585,
+    "item": "智力魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 68,
+  "resultId": 587,
+  "result": "智力魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 586,
+    "item": "智力魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 69,
+  "resultId": 588,
+  "result": "智力魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 587,
+    "item": "智力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 70,
+  "resultId": 590,
+  "result": "生命魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 589,
+    "item": "生命魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 71,
+  "resultId": 591,
+  "result": "生命魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 590,
+    "item": "生命魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 72,
+  "resultId": 592,
+  "result": "生命魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 591,
+    "item": "生命魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 73,
+  "resultId": 594,
+  "result": "魅力魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 593,
+    "item": "魅力魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 74,
+  "resultId": 595,
+  "result": "魅力魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 594,
+    "item": "魅力魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 75,
+  "resultId": 596,
+  "result": "魅力魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 595,
+    "item": "魅力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 76,
+  "resultId": 598,
+  "result": "信仰魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 597,
+    "item": "信仰魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 77,
+  "resultId": 599,
+  "result": "信仰魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 598,
+    "item": "信仰魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 78,
+  "resultId": 600,
+  "result": "信仰魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 599,
+    "item": "信仰魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 79,
+  "resultId": 602,
+  "result": "體質魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 601,
+    "item": "體質魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 80,
+  "resultId": 603,
+  "result": "體質魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 602,
+    "item": "體質魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 81,
+  "resultId": 604,
+  "result": "體質魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 603,
+    "item": "體質魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 82,
+  "resultId": 606,
+  "result": "防禦魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 605,
+    "item": "防禦魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 83,
+  "resultId": 607,
+  "result": "防禦魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 606,
+    "item": "防禦魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 84,
+  "resultId": 608,
+  "result": "防禦魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 607,
+    "item": "防禦魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 85,
+  "resultId": 610,
+  "result": "結界魔石LV2",
+  "amount": 1,
+  "successRate": 90,
+  "materials": [
+   {
+    "itemId": 609,
+    "item": "結界魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 86,
+  "resultId": 611,
+  "result": "結界魔石LV3",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 610,
+    "item": "結界魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 87,
+  "resultId": 612,
+  "result": "結界魔石LV4",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 611,
+    "item": "結界魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 88,
+  "resultId": 614,
+  "result": "奮起魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 613,
+    "item": "奮起魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 89,
+  "resultId": 615,
+  "result": "奮起魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 614,
+    "item": "奮起魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 90,
+  "resultId": 616,
+  "result": "奮起魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 615,
+    "item": "奮起魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 91,
+  "resultId": 618,
+  "result": "冥想魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 617,
+    "item": "冥想魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 92,
+  "resultId": 619,
+  "result": "冥想魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 618,
+    "item": "冥想魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 93,
+  "resultId": 620,
+  "result": "冥想魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 619,
+    "item": "冥想魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 94,
+  "resultId": 622,
+  "result": "迅風魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 621,
+    "item": "迅風魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 95,
+  "resultId": 623,
+  "result": "迅風魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 622,
+    "item": "迅風魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 96,
+  "resultId": 624,
+  "result": "迅風魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 623,
+    "item": "迅風魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 97,
+  "resultId": 626,
+  "result": "活力魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 625,
+    "item": "活力魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 98,
+  "resultId": 627,
+  "result": "活力魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 626,
+    "item": "活力魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 99,
+  "resultId": 628,
+  "result": "活力魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 627,
+    "item": "活力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 100,
+  "resultId": 630,
+  "result": "誘惑魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 629,
+    "item": "誘惑魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 101,
+  "resultId": 631,
+  "result": "誘惑魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 630,
+    "item": "誘惑魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 102,
+  "resultId": 632,
+  "result": "誘惑魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 631,
+    "item": "誘惑魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 103,
+  "resultId": 634,
+  "result": "祝福魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 633,
+    "item": "祝福魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 104,
+  "resultId": 635,
+  "result": "祝福魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 634,
+    "item": "祝福魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 105,
+  "resultId": 636,
+  "result": "祝福魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 635,
+    "item": "祝福魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 106,
+  "resultId": 638,
+  "result": "抗體魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 637,
+    "item": "抗體魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 107,
+  "resultId": 639,
+  "result": "抗體魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 638,
+    "item": "抗體魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 108,
+  "resultId": 640,
+  "result": "抗體魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 639,
+    "item": "抗體魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 109,
+  "resultId": 642,
+  "result": "破壞魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 641,
+    "item": "破壞魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 110,
+  "resultId": 643,
+  "result": "破壞魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 642,
+    "item": "破壞魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 111,
+  "resultId": 644,
+  "result": "破壞魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 643,
+    "item": "破壞魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 112,
+  "resultId": 646,
+  "result": "能源魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 645,
+    "item": "能源魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 113,
+  "resultId": 647,
+  "result": "能源魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 646,
+    "item": "能源魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 114,
+  "resultId": 648,
+  "result": "能源魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 647,
+    "item": "能源魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 115,
+  "resultId": 650,
+  "result": "鋼鐵魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 649,
+    "item": "鋼鐵魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 116,
+  "resultId": 651,
+  "result": "鋼鐵魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 650,
+    "item": "鋼鐵魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 117,
+  "resultId": 652,
+  "result": "鋼鐵魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 651,
+    "item": "鋼鐵魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 118,
+  "resultId": 654,
+  "result": "晶化魔石LV2",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 653,
+    "item": "晶化魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 119,
+  "resultId": 655,
+  "result": "晶化魔石LV3",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 654,
+    "item": "晶化魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 120,
+  "resultId": 656,
+  "result": "晶化魔石LV4",
+  "amount": 1,
+  "successRate": 40,
+  "materials": [
+   {
+    "itemId": 655,
+    "item": "晶化魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 657,
+    "item": "魔石溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 658,
+    "item": "煉化元素",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 121,
+  "resultId": 1196,
+  "result": "熱血魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1195,
+    "item": "熱血魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 122,
+  "resultId": 1197,
+  "result": "熱血魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1196,
+    "item": "熱血魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 123,
+  "resultId": 1198,
+  "result": "熱血魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1197,
+    "item": "熱血魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 124,
+  "resultId": 1208,
+  "result": "止水魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1207,
+    "item": "止水魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 125,
+  "resultId": 1209,
+  "result": "止水魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1208,
+    "item": "止水魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 126,
+  "resultId": 1210,
+  "result": "止水魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1209,
+    "item": "止水魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 127,
+  "resultId": 1212,
+  "result": "飄影魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1211,
+    "item": "飄影魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 128,
+  "resultId": 1213,
+  "result": "飄影魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1212,
+    "item": "飄影魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 129,
+  "resultId": 1214,
+  "result": "飄影魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 130,
+  "resultId": 1216,
+  "result": "再生魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1215,
+    "item": "再生魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 131,
+  "resultId": 1217,
+  "result": "再生魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1216,
+    "item": "再生魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 132,
+  "resultId": 1218,
+  "result": "再生魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1217,
+    "item": "再生魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 133,
+  "resultId": 1220,
+  "result": "絕色魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1219,
+    "item": "絕色魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 134,
+  "resultId": 1221,
+  "result": "絕色魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1220,
+    "item": "絕色魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 135,
+  "resultId": 1222,
+  "result": "絕色魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1221,
+    "item": "絕色魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 136,
+  "resultId": 1224,
+  "result": "聖音魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1223,
+    "item": "聖音魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 137,
+  "resultId": 1225,
+  "result": "聖音魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1224,
+    "item": "聖音魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 138,
+  "resultId": 1226,
+  "result": "聖音魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1225,
+    "item": "聖音魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 139,
+  "resultId": 1228,
+  "result": "鐵壁魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1227,
+    "item": "鐵壁魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 140,
+  "resultId": 1229,
+  "result": "鐵壁魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1228,
+    "item": "鐵壁魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 141,
+  "resultId": 1230,
+  "result": "鐵壁魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1229,
+    "item": "鐵壁魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 142,
+  "resultId": 1232,
+  "result": "魂殺魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1231,
+    "item": "魂殺魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 143,
+  "resultId": 1233,
+  "result": "魂殺魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1232,
+    "item": "魂殺魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 144,
+  "resultId": 1234,
+  "result": "魂殺魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 145,
+  "resultId": 1236,
+  "result": "咒力魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1235,
+    "item": "咒力魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 146,
+  "resultId": 1237,
+  "result": "咒力魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1236,
+    "item": "咒力魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 147,
+  "resultId": 1238,
+  "result": "咒力魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 148,
+  "resultId": 1240,
+  "result": "堅盾魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1239,
+    "item": "堅盾魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 149,
+  "resultId": 1241,
+  "result": "堅盾魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1240,
+    "item": "堅盾魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 150,
+  "resultId": 1242,
+  "result": "堅盾魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1241,
+    "item": "堅盾魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 151,
+  "resultId": 1244,
+  "result": "霧瀧魔石LV2",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1243,
+    "item": "霧瀧魔石LV1",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 152,
+  "resultId": 1245,
+  "result": "霧瀧魔石LV3",
+  "amount": 1,
+  "successRate": 50,
+  "materials": [
+   {
+    "itemId": 1244,
+    "item": "霧瀧魔石LV2",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 153,
+  "resultId": 1246,
+  "result": "霧瀧魔石LV4",
+  "amount": 1,
+  "successRate": 30,
+  "materials": [
+   {
+    "itemId": 1245,
+    "item": "霧瀧魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 154,
+  "resultId": 1248,
+  "result": "霸者魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 433,
+    "item": "封印界環",
+    "count": 1
+   },
+   {
+    "itemId": 1234,
+    "item": "魂殺魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 1254,
+    "item": "無懼之心",
+    "count": 1
+   },
+   {
+    "itemId": 1255,
+    "item": "聖輝粉末",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 155,
+  "resultId": 1249,
+  "result": "龍神魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 499,
+    "item": "混沌水晶",
+    "count": 1
+   },
+   {
+    "itemId": 256,
+    "item": "神聖之光",
+    "count": 1
+   },
+   {
+    "itemId": 1256,
+    "item": "龍之淚",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 156,
+  "resultId": 1250,
+  "result": "月沉魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 193,
+    "item": "魔法水",
+    "count": 1
+   },
+   {
+    "itemId": 367,
+    "item": "竹葉",
+    "count": 1
+   },
+   {
+    "itemId": 1238,
+    "item": "咒力魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 317,
+    "item": "月下美人",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 157,
+  "resultId": 1251,
+  "result": "魔王魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 1257,
+    "item": "淵紅液體",
+    "count": 1
+   },
+   {
+    "itemId": 648,
+    "item": "能源魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 620,
+    "item": "冥想魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 339,
+    "item": "古書",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 158,
+  "resultId": 1252,
+  "result": "星塵魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 1258,
+    "item": "抓不住的光",
+    "count": 1
+   },
+   {
+    "itemId": 478,
+    "item": "嵐之詩集",
+    "count": 1
+   },
+   {
+    "itemId": 358,
+    "item": "火藥",
+    "count": 1
+   },
+   {
+    "itemId": 476,
+    "item": "瀧之詩集",
+    "count": 1
+   },
+   {
+    "itemId": 636,
+    "item": "祝福魔石LV4",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 159,
+  "resultId": 1253,
+  "result": "皇家魔石",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 1222,
+    "item": "絕色魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 185,
+    "item": "水晶",
+    "count": 1
+   },
+   {
+    "itemId": 342,
+    "item": "白色布料",
+    "count": 1
+   },
+   {
+    "itemId": 554,
+    "item": "星隕石",
+    "count": 2
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 160,
+  "resultId": 1295,
+  "result": "黃金菜刀",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 392,
+    "item": "魚鱗",
+    "count": 2
+   },
+   {
+    "itemId": 184,
+    "item": "黃金",
+    "count": 4
+   },
+   {
+    "itemId": 255,
+    "item": "名廚菜刀",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 161,
+  "resultId": 1296,
+  "result": "水晶菜刀",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 490,
+    "item": "異變之火",
+    "count": 1
+   },
+   {
+    "itemId": 185,
+    "item": "水晶",
+    "count": 8
+   },
+   {
+    "itemId": 255,
+    "item": "名廚菜刀",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 162,
+  "resultId": 1303,
+  "result": "活泉石",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1300,
+    "item": "水之碎片",
+    "count": 3
+   },
+   {
+    "itemId": 1301,
+    "item": "鐘乳石",
+    "count": 1
+   },
+   {
+    "itemId": 208,
+    "item": "妖精之水",
+    "count": 1
+   }
+  ],
+  "missionRecipe": true,
+  "requiresMissionId": null
+ },
+ {
+  "id": 163,
+  "resultId": 1302,
+  "result": "聖者之車",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 323,
+    "item": "時鐘",
+    "count": 1
+   },
+   {
+    "itemId": 635,
+    "item": "祝福魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 1258,
+    "item": "抓不住的光",
+    "count": 1
+   }
+  ],
+  "missionRecipe": true,
+  "requiresMissionId": null
+ },
+ {
+  "id": 164,
+  "resultId": 1353,
+  "result": "14W回復中藥",
+  "amount": 9,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 1352,
+    "item": "烏拉草",
+    "count": 7
+   },
+   {
+    "itemId": 1298,
+    "item": "人蔘",
+    "count": 10
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 165,
+  "resultId": 1509,
+  "result": "密法手冊",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 377,
+    "item": "辟邪石",
+    "count": 1
+   },
+   {
+    "itemId": 410,
+    "item": "惡靈的妖目",
+    "count": 3
+   },
+   {
+    "itemId": 417,
+    "item": "夢魔之書",
+    "count": 1
+   },
+   {
+    "itemId": 1510,
+    "item": "密法能源石",
+    "count": 3
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 166,
+  "resultId": 1508,
+  "result": "擎天火砲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 491,
+    "item": "夫拉多羽毛",
+    "count": 1
+   },
+   {
+    "itemId": 1277,
+    "item": "天雷導引",
+    "count": 2
+   },
+   {
+    "itemId": 1214,
+    "item": "飄影魔石LV4",
+    "count": 1
+   },
+   {
+    "itemId": 1511,
+    "item": "致命彈藥",
+    "count": 3
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 167,
+  "resultId": 1500,
+  "result": "無雙焰劍",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 316,
+    "item": "火砂",
+    "count": 8
+   },
+   {
+    "itemId": 1285,
+    "item": "龍紋捲軸",
+    "count": 1
+   },
+   {
+    "itemId": 1303,
+    "item": "活泉石",
+    "count": 1
+   },
+   {
+    "itemId": 421,
+    "item": "祝福之酒",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 168,
+  "resultId": 1850,
+  "result": "8格倉庫櫃",
+  "amount": 1,
+  "successRate": 80,
+  "materials": [
+   {
+    "itemId": 1346,
+    "item": "初心戰士頭盔",
+    "count": 1
+   },
+   {
+    "itemId": 1347,
+    "item": "初心法師頭巾",
+    "count": 1
+   },
+   {
+    "itemId": 1838,
+    "item": "5格倉庫櫃",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 169,
+  "resultId": 1851,
+  "result": "12格倉庫櫃",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 527,
+    "item": "活性布料",
+    "count": 2
+   },
+   {
+    "itemId": 1839,
+    "item": "10格倉庫櫃",
+    "count": 1
+   },
+   {
+    "itemId": 344,
+    "item": "鑽石",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 170,
+  "resultId": 1852,
+  "result": "17格倉庫櫃",
+  "amount": 1,
+  "successRate": 60,
+  "materials": [
+   {
+    "itemId": 1840,
+    "item": "15格倉庫櫃",
+    "count": 1
+   },
+   {
+    "itemId": 1280,
+    "item": "魔性鐵礦",
+    "count": 2
+   },
+   {
+    "itemId": 525,
+    "item": "密銀金屬礦石",
+    "count": 2
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 171,
+  "resultId": 2228,
+  "result": "翡翠小瓶",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 2229,
+    "item": "翡翠",
+    "count": 2
+   },
+   {
+    "itemId": 1278,
+    "item": "億度鎔爐",
+    "count": 1
+   }
+  ],
+  "missionRecipe": true,
+  "requiresMissionId": null
+ },
+ {
+  "id": 172,
+  "resultId": 2233,
+  "result": "顯影溶劑",
+  "amount": 1,
+  "successRate": 70,
+  "materials": [
+   {
+    "itemId": 1298,
+    "item": "人蔘",
+    "count": 1
+   },
+   {
+    "itemId": 1223,
+    "item": "聖音魔石LV1",
+    "count": 1
+   }
+  ],
+  "missionRecipe": true,
+  "requiresMissionId": null
+ },
+ {
+  "id": 173,
+  "resultId": 2231,
+  "result": "光之粉",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 2233,
+    "item": "顯影溶劑",
+    "count": 1
+   },
+   {
+    "itemId": 193,
+    "item": "魔法水",
+    "count": 3
+   },
+   {
+    "itemId": 1247,
+    "item": "萬物之源",
+    "count": 1
+   }
+  ],
+  "missionRecipe": true,
+  "requiresMissionId": null
+ },
+ {
+  "id": 174,
+  "resultId": 3268,
+  "result": "剛龍巨斧．極",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 3261,
+    "item": "戰龍之魂",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 283,
+    "item": "力量之水",
+    "count": 1
+   },
+   {
+    "itemId": 1869,
+    "item": "白精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 175,
+  "resultId": 3269,
+  "result": "影．平安鵺",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 3262,
+    "item": "黑夜之影",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 284,
+    "item": "速度之水",
+    "count": 1
+   },
+   {
+    "itemId": 1889,
+    "item": "藍精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 176,
+  "resultId": 3270,
+  "result": "龍騎槍．巨狼之禍",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 3263,
+    "item": "巨狼之血",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1229,
+    "item": "鐵壁魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 287,
+    "item": "體質之水",
+    "count": 1
+   },
+   {
+    "itemId": 1929,
+    "item": "紫精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 177,
+  "resultId": 3271,
+  "result": "哈提．斯庫爾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 3264,
+    "item": "嚎魂之願",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1221,
+    "item": "絕色魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 289,
+    "item": "魅力之水",
+    "count": 1
+   },
+   {
+    "itemId": 1909,
+    "item": "紅精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 178,
+  "resultId": 3272,
+  "result": "黃昏權杖．滅",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 3265,
+    "item": "時空碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 285,
+    "item": "智力之水",
+    "count": 1
+   },
+   {
+    "itemId": 1879,
+    "item": "黑精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 179,
+  "resultId": 3273,
+  "result": "聖靈風暴．空",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 3266,
+    "item": "天使之翼",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1245,
+    "item": "霧瀧魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 288,
+    "item": "信仰之水",
+    "count": 1
+   },
+   {
+    "itemId": 1919,
+    "item": "黃精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 180,
+  "resultId": 3274,
+  "result": "尼貝龍根的指環",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 3267,
+    "item": "狂氣之星",
+    "count": 1
+   },
+   {
+    "itemId": 3307,
+    "item": "上古武器碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3301,
+    "item": "玉鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1221,
+    "item": "絕色魔石LV3",
+    "count": 2
+   },
+   {
+    "itemId": 289,
+    "item": "魅力之水",
+    "count": 1
+   },
+   {
+    "itemId": 1909,
+    "item": "紅精鍊石LV7",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 317
+ },
+ {
+  "id": 181,
+  "resultId": 3275,
+  "result": "龍神兵頭盔",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1514,
+    "item": "黑曜力量頭盔",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 182,
+  "resultId": 3276,
+  "result": "龍神兵鎧甲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 1517,
+    "item": "黑曜力量戰甲",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 183,
+  "resultId": 3277,
+  "result": "龍神兵鋼盾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1511,
+    "item": "致命彈藥",
+    "count": 2
+   },
+   {
+    "itemId": 3297,
+    "item": "米陶諾斯的角",
+    "count": 2
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 184,
+  "resultId": 3278,
+  "result": "龍神兵重靴",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1510,
+    "item": "密法能源石",
+    "count": 2
+   },
+   {
+    "itemId": 3299,
+    "item": "史萊姆之眼",
+    "count": 3
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1233,
+    "item": "魂殺魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 185,
+  "resultId": 3279,
+  "result": "暗影之牙頭巾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1515,
+    "item": "黑曜敏捷頭盔",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 186,
+  "resultId": 3280,
+  "result": "暗影之牙輕甲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1518,
+    "item": "黑曜敏捷輕甲",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 187,
+  "resultId": 3281,
+  "result": "暗影之牙手套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 1511,
+    "item": "致命彈藥",
+    "count": 2
+   },
+   {
+    "itemId": 3297,
+    "item": "米陶諾斯的角",
+    "count": 2
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 188,
+  "resultId": 3282,
+  "result": "暗影之牙輕靴",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 1510,
+    "item": "密法能源石",
+    "count": 2
+   },
+   {
+    "itemId": 3299,
+    "item": "史萊姆之眼",
+    "count": 3
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1213,
+    "item": "飄影魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 189,
+  "resultId": 3283,
+  "result": "獸魂之心頭盔",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 1809,
+    "item": "黑曜魅力頭盔",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1219,
+    "item": "絕色魔石LV1",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 190,
+  "resultId": 3284,
+  "result": "獸魂之心戰甲",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 1810,
+    "item": "黑曜魅力戰甲",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1219,
+    "item": "絕色魔石LV1",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 191,
+  "resultId": 3285,
+  "result": "獸魂之心手爪",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 1511,
+    "item": "致命彈藥",
+    "count": 2
+   },
+   {
+    "itemId": 3297,
+    "item": "米陶諾斯的角",
+    "count": 2
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1219,
+    "item": "絕色魔石LV1",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 192,
+  "resultId": 3286,
+  "result": "獸魂之心戰靴",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1510,
+    "item": "密法能源石",
+    "count": 1
+   },
+   {
+    "itemId": 3299,
+    "item": "史萊姆之眼",
+    "count": 3
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1219,
+    "item": "絕色魔石LV1",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 193,
+  "resultId": 3287,
+  "result": "閃擊原力頭套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 1516,
+    "item": "黑曜魔力頭盔",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 194,
+  "resultId": 3288,
+  "result": "閃擊原力皮衣",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3260,
+    "item": "黑暗魔力",
+    "count": 1
+   },
+   {
+    "itemId": 1519,
+    "item": "黑曜魔力皮衣",
+    "count": 1
+   },
+   {
+    "itemId": 3308,
+    "item": "上古防具碎片",
+    "count": 1
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 1
+   },
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 195,
+  "resultId": 3289,
+  "result": "閃擊原力手套",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3258,
+    "item": "復仇之心",
+    "count": 1
+   },
+   {
+    "itemId": 1511,
+    "item": "致命彈藥",
+    "count": 2
+   },
+   {
+    "itemId": 3297,
+    "item": "米陶諾斯的角",
+    "count": 2
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 196,
+  "resultId": 3290,
+  "result": "閃擊原力鞋",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3259,
+    "item": "上古之魂",
+    "count": 1
+   },
+   {
+    "itemId": 1510,
+    "item": "密法能源石",
+    "count": 2
+   },
+   {
+    "itemId": 3299,
+    "item": "史萊姆之眼",
+    "count": 3
+   },
+   {
+    "itemId": 3309,
+    "item": "大馬士革鋼",
+    "count": 2
+   },
+   {
+    "itemId": 1237,
+    "item": "咒力魔石LV3",
+    "count": 1
+   },
+   {
+    "itemId": 2035,
+    "item": "鳳凰精鍊石LV3",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": 313
+ },
+ {
+  "id": 197,
+  "resultId": 3291,
+  "result": "野獸之力黑角項鍊",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3255,
+    "item": "野獸之力高級勳章",
+    "count": 1
+   },
+   {
+    "itemId": 3256,
+    "item": "邪惡之黑角",
+    "count": 1
+   },
+   {
+    "itemId": 1232,
+    "item": "魂殺魔石LV2",
+    "count": 1
+   },
+   {
+    "itemId": 1236,
+    "item": "咒力魔石LV2",
+    "count": 1
+   },
+   {
+    "itemId": 337,
+    "item": "瑪那樹葉",
+    "count": 1
+   },
+   {
+    "itemId": 283,
+    "item": "力量之水",
+    "count": 1
+   },
+   {
+    "itemId": 285,
+    "item": "智力之水",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ },
+ {
+  "id": 198,
+  "resultId": 3292,
+  "result": "野獸之力邪眼墜飾",
+  "amount": 1,
+  "successRate": 100,
+  "materials": [
+   {
+    "itemId": 3255,
+    "item": "野獸之力高級勳章",
+    "count": 1
+   },
+   {
+    "itemId": 3257,
+    "item": "邪惡之眼",
+    "count": 1
+   },
+   {
+    "itemId": 1232,
+    "item": "魂殺魔石LV2",
+    "count": 1
+   },
+   {
+    "itemId": 1236,
+    "item": "咒力魔石LV2",
+    "count": 1
+   },
+   {
+    "itemId": 338,
+    "item": "天堂羽毛",
+    "count": 1
+   },
+   {
+    "itemId": 283,
+    "item": "力量之水",
+    "count": 1
+   },
+   {
+    "itemId": 285,
+    "item": "智力之水",
+    "count": 1
+   }
+  ],
+  "missionRecipe": false,
+  "requiresMissionId": null
+ }
+]

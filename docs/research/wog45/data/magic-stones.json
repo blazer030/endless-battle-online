@@ -1,0 +1,1418 @@
+[
+ {
+  "id": 1248,
+  "name": "霸者魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "at": "300",
+   "df": "100",
+   "mdf": "80",
+   "agl": "60"
+  }
+ },
+ {
+  "id": 1249,
+  "name": "龍神魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "df": "250",
+   "mdf": "250",
+   "life": "350",
+   "hpmax": "15000"
+  }
+ },
+ {
+  "id": 1250,
+  "name": "月沉魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "at": "100",
+   "df": "50",
+   "mdf": "50",
+   "agl": "300"
+  }
+ },
+ {
+  "id": 1251,
+  "name": "魔王魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "mat": "300",
+   "agl": "100",
+   "life": "80",
+   "be": "100",
+   "hpmax": "3000"
+  }
+ },
+ {
+  "id": 1252,
+  "name": "星塵魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "agl": "40",
+   "str": "120",
+   "vit": "80",
+   "smart": "120",
+   "au": "80"
+  }
+ },
+ {
+  "id": 1253,
+  "name": "皇家魔石",
+  "level": 0,
+  "class": 0,
+  "effects": {
+   "agl": "80",
+   "life": "150",
+   "vit": "100",
+   "au": "100",
+   "be": "300",
+   "hpmax": "5000"
+  }
+ },
+ {
+  "id": 2265,
+  "name": "加爾魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "str": "25-40",
+   "vit": "10-21",
+   "hpmax": "700-1900"
+  }
+ },
+ {
+  "id": 2266,
+  "name": "塔拉斯魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "at": "17-33",
+   "agl": "24-37",
+   "be": "8-21"
+  }
+ },
+ {
+  "id": 2267,
+  "name": "拜倫魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "agl": "9-18",
+   "life": "4-10",
+   "smart": "23-48"
+  }
+ },
+ {
+  "id": 2268,
+  "name": "翠絲魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "mat": "9-15",
+   "mdf": "11-22",
+   "au": "27-42",
+   "hpmax": "500-1400"
+  }
+ },
+ {
+  "id": 2269,
+  "name": "特姆魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "df": "16-27",
+   "str": "10-20",
+   "vit": "6-11",
+   "be": "16-25"
+  }
+ },
+ {
+  "id": 2270,
+  "name": "葛雷密製攻擊魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "at": "18-27",
+   "mat": "18-27",
+   "agl": "10-21"
+  }
+ },
+ {
+  "id": 2271,
+  "name": "葛雷密製防禦魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "df": "12-25",
+   "mdf": "12-25",
+   "hpmax": "300-900"
+  }
+ },
+ {
+  "id": 3366,
+  "name": "最果之地魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "mat": "32-63",
+   "vit": "45-92"
+  }
+ },
+ {
+  "id": 3367,
+  "name": "最果之水魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "at": "31-105",
+   "au": "15-71"
+  }
+ },
+ {
+  "id": 3368,
+  "name": "最果之火魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "agl": "13-98",
+   "hpmax": "450-3800"
+  }
+ },
+ {
+  "id": 3369,
+  "name": "最果之木魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "str": "28-75",
+   "be": "39-102"
+  }
+ },
+ {
+  "id": 3370,
+  "name": "最果之風魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "df": "8-32",
+   "mdf": "8-32",
+   "agl": "15-72"
+  }
+ },
+ {
+  "id": 3371,
+  "name": "最果之毒魔石",
+  "level": 0,
+  "class": 99,
+  "effects": {
+   "life": "15-47",
+   "smart": "26-82"
+  }
+ },
+ {
+  "id": 568,
+  "name": "傷害魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "at": "5"
+  }
+ },
+ {
+  "id": 573,
+  "name": "魔力魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "mat": "5"
+  }
+ },
+ {
+  "id": 577,
+  "name": "敏捷魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "agl": "5"
+  }
+ },
+ {
+  "id": 581,
+  "name": "力量魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "str": "3"
+  }
+ },
+ {
+  "id": 585,
+  "name": "智力魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "smart": "3"
+  }
+ },
+ {
+  "id": 589,
+  "name": "生命魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "life": "3",
+   "hpmax": "15"
+  }
+ },
+ {
+  "id": 593,
+  "name": "魅力魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "au": "3"
+  }
+ },
+ {
+  "id": 597,
+  "name": "信仰魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "be": "3"
+  }
+ },
+ {
+  "id": 601,
+  "name": "體質魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "vit": "3"
+  }
+ },
+ {
+  "id": 605,
+  "name": "防禦魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "df": "5"
+  }
+ },
+ {
+  "id": 609,
+  "name": "結界魔石LV1",
+  "level": 1,
+  "class": 1,
+  "effects": {
+   "mdf": "5"
+  }
+ },
+ {
+  "id": 569,
+  "name": "傷害魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "at": "10"
+  }
+ },
+ {
+  "id": 574,
+  "name": "魔力魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "mat": "10"
+  }
+ },
+ {
+  "id": 578,
+  "name": "敏捷魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "agl": "10"
+  }
+ },
+ {
+  "id": 582,
+  "name": "力量魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "str": "6"
+  }
+ },
+ {
+  "id": 586,
+  "name": "智力魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "smart": "6"
+  }
+ },
+ {
+  "id": 590,
+  "name": "生命魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "life": "6",
+   "hpmax": "30"
+  }
+ },
+ {
+  "id": 594,
+  "name": "魅力魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "au": "6"
+  }
+ },
+ {
+  "id": 598,
+  "name": "信仰魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "be": "6"
+  }
+ },
+ {
+  "id": 602,
+  "name": "體質魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "vit": "6"
+  }
+ },
+ {
+  "id": 606,
+  "name": "防禦魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "df": "10"
+  }
+ },
+ {
+  "id": 610,
+  "name": "結界魔石LV2",
+  "level": 1,
+  "class": 2,
+  "effects": {
+   "mdf": "10"
+  }
+ },
+ {
+  "id": 570,
+  "name": "傷害魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "at": "15"
+  }
+ },
+ {
+  "id": 575,
+  "name": "魔力魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "mat": "15"
+  }
+ },
+ {
+  "id": 579,
+  "name": "敏捷魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "agl": "15"
+  }
+ },
+ {
+  "id": 583,
+  "name": "力量魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "str": "9"
+  }
+ },
+ {
+  "id": 587,
+  "name": "智力魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "smart": "9"
+  }
+ },
+ {
+  "id": 591,
+  "name": "生命魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "life": "9",
+   "hpmax": "60"
+  }
+ },
+ {
+  "id": 595,
+  "name": "魅力魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "au": "9"
+  }
+ },
+ {
+  "id": 599,
+  "name": "信仰魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "be": "9"
+  }
+ },
+ {
+  "id": 603,
+  "name": "體質魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "vit": "9"
+  }
+ },
+ {
+  "id": 607,
+  "name": "防禦魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "df": "15"
+  }
+ },
+ {
+  "id": 611,
+  "name": "結界魔石LV3",
+  "level": 1,
+  "class": 3,
+  "effects": {
+   "mdf": "15"
+  }
+ },
+ {
+  "id": 572,
+  "name": "傷害魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "at": "20"
+  }
+ },
+ {
+  "id": 576,
+  "name": "魔力魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "mat": "20"
+  }
+ },
+ {
+  "id": 580,
+  "name": "敏捷魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "agl": "20"
+  }
+ },
+ {
+  "id": 584,
+  "name": "力量魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "str": "12"
+  }
+ },
+ {
+  "id": 588,
+  "name": "智力魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "smart": "12"
+  }
+ },
+ {
+  "id": 592,
+  "name": "生命魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "life": "12",
+   "hpmax": "120"
+  }
+ },
+ {
+  "id": 596,
+  "name": "魅力魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "au": "12"
+  }
+ },
+ {
+  "id": 600,
+  "name": "信仰魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "be": "12"
+  }
+ },
+ {
+  "id": 604,
+  "name": "體質魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "vit": "12"
+  }
+ },
+ {
+  "id": 608,
+  "name": "防禦魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "df": "20"
+  }
+ },
+ {
+  "id": 612,
+  "name": "結界魔石LV4",
+  "level": 1,
+  "class": 4,
+  "effects": {
+   "mdf": "20"
+  }
+ },
+ {
+  "id": 613,
+  "name": "奮起魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "str": "10"
+  }
+ },
+ {
+  "id": 617,
+  "name": "冥想魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "smart": "10"
+  }
+ },
+ {
+  "id": 621,
+  "name": "迅風魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "agl": "15"
+  }
+ },
+ {
+  "id": 625,
+  "name": "活力魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "life": "10",
+   "hpmax": "80"
+  }
+ },
+ {
+  "id": 629,
+  "name": "誘惑魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "au": "10"
+  }
+ },
+ {
+  "id": 633,
+  "name": "祝福魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "be": "10"
+  }
+ },
+ {
+  "id": 637,
+  "name": "抗體魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "vit": "10"
+  }
+ },
+ {
+  "id": 641,
+  "name": "破壞魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "at": "15"
+  }
+ },
+ {
+  "id": 645,
+  "name": "能源魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "mat": "15"
+  }
+ },
+ {
+  "id": 649,
+  "name": "鋼鐵魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "df": "15"
+  }
+ },
+ {
+  "id": 653,
+  "name": "晶化魔石LV1",
+  "level": 2,
+  "class": 1,
+  "effects": {
+   "mdf": "15"
+  }
+ },
+ {
+  "id": 614,
+  "name": "奮起魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "str": "20"
+  }
+ },
+ {
+  "id": 618,
+  "name": "冥想魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "smart": "20"
+  }
+ },
+ {
+  "id": 622,
+  "name": "迅風魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "agl": "30"
+  }
+ },
+ {
+  "id": 626,
+  "name": "活力魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "life": "20",
+   "hpmax": "160"
+  }
+ },
+ {
+  "id": 630,
+  "name": "誘惑魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "au": "20"
+  }
+ },
+ {
+  "id": 634,
+  "name": "祝福魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "be": "20"
+  }
+ },
+ {
+  "id": 638,
+  "name": "抗體魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "vit": "20"
+  }
+ },
+ {
+  "id": 642,
+  "name": "破壞魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "at": "30"
+  }
+ },
+ {
+  "id": 646,
+  "name": "能源魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "mat": "30"
+  }
+ },
+ {
+  "id": 650,
+  "name": "鋼鐵魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "df": "30"
+  }
+ },
+ {
+  "id": 654,
+  "name": "晶化魔石LV2",
+  "level": 2,
+  "class": 2,
+  "effects": {
+   "mdf": "30"
+  }
+ },
+ {
+  "id": 615,
+  "name": "奮起魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "str": "30"
+  }
+ },
+ {
+  "id": 619,
+  "name": "冥想魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "smart": "30"
+  }
+ },
+ {
+  "id": 623,
+  "name": "迅風魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "agl": "45"
+  }
+ },
+ {
+  "id": 627,
+  "name": "活力魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "life": "30",
+   "hpmax": "320"
+  }
+ },
+ {
+  "id": 631,
+  "name": "誘惑魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "au": "30"
+  }
+ },
+ {
+  "id": 635,
+  "name": "祝福魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "be": "30"
+  }
+ },
+ {
+  "id": 639,
+  "name": "抗體魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "vit": "30"
+  }
+ },
+ {
+  "id": 643,
+  "name": "破壞魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "at": "45"
+  }
+ },
+ {
+  "id": 647,
+  "name": "能源魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "mat": "45"
+  }
+ },
+ {
+  "id": 651,
+  "name": "鋼鐵魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "df": "45"
+  }
+ },
+ {
+  "id": 655,
+  "name": "晶化魔石LV3",
+  "level": 2,
+  "class": 3,
+  "effects": {
+   "mdf": "45"
+  }
+ },
+ {
+  "id": 616,
+  "name": "奮起魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "str": "40"
+  }
+ },
+ {
+  "id": 620,
+  "name": "冥想魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "smart": "40"
+  }
+ },
+ {
+  "id": 624,
+  "name": "迅風魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "agl": "60"
+  }
+ },
+ {
+  "id": 628,
+  "name": "活力魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "life": "40",
+   "hpmax": "640"
+  }
+ },
+ {
+  "id": 632,
+  "name": "誘惑魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "au": "40"
+  }
+ },
+ {
+  "id": 636,
+  "name": "祝福魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "be": "40"
+  }
+ },
+ {
+  "id": 640,
+  "name": "抗體魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "vit": "40"
+  }
+ },
+ {
+  "id": 644,
+  "name": "破壞魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "at": "60"
+  }
+ },
+ {
+  "id": 648,
+  "name": "能源魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "mat": "60"
+  }
+ },
+ {
+  "id": 652,
+  "name": "鋼鐵魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "df": "60"
+  }
+ },
+ {
+  "id": 656,
+  "name": "晶化魔石LV4",
+  "level": 2,
+  "class": 4,
+  "effects": {
+   "mdf": "60"
+  }
+ },
+ {
+  "id": 1195,
+  "name": "熱血魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "str": "25"
+  }
+ },
+ {
+  "id": 1207,
+  "name": "止水魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "smart": "25"
+  }
+ },
+ {
+  "id": 1211,
+  "name": "飄影魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "agl": "35"
+  }
+ },
+ {
+  "id": 1215,
+  "name": "再生魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "life": "35",
+   "hpmax": "450"
+  }
+ },
+ {
+  "id": 1219,
+  "name": "絕色魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "au": "25"
+  }
+ },
+ {
+  "id": 1223,
+  "name": "聖音魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "be": "25"
+  }
+ },
+ {
+  "id": 1227,
+  "name": "鐵壁魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "vit": "25"
+  }
+ },
+ {
+  "id": 1231,
+  "name": "魂殺魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "at": "35"
+  }
+ },
+ {
+  "id": 1235,
+  "name": "咒力魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "mat": "35"
+  }
+ },
+ {
+  "id": 1239,
+  "name": "堅盾魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "df": "35"
+  }
+ },
+ {
+  "id": 1243,
+  "name": "霧瀧魔石LV1",
+  "level": 3,
+  "class": 1,
+  "effects": {
+   "mdf": "35"
+  }
+ },
+ {
+  "id": 1196,
+  "name": "熱血魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "str": "50"
+  }
+ },
+ {
+  "id": 1208,
+  "name": "止水魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "smart": "50"
+  }
+ },
+ {
+  "id": 1212,
+  "name": "飄影魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "agl": "70"
+  }
+ },
+ {
+  "id": 1216,
+  "name": "再生魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "life": "50",
+   "hpmax": "900"
+  }
+ },
+ {
+  "id": 1220,
+  "name": "絕色魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "au": "50"
+  }
+ },
+ {
+  "id": 1224,
+  "name": "聖音魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "be": "50"
+  }
+ },
+ {
+  "id": 1228,
+  "name": "鐵壁魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "vit": "50"
+  }
+ },
+ {
+  "id": 1232,
+  "name": "魂殺魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "at": "70"
+  }
+ },
+ {
+  "id": 1236,
+  "name": "咒力魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "mat": "70"
+  }
+ },
+ {
+  "id": 1240,
+  "name": "堅盾魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "df": "70"
+  }
+ },
+ {
+  "id": 1244,
+  "name": "霧瀧魔石LV2",
+  "level": 3,
+  "class": 2,
+  "effects": {
+   "mdf": "70"
+  }
+ },
+ {
+  "id": 1197,
+  "name": "熱血魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "str": "75"
+  }
+ },
+ {
+  "id": 1209,
+  "name": "止水魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "smart": "75"
+  }
+ },
+ {
+  "id": 1213,
+  "name": "飄影魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "agl": "110"
+  }
+ },
+ {
+  "id": 1217,
+  "name": "再生魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "life": "65",
+   "hpmax": "1800"
+  }
+ },
+ {
+  "id": 1221,
+  "name": "絕色魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "au": "75"
+  }
+ },
+ {
+  "id": 1225,
+  "name": "聖音魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "be": "75"
+  }
+ },
+ {
+  "id": 1229,
+  "name": "鐵壁魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "vit": "75"
+  }
+ },
+ {
+  "id": 1233,
+  "name": "魂殺魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "at": "110"
+  }
+ },
+ {
+  "id": 1237,
+  "name": "咒力魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "mat": "110"
+  }
+ },
+ {
+  "id": 1241,
+  "name": "堅盾魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "df": "110"
+  }
+ },
+ {
+  "id": 1245,
+  "name": "霧瀧魔石LV3",
+  "level": 3,
+  "class": 3,
+  "effects": {
+   "mdf": "110"
+  }
+ },
+ {
+  "id": 1198,
+  "name": "熱血魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "str": "100"
+  }
+ },
+ {
+  "id": 1210,
+  "name": "止水魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "smart": "100"
+  }
+ },
+ {
+  "id": 1214,
+  "name": "飄影魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "agl": "150"
+  }
+ },
+ {
+  "id": 1218,
+  "name": "再生魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "life": "80",
+   "hpmax": "3600"
+  }
+ },
+ {
+  "id": 1222,
+  "name": "絕色魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "au": "100"
+  }
+ },
+ {
+  "id": 1226,
+  "name": "聖音魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "be": "100"
+  }
+ },
+ {
+  "id": 1230,
+  "name": "鐵壁魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "vit": "100"
+  }
+ },
+ {
+  "id": 1234,
+  "name": "魂殺魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "at": "150"
+  }
+ },
+ {
+  "id": 1238,
+  "name": "咒力魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "mat": "150"
+  }
+ },
+ {
+  "id": 1242,
+  "name": "堅盾魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "df": "150"
+  }
+ },
+ {
+  "id": 1246,
+  "name": "霧瀧魔石LV4",
+  "level": 3,
+  "class": 4,
+  "effects": {
+   "mdf": "150"
+  }
+ }
+]

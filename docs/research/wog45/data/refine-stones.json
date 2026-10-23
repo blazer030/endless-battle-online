@@ -1,0 +1,1842 @@
+[
+ {
+  "id": 1863,
+  "name": "白精鍊石LV1",
+  "type": 1,
+  "level": 1,
+  "effects": {
+   "str": "3,4"
+  }
+ },
+ {
+  "id": 1864,
+  "name": "白精鍊石LV2",
+  "type": 1,
+  "level": 2,
+  "effects": {
+   "str": "6,7"
+  }
+ },
+ {
+  "id": 1865,
+  "name": "白精鍊石LV3",
+  "type": 1,
+  "level": 3,
+  "effects": {
+   "str": "9,10"
+  }
+ },
+ {
+  "id": 1866,
+  "name": "白精鍊石LV4",
+  "type": 1,
+  "level": 4,
+  "effects": {
+   "str": "12,14"
+  }
+ },
+ {
+  "id": 1867,
+  "name": "白精鍊石LV5",
+  "type": 1,
+  "level": 5,
+  "effects": {
+   "str": "15,17"
+  }
+ },
+ {
+  "id": 1868,
+  "name": "白精鍊石LV6",
+  "type": 1,
+  "level": 6,
+  "effects": {
+   "str": "18,21"
+  }
+ },
+ {
+  "id": 1869,
+  "name": "白精鍊石LV7",
+  "type": 1,
+  "level": 7,
+  "effects": {
+   "str": "21,24"
+  }
+ },
+ {
+  "id": 1870,
+  "name": "白精鍊石LV8",
+  "type": 1,
+  "level": 8,
+  "effects": {
+   "str": "24,28"
+  }
+ },
+ {
+  "id": 1871,
+  "name": "白精鍊石LV9",
+  "type": 1,
+  "level": 9,
+  "effects": {
+   "str": "27,31"
+  }
+ },
+ {
+  "id": 1872,
+  "name": "白精鍊石LV10",
+  "type": 1,
+  "level": 10,
+  "effects": {
+   "str": "30,35"
+  }
+ },
+ {
+  "id": 1873,
+  "name": "黑精鍊石LV1",
+  "type": 2,
+  "level": 1,
+  "effects": {
+   "smart": "3,4"
+  }
+ },
+ {
+  "id": 1874,
+  "name": "黑精鍊石LV2",
+  "type": 2,
+  "level": 2,
+  "effects": {
+   "smart": "6,7"
+  }
+ },
+ {
+  "id": 1875,
+  "name": "黑精鍊石LV3",
+  "type": 2,
+  "level": 3,
+  "effects": {
+   "smart": "9,10"
+  }
+ },
+ {
+  "id": 1876,
+  "name": "黑精鍊石LV4",
+  "type": 2,
+  "level": 4,
+  "effects": {
+   "smart": "12,14"
+  }
+ },
+ {
+  "id": 1877,
+  "name": "黑精鍊石LV5",
+  "type": 2,
+  "level": 5,
+  "effects": {
+   "smart": "15,17"
+  }
+ },
+ {
+  "id": 1878,
+  "name": "黑精鍊石LV6",
+  "type": 2,
+  "level": 6,
+  "effects": {
+   "smart": "18,21"
+  }
+ },
+ {
+  "id": 1879,
+  "name": "黑精鍊石LV7",
+  "type": 2,
+  "level": 7,
+  "effects": {
+   "smart": "21,24"
+  }
+ },
+ {
+  "id": 1880,
+  "name": "黑精鍊石LV8",
+  "type": 2,
+  "level": 8,
+  "effects": {
+   "smart": "24,28"
+  }
+ },
+ {
+  "id": 1881,
+  "name": "黑精鍊石LV9",
+  "type": 2,
+  "level": 9,
+  "effects": {
+   "smart": "27,31"
+  }
+ },
+ {
+  "id": 1882,
+  "name": "黑精鍊石LV10",
+  "type": 2,
+  "level": 10,
+  "effects": {
+   "smart": "30,35"
+  }
+ },
+ {
+  "id": 1883,
+  "name": "藍精鍊石LV1",
+  "type": 3,
+  "level": 1,
+  "effects": {
+   "agi": "3,4"
+  }
+ },
+ {
+  "id": 1884,
+  "name": "藍精鍊石LV2",
+  "type": 3,
+  "level": 2,
+  "effects": {
+   "agi": "6,7"
+  }
+ },
+ {
+  "id": 1885,
+  "name": "藍精鍊石LV3",
+  "type": 3,
+  "level": 3,
+  "effects": {
+   "agi": "9,10"
+  }
+ },
+ {
+  "id": 1886,
+  "name": "藍精鍊石LV4",
+  "type": 3,
+  "level": 4,
+  "effects": {
+   "agi": "12,14"
+  }
+ },
+ {
+  "id": 1887,
+  "name": "藍精鍊石LV5",
+  "type": 3,
+  "level": 5,
+  "effects": {
+   "agi": "15,17"
+  }
+ },
+ {
+  "id": 1888,
+  "name": "藍精鍊石LV6",
+  "type": 3,
+  "level": 6,
+  "effects": {
+   "agi": "18,21"
+  }
+ },
+ {
+  "id": 1889,
+  "name": "藍精鍊石LV7",
+  "type": 3,
+  "level": 7,
+  "effects": {
+   "agi": "21,24"
+  }
+ },
+ {
+  "id": 1890,
+  "name": "藍精鍊石LV8",
+  "type": 3,
+  "level": 8,
+  "effects": {
+   "agi": "24,28"
+  }
+ },
+ {
+  "id": 1891,
+  "name": "藍精鍊石LV9",
+  "type": 3,
+  "level": 9,
+  "effects": {
+   "agi": "27,31"
+  }
+ },
+ {
+  "id": 1892,
+  "name": "藍精鍊石LV10",
+  "type": 3,
+  "level": 10,
+  "effects": {
+   "agi": "30,35"
+  }
+ },
+ {
+  "id": 1893,
+  "name": "綠精鍊石LV1",
+  "type": 4,
+  "level": 1,
+  "effects": {
+   "life": "2,3"
+  }
+ },
+ {
+  "id": 1894,
+  "name": "綠精鍊石LV2",
+  "type": 4,
+  "level": 2,
+  "effects": {
+   "life": "4,5"
+  }
+ },
+ {
+  "id": 1895,
+  "name": "綠精鍊石LV3",
+  "type": 4,
+  "level": 3,
+  "effects": {
+   "life": "6,7"
+  }
+ },
+ {
+  "id": 1896,
+  "name": "綠精鍊石LV4",
+  "type": 4,
+  "level": 4,
+  "effects": {
+   "life": "8,10"
+  }
+ },
+ {
+  "id": 1897,
+  "name": "綠精鍊石LV5",
+  "type": 4,
+  "level": 5,
+  "effects": {
+   "life": "10,12"
+  }
+ },
+ {
+  "id": 1898,
+  "name": "綠精鍊石LV6",
+  "type": 4,
+  "level": 6,
+  "effects": {
+   "life": "12,15"
+  }
+ },
+ {
+  "id": 1899,
+  "name": "綠精鍊石LV7",
+  "type": 4,
+  "level": 7,
+  "effects": {
+   "life": "14,17"
+  }
+ },
+ {
+  "id": 1900,
+  "name": "綠精鍊石LV8",
+  "type": 4,
+  "level": 8,
+  "effects": {
+   "life": "16,20"
+  }
+ },
+ {
+  "id": 1901,
+  "name": "綠精鍊石LV9",
+  "type": 4,
+  "level": 9,
+  "effects": {
+   "life": "18,22"
+  }
+ },
+ {
+  "id": 1902,
+  "name": "綠精鍊石LV10",
+  "type": 4,
+  "level": 10,
+  "effects": {
+   "life": "20,25"
+  }
+ },
+ {
+  "id": 1903,
+  "name": "紅精鍊石LV1",
+  "type": 5,
+  "level": 1,
+  "effects": {
+   "au": "3,4"
+  }
+ },
+ {
+  "id": 1904,
+  "name": "紅精鍊石LV2",
+  "type": 5,
+  "level": 2,
+  "effects": {
+   "au": "6,7"
+  }
+ },
+ {
+  "id": 1905,
+  "name": "紅精鍊石LV3",
+  "type": 5,
+  "level": 3,
+  "effects": {
+   "au": "9,10"
+  }
+ },
+ {
+  "id": 1906,
+  "name": "紅精鍊石LV4",
+  "type": 5,
+  "level": 4,
+  "effects": {
+   "au": "12,14"
+  }
+ },
+ {
+  "id": 1907,
+  "name": "紅精鍊石LV5",
+  "type": 5,
+  "level": 5,
+  "effects": {
+   "au": "15,17"
+  }
+ },
+ {
+  "id": 1908,
+  "name": "紅精鍊石LV6",
+  "type": 5,
+  "level": 6,
+  "effects": {
+   "au": "18,21"
+  }
+ },
+ {
+  "id": 1909,
+  "name": "紅精鍊石LV7",
+  "type": 5,
+  "level": 7,
+  "effects": {
+   "au": "21,24"
+  }
+ },
+ {
+  "id": 1910,
+  "name": "紅精鍊石LV8",
+  "type": 5,
+  "level": 8,
+  "effects": {
+   "au": "24,28"
+  }
+ },
+ {
+  "id": 1911,
+  "name": "紅精鍊石LV9",
+  "type": 5,
+  "level": 9,
+  "effects": {
+   "au": "27,31"
+  }
+ },
+ {
+  "id": 1912,
+  "name": "紅精鍊石LV10",
+  "type": 5,
+  "level": 10,
+  "effects": {
+   "au": "30,35"
+  }
+ },
+ {
+  "id": 1913,
+  "name": "黃精鍊石LV1",
+  "type": 6,
+  "level": 1,
+  "effects": {
+   "be": "3,4"
+  }
+ },
+ {
+  "id": 1914,
+  "name": "黃精鍊石LV2",
+  "type": 6,
+  "level": 2,
+  "effects": {
+   "be": "6,7"
+  }
+ },
+ {
+  "id": 1915,
+  "name": "黃精鍊石LV3",
+  "type": 6,
+  "level": 3,
+  "effects": {
+   "be": "9,10"
+  }
+ },
+ {
+  "id": 1916,
+  "name": "黃精鍊石LV4",
+  "type": 6,
+  "level": 4,
+  "effects": {
+   "be": "12,14"
+  }
+ },
+ {
+  "id": 1917,
+  "name": "黃精鍊石LV5",
+  "type": 6,
+  "level": 5,
+  "effects": {
+   "be": "15,17"
+  }
+ },
+ {
+  "id": 1918,
+  "name": "黃精鍊石LV6",
+  "type": 6,
+  "level": 6,
+  "effects": {
+   "be": "18,21"
+  }
+ },
+ {
+  "id": 1919,
+  "name": "黃精鍊石LV7",
+  "type": 6,
+  "level": 7,
+  "effects": {
+   "be": "21,24"
+  }
+ },
+ {
+  "id": 1920,
+  "name": "黃精鍊石LV8",
+  "type": 6,
+  "level": 8,
+  "effects": {
+   "be": "24,28"
+  }
+ },
+ {
+  "id": 1921,
+  "name": "黃精鍊石LV9",
+  "type": 6,
+  "level": 9,
+  "effects": {
+   "be": "27,31"
+  }
+ },
+ {
+  "id": 1922,
+  "name": "黃精鍊石LV10",
+  "type": 6,
+  "level": 10,
+  "effects": {
+   "be": "30,35"
+  }
+ },
+ {
+  "id": 1923,
+  "name": "紫精鍊石LV1",
+  "type": 7,
+  "level": 1,
+  "effects": {
+   "vit": "3,4"
+  }
+ },
+ {
+  "id": 1924,
+  "name": "紫精鍊石LV2",
+  "type": 7,
+  "level": 2,
+  "effects": {
+   "vit": "6,7"
+  }
+ },
+ {
+  "id": 1925,
+  "name": "紫精鍊石LV3",
+  "type": 7,
+  "level": 3,
+  "effects": {
+   "vit": "9,10"
+  }
+ },
+ {
+  "id": 1926,
+  "name": "紫精鍊石LV4",
+  "type": 7,
+  "level": 4,
+  "effects": {
+   "vit": "12,14"
+  }
+ },
+ {
+  "id": 1927,
+  "name": "紫精鍊石LV5",
+  "type": 7,
+  "level": 5,
+  "effects": {
+   "vit": "15,17"
+  }
+ },
+ {
+  "id": 1928,
+  "name": "紫精鍊石LV6",
+  "type": 7,
+  "level": 6,
+  "effects": {
+   "vit": "18,21"
+  }
+ },
+ {
+  "id": 1929,
+  "name": "紫精鍊石LV7",
+  "type": 7,
+  "level": 7,
+  "effects": {
+   "vit": "21,24"
+  }
+ },
+ {
+  "id": 1930,
+  "name": "紫精鍊石LV8",
+  "type": 7,
+  "level": 8,
+  "effects": {
+   "vit": "24,28"
+  }
+ },
+ {
+  "id": 1931,
+  "name": "紫精鍊石LV9",
+  "type": 7,
+  "level": 9,
+  "effects": {
+   "vit": "27,31"
+  }
+ },
+ {
+  "id": 1932,
+  "name": "紫精鍊石LV10",
+  "type": 7,
+  "level": 10,
+  "effects": {
+   "vit": "30,35"
+  }
+ },
+ {
+  "id": 1933,
+  "name": "白陽精鍊石LV1",
+  "type": 8,
+  "level": 1,
+  "effects": {
+   "at": "2,3",
+   "be": "2,3"
+  }
+ },
+ {
+  "id": 1934,
+  "name": "白陽精鍊石LV2",
+  "type": 8,
+  "level": 2,
+  "effects": {
+   "at": "4,6",
+   "be": "4,6"
+  }
+ },
+ {
+  "id": 1935,
+  "name": "白陽精鍊石LV3",
+  "type": 8,
+  "level": 3,
+  "effects": {
+   "at": "6,8",
+   "be": "6,8"
+  }
+ },
+ {
+  "id": 1936,
+  "name": "白陽精鍊石LV4",
+  "type": 8,
+  "level": 4,
+  "effects": {
+   "at": "8,11",
+   "be": "8,11"
+  }
+ },
+ {
+  "id": 1937,
+  "name": "白陽精鍊石LV5",
+  "type": 8,
+  "level": 5,
+  "effects": {
+   "at": "10,13",
+   "be": "10,13"
+  }
+ },
+ {
+  "id": 1938,
+  "name": "白陽精鍊石LV6",
+  "type": 8,
+  "level": 6,
+  "effects": {
+   "at": "12,16",
+   "be": "12,16"
+  }
+ },
+ {
+  "id": 1939,
+  "name": "白陽精鍊石LV7",
+  "type": 8,
+  "level": 7,
+  "effects": {
+   "at": "14,18",
+   "be": "14,18"
+  }
+ },
+ {
+  "id": 1940,
+  "name": "白陽精鍊石LV8",
+  "type": 8,
+  "level": 8,
+  "effects": {
+   "at": "16,21",
+   "be": "16,21"
+  }
+ },
+ {
+  "id": 1941,
+  "name": "白陽精鍊石LV9",
+  "type": 8,
+  "level": 9,
+  "effects": {
+   "at": "18,23",
+   "be": "18,23"
+  }
+ },
+ {
+  "id": 1942,
+  "name": "白陽精鍊石LV10",
+  "type": 8,
+  "level": 10,
+  "effects": {
+   "at": "20,26",
+   "be": "20,26"
+  }
+ },
+ {
+  "id": 1943,
+  "name": "火粹精鍊石LV1",
+  "type": 9,
+  "level": 1,
+  "effects": {
+   "mat": "2,3",
+   "vit": "2,3"
+  }
+ },
+ {
+  "id": 1944,
+  "name": "火粹精鍊石LV2",
+  "type": 9,
+  "level": 2,
+  "effects": {
+   "mat": "4,6",
+   "vit": "4,6"
+  }
+ },
+ {
+  "id": 1945,
+  "name": "火粹精鍊石LV3",
+  "type": 9,
+  "level": 3,
+  "effects": {
+   "mat": "6,8",
+   "vit": "6,8"
+  }
+ },
+ {
+  "id": 1946,
+  "name": "火粹精鍊石LV4",
+  "type": 9,
+  "level": 4,
+  "effects": {
+   "mat": "8,11",
+   "vit": "8,11"
+  }
+ },
+ {
+  "id": 1947,
+  "name": "火粹精鍊石LV5",
+  "type": 9,
+  "level": 5,
+  "effects": {
+   "mat": "10,13",
+   "vit": "10,13"
+  }
+ },
+ {
+  "id": 1948,
+  "name": "火粹精鍊石LV6",
+  "type": 9,
+  "level": 6,
+  "effects": {
+   "mat": "12,16",
+   "vit": "12,16"
+  }
+ },
+ {
+  "id": 1949,
+  "name": "火粹精鍊石LV7",
+  "type": 9,
+  "level": 7,
+  "effects": {
+   "mat": "14,18",
+   "vit": "14,18"
+  }
+ },
+ {
+  "id": 1950,
+  "name": "火粹精鍊石LV8",
+  "type": 9,
+  "level": 8,
+  "effects": {
+   "mat": "16,21",
+   "vit": "16,21"
+  }
+ },
+ {
+  "id": 1951,
+  "name": "火粹精鍊石LV9",
+  "type": 9,
+  "level": 9,
+  "effects": {
+   "mat": "18,23",
+   "vit": "18,23"
+  }
+ },
+ {
+  "id": 1952,
+  "name": "火粹精鍊石LV10",
+  "type": 9,
+  "level": 10,
+  "effects": {
+   "mat": "20,26",
+   "vit": "20,26"
+  }
+ },
+ {
+  "id": 1953,
+  "name": "蔚藍精鍊石LV1",
+  "type": 10,
+  "level": 1,
+  "effects": {
+   "df": "2,3",
+   "au": "2,3"
+  }
+ },
+ {
+  "id": 1954,
+  "name": "蔚藍精鍊石LV2",
+  "type": 10,
+  "level": 2,
+  "effects": {
+   "df": "4,6",
+   "au": "4,6"
+  }
+ },
+ {
+  "id": 1955,
+  "name": "蔚藍精鍊石LV3",
+  "type": 10,
+  "level": 3,
+  "effects": {
+   "df": "6,8",
+   "au": "6,8"
+  }
+ },
+ {
+  "id": 1956,
+  "name": "蔚藍精鍊石LV4",
+  "type": 10,
+  "level": 4,
+  "effects": {
+   "df": "8,11",
+   "au": "8,11"
+  }
+ },
+ {
+  "id": 1957,
+  "name": "蔚藍精鍊石LV5",
+  "type": 10,
+  "level": 5,
+  "effects": {
+   "df": "10,13",
+   "au": "10,13"
+  }
+ },
+ {
+  "id": 1958,
+  "name": "蔚藍精鍊石LV6",
+  "type": 10,
+  "level": 6,
+  "effects": {
+   "df": "12,16",
+   "au": "12,16"
+  }
+ },
+ {
+  "id": 1959,
+  "name": "蔚藍精鍊石LV7",
+  "type": 10,
+  "level": 7,
+  "effects": {
+   "df": "14,18",
+   "au": "14,18"
+  }
+ },
+ {
+  "id": 1960,
+  "name": "蔚藍精鍊石LV8",
+  "type": 10,
+  "level": 8,
+  "effects": {
+   "df": "16,21",
+   "au": "16,21"
+  }
+ },
+ {
+  "id": 1961,
+  "name": "蔚藍精鍊石LV9",
+  "type": 10,
+  "level": 9,
+  "effects": {
+   "df": "18,23",
+   "au": "18,23"
+  }
+ },
+ {
+  "id": 1962,
+  "name": "蔚藍精鍊石LV10",
+  "type": 10,
+  "level": 10,
+  "effects": {
+   "df": "20,26",
+   "au": "20,26"
+  }
+ },
+ {
+  "id": 1963,
+  "name": "海源精鍊石LV1",
+  "type": 11,
+  "level": 1,
+  "effects": {
+   "mdf": "2,3",
+   "agi": "2,3"
+  }
+ },
+ {
+  "id": 1964,
+  "name": "海源精鍊石LV2",
+  "type": 11,
+  "level": 2,
+  "effects": {
+   "mdf": "4,6",
+   "agi": "4,6"
+  }
+ },
+ {
+  "id": 1965,
+  "name": "海源精鍊石LV3",
+  "type": 11,
+  "level": 3,
+  "effects": {
+   "mdf": "6,8",
+   "agi": "6,8"
+  }
+ },
+ {
+  "id": 1966,
+  "name": "海源精鍊石LV4",
+  "type": 11,
+  "level": 4,
+  "effects": {
+   "mdf": "8,11",
+   "agi": "8,11"
+  }
+ },
+ {
+  "id": 1967,
+  "name": "海源精鍊石LV5",
+  "type": 11,
+  "level": 5,
+  "effects": {
+   "mdf": "10,13",
+   "agi": "10,13"
+  }
+ },
+ {
+  "id": 1968,
+  "name": "海源精鍊石LV6",
+  "type": 11,
+  "level": 6,
+  "effects": {
+   "mdf": "12,16",
+   "agi": "12,16"
+  }
+ },
+ {
+  "id": 1969,
+  "name": "海源精鍊石LV7",
+  "type": 11,
+  "level": 7,
+  "effects": {
+   "mdf": "14,18",
+   "agi": "14,18"
+  }
+ },
+ {
+  "id": 1970,
+  "name": "海源精鍊石LV8",
+  "type": 11,
+  "level": 8,
+  "effects": {
+   "mdf": "16,21",
+   "agi": "16,21"
+  }
+ },
+ {
+  "id": 1971,
+  "name": "海源精鍊石LV9",
+  "type": 11,
+  "level": 9,
+  "effects": {
+   "mdf": "18,23",
+   "agi": "18,23"
+  }
+ },
+ {
+  "id": 1972,
+  "name": "海源精鍊石LV10",
+  "type": 11,
+  "level": 10,
+  "effects": {
+   "mdf": "20,26",
+   "agi": "20,26"
+  }
+ },
+ {
+  "id": 1973,
+  "name": "毒沉精鍊石LV1",
+  "type": 12,
+  "level": 1,
+  "effects": {
+   "str": "2,3",
+   "smart": "2,3",
+   "life": "2,3"
+  }
+ },
+ {
+  "id": 1974,
+  "name": "毒沉精鍊石LV2",
+  "type": 12,
+  "level": 2,
+  "effects": {
+   "str": "4,5",
+   "smart": "4,5",
+   "life": "3,4"
+  }
+ },
+ {
+  "id": 1975,
+  "name": "毒沉精鍊石LV3",
+  "type": 12,
+  "level": 3,
+  "effects": {
+   "str": "6,7",
+   "smart": "6,7",
+   "life": "4,5"
+  }
+ },
+ {
+  "id": 1976,
+  "name": "毒沉精鍊石LV4",
+  "type": 12,
+  "level": 4,
+  "effects": {
+   "str": "8,10",
+   "smart": "8,10",
+   "life": "5,7"
+  }
+ },
+ {
+  "id": 1977,
+  "name": "毒沉精鍊石LV5",
+  "type": 12,
+  "level": 5,
+  "effects": {
+   "str": "10,12",
+   "smart": "10,12",
+   "life": "6,8"
+  }
+ },
+ {
+  "id": 1978,
+  "name": "毒沉精鍊石LV6",
+  "type": 12,
+  "level": 6,
+  "effects": {
+   "str": "12,15",
+   "smart": "12,15",
+   "life": "7,10"
+  }
+ },
+ {
+  "id": 1979,
+  "name": "毒沉精鍊石LV7",
+  "type": 12,
+  "level": 7,
+  "effects": {
+   "str": "14,17",
+   "smart": "14,17",
+   "life": "8,11"
+  }
+ },
+ {
+  "id": 1980,
+  "name": "毒沉精鍊石LV8",
+  "type": 12,
+  "level": 8,
+  "effects": {
+   "str": "16,20",
+   "smart": "16,20",
+   "life": "9,13"
+  }
+ },
+ {
+  "id": 1981,
+  "name": "毒沉精鍊石LV9",
+  "type": 12,
+  "level": 9,
+  "effects": {
+   "str": "18,22",
+   "smart": "18,22",
+   "life": "10,14"
+  }
+ },
+ {
+  "id": 1982,
+  "name": "毒沉精鍊石LV10",
+  "type": 12,
+  "level": 10,
+  "effects": {
+   "str": "20,25",
+   "smart": "20,25",
+   "life": "11,16"
+  }
+ },
+ {
+  "id": 1983,
+  "name": "紅蓮精鍊石LV1",
+  "type": 13,
+  "level": 1,
+  "effects": {
+   "agi": "2,4",
+   "au": "1,2",
+   "be": "2,3"
+  }
+ },
+ {
+  "id": 1984,
+  "name": "紅蓮精鍊石LV2",
+  "type": 13,
+  "level": 2,
+  "effects": {
+   "agi": "4,6",
+   "au": "3,4",
+   "be": "4,5"
+  }
+ },
+ {
+  "id": 1985,
+  "name": "紅蓮精鍊石LV3",
+  "type": 13,
+  "level": 3,
+  "effects": {
+   "agi": "6,8",
+   "au": "4,5",
+   "be": "6,7"
+  }
+ },
+ {
+  "id": 1986,
+  "name": "紅蓮精鍊石LV4",
+  "type": 13,
+  "level": 4,
+  "effects": {
+   "agi": "8,11",
+   "au": "6,8",
+   "be": "8,10"
+  }
+ },
+ {
+  "id": 1987,
+  "name": "紅蓮精鍊石LV5",
+  "type": 13,
+  "level": 5,
+  "effects": {
+   "agi": "10,13",
+   "au": "7,9",
+   "be": "10,12"
+  }
+ },
+ {
+  "id": 1988,
+  "name": "紅蓮精鍊石LV6",
+  "type": 13,
+  "level": 6,
+  "effects": {
+   "agi": "12,16",
+   "au": "8,11",
+   "be": "12,15"
+  }
+ },
+ {
+  "id": 1989,
+  "name": "紅蓮精鍊石LV7",
+  "type": 13,
+  "level": 7,
+  "effects": {
+   "agi": "14,18",
+   "au": "10,13",
+   "be": "14,17"
+  }
+ },
+ {
+  "id": 1990,
+  "name": "紅蓮精鍊石LV8",
+  "type": 13,
+  "level": 8,
+  "effects": {
+   "agi": "16,21",
+   "au": "11,15",
+   "be": "16,20"
+  }
+ },
+ {
+  "id": 1991,
+  "name": "紅蓮精鍊石LV9",
+  "type": 13,
+  "level": 9,
+  "effects": {
+   "agi": "18,23",
+   "au": "13,17",
+   "be": "18,22"
+  }
+ },
+ {
+  "id": 1992,
+  "name": "紅蓮精鍊石LV10",
+  "type": 13,
+  "level": 10,
+  "effects": {
+   "agi": "20,26",
+   "au": "14,19",
+   "be": "20,25"
+  }
+ },
+ {
+  "id": 1993,
+  "name": "詠春精鍊石LV1",
+  "type": 14,
+  "level": 1,
+  "effects": {
+   "at": "1,2",
+   "mdf": "2,3",
+   "vit": "2,4"
+  }
+ },
+ {
+  "id": 1994,
+  "name": "詠春精鍊石LV2",
+  "type": 14,
+  "level": 2,
+  "effects": {
+   "at": "3,4",
+   "mdf": "4,5",
+   "vit": "4,6"
+  }
+ },
+ {
+  "id": 1995,
+  "name": "詠春精鍊石LV3",
+  "type": 14,
+  "level": 3,
+  "effects": {
+   "at": "4,5",
+   "mdf": "6,7",
+   "vit": "6,8"
+  }
+ },
+ {
+  "id": 1996,
+  "name": "詠春精鍊石LV4",
+  "type": 14,
+  "level": 4,
+  "effects": {
+   "at": "6,8",
+   "mdf": "8,10",
+   "vit": "8,11"
+  }
+ },
+ {
+  "id": 1997,
+  "name": "詠春精鍊石LV5",
+  "type": 14,
+  "level": 5,
+  "effects": {
+   "at": "7,9",
+   "mdf": "10,12",
+   "vit": "10,13"
+  }
+ },
+ {
+  "id": 1998,
+  "name": "詠春精鍊石LV6",
+  "type": 14,
+  "level": 6,
+  "effects": {
+   "at": "8,11",
+   "mdf": "12,15",
+   "vit": "12,16"
+  }
+ },
+ {
+  "id": 1999,
+  "name": "詠春精鍊石LV7",
+  "type": 14,
+  "level": 7,
+  "effects": {
+   "at": "10,13",
+   "mdf": "14,17",
+   "vit": "14,18"
+  }
+ },
+ {
+  "id": 2000,
+  "name": "詠春精鍊石LV8",
+  "type": 14,
+  "level": 8,
+  "effects": {
+   "at": "11,15",
+   "mdf": "16,20",
+   "vit": "16,21"
+  }
+ },
+ {
+  "id": 2001,
+  "name": "詠春精鍊石LV9",
+  "type": 14,
+  "level": 9,
+  "effects": {
+   "at": "13,17",
+   "mdf": "18,22",
+   "vit": "18,23"
+  }
+ },
+ {
+  "id": 2002,
+  "name": "詠春精鍊石LV10",
+  "type": 14,
+  "level": 10,
+  "effects": {
+   "at": "14,19",
+   "mdf": "20,25",
+   "vit": "20,26"
+  }
+ },
+ {
+  "id": 2003,
+  "name": "非道精鍊石LV1",
+  "type": 15,
+  "level": 1,
+  "effects": {
+   "mat": "1,2",
+   "df": "2,3",
+   "au": "2,4"
+  }
+ },
+ {
+  "id": 2004,
+  "name": "非道精鍊石LV2",
+  "type": 15,
+  "level": 2,
+  "effects": {
+   "mat": "3,4",
+   "df": "4,5",
+   "au": "4,6"
+  }
+ },
+ {
+  "id": 2005,
+  "name": "非道精鍊石LV3",
+  "type": 15,
+  "level": 3,
+  "effects": {
+   "mat": "4,5",
+   "df": "6,7",
+   "au": "6,8"
+  }
+ },
+ {
+  "id": 2006,
+  "name": "非道精鍊石LV4",
+  "type": 15,
+  "level": 4,
+  "effects": {
+   "mat": "6,8",
+   "df": "8,10",
+   "au": "8,11"
+  }
+ },
+ {
+  "id": 2007,
+  "name": "非道精鍊石LV5",
+  "type": 15,
+  "level": 5,
+  "effects": {
+   "mat": "7,9",
+   "df": "10,12",
+   "au": "10,13"
+  }
+ },
+ {
+  "id": 2008,
+  "name": "非道精鍊石LV6",
+  "type": 15,
+  "level": 6,
+  "effects": {
+   "mat": "8,11",
+   "df": "12,15",
+   "au": "12,16"
+  }
+ },
+ {
+  "id": 2009,
+  "name": "非道精鍊石LV7",
+  "type": 15,
+  "level": 7,
+  "effects": {
+   "mat": "10,13",
+   "df": "14,17",
+   "au": "14,18"
+  }
+ },
+ {
+  "id": 2010,
+  "name": "非道精鍊石LV8",
+  "type": 15,
+  "level": 8,
+  "effects": {
+   "mat": "11,15",
+   "df": "16,20",
+   "au": "16,21"
+  }
+ },
+ {
+  "id": 2011,
+  "name": "非道精鍊石LV9",
+  "type": 15,
+  "level": 9,
+  "effects": {
+   "mat": "13,17",
+   "df": "18,22",
+   "au": "18,23"
+  }
+ },
+ {
+  "id": 2012,
+  "name": "非道精鍊石LV10",
+  "type": 15,
+  "level": 10,
+  "effects": {
+   "mat": "14,19",
+   "df": "20,25",
+   "au": "20,26"
+  }
+ },
+ {
+  "id": 2013,
+  "name": "光明精鍊石LV1",
+  "type": 16,
+  "level": 1,
+  "effects": {
+   "at": "2,3",
+   "smart": "2,3",
+   "vit": "1,2",
+   "au": "2,3"
+  }
+ },
+ {
+  "id": 2014,
+  "name": "光明精鍊石LV2",
+  "type": 16,
+  "level": 2,
+  "effects": {
+   "at": "4,5",
+   "smart": "4,5",
+   "vit": "3,4",
+   "au": "4,5"
+  }
+ },
+ {
+  "id": 2015,
+  "name": "光明精鍊石LV3",
+  "type": 16,
+  "level": 3,
+  "effects": {
+   "at": "7,8",
+   "smart": "5,6",
+   "vit": "4,5",
+   "au": "6,7"
+  }
+ },
+ {
+  "id": 2016,
+  "name": "光明精鍊石LV4",
+  "type": 16,
+  "level": 4,
+  "effects": {
+   "at": "9,11",
+   "smart": "7,9",
+   "vit": "5,7",
+   "au": "8,10"
+  }
+ },
+ {
+  "id": 2017,
+  "name": "光明精鍊石LV5",
+  "type": 16,
+  "level": 5,
+  "effects": {
+   "at": "11,13",
+   "smart": "9,11",
+   "vit": "7,9",
+   "au": "10,12"
+  }
+ },
+ {
+  "id": 2018,
+  "name": "光明精鍊石LV6",
+  "type": 16,
+  "level": 6,
+  "effects": {
+   "at": "13,16",
+   "smart": "11,14",
+   "vit": "8,11",
+   "au": "12,15"
+  }
+ },
+ {
+  "id": 2019,
+  "name": "光明精鍊石LV7",
+  "type": 16,
+  "level": 7,
+  "effects": {
+   "at": "15,18",
+   "smart": "13,16",
+   "vit": "9,12",
+   "au": "14,17"
+  }
+ },
+ {
+  "id": 2020,
+  "name": "光明精鍊石LV8",
+  "type": 16,
+  "level": 8,
+  "effects": {
+   "at": "18,22",
+   "smart": "14,18",
+   "vit": "10,14",
+   "au": "16,20"
+  }
+ },
+ {
+  "id": 2021,
+  "name": "光明精鍊石LV9",
+  "type": 16,
+  "level": 9,
+  "effects": {
+   "at": "20,24",
+   "smart": "16,20",
+   "vit": "12,16",
+   "au": "18,22"
+  }
+ },
+ {
+  "id": 2022,
+  "name": "光明精鍊石LV10",
+  "type": 16,
+  "level": 10,
+  "effects": {
+   "at": "22,27",
+   "smart": "18,23",
+   "vit": "13,18",
+   "au": "20,25"
+  }
+ },
+ {
+  "id": 2023,
+  "name": "黑暗精鍊石LV1",
+  "type": 17,
+  "level": 1,
+  "effects": {
+   "mat": "2,3",
+   "str": "2,3",
+   "agi": "2,3",
+   "be": "1,2"
+  }
+ },
+ {
+  "id": 2024,
+  "name": "黑暗精鍊石LV2",
+  "type": 17,
+  "level": 2,
+  "effects": {
+   "mat": "4,5",
+   "str": "4,5",
+   "agi": "4,5",
+   "be": "3,4"
+  }
+ },
+ {
+  "id": 2025,
+  "name": "黑暗精鍊石LV3",
+  "type": 17,
+  "level": 3,
+  "effects": {
+   "mat": "7,8",
+   "str": "5,6",
+   "agi": "6,7",
+   "be": "4,5"
+  }
+ },
+ {
+  "id": 2026,
+  "name": "黑暗精鍊石LV4",
+  "type": 17,
+  "level": 4,
+  "effects": {
+   "mat": "9,11",
+   "str": "7,9",
+   "agi": "8,10",
+   "be": "5,7"
+  }
+ },
+ {
+  "id": 2027,
+  "name": "黑暗精鍊石LV5",
+  "type": 17,
+  "level": 5,
+  "effects": {
+   "mat": "11,13",
+   "str": "9,11",
+   "agi": "10,12",
+   "be": "7,9"
+  }
+ },
+ {
+  "id": 2028,
+  "name": "黑暗精鍊石LV6",
+  "type": 17,
+  "level": 6,
+  "effects": {
+   "mat": "13,16",
+   "str": "11,14",
+   "agi": "12,15",
+   "be": "8,11"
+  }
+ },
+ {
+  "id": 2029,
+  "name": "黑暗精鍊石LV7",
+  "type": 17,
+  "level": 7,
+  "effects": {
+   "mat": "15,18",
+   "str": "13,16",
+   "agi": "14,17",
+   "be": "9,12"
+  }
+ },
+ {
+  "id": 2030,
+  "name": "黑暗精鍊石LV8",
+  "type": 17,
+  "level": 8,
+  "effects": {
+   "mat": "18,22",
+   "str": "14,18",
+   "agi": "16,20",
+   "be": "10,14"
+  }
+ },
+ {
+  "id": 2031,
+  "name": "黑暗精鍊石LV9",
+  "type": 17,
+  "level": 9,
+  "effects": {
+   "mat": "20,24",
+   "str": "16,20",
+   "agi": "18,22",
+   "be": "12,16"
+  }
+ },
+ {
+  "id": 2032,
+  "name": "黑暗精鍊石LV10",
+  "type": 17,
+  "level": 10,
+  "effects": {
+   "mat": "22,27",
+   "str": "18,23",
+   "agi": "20,25",
+   "be": "13,18"
+  }
+ },
+ {
+  "id": 2033,
+  "name": "鳳凰精鍊石LV1",
+  "type": 18,
+  "level": 1,
+  "effects": {
+   "df": "2,3",
+   "mdf": "2,3",
+   "str": "1,2",
+   "smart": "1,2",
+   "life": "2,3"
+  }
+ },
+ {
+  "id": 2034,
+  "name": "鳳凰精鍊石LV2",
+  "type": 18,
+  "level": 2,
+  "effects": {
+   "df": "4,5",
+   "mdf": "4,5",
+   "str": "3,4",
+   "smart": "3,4",
+   "life": "3,4"
+  }
+ },
+ {
+  "id": 2035,
+  "name": "鳳凰精鍊石LV3",
+  "type": 18,
+  "level": 3,
+  "effects": {
+   "df": "6,7",
+   "mdf": "6,7",
+   "str": "4,5",
+   "smart": "4,5",
+   "life": "5,6"
+  }
+ },
+ {
+  "id": 2036,
+  "name": "鳳凰精鍊石LV4",
+  "type": 18,
+  "level": 4,
+  "effects": {
+   "df": "8,10",
+   "mdf": "8,10",
+   "str": "6,8",
+   "smart": "6,8",
+   "life": "6,8"
+  }
+ },
+ {
+  "id": 2037,
+  "name": "鳳凰精鍊石LV5",
+  "type": 18,
+  "level": 5,
+  "effects": {
+   "df": "10,12",
+   "mdf": "10,12",
+   "str": "7,9",
+   "smart": "7,9",
+   "life": "8,10"
+  }
+ },
+ {
+  "id": 2038,
+  "name": "鳳凰精鍊石LV6",
+  "type": 18,
+  "level": 6,
+  "effects": {
+   "df": "11,14",
+   "mdf": "11,14",
+   "str": "8,11",
+   "smart": "8,11",
+   "life": "9,12"
+  }
+ },
+ {
+  "id": 2039,
+  "name": "鳳凰精鍊石LV7",
+  "type": 18,
+  "level": 7,
+  "effects": {
+   "df": "13,16",
+   "mdf": "13,16",
+   "str": "10,13",
+   "smart": "10,13",
+   "life": "11,14"
+  }
+ },
+ {
+  "id": 2040,
+  "name": "鳳凰精鍊石LV8",
+  "type": 18,
+  "level": 8,
+  "effects": {
+   "df": "15,19",
+   "mdf": "15,19",
+   "str": "11,15",
+   "smart": "11,15",
+   "life": "12,16"
+  }
+ },
+ {
+  "id": 2041,
+  "name": "鳳凰精鍊石LV9",
+  "type": 18,
+  "level": 9,
+  "effects": {
+   "df": "17,21",
+   "mdf": "17,21",
+   "str": "13,17",
+   "smart": "13,17",
+   "life": "14,18"
+  }
+ },
+ {
+  "id": 2042,
+  "name": "鳳凰精鍊石LV10",
+  "type": 18,
+  "level": 10,
+  "effects": {
+   "df": "19,24",
+   "mdf": "19,24",
+   "str": "14,19",
+   "smart": "14,19",
+   "life": "15,20"
+  }
+ }
+]

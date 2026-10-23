@@ -1,0 +1,57 @@
+[
+ {
+  "me_id": "1",
+  "me_name": "F級傭兵",
+  "me_money": "500",
+  "me_count": "850",
+  "me_get_money": "30",
+  "me_get_item": "30",
+  "me_get_exp": "65",
+  "me_die": "5",
+  "me_status": "0"
+ },
+ {
+  "me_id": "2",
+  "me_name": "E級傭兵",
+  "me_money": "100000",
+  "me_count": "900",
+  "me_get_money": "40",
+  "me_get_item": "40",
+  "me_get_exp": "75",
+  "me_die": "4",
+  "me_status": "0"
+ },
+ {
+  "me_id": "3",
+  "me_name": "D級傭兵",
+  "me_money": "1000000",
+  "me_count": "950",
+  "me_get_money": "50",
+  "me_get_item": "50",
+  "me_get_exp": "85",
+  "me_die": "3",
+  "me_status": "0"
+ },
+ {
+  "me_id": "4",
+  "me_name": "C級傭兵",
+  "me_money": "0",
+  "me_count": "900",
+  "me_get_money": "70",
+  "me_get_item": "70",
+  "me_get_exp": "100",
+  "me_die": "2",
+  "me_status": "1"
+ },
+ {
+  "me_id": "5",
+  "me_name": "B級傭兵",
+  "me_money": "0",
+  "me_count": "900",
+  "me_get_money": "80",
+  "me_get_item": "80",
+  "me_get_exp": "100",
+  "me_die": "1",
+  "me_status": "1"
+ }
+]
