@@ -7,7 +7,8 @@ const none: RefreshSignals = { bag: false, missions: false, skills: false }
 
 const signalsOf = (item: PlaybackItem): RefreshSignals => {
   if (item.kind === "mercenary") return { ...none, bag: true }
-  if (item.kind !== "event") return none
+  // 摘要涵蓋沒有逐筆播出的場次，掉落與任務進度都可能變了
+  if (item.kind === "summary") return { ...none, bag: true, missions: true }
   const { event } = item
   switch (event.type) {
     case "reward":

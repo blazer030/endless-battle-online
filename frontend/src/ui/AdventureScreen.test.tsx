@@ -715,3 +715,22 @@ test("AdventureScreen_OpenBagReloadsWhenADropPlays", async () => {
 
   expect(api.getInventory).toHaveBeenCalledTimes(2)
 })
+
+// 背景回來時伺服器只回最後一段事件，其餘場次的掉落由摘要交代
+test("AdventureScreen_OpenBagReloadsAfterASummary", async () => {
+  const api = createFakeApi({
+    ...response,
+    events: [],
+    summary: makeSummary({ fights: 30, wins: 30, exp: 240, money: 90 }),
+    eventsCoverAll: false,
+  })
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: "背包" }))
+  await advanceTime(0)
+  expect(api.getInventory).toHaveBeenCalledTimes(1)
+
+  await advanceTime(PanelRefreshMilliseconds + 1_000)
+
+  expect(api.getInventory).toHaveBeenCalledTimes(2)
+})

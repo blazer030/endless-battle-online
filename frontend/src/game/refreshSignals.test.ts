@@ -108,4 +108,18 @@ describe("refreshSignalsFor", () => {
       skills: true,
     })
   })
+
+  it("背景回來的摘要涵蓋沒逐筆播出的場次，重載背包與任務", () => {
+    const summary: PlaybackItem = {
+      kind: "summary",
+      fights: 30,
+      wins: 28,
+      exp: 900,
+      money: 300,
+      levels: 0,
+      missionKills: 0,
+      petsCaptured: 0,
+    }
+    expect(refreshSignalsFor([summary])).toEqual({ bag: true, missions: true, skills: false })
+  })
 })
