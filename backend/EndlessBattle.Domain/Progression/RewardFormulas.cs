@@ -16,7 +16,6 @@ public static class RewardFormulas
         int monsterHpValue,
         int playerLevel,
         bool killed,
-        double fDown,
         IRandomSource random,
         double? levelOverride = null)
     {
@@ -47,17 +46,17 @@ public static class RewardFormulas
             e *= 2.5;
         }
 
-        return (long)Math.Round(e * 2 * fDown, MidpointRounding.AwayFromZero);
+        return (long)Math.Round(e * 2, MidpointRounding.AwayFromZero);
     }
 
     // 超限時 WOG 以怪物等級 × 0.6、round(min(累計傷害, hpmax) / 1.5) 計算部分經驗
-    public static long TimeoutExp(MonsterDefinition monster, int damageDealt, int playerLevel, double fDown, IRandomSource random)
+    public static long TimeoutExp(MonsterDefinition monster, int damageDealt, int playerLevel, IRandomSource random)
     {
         var damageValue = (int)Math.Round(Math.Min(damageDealt, monster.Hp) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
-        return Exp(monster, damageValue, playerLevel, killed: false, fDown, random, levelOverride: monster.Level * TimeoutLevelFactor);
+        return Exp(monster, damageValue, playerLevel, killed: false, random, levelOverride: monster.Level * TimeoutLevelFactor);
     }
 
-    public static long Money(MonsterDefinition m, double fDown, IRandomSource random)
+    public static long Money(MonsterDefinition m, IRandomSource random)
     {
         double attackSum = m.At + m.Mat;
         // At + Mat 為 0 時 WOG 的 hp/(at+mat) 除以零得 false，rand(0, false) = 0，金錢為 0
@@ -69,9 +68,9 @@ public static class RewardFormulas
         double monsterLevel = m.Level;
         var levelRoll = PhpRandom.Between(random, monsterLevel / 2.5, monsterLevel);
         var attackRoll = PhpRandom.Between(random, attackSum / monsterLevel, m.Hp / attackSum * 0.4);
-        return (long)Math.Round(levelRoll * (attackRoll * 0.4) * fDown, MidpointRounding.AwayFromZero);
+        return (long)Math.Round(levelRoll * (attackRoll * 0.4), MidpointRounding.AwayFromZero);
     }
 
     // 每次擊殺的職業熟練度與技能點增量（WOG wog_fight_select.php 用 floor）
-    public static long JobExp(MonsterDefinition m, double fDown) => (long)Math.Floor(m.JobExp * fDown);
+    public static long JobExp(MonsterDefinition m) => m.JobExp;
 }

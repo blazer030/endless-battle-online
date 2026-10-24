@@ -53,7 +53,6 @@ public static class AdventureSimulator
         int fights = 0, wins = 0, losses = 0, timeouts = 0, escapes = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
-        const double fDown = 1;
 
         // 只要還有可用時間就開新的一場，開打的戰鬥一律打完（可能超過可用時間）
         while (cursor < totalSeconds)
@@ -130,12 +129,12 @@ public static class AdventureSimulator
                     wins++;
                     // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
                     exp = Buffs.Scale(
-                        RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, fDown, random),
+                        RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, random),
                         Buffs.Multiplier(buffs, BuffKind.Exp, fightStartsAt));
-                    money = RewardFormulas.Money(definition, fDown, random);
-                    jobExp = Buffs.Scale(RewardFormulas.JobExp(definition, fDown), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt));
+                    money = RewardFormulas.Money(definition, random);
+                    jobExp = Buffs.Scale(RewardFormulas.JobExp(definition), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt));
                     // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
-                    dropped = DropRoller.Roll(definition.Drops, fDown, random);
+                    dropped = DropRoller.Roll(definition.Drops, random);
                     break;
                 case CombatSide.Monster:
                     // 死亡沒有懲罰，HP 留在 0，下一場前住宿
@@ -144,7 +143,7 @@ public static class AdventureSimulator
                 default:
                     // 超限：部分經驗，沒有金錢與熟練度，不計敗場
                     timeouts++;
-                    exp = RewardFormulas.TimeoutExp(definition, outcome.DamageDealtToMonster, character.Level, fDown, random);
+                    exp = RewardFormulas.TimeoutExp(definition, outcome.DamageDealtToMonster, character.Level, random);
                     break;
             }
 

@@ -31,10 +31,9 @@ public sealed record MercenaryRun(
     IReadOnlyList<string> DroppedItemIds,
     IReadOnlyList<ActiveMission> Missions);
 
-// WOG fire_mercenary：每 100 秒一場，以角色當下的能力滿 HP／SP 出戰，不用補給、不耗行動力、不住宿、不捕捉
+// WOG fire_mercenary：每 100 秒一場，以角色當下的能力滿 HP／SP 出戰，不用補給、不住宿、不捕捉
 public static class MercenarySimulator
 {
-    private const double FullStamina = 1;
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(MercenaryRules.FightIntervalSeconds);
 
     // contract 必須是出擊中；placeMonsters 為該地區與全域怪，這裡排除全域怪、不分子地區
@@ -90,11 +89,11 @@ public static class MercenarySimulator
                 case CombatSide.Player:
                     result = MercenaryFightResult.Won;
                     exp = MercenaryRules.Discount(
-                        RewardFormulas.Exp(monster, monster.Hp, character.Level, killed: true, FullStamina, random), definition.ExpPercent);
-                    money = MercenaryRules.Discount(RewardFormulas.Money(monster, FullStamina, random), definition.MoneyPercent);
+                        RewardFormulas.Exp(monster, monster.Hp, character.Level, killed: true, random), definition.ExpPercent);
+                    money = MercenaryRules.Discount(RewardFormulas.Money(monster, random), definition.MoneyPercent);
                     // 熟練度不打折（PHP win_check）
-                    jobExpTotal += RewardFormulas.JobExp(monster, FullStamina);
-                    dropped = DropRoller.Roll(monster.Drops, FullStamina, random, dropFactor);
+                    jobExpTotal += RewardFormulas.JobExp(monster);
+                    dropped = DropRoller.Roll(monster.Drops, random, dropFactor);
                     missions = KillCounter.Apply(missions, monster.Id, fightAt).Missions;
                     remaining--;
                     break;
@@ -106,7 +105,7 @@ public static class MercenarySimulator
                     // PHP 超限 win=0 一律算敗，但仍給部分經驗
                     result = MercenaryFightResult.Timeout;
                     exp = MercenaryRules.Discount(
-                        RewardFormulas.TimeoutExp(monster, outcome.DamageDealtToMonster, character.Level, FullStamina, random), definition.ExpPercent);
+                        RewardFormulas.TimeoutExp(monster, outcome.DamageDealtToMonster, character.Level, random), definition.ExpPercent);
                     remaining -= definition.DeathCost;
                     break;
             }

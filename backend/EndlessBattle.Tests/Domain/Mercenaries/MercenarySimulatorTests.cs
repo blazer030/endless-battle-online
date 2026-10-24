@@ -12,7 +12,7 @@ using EndlessBattle.Tests.Support;
 namespace EndlessBattle.Tests.Domain.Mercenaries;
 
 // 除非另外指定，擲骰一律 0.0。地區 1 的 dummy（Lv5、hp 100、at 10、df 1、Meet 0）：
-// 滿血的預設角色第 1 回合以 210 點擊倒，怪物不出手；獎勵（Lv1、f_down 1）經驗 146、金錢 2、熟練度 12（手算見 AdventureSimulatorTests）
+// 滿血的預設角色第 1 回合以 210 點擊倒，怪物不出手；獎勵（Lv1）經驗 146、金錢 2、熟練度 12（手算見 AdventureSimulatorTests）
 public class MercenarySimulatorTests
 {
     private static readonly DateTimeOffset Now = new(2026, 1, 10, 0, 0, 0, TimeSpan.Zero);
@@ -122,7 +122,7 @@ public class MercenarySimulatorTests
 
         var fight = Assert.Single(run.Fights);
         Assert.Equal((MercenaryFightResult.Timeout, 22L, 0L), (fight.Result, fight.Exp, fight.Money));
-        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExp(rock, 40, 1, 1, new ScriptedRandom(0.0)), 50), fight.Exp);
+        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExp(rock, 40, 1, new ScriptedRandom(0.0)), 50), fight.Exp);
         Assert.Equal(8, run.Contract!.Remaining);
     }
 
