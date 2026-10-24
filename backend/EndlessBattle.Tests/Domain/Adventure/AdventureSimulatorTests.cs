@@ -62,8 +62,8 @@ public class AdventureSimulatorTests
     }
 
     // 擊殺 dummy（Lv5、at 10、mat 0、hp 100、jobExp 12）、玩家 Lv1：
-    // 經驗 base 5 → rand(5, 10) = 5；×1.3 = 6.5；5 × 6.5 × 5 × 1 × 0.18 = 29.25；Lv ≤ 15 ×2.5 = 73.125；×2 = 146.25 → 146（行動力不足 ×0.5 → 73.125 → 73）
-    // 金錢 rand(5/2.5, 5) = 2 × rand(10/5, 100/10×0.4) = 2 → 2 × 2 × 0.4 = 1.6 → 2（×0.5 → 0.8 → 1）；熟練度 ⌊12 × f⌋ = 12（×0.5 → 6）
+    // 經驗 base 5 → rand(5, 10) = 5；×1.3 = 6.5；5 × 6.5 × 5 × 1 × 0.18 = 29.25；Lv ≤ 15 ×2.5 = 73.125；×2 = 146.25 → 146
+    // 金錢 rand(5/2.5, 5) = 2 × rand(10/5, 100/10×0.4) = 2 → 2 × 2 × 0.4 = 1.6 → 2；熟練度 ⌊12⌋ = 12
     [Fact]
     public void Adventure_AppliesLevelUpsAndJobGains()
     {
@@ -199,7 +199,7 @@ public class AdventureSimulatorTests
         Assert.Equal(3.6, run.ConsumedSeconds, 9);
     }
 
-    // 每場 1 回合 0.8 秒 + 場間 2 秒 = 2.8 秒（行動力 50 足夠 43 場）；120 秒內在 0、2.8、…、117.6 開打共 43 場。
+    // 每場 1 回合 0.8 秒 + 場間 2 秒 = 2.8 秒；120 秒內在 0、2.8、…、117.6 開打共 43 場。
     // 只保留開打時間 ≥ 120 − 30 = 90 的場次：33 × 2.8 = 92.4 起的 10 場；摘要仍計入全部
     [Fact]
     public void Adventure_KeepsOnlyLastThirtySecondsOfEvents()
@@ -217,53 +217,18 @@ public class AdventureSimulatorTests
         Assert.Equal(120.4, run.ConsumedSeconds, 6);
     }
 
-    // 行動力 0 → 消耗後 −1：f_down 0.5、場間 12 秒；存回時不低於 0（WOG 只處理 0 與 −1 兩種情況）
+    // 200 秒內每場 0.8 + 2 = 2.8 秒，在 0、2.8、…、198.8 開打共 72 場，
+    // 每場都全額 146／2／12，場間一直是 2 秒。NextExp 設得很大，避免升級改變獎勵（手算見 Adventure_AppliesLevelUpsAndJobGains 上方）
     [Fact]
-    public void Adventure_DepletedStaminaFlagsEncounterAndHalvesRewards()
+    public void Adventure_EveryFightPaysFullAtNormalInterval()
     {
-        var run = Run(Hero() with { ActNum = 0, ActNumTime = From }, seconds: 1);
+        var run = Run(Hero() with { NextExp = 1_000_000 }, seconds: 200);
 
-        Assert.True(run.Events.OfType<EncounterEvent>().Single().StaminaDepleted);
-        Assert.Equal(new RewardEvent(0, Exp: 73, Money: 1, JobExp: 6), run.Events.OfType<RewardEvent>().Single());
-        Assert.Equal(73, RewardFormulas.Exp(Dummy, Dummy.Hp, playerLevel: 1, killed: true, fDown: 0.5, new ScriptedRandom(0.0)));
-        Assert.Equal(new StaminaState(0, From), run.Stamina);
-        Assert.Equal(12.8, run.ConsumedSeconds, 9);
-    }
-
-    // 行動力 1：第一場消耗後為 0，f_down 仍為 1（WOG act == 0 那一場全額）但場間已是 12 秒；
-    // 第二場消耗後為 −1 → f_down 0.5。兩場都在第 1 回合擊倒 dummy（Lv1 未升級），開打時間 0 與 0.8 + 12 = 12.8。
-    // 全額：exp 146、money 2、jobExp 12；半額：73.125 → 73、0.8 → 1、⌊6⌋ = 6（手算見 Adventure_AppliesLevelUpsAndJobGains 上方）
-    [Fact]
-    public void Adventure_LastStaminaPointStillPaysFull()
-    {
-        var run = Run(Hero() with { ActNum = 1, ActNumTime = From }, seconds: 14);
-
+        Assert.Equal(72, run.Summary.Fights);
+        Assert.Equal((Exp: 72 * 146L, Money: 72 * 2L, JobExp: 72 * 12L), (run.Summary.Exp, run.Summary.Money, run.Summary.JobExp));
         var encounters = run.Events.OfType<EncounterEvent>().ToList();
-        Assert.Equal(2, encounters.Count);
-        Assert.Equal(12.8, encounters[1].AtSeconds - encounters[0].AtSeconds, 9);
-        Assert.Equal([false, true], encounters.Select(encounter => encounter.StaminaDepleted));
-        Assert.Equal(
-            [new RewardEvent(0, Exp: 146, Money: 2, JobExp: 12), new RewardEvent(12.8, Exp: 73, Money: 1, JobExp: 6)],
-            run.Events.OfType<RewardEvent>().Select(reward => reward with { AtSeconds = Math.Round(reward.AtSeconds, 9) }));
-    }
-
-    // 行動力 0 起跑：每場消耗後 −1 → 半額、場間 12 秒，存回 0；開打時間 0、12.8、…、179.2（第 14 場仍不滿 180 秒）。
-    // 第 15 場在 15 × 12.8 = 192 秒開打前回復：192 / 180 ≥ 1 → +6、LastRegenAt 推進到 192 秒；
-    // 消耗後 5 → 全額、場間回到 2 秒，之後 194.8、197.6 開打（200.4 已超過 200 秒）。最終行動力 6 − 3 = 3。
-    // NextExp 設得很大，避免升級改變獎勵：全額 146／2／12、半額 73／1／6（手算見 Adventure_AppliesLevelUpsAndJobGains 上方）
-    [Fact]
-    public void Adventure_RegeneratesStaminaOnTheTimeline()
-    {
-        var run = Run(Hero() with { ActNum = 0, ActNumTime = From, NextExp = 1_000_000 }, seconds: 200);
-
-        var encounters = run.Events.OfType<EncounterEvent>().ToList();
-        var rewards = run.Events.OfType<RewardEvent>().ToList();
-        Assert.Equal([179.2, 192, 194.8, 197.6], encounters.Select(encounter => Math.Round(encounter.AtSeconds, 6)));
-        Assert.Equal([true, false, false, false], encounters.Select(encounter => encounter.StaminaDepleted));
-        Assert.Equal((Exp: 73L, Money: 1L, JobExp: 6L), (rewards[0].Exp, rewards[0].Money, rewards[0].JobExp));
-        Assert.Equal((Exp: 146L, Money: 2L, JobExp: 12L), (rewards[1].Exp, rewards[1].Money, rewards[1].JobExp));
-        Assert.Equal(2.8, encounters[2].AtSeconds - encounters[1].AtSeconds, 9);
-        Assert.Equal(new StaminaState(3, From.AddSeconds(encounters[1].AtSeconds)), run.Stamina);
+        Assert.All(encounters.Zip(encounters.Skip(1)), pair => Assert.Equal(2.8, pair.Second.AtSeconds - pair.First.AtSeconds, 9));
+        Assert.Equal(201.6, run.ConsumedSeconds, 6);
     }
 
     // rock（hp 60、at 40、df 1000）對 Df 1000 的角色：雙方每下 1 點，40 回合後超限（32 秒）。

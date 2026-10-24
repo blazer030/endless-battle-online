@@ -216,7 +216,6 @@ public class AdventureServiceTests
     }
 
     // HP 0 → 先住宿 15 秒回滿 350／91；15 秒那場擊倒雪精：999 + 116 > 1000 → Lv2，成長取下限 (2,0,1,1,1,0,0)。
-    // 行動力 50 − 1 = 49，回復時間從第一次結算的 Start 起算
     [Fact]
     public async Task Advance_PersistsHpAndLevel()
     {
@@ -233,8 +232,6 @@ public class AdventureServiceTests
         Assert.Equal(115, stored.Exp);
         Assert.Equal(2184, stored.NextExp);
         Assert.Equal(new BaseStats(14, 12, 13, 11, 13, 10, 10), stored.Base);
-        Assert.Equal(49, stored.ActNum);
-        Assert.Equal(Start, stored.ActNumTime);
         Assert.Equal(1, stored.Version);
     }
 
@@ -284,7 +281,7 @@ public class AdventureServiceTests
         Assert.True(result.Summary.Fights > 1000);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(from.AddSeconds(expected.ConsumedSeconds), stored!.LastSettledAt);
-        Assert.InRange(stored.LastSettledAt, clock.UtcNow, clock.UtcNow.AddSeconds(WogBattle.MaxRounds * BattleTiming.SecondsPerRound + BattleTiming.FightIntervalWhenDepletedSeconds));
+        Assert.InRange(stored.LastSettledAt, clock.UtcNow, clock.UtcNow.AddSeconds(WogBattle.MaxRounds * BattleTiming.SecondsPerRound + BattleTiming.FightIntervalSeconds));
         Assert.All(result.Events, battleEvent => Assert.True(battleEvent.AtSeconds >= AdventureSimulator.MaxSimulatedSeconds - AdventureSimulator.CatchUpWindowSeconds));
     }
 

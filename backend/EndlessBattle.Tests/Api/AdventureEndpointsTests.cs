@@ -52,7 +52,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
             summary.GetProperty("fights").GetInt32());
 
         var character = body.GetProperty("character");
-        Assert.Equal(StaminaMax - summary.GetProperty("fights").GetInt32(), character.GetProperty("actNum").GetInt32());
+        Assert.Equal(StaminaMax, character.GetProperty("actNum").GetInt32());
         Assert.Equal(StaminaMax, character.GetProperty("actNumMax").GetInt32());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(character.ToString(), me.ToString());

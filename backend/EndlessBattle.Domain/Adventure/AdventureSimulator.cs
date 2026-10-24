@@ -53,13 +53,13 @@ public static class AdventureSimulator
         int fights = 0, wins = 0, losses = 0, timeouts = 0, escapes = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
         long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
         var cursor = 0.0;
+        const double fDown = 1;
 
         // 只要還有可用時間就開新的一場，開打的戰鬥一律打完（可能超過可用時間）
         while (cursor < totalSeconds)
         {
             // 事件以整場為單位取捨；窗口外的場次照樣結算，只是不輸出事件
             var keepEvents = cursor >= windowStart;
-            stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
             // 死亡、HP 低於門檻，或（有主動技能時）SP 低於門檻，先住宿再開打；被動不耗 SP，不看 SP 門檻
             if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), skills.Any(skill => skill.Skill.Type == SkillType.Active)))
@@ -74,8 +74,6 @@ public static class AdventureSimulator
                 cursor += rest.WaitSeconds;
                 continue;
             }
-
-            (stamina, var fDown, var intervalSeconds) = StaminaRules.Consume(stamina);
 
             // 任務怪只在其任務尚未達成且未過期時出現；任務邏輯不擲骰，沒有任務怪時擲骰序列不變
             var fightStartsAt = from.AddSeconds(cursor);
@@ -97,7 +95,7 @@ public static class AdventureSimulator
             if (keepEvents)
             {
                 events.Add(new EncounterEvent(fightStart, definition.Id, definition.Hp, definition.Hp,
-                    player.Hp, player.HpMax, player.Sp, player.SpMax, StaminaDepleted: fDown < 1, carriedPet?.Name, carriedPet?.MonsterId));
+                    player.Hp, player.HpMax, player.Sp, player.SpMax, StaminaDepleted: false, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
                     events.Add(battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart });
@@ -205,7 +203,7 @@ public static class AdventureSimulator
                 }
             }
 
-            cursor += outcome.Rounds * BattleTiming.SecondsPerRound + intervalSeconds;
+            cursor += outcome.Rounds * BattleTiming.SecondsPerRound + BattleTiming.FightIntervalSeconds;
         }
 
         var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count, Escapes: escapes);

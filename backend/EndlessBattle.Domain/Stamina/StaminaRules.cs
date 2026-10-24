@@ -1,5 +1,3 @@
-using EndlessBattle.Domain.Battle;
-
 namespace EndlessBattle.Domain.Stamina;
 
 public sealed record StaminaState(int ActNum, DateTimeOffset? LastRegenAt);
@@ -28,19 +26,5 @@ public static class StaminaRules
         }
 
         return new StaminaState(Math.Min(act, Max), now);
-    }
-
-    // f_down 與場間間隔依消耗後的真實值判斷（act == 0 那一場仍全額）；
-    // 存回的行動力不低於 0：WOG 只處理 0 與 −1 兩種情況，放置時一直在戰鬥，負值會讓回復永遠追不上
-    public static (StaminaState State, double FDown, double IntervalSeconds) Consume(StaminaState s)
-    {
-        var act = s.ActNum - 1;
-        var next = s with { ActNum = Math.Max(act, 0) };
-        return act switch
-        {
-            < 0 => (next, 0.5, BattleTiming.FightIntervalWhenDepletedSeconds),
-            0 => (next, 1.0, BattleTiming.FightIntervalWhenDepletedSeconds),
-            _ => (next, 1.0, BattleTiming.FightIntervalSeconds),
-        };
     }
 }
