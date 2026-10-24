@@ -663,7 +663,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-sword", "test-helm", "test-supply", "test-refine-stone", "test-stone", "test-ore",
-                "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion", "test-stamina-potion",
+                "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
@@ -871,7 +871,7 @@ public class JsonGameContentTests
         { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"None\"", "consumable" },
         { ValidSupply, "\"supplyHp\": 50, \"supplySp\": 25", "\"supplyHp\": 0, \"supplySp\": 0", "supply" },
         { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"StatPotion\"", "bonus" },
-        { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"StaminaPotion\"", "amount" },
+        { ValidSupply, "\"consumable\": \"Supply\"", "\"consumable\": \"BagExpansion\"", "amount" },
         { ValidOre, "\"price\": 10", "\"consumable\": \"Supply\", \"supplyHp\": 50, \"price\": 10", "consumable" },
         { ValidOre, "\"price\": 10", "\"refine\": { \"level\": 1, \"kind\": 1, \"at\": [1, 2] }, \"price\": 10", "refine" },
         { ValidOre, "\"price\": 10", "\"stone\": { \"random\": false, \"fixed\": { \"at\": 5 } }, \"price\": 10", "stone" },

@@ -87,7 +87,6 @@
     {"id": "small-supply", "name": "小補給藥劑", "category": "Consumable", "consumable": "Supply", "supplyHp": 50, "supplySp": 25, "price": 20, "shopLevel": 1, "shopSellable": true},
     {"id": "medium-supply", "name": "中補給藥劑", "category": "Consumable", "consumable": "Supply", "supplyHp": 200, "supplySp": 100, "price": 80, "shopLevel": 3, "shopSellable": true},
     {"id": "large-supply", "name": "大補給藥劑", "category": "Consumable", "consumable": "Supply", "supplyHp": 800, "supplySp": 400, "price": 300, "shopLevel": 5, "shopSellable": true},
-    {"id": "stamina-potion", "name": "行動力藥水", "category": "Consumable", "consumable": "StaminaPotion", "amount": 20, "price": 500, "shopLevel": 2, "shopSellable": true},
     {"id": "bag-expansion", "name": "背包擴充券", "category": "Consumable", "consumable": "BagExpansion", "amount": 5, "price": 10000, "shopLevel": 4, "shopSellable": true},
     {"id": "depot-expansion", "name": "倉庫擴充券", "category": "Consumable", "consumable": "DepotExpansion", "amount": 5, "price": 10000, "shopLevel": 4, "shopSellable": true},
     {"id": "str-potion", "name": "力量藥水", "category": "Consumable", "consumable": "StatPotion", "bonus": {"str": 1}, "price": 5000, "shopLevel": 7, "shopSellable": true},

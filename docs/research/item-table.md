@@ -1,6 +1,6 @@
 # 道具總表（計畫 7）
 
-`backend/content/items.json` 共 167 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件、密藥 6 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
+`backend/content/items.json` 共 166 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件、密藥 6 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
 
 ## 裝備公式
 
@@ -144,7 +144,6 @@
 | 1 | `small-supply` | 小補給藥劑 | 補給品 | hp +50、sp +25 | 20 |
 | 3 | `medium-supply` | 中補給藥劑 | 補給品 | hp +200、sp +100 | 80 |
 | 5 | `large-supply` | 大補給藥劑 | 補給品 | hp +800、sp +400 | 300 |
-| 2 | `stamina-potion` | 行動力藥水 | 行動力藥水 | 行動力 +20 | 500 |
 | 4 | `bag-expansion` | 背包擴充券 | 背包擴充 | +5 格 | 10000 |
 | 4 | `depot-expansion` | 倉庫擴充券 | 倉庫擴充 | +5 格 | 10000 |
 | 7 | `str-potion` | 力量藥水 | 能力藥水 | 力量 +1 | 5000 |

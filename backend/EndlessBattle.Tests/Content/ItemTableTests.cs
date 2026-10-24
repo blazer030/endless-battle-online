@@ -84,7 +84,6 @@ public partial class ItemTableTests
         Assert.All(statPotions, potion => Assert.Equal(1, BaseStats(potion.Bonus).Sum()));
         Assert.Equal(Enumerable.Repeat(1, 7), Enumerable.Range(0, 7).Select(index => statPotions.Count(potion => BaseStats(potion.Bonus)[index] == 1)));
 
-        Assert.Equal(20, Content.AllItems.Single(item => item.Consumable == ConsumableKind.StaminaPotion).Amount);
         Assert.Equal(5, Content.AllItems.Single(item => item.Consumable == ConsumableKind.BagExpansion).Amount);
         Assert.Equal(5, Content.AllItems.Single(item => item.Consumable == ConsumableKind.DepotExpansion).Amount);
 

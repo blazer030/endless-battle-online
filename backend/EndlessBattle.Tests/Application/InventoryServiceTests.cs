@@ -291,19 +291,6 @@ public class InventoryServiceTests
         Assert.Equal(14, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Base.Str);
     }
 
-    // +20：10 → 30；40 → 上限 50
-    [Theory]
-    [InlineData(10, 30)]
-    [InlineData(40, 50)]
-    public async Task Use_StaminaPotionCapsAtFifty(int before, int after)
-    {
-        var character = await AddCharacterAsync(character => character with { ActNum = before });
-
-        await service.UseAsync(AccountId, await GiveAsync(character, "test-stamina-potion"), CancellationToken);
-
-        Assert.Equal(after, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.ActNum);
-    }
-
     // 擴充是「設定」為 5，不是累加：3 → 5（累加會變 8）；道具與魔石分類變 20 格
     [Fact]
     public async Task Use_BagExpansionSetsNotAdds()

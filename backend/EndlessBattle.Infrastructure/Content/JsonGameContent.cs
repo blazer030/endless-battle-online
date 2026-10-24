@@ -606,8 +606,8 @@ public sealed class JsonGameContent : IGameContent
             Require(item.Consumable == ConsumableKind.None, $"道具 {id} 不是消耗品，consumable 必須為 None");
         }
 
-        var usesAmount = item.Consumable is ConsumableKind.StaminaPotion or ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion
-            or ConsumableKind.Capture or ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.PetEgg
+        var usesAmount = item.Consumable is ConsumableKind.BagExpansion or ConsumableKind.DepotExpansion or ConsumableKind.Capture
+            or ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.PetEgg
             or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule;
         // 先檢查該種消耗品自己需要的欄位，再檢查用不到的欄位為 0
         if (item.Consumable == ConsumableKind.Supply)
@@ -629,7 +629,7 @@ public sealed class JsonGameContent : IGameContent
 
         Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHp == 0 && item.SupplySp == 0),
             $"道具 {id} 不是補給品，supplyHp 與 supplySp 必須為 0");
-        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於行動力藥水、擴充、捕捉道具、寶箱、寵物蛋、心得書與經驗膠囊");
+        Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於擴充、捕捉道具、寶箱、寵物蛋、心得書與經驗膠囊");
         Require(item.Consumable == ConsumableKind.StatPotion || item.Bonus == StatBonus.Zero,
             $"道具 {id} 不能有 bonus（只有能力藥水可以）");
 

@@ -68,7 +68,6 @@ export const isSupply = (item: InventoryItem) =>
 
 const usableKinds: ReadonlySet<InventoryItem["consumable"]> = new Set([
   "StatPotion",
-  "StaminaPotion",
   "BagExpansion",
   "DepotExpansion",
   "StoneBox",

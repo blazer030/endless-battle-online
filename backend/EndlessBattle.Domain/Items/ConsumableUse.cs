@@ -4,7 +4,6 @@ using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
-using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Items;
 
@@ -24,7 +23,7 @@ public static class ConsumableUse
     // 原因代碼：notUsable（補給品、裝備、材料等不能從背包直接使用）、noEffect（擴充格數不比目前多）、petsFull（寵物蛋）
     public static IReadOnlyList<string> CanUse(UseContext context, ItemDefinition item) => item.Consumable switch
     {
-        ConsumableKind.StatPotion or ConsumableKind.StaminaPotion => [],
+        ConsumableKind.StatPotion => [],
         ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : ["noEffect"],
         ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : ["noEffect"],
         ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule
@@ -40,8 +39,6 @@ public static class ConsumableUse
         return item.Consumable switch
         {
             ConsumableKind.StatPotion => Changed(character with { Base = item.Bonus.AddTo(character.Base) }),
-            // 行動力以存檔值計算；尚未入帳的自然回復之後照常加上，總和一樣不超過上限
-            ConsumableKind.StaminaPotion => Changed(character with { ActNum = Math.Min(StaminaRules.Max, character.ActNum + item.Amount) }),
             // 擴充是設定成道具的格數，不累加
             ConsumableKind.BagExpansion => Changed(character with { BagBonus = item.Amount }),
             ConsumableKind.DepotExpansion => Changed(character with { DepotBonus = item.Amount }),

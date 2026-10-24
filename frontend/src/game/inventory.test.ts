@@ -291,7 +291,6 @@ describe("bank", () => {
 describe("isUsable", () => {
   it.each([
     "StatPotion",
-    "StaminaPotion",
     "BagExpansion",
     "DepotExpansion",
     "StoneBox",

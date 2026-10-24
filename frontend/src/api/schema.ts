@@ -2570,7 +2570,7 @@ export interface components {
         /** @enum {unknown} */
         CombatSide: "Player" | "Monster";
         /** @enum {unknown} */
-        ConsumableKind: "None" | "Supply" | "StatPotion" | "StaminaPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule" | "Elixir";
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule" | "Elixir";
         ContentResponse: {
             monsters: components["schemas"]["NamedContent"][];
             jobs: components["schemas"]["JobContent"][];
