@@ -95,7 +95,7 @@ public sealed class SkillService(
         // 內容縮減等級上限時，已學等級以上限計
         var current = level == 0 ? null : skill.LevelAt(Math.Min(level, skill.MaxLevel));
         return new SkillView(
-            skill.Id, skill.Name, skill.Type, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel,
-            current?.Chance ?? 0, current?.Cooldown ?? 0, skill.EffectiveTrigger, next);
+            skill.Id, skill.Name, skill.Type, skill.Timing, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel,
+            current?.Rounds ?? 0, current?.Chance ?? 0, current?.Cooldown ?? 0, skill.EffectiveTrigger, next);
     }
 }

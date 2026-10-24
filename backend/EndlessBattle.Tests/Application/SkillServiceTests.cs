@@ -222,6 +222,7 @@ public class SkillServiceTests
 
         var heal = Assert.Single(overview.Skills, skill => skill.Id == "heal");
         Assert.Equal((4, SkillTrigger.HpBelow(50), 4), (heal.Cooldown, heal.Trigger, heal.Next!.Cooldown));
+        Assert.Equal((SkillTiming.BeforeAttack, 1), (heal.Timing, heal.Rounds));
         var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
         Assert.Equal((0, SkillTrigger.Chance), (burst.Cooldown, burst.Trigger));
         Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Trigger);

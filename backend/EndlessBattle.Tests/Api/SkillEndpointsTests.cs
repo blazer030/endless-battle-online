@@ -128,6 +128,8 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("HpBelow", heal.GetProperty("trigger").GetProperty("kind").GetString());
         Assert.Equal(50, heal.GetProperty("trigger").GetProperty("percent").GetInt32());
         Assert.Equal(4, heal.GetProperty("next").GetProperty("cooldown").GetInt32());
+        Assert.Equal("BeforeAttack", heal.GetProperty("timing").GetString());
+        Assert.Equal(1, heal.GetProperty("rounds").GetInt32());
         Assert.Equal("Chance", skills["burst"].GetProperty("trigger").GetProperty("kind").GetString());
         Assert.Equal(0, skills["burst"].GetProperty("cooldown").GetInt32());
         Assert.Equal(JsonValueKind.Null, skills["iron-skin"].GetProperty("trigger").ValueKind);

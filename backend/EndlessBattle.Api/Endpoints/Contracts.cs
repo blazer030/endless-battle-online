@@ -151,17 +151,19 @@ public sealed record SkillOverviewResponse(
     IReadOnlyList<SkillResponse> Skills,
     IReadOnlyList<SkillSlotResponse> Slots);
 
-// Level 0 表示尚未學習；Chance、Cooldown 是目前等級的值（未學為 0）；Trigger 是發動條件（常駐被動為 null）；
+// Level 0 表示尚未學習；Rounds、Chance、Cooldown 是目前等級的值（未學為 0）；Timing 是觸發時機；Trigger 是發動條件（常駐被動為 null）；
 // Next 在已滿級時為 null
 public sealed record SkillResponse(
     string Id,
     string Name,
     SkillType Type,
+    SkillTiming Timing,
     SkillEffectKind Effect,
     string Description,
     string JobId,
     int Level,
     int MaxLevel,
+    int Rounds,
     int Chance,
     int Cooldown,
     SkillTriggerResponse? Trigger,
