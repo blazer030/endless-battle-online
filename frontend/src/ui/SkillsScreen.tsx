@@ -6,6 +6,7 @@ import {
   clearSlot,
   cooldownText,
   draftsFrom,
+  durationText,
   equippedActivation,
   jobReasonText,
   learnReasonText,
@@ -13,6 +14,7 @@ import {
   PassiveSlots,
   setSlot,
   slotReasonText,
+  timingText,
   toSlotCommands,
   validateLoadout,
 } from "../game/skills"
@@ -340,15 +342,41 @@ const draftOf = (drafts: SlotDraft[], slot: SlotNumber): SlotDraft =>
 const joinParts = (parts: (string | null)[]) =>
   parts.filter((part): part is string => part !== null).join("・")
 
-// 下一級：主動列 SP、持續回合、發動條件與冷卻；被動只列條件（有的話）與冷卻；最後是學習費用
+type LevelNumbers = { rounds: number; chance: number; cooldown: number }
+
+// 觸發型被動（有發動條件）列時機・條件・持續・冷卻；常駐被動只有冷卻（通常為 0、不顯示）
+const passiveParts = (skill: SkillView, level: LevelNumbers): (string | null)[] =>
+  skill.trigger === null
+    ? [cooldownText(level.cooldown)]
+    : [
+        timingText(skill.timing),
+        activationText(skill.trigger, level.chance),
+        durationText(level.rounds),
+        cooldownText(level.cooldown),
+      ]
+
+// 下一級：主動列 SP、持續回合、發動條件與冷卻；被動見 passiveParts；最後是學習費用
 const nextLevelText = (skill: SkillView, next: NonNullable<SkillView["next"]>) => {
   const cost = `${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
-  const activation = activationText(skill.trigger, next.chance)
-  const cooldown = cooldownText(next.cooldown)
   return skill.type === "Active"
-    ? joinParts([`SP ${next.sp}`, `${next.rounds} 回合`, activation, cooldown, cost])
-    : joinParts([activation, cooldown, cost])
+    ? joinParts([
+        `SP ${next.sp}`,
+        `${next.rounds} 回合`,
+        activationText(skill.trigger, next.chance),
+        cooldownText(next.cooldown),
+        cost,
+      ])
+    : joinParts([...passiveParts(skill, next), cost])
 }
+
+// 已學技能在標題列顯示目前等級的特性：主動顯示發動條件與冷卻，被動見 passiveParts
+const currentParts = (skill: SkillView): string[] =>
+  skill.level === 0
+    ? []
+    : (skill.type === "Active"
+        ? [activationText(skill.trigger, skill.chance), cooldownText(skill.cooldown)]
+        : passiveParts(skill, skill)
+      ).filter((part): part is string => part !== null)
 
 function SkillCard({
   skill,
@@ -360,13 +388,7 @@ function SkillCard({
   onLearn: (skillId: string) => void
 }) {
   const { next } = skill
-  // 已學的技能在標題列顯示目前等級的發動條件與冷卻（常駐被動、無冷卻時不顯示）
-  const current =
-    skill.level > 0
-      ? [activationText(skill.trigger, skill.chance), cooldownText(skill.cooldown)].filter(
-          (part): part is string => part !== null,
-        )
-      : []
+  const current = currentParts(skill)
   return (
     <li className="skills__item">
       <div className="skills__item-head">

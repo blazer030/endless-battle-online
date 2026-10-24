@@ -62,11 +62,13 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   id: "burst",
   name: "爆氣",
   type: "Active",
+  timing: "BeforeAttack",
   effect: "AtMultiplier",
   description: "提高物理攻擊力",
   jobId: "warrior",
   level: 0,
   maxLevel: 5,
+  rounds: 0,
   chance: 0,
   cooldown: 0,
   trigger: { kind: "Chance", percent: 0 },
@@ -127,6 +129,19 @@ const overview: SkillOverview = {
       cooldown: 4,
       trigger: { kind: "HpBelow", percent: 50 },
       next: next({ level: 2, sp: 8, rounds: 1, chance: 0, cooldown: 4, money: 2000 }),
+    }),
+    skill({
+      id: "parry",
+      name: "架式",
+      type: "Passive",
+      timing: "AfterAttack",
+      effect: "DfMultiplier",
+      description: "命中後提高物理防禦",
+      level: 1,
+      rounds: 2,
+      chance: 40,
+      cooldown: 3,
+      next: next({ level: 2, sp: 0, rounds: 2, chance: 50, cooldown: 3, money: 2000 }),
     }),
   ],
   slots: [{ slot: 4, skillId: "iron-skin" }],
@@ -255,6 +270,15 @@ test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
   expect(upgrade).toHaveAttribute("title", "金錢不足")
   expect(within(ironSkin).getByText("金錢不足")).toBeInTheDocument()
 
+  // 觸發型被動：時機・條件・持續・冷卻，不顯示 SP；常駐被動（硬甲）照舊只有費用
+  const parry = await skillCard("架式 Lv 1/5")
+  for (const part of ["命中後", "發動率 40%", "持續 2 回合", "冷卻 3 回合"])
+    expect(within(parry).getByText(part)).toBeInTheDocument()
+  expect(
+    within(parry).getByText("命中後・發動率 50%・持續 2 回合・冷卻 3 回合・2,000 金錢・300 熟練度"),
+  ).toBeInTheDocument()
+  expect(within(parry).queryByText(/SP/)).not.toBeInTheDocument()
+
   // hpBelow 技能以門檻取代發動率，並顯示冷卻（0 不顯示）
   const heal = await skillCard("治癒 Lv 1/5")
   expect(within(heal).getByText("HP 低於 50% 自動發動")).toBeInTheDocument()
@@ -352,7 +376,7 @@ test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
     within(passive)
       .getAllByRole("option")
       .map((option) => option.textContent),
-  ).toEqual(["（空）", "硬甲 Lv 2", "急影 Lv 1"])
+  ).toEqual(["（空）", "硬甲 Lv 2", "急影 Lv 1", "架式 Lv 1"])
 })
 
 test("SkillsScreen_DisablesSaveWhileLoadoutIsInvalid", async () => {

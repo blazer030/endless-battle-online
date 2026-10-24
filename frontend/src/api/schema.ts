@@ -3107,6 +3107,7 @@ export interface components {
             id: string;
             name: string;
             type: components["schemas"]["SkillType"];
+            timing: components["schemas"]["SkillTiming"];
             effect: components["schemas"]["SkillEffectKind"];
             description: string;
             jobId: string;
@@ -3114,6 +3115,8 @@ export interface components {
             level: number;
             /** Format: int32 */
             maxLevel: number;
+            /** Format: int32 */
+            rounds: number;
             /** Format: int32 */
             chance: number;
             /** Format: int32 */
@@ -3131,6 +3134,8 @@ export interface components {
             slot: number;
             skillId: string;
         };
+        /** @enum {unknown} */
+        SkillTiming: "BeforeAttack" | "AfterAttack";
         /** @enum {unknown} */
         SkillTriggerKind: "Chance" | "HpBelow";
         SkillTriggerResponse: {

@@ -4,6 +4,7 @@ import {
   activationText,
   cooldownText,
   draftsFrom,
+  durationText,
   equippedActivation,
   jobReasonText,
   learnReasonText,
@@ -11,6 +12,7 @@ import {
   proficiencyPercent,
   setSlot,
   slotReasonText,
+  timingText,
   toSlotCommands,
   validateLoadout,
 } from "./skills"
@@ -22,11 +24,13 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   id: "burst",
   name: "爆氣",
   type: "Active",
+  timing: "BeforeAttack",
   effect: "AtMultiplier",
   description: "",
   jobId: "warrior",
   level: 1,
   maxLevel: 5,
+  rounds: 3,
   chance: 40,
   cooldown: 0,
   trigger: { kind: "Chance", percent: 0 },
@@ -111,6 +115,12 @@ describe("skills", () => {
     expect(activationText(null, 0)).toBeNull()
     expect(cooldownText(4)).toBe("冷卻 4 回合")
     expect(cooldownText(0)).toBeNull()
+  })
+
+  it("timingText_AndDurationText_DescribeTriggeredPassives", () => {
+    expect(timingText("BeforeAttack")).toBe("每回合出手前")
+    expect(timingText("AfterAttack")).toBe("命中後")
+    expect(durationText(3)).toBe("持續 3 回合")
   })
 
   it("toSlotCommands_SendsOnlyFilledSlots", () => {

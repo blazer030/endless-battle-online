@@ -43,6 +43,13 @@ export const activationText = (trigger: SkillView["trigger"], chance: number): s
 export const cooldownText = (cooldown: number): string | null =>
   cooldown > 0 ? `冷卻 ${cooldown} 回合` : null
 
+// 觸發型被動的觸發時機
+export const timingText = (timing: SkillView["timing"]): string =>
+  timing === "AfterAttack" ? "命中後" : "每回合出手前"
+
+// 觸發後效果持續的回合數
+export const durationText = (rounds: number): string => `持續 ${rounds} 回合`
+
 // 主動欄裝入技能目前等級的發動條件；空欄、找不到技能或被動欄回傳 null
 export const equippedActivation = (
   drafts: SlotDraft[],
