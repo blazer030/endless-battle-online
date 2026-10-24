@@ -7,8 +7,8 @@ namespace EndlessBattle.Domain.Battle;
 public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal);
 
 // 玩家技能的施放與持續（研究 §3.3）。
-// 被動技能常駐：裝上就生效、不擲骰、不扣 SP、沒有持續回合；攻擊後時機的被動（嗜血）每次命中都觸發。
-// 主動技能每回合擲骰施放，修正值每次都從裸狀態依欄位順序重套常駐的被動與仍生效的主動（快照＋重套），
+// 沒有發動條件的被動常駐：裝上就生效、不擲骰、不扣 SP、沒有持續回合；攻擊後時機的被動（嗜血）每次命中都觸發。
+// 掛了發動條件（hpBelow）的被動在條件成立時才生效，不扣 SP。主動技能依發動條件（擲發動率或 hpBelow）施放，修正值每次都從裸狀態依欄位順序重套常駐的被動與仍生效的主動（快照＋重套），
 // 而持續中的技能不會再施放，所以同一技能不會疊加
 public sealed class SkillCaster
 {
@@ -82,7 +82,7 @@ public sealed class SkillCaster
                 continue;
             }
 
-            if (equipped.Skill.Type == SkillType.Passive)
+            if (equipped.Skill.IsAlwaysOn)
             {
                 // 被動不擲骰、不扣 SP；只有實際回復時才留下紀錄（滿血時沒有事件、耗用的亂數也和沒有技能時相同）
                 var passiveHeal = Math.Min(healOf(equipped), player.HpMax - hp);
@@ -96,18 +96,24 @@ public sealed class SkillCaster
                 continue;
             }
 
-            // 持續中、SP 不足或滿血時的回復技能都不擲骰：SP 只在住宿回復，不浪費在回復 0 上；
-            // 這些情況耗用的亂數與沒有技能時相同。發動率是技能在該等級的固定值
-            if (remainingRounds.ContainsKey(equipped) || sp < level.Sp || (IsHealing(equipped) && hp >= player.HpMax)
-                || PhpRandom.Between(random, 1, 100) > level.Chance)
+            // 持續中、SP 不足（被動不耗 SP，不檢查）或滿血時的回復技能都不判斷發動：SP 只在住宿回復，不浪費在回復 0 上；
+            // 這些情況耗用的亂數與沒有技能時相同
+            var isPassive = equipped.Skill.Type == SkillType.Passive;
+            if (remainingRounds.ContainsKey(equipped) || (!isPassive && sp < level.Sp) || (IsHealing(equipped) && hp >= player.HpMax)
+                || !Triggers(equipped, level, hp, random))
             {
                 continue;
             }
 
-            sp -= level.Sp;
+            if (!isPassive)
+            {
+                sp -= level.Sp;
+            }
+
             var heal = Math.Min(healOf(equipped), player.HpMax - hp);
             hp += heal;
-            remainingRounds[equipped] = level.Rounds;
+            // 被動的 Rounds 為 0：觸發後只在本回合生效
+            remainingRounds[equipped] = Math.Max(level.Rounds, 1);
             StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, heal));
@@ -120,6 +126,12 @@ public sealed class SkillCaster
 
         return casts;
     }
+
+    // hpBelow 看當下 HP 比例、不擲骰；chance 擲該級的固定發動率
+    private bool Triggers(EquippedSkill equipped, SkillLevel level, int hp, IRandomSource random) =>
+        equipped.Skill.EffectiveTrigger is { Kind: SkillTriggerKind.HpBelow, Percent: var percent }
+            ? (long)hp * 100 < (long)percent * player.HpMax
+            : PhpRandom.Between(random, 1, 100) <= level.Chance;
 
     // 冷卻 n：接下來 n 次玩家出手不能發動。倒數在每回合開頭，下一回合開頭就會先扣 1，所以存 n + 1
     private void StartCooldown(EquippedSkill equipped, SkillLevel level)
@@ -134,7 +146,7 @@ public sealed class SkillCaster
         equipped.Skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst;
 
     private bool IsInEffect(EquippedSkill equipped) =>
-        equipped.Skill.Type == SkillType.Passive || remainingRounds.ContainsKey(equipped);
+        equipped.Skill.IsAlwaysOn || remainingRounds.ContainsKey(equipped);
 
     private void Recompute() =>
         Current = skills.Where(IsInEffect).Aggregate(new BattleModifiers(), Apply);

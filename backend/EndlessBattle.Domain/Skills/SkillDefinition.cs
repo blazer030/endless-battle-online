@@ -4,6 +4,16 @@ public enum SkillType { Active, Passive }
 
 public enum SkillTiming { BeforeAttack, AfterAttack }
 
+public enum SkillTriggerKind { Chance, HpBelow }
+
+// 發動條件：Chance 照該級 chance 擲骰；HpBelow 在玩家 HP 比例低於 Percent% 時必定發動、不擲骰
+public sealed record SkillTrigger(SkillTriggerKind Kind, int Percent = 0)
+{
+    public static readonly SkillTrigger Chance = new(SkillTriggerKind.Chance);
+
+    public static SkillTrigger HpBelow(int percent) => new(SkillTriggerKind.HpBelow, percent);
+}
+
 public enum SkillEffectKind
 {
     AtMultiplier,
@@ -37,9 +47,16 @@ public sealed record SkillDefinition(
     SkillTiming Timing,
     SkillEffectKind Effect,
     string Description,
-    IReadOnlyList<SkillLevel> Levels)
+    IReadOnlyList<SkillLevel> Levels,
+    SkillTrigger? Trigger = null)
 {
     public int MaxLevel => Levels.Count;
+
+    // 沒有發動條件的被動常駐生效；其餘（主動、掛條件的被動）都要逐次判斷發動
+    public bool IsAlwaysOn => Type == SkillType.Passive && Trigger is null;
+
+    // 實際的發動條件：主動沒寫就是擲發動率；常駐被動沒有條件（null）
+    public SkillTrigger? EffectiveTrigger => Trigger ?? (Type == SkillType.Active ? SkillTrigger.Chance : null);
 
     public SkillLevel LevelAt(int level) =>
         level >= 1 && level <= MaxLevel

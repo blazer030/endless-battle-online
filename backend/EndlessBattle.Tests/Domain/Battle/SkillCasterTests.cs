@@ -120,6 +120,59 @@ public class SkillCasterTests
         Assert.Equal([1, 2, 3], CastRounds(caster, rounds: 3, hp: 100, new ScriptedRandom(0.0)));
     }
 
+    // 治癒（hpBelow 50）：智力 20、lv1 回復 20。HP 49／100 低於 50% 必定發動、不擲骰；50／100 不低於門檻就不發
+    [Theory]
+    [InlineData(49, true)]
+    [InlineData(50, false)]
+    public void Caster_HpBelow_FiresOnlyUnderThresholdWithoutRoll(int hp, bool fires)
+    {
+        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, trigger: SkillTrigger.HpBelow(50));
+        var random = new ScriptedRandom(0.99);
+        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+
+        var casts = caster.CastBeforeAttack(hp, sp: 100, random);
+
+        Assert.Equal(fires ? [(hp + 20, 95)] : [], casts.Select(cast => (cast.HpAfter, cast.SpAfter)));
+        Assert.Equal(0, random.Consumed);
+    }
+
+    // 回復技滿血時不發動：門檻最高 99%，HP 100／100 永遠不觸發
+    [Fact]
+    public void Caster_HpBelowHeal_SkipsAtFullHp()
+    {
+        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, trigger: SkillTrigger.HpBelow(99));
+        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+
+        Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0)));
+    }
+
+    // hpBelow 也吃冷卻：冷卻 4、HP 一直低於門檻，第 1 回合發動後第 2～5 回合不發，第 6 回合再發
+    [Fact]
+    public void Caster_HpBelow_RespectsCooldown()
+    {
+        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, cooldown: 4, trigger: SkillTrigger.HpBelow(50));
+        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+
+        Assert.Equal([1, 6], CastRounds(caster, rounds: 6, hp: 10, new ScriptedRandom(0.0)));
+    }
+
+    // 掛 hpBelow 的被動：平時不生效，HP 低於門檻才觸發；不擲骰、不扣 SP（SP 0 也能發）。硬甲 lv2 觸發後 df ×1.02
+    [Fact]
+    public void Caster_TriggeredPassive_AppliesOnlyWhenTriggered_WithoutSp()
+    {
+        var lastStand = TestSkills.Battle("last-stand", "背水", SkillEffectKind.DfMultiplier, SkillType.Passive, trigger: SkillTrigger.HpBelow(30));
+        var random = new ScriptedRandom(0.99);
+        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(lastStand, Level: 2, Slot: 4)]);
+
+        Assert.Equal(1.0, caster.Current.Df);
+        Assert.Empty(caster.CastBeforeAttack(hp: 30, sp: 0, random));
+        var cast = Assert.Single(caster.CastBeforeAttack(hp: 29, sp: 0, random));
+
+        Assert.Equal(0, cast.SpAfter);
+        Assert.Equal(1.02, caster.Current.Df, 10);
+        Assert.Equal(0, random.Consumed);
+    }
+
     // 攻擊後的被動也吃冷卻（嗜血 lv5、冷卻 1）：第 1 回合第一下回復，同回合第二下與第 2 回合都在冷卻中，第 3 回合再回復
     [Fact]
     public void Caster_PassiveAfterHit_RespectsCooldown()
