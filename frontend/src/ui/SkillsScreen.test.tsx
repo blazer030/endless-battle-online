@@ -50,6 +50,7 @@ const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
   sp: 5,
   rounds: 3,
   chance: 40,
+  cooldown: 0,
   money: 500,
   proficiency: 300,
   canLearn: true,
@@ -67,6 +68,8 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   level: 0,
   maxLevel: 5,
   chance: 0,
+  cooldown: 0,
+  trigger: { kind: "Chance", percent: 0 },
   next: next(),
   ...overrides,
 })
@@ -83,6 +86,7 @@ const overview: SkillOverview = {
       effect: "DfMultiplier",
       description: "提高物理防禦",
       level: 2,
+      trigger: null,
       next: next({
         level: 3,
         sp: 0,
@@ -110,7 +114,19 @@ const overview: SkillOverview = {
       description: "提高敏捷",
       jobId: "thief",
       level: 1,
+      trigger: null,
       next: next({ level: 2, sp: 0, rounds: 0, chance: 0, money: 2000 }),
+    }),
+    skill({
+      id: "heal",
+      name: "治癒",
+      effect: "Heal",
+      description: "回復 HP",
+      jobId: "bard",
+      level: 1,
+      cooldown: 4,
+      trigger: { kind: "HpBelow", percent: 50 },
+      next: next({ level: 2, sp: 8, rounds: 1, chance: 0, cooldown: 4, money: 2000 }),
     }),
   ],
   slots: [{ slot: 4, skillId: "iron-skin" }],
@@ -239,6 +255,17 @@ test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
   expect(upgrade).toHaveAttribute("title", "金錢不足")
   expect(within(ironSkin).getByText("金錢不足")).toBeInTheDocument()
 
+  // hpBelow 技能以門檻取代發動率，並顯示冷卻（0 不顯示）
+  const heal = await skillCard("治癒 Lv 1/5")
+  expect(within(heal).getByText("HP 低於 50% 自動發動")).toBeInTheDocument()
+  expect(within(heal).getByText("冷卻 4 回合")).toBeInTheDocument()
+  expect(
+    within(heal).getByText(
+      "SP 8・1 回合・HP 低於 50% 自動發動・冷卻 4 回合・2,000 金錢・300 熟練度",
+    ),
+  ).toBeInTheDocument()
+  expect(within(burst).queryByText(/冷卻/)).not.toBeInTheDocument()
+
   // 已學的主動技能顯示目前等級的發動率
   const combo = await skillCard("連擊 Lv 5/5")
   expect(within(combo).getByText("發動率 80%")).toBeInTheDocument()
@@ -282,11 +309,18 @@ test("SkillsScreen_SavesSlotsWithPutBody", async () => {
   expect(within(row).queryByText(/發動率/)).not.toBeInTheDocument()
   await user.selectOptions(slot1, "burst")
   expect(within(row).getByText("發動率 40%")).toBeInTheDocument()
+  // hpBelow 技能在發動率的位置改顯示門檻
+  const slot2 = screen.getByLabelText("欄位 2 技能")
+  await user.selectOptions(slot2, "heal")
+  expect(
+    within(slot2.parentElement as HTMLElement).getByText("HP 低於 50% 自動發動"),
+  ).toBeInTheDocument()
   expect(screen.queryByRole("button", { name: /發動率/ })).not.toBeInTheDocument()
   await user.click(screen.getByRole("button", { name: "儲存欄位" }))
 
   expect(api.setSkillSlots).toHaveBeenCalledWith([
     { slot: 1, skillId: "burst" },
+    { slot: 2, skillId: "heal" },
     { slot: 4, skillId: "iron-skin" },
   ])
   expect(await screen.findByText("欄位已儲存。")).toBeInTheDocument()
@@ -312,7 +346,7 @@ test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
     within(active)
       .getAllByRole("option")
       .map((option) => option.textContent),
-  ).toEqual(["（空）", "爆氣 Lv 1", "連擊 Lv 5"])
+  ).toEqual(["（空）", "爆氣 Lv 1", "連擊 Lv 5", "治癒 Lv 1"])
   const passive = screen.getByLabelText("欄位 5 技能")
   expect(
     within(passive)

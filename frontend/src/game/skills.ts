@@ -1,5 +1,5 @@
 import { statLabel } from "./stats"
-import type { JobOption, SkillOverview, SkillSlotCommand } from "./types"
+import type { JobOption, SkillOverview, SkillSlotCommand, SkillView } from "./types"
 
 // 與後端 SkillLoadout 相同：1～3 主動欄（發動率由技能等級固定），4～5 被動欄（常駐）；兩種欄位都不限職業
 export type SlotNumber = 1 | 2 | 3 | 4 | 5
@@ -33,16 +33,26 @@ export const setSlot = (drafts: SlotDraft[], slot: SlotNumber, skillId: string) 
 export const clearSlot = (drafts: SlotDraft[], slot: SlotNumber) =>
   updateSlot(drafts, slot, (draft) => ({ ...draft, skillId: null }))
 
-// 主動欄裝入技能目前等級的發動率；空欄、找不到技能或被動欄回傳 null
-export const equippedChance = (
+// 發動條件的說明：擲骰的顯示發動率，hpBelow 顯示門檻；常駐被動（沒有條件）回傳 null
+export const activationText = (trigger: SkillView["trigger"], chance: number): string | null => {
+  if (trigger === null) return null
+  return trigger.kind === "HpBelow" ? `HP 低於 ${trigger.percent}% 自動發動` : `發動率 ${chance}%`
+}
+
+// 冷卻以玩家出手回合計，0 表示沒有冷卻、不顯示
+export const cooldownText = (cooldown: number): string | null =>
+  cooldown > 0 ? `冷卻 ${cooldown} 回合` : null
+
+// 主動欄裝入技能目前等級的發動條件；空欄、找不到技能或被動欄回傳 null
+export const equippedActivation = (
   drafts: SlotDraft[],
   overview: SkillOverview,
   slot: SlotNumber,
-): number | null => {
+): string | null => {
   if (!isActiveSlot(slot)) return null
   const skillId = drafts.find((draft) => draft.slot === slot)?.skillId ?? null
   const skill = overview.skills.find((candidate) => candidate.id === skillId)
-  return skill === undefined ? null : skill.chance
+  return skill === undefined ? null : activationText(skill.trigger, skill.chance)
 }
 
 // 空欄不送，後端把未列出的欄位視為清空

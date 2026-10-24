@@ -49,6 +49,7 @@
 
 .skills__item-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
   min-width: 0;

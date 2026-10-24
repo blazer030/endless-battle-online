@@ -2,9 +2,11 @@ import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import {
   ActiveSlots,
+  activationText,
   clearSlot,
+  cooldownText,
   draftsFrom,
-  equippedChance,
+  equippedActivation,
   jobReasonText,
   learnReasonText,
   markCurrentJob,
@@ -282,7 +284,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
           <SlotRow
             key={slot}
             draft={draftOf(drafts, slot)}
-            chance={equippedChance(drafts, overview, slot)}
+            activation={equippedActivation(drafts, overview, slot)}
             options={activeOptions}
             onChange={editDrafts}
             drafts={drafts}
@@ -294,7 +296,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
           <SlotRow
             key={slot}
             draft={draftOf(drafts, slot)}
-            chance={null}
+            activation={null}
             options={passiveOptions}
             onChange={editDrafts}
             drafts={drafts}
@@ -335,14 +337,17 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
 const draftOf = (drafts: SlotDraft[], slot: SlotNumber): SlotDraft =>
   drafts.find((draft) => draft.slot === slot) ?? { slot, skillId: null }
 
-const chanceText = (chance: number) => `發動率 ${chance}%`
+const joinParts = (parts: (string | null)[]) =>
+  parts.filter((part): part is string => part !== null).join("・")
 
-// 主動技能列下一級的 SP、持續回合與發動率；被動常駐，只列學習費用
+// 下一級：主動列 SP、持續回合、發動條件與冷卻；被動只列條件（有的話）與冷卻；最後是學習費用
 const nextLevelText = (skill: SkillView, next: NonNullable<SkillView["next"]>) => {
   const cost = `${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
+  const activation = activationText(skill.trigger, next.chance)
+  const cooldown = cooldownText(next.cooldown)
   return skill.type === "Active"
-    ? `SP ${next.sp}・${next.rounds} 回合・${chanceText(next.chance)}・${cost}`
-    : cost
+    ? joinParts([`SP ${next.sp}`, `${next.rounds} 回合`, activation, cooldown, cost])
+    : joinParts([activation, cooldown, cost])
 }
 
 function SkillCard({
@@ -355,14 +360,23 @@ function SkillCard({
   onLearn: (skillId: string) => void
 }) {
   const { next } = skill
+  // 已學的技能在標題列顯示目前等級的發動條件與冷卻（常駐被動、無冷卻時不顯示）
+  const current =
+    skill.level > 0
+      ? [activationText(skill.trigger, skill.chance), cooldownText(skill.cooldown)].filter(
+          (part): part is string => part !== null,
+        )
+      : []
   return (
     <li className="skills__item">
       <div className="skills__item-head">
         <h3 className="skills__item-name">{`${skill.name} Lv ${skill.level}/${skill.maxLevel}`}</h3>
         <span className="skills__type">{skill.type === "Active" ? "主動" : "被動"}</span>
-        {skill.type === "Active" && skill.level > 0 && (
-          <span className="skills__chance-value">{chanceText(skill.chance)}</span>
-        )}
+        {current.map((part) => (
+          <span key={part} className="skills__chance-value">
+            {part}
+          </span>
+        ))}
       </div>
       <p className="skills__description">{skill.description}</p>
       {next === null ? (
@@ -388,18 +402,18 @@ function SkillCard({
   )
 }
 
-// chance 是主動欄裝入技能的固定發動率，空欄與被動欄為 null
+// activation 是主動欄裝入技能的發動條件（發動率或 HP 門檻），空欄與被動欄為 null
 function SlotRow({
   draft,
   drafts,
-  chance,
+  activation,
   options,
   onChange,
   disabled,
 }: {
   draft: SlotDraft
   drafts: SlotDraft[]
-  chance: number | null
+  activation: string | null
   options: SkillView[]
   onChange: (drafts: SlotDraft[]) => void
   disabled: boolean
@@ -429,7 +443,7 @@ function SlotRow({
           </option>
         ))}
       </select>
-      {chance !== null && <span className="skills__chance-value">{chanceText(chance)}</span>}
+      {activation !== null && <span className="skills__chance-value">{activation}</span>}
     </div>
   )
 }

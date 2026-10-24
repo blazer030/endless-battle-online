@@ -3087,6 +3087,8 @@ export interface components {
             rounds: number;
             /** Format: int32 */
             chance: number;
+            /** Format: int32 */
+            cooldown: number;
             /** Format: int64 */
             money: number;
             /** Format: int64 */
@@ -3114,6 +3116,9 @@ export interface components {
             maxLevel: number;
             /** Format: int32 */
             chance: number;
+            /** Format: int32 */
+            cooldown: number;
+            trigger: null | components["schemas"]["SkillTriggerResponse"];
             next: null | components["schemas"]["SkillNextLevelResponse"];
         };
         SkillSlotRequest: {
@@ -3125,6 +3130,13 @@ export interface components {
             /** Format: int32 */
             slot: number;
             skillId: string;
+        };
+        /** @enum {unknown} */
+        SkillTriggerKind: "Chance" | "HpBelow";
+        SkillTriggerResponse: {
+            kind: components["schemas"]["SkillTriggerKind"];
+            /** Format: int32 */
+            percent: number;
         };
         /** @enum {unknown} */
         SkillType: "Active" | "Passive";

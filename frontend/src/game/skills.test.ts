@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest"
 import {
   clearSlot,
+  activationText,
+  cooldownText,
   draftsFrom,
-  equippedChance,
+  equippedActivation,
   jobReasonText,
   learnReasonText,
   markCurrentJob,
@@ -26,6 +28,8 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   level: 1,
   maxLevel: 5,
   chance: 40,
+  cooldown: 0,
+  trigger: { kind: "Chance", percent: 0 },
   next: null,
   ...overrides,
 })
@@ -35,9 +39,32 @@ const overview: SkillOverview = {
   skillPoints: 0,
   skills: [
     skill({}),
-    skill({ id: "iron-skin", name: "硬甲", type: "Passive", effect: "DfMultiplier", chance: 0 }),
+    skill({
+      id: "iron-skin",
+      name: "硬甲",
+      type: "Passive",
+      effect: "DfMultiplier",
+      chance: 0,
+      trigger: null,
+    }),
+    skill({
+      id: "heal",
+      name: "治癒",
+      effect: "Heal",
+      jobId: "bard",
+      chance: 0,
+      cooldown: 4,
+      trigger: { kind: "HpBelow", percent: 50 },
+    }),
     skill({ id: "combo", name: "連擊", jobId: "thief", effect: "MultiHit", level: 3, chance: 60 }),
-    skill({ id: "swift-shadow", name: "急影", type: "Passive", jobId: "thief", chance: 0 }),
+    skill({
+      id: "swift-shadow",
+      name: "急影",
+      type: "Passive",
+      jobId: "thief",
+      chance: 0,
+      trigger: null,
+    }),
     skill({ id: "war-cry", name: "未學", level: 0, chance: 0 }),
   ],
   slots: [
@@ -69,12 +96,21 @@ describe("skills", () => {
     expect(draftOf(cleared, 1)).toEqual({ slot: 1, skillId: null })
   })
 
-  // 發動率由技能等級固定：主動欄顯示裝入技能目前等級的發動率，空欄與被動沒有
-  it("equippedChance_ReadsTheSkillsOwnChance", () => {
-    expect(equippedChance(drafts, overview, 1)).toBe(40)
-    expect(equippedChance(setSlot(drafts, 2, "combo"), overview, 2)).toBe(60)
-    expect(equippedChance(drafts, overview, 3)).toBeNull()
-    expect(equippedChance(drafts, overview, 4)).toBeNull()
+  // 主動欄顯示裝入技能的發動條件：擲骰的顯示發動率，hpBelow 顯示門檻；空欄與被動欄沒有
+  it("equippedActivation_DescribesTheSkillsOwnTrigger", () => {
+    expect(equippedActivation(drafts, overview, 1)).toBe("發動率 40%")
+    expect(equippedActivation(setSlot(drafts, 2, "combo"), overview, 2)).toBe("發動率 60%")
+    expect(equippedActivation(setSlot(drafts, 2, "heal"), overview, 2)).toBe("HP 低於 50% 自動發動")
+    expect(equippedActivation(drafts, overview, 3)).toBeNull()
+    expect(equippedActivation(drafts, overview, 4)).toBeNull()
+  })
+
+  it("activationText_AndCooldownText_DescribeTriggerAndCooldown", () => {
+    expect(activationText({ kind: "Chance", percent: 0 }, 70)).toBe("發動率 70%")
+    expect(activationText({ kind: "HpBelow", percent: 30 }, 0)).toBe("HP 低於 30% 自動發動")
+    expect(activationText(null, 0)).toBeNull()
+    expect(cooldownText(4)).toBe("冷卻 4 回合")
+    expect(cooldownText(0)).toBeNull()
   })
 
   it("toSlotCommands_SendsOnlyFilledSlots", () => {
