@@ -79,9 +79,9 @@ public sealed class SkillCaster
             var level = equipped.Skill.LevelAt(equipped.Level);
 
             // 持續中、SP 不足或滿血時的回復技能都不擲骰：SP 只在住宿回復，不浪費在回復 0 上；
-            // 這些情況耗用的亂數與沒有技能時相同
+            // 這些情況耗用的亂數與沒有技能時相同。發動率是技能在該等級的固定值
             if (remainingRounds.ContainsKey(equipped) || sp < level.Sp || (IsHealing(equipped) && hp >= player.HpMax)
-                || PhpRandom.Between(random, 1, 100) > equipped.Chance)
+                || PhpRandom.Between(random, 1, 100) > level.Chance)
             {
                 continue;
             }

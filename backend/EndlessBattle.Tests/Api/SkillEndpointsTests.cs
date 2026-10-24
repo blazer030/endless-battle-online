@@ -81,7 +81,10 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(300, next.GetProperty("proficiency").GetInt64());
         Assert.False(next.GetProperty("canLearn").GetBoolean());
         Assert.Equal(["notEnoughProficiency"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
-        Assert.Equal(30, skills[1].GetProperty("next").GetProperty("chance").GetInt32());
+        // 主動技能每級固定發動率 30 + 10·lv；未學時目前等級的 chance 為 0；被動沒有發動率
+        Assert.Equal(40, next.GetProperty("chance").GetInt32());
+        Assert.Equal(0, burst.GetProperty("chance").GetInt32());
+        Assert.Equal(0, skills[1].GetProperty("next").GetProperty("chance").GetInt32());
     }
 
     // 滿級時 next 為 null；直接寫入技能書，跳過五次學習
@@ -116,6 +119,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(0, body.GetProperty("skillPoints").GetInt64());
         var burst = body.GetProperty("skills").EnumerateArray().First(skill => skill.GetProperty("id").GetString() == "burst");
         Assert.Equal(1, burst.GetProperty("level").GetInt32());
+        Assert.Equal(40, burst.GetProperty("chance").GetInt32());
         Assert.Equal(2, burst.GetProperty("next").GetProperty("level").GetInt32());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(1500, me.GetProperty("money").GetInt64());
@@ -153,11 +157,10 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
 
     // 已學 burst（主動）與 iron-skin（被動）；stun 未學
     [Theory]
-    [InlineData("""[{"slot":4,"skillId":"burst","chance":50}]""", "activeInPassiveSlot")]
-    [InlineData("""[{"slot":1,"skillId":"burst","chance":50},{"slot":2,"skillId":"burst","chance":50}]""", "duplicateSkill")]
-    [InlineData("""[{"slot":1,"skillId":"iron-skin","chance":50}]""", "passiveInActiveSlot")]
-    [InlineData("""[{"slot":1,"skillId":"stun","chance":50}]""", "notLearned")]
-    [InlineData("""[{"slot":1,"skillId":"burst","chance":55}]""", "chanceOutOfRange")]
+    [InlineData("""[{"slot":4,"skillId":"burst"}]""", "activeInPassiveSlot")]
+    [InlineData("""[{"slot":1,"skillId":"burst"},{"slot":2,"skillId":"burst"}]""", "duplicateSkill")]
+    [InlineData("""[{"slot":1,"skillId":"iron-skin"}]""", "passiveInActiveSlot")]
+    [InlineData("""[{"slot":1,"skillId":"stun"}]""", "notLearned")]
     public async Task Slots_RejectInvalidLoadout_AndKeepExisting(string slotsJson, string reason)
     {
         await using var factory = new EndlessBattleApiFactory(database);
@@ -165,7 +168,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         await GrantSkillPointsAsync(factory, client, "warrior", 600);
         await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
         await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "iron-skin" }, CancellationToken));
-        var saved = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 1, skillId = "burst", chance = 100 }));
+        var saved = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 1, skillId = "burst" }));
         Assert.Single(saved.GetProperty("slots").EnumerateArray());
 
         var rejected = await client.PutAsync(
@@ -176,33 +179,20 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         var slot = Assert.Single(body.GetProperty("slots").EnumerateArray());
         Assert.Equal(1, slot.GetProperty("slot").GetInt32());
         Assert.Equal("burst", slot.GetProperty("skillId").GetString());
-        Assert.Equal(100, slot.GetProperty("chance").GetInt32());
     }
 
+    // 發動率由技能決定：請求帶的舊欄位 chance 直接忽略、回應沒有 chance；省略的欄位＝清空
     [Fact]
-    public async Task Slots_ClampChanceToStep()
+    public async Task Slots_IgnoreChanceAndClearOmitted()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await CreateClientWithCharacterAsync(factory);
         await GrantSkillPointsAsync(factory, client, "warrior", 300);
         await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
 
-        var response = await PutSlotsAsync(client, new { slot = 1, skillId = "burst", chance = 55 });
-
-        Assert.Equal(["chanceOutOfRange"], await ReadReasonsAsync(response));
-    }
-
-    // 省略 chance 時主動欄用預設 50；省略的欄位＝清空
-    [Fact]
-    public async Task Slots_DefaultChanceAndClearOmitted()
-    {
-        await using var factory = new EndlessBattleApiFactory(database);
-        var client = await CreateClientWithCharacterAsync(factory);
-        await GrantSkillPointsAsync(factory, client, "warrior", 300);
-        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
-
-        var body = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 2, skillId = "burst" }));
-        Assert.Equal(50, Assert.Single(body.GetProperty("slots").EnumerateArray()).GetProperty("chance").GetInt32());
+        var body = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 2, skillId = "burst", chance = 55 }));
+        var slot = Assert.Single(body.GetProperty("slots").EnumerateArray());
+        Assert.Equal(["slot", "skillId"], slot.EnumerateObject().Select(property => property.Name));
 
         var cleared = await ReadOkAsync(await PutSlotsAsync(client));
         Assert.Empty(cleared.GetProperty("slots").EnumerateArray());

@@ -40,7 +40,7 @@ public class AdventureSimulatorTests
 
     private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", 1, 1, From);
 
-    private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", "warrior", SkillType.Active), Level: 1, Chance: 100, Slot: 1);
+    private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", "warrior", SkillType.Active), Level: 1, Slot: 1);
 
     private static AdventureRun Run(Character character, double seconds, IRandomSource? random = null, params MonsterDefinition[] monsters) =>
         Run(character, seconds, skills: [], random, monsters);
@@ -309,7 +309,7 @@ public class AdventureSimulatorTests
     public void Adventure_RestsWhenSpBelowThreshold_OnlyWithActiveSkills()
     {
         var hero = Hero() with { Hp = 350, Sp = 13 };
-        var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", "warrior", SkillType.Passive), Level: 1, Chance: 100, Slot: 4);
+        var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", "warrior", SkillType.Passive), Level: 1, Slot: 4);
 
         Assert.IsType<RestEvent>(Run(hero, seconds: 1, skills: [Burst]).Events[0]);
         Assert.IsType<EncounterEvent>(Run(hero, seconds: 1).Events[0]);
@@ -355,13 +355,13 @@ public class AdventureSimulatorTests
         Assert.Equal(91 - 3 * 5, run.Character.Sp);
     }
 
-    // 擲骰一律 0.5 → 發動擲骰 rand(1,100) = 51：欄位發動率 10 永遠不施放，100 則施放
+    // 擲骰一律 0.5 → 發動擲骰 rand(1,100) = 51：發動率是技能等級固定的 30 + 10·lv，lv1（40）不施放、lv3（60）施放
     [Theory]
-    [InlineData(10, false)]
-    [InlineData(100, true)]
-    public void Adventure_UsesSlotChanceForCasting(int chance, bool casts)
+    [InlineData(1, false)]
+    [InlineData(3, true)]
+    public void Adventure_UsesSkillChanceForCasting(int level, bool casts)
     {
-        var run = Run(Hero(), seconds: 1, skills: [Burst with { Chance = chance }], new ScriptedRandom(0.5));
+        var run = Run(Hero(), seconds: 1, skills: [Burst with { Level = level }], new ScriptedRandom(0.5));
 
         Assert.Equal(1, run.Summary.Fights);
         Assert.Equal(casts, run.Summary.SkillsCast > 0);

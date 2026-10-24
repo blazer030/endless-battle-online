@@ -24,7 +24,8 @@ public enum SkillEffectKind
     Stun,
 }
 
-// Chance 只對被動技能有意義；主動技能的發動率由玩家欄位決定，這裡固定為 0
+// 主動技能：Sp 為每次施放的消耗、Rounds 為持續回合、Chance 為每回合固定的發動率（30 + 10·lv）。
+// 被動技能常駐生效，不消耗 SP、沒有持續回合與發動率：Sp、Rounds、Chance 一律為 0
 public sealed record SkillLevel(int Level, int Sp, int Rounds, int Chance, long Money, long Proficiency);
 
 public sealed record SkillDefinition(

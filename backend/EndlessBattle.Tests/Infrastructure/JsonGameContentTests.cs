@@ -52,7 +52,10 @@ public class JsonGameContentTests
 
     private const string ValidChampion = $$"""{ "champion": {{ValidChampionSeat}} }""";
 
-    private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 0, "money": 500, "proficiency": 300 }""";
+    // 主動技能的一級；被動常駐，sp／rounds／chance 都是 0
+    private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 40, "money": 500, "proficiency": 300 }""";
+
+    private const string ValidPassiveLevel = """{ "level": 1, "sp": 0, "rounds": 0, "chance": 0, "money": 500, "proficiency": 300 }""";
 
     private const string ValidJobs = $$"""{ "jobs": [{{ValidWarrior}}] }""";
 
@@ -284,11 +287,18 @@ public class JsonGameContentTests
             foreach (var level in skill.Levels)
             {
                 var lv = level.Level;
-                Assert.Equal(3 * lv + 2, level.Sp);
                 Assert.Equal(500L * lv * lv, level.Money);
                 Assert.Equal(300L * lv, level.Proficiency);
-                Assert.Equal(skill.Type == SkillType.Passive ? 20 + 10 * lv : 0, level.Chance);
-                var oneRound = skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst or SkillEffectKind.BonusDamage;
+                if (skill.Type == SkillType.Passive)
+                {
+                    // 被動常駐：沒有消耗、持續與發動率
+                    Assert.Equal((0, 0, 0), (level.Sp, level.Rounds, level.Chance));
+                    continue;
+                }
+
+                Assert.Equal(3 * lv + 2, level.Sp);
+                Assert.Equal(30 + 10 * lv, level.Chance);
+                var oneRound = skill.Effect is SkillEffectKind.Heal or SkillEffectKind.BonusDamage;
                 Assert.Equal(oneRound ? 1 : 3, level.Rounds);
             }
         }
@@ -310,24 +320,31 @@ public class JsonGameContentTests
             SkillJson("jumpy", "warrior", "active", $"{ValidLevel}, {ValidLevel.Replace("\"level\": 1", "\"level\": 3")}"),
             "jumpy");
 
-    [Fact]
-    public void Skills_RejectPassiveWithZeroChance() =>
-        AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidLevel), "lazy");
+    // 被動常駐：sp、rounds、chance 任一不為 0 都拒絕
+    [Theory]
+    [InlineData("\"sp\": 0", "\"sp\": 5")]
+    [InlineData("\"rounds\": 0", "\"rounds\": 3")]
+    [InlineData("\"chance\": 0", "\"chance\": 30")]
+    public void Skills_RejectPassiveWithCostDurationOrChance(string zero, string nonZero)
+    {
+        Assert.Equal(0, LoadSkills(SkillJson("calm", "warrior", "passive", ValidPassiveLevel)).GetSkill("calm").LevelAt(1).Chance);
+        AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidPassiveLevel.Replace(zero, nonZero)), "lazy");
+    }
 
     [Fact]
-    public void Skills_RejectActiveWithNonZeroChance() =>
+    public void Skills_RejectActiveWithZeroChance() =>
         AssertSkillsRejected(
-            SkillJson("eager", "warrior", "active", ValidLevel.Replace("\"chance\": 0", "\"chance\": 50")),
+            SkillJson("eager", "warrior", "active", ValidLevel.Replace("\"chance\": 40", "\"chance\": 0")),
             "eager");
 
     [Fact]
-    public void Skills_RejectPassiveChanceAboveHundred()
+    public void Skills_RejectActiveChanceAboveHundred()
     {
-        var chance100 = ValidLevel.Replace("\"chance\": 0", "\"chance\": 100");
-        var loaded = LoadSkills(SkillJson("sure", "warrior", "passive", chance100));
+        var chance100 = ValidLevel.Replace("\"chance\": 40", "\"chance\": 100");
+        var loaded = LoadSkills(SkillJson("sure", "warrior", "active", chance100));
         Assert.Equal(100, loaded.GetSkill("sure").LevelAt(1).Chance);
         AssertSkillsRejected(
-            SkillJson("overflow", "warrior", "passive", ValidLevel.Replace("\"chance\": 0", "\"chance\": 101")),
+            SkillJson("overflow", "warrior", "active", ValidLevel.Replace("\"chance\": 40", "\"chance\": 101")),
             "overflow");
     }
 

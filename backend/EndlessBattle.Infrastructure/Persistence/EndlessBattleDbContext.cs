@@ -486,7 +486,6 @@ public partial class EndlessBattleDbContext : DbContext
 
             entity.Property(e => e.CharacterId).HasColumnName("character_id");
             entity.Property(e => e.Slot).HasColumnName("slot");
-            entity.Property(e => e.Chance).HasColumnName("chance");
             entity.Property(e => e.SkillId)
                 .HasMaxLength(32)
                 .HasColumnName("skill_id");

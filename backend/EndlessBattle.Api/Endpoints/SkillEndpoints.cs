@@ -31,7 +31,7 @@ public static class SkillEndpoints
     private static IReadOnlyList<SkillSlot> ToSlots(SetSkillSlotsRequest request) =>
         (request.Slots ?? throw new InputValidationException("缺少技能欄位"))
             .Select(slot => slot is { Slot: { } number, SkillId: { } skillId }
-                ? new SkillSlot(number, skillId, slot.Chance ?? SkillLoadout.DefaultChance)
+                ? new SkillSlot(number, skillId)
                 : throw new InputValidationException("技能欄位資料不完整"))
             .ToList();
 
@@ -47,8 +47,9 @@ public static class SkillEndpoints
             skill.JobId,
             skill.Level,
             skill.MaxLevel,
+            skill.Chance,
             skill.Next is { } next
                 ? new SkillNextLevelResponse(next.Level, next.Sp, next.Rounds, next.Chance, next.Money, next.Proficiency, next.CanLearn, next.Reasons)
                 : null)).ToList(),
-        overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId, slot.Chance)).ToList());
+        overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId)).ToList());
 }

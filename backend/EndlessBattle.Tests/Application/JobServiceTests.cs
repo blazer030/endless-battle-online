@@ -67,13 +67,13 @@ public class JobServiceTests
     [Fact]
     public async Task JobChange_ClearsPassiveSlotsKeepsActive()
     {
-        var character = await ArrangeAsync(new SkillSlot(1, "burst", 0), new SkillSlot(4, "iron-skin", 40));
+        var character = await ArrangeAsync(new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin"));
 
         var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
 
         Assert.Equal("thief", profile.Character.JobId);
         Assert.Equal(["update", "loadout"], log);
-        Assert.Equal([new SkillSlot(1, "burst", 0)], await loadout.ListAsync(character.Id, CancellationToken));
+        Assert.Equal([new SkillSlot(1, "burst")], await loadout.ListAsync(character.Id, CancellationToken));
     }
 
     // 行動力 10、上次回復在 Now；400 秒後換職業 → 回應 10 + 12 = 22（唯讀，存檔仍是 10）
@@ -93,7 +93,7 @@ public class JobServiceTests
     [Fact]
     public async Task Change_DoesNotTouchSlots_WhenIneligible()
     {
-        await ArrangeAsync(new SkillSlot(4, "iron-skin", 40));
+        await ArrangeAsync(new SkillSlot(4, "iron-skin"));
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "berserker", CancellationToken));
 
@@ -112,7 +112,7 @@ public class JobServiceTests
     [Fact]
     public async Task Change_ConflictLeavesSlots()
     {
-        var character = await ArrangeAsync(new SkillSlot(4, "iron-skin", 40));
+        var character = await ArrangeAsync(new SkillSlot(4, "iron-skin"));
         characters.FailNextUpdate = true;
 
         await Assert.ThrowsAsync<ConflictException>(() => service.ChangeAsync(AccountId, "thief", CancellationToken));
@@ -223,7 +223,7 @@ public class JobServiceTests
     [Fact]
     public async Task JobChange_BagFullWritesNothing()
     {
-        var character = await ArrangeAsync(new SkillSlot(4, "iron-skin", 40));
+        var character = await ArrangeAsync(new SkillSlot(4, "iron-skin"));
         for (var index = 0; index < InventoryRules.SlotsPerCategory; index++)
         {
             await GiveAsync(character, "test-sword");

@@ -140,10 +140,10 @@ public sealed record MercenaryFightResponse(DateTimeOffset At, string MonsterId,
 
 public sealed record LearnSkillRequest(string? SkillId);
 
-// 省略的欄位＝清空；主動欄省略 Chance 時用預設發動率，被動欄的 Chance 一律由伺服器填入
+// 省略的欄位＝清空；發動率由技能決定，請求不帶
 public sealed record SetSkillSlotsRequest(IReadOnlyList<SkillSlotRequest?>? Slots);
 
-public sealed record SkillSlotRequest(int? Slot, string? SkillId, int? Chance);
+public sealed record SkillSlotRequest(int? Slot, string? SkillId);
 
 public sealed record SkillOverviewResponse(
     string JobId,
@@ -151,7 +151,7 @@ public sealed record SkillOverviewResponse(
     IReadOnlyList<SkillResponse> Skills,
     IReadOnlyList<SkillSlotResponse> Slots);
 
-// Level 0 表示尚未學習；Next 在已滿級時為 null
+// Level 0 表示尚未學習；Chance 是目前等級的發動率（未學或被動為 0）；Next 在已滿級時為 null
 public sealed record SkillResponse(
     string Id,
     string Name,
@@ -161,6 +161,7 @@ public sealed record SkillResponse(
     string JobId,
     int Level,
     int MaxLevel,
+    int Chance,
     SkillNextLevelResponse? Next);
 
 public sealed record SkillNextLevelResponse(
@@ -173,7 +174,7 @@ public sealed record SkillNextLevelResponse(
     bool CanLearn,
     IReadOnlyList<string> Reasons);
 
-public sealed record SkillSlotResponse(int Slot, string SkillId, int Chance);
+public sealed record SkillSlotResponse(int Slot, string SkillId);
 
 public sealed record JobOptionResponse(
     string Id,

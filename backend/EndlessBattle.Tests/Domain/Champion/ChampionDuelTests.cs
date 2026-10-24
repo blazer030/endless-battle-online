@@ -97,13 +97,13 @@ public class ChampionDuelTests
         Assert.Null(result.Battle.Supply);
     }
 
-    // 玩家裝備的技能照常施放（冠軍沒有技能），戰後 SP 寫回角色
+    // 玩家裝備的技能照常施放（冠軍沒有技能；擲骰 0.0 → 1 ≤ 發動率 40），戰後 SP 寫回角色
     [Fact]
     public void Duel_AppliesEquippedSkills()
     {
-        var burst = new EquippedSkill(TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier), Level: 1, Chance: 100, Slot: 1);
+        var burst = new EquippedSkill(TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier), Level: 1, Slot: 1);
 
-        var result = ChampionDuel.Fight(Weak, EquipmentBonus.Zero, [burst], Seat, Now, new SeededRandom(9));
+        var result = ChampionDuel.Fight(Weak, EquipmentBonus.Zero, [burst], Seat, Now, new ScriptedRandom(0.0));
 
         Assert.Contains(result.Battle.Events.OfType<SkillEvent>(), skill => skill.Caster == CombatSide.Player);
         Assert.DoesNotContain(result.Battle.Events.OfType<SkillEvent>(), skill => skill.Caster == CombatSide.Monster);

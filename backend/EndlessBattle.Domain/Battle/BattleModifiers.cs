@@ -2,8 +2,8 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Domain.Battle;
 
-// Chance 是這一欄的發動率：主動技能由玩家設定，被動技能用技能自己的 chance
-public sealed record EquippedSkill(SkillDefinition Skill, int Level, int Chance, int Slot);
+// Level 已依技能書與內容上限整理好；主動技能的發動率取 Skill.LevelAt(Level).Chance
+public sealed record EquippedSkill(SkillDefinition Skill, int Level, int Slot);
 
 // 生效中技能對這一回合的修正；全部預設值等於沒有技能
 public sealed record BattleModifiers(

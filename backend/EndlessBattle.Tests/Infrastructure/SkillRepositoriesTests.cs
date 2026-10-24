@@ -62,18 +62,18 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Loadout_ReplaceClearsMissingSlots()
     {
         var characterId = await CreateCharacterAsync();
-        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20), new SkillSlot(4, "heal", 10));
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(2, "guard"), new SkillSlot(4, "heal"));
 
-        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash", 40), new SkillSlot(3, "bash", 25));
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(3, "bash"));
 
-        Assert.Equal([new SkillSlot(1, "slash", 40), new SkillSlot(3, "bash", 25)], await ListSlotsAsync(characterId));
+        Assert.Equal([new SkillSlot(1, "slash"), new SkillSlot(3, "bash")], await ListSlotsAsync(characterId));
     }
 
     [Fact]
     public async Task Loadout_ReplaceWithEmptyClearsAll()
     {
         var characterId = await CreateCharacterAsync();
-        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20));
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(2, "guard"));
 
         await ReplaceSlotsAsync(characterId);
 
@@ -85,11 +85,11 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Loadout_ReplaceRollsBack_WhenInsertFails()
     {
         var characterId = await CreateCharacterAsync();
-        var original = new[] { new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20) };
+        var original = new[] { new SkillSlot(1, "slash"), new SkillSlot(2, "guard") };
         await ReplaceSlotsAsync(characterId, original);
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
-            ReplaceSlotsAsync(characterId, new SkillSlot(3, "bash", 10), new SkillSlot(3, "heal", 15)));
+            ReplaceSlotsAsync(characterId, new SkillSlot(3, "bash"), new SkillSlot(3, "heal")));
 
         Assert.Equal(original, await ListSlotsAsync(characterId));
     }
@@ -99,13 +99,13 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
     public async Task Loadout_ReplaceJoinsOuterTransaction()
     {
         var characterId = await CreateCharacterAsync();
-        var original = new[] { new SkillSlot(1, "slash", 30), new SkillSlot(2, "guard", 20) };
+        var original = new[] { new SkillSlot(1, "slash"), new SkillSlot(2, "guard") };
         await ReplaceSlotsAsync(characterId, original);
         await using var context = database.CreateDbContext();
 
         await Assert.ThrowsAsync<ConflictException>(() => new EfUnitOfWork(context).RunAsync<bool>(async cancellationToken =>
         {
-            await new SkillLoadoutRepository(context).ReplaceAsync(characterId, [new SkillSlot(1, "slash", 40)], cancellationToken);
+            await new SkillLoadoutRepository(context).ReplaceAsync(characterId, [new SkillSlot(1, "slash")], cancellationToken);
             throw new ConflictException("外層失敗");
         }, CancellationToken));
 
@@ -117,9 +117,9 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
 
-        await ReplaceSlotsAsync(characterId, new SkillSlot(4, "heal", 10), new SkillSlot(1, "slash", 30));
+        await ReplaceSlotsAsync(characterId, new SkillSlot(4, "heal"), new SkillSlot(1, "slash"));
 
-        Assert.Equal([new SkillSlot(1, "slash", 30), new SkillSlot(4, "heal", 10)], await ListSlotsAsync(characterId));
+        Assert.Equal([new SkillSlot(1, "slash"), new SkillSlot(4, "heal")], await ListSlotsAsync(characterId));
     }
 
     [Fact]

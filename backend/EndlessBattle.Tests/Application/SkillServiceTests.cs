@@ -8,7 +8,7 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Application;
 
-// 預設角色是戰士、2000 錢；burst lv1 要 500 錢、300 技能點，iron-skin lv2 的 chance 是 40
+// 預設角色是戰士、2000 錢；burst lv1 要 500 錢、300 技能點
 public class SkillServiceTests
 {
     private const long AccountId = 7;
@@ -124,28 +124,27 @@ public class SkillServiceTests
     public async Task Learn_Throws_WhenNoCharacter_EvenIfSkillUnknown() =>
         await Assert.ThrowsAsync<NotFoundException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
 
-    // 已裝在欄 4 的 iron-skin 從 lv1 升到 lv2（600 技能點、2000 錢）：欄位存的 30 不重寫，回傳的 chance 依已學等級算成 40
+    // 主動技能的發動率是目前等級的固定值（30 + 10·lv）：burst lv1 → 40，升到 lv2 → 50
     [Fact]
-    public async Task Learn_RaisingAnEquippedPassive_UpdatesItsChance()
+    public async Task Learn_RaisingAnActive_UpdatesItsChance()
     {
-        var character = await ArrangeAsync(600, new LearnedSkill("iron-skin", 1));
-        await loadout.ReplaceAsync(character.Id, [new SkillSlot(4, "iron-skin", 30)], CancellationToken);
+        await ArrangeAsync(600, new LearnedSkill("burst", 1));
 
-        var overview = await service.LearnAsync(AccountId, "iron-skin", CancellationToken);
+        var overview = await service.LearnAsync(AccountId, "burst", CancellationToken);
 
-        Assert.Equal([new SkillSlot(4, "iron-skin", 40)], overview.Slots);
-        Assert.Equal([new SkillSlot(4, "iron-skin", 40)], (await service.GetAsync(AccountId, CancellationToken)).Slots);
+        var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
+        Assert.Equal((2, 50, 60), (burst.Level, burst.Chance, burst.Next!.Chance));
     }
 
     [Fact]
-    public async Task SetSlots_FillsPassiveChanceFromSkill()
+    public async Task SetSlots_StoresRequestedSlotsInOrder()
     {
         var character = await ArrangeAsync(0, new LearnedSkill("burst", 1), new LearnedSkill("iron-skin", 2));
 
         var overview = await service.SetSlotsAsync(
-            AccountId, [new SkillSlot(4, "iron-skin", 0), new SkillSlot(1, "burst", 70)], CancellationToken);
+            AccountId, [new SkillSlot(4, "iron-skin"), new SkillSlot(1, "burst")], CancellationToken);
 
-        IReadOnlyList<SkillSlot> expected = [new SkillSlot(1, "burst", 70), new SkillSlot(4, "iron-skin", 40)];
+        IReadOnlyList<SkillSlot> expected = [new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")];
         Assert.Equal(expected, await loadout.ListAsync(character.Id, CancellationToken));
         Assert.Equal(expected, overview.Slots);
     }
@@ -154,29 +153,29 @@ public class SkillServiceTests
     public async Task SetSlots_RejectsInvalidLoadoutWithoutWriting()
     {
         var character = await ArrangeAsync(0, new LearnedSkill("burst", 1));
-        await loadout.ReplaceAsync(character.Id, [new SkillSlot(1, "burst", 50)], CancellationToken);
+        await loadout.ReplaceAsync(character.Id, [new SkillSlot(1, "burst")], CancellationToken);
         log.Clear();
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
-            service.SetSlotsAsync(AccountId, [new SkillSlot(4, "burst", 50), new SkillSlot(2, "iron-skin", 50)], CancellationToken));
+            service.SetSlotsAsync(AccountId, [new SkillSlot(4, "burst"), new SkillSlot(2, "iron-skin")], CancellationToken));
 
         Assert.Equal(["activeInPassiveSlot", "notLearned"], exception.Reasons);
         Assert.Empty(log);
-        Assert.Equal([new SkillSlot(1, "burst", 50)], await loadout.ListAsync(character.Id, CancellationToken));
+        Assert.Equal([new SkillSlot(1, "burst")], await loadout.ListAsync(character.Id, CancellationToken));
     }
 
     [Fact]
     public async Task SetSlots_ConflictLeavesSlots()
     {
         var character = await ArrangeAsync(0, new LearnedSkill("burst", 1));
-        await loadout.ReplaceAsync(character.Id, [new SkillSlot(1, "burst", 50)], CancellationToken);
+        await loadout.ReplaceAsync(character.Id, [new SkillSlot(1, "burst")], CancellationToken);
         log.Clear();
         characters.FailNextUpdate = true;
 
         await Assert.ThrowsAsync<ConflictException>(() => service.SetSlotsAsync(AccountId, [], CancellationToken));
 
         Assert.Empty(log);
-        Assert.Equal([new SkillSlot(1, "burst", 50)], await loadout.ListAsync(character.Id, CancellationToken));
+        Assert.Equal([new SkillSlot(1, "burst")], await loadout.ListAsync(character.Id, CancellationToken));
     }
 
     [Fact]
@@ -184,7 +183,7 @@ public class SkillServiceTests
     {
         var character = await ArrangeAsync(0, new LearnedSkill("burst", 1));
 
-        await service.SetSlotsAsync(AccountId, [new SkillSlot(1, "burst", 70)], CancellationToken);
+        await service.SetSlotsAsync(AccountId, [new SkillSlot(1, "burst")], CancellationToken);
 
         Assert.Equal(["update", "loadout"], log);
         Assert.Equal(character.Version + 1, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Version);
@@ -204,9 +203,11 @@ public class SkillServiceTests
         var burst = overview.Skills[0];
         Assert.Equal(0, burst.Level);
         Assert.Equal(5, burst.MaxLevel);
-        Assert.Equal(new NextLevelView(1, 5, 3, 0, 500, 300, true, []), burst.Next, NextLevelViewComparer.Instance);
+        Assert.Equal(0, burst.Chance);
+        Assert.Equal(new NextLevelView(1, 5, 3, 40, 500, 300, true, []), burst.Next, NextLevelViewComparer.Instance);
         var combo = overview.Skills[2];
         Assert.Equal(2, combo.Level);
+        Assert.Equal(50, combo.Chance);
         Assert.Equal(["wrongJob", "notEnoughProficiency", "notEnoughMoney"], combo.Next!.Reasons);
         Assert.False(combo.Next.CanLearn);
     }

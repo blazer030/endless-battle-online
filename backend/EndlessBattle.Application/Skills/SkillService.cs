@@ -27,11 +27,7 @@ public sealed class SkillService(
             .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), SkillPointsOf(points, skill.JobId)))
             .ToList();
 
-        var slots = (await loadout.ListAsync(character.Id, cancellationToken))
-            .Select(slot => FindSkill(slot.SkillId) is { } skill && levels.TryGetValue(slot.SkillId, out var level)
-                ? slot with { Chance = SkillLoadout.ChanceOf(slot, skill, level) }
-                : slot)
-            .ToList();
+        var slots = await loadout.ListAsync(character.Id, cancellationToken);
         return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots);
     }
 
@@ -58,7 +54,7 @@ public sealed class SkillService(
         return await GetAsync(accountId, cancellationToken);
     }
 
-    // 未列出的欄位視為清空；被動欄的發動率一律改成技能在已學等級的 chance
+    // 未列出的欄位視為清空
     public async Task<SkillOverview> SetSlotsAsync(long accountId, IReadOnlyList<SkillSlot> requested, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
@@ -70,11 +66,7 @@ public sealed class SkillService(
             throw new InputValidationException("技能欄位不正確", reasons);
         }
 
-        var levels = learned.ToDictionary(skill => skill.SkillId, skill => skill.Level, StringComparer.Ordinal);
-        var slots = requested
-            .Select(slot => slot with { Chance = SkillLoadout.ChanceOf(slot, content.GetSkill(slot.SkillId), levels[slot.SkillId]) })
-            .OrderBy(slot => slot.Slot)
-            .ToList();
+        var slots = requested.OrderBy(slot => slot.Slot).ToList();
         // 角色不變，只為了走版本鎖：與轉職同時進行時其中一方會 409
         await characters.UpdateAsync(character, cancellationToken);
         await loadout.ReplaceAsync(character.Id, slots, cancellationToken);
@@ -100,6 +92,8 @@ public sealed class SkillService(
             next = new NextLevelView(target.Level, target.Sp, target.Rounds, target.Chance, target.Money, target.Proficiency, check.Allowed, check.Reasons);
         }
 
-        return new SkillView(skill.Id, skill.Name, skill.Type, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel, next);
+        // 內容縮減等級上限時，已學等級以上限計
+        var chance = level == 0 ? 0 : skill.LevelAt(Math.Min(level, skill.MaxLevel)).Chance;
+        return new SkillView(skill.Id, skill.Name, skill.Type, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel, chance, next);
     }
 }

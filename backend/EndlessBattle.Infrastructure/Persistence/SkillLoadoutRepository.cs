@@ -14,7 +14,7 @@ public sealed class SkillLoadoutRepository(EndlessBattleDbContext context) : ISk
         await context.CharacterSkillSlots.AsNoTracking()
             .Where(row => row.CharacterId == characterId)
             .OrderBy(row => row.Slot)
-            .Select(row => new SkillSlot(row.Slot, row.SkillId, row.Chance))
+            .Select(row => new SkillSlot(row.Slot, row.SkillId))
             .ToListAsync(cancellationToken);
 
     // 先清空再寫入，包在同一個交易內，失敗時舊配置不變；在用例的交易裡呼叫時加入外層交易
@@ -27,7 +27,6 @@ public sealed class SkillLoadoutRepository(EndlessBattleDbContext context) : ISk
                 CharacterId = characterId,
                 Slot = checked((sbyte)slot.Slot),
                 SkillId = slot.SkillId,
-                Chance = slot.Chance,
             }));
             await context.SaveChangesAsync(cancellationToken);
         }, cancellationToken);

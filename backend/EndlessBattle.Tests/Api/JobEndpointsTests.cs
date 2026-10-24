@@ -226,7 +226,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
             {
                 await using var context = database.CreateDbContext();
                 await new SkillLoadoutRepository(context).ReplaceAsync(
-                    characterId, [new SkillSlot(1, current == "warrior" ? "burst" : "combo", 50), new SkillSlot(4, "iron-skin", 30)], CancellationToken);
+                    characterId, [new SkillSlot(1, current == "warrior" ? "burst" : "combo"), new SkillSlot(4, "iron-skin")], CancellationToken);
             }
 
             var target = current == "warrior" ? "thief" : "warrior";

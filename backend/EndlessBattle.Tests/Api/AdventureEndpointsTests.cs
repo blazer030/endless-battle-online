@@ -78,7 +78,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         }
 
         (await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken)).EnsureSuccessStatusCode();
-        (await client.PutAsJsonAsync("/api/skills/slots", new { slots = new[] { new { slot = 1, skillId = "burst", chance = 100 } } }, CancellationToken))
+        (await client.PutAsJsonAsync("/api/skills/slots", new { slots = new[] { new { slot = 1, skillId = "burst" } } }, CancellationToken))
             .EnsureSuccessStatusCode();
         factory.Clock.Advance(TimeSpan.FromSeconds(20));
 

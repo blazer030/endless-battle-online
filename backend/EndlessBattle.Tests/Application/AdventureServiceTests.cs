@@ -346,7 +346,7 @@ public class AdventureServiceTests
         await EquipAsync(
             character,
             [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1)],
-            [new SkillSlot(1, "burst", 100), new SkillSlot(2, "combo", 50), new SkillSlot(4, "iron-skin", 30)]);
+            [new SkillSlot(1, "burst"), new SkillSlot(2, "combo"), new SkillSlot(4, "iron-skin")]);
         clock.Advance(TimeSpan.FromSeconds(5));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
@@ -366,7 +366,7 @@ public class AdventureServiceTests
         await EquipAsync(
             character,
             [new LearnedSkill("burst", 1), new LearnedSkill("iron-skin", 1)],
-            [new SkillSlot(1, "burst", 100), new SkillSlot(4, "iron-skin", 30)]);
+            [new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")]);
         clock.Advance(TimeSpan.FromSeconds(6));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);

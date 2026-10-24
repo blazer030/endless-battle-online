@@ -11,7 +11,5 @@ public partial class CharacterSkillSlot
 
     public string SkillId { get; set; } = null!;
 
-    public int Chance { get; set; }
-
     public virtual Character Character { get; set; } = null!;
 }

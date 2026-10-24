@@ -30,7 +30,7 @@ public class WogBattleSkillTests
     private static CombatantState Monster(int hp = 1000, int at = 0, int mat = 0) =>
         new(hp, hp, Sp: 0, SpMax: 0, at, mat, Df: 50, Mdf: 50, Agi: 10, Au: 10, Element: 0, SpecialAttackName: null, Str: at, Smart: mat);
 
-    private static EquippedSkill Equip(SkillDefinition skill, int level, int chance = 100, int slot = 1) => new(skill, level, chance, slot);
+    private static EquippedSkill Equip(SkillDefinition skill, int level, int slot = 1) => new(skill, level, slot);
 
     private static List<AttackEvent> AttacksBy(BattleOutcome outcome, CombatSide side) =>
         outcome.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == side).ToList();
@@ -70,10 +70,10 @@ public class WogBattleSkillTests
         Assert.Equal(scriptedWithoutSkill.Consumed, scriptedWithSkill.Consumed);
     }
 
-    // 爆氣 lv5（sp 17、持續 3 回合）、欄位發動率 50。at 105：105·2.1 − 50 = 170.5，比值 1.62 → rand(0,0) → 171；at 100 → 150。
+    // 爆氣 lv5（sp 17、持續 3 回合、發動率 80）。at 105：105·2.1 − 50 = 170.5，比值 1.62 → rand(0,0) → 171；at 100 → 150。
     // 每回合：[爆氣] 先攻 0.0 玩家先、命中 0.0、暴擊 0.99 不中、傷害 0.0；怪物 at 0 命中 0.99 → 100 未命中。
-    // 第 1 回合爆氣 0.0 → 1 ≤ 50 發動（SP 100 → 83）；第 2、3 回合持續中不擲（若擲了，0.0 會被當成發動骰、整串錯位）；
-    // 第 4 回合開頭失效，發動骰 0.99 → 100 > 50 不發動，at 回到 100。之後全是 0.99：怪物先、雙方都未命中
+    // 第 1 回合爆氣 0.0 → 1 ≤ 80 發動（SP 100 → 83）；第 2、3 回合持續中不擲（若擲了，0.0 會被當成發動骰、整串錯位）；
+    // 第 4 回合開頭失效，發動骰 0.99 → 100 > 80 不發動，at 回到 100。之後全是 0.99：怪物先、雙方都未命中
     [Fact]
     public void Battle_BuffExpiresAndDoesNotStack()
     {
@@ -83,7 +83,7 @@ public class WogBattleSkillTests
             0.0, 0.0, 0.99, 0.0, 0.99,
             0.99, 0.0, 0.0, 0.99, 0.0, 0.99);
 
-        var outcome = WogBattle.Run(Player(), Monster(hp: 10000), null, [Equip(Burst, level: 5, chance: 50)], random);
+        var outcome = WogBattle.Run(Player(), Monster(hp: 10000), null, [Equip(Burst, level: 5)], random);
 
         Assert.Equal([171, 171, 171, 150], AttacksBy(outcome, CombatSide.Player).Take(4).Select(attack => attack.Damage));
         Assert.Equal(new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 5, SpAfter: 83, Heal: 0), Assert.Single(outcome.Events.OfType<SkillEvent>()));
@@ -200,7 +200,7 @@ public class WogBattleSkillTests
         var withSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
         var withoutSkill = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0);
 
-        var outcome = WogBattle.Run(Player(), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, chance: 100, slot: 4)], withSkill);
+        var outcome = WogBattle.Run(Player(), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, slot: 4)], withSkill);
         var baseline = WogBattle.Run(Player(), Monster(hp: 150), null, withoutSkill);
 
         Assert.Empty(outcome.Events.OfType<SkillEvent>());
@@ -369,7 +369,7 @@ public class WogBattleSkillTests
     {
         var random = new ScriptedRandom(0.99, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0);
 
-        var outcome = WogBattle.Run(Player(hp: 100, hpMax: 100), Monster(at: 60), null, [Equip(Heal, level: 3, chance: 50)], random);
+        var outcome = WogBattle.Run(Player(hp: 100, hpMax: 100), Monster(at: 60), null, [Equip(Heal, level: 3)], random);
 
         Assert.Equal(new SkillEvent(0.8, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, Heal: 22), Assert.Single(outcome.Events.OfType<SkillEvent>()));
         Assert.Equal(100, outcome.Player.Hp);

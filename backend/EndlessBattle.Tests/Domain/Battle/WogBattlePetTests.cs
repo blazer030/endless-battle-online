@@ -134,7 +134,7 @@ public class WogBattlePetTests
     {
         var quicken = TestSkills.Battle("quicken", "加敏", SkillEffectKind.AgiMultiplier);
         var slow = TestSkills.Battle("slow", "降敵敏", SkillEffectKind.EnemyAgiDown);
-        EquippedSkill[] skills = [new(quicken, Level: 5, Chance: 100, Slot: 1), new(slow, Level: 5, Chance: 100, Slot: 2)];
+        EquippedSkill[] skills = [new(quicken, Level: 5, Slot: 1), new(slow, Level: 5, Slot: 2)];
         var player = new CombatantState(1000, 1000, Sp: 100, SpMax: 100, At: 10, Mat: 0, Df: 50, Mdf: 50, Agi: 100, Au: 10, Element: 0, "烈焰斬", Str: 10, Smart: 0);
         var monster = Monster(at: 0, df: 6, mdf: 4, agi: 100, au: 10);
 

@@ -14,18 +14,18 @@ public class SkillCasterTests
     private static CombatantState Player(int sp) =>
         new(Hp: 100, HpMax: 100, Sp: sp, SpMax: sp, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0, SpecialAttackName: null, Str: 100, Smart: 0);
 
-    // 欄位 3、1、2 亂序傳入，發動率都是 100（擲骰 0.99 → 100 ≤ 100）。依欄位 1→5：
+    // 欄位 3、1、2 亂序傳入，擲骰都是 0.0 → 1，不超過任何等級的發動率（30 + 10·lv）。依欄位 1→5：
     // 爆氣 lv1 sp 5（20 → 15）、魔力增幅 lv2 sp 8（15 → 7）、靡靡之音 lv3 sp 11 > 7 → 不擲骰也不扣。
     // 修正值：at ×1.01、mat ×1.02，其他維持預設
     [Fact]
     public void Caster_CastsInSlotOrder_AndDeductsSp()
     {
-        var random = new ScriptedRandom(0.99);
+        var random = new ScriptedRandom(0.0);
         var caster = new SkillCaster(Player(sp: 20),
         [
-            new EquippedSkill(Lullaby, Level: 3, Chance: 100, Slot: 3),
-            new EquippedSkill(Burst, Level: 1, Chance: 100, Slot: 1),
-            new EquippedSkill(ManaSurge, Level: 2, Chance: 100, Slot: 2),
+            new EquippedSkill(Lullaby, Level: 3, Slot: 3),
+            new EquippedSkill(Burst, Level: 1, Slot: 1),
+            new EquippedSkill(ManaSurge, Level: 2, Slot: 2),
         ]);
 
         var casts = caster.CastBeforeAttack(hp: 100, sp: 20, random);
@@ -43,7 +43,7 @@ public class SkillCasterTests
     public void Caster_PassivesAreAlwaysOn_WithoutRollOrSp()
     {
         var random = new ScriptedRandom(0.99);
-        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(IronSkin, Level: 2, Chance: 100, Slot: 4)]);
+        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(IronSkin, Level: 2, Slot: 4)]);
 
         Assert.Equal(1.02, caster.Current.Df, 10);
         Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 0, random));
@@ -60,7 +60,7 @@ public class SkillCasterTests
     {
         var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillEffectKind.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
         var random = new ScriptedRandom(0.99);
-        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Chance: 100, Slot: 4)]);
+        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
 
         var first = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, hp: 50, sp: 0, random));
         var second = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, hp: 65, sp: 0, random));
@@ -74,9 +74,9 @@ public class SkillCasterTests
     [Fact]
     public void Caster_CastsWhenSpEqualsCost()
     {
-        var caster = new SkillCaster(Player(sp: 5), [new EquippedSkill(Burst, Level: 1, Chance: 100, Slot: 1)]);
+        var caster = new SkillCaster(Player(sp: 5), [new EquippedSkill(Burst, Level: 1, Slot: 1)]);
 
-        var cast = Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, new ScriptedRandom(0.99)));
+        var cast = Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, new ScriptedRandom(0.0)));
 
         Assert.Equal(0, cast.SpAfter);
     }
@@ -106,7 +106,7 @@ public class SkillCasterTests
     [MemberData(nameof(EffectFormulas))]
     public void Caster_AppliesEffectFormulas(SkillEffectKind effect, int level, BattleModifiers expected)
     {
-        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(TestSkills.Battle("skill", "技能", effect), level, Chance: 100, Slot: 1)]);
+        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(TestSkills.Battle("skill", "技能", effect), level, Slot: 1)]);
 
         caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0));
 

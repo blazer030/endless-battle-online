@@ -106,12 +106,12 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
 
         await using var context = database.CreateDbContext();
         context.CharacterSkills.Add(new CharacterSkill { CharacterId = characterId, SkillId = "slash", Level = 1 });
-        context.CharacterSkillSlots.Add(new CharacterSkillSlot { CharacterId = characterId, Slot = 1, SkillId = "slash", Chance = 30 });
+        context.CharacterSkillSlots.Add(new CharacterSkillSlot { CharacterId = characterId, Slot = 1, SkillId = "slash" });
         await context.SaveChangesAsync(cancellationToken);
 
         await using var reader = database.CreateDbContext();
         Assert.Equal(1, (await reader.CharacterSkills.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Level);
-        Assert.Equal(30, (await reader.CharacterSkillSlots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).Chance);
+        Assert.Equal("slash", (await reader.CharacterSkillSlots.SingleAsync(row => row.CharacterId == characterId, cancellationToken)).SkillId);
     }
 
     [Fact]

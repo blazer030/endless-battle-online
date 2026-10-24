@@ -21,121 +21,106 @@ public class SkillLoadoutTests
     private static IReadOnlyList<string> Validate(params SkillSlot[] slots) =>
         SkillLoadout.Validate(slots, "warrior", Learned, id => Skills[id]);
 
-    // 主動欄可放其他職業的主動技能（轉職後保留）；被動欄的 chance 由服務層填入，這裡不檢查
+    // 主動欄可放其他職業的主動技能（轉職後保留）
     [Fact]
     public void Loadout_AcceptsThreeActiveTwoPassive()
     {
         Assert.Empty(Validate(
-            new SkillSlot(1, "burst", 50),
-            new SkillSlot(2, "combo", 10),
-            new SkillSlot(3, "lullaby", 100),
-            new SkillSlot(4, "iron-skin", 0),
-            new SkillSlot(5, "guard", 99)));
+            new SkillSlot(1, "burst"),
+            new SkillSlot(2, "combo"),
+            new SkillSlot(3, "lullaby"),
+            new SkillSlot(4, "iron-skin"),
+            new SkillSlot(5, "guard")));
         Assert.Empty(Validate());
     }
 
     [Fact]
     public void Loadout_RejectsPassiveInActiveSlot() =>
-        Assert.Equal(["passiveInActiveSlot"], Validate(new SkillSlot(1, "iron-skin", 50)));
+        Assert.Equal(["passiveInActiveSlot"], Validate(new SkillSlot(1, "iron-skin")));
 
     [Fact]
     public void Loadout_RejectsActiveInPassiveSlot() =>
-        Assert.Equal(["activeInPassiveSlot"], Validate(new SkillSlot(4, "burst", 50)));
+        Assert.Equal(["activeInPassiveSlot"], Validate(new SkillSlot(4, "burst")));
 
     [Fact]
     public void Loadout_RejectsPassiveOfOtherJob() =>
-        Assert.Equal(["passiveNotCurrentJob"], Validate(new SkillSlot(5, "bloodthirst", 30)));
+        Assert.Equal(["passiveNotCurrentJob"], Validate(new SkillSlot(5, "bloodthirst")));
 
     [Fact]
     public void Loadout_RejectsDuplicateSkill() =>
-        Assert.Equal(["duplicateSkill"], Validate(new SkillSlot(1, "burst", 50), new SkillSlot(2, "burst", 50)));
+        Assert.Equal(["duplicateSkill"], Validate(new SkillSlot(1, "burst"), new SkillSlot(2, "burst")));
 
     [Fact]
     public void Loadout_RejectsDuplicateSlot() =>
-        Assert.Equal(["duplicateSlot"], Validate(new SkillSlot(1, "burst", 50), new SkillSlot(1, "combo", 50)));
+        Assert.Equal(["duplicateSlot"], Validate(new SkillSlot(1, "burst"), new SkillSlot(1, "combo")));
 
     [Fact]
     public void Loadout_RejectsNotLearned()
     {
-        Assert.Equal(["notLearned"], SkillLoadout.Validate([new SkillSlot(1, "burst", 50)], "warrior", [], id => Skills[id]));
-        Assert.Equal(["notLearned"], Validate(new SkillSlot(1, "no-such-skill", 50)));
+        Assert.Equal(["notLearned"], SkillLoadout.Validate([new SkillSlot(1, "burst")], "warrior", [], id => Skills[id]));
+        Assert.Equal(["notLearned"], Validate(new SkillSlot(1, "no-such-skill")));
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(6)]
     public void Loadout_RejectsSlotOutOfRange(int slot) =>
-        Assert.Equal(["slotOutOfRange"], Validate(new SkillSlot(slot, "burst", 50)));
-
-    [Theory]
-    [InlineData(55)]
-    [InlineData(0)]
-    [InlineData(110)]
-    [InlineData(-10)]
-    public void Loadout_RejectsChanceOffStep(int chance) =>
-        Assert.Equal(["chanceOutOfRange"], Validate(new SkillSlot(1, "burst", chance)));
+        Assert.Equal(["slotOutOfRange"], Validate(new SkillSlot(slot, "burst")));
 
     [Fact]
     public void Loadout_ReportsEveryDistinctReasonInOrder() =>
         Assert.Equal(
-            ["passiveInActiveSlot", "chanceOutOfRange", "activeInPassiveSlot"],
-            Validate(new SkillSlot(1, "iron-skin", 55), new SkillSlot(2, "guard", 50), new SkillSlot(4, "burst", 50)));
+            ["passiveInActiveSlot", "activeInPassiveSlot"],
+            Validate(new SkillSlot(1, "iron-skin"), new SkillSlot(2, "guard"), new SkillSlot(4, "burst"), new SkillSlot(5, "combo")));
 
-    private static IReadOnlyList<(string SkillId, int Level, int Chance, int Slot)> ForBattle(
+    private static IReadOnlyList<(string SkillId, int Level, int Slot)> ForBattle(
         IReadOnlyList<LearnedSkill> learned, string currentJobId, params SkillSlot[] slots) =>
         SkillLoadout.ForBattle(slots, learned, currentJobId, id => Skills.GetValueOrDefault(id))
-            .Select(equipped => (equipped.Skill.Id, equipped.Level, equipped.Chance, equipped.Slot))
+            .Select(equipped => (equipped.Skill.Id, equipped.Level, equipped.Slot))
             .ToList();
 
-    // 輸入順序與字母序都和欄位序相反，輸出仍依欄位 1→5；等級取技能書，主動欄的發動率取欄位設定
+    // 輸入順序與字母序都和欄位序相反，輸出仍依欄位 1→5；等級取技能書
     [Fact]
-    public void ForBattle_OrdersBySlotWithLearnedLevelAndActiveSlotChance() =>
+    public void ForBattle_OrdersBySlotWithLearnedLevel() =>
         Assert.Equal(
-            [("lullaby", 3, 100, 1), ("burst", 2, 30, 2), ("iron-skin", 1, 30, 4)],
+            [("lullaby", 3, 1), ("burst", 2, 2), ("iron-skin", 1, 4)],
             ForBattle(
                 [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1), new LearnedSkill("lullaby", 3)],
                 "warrior",
-                new SkillSlot(4, "iron-skin", 30), new SkillSlot(2, "burst", 30), new SkillSlot(1, "lullaby", 100)));
-
-    // 存下的被動欄 chance 只是顯示快取：學到 lv2 後欄位還是 30，戰鬥用 lv2 的 40
-    [Fact]
-    public void ForBattle_PassiveChanceFollowsLearnedLevel() =>
-        Assert.Equal(
-            [("iron-skin", 2, 40, 4)],
-            ForBattle([new LearnedSkill("iron-skin", 2)], "warrior", new SkillSlot(4, "iron-skin", 30)));
+                new SkillSlot(4, "iron-skin"), new SkillSlot(2, "burst"), new SkillSlot(1, "lullaby")));
 
     // 內容把技能縮成 5 級後，技能書裡的 7、9 級以 5 級施放
     [Fact]
     public void ForBattle_ClampsLevelToContentMaximum() =>
         Assert.Equal(
-            [("burst", 5, 50, 1), ("iron-skin", 5, 70, 4)],
+            [("burst", 5, 1), ("iron-skin", 5, 4)],
             ForBattle([new LearnedSkill("burst", 7), new LearnedSkill("iron-skin", 9)], "warrior",
-                new SkillSlot(1, "burst", 50), new SkillSlot(4, "iron-skin", 30)));
+                new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")));
 
     [Fact]
     public void ForBattle_SkipsSkillsNotInBook() =>
         Assert.Equal(
-            [("burst", 1, 50, 1)],
-            ForBattle([new LearnedSkill("burst", 1)], "warrior", new SkillSlot(1, "burst", 50), new SkillSlot(2, "combo", 50)));
+            [("burst", 1, 1)],
+            ForBattle([new LearnedSkill("burst", 1)], "warrior", new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
 
     // 轉職與推進競態時被動欄可能殘留前一個職業的被動
     [Fact]
     public void ForBattle_SkipsPassiveOfOtherJob() =>
         Assert.Equal(
-            [("iron-skin", 1, 30, 4)],
-            ForBattle(Learned, "warrior", new SkillSlot(4, "iron-skin", 30), new SkillSlot(5, "bloodthirst", 30)));
+            [("iron-skin", 1, 4)],
+            ForBattle(Learned, "warrior", new SkillSlot(4, "iron-skin"), new SkillSlot(5, "bloodthirst")));
 
     // 主動欄照 WOG 不限職業
     [Fact]
     public void ForBattle_KeepsActiveOfOtherJob() =>
         Assert.Equal(
-            [("burst", 1, 50, 1), ("combo", 1, 50, 2)],
-            ForBattle(Learned, "thief", new SkillSlot(1, "burst", 50), new SkillSlot(2, "combo", 50)));
+            [("burst", 1, 1), ("combo", 1, 2)],
+            ForBattle(Learned, "thief", new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
 
     [Fact]
     public void ForBattle_SkipsSkillsRemovedFromContent() =>
         Assert.Equal(
-            [("burst", 1, 50, 2)],
+            [("burst", 1, 2)],
             ForBattle([new LearnedSkill("retired", 1), new LearnedSkill("burst", 1)], "warrior",
-                new SkillSlot(1, "retired", 50), new SkillSlot(2, "burst", 50)));
+                new SkillSlot(1, "retired"), new SkillSlot(2, "burst")));
 }

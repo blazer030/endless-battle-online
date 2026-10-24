@@ -2,18 +2,17 @@ using EndlessBattle.Domain.Battle;
 
 namespace EndlessBattle.Domain.Skills;
 
-// 欄位 1～3 放主動技能（發動率由玩家設定），4～5 放當前職業的被動技能（發動率用技能自己的值）
+// 欄位 1～3 放主動技能（發動率由技能等級固定），4～5 放當前職業的被動技能（常駐）
 public static class SkillLoadout
 {
-    public const int ActiveSlots = 3, PassiveSlots = 2, DefaultChance = 50, MinChance = 10, MaxChance = 100, ChanceStep = 10;
+    public const int ActiveSlots = 3, PassiveSlots = 2;
 
     public static bool IsActiveSlot(int slot) => slot is >= 1 and <= ActiveSlots;
 
     public static bool IsPassiveSlot(int slot) => slot > ActiveSlots && slot <= ActiveSlots + PassiveSlots;
 
     // 回傳所有不合法原因（不重複、依出現順序），空清單表示合法。
-    // 代碼：slotOutOfRange、duplicateSlot、notLearned、duplicateSkill、activeInPassiveSlot、passiveInActiveSlot、passiveNotCurrentJob、chanceOutOfRange。
-    // 被動欄的 Chance 不檢查：由呼叫端以技能在已學等級的 chance 覆寫
+    // 代碼：slotOutOfRange、duplicateSlot、notLearned、duplicateSkill、activeInPassiveSlot、passiveInActiveSlot、passiveNotCurrentJob
     public static IReadOnlyList<string> Validate(
         IReadOnlyList<SkillSlot> slots, string currentJobId, IReadOnlyList<LearnedSkill> learned, Func<string, SkillDefinition> skills)
     {
@@ -53,11 +52,6 @@ public static class SkillLoadout
                 {
                     reasons.Add("passiveInActiveSlot");
                 }
-
-                if (!IsValidActiveChance(slot.Chance))
-                {
-                    reasons.Add("chanceOutOfRange");
-                }
             }
             else if (IsPassiveSlot(slot.Slot))
             {
@@ -76,7 +70,8 @@ public static class SkillLoadout
     }
 
     // 戰鬥實際生效的欄位，依欄位 1→5：略過技能書沒有、內容已移除（skills 回傳 null）的技能，
-    // 以及別職業的被動（轉職與推進競態時可能殘留）；主動欄照 WOG 不限職業
+    // 以及別職業的被動（轉職與推進競態時可能殘留）；主動欄照 WOG 不限職業。
+    // 內容縮減等級上限時，已學等級以上限計
     public static IReadOnlyList<EquippedSkill> ForBattle(
         IReadOnlyList<SkillSlot> slots, IReadOnlyList<LearnedSkill> learned, string currentJobId, Func<string, SkillDefinition?> skills)
     {
@@ -94,18 +89,9 @@ public static class SkillLoadout
                 continue;
             }
 
-            var level = Math.Min(learnedSkill.Level, skill.MaxLevel);
-            equipped.Add(new EquippedSkill(skill, level, ChanceOf(slot, skill, level), slot.Slot));
+            equipped.Add(new EquippedSkill(skill, Math.Min(learnedSkill.Level, skill.MaxLevel), slot.Slot));
         }
 
         return equipped;
     }
-
-    // 主動欄用玩家設定的發動率；被動欄用技能在已學等級的 chance，存下的值只是顯示快取。
-    // 內容縮減等級上限時，已學等級以上限計
-    public static int ChanceOf(SkillSlot slot, SkillDefinition skill, int learnedLevel) =>
-        IsPassiveSlot(slot.Slot) ? skill.LevelAt(Math.Min(learnedLevel, skill.MaxLevel)).Chance : slot.Chance;
-
-    private static bool IsValidActiveChance(int chance) =>
-        chance is >= MinChance and <= MaxChance && chance % ChanceStep == 0;
 }
