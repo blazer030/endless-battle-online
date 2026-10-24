@@ -55,8 +55,6 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
   subPlace: 1,
   subPlaceName: "香茅綠地",
   areaName: "中央大陸",
-  actNum: 50,
-  actNumMax: 50,
   jobProficiency: [],
   settings: {
     attack: null,

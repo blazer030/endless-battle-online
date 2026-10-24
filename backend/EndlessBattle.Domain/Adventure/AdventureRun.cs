@@ -2,7 +2,6 @@ using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
-using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Domain.Adventure;
 
@@ -25,7 +24,6 @@ public sealed record AdventureRun(
     IReadOnlyList<BattleEvent> Events,
     AdvanceSummary Summary,
     Character Character,
-    StaminaState Stamina,
     IReadOnlyList<JobGain> JobGains,
     double ConsumedSeconds,
     bool EventsCoverAll,

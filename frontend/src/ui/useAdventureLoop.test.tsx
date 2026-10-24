@@ -201,7 +201,6 @@ test("adventureLoop_HandsDueItemsToOnItems", async () => {
         playerHpMax: 120,
         playerSp: 10,
         playerSpMax: 10,
-        staminaDepleted: false,
       },
     ],
   }

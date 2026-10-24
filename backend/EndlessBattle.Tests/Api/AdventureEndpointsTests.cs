@@ -10,7 +10,6 @@ namespace EndlessBattle.Tests.Api;
 
 public class AdventureEndpointsTests(MySqlDatabaseFixture database)
 {
-    private const int StaminaMax = 50;
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
@@ -52,8 +51,6 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
             summary.GetProperty("fights").GetInt32());
 
         var character = body.GetProperty("character");
-        Assert.Equal(StaminaMax, character.GetProperty("actNum").GetInt32());
-        Assert.Equal(StaminaMax, character.GetProperty("actNumMax").GetInt32());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(character.ToString(), me.ToString());
     }
@@ -139,7 +136,6 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Empty(body.GetProperty("events").EnumerateArray());
         Assert.Equal(0, body.GetProperty("summary").GetProperty("fights").GetInt32());
         Assert.Equal(0, body.GetProperty("summary").GetProperty("exp").GetInt64());
-        Assert.Equal(StaminaMax, body.GetProperty("character").GetProperty("actNum").GetInt32());
     }
 
     // 離線 6 小時：上萬場一次算完；事件只含最後 30 秒開始的場次，結算到最後一場打完，馬上再推進是空的

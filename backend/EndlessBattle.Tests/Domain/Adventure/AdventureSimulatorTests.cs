@@ -9,14 +9,13 @@ using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
-using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Adventure;
 
 // 除非另外指定，擲骰一律 0.0：rand 取下限、NextInt 取 0、遇敵擲骰 rand(0,100) = 0 → 只有 Meet 0 的怪物入選。
-// 預設角色（TestCharacters.Default）：Lv1、Base (12,12,12,10,12,10,10)、地屬性、Hp 60／350、Sp 25／91、行動力 50。
+// 預設角色（TestCharacters.Default）：Lv1、Base (12,12,12,10,12,10,10)、地屬性、Hp 60／350、Sp 25／91。
 // 對上 dummy（agi 12、df 1、無屬性）：agi 相同 → 30% 先攻，擲 1 ≤ 30 玩家先攻；必中；暴擊 1 < 10、倍率 1.2 → A 14.4；
 // (14.4·14.4 − 1) = 206.36，加 rand(⌊14.33/3⌋, ⌊14.33/2⌋) = 4 → 210 ≥ 100，第 1 回合在 0 秒擊倒，怪物不出手。
 public class AdventureSimulatorTests
@@ -55,7 +54,6 @@ public class AdventureSimulatorTests
             monsters.Length == 0 ? [Dummy] : monsters,
             ItemOf,
             skills,
-            new StaminaState(character.ActNum, character.ActNumTime),
             From,
             From.AddSeconds(seconds),
             random ?? new ScriptedRandom(0.0));
@@ -89,7 +87,7 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 1);
 
         Assert.Equal(
-            new EncounterEvent(0, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 60, PlayerHpMax: 350, PlayerSp: 25, PlayerSpMax: 91, StaminaDepleted: false),
+            new EncounterEvent(0, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 60, PlayerHpMax: 350, PlayerSp: 25, PlayerSpMax: 91),
             run.Events[0]);
         Assert.Contains(run.Events, battleEvent => battleEvent is RoundEvent);
         Assert.Contains(run.Events, battleEvent => battleEvent is AttackEvent);
@@ -103,7 +101,7 @@ public class AdventureSimulatorTests
 
         Assert.Equal(new RestEvent(0, Cost: 0, ExpPenalty: false, WaitSeconds: 15), run.Events[0]);
         Assert.Equal(
-            new EncounterEvent(15, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 350, PlayerHpMax: 350, PlayerSp: 91, PlayerSpMax: 91, StaminaDepleted: false),
+            new EncounterEvent(15, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 350, PlayerHpMax: 350, PlayerSp: 91, PlayerSpMax: 91),
             run.Events[1]);
         Assert.Equal(1, run.Summary.Fights);
     }
@@ -365,7 +363,7 @@ public class AdventureSimulatorTests
         var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 20 });
 
         var run = AdventureSimulator.Run(
-            Hero(), Warrior, Place, [Dummy], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
+            Hero(), Warrior, Place, [Dummy], ItemOf, [], From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
 
         Assert.IsType<RestEvent>(run.Events[0]);
         Assert.Equal(850, run.Character.Hp);
@@ -382,7 +380,7 @@ public class AdventureSimulatorTests
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 1);
 
         var run = AdventureSimulator.Run(
-            tough, Warrior, Place, [pebble], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(4), new ScriptedRandom(0.0), supply: supply);
+            tough, Warrior, Place, [pebble], ItemOf, [], From, From.AddSeconds(4), new ScriptedRandom(0.0), supply: supply);
 
         Assert.Equal(2, run.Summary.Fights);
         Assert.Equal(new PotionEvent(0.8, "tonic", "補給", Hp: 1, Sp: 0, Remaining: 0), run.Events.OfType<PotionEvent>().Single());
@@ -401,7 +399,7 @@ public class AdventureSimulatorTests
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 20);
 
         var run = AdventureSimulator.Run(
-            tough, Warrior, Place, [pebble], ItemOf, [], new StaminaState(50, null), From, From.AddSeconds(11), new ScriptedRandom(0.0), supply: supply);
+            tough, Warrior, Place, [pebble], ItemOf, [], From, From.AddSeconds(11), new ScriptedRandom(0.0), supply: supply);
 
         Assert.Equal(2, run.Summary.Fights);
         var secondFight = run.Events.OfType<EncounterEvent>().Last().AtSeconds;
@@ -491,8 +489,7 @@ public class AdventureSimulatorTests
     {
         var start = from ?? From;
         return AdventureSimulator.Run(
-            character, Warrior, Place, monsters.Length == 0 ? [Sprite] : monsters, ItemOf, [],
-            new StaminaState(character.ActNum, character.ActNumTime), start, start.AddSeconds(seconds), random ?? new ScriptedRandom(0.0),
+            character, Warrior, Place, monsters.Length == 0 ? [Sprite] : monsters, ItemOf, [], start, start.AddSeconds(seconds), random ?? new ScriptedRandom(0.0),
             missions: missions);
     }
 
@@ -689,8 +686,7 @@ public class AdventureSimulatorTests
 
     private static AdventureRun RunWithPet(Character character, double seconds, Pet? pet, IRandomSource random, params MonsterDefinition[] monsters) =>
         AdventureSimulator.Run(
-            character, Warrior, Place, monsters.Length == 0 ? [Brute] : monsters, ItemOf, [],
-            new StaminaState(character.ActNum, character.ActNumTime), From, From.AddSeconds(seconds), random,
+            character, Warrior, Place, monsters.Length == 0 ? [Brute] : monsters, ItemOf, [], From, From.AddSeconds(seconds), random,
             companions: new AdventureCompanions(pet));
 
     // 親密度 255、出擊值 255（積極、玩家 au 10 對 10）→ 出擊率 21；代擋量 5000 整段都用不完
@@ -754,8 +750,7 @@ public class AdventureSimulatorTests
         Character character, double seconds, CaptureState? capture, IRandomSource random, int petCount = 0, Pet? carried = null,
         IReadOnlyList<ActiveMission>? missions = null, params MonsterDefinition[] monsters) =>
         AdventureSimulator.Run(
-            character, Warrior, Place, monsters.Length == 0 ? [Dummy] : monsters, ItemOf, [],
-            new StaminaState(character.ActNum, character.ActNumTime), From, From.AddSeconds(seconds), random,
+            character, Warrior, Place, monsters.Length == 0 ? [Dummy] : monsters, ItemOf, [], From, From.AddSeconds(seconds), random,
             missions: missions, companions: new AdventureCompanions(carried, petCount, capture));
 
     // 同 Adventure_DropsNothingOnLossesAndTimeouts 的敗場與超限：擲骰 0.0 若有擲捕捉一定損壞，但兩者都不擲
@@ -878,7 +873,6 @@ public class AdventureSimulatorTests
             monsters.Length == 0 ? [Dummy] : monsters,
             ItemOf,
             [],
-            new StaminaState(character.ActNum, character.ActNumTime),
             From,
             From.AddSeconds(seconds),
             random,

@@ -197,7 +197,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
           )}
         </span>
         <span className="adventure__money">{`金錢 ${formatNumber(character.money)}`}</span>
-        <span className="adventure__stamina">{`行動力 ${character.actNum}/${character.actNumMax}`}</span>
         <span className="adventure__exp">
           <span className="adventure__exp-label">EXP</span>
           <StatBar label="EXP" value={character.exp} max={character.nextExp} tone="exp" />

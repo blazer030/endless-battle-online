@@ -99,7 +99,7 @@ public sealed class WorldService(
                 await areaPasses.SaveAsync(updated.Id, AreaKeys.Enter(keySpec, now), cancellationToken);
             }
 
-            return new CharacterProfile(CharacterStamina.Regenerated(updated, now), settled.JobProficiency, settled.Equipment);
+            return new CharacterProfile(updated, settled.JobProficiency, settled.Equipment);
         }, cancellationToken);
     }
 

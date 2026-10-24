@@ -20,7 +20,6 @@ const encounter: EncounterEvent = {
   playerHpMax: 200,
   playerSp: 10,
   playerSpMax: 20,
-  staminaDepleted: false,
   atSeconds: 0,
 }
 

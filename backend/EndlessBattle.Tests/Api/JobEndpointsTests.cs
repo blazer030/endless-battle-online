@@ -80,26 +80,6 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("thief", me.GetProperty("jobId").GetString());
     }
 
-    // 推進 20 秒耗掉行動力，再過 400 秒：GET /me 顯示回復後的值（+12），轉職回應也要一樣
-    [Fact]
-    public async Task Change_ReturnsSameActNumAsMe()
-    {
-        await using var factory = new EndlessBattleApiFactory(database);
-        var client = await CreateClientWithCharacterAsync(factory);
-        factory.Clock.Advance(TimeSpan.FromSeconds(20));
-        var advanced = await (await client.PostAsync("/api/adventure/advance", null, CancellationToken)).Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        var spent = advanced.GetProperty("character").GetProperty("actNum").GetInt32();
-        factory.Clock.Advance(TimeSpan.FromSeconds(400));
-
-        var response = await ChangeAsync(client, "thief");
-
-        response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(Math.Min(spent + 12, 50), me.GetProperty("actNum").GetInt32());
-        Assert.Equal(me.GetProperty("actNum").GetInt32(), body.GetProperty("actNum").GetInt32());
-    }
-
     [Fact]
     public async Task Change_Returns400_ForSameJob()
     {

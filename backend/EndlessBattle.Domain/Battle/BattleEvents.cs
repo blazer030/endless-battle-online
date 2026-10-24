@@ -31,7 +31,6 @@ public sealed record EncounterEvent(
     int PlayerHpMax,
     int PlayerSp,
     int PlayerSpMax,
-    bool StaminaDepleted,
     string? PetName = null,
     string? PetMonsterId = null) : BattleEvent(AtSeconds);
 

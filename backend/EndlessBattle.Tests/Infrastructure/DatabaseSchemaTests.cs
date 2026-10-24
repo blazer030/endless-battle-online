@@ -29,10 +29,23 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal("warrior", stored.JobId);
         Assert.Equal(10, stored.BaseStr);
         Assert.Equal(50, stored.Hp);
-        Assert.Equal(50, stored.ActNum);
-        Assert.Null(stored.ActNumTime);
         Assert.Equal(0, stored.Money);
         Assert.Equal(0, stored.Exp);
+    }
+
+    // 行動力系統已移除：characters 不再有 act_num、act_num_time
+    [Fact]
+    public async Task Characters_HaveNoStaminaColumns()
+    {
+        await using var context = database.CreateDbContext();
+
+        var columns = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT COLUMN_NAME AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'characters' AND COLUMN_NAME IN ('act_num', 'act_num_time')
+            """).ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Empty(columns);
     }
 
     // 同伴相關的時間欄位都是 DATETIME(6)；冠軍一個角色一列

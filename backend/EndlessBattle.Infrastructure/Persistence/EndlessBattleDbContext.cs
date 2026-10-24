@@ -74,12 +74,6 @@ public partial class EndlessBattleDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AccountId).HasColumnName("account_id");
-            entity.Property(e => e.ActNum)
-                .HasDefaultValueSql("'50'")
-                .HasColumnName("act_num");
-            entity.Property(e => e.ActNumTime)
-                .HasMaxLength(6)
-                .HasColumnName("act_num_time");
             entity.Property(e => e.AttackPreference).HasColumnName("attack_preference");
             entity.Property(e => e.BagBonus).HasColumnName("bag_bonus");
             entity.Property(e => e.Bank).HasColumnName("bank");

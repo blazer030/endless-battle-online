@@ -17,8 +17,6 @@ public sealed record Character(
     BaseStats Base,
     int Hp,
     int Sp,
-    int ActNum,
-    DateTimeOffset? ActNumTime,
     int PlaceId,
     int? SubPlace,
     DateTimeOffset LastSettledAt,

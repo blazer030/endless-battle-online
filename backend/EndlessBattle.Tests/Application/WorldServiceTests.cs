@@ -269,19 +269,6 @@ public class WorldServiceTests
         Assert.Equal(stored.Exp, profile.Character.Exp);
     }
 
-    // 行動力 10、上次回復在 Start；400 秒後移動（剛結算過，推進不動）→ 回應 10 + 12 = 22（唯讀，存檔仍是 10）
-    [Fact]
-    public async Task Move_ReturnsRegeneratedActNum()
-    {
-        clock.Advance(TimeSpan.FromSeconds(400));
-        await AddCharacterAsync(character => character with { ActNum = 10, ActNumTime = Start, LastSettledAt = clock.UtcNow });
-
-        var profile = await service.MoveAsync(AccountId, 2, 1, CancellationToken);
-
-        Assert.Equal(22, profile.Character.ActNum);
-        Assert.Equal(10, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.ActNum);
-    }
-
     // 推進撞上別的請求（輪詢）時直接丟 409，位置不變
     [Fact]
     public async Task Move_PropagatesConflict_WhenSettlingRaces()

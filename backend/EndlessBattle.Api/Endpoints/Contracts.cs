@@ -93,8 +93,6 @@ public sealed record CharacterResponse(
     int? SubPlace,
     string? SubPlaceName,
     string AreaName,
-    int ActNum,
-    int ActNumMax,
     IReadOnlyList<JobProficiencyResponse> JobProficiency,
     AdventureSettingsResponse Settings);
 

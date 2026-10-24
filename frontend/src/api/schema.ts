@@ -2334,7 +2334,6 @@ export interface components {
             playerSp: number;
             /** Format: int32 */
             playerSpMax: number;
-            staminaDepleted: boolean;
             petName?: null | string;
             petMonsterId?: null | string;
             /** Format: double */
@@ -2560,10 +2559,6 @@ export interface components {
             subPlace: null | number;
             subPlaceName: null | string;
             areaName: string;
-            /** Format: int32 */
-            actNum: number;
-            /** Format: int32 */
-            actNumMax: number;
             jobProficiency: components["schemas"]["JobProficiencyResponse"][];
             settings: components["schemas"]["AdventureSettingsResponse"];
         };

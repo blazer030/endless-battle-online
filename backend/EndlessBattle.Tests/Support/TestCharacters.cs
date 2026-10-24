@@ -22,8 +22,6 @@ public static class TestCharacters
         Base: new BaseStats(Str: 12, Smart: 12, Life: 12, Vit: 10, Agi: 12, Au: 10, Be: 10),
         Hp: 60,
         Sp: 25,
-        ActNum: 50,
-        ActNumTime: null,
         PlaceId: placeId,
         SubPlace: subPlace,
         LastSettledAt: lastSettledAt,

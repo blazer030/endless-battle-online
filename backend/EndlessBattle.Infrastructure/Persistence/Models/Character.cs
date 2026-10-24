@@ -55,10 +55,6 @@ public partial class Character
 
     public int Sp { get; set; }
 
-    public int ActNum { get; set; }
-
-    public DateTime? ActNumTime { get; set; }
-
     public int CurrentPlaceId { get; set; }
 
     public sbyte? CurrentSubPlace { get; set; }

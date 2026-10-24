@@ -38,7 +38,6 @@ const encounter = (overrides: Partial<EncounterEvent> = {}) =>
     playerHpMax: 20,
     playerSp: 5,
     playerSpMax: 5,
-    staminaDepleted: false,
     ...overrides,
   })
 
@@ -99,14 +98,6 @@ type Line = [string, LogLineKind]
 
 const cases: [string, PlaybackItem, Line[]][] = [
   ["encounter", encounter(), [["遭遇 史萊姆！", "normal"]]],
-  [
-    "encounter with stamina depleted",
-    encounter({ staminaDepleted: true }),
-    [
-      ["遭遇 史萊姆！", "normal"],
-      ["行動力耗盡，報酬減半。", "muted"],
-    ],
-  ],
   ["round", event({ type: "round", round: 3 }), []],
   ["player physical hit", attack({}), [["你攻擊 史萊姆，造成 1,234 點傷害。", "normal"]]],
   [

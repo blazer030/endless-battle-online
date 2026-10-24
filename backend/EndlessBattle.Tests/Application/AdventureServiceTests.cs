@@ -11,7 +11,6 @@ using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
-using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -274,7 +273,7 @@ public class AdventureServiceTests
         var from = clock.UtcNow.AddHours(-24);
         var expected = AdventureSimulator.Run(
             character, Content.GetJob("warrior"), Content.GetPlace(1), Content.MonstersOf(1), Content.GetItem, [],
-            new StaminaState(character.ActNum, character.ActNumTime), from, clock.UtcNow, new ScriptedRandom(0.0));
+            from, clock.UtcNow, new ScriptedRandom(0.0));
         // 摘要的掉落是進背包的件數：8656 件補給品只放得下 15 格 × 99 = 1485
         Assert.Equal(expected.Summary, result.Summary with { Drops = 0 });
         Assert.Equal(1485, result.Summary.Drops);

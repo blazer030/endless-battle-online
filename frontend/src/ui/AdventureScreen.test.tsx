@@ -76,13 +76,12 @@ const response: AdvanceResponse = {
       playerHpMax: 120,
       playerSp: 10,
       playerSpMax: 10,
-      staminaDepleted: false,
     },
     { type: "reward", atSeconds: 0, exp: 8, money: 3, jobExp: 2 },
   ],
   summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
   eventsCoverAll: true,
-  character: { ...character, exp: 8, money: 3, actNum: 49 },
+  character: { ...character, exp: 8, money: 3 },
   mercenary: null,
   areaPassExpiresAt: null,
 }
@@ -224,17 +223,6 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(screen.getByRole("button", { name: "角色" })).toBeEnabled()
   expect(screen.getByRole("button", { name: "技能" })).toBeEnabled()
   expect(screen.getByRole("button", { name: "背包" })).toBeEnabled()
-})
-
-test("AdventureScreen_TopBarShowsStamina", async () => {
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
-  const topBar = screen.getByRole("banner")
-  expect(within(topBar).getByText("行動力 50/50")).toBeInTheDocument()
-
-  await advanceTime(0)
-  await advanceTime(100)
-
-  expect(within(topBar).getByText("行動力 49/50")).toBeInTheDocument()
 })
 
 test("AdventureScreen_ShowsLevelUpHintWhenLevelUpPlays", async () => {

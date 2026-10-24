@@ -30,7 +30,6 @@ public sealed class JobService(
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IGameContent content,
-    IClock clock,
     IUnitOfWork unitOfWork)
 {
     public async Task<IReadOnlyList<JobOption>> ListAsync(long accountId, CancellationToken cancellationToken)
@@ -82,7 +81,7 @@ public sealed class JobService(
             var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
             await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
             return new CharacterProfile(
-                CharacterStamina.Regenerated(updated, clock.UtcNow), rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
+                updated, rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
         }, cancellationToken);
 
     // 欄位必須先清空：裝備欄引用背包列，刪除仍被引用的補給列會撞外鍵

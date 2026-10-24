@@ -38,26 +38,6 @@ public class CharacterServiceTests
     private static CharacterService Service(InMemoryCharacterRepository repository, InMemoryEquipmentRepository equipment, FakeClock clock) =>
         Services(repository, new InMemoryJobProficiencyRepository(), equipment, clock).Characters;
 
-    // 10 分鐘 = 3.33 個 180 秒週期 → 單次最多 +12：20 → 32；回復只反映在回傳值，不寫回
-    [Fact]
-    public async Task GetAsync_RegeneratesActNumWithoutWriting()
-    {
-        var repository = new InMemoryCharacterRepository();
-        var service = Service(repository, NoEquipment(), new FakeClock(Now));
-        await repository.AddAsync(
-            TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { ActNum = 20, ActNumTime = Now.AddMinutes(-10) },
-            CancellationToken);
-
-        var profile = await service.GetAsync(AccountId, CancellationToken);
-
-        Assert.Equal(32, profile.Character.ActNum);
-        Assert.Equal(Now, profile.Character.ActNumTime);
-        var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal(20, stored!.ActNum);
-        Assert.Equal(Now.AddMinutes(-10), stored.ActNumTime);
-        Assert.Equal(0, stored.Version);
-    }
-
     // 起始地取自內容檔（TestContent：地區 1、子地區 1）
     [Fact]
     public async Task Create_StartsAtContentStartingPlace()

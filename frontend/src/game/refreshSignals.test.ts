@@ -100,7 +100,6 @@ describe("refreshSignalsFor", () => {
       playerHpMax: 120,
       playerSp: 10,
       playerSpMax: 10,
-      staminaDepleted: false,
     })
     expect(refreshSignalsFor([encounter, reward(2, [drop(false)])])).toEqual({
       bag: true,

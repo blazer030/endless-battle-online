@@ -165,11 +165,8 @@ export const describePlaybackItem = (
   const event = item.event
   const current = currentMonsterId === null ? "" : monsterName(currentMonsterId)
   switch (event.type) {
-    case "encounter": {
-      const lines: LogEntry[] = [{ text: `遭遇 ${monsterName(event.monsterId)}！`, kind: "normal" }]
-      if (event.staminaDepleted) lines.push({ text: "行動力耗盡，報酬減半。", kind: "muted" })
-      return lines
-    }
+    case "encounter":
+      return [{ text: `遭遇 ${monsterName(event.monsterId)}！`, kind: "normal" }]
     case "round":
       return []
     case "attack":

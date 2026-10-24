@@ -64,7 +64,7 @@ public sealed class CharacterService(
         var character = await FindCharacterAsync(accountId, cancellationToken);
 
         return new CharacterProfile(
-            CharacterStamina.Regenerated(character, clock.UtcNow),
+            character,
             await proficiencies.ListAsync(character.Id, cancellationToken),
             await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
     }
@@ -97,7 +97,7 @@ public sealed class CharacterService(
         var settled = await adventure.AdvanceAsync(accountId, cancellationToken);
         var updated = await characters.UpdateAsync(
             settled.Character with { Settings = settings, SpecialAttackName = trimmedName }, cancellationToken);
-        return new CharacterProfile(CharacterStamina.Regenerated(updated, clock.UtcNow), settled.JobProficiency, settled.Equipment);
+        return new CharacterProfile(updated, settled.JobProficiency, settled.Equipment);
     }
 
     // 沿用創角規則；不符時回 null

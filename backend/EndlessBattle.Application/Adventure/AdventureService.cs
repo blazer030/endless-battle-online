@@ -17,7 +17,6 @@ using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
-using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Application.Adventure;
@@ -96,7 +95,6 @@ public sealed class AdventureService(
             content.MonstersOf(character.PlaceId),
             content.GetItem,
             skills,
-            new StaminaState(character.ActNum, character.ActNumTime),
             from,
             until > from ? until : from,
             random,
@@ -117,8 +115,6 @@ public sealed class AdventureService(
             var updated = await characters.UpdateAsync(
                 run.Character with
                 {
-                    ActNum = run.Stamina.ActNum,
-                    ActNumTime = run.Stamina.LastRegenAt,
                     LastSettledAt = until < now ? now : from.AddSeconds(run.ConsumedSeconds),
                 },
                 cancellationToken);

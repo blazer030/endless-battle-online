@@ -6,7 +6,6 @@ using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
-using EndlessBattle.Domain.Stamina;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -105,8 +104,6 @@ public static class CharacterEndpoints
             character.SubPlace,
             place.SubPlaces.FirstOrDefault(subPlace => subPlace.Index == character.SubPlace)?.Name,
             content.GetArea(place.AreaId).Name,
-            character.ActNum,
-            StaminaRules.Max,
             jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList(),
             new AdventureSettingsResponse(
                 character.Settings.Attack,

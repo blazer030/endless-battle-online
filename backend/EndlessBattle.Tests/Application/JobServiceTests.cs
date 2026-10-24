@@ -21,7 +21,6 @@ public class JobServiceTests
     private readonly InMemorySkillLoadoutRepository loadout;
     private readonly InMemoryInventoryRepository inventory = new();
     private readonly InMemoryEquipmentRepository equipment;
-    private readonly FakeClock clock = new(Now);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly JobService service;
 
@@ -32,7 +31,7 @@ public class JobServiceTests
         loadout = new InMemorySkillLoadoutRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         unitOfWork = new InMemoryUnitOfWork(characters, proficiencies, inventory, equipment);
-        service = new JobService(characters, proficiencies, inventory, equipment, Content, clock, unitOfWork);
+        service = new JobService(characters, proficiencies, inventory, equipment, Content, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -75,20 +74,6 @@ public class JobServiceTests
         Assert.Equal("thief", profile.Character.JobId);
         Assert.Equal(["update"], log);
         Assert.Equal([new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")], await loadout.ListAsync(character.Id, CancellationToken));
-    }
-
-    // 行動力 10、上次回復在 Now；400 秒後換職業 → 回應 10 + 12 = 22（唯讀，存檔仍是 10）
-    [Fact]
-    public async Task Change_ReturnsRegeneratedActNum()
-    {
-        await characters.AddAsync(
-            TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { ActNum = 10, ActNumTime = Now }, CancellationToken);
-        clock.Advance(TimeSpan.FromSeconds(400));
-
-        var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
-
-        Assert.Equal(22, profile.Character.ActNum);
-        Assert.Equal(10, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.ActNum);
     }
 
     [Fact]

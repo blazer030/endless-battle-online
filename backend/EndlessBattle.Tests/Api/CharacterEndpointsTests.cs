@@ -80,7 +80,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
-    public async Task Create_ReturnsFullStaminaAndNoProficiency()
+    public async Task Create_ReturnsNoProficiency()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
@@ -88,8 +88,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("體力")));
 
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(50, body.GetProperty("actNum").GetInt32());
-        Assert.Equal(50, body.GetProperty("actNumMax").GetInt32());
         Assert.Empty(body.GetProperty("jobProficiency").EnumerateArray());
     }
 

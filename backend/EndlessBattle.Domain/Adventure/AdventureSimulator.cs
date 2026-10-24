@@ -9,7 +9,6 @@ using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Skills;
-using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Domain.Adventure;
@@ -26,7 +25,6 @@ public static class AdventureSimulator
         IReadOnlyList<MonsterDefinition> placeMonsters,
         Func<string, ItemDefinition> items,
         IReadOnlyList<EquippedSkill> skills,
-        StaminaState stamina,
         DateTimeOffset from,
         DateTimeOffset to,
         IRandomSource random,
@@ -94,7 +92,7 @@ public static class AdventureSimulator
             if (keepEvents)
             {
                 events.Add(new EncounterEvent(fightStart, definition.Id, definition.Hp, definition.Hp,
-                    player.Hp, player.HpMax, player.Sp, player.SpMax, StaminaDepleted: false, carriedPet?.Name, carriedPet?.MonsterId));
+                    player.Hp, player.HpMax, player.Sp, player.SpMax, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
                     events.Add(battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart });
@@ -208,6 +206,6 @@ public static class AdventureSimulator
         var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count, Escapes: escapes);
         IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
         return new AdventureRun(
-            events, summary, character, stamina, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
+            events, summary, character, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
     }
 }
