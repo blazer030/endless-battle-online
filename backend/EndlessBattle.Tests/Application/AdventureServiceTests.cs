@@ -338,7 +338,7 @@ public class AdventureServiceTests
     }
 
     // 欄位依序 1→5 擲骰（全部擲 1），SP 91 滿；5 秒內開 2 場（0、2.8 秒；下一場 5.6 秒不開）：
-    // 每場 burst lv2 耗 8、iron-skin lv1 耗 5：91 → 83 → 78 → 70 → 65。欄 2 的 combo 不在技能書裡 → 略過
+    // 每場 burst lv2 耗 8：91 → 83 → 75；欄 4 的 iron-skin 是常駐被動，不施放也不耗 SP。欄 2 的 combo 不在技能書裡 → 略過
     [Fact]
     public async Task Advance_BuildsLoadoutFromBookAndSlots()
     {
@@ -352,10 +352,10 @@ public class AdventureServiceTests
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         Assert.Equal(
-            [("burst", 2, 83), ("iron-skin", 1, 78), ("burst", 2, 70), ("iron-skin", 1, 65)],
+            [("burst", 2, 83), ("burst", 2, 75)],
             result.Events.OfType<SkillEvent>().Select(skill => (skill.SkillId, skill.Level, skill.SpAfter)));
-        Assert.Equal(4, result.Summary.SkillsCast);
-        Assert.Equal(65, result.Character.Sp);
+        Assert.Equal(2, result.Summary.SkillsCast);
+        Assert.Equal(75, result.Character.Sp);
     }
 
     // 轉職與推進競態時欄 4 可能還留著別職業的被動：不施放。主動欄照 WOG 不限職業，thief 仍可用 burst（6 秒開 3 場：25 → 20 → 15 → 10）

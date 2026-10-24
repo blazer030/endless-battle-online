@@ -2,7 +2,7 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.Adventure;
 
-// spec §7.1 自動住宿：死亡一定住；門檻 -1 略過該條件。SP 只有住宿才會回復，所以只在裝備了技能時才看 SP 門檻
+// spec §7.1 自動住宿：死亡一定住；門檻 -1 略過該條件。SP 只有住宿才會回復、被動技能不耗 SP，所以只在裝備了主動技能時才看 SP 門檻
 public static class RestRules
 {
     public static bool ShouldRest(Character character, DerivedStats derived, bool hasSkills)

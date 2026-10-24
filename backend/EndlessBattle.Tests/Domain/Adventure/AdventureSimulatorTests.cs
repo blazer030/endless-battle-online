@@ -303,14 +303,17 @@ public class AdventureSimulatorTests
         static string FirstMonster(AdventureRun run) => run.Events.OfType<EncounterEvent>().First().MonsterId;
     }
 
-    // 英雄 HP 滿（350）、SP 13／91（< 15% = 13.65；14 則不住宿）。有技能 → 開打前先住宿（0 秒），住宿後 SP 回滿再開打；沒有技能 → 直接開打
+    // 英雄 HP 滿（350）、SP 13／91（< 15% = 13.65；14 則不住宿）。有主動技能 → 開打前先住宿（0 秒），住宿後 SP 回滿再開打；
+    // 沒有技能或只有被動（不耗 SP）→ 直接開打
     [Fact]
-    public void Adventure_RestsWhenSpBelowThreshold_OnlyWithSkills()
+    public void Adventure_RestsWhenSpBelowThreshold_OnlyWithActiveSkills()
     {
         var hero = Hero() with { Hp = 350, Sp = 13 };
+        var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", "warrior", SkillType.Passive), Level: 1, Chance: 100, Slot: 4);
 
         Assert.IsType<RestEvent>(Run(hero, seconds: 1, skills: [Burst]).Events[0]);
         Assert.IsType<EncounterEvent>(Run(hero, seconds: 1).Events[0]);
+        Assert.IsType<EncounterEvent>(Run(hero, seconds: 1, skills: [ironSkin]).Events[0]);
     }
 
     // 英雄在子地區 2：怪物 first 只在子地區 1、second 只在子地區 2，擲骰 0 時只有 second 入選

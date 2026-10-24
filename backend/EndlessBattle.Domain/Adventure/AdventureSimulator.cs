@@ -8,6 +8,7 @@ using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Rest;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.Stamina;
 using EndlessBattle.Domain.World;
 
@@ -60,8 +61,8 @@ public static class AdventureSimulator
             var keepEvents = cursor >= windowStart;
             stamina = StaminaRules.Regenerate(stamina, from.AddSeconds(cursor));
 
-            // 死亡、HP 低於門檻，或（有技能時）SP 低於門檻，先住宿再開打
-            if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), skills.Count > 0))
+            // 死亡、HP 低於門檻，或（有主動技能時）SP 低於門檻，先住宿再開打；被動不耗 SP，不看 SP 門檻
+            if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), skills.Any(skill => skill.Skill.Type == SkillType.Active)))
             {
                 var rest = Hotel.Rest(character, bonus);
                 character = rest.Character;

@@ -228,22 +228,22 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Monster).Take(2));
     }
 
-    // 嗜血 lv5（被動、攻擊後、sp 17、發動率 70）：物理命中後 rand ≤ 70 → 回復 round(150 × 0.1) = 15，事件與那一下同時。
-    // 第 1 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150；嗜血 0.695 → 70 ≤ 70；怪物命中 0.99 未命中。
-    // 第 2 回合：先攻 0.0；命中 0.99 未命中 → 不擲嗜血；怪物 0.99 未命中。之後全是 0.99，雙方都未命中
+    // 嗜血 lv5（被動、攻擊後）：常駐，物理命中後不擲骰、不扣 SP，回復 round(150 × 0.1) = 15，事件與那一下同時。
+    // 第 1 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150；怪物命中 0.99 未命中。
+    // 第 2 回合：先攻 0.0；命中 0.99 未命中 → 不回復；怪物 0.99 未命中。之後全是 0.99，雙方都未命中
     [Fact]
     public void Battle_BloodthirstHealsAfterPhysicalHit()
     {
-        var random = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0, 0.695, 0.99, 0.0, 0.99, 0.99);
+        var random = new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99, 0.99);
 
-        var outcome = WogBattle.Run(Player(hp: 500), Monster(), null, [Equip(Bloodthirst, level: 5, chance: 70, slot: 4)], random);
+        var outcome = WogBattle.Run(Player(hp: 500), Monster(), null, [Equip(Bloodthirst, level: 5, slot: 4)], random);
 
         Assert.Equal(
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
-                new SkillEvent(0, CombatSide.Player, "bloodthirst", "嗜血", Level: 5, SpAfter: 83, Heal: 15),
+                new SkillEvent(0, CombatSide.Player, "bloodthirst", "嗜血", Level: 5, SpAfter: 100, Heal: 15),
                 new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 515, SpecialAttackName: null),
                 new RoundEvent(0.8, 2),
                 new AttackEvent(0.8, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
@@ -254,14 +254,14 @@ public class WogBattleSkillTests
         Assert.Equal(515, outcome.Player.Hp);
     }
 
-    // 反擊 lv5（被動、發動率 70）：受物傷 ×(0.92 − 0.1) = 0.82。怪物 at 100 原傷害 150 → 123。
-    // 擲骰：反擊 0.0；先攻 0.99 怪物先；怪物命中 0.0、暴擊 0.99、傷害 0.0；玩家命中 0.99 未命中
+    // 反擊 lv5（被動、常駐不擲骰）：受物傷 ×(0.92 − 0.1) = 0.82。怪物 at 100 原傷害 150 → 123。
+    // 擲骰：先攻 0.99 怪物先；怪物命中 0.0、暴擊 0.99、傷害 0.0；玩家命中 0.99 未命中
     [Fact]
     public void Battle_CounterReducesPhysicalDamageTaken()
     {
-        var random = new ScriptedRandom(0.99, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
+        var random = new ScriptedRandom(0.99, 0.99, 0.0, 0.99, 0.0, 0.99);
 
-        var outcome = WogBattle.Run(Player(), Monster(at: 100), null, [Equip(Counter, level: 5, chance: 70, slot: 4)], random);
+        var outcome = WogBattle.Run(Player(), Monster(at: 100), null, [Equip(Counter, level: 5, slot: 4)], random);
 
         Assert.Equal(
             new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 123, ElementMultiplier: 1.0, TargetHpAfter: 877, SpecialAttackName: null),
@@ -302,8 +302,8 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Monster)[0]);
     }
 
-    // 物暴擊率 lv5（被動、發動率 70）：物理暴擊率 +10。玩家 agi 10 對 10 → 先攻門檻 30、基礎暴擊率物理與魔法都是 10。
-    // 擲骰：物暴擊率 0.0；先攻 0.0；物理時命中 0.0；暴擊 0.145 → 15（物理 15 < 20 暴擊、魔法 15 < 10 不暴擊）；傷害 0.0。
+    // 物暴擊率 lv5（被動、常駐不擲骰）：物理暴擊率 +10。玩家 agi 10 對 10 → 先攻門檻 30、基礎暴擊率物理與魔法都是 10。
+    // 擲骰：先攻 0.0；物理時命中 0.0；暴擊 0.145 → 15（物理 15 < 20 暴擊、魔法 15 < 10 不暴擊）；傷害 0.0。
     // 物理暴擊：A = 120，120·2.4 − 50 = 238；魔法 mat 100 → 150
     [Theory]
     [InlineData(AttackKind.Physical, true, 238)]
@@ -311,10 +311,10 @@ public class WogBattleSkillTests
     public void Battle_KeenEdgeAffectsPhysicalCritOnly(AttackKind kind, bool expectedCritical, int expectedDamage)
     {
         var keenEdge = TestSkills.Battle("keen-edge", "物暴擊率", SkillEffectKind.CritChanceUp, SkillType.Passive);
-        double[] rolls = kind == AttackKind.Physical ? [0.0, 0.0, 0.0, 0.145, 0.0] : [0.0, 0.0, 0.145, 0.0];
+        double[] rolls = kind == AttackKind.Physical ? [0.0, 0.0, 0.145, 0.0] : [0.0, 0.145, 0.0];
         var player = Player() with { Mat = 100, Agi = 10 };
 
-        var outcome = WogBattle.Run(player, Monster(), kind, [Equip(keenEdge, level: 5, chance: 70, slot: 4)], new ScriptedRandom(0.99, rolls));
+        var outcome = WogBattle.Run(player, Monster(), kind, [Equip(keenEdge, level: 5, slot: 4)], new ScriptedRandom(0.99, rolls));
 
         Assert.Equal(
             new AttackEvent(0, CombatSide.Player, kind, Hit: true, expectedCritical, expectedDamage, ElementMultiplier: 1.0,
@@ -344,20 +344,21 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Player).Take(2));
     }
 
-    // 嗜血只在命中後擲骰。怪物 150 血。
-    // 第 1 回合：先攻 0.0；命中 0.99 未命中 → 不擲嗜血；怪物命中 0.99 未命中。
-    // 第 2 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150 擊倒；嗜血 0.99 → 100 > 70 不發動。共 3 + 5 = 8 顆
+    // 嗜血是常駐被動：只在命中後觸發，而且不擲骰。怪物 150 血。
+    // 第 1 回合：先攻 0.0；命中 0.99 未命中 → 不回復；怪物命中 0.99 未命中。
+    // 第 2 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150 擊倒；嗜血不擲骰直接回復 15。共 3 + 4 = 7 顆
     [Fact]
-    public void Battle_BloodthirstRollsOnlyOnHit()
+    public void Battle_BloodthirstTriggersOnHitWithoutRoll()
     {
-        var random = new ScriptedRandom(0.0, 0.0, 0.99, 0.99, 0.0, 0.0, 0.99, 0.0, 0.99);
+        var random = new ScriptedRandom(0.0, 0.0, 0.99, 0.99, 0.0, 0.0, 0.99, 0.0);
 
-        var outcome = WogBattle.Run(Player(hp: 500), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, chance: 70, slot: 4)], random);
+        var outcome = WogBattle.Run(Player(hp: 500), Monster(hp: 150), null, [Equip(Bloodthirst, level: 5, slot: 4)], random);
 
-        Assert.Equal(8, random.Consumed);
-        Assert.Empty(outcome.Events.OfType<SkillEvent>());
-        Assert.Equal(CombatSide.Player, outcome.Winner);
+        Assert.Equal(7, random.Consumed);
+        Assert.Equal(15, Assert.Single(outcome.Events.OfType<SkillEvent>()).Heal);
+        Assert.Equal((CombatSide?)CombatSide.Player, outcome.Winner);
         Assert.Equal(2, outcome.Rounds);
+        Assert.Equal((515, 100), (outcome.Player.Hp, outcome.Player.Sp));
     }
 
     // 治癒 lv3 = 35，以當下 HP 封頂（不是開戰時的 HP）。怪物 at 60 打 df 50：60·1.2 − 50 = 22。
@@ -375,27 +376,27 @@ public class WogBattleSkillTests
     }
 
     // 反擊只減物理傷害。怪物 at 0 < mat 100，攻擊方式 0.0 → 1 ≤ 8 魔法：mat 100 打 mdf 50 = 150，不乘 0.82。
-    // 擲骰：反擊 0.0；先攻 0.99 怪物先；攻擊方式 0.0；暴擊 0.99；傷害 0.0；玩家命中 0.99 未命中
+    // 擲骰：先攻 0.99 怪物先；攻擊方式 0.0；暴擊 0.99；傷害 0.0；玩家命中 0.99 未命中
     [Fact]
     public void Battle_CounterDoesNotReduceMagicDamage()
     {
-        var random = new ScriptedRandom(0.99, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
+        var random = new ScriptedRandom(0.99, 0.99, 0.0, 0.99, 0.0, 0.99);
 
-        var outcome = WogBattle.Run(Player(), Monster(mat: 100), null, [Equip(Counter, level: 5, chance: 70, slot: 4)], random);
+        var outcome = WogBattle.Run(Player(), Monster(mat: 100), null, [Equip(Counter, level: 5, slot: 4)], random);
 
         Assert.Equal(
             new AttackEvent(0, CombatSide.Monster, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
             AttacksBy(outcome, CombatSide.Monster)[0]);
     }
 
-    // 急影 lv5：agi 20 ×1.05 = 21 > 怪物 20 → 先攻門檻由 30 變 70。
-    // 擲骰：急影 0.0；先攻 0.5 → 51（≤ 70 玩家先；沒有急影時 > 30 怪物先）
+    // 急影 lv5（被動、常駐不擲骰）：agi 20 ×1.05 = 21 > 怪物 20 → 先攻門檻由 30 變 70。
+    // 擲骰：先攻 0.5 → 51（≤ 70 玩家先；沒有急影時 > 30 怪物先）
     [Fact]
     public void Battle_FirstStrikeUsesModifiedAgi()
     {
         var swiftShadow = TestSkills.Battle("swift-shadow", "急影", SkillEffectKind.AgiMultiplier, SkillType.Passive);
 
-        var outcome = WogBattle.Run(Player(), Monster() with { Agi = 20 }, null, [Equip(swiftShadow, level: 5, chance: 70, slot: 4)], new ScriptedRandom(0.99, 0.0, 0.5));
+        var outcome = WogBattle.Run(Player(), Monster() with { Agi = 20 }, null, [Equip(swiftShadow, level: 5, slot: 4)], new ScriptedRandom(0.99, 0.5));
 
         var first = outcome.Events.OfType<AttackEvent>().First();
         Assert.Equal(CombatSide.Player, first.Attacker);
