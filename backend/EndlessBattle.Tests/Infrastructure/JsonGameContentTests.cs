@@ -269,8 +269,13 @@ public class JsonGameContentTests
         AssertLoadRejects(ValidMonsters, jobsJson, offendingId);
     }
 
-    private static string SkillJson(string id, string jobId, string type, string levels) =>
-        $$"""{ "id": "{{id}}", "name": "技", "jobId": "{{jobId}}", "type": "{{type}}", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", "levels": [{{levels}}] }""";
+    // trigger 是技能層級的發動條件 JSON，null 表示不寫（主動擲發動率、被動常駐）
+    private static string SkillJson(string id, string jobId, string type, string levels, string? trigger = null) =>
+        $$"""{ "id": "{{id}}", "name": "技", "jobId": "{{jobId}}", "type": "{{type}}", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", {{(trigger is null ? "" : $"\"trigger\": {trigger}, ")}}"levels": [{{levels}}] }""";
+
+    private const string HpBelowFifty = """{ "kind": "hpBelow", "percent": 50 }""";
+
+    private static readonly string HpBelowLevel = ValidLevel.Replace("\"chance\": 40", "\"chance\": 0");
 
     private static void AssertSkillsRejected(string skills, string offendingText) =>
         AssertLoadRejects(ValidMonsters, ValidJobs, offendingText, $$"""{ "skills": [{{skills}}] }""");
@@ -289,6 +294,15 @@ public class JsonGameContentTests
                 var lv = level.Level;
                 Assert.Equal(500L * lv * lv, level.Money);
                 Assert.Equal(300L * lv, level.Proficiency);
+                if (skill.Id == "heal")
+                {
+                    // 治癒：HP 低於 50% 自動發動、冷卻 4，不擲發動率
+                    Assert.Equal(SkillTrigger.HpBelow(50), skill.Trigger);
+                    Assert.Equal((4, 0, 3 * lv + 2, 1), (level.Cooldown, level.Chance, level.Sp, level.Rounds));
+                    continue;
+                }
+
+                Assert.Null(skill.Trigger);
                 Assert.Equal(0, level.Cooldown);
                 if (skill.Type == SkillType.Passive)
                 {
@@ -330,6 +344,47 @@ public class JsonGameContentTests
     {
         Assert.Equal(0, LoadSkills(SkillJson("calm", "warrior", "passive", ValidPassiveLevel)).GetSkill("calm").LevelAt(1).Chance);
         AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidPassiveLevel.Replace(zero, nonZero)), "lazy");
+    }
+
+    [Fact]
+    public void Skills_LoadHpBelowTrigger()
+    {
+        var loaded = LoadSkills(
+            $"{SkillJson("rescue", "warrior", "active", HpBelowLevel, HpBelowFifty)}, {SkillJson("guard", "warrior", "passive", ValidPassiveLevel, HpBelowFifty)}");
+
+        Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("rescue").Trigger);
+        Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("guard").Trigger);
+    }
+
+    // percent 必須 1～99
+    [Theory]
+    [InlineData(0)]
+    [InlineData(100)]
+    public void Skills_RejectHpBelowPercentOutOfRange(int percent) =>
+        AssertSkillsRejected(
+            SkillJson("edge", "warrior", "active", HpBelowLevel, $$"""{ "kind": "hpBelow", "percent": {{percent}} }"""), "edge");
+
+    // hpBelow 不擲骰，chance 必須是 0
+    [Fact]
+    public void Skills_RejectHpBelowWithChance() =>
+        AssertSkillsRejected(SkillJson("greedy", "warrior", "active", ValidLevel, HpBelowFifty), "greedy");
+
+    // 被動不擲骰：只能不寫條件（常駐）或用 hpBelow
+    [Fact]
+    public void Skills_RejectPassiveWithChanceTrigger() =>
+        AssertSkillsRejected(SkillJson("gambler", "warrior", "passive", ValidPassiveLevel, """{ "kind": "chance" }"""), "gambler");
+
+    [Fact]
+    public void Skills_RejectUnknownTriggerKind() =>
+        AssertSkillsRejected(SkillJson("odd", "warrior", "active", ValidLevel, """{ "kind": "moonlight" }"""), "odd");
+
+    // 明寫 chance 等同不寫：照該級 chance 擲骰，chance 仍須 1～100
+    [Fact]
+    public void Skills_AcceptExplicitChanceTrigger()
+    {
+        var loaded = LoadSkills(SkillJson("plain", "warrior", "active", ValidLevel, """{ "kind": "chance" }"""));
+        Assert.Equal(SkillTrigger.Chance, loaded.GetSkill("plain").Trigger);
+        AssertSkillsRejected(SkillJson("zero", "warrior", "active", HpBelowLevel, """{ "kind": "chance" }"""), "zero");
     }
 
     [Fact]

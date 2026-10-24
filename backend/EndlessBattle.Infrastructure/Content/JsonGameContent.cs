@@ -514,6 +514,17 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"技能 {skill.Id} 至少要有一個等級");
         }
 
+        if (skill.Trigger is { Kind: SkillTriggerKind.HpBelow, Percent: < 1 or > 99 })
+        {
+            throw new GameContentException($"技能 {skill.Id} 的 hpBelow 門檻 percent 必須在 1～99");
+        }
+
+        if (skill.Type == SkillType.Passive && skill.Trigger is { Kind: not SkillTriggerKind.HpBelow })
+        {
+            throw new GameContentException($"被動技能 {skill.Id} 不擲骰：trigger 只能不寫或用 hpBelow");
+        }
+
+        var rollsChance = skill.EffectiveTrigger?.Kind == SkillTriggerKind.Chance;
         for (var index = 0; index < skill.Levels.Count; index++)
         {
             var level = skill.Levels[index];
@@ -533,9 +544,17 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"被動技能 {skill.Id} 第 {level.Level} 級的 sp、rounds、chance 必須為 0");
             }
 
-            if (skill.Type == SkillType.Active && (level.Sp < 0 || level.Rounds < 1 || level.Chance is < 1 or > 100))
+            if (skill.Type == SkillType.Active && (level.Sp < 0 || level.Rounds < 1))
             {
-                throw new GameContentException($"主動技能 {skill.Id} 第 {level.Level} 級的 sp 不可為負、rounds 至少 1、chance 必須在 1～100");
+                throw new GameContentException($"主動技能 {skill.Id} 第 {level.Level} 級的 sp 不可為負、rounds 至少 1");
+            }
+
+            // 擲發動率的主動技 chance 必須 1～100；hpBelow 不擲骰，chance 必須為 0
+            if (skill.Type == SkillType.Active && (rollsChance ? level.Chance is < 1 or > 100 : level.Chance != 0))
+            {
+                throw new GameContentException(rollsChance
+                    ? $"主動技能 {skill.Id} 第 {level.Level} 級的 chance 必須在 1～100"
+                    : $"hpBelow 技能 {skill.Id} 第 {level.Level} 級的 chance 必須為 0");
             }
         }
     }
@@ -1200,7 +1219,8 @@ public sealed class JsonGameContent : IGameContent
             ParseEnum<SkillTiming>(entry.Timing, "timing"),
             ParseEnum<SkillEffectKind>(entry.Effect, "effect"),
             entry.Description,
-            entry.Levels);
+            entry.Levels,
+            entry.Trigger is { } trigger ? new SkillTrigger(ParseEnum<SkillTriggerKind>(trigger.Kind, "trigger.kind"), trigger.Percent) : null);
     }
 
     // 成長在內容檔裡寫成 [min, max]
@@ -1313,7 +1333,11 @@ public sealed class JsonGameContent : IGameContent
         string Timing,
         string Effect,
         string Description,
-        IReadOnlyList<SkillLevel> Levels);
+        IReadOnlyList<SkillLevel> Levels,
+        SkillTriggerEntry? Trigger);
+
+    // 發動條件：kind 為 chance 或 hpBelow；percent 只有 hpBelow 用
+    private sealed record SkillTriggerEntry(string Kind, int Percent);
 
     private sealed record JobFile(IReadOnlyList<JobEntry> Jobs);
 
