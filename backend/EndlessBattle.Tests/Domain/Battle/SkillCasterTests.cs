@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
@@ -67,6 +68,75 @@ public class SkillCasterTests
 
         Assert.Equal((65, 0, 15), (first.HpAfter, first.SpAfter, first.Heal));
         Assert.Equal((80, 0, 15), (second.HpAfter, second.SpAfter, second.Heal));
+        Assert.Equal(0, random.Consumed);
+    }
+
+    // 依 WogBattle 的順序跑 n 回合（回合開頭失效 → 出手前施放），回傳有施放的回合
+    private static List<int> CastRounds(SkillCaster caster, int rounds, int hp, IRandomSource random)
+    {
+        var castRounds = new List<int>();
+        for (var round = 1; round <= rounds; round++)
+        {
+            caster.ExpireAtRoundStart();
+            if (caster.CastBeforeAttack(hp, sp: 100, random).Count > 0)
+            {
+                castRounds.Add(round);
+            }
+        }
+
+        return castRounds;
+    }
+
+    // 冷卻 2、持續 1 回合，擲骰都是 0.0（必中）：第 1 回合施放，接下來 2 次玩家出手（第 2、3 回合）冷卻中、不擲骰，
+    // 第 4 回合冷卻結束可再施放，第 5 回合又在冷卻中。只擲了 2 顆
+    [Fact]
+    public void Caster_CooldownBlocksTheNextPlayerTurns()
+    {
+        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 2);
+        var random = new ScriptedRandom(0.0);
+        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
+
+        Assert.Equal([1, 4], CastRounds(caster, rounds: 5, hp: 100, random));
+        Assert.Equal(2, random.Consumed);
+    }
+
+    // 發動那一回合本身不算冷卻：Cooldown 1 → 第 1 回合發動、第 2 回合不能發、第 3 回合起可以再發
+    [Fact]
+    public void Caster_CooldownOne_SkipsExactlyOneTurn()
+    {
+        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 1);
+        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
+
+        Assert.Equal([1, 3], CastRounds(caster, rounds: 3, hp: 100, new ScriptedRandom(0.0)));
+    }
+
+    // Cooldown 0 且只持續 1 回合：下一回合就能再判斷，每回合都發動
+    [Fact]
+    public void Caster_CooldownZero_AllowsTheNextTurn()
+    {
+        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1);
+        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
+
+        Assert.Equal([1, 2, 3], CastRounds(caster, rounds: 3, hp: 100, new ScriptedRandom(0.0)));
+    }
+
+    // 攻擊後的被動也吃冷卻（嗜血 lv5、冷卻 1）：第 1 回合第一下回復，同回合第二下與第 2 回合都在冷卻中，第 3 回合再回復
+    [Fact]
+    public void Caster_PassiveAfterHit_RespectsCooldown()
+    {
+        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillEffectKind.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1, cooldown: 1);
+        var random = new ScriptedRandom(0.99);
+        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
+        var heals = new List<int>();
+
+        for (var round = 1; round <= 3; round++)
+        {
+            caster.ExpireAtRoundStart();
+            heals.Add(caster.CastAfterPhysicalHit(damage: 150, hp: 10, sp: 0, random).Sum(cast => cast.Heal));
+            heals.Add(caster.CastAfterPhysicalHit(damage: 150, hp: 10, sp: 0, random).Sum(cast => cast.Heal));
+        }
+
+        Assert.Equal([15, 0, 0, 0, 15, 0], heals);
         Assert.Equal(0, random.Consumed);
     }
 

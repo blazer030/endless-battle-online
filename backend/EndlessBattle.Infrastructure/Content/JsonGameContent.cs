@@ -522,9 +522,9 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"技能 {skill.Id} 的等級必須從 1 起連續遞增");
             }
 
-            if (level.Money < 0 || level.Proficiency < 0)
+            if (level.Money < 0 || level.Proficiency < 0 || level.Cooldown < 0)
             {
-                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 money、proficiency 不可為負");
+                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 money、proficiency、cooldown 不可為負");
             }
 
             // 被動常駐：不消耗 SP、沒有持續回合與發動率

@@ -16,6 +16,9 @@ public sealed class SkillCaster
     private readonly IReadOnlyList<EquippedSkill> skills;
     private readonly Dictionary<EquippedSkill, int> remainingRounds = [];
 
+    // 冷卻中的技能：值是還要經過幾個回合開頭才能再發動。每場戰鬥建立新的 SkillCaster，冷卻自然歸零
+    private readonly Dictionary<EquippedSkill, int> cooldowns = [];
+
     public SkillCaster(CombatantState player, IReadOnlyList<EquippedSkill> skills)
     {
         this.player = player;
@@ -25,9 +28,17 @@ public sealed class SkillCaster
 
     public BattleModifiers Current { get; private set; } = new();
 
-    // 持續 n 回合含施放回合：第 n + 1 回合開頭失效
+    // 持續 n 回合含施放回合：第 n + 1 回合開頭失效。玩家每回合出手一次，所以冷卻也在回合開頭倒數
     public void ExpireAtRoundStart()
     {
+        foreach (var skill in cooldowns.Keys.ToList())
+        {
+            if (--cooldowns[skill] <= 0)
+            {
+                cooldowns.Remove(skill);
+            }
+        }
+
         var expired = false;
         foreach (var skill in remainingRounds.Keys.ToList())
         {
@@ -63,6 +74,14 @@ public sealed class SkillCaster
         var recompute = false;
         foreach (var equipped in skills.Where(skill => skill.Skill.Timing == timing))
         {
+            var level = equipped.Skill.LevelAt(equipped.Level);
+
+            // 冷卻中不擲骰也不觸發
+            if (cooldowns.ContainsKey(equipped))
+            {
+                continue;
+            }
+
             if (equipped.Skill.Type == SkillType.Passive)
             {
                 // 被動不擲骰、不扣 SP；只有實際回復時才留下紀錄（滿血時沒有事件、耗用的亂數也和沒有技能時相同）
@@ -70,13 +89,12 @@ public sealed class SkillCaster
                 if (passiveHeal > 0)
                 {
                     hp += passiveHeal;
+                    StartCooldown(equipped, level);
                     casts.Add(new SkillCast(equipped, hp, sp, passiveHeal));
                 }
 
                 continue;
             }
-
-            var level = equipped.Skill.LevelAt(equipped.Level);
 
             // 持續中、SP 不足或滿血時的回復技能都不擲骰：SP 只在住宿回復，不浪費在回復 0 上；
             // 這些情況耗用的亂數與沒有技能時相同。發動率是技能在該等級的固定值
@@ -90,6 +108,7 @@ public sealed class SkillCaster
             var heal = Math.Min(healOf(equipped), player.HpMax - hp);
             hp += heal;
             remainingRounds[equipped] = level.Rounds;
+            StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, heal));
         }
@@ -100,6 +119,15 @@ public sealed class SkillCaster
         }
 
         return casts;
+    }
+
+    // 冷卻 n：接下來 n 次玩家出手不能發動。倒數在每回合開頭，下一回合開頭就會先扣 1，所以存 n + 1
+    private void StartCooldown(EquippedSkill equipped, SkillLevel level)
+    {
+        if (level.Cooldown > 0)
+        {
+            cooldowns[equipped] = level.Cooldown + 1;
+        }
     }
 
     private static bool IsHealing(EquippedSkill equipped) =>

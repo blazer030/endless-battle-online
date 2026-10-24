@@ -289,6 +289,7 @@ public class JsonGameContentTests
                 var lv = level.Level;
                 Assert.Equal(500L * lv * lv, level.Money);
                 Assert.Equal(300L * lv, level.Proficiency);
+                Assert.Equal(0, level.Cooldown);
                 if (skill.Type == SkillType.Passive)
                 {
                     // 被動常駐：沒有消耗、持續與發動率
@@ -329,6 +330,16 @@ public class JsonGameContentTests
     {
         Assert.Equal(0, LoadSkills(SkillJson("calm", "warrior", "passive", ValidPassiveLevel)).GetSkill("calm").LevelAt(1).Chance);
         AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidPassiveLevel.Replace(zero, nonZero)), "lazy");
+    }
+
+    [Fact]
+    public void Skills_RejectNegativeCooldown()
+    {
+        var withCooldown = ValidLevel.Replace("\"proficiency\": 300", "\"proficiency\": 300, \"cooldown\": 4");
+        Assert.Equal(4, LoadSkills(SkillJson("patient", "warrior", "active", withCooldown)).GetSkill("patient").LevelAt(1).Cooldown);
+        AssertSkillsRejected(
+            SkillJson("hasty", "warrior", "active", ValidLevel.Replace("\"proficiency\": 300", "\"proficiency\": 300, \"cooldown\": -1")),
+            "hasty");
     }
 
     [Fact]
