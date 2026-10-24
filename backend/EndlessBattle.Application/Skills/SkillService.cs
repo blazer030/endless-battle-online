@@ -89,11 +89,13 @@ public sealed class SkillService(
         {
             var check = SkillLearning.Evaluate(character, skill, level, skillPoints);
             var target = skill.LevelAt(level + 1);
-            next = new NextLevelView(target.Level, target.Sp, target.Rounds, target.Chance, target.Money, target.Proficiency, check.Allowed, check.Reasons);
+            next = new NextLevelView(target.Level, target.Sp, target.Rounds, target.Chance, target.Cooldown, target.Money, target.Proficiency, check.Allowed, check.Reasons);
         }
 
         // 內容縮減等級上限時，已學等級以上限計
-        var chance = level == 0 ? 0 : skill.LevelAt(Math.Min(level, skill.MaxLevel)).Chance;
-        return new SkillView(skill.Id, skill.Name, skill.Type, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel, chance, next);
+        var current = level == 0 ? null : skill.LevelAt(Math.Min(level, skill.MaxLevel));
+        return new SkillView(
+            skill.Id, skill.Name, skill.Type, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel,
+            current?.Chance ?? 0, current?.Cooldown ?? 0, skill.EffectiveTrigger, next);
     }
 }

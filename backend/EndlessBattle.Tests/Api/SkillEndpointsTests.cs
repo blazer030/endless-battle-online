@@ -107,6 +107,32 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, burst.GetProperty("next").ValueKind);
     }
 
+    // 冷卻與發動條件：治癒（他職業技能，已學 lv1）是 HpBelow 50、冷卻 4；burst 是 Chance、冷卻 0；被動硬甲沒有條件（null）
+    [Fact]
+    public async Task Overview_ShowsCooldownAndTrigger()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(characterId, new LearnedSkill("heal", 1), CancellationToken);
+        }
+
+        var skills = (await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken)).GetProperty("skills").EnumerateArray()
+            .ToDictionary(skill => skill.GetProperty("id").GetString()!);
+
+        var heal = skills["heal"];
+        Assert.Equal(4, heal.GetProperty("cooldown").GetInt32());
+        Assert.Equal("HpBelow", heal.GetProperty("trigger").GetProperty("kind").GetString());
+        Assert.Equal(50, heal.GetProperty("trigger").GetProperty("percent").GetInt32());
+        Assert.Equal(4, heal.GetProperty("next").GetProperty("cooldown").GetInt32());
+        Assert.Equal("Chance", skills["burst"].GetProperty("trigger").GetProperty("kind").GetString());
+        Assert.Equal(0, skills["burst"].GetProperty("cooldown").GetInt32());
+        Assert.Equal(JsonValueKind.Null, skills["iron-skin"].GetProperty("trigger").ValueKind);
+    }
+
     [Fact]
     public async Task Learn_ReturnsUpdatedOverview()
     {

@@ -204,12 +204,27 @@ public class SkillServiceTests
         Assert.Equal(0, burst.Level);
         Assert.Equal(5, burst.MaxLevel);
         Assert.Equal(0, burst.Chance);
-        Assert.Equal(new NextLevelView(1, 5, 3, 40, 500, 300, true, []), burst.Next, NextLevelViewComparer.Instance);
+        Assert.Equal(new NextLevelView(1, 5, 3, 40, 0, 500, 300, true, []), burst.Next, NextLevelViewComparer.Instance);
         var combo = overview.Skills[2];
         Assert.Equal(2, combo.Level);
         Assert.Equal(50, combo.Chance);
         Assert.Equal(["wrongJob", "notEnoughProficiency", "notEnoughMoney"], combo.Next!.Reasons);
         Assert.False(combo.Next.CanLearn);
+    }
+
+    // 冷卻與發動條件取目前等級：治癒 lv1 是 hpBelow 50、冷卻 4；burst 擲發動率、無冷卻；硬甲常駐沒有條件。下一級也帶冷卻
+    [Fact]
+    public async Task Get_ShowsCooldownAndTrigger()
+    {
+        await ArrangeAsync(0, new LearnedSkill("heal", 1), new LearnedSkill("burst", 1));
+
+        var overview = await service.GetAsync(AccountId, CancellationToken);
+
+        var heal = Assert.Single(overview.Skills, skill => skill.Id == "heal");
+        Assert.Equal((4, SkillTrigger.HpBelow(50), 4), (heal.Cooldown, heal.Trigger, heal.Next!.Cooldown));
+        var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
+        Assert.Equal((0, SkillTrigger.Chance), (burst.Cooldown, burst.Trigger));
+        Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Trigger);
     }
 
     [Fact]
