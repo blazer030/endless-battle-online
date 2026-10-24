@@ -44,11 +44,12 @@ const jobs: JobOption[] = [
   }),
 ]
 
+// 主動技能的 chance 是該級固定的發動率（30 + 10·lv）；被動沒有發動率，一律 0
 const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
   level: 1,
   sp: 5,
   rounds: 3,
-  chance: 0,
+  chance: 40,
   money: 500,
   proficiency: 300,
   canLearn: true,
@@ -65,6 +66,7 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   jobId: "warrior",
   level: 0,
   maxLevel: 5,
+  chance: 0,
   next: next(),
   ...overrides,
 })
@@ -81,18 +83,46 @@ const overview: SkillOverview = {
       effect: "DfMultiplier",
       description: "提高物理防禦",
       level: 2,
-      next: next({ level: 3, money: 4500, canLearn: false, reasons: ["notEnoughMoney"] }),
+      next: next({
+        level: 3,
+        sp: 0,
+        rounds: 0,
+        chance: 0,
+        money: 4500,
+        canLearn: false,
+        reasons: ["notEnoughMoney"],
+      }),
     }),
-    skill({ id: "combo", name: "連擊", jobId: "thief", effect: "MultiHit", level: 5, next: null }),
+    skill({
+      id: "combo",
+      name: "連擊",
+      jobId: "thief",
+      effect: "MultiHit",
+      level: 5,
+      chance: 80,
+      next: null,
+    }),
+    skill({
+      id: "swift-shadow",
+      name: "急影",
+      type: "Passive",
+      effect: "AgiMultiplier",
+      description: "提高敏捷",
+      jobId: "thief",
+      level: 1,
+      next: next({ level: 2, sp: 0, rounds: 0, chance: 0, money: 2000 }),
+    }),
   ],
-  slots: [{ slot: 4, skillId: "iron-skin", chance: 40 }],
+  slots: [{ slot: 4, skillId: "iron-skin" }],
 }
 
 const learned: SkillOverview = {
   ...overview,
   skillPoints: 900,
   skills: overview.skills.map((entry) =>
-    entry.id === "burst" ? { ...entry, level: 1, next: next({ level: 2 }) } : entry,
+    entry.id === "burst"
+      ? { ...entry, level: 1, chance: 40, next: next({ level: 2, chance: 50 }) }
+      : entry,
   ),
 }
 
@@ -195,16 +225,23 @@ test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
   expect(await screen.findByText("技能熟練度 1,200")).toBeInTheDocument()
   const burst = await skillCard("爆氣 Lv 0/5")
   expect(within(burst).getByText("提高物理攻擊力")).toBeInTheDocument()
-  expect(within(burst).getByText("SP 5・3 回合・500 金錢・300 熟練度")).toBeInTheDocument()
+  expect(
+    within(burst).getByText("SP 5・3 回合・發動率 40%・500 金錢・300 熟練度"),
+  ).toBeInTheDocument()
   expect(within(burst).getByRole("button", { name: "學習" })).toBeEnabled()
 
+  // 被動常駐：不顯示 SP、回合、發動率
   const ironSkin = await skillCard("硬甲 Lv 2/5")
+  expect(within(ironSkin).getByText("4,500 金錢・300 熟練度")).toBeInTheDocument()
+  expect(within(ironSkin).queryByText(/SP|回合|發動率/)).not.toBeInTheDocument()
   const upgrade = within(ironSkin).getByRole("button", { name: "升級" })
   expect(upgrade).toBeDisabled()
   expect(upgrade).toHaveAttribute("title", "金錢不足")
   expect(within(ironSkin).getByText("金錢不足")).toBeInTheDocument()
 
+  // 已學的主動技能顯示目前等級的發動率
   const combo = await skillCard("連擊 Lv 5/5")
+  expect(within(combo).getByText("發動率 80%")).toBeInTheDocument()
   expect(within(combo).getByText("已達最高等級")).toBeInTheDocument()
   expect(within(combo).queryByRole("button")).not.toBeInTheDocument()
 })
@@ -239,16 +276,18 @@ test("SkillsScreen_SavesSlotsWithPutBody", async () => {
   const api = createApi({ getSkills: vi.fn().mockResolvedValue(learned) })
   renderScreen(api)
 
-  await user.selectOptions(await screen.findByLabelText("欄位 1 技能"), "burst")
-  const raise = screen.getByRole("button", { name: "提高欄位 1 發動率" })
-  for (let step = 0; step < 6; step++) await user.click(raise)
-  expect(screen.getByText("100%")).toBeInTheDocument()
-  expect(raise).toBeDisabled()
+  // 主動欄顯示技能固定的發動率（空欄沒有），沒有 −／＋ 可調
+  const slot1 = await screen.findByLabelText("欄位 1 技能")
+  const row = slot1.parentElement as HTMLElement
+  expect(within(row).queryByText(/發動率/)).not.toBeInTheDocument()
+  await user.selectOptions(slot1, "burst")
+  expect(within(row).getByText("發動率 40%")).toBeInTheDocument()
+  expect(screen.queryByRole("button", { name: /發動率/ })).not.toBeInTheDocument()
   await user.click(screen.getByRole("button", { name: "儲存欄位" }))
 
   expect(api.setSkillSlots).toHaveBeenCalledWith([
-    { slot: 1, skillId: "burst", chance: 100 },
-    { slot: 4, skillId: "iron-skin", chance: 40 },
+    { slot: 1, skillId: "burst" },
+    { slot: 4, skillId: "iron-skin" },
   ])
   expect(await screen.findByText("欄位已儲存。")).toBeInTheDocument()
 })
@@ -261,11 +300,10 @@ test("SkillsScreen_LocksTheLoadoutWhileSaving", async () => {
 
   for (const slot of [1, 2, 3, 4, 5])
     expect(screen.getByLabelText(`欄位 ${slot} 技能`)).toBeDisabled()
-  expect(screen.getByRole("button", { name: "提高欄位 1 發動率" })).toBeDisabled()
-  expect(screen.getByRole("button", { name: "降低欄位 1 發動率" })).toBeDisabled()
   expect(screen.getByRole("button", { name: "儲存欄位" })).toBeDisabled()
 })
 
+// 主動欄列所有學過的主動技能、被動欄列所有學過的被動技能，都不限職業
 test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
   renderScreen(createApi({ getSkills: vi.fn().mockResolvedValue(learned) }))
 
@@ -280,8 +318,7 @@ test("SkillsScreen_OffersOnlyFittingSkillsPerSlot", async () => {
     within(passive)
       .getAllByRole("option")
       .map((option) => option.textContent),
-  ).toEqual(["（空）", "硬甲 Lv 2"])
-  expect(screen.queryByRole("button", { name: "提高欄位 5 發動率" })).not.toBeInTheDocument()
+  ).toEqual(["（空）", "硬甲 Lv 2", "急影 Lv 1"])
 })
 
 test("SkillsScreen_DisablesSaveWhileLoadoutIsInvalid", async () => {
@@ -297,15 +334,13 @@ test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   const api = createApi({
     setSkillSlots: vi
       .fn()
-      .mockRejectedValue(new ApiError(400, "技能欄位不正確", ["passiveNotCurrentJob"])),
+      .mockRejectedValue(new ApiError(400, "技能欄位不正確", ["activeInPassiveSlot"])),
   })
   renderScreen(api)
 
   await user.click(await screen.findByRole("button", { name: "儲存欄位" }))
 
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "技能欄位不正確：被動欄只能放目前職業的技能",
-  )
+  expect(await screen.findByRole("alert")).toHaveTextContent("技能欄位不正確：被動欄只能放被動技能")
 })
 
 test("SkillsScreen_ReloadsWhenProficiencyChangesInBattle", async () => {

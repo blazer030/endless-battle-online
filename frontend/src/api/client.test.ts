@@ -125,7 +125,7 @@ test("skillAndJobCalls_UseTheirEndpoints", async () => {
   await client.changeJob("knight")
   await client.getSkills()
   await client.learnSkill("burst")
-  await client.setSkillSlots([{ slot: 1, skillId: "burst", chance: 100 }])
+  await client.setSkillSlots([{ slot: 1, skillId: "burst" }])
 
   const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
     init.method,
@@ -137,7 +137,7 @@ test("skillAndJobCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/jobs/change", { jobId: "knight" }],
     ["GET", "/api/skills", undefined],
     ["POST", "/api/skills/learn", { skillId: "burst" }],
-    ["PUT", "/api/skills/slots", { slots: [{ slot: 1, skillId: "burst", chance: 100 }] }],
+    ["PUT", "/api/skills/slots", { slots: [{ slot: 1, skillId: "burst" }] }],
   ])
 })
 

@@ -3,18 +3,14 @@ import { ApiError, type ApiClient } from "../api/client"
 import {
   ActiveSlots,
   clearSlot,
-  DefaultChance,
   draftsFrom,
-  isActiveSlot,
+  equippedChance,
   jobReasonText,
   learnReasonText,
   markCurrentJob,
-  MaxChance,
-  MinChance,
   PassiveSlots,
   setSlot,
   slotReasonText,
-  stepChance,
   toSlotCommands,
   validateLoadout,
 } from "../game/skills"
@@ -207,10 +203,9 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
 
   const loadoutReasons = validateLoadout(drafts, overview)
   const learnedSkills = overview.skills.filter((skill) => skill.level > 0)
+  // 主動與被動欄都不限職業：學過就能裝
   const activeOptions = learnedSkills.filter((skill) => skill.type === "Active")
-  const passiveOptions = learnedSkills.filter(
-    (skill) => skill.type === "Passive" && skill.jobId === overview.jobId,
-  )
+  const passiveOptions = learnedSkills.filter((skill) => skill.type === "Passive")
 
   return (
     <div className="skills">
@@ -287,6 +282,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
           <SlotRow
             key={slot}
             draft={draftOf(drafts, slot)}
+            chance={equippedChance(drafts, overview, slot)}
             options={activeOptions}
             onChange={editDrafts}
             drafts={drafts}
@@ -298,6 +294,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
           <SlotRow
             key={slot}
             draft={draftOf(drafts, slot)}
+            chance={null}
             options={passiveOptions}
             onChange={editDrafts}
             drafts={drafts}
@@ -336,7 +333,17 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
 }
 
 const draftOf = (drafts: SlotDraft[], slot: SlotNumber): SlotDraft =>
-  drafts.find((draft) => draft.slot === slot) ?? { slot, skillId: null, chance: DefaultChance }
+  drafts.find((draft) => draft.slot === slot) ?? { slot, skillId: null }
+
+const chanceText = (chance: number) => `發動率 ${chance}%`
+
+// 主動技能列下一級的 SP、持續回合與發動率；被動常駐，只列學習費用
+const nextLevelText = (skill: SkillView, next: NonNullable<SkillView["next"]>) => {
+  const cost = `${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
+  return skill.type === "Active"
+    ? `SP ${next.sp}・${next.rounds} 回合・${chanceText(next.chance)}・${cost}`
+    : cost
+}
 
 function SkillCard({
   skill,
@@ -353,15 +360,16 @@ function SkillCard({
       <div className="skills__item-head">
         <h3 className="skills__item-name">{`${skill.name} Lv ${skill.level}/${skill.maxLevel}`}</h3>
         <span className="skills__type">{skill.type === "Active" ? "主動" : "被動"}</span>
+        {skill.type === "Active" && skill.level > 0 && (
+          <span className="skills__chance-value">{chanceText(skill.chance)}</span>
+        )}
       </div>
       <p className="skills__description">{skill.description}</p>
       {next === null ? (
         <p className="skills__next">已達最高等級</p>
       ) : (
         <>
-          <p className="skills__next">
-            {`SP ${next.sp}・${next.rounds} 回合・${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`}
-          </p>
+          <p className="skills__next">{nextLevelText(skill, next)}</p>
           {!next.canLearn && (
             <p className="skills__unmet">{next.reasons.map(learnReasonText).join("、")}</p>
           )}
@@ -380,20 +388,23 @@ function SkillCard({
   )
 }
 
+// chance 是主動欄裝入技能的固定發動率，空欄與被動欄為 null
 function SlotRow({
   draft,
   drafts,
+  chance,
   options,
   onChange,
   disabled,
 }: {
   draft: SlotDraft
   drafts: SlotDraft[]
+  chance: number | null
   options: SkillView[]
   onChange: (drafts: SlotDraft[]) => void
   disabled: boolean
 }) {
-  const { slot, skillId, chance } = draft
+  const { slot, skillId } = draft
   const label = `欄位 ${slot}`
   return (
     <div className="skills__slot">
@@ -418,27 +429,7 @@ function SlotRow({
           </option>
         ))}
       </select>
-      {isActiveSlot(slot) && (
-        <span className="skills__chance">
-          <button
-            type="button"
-            aria-label={`降低${label} 發動率`}
-            disabled={disabled || chance <= MinChance}
-            onClick={() => onChange(stepChance(drafts, slot, -1))}
-          >
-            −
-          </button>
-          <span className="skills__chance-value">{`${chance}%`}</span>
-          <button
-            type="button"
-            aria-label={`提高${label} 發動率`}
-            disabled={disabled || chance >= MaxChance}
-            onClick={() => onChange(stepChance(drafts, slot, 1))}
-          >
-            ＋
-          </button>
-        </span>
-      )}
+      {chance !== null && <span className="skills__chance-value">{chanceText(chance)}</span>}
     </div>
   )
 }

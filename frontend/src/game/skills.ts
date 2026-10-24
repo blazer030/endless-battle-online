@@ -1,16 +1,12 @@
 import { statLabel } from "./stats"
 import type { JobOption, SkillOverview, SkillSlotCommand } from "./types"
 
-// 與後端 SkillLoadout 相同：1～3 主動欄（發動率 10～100、步進 10），4～5 被動欄
+// 與後端 SkillLoadout 相同：1～3 主動欄（發動率由技能等級固定），4～5 被動欄（常駐）；兩種欄位都不限職業
 export type SlotNumber = 1 | 2 | 3 | 4 | 5
-export type SlotDraft = { slot: SlotNumber; skillId: string | null; chance: number }
+export type SlotDraft = { slot: SlotNumber; skillId: string | null }
 
 export const ActiveSlots: readonly SlotNumber[] = [1, 2, 3]
 export const PassiveSlots: readonly SlotNumber[] = [4, 5]
-export const MinChance = 10
-export const MaxChance = 100
-const ChanceStep = 10
-export const DefaultChance = 50
 // 熟練度累積到此值顯示 100%
 const FullProficiency = 3500
 
@@ -20,12 +16,10 @@ export const isActiveSlot = (slot: number) => ActiveSlots.some((active) => activ
 const isPassiveSlot = (slot: number) => PassiveSlots.some((passive) => passive === slot)
 
 export const draftsFrom = (overview: SkillOverview): SlotDraft[] =>
-  allSlots.map((slot) => {
-    const saved = overview.slots.find((entry) => entry.slot === slot)
-    return saved === undefined
-      ? { slot, skillId: null, chance: DefaultChance }
-      : { slot, skillId: saved.skillId, chance: saved.chance }
-  })
+  allSlots.map((slot) => ({
+    slot,
+    skillId: overview.slots.find((entry) => entry.slot === slot)?.skillId ?? null,
+  }))
 
 const updateSlot = (
   drafts: SlotDraft[],
@@ -39,20 +33,21 @@ export const setSlot = (drafts: SlotDraft[], slot: SlotNumber, skillId: string) 
 export const clearSlot = (drafts: SlotDraft[], slot: SlotNumber) =>
   updateSlot(drafts, slot, (draft) => ({ ...draft, skillId: null }))
 
-export const stepChance = (drafts: SlotDraft[], slot: SlotNumber, direction: 1 | -1) =>
-  updateSlot(drafts, slot, (draft) => ({
-    ...draft,
-    chance: Math.min(MaxChance, Math.max(MinChance, draft.chance + direction * ChanceStep)),
-  }))
+// 主動欄裝入技能目前等級的發動率；空欄、找不到技能或被動欄回傳 null
+export const equippedChance = (
+  drafts: SlotDraft[],
+  overview: SkillOverview,
+  slot: SlotNumber,
+): number | null => {
+  if (!isActiveSlot(slot)) return null
+  const skillId = drafts.find((draft) => draft.slot === slot)?.skillId ?? null
+  const skill = overview.skills.find((candidate) => candidate.id === skillId)
+  return skill === undefined ? null : skill.chance
+}
 
 // 空欄不送，後端把未列出的欄位視為清空
 export const toSlotCommands = (drafts: SlotDraft[]): SkillSlotCommand[] =>
-  drafts.flatMap(({ slot, skillId, chance }) =>
-    skillId === null ? [] : [{ slot, skillId, chance }],
-  )
-
-const isValidActiveChance = (chance: number) =>
-  chance >= MinChance && chance <= MaxChance && chance % ChanceStep === 0
+  drafts.flatMap(({ slot, skillId }) => (skillId === null ? [] : [{ slot, skillId }]))
 
 // 鏡射後端 SkillLoadout.Validate：代碼與順序相同，送出前就能顯示原因
 export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): string[] => {
@@ -60,7 +55,7 @@ export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): s
   const seenSlots = new Set<number>()
   const seenSkills = new Set<string>()
 
-  for (const { slot, skillId, chance } of drafts) {
+  for (const { slot, skillId } of drafts) {
     if (skillId === null) continue
     const isActive = isActiveSlot(slot)
     if (!isActive && !isPassiveSlot(slot)) reasons.push("slotOutOfRange")
@@ -75,13 +70,8 @@ export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): s
     if (seenSkills.has(skillId)) reasons.push("duplicateSkill")
     seenSkills.add(skillId)
 
-    if (isActive) {
-      if (skill.type === "Passive") reasons.push("passiveInActiveSlot")
-      if (!isValidActiveChance(chance)) reasons.push("chanceOutOfRange")
-    } else if (isPassiveSlot(slot)) {
-      if (skill.type === "Active") reasons.push("activeInPassiveSlot")
-      else if (skill.jobId !== overview.jobId) reasons.push("passiveNotCurrentJob")
-    }
+    if (isActive && skill.type === "Passive") reasons.push("passiveInActiveSlot")
+    else if (isPassiveSlot(slot) && skill.type === "Active") reasons.push("activeInPassiveSlot")
   }
   return [...new Set(reasons)]
 }
@@ -118,8 +108,6 @@ export const slotReasonText = translate({
   duplicateSkill: "同一技能不能裝在兩個欄位",
   activeInPassiveSlot: "被動欄只能放被動技能",
   passiveInActiveSlot: "主動欄只能放主動技能",
-  passiveNotCurrentJob: "被動欄只能放目前職業的技能",
-  chanceOutOfRange: "發動率須為 10～100，每格 10",
 })
 
 const SameJob = "sameJob"

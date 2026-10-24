@@ -3112,21 +3112,19 @@ export interface components {
             level: number;
             /** Format: int32 */
             maxLevel: number;
+            /** Format: int32 */
+            chance: number;
             next: null | components["schemas"]["SkillNextLevelResponse"];
         };
         SkillSlotRequest: {
             /** Format: int32 */
             slot: null | number;
             skillId: null | string;
-            /** Format: int32 */
-            chance: null | number;
         };
         SkillSlotResponse: {
             /** Format: int32 */
             slot: number;
             skillId: string;
-            /** Format: int32 */
-            chance: number;
         };
         /** @enum {unknown} */
         SkillType: "Active" | "Passive";

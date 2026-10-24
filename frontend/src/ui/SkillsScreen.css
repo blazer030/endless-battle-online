@@ -195,32 +195,12 @@
   font-size: 16px;
 }
 
-.skills__chance {
-  display: grid;
-  grid-template-columns: 32px 3.2em 32px;
-  align-items: center;
-  gap: 4px;
-}
-
-.skills__chance button {
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-top);
-  color: var(--text);
-  font: inherit;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.skills__chance button:disabled {
-  opacity: 0.35;
-}
-
+/* 技能固定的發動率：技能卡與主動欄都用這個樣式 */
 .skills__chance-value {
-  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
-  text-align: center;
+  white-space: nowrap;
 }
 
 .skills__reasons {
@@ -246,8 +226,7 @@
 }
 
 .skills__select:focus-visible,
-.skills__action:focus-visible,
-.skills__chance button:focus-visible {
+.skills__action:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 1px;
 }
