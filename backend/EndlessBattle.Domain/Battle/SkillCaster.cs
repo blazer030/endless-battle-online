@@ -8,7 +8,8 @@ public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter,
 
 // 玩家技能的施放與持續（研究 §3.3）。
 // 沒有發動條件的被動常駐：裝上就生效、不擲骰、不扣 SP、沒有持續回合；攻擊後時機的被動（嗜血）每次命中都觸發。
-// 掛了發動條件（hpBelow）的被動在條件成立時才生效，不扣 SP。主動技能依發動條件（擲發動率或 hpBelow）施放，修正值每次都從裸狀態依欄位順序重套常駐的被動與仍生效的主動（快照＋重套），
+// 觸發型被動（有發動條件：chance 或 hpBelow）在條件成立時才生效，不扣 SP，效果持續該級 rounds。
+// 主動技能依發動條件（擲發動率或 hpBelow）施放，修正值每次都從裸狀態依欄位順序重套常駐的被動與仍生效的主動（快照＋重套），
 // 而持續中的技能不會再施放，所以同一技能不會疊加
 public sealed class SkillCaster
 {
@@ -112,8 +113,7 @@ public sealed class SkillCaster
 
             var heal = Math.Min(healOf(equipped), player.HpMax - hp);
             hp += heal;
-            // 被動的 Rounds 為 0：觸發後只在本回合生效
-            remainingRounds[equipped] = Math.Max(level.Rounds, 1);
+            remainingRounds[equipped] = level.Rounds;
             StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, heal));
