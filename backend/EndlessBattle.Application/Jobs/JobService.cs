@@ -2,12 +2,10 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
-using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Jobs;
-using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Application.Jobs;
 
@@ -29,7 +27,6 @@ public sealed record JobOption(
 public sealed class JobService(
     ICharacterRepository characters,
     IJobProficiencyRepository proficiencies,
-    ISkillLoadoutRepository loadout,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
     IGameContent content,
@@ -62,8 +59,8 @@ public sealed class JobService(
         }).ToList();
     }
 
-    // 轉職時全部裝備卸回背包（spec §5.2），放不下就 400 bagFull、不轉職。
-    // 整個轉職是一筆交易：先過版本鎖更新角色，成功後才清裝備欄、把補給併回背包、清被動欄；衝突或背包滿時什麼都不寫
+    // 轉職時全部裝備卸回背包（spec §5.2），放不下就 400 bagFull、不轉職；技能欄不動（主動、被動都不限職業）。
+    // 整個轉職是一筆交易：先過版本鎖更新角色，成功後才清裝備欄、把補給併回背包；衝突或背包滿時什麼都不寫
     public Task<CharacterProfile> ChangeAsync(long accountId, string jobId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -84,8 +81,6 @@ public sealed class JobService(
 
             var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
             await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
-            var slots = await loadout.ListAsync(character.Id, cancellationToken);
-            await loadout.ReplaceAsync(character.Id, slots.Where(slot => !SkillLoadout.IsPassiveSlot(slot.Slot)).ToList(), cancellationToken);
             return new CharacterProfile(
                 CharacterStamina.Regenerated(updated, clock.UtcNow), rows, await equipment.LoadBonusAsync(updated.Id, content, cancellationToken));
         }, cancellationToken);

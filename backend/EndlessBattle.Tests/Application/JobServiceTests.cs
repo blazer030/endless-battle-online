@@ -32,7 +32,7 @@ public class JobServiceTests
         loadout = new InMemorySkillLoadoutRepository(log);
         equipment = new InMemoryEquipmentRepository(inventory);
         unitOfWork = new InMemoryUnitOfWork(characters, proficiencies, inventory, equipment);
-        service = new JobService(characters, proficiencies, loadout, inventory, equipment, Content, clock, unitOfWork);
+        service = new JobService(characters, proficiencies, inventory, equipment, Content, clock, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -64,16 +64,17 @@ public class JobServiceTests
         Assert.Equivalent(equipped, await equipment.GetAsync(character.Id, CancellationToken), strict: true);
     }
 
+    // 任何職業學過的被動都能裝，轉職不再清被動欄：技能欄完全不動
     [Fact]
-    public async Task JobChange_ClearsPassiveSlotsKeepsActive()
+    public async Task JobChange_KeepsAllSkillSlots()
     {
         var character = await ArrangeAsync(new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin"));
 
         var profile = await service.ChangeAsync(AccountId, "thief", CancellationToken);
 
         Assert.Equal("thief", profile.Character.JobId);
-        Assert.Equal(["update", "loadout"], log);
-        Assert.Equal([new SkillSlot(1, "burst")], await loadout.ListAsync(character.Id, CancellationToken));
+        Assert.Equal(["update"], log);
+        Assert.Equal([new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")], await loadout.ListAsync(character.Id, CancellationToken));
     }
 
     // 行動力 10、上次回復在 Now；400 秒後換職業 → 回應 10 + 12 = 22（唯讀，存檔仍是 10）

@@ -212,7 +212,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal((supply, 10), (supplies.GetProperty("inventoryId").GetInt64(), supplies.GetProperty("quantity").GetInt32()));
     }
 
-    // 兩個角色同時轉職（各自清掉被動技能欄、重寫技能欄）：彼此的鎖不能互相卡住，10 輪全部 200
+    // 兩個角色同時轉職（各自過角色的版本鎖）：彼此的鎖不能互相卡住，10 輪全部 200
     [Fact]
     public async Task JobChange_TwoCharactersAtOnce_BothSucceed()
     {

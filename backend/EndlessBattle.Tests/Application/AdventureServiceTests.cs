@@ -358,9 +358,9 @@ public class AdventureServiceTests
         Assert.Equal(75, result.Character.Sp);
     }
 
-    // 轉職與推進競態時欄 4 可能還留著別職業的被動：不施放。主動欄照 WOG 不限職業，thief 仍可用 burst（6 秒開 3 場：25 → 20 → 15 → 10）
+    // 欄位不限職業：thief 的欄 4 留著戰士的被動（常駐、沒有施放事件）、欄 1 仍可施放 burst（6 秒開 3 場：25 → 20 → 15 → 10）
     [Fact]
-    public async Task Advance_IgnoresPassiveSlotOfOtherJob()
+    public async Task Advance_KeepsSkillsOfOtherJobs()
     {
         var character = await AddCharacterAsync(character => character with { JobId = "thief" });
         await EquipAsync(

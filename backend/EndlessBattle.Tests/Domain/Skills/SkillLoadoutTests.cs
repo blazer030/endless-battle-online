@@ -19,7 +19,7 @@ public class SkillLoadoutTests
     private static readonly IReadOnlyList<LearnedSkill> Learned = Skills.Keys.Select(id => new LearnedSkill(id, 1)).ToList();
 
     private static IReadOnlyList<string> Validate(params SkillSlot[] slots) =>
-        SkillLoadout.Validate(slots, "warrior", Learned, id => Skills[id]);
+        SkillLoadout.Validate(slots, Learned, id => Skills[id]);
 
     // 主動欄可放其他職業的主動技能（轉職後保留）
     [Fact]
@@ -42,9 +42,10 @@ public class SkillLoadoutTests
     public void Loadout_RejectsActiveInPassiveSlot() =>
         Assert.Equal(["activeInPassiveSlot"], Validate(new SkillSlot(4, "burst")));
 
+    // 被動欄也不限職業：任何職業學過的被動都能裝
     [Fact]
-    public void Loadout_RejectsPassiveOfOtherJob() =>
-        Assert.Equal(["passiveNotCurrentJob"], Validate(new SkillSlot(5, "bloodthirst")));
+    public void Loadout_AcceptsPassiveOfOtherJob() =>
+        Assert.Empty(Validate(new SkillSlot(5, "bloodthirst")));
 
     [Fact]
     public void Loadout_RejectsDuplicateSkill() =>
@@ -57,7 +58,7 @@ public class SkillLoadoutTests
     [Fact]
     public void Loadout_RejectsNotLearned()
     {
-        Assert.Equal(["notLearned"], SkillLoadout.Validate([new SkillSlot(1, "burst")], "warrior", [], id => Skills[id]));
+        Assert.Equal(["notLearned"], SkillLoadout.Validate([new SkillSlot(1, "burst")], [], id => Skills[id]));
         Assert.Equal(["notLearned"], Validate(new SkillSlot(1, "no-such-skill")));
     }
 
@@ -73,9 +74,8 @@ public class SkillLoadoutTests
             ["passiveInActiveSlot", "activeInPassiveSlot"],
             Validate(new SkillSlot(1, "iron-skin"), new SkillSlot(2, "guard"), new SkillSlot(4, "burst"), new SkillSlot(5, "combo")));
 
-    private static IReadOnlyList<(string SkillId, int Level, int Slot)> ForBattle(
-        IReadOnlyList<LearnedSkill> learned, string currentJobId, params SkillSlot[] slots) =>
-        SkillLoadout.ForBattle(slots, learned, currentJobId, id => Skills.GetValueOrDefault(id))
+    private static IReadOnlyList<(string SkillId, int Level, int Slot)> ForBattle(IReadOnlyList<LearnedSkill> learned, params SkillSlot[] slots) =>
+        SkillLoadout.ForBattle(slots, learned, id => Skills.GetValueOrDefault(id))
             .Select(equipped => (equipped.Skill.Id, equipped.Level, equipped.Slot))
             .ToList();
 
@@ -86,7 +86,6 @@ public class SkillLoadoutTests
             [("lullaby", 3, 1), ("burst", 2, 2), ("iron-skin", 1, 4)],
             ForBattle(
                 [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1), new LearnedSkill("lullaby", 3)],
-                "warrior",
                 new SkillSlot(4, "iron-skin"), new SkillSlot(2, "burst"), new SkillSlot(1, "lullaby")));
 
     // 內容把技能縮成 5 級後，技能書裡的 7、9 級以 5 級施放
@@ -94,33 +93,33 @@ public class SkillLoadoutTests
     public void ForBattle_ClampsLevelToContentMaximum() =>
         Assert.Equal(
             [("burst", 5, 1), ("iron-skin", 5, 4)],
-            ForBattle([new LearnedSkill("burst", 7), new LearnedSkill("iron-skin", 9)], "warrior",
+            ForBattle([new LearnedSkill("burst", 7), new LearnedSkill("iron-skin", 9)],
                 new SkillSlot(1, "burst"), new SkillSlot(4, "iron-skin")));
 
     [Fact]
     public void ForBattle_SkipsSkillsNotInBook() =>
         Assert.Equal(
             [("burst", 1, 1)],
-            ForBattle([new LearnedSkill("burst", 1)], "warrior", new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
+            ForBattle([new LearnedSkill("burst", 1)], new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
 
-    // 轉職與推進競態時被動欄可能殘留前一個職業的被動
+    // 被動欄不限職業：轉職後前一個職業的被動照樣生效
     [Fact]
-    public void ForBattle_SkipsPassiveOfOtherJob() =>
+    public void ForBattle_KeepsPassiveOfOtherJob() =>
         Assert.Equal(
-            [("iron-skin", 1, 4)],
-            ForBattle(Learned, "warrior", new SkillSlot(4, "iron-skin"), new SkillSlot(5, "bloodthirst")));
+            [("iron-skin", 1, 4), ("bloodthirst", 1, 5)],
+            ForBattle(Learned, new SkillSlot(4, "iron-skin"), new SkillSlot(5, "bloodthirst")));
 
     // 主動欄照 WOG 不限職業
     [Fact]
     public void ForBattle_KeepsActiveOfOtherJob() =>
         Assert.Equal(
             [("burst", 1, 1), ("combo", 1, 2)],
-            ForBattle(Learned, "thief", new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
+            ForBattle(Learned, new SkillSlot(1, "burst"), new SkillSlot(2, "combo")));
 
     [Fact]
     public void ForBattle_SkipsSkillsRemovedFromContent() =>
         Assert.Equal(
             [("burst", 1, 2)],
-            ForBattle([new LearnedSkill("retired", 1), new LearnedSkill("burst", 1)], "warrior",
+            ForBattle([new LearnedSkill("retired", 1), new LearnedSkill("burst", 1)],
                 new SkillSlot(1, "retired"), new SkillSlot(2, "burst")));
 }

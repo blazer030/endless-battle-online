@@ -60,7 +60,7 @@ public sealed class SkillService(
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var learned = await skillBook.ListAsync(character.Id, cancellationToken);
 
-        var reasons = SkillLoadout.Validate(requested, character.JobId, learned, content.GetSkill);
+        var reasons = SkillLoadout.Validate(requested, learned, content.GetSkill);
         if (reasons.Count > 0)
         {
             throw new InputValidationException("技能欄位不正確", reasons);

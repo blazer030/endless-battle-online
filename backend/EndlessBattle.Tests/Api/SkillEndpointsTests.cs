@@ -181,6 +181,25 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("burst", slot.GetProperty("skillId").GetString());
     }
 
+    // 被動欄不限職業：戰士學了 iron-skin 後轉成盜賊，仍能把它裝進欄 4，轉職也不清掉已裝的被動
+    [Fact]
+    public async Task Slots_AcceptPassiveLearnedInAnotherJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 300);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "iron-skin" }, CancellationToken));
+        await ReadOkAsync(await PutSlotsAsync(client, new { slot = 4, skillId = "iron-skin" }));
+
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/jobs/change", new { jobId = "thief" }, CancellationToken));
+        var afterChange = await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken);
+        var saved = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 5, skillId = "iron-skin" }));
+
+        Assert.Equal("thief", afterChange.GetProperty("jobId").GetString());
+        Assert.Equal("iron-skin", Assert.Single(afterChange.GetProperty("slots").EnumerateArray()).GetProperty("skillId").GetString());
+        Assert.Equal(5, Assert.Single(saved.GetProperty("slots").EnumerateArray()).GetProperty("slot").GetInt32());
+    }
+
     // 發動率由技能決定：請求帶的舊欄位 chance 直接忽略、回應沒有 chance；省略的欄位＝清空
     [Fact]
     public async Task Slots_IgnoreChanceAndClearOmitted()

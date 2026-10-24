@@ -14,6 +14,5 @@ public static class EquippedSkills
         SkillLoadout.ForBattle(
             await loadout.ListAsync(character.Id, cancellationToken),
             await skillBook.ListAsync(character.Id, cancellationToken),
-            character.JobId,
             skillId => content.AllSkills.FirstOrDefault(skill => skill.Id == skillId));
 }
