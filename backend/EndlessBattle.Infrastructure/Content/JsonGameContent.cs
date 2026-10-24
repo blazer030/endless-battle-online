@@ -519,11 +519,6 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"技能 {skill.Id} 的 hpBelow 門檻 percent 必須在 1～99");
         }
 
-        if (skill.Type == SkillType.Passive && skill.Trigger is { Kind: not SkillTriggerKind.HpBelow })
-        {
-            throw new GameContentException($"被動技能 {skill.Id} 不擲骰：trigger 只能不寫或用 hpBelow");
-        }
-
         var rollsChance = skill.EffectiveTrigger?.Kind == SkillTriggerKind.Chance;
         for (var index = 0; index < skill.Levels.Count; index++)
         {
@@ -538,22 +533,33 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 money、proficiency、cooldown 不可為負");
             }
 
-            // 被動常駐：不消耗 SP、沒有持續回合與發動率
-            if (skill.Type == SkillType.Passive && (level.Sp != 0 || level.Rounds != 0 || level.Chance != 0))
+            // 常駐被動：不消耗 SP、沒有持續回合與發動率
+            if (skill.IsAlwaysOn)
             {
-                throw new GameContentException($"被動技能 {skill.Id} 第 {level.Level} 級的 sp、rounds、chance 必須為 0");
+                if (level.Sp != 0 || level.Rounds != 0 || level.Chance != 0)
+                {
+                    throw new GameContentException($"常駐被動技能 {skill.Id} 第 {level.Level} 級的 sp、rounds、chance 必須為 0");
+                }
+
+                continue;
             }
 
-            if (skill.Type == SkillType.Active && (level.Sp < 0 || level.Rounds < 1))
+            // 主動與觸發型被動：被動永遠不耗 SP；rounds 至少 1
+            if (skill.Type == SkillType.Passive ? level.Sp != 0 : level.Sp < 0)
             {
-                throw new GameContentException($"主動技能 {skill.Id} 第 {level.Level} 級的 sp 不可為負、rounds 至少 1");
+                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 sp 不正確（主動不可為負、被動必須為 0）");
             }
 
-            // 擲發動率的主動技 chance 必須 1～100；hpBelow 不擲骰，chance 必須為 0
-            if (skill.Type == SkillType.Active && (rollsChance ? level.Chance is < 1 or > 100 : level.Chance != 0))
+            if (level.Rounds < 1)
+            {
+                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 rounds 至少 1");
+            }
+
+            // 擲發動率的 chance 必須 1～100；hpBelow 不擲骰，chance 必須為 0
+            if (rollsChance ? level.Chance is < 1 or > 100 : level.Chance != 0)
             {
                 throw new GameContentException(rollsChance
-                    ? $"主動技能 {skill.Id} 第 {level.Level} 級的 chance 必須在 1～100"
+                    ? $"技能 {skill.Id} 第 {level.Level} 級的 chance 必須在 1～100"
                     : $"hpBelow 技能 {skill.Id} 第 {level.Level} 級的 chance 必須為 0");
             }
         }

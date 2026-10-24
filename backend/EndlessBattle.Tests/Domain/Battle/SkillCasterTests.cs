@@ -173,6 +173,27 @@ public class SkillCasterTests
         Assert.Equal(0, random.Consumed);
     }
 
+    // 觸發型被動也能擲骰（chance 型）：lv5 發動率 80。第 1 回合擲 0.99 → 100 不發；第 2 回合擲 0.0 → 1 發動，不扣 SP，
+    // 效果照該級 rounds 持續 3 回合（第 2～4 回合），持續中不再擲骰；第 5 回合開頭失效後再擲 0.0 又發動。共擲 3 顆
+    [Fact]
+    public void Caster_ChancePassive_RollsAndLastsItsRounds()
+    {
+        var guard = TestSkills.Battle("guard", "架式", SkillEffectKind.DfMultiplier, SkillType.Passive, rounds: 3, trigger: SkillTrigger.Chance);
+        var random = new ScriptedRandom(0.0, 0.99);
+        var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(guard, Level: 5, Slot: 4)]);
+        var dfByRound = new List<double>();
+
+        for (var round = 1; round <= 5; round++)
+        {
+            caster.ExpireAtRoundStart();
+            Assert.All(caster.CastBeforeAttack(hp: 100, sp: 0, random), cast => Assert.Equal(0, cast.SpAfter));
+            dfByRound.Add(Math.Round(caster.Current.Df, 10));
+        }
+
+        Assert.Equal([1.0, 1.05, 1.05, 1.05, 1.05], dfByRound);
+        Assert.Equal(3, random.Consumed);
+    }
+
     // 攻擊後的被動也吃冷卻（嗜血 lv5、冷卻 1）：第 1 回合第一下回復，同回合第二下與第 2 回合都在冷卻中，第 3 回合再回復
     [Fact]
     public void Caster_PassiveAfterHit_RespectsCooldown()

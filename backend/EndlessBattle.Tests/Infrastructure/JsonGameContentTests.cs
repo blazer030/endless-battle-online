@@ -350,7 +350,7 @@ public class JsonGameContentTests
     public void Skills_LoadHpBelowTrigger()
     {
         var loaded = LoadSkills(
-            $"{SkillJson("rescue", "warrior", "active", HpBelowLevel, HpBelowFifty)}, {SkillJson("guard", "warrior", "passive", ValidPassiveLevel, HpBelowFifty)}");
+            $"{SkillJson("rescue", "warrior", "active", HpBelowLevel, HpBelowFifty)}, {SkillJson("guard", "warrior", "passive", TriggeredPassiveLevel.Replace("\"chance\": 40", "\"chance\": 0"), HpBelowFifty)}");
 
         Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("rescue").Trigger);
         Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("guard").Trigger);
@@ -369,10 +369,30 @@ public class JsonGameContentTests
     public void Skills_RejectHpBelowWithChance() =>
         AssertSkillsRejected(SkillJson("greedy", "warrior", "active", ValidLevel, HpBelowFifty), "greedy");
 
-    // 被動不擲骰：只能不寫條件（常駐）或用 hpBelow
+    // 觸發型被動：sp 0、rounds ≥ 1；chance 型 chance 1～100，hpBelow 型 chance 0
+    private const string TriggeredPassiveLevel = """{ "level": 1, "sp": 0, "rounds": 3, "chance": 40, "money": 500, "proficiency": 300 }""";
+
     [Fact]
-    public void Skills_RejectPassiveWithChanceTrigger() =>
-        AssertSkillsRejected(SkillJson("gambler", "warrior", "passive", ValidPassiveLevel, """{ "kind": "chance" }"""), "gambler");
+    public void Skills_LoadTriggeredPassives()
+    {
+        var loaded = LoadSkills(
+            $$"""{{SkillJson("parry", "warrior", "passive", TriggeredPassiveLevel, """{ "kind": "chance" }""")}}, {{SkillJson("rally", "warrior", "passive", TriggeredPassiveLevel.Replace("\"chance\": 40", "\"chance\": 0"), HpBelowFifty)}}""");
+
+        Assert.Equal((SkillTrigger.Chance, 3, 40), (loaded.GetSkill("parry").Trigger, loaded.GetSkill("parry").LevelAt(1).Rounds, loaded.GetSkill("parry").LevelAt(1).Chance));
+        Assert.Equal((3, 0), (loaded.GetSkill("rally").LevelAt(1).Rounds, loaded.GetSkill("rally").LevelAt(1).Chance));
+    }
+
+    [Theory]
+    [InlineData("chance", "\"rounds\": 3", "\"rounds\": 0")]
+    [InlineData("chance", "\"sp\": 0", "\"sp\": 5")]
+    [InlineData("chance", "\"chance\": 40", "\"chance\": 0")]
+    [InlineData("chance", "\"chance\": 40", "\"chance\": 101")]
+    [InlineData("hpBelow", "\"chance\": 40", "\"chance\": 40")]
+    public void Skills_RejectInvalidTriggeredPassive(string kind, string from, string to)
+    {
+        var level = kind == "hpBelow" ? TriggeredPassiveLevel : TriggeredPassiveLevel.Replace(from, to);
+        AssertSkillsRejected(SkillJson("shaky", "warrior", "passive", level, $$"""{ "kind": "{{kind}}", "percent": 50 }"""), "shaky");
+    }
 
     [Fact]
     public void Skills_RejectUnknownTriggerKind() =>

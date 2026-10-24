@@ -2,8 +2,8 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Tests.Support;
 
-// Domain 測試用：數值與 TestContent/skills.json 相同（主動 sp 3·lv+2、發動率 30+10·lv；被動常駐，sp／rounds／chance 都是 0；
-// money 500·lv²、proficiency 300·lv）
+// Domain 測試用：數值與 TestContent/skills.json 相同（主動 sp 3·lv+2、發動率 30+10·lv；常駐被動 sp／rounds／chance 都是 0；
+// 觸發型被動 sp 0、持續 rounds、chance 型發動率 30+10·lv；hpBelow 型 chance 0；money 500·lv²、proficiency 300·lv）
 public static class TestSkills
 {
     public static SkillDefinition Create(string id, string jobId, SkillType type) =>
@@ -28,8 +28,12 @@ public static class TestSkills
         "說明",
         Enumerable.Range(1, 5)
             .Select(level => type == SkillType.Active
-                ? new SkillLevel(level, 3 * level + 2, rounds, trigger?.Kind == SkillTriggerKind.HpBelow ? 0 : 30 + 10 * level, 500L * level * level, 300L * level, cooldown)
-                : new SkillLevel(level, Sp: 0, Rounds: 0, Chance: 0, 500L * level * level, 300L * level, cooldown))
+                ? new SkillLevel(level, 3 * level + 2, rounds, ChanceOf(trigger ?? SkillTrigger.Chance, level), 500L * level * level, 300L * level, cooldown)
+                : trigger is null
+                    ? new SkillLevel(level, Sp: 0, Rounds: 0, Chance: 0, 500L * level * level, 300L * level, cooldown)
+                    : new SkillLevel(level, Sp: 0, rounds, ChanceOf(trigger, level), 500L * level * level, 300L * level, cooldown))
             .ToList(),
         trigger);
+
+    private static int ChanceOf(SkillTrigger trigger, int level) => trigger.Kind == SkillTriggerKind.HpBelow ? 0 : 30 + 10 * level;
 }
