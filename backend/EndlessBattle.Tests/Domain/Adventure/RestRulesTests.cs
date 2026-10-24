@@ -24,26 +24,26 @@ public class RestRulesTests
     [InlineData(100, 14, true, true)]
     [InlineData(100, 15, true, false)]
     [InlineData(100, 0, false, false)]
-    public void ShouldRest_DefaultMatchesPlanNine(int hp, int sp, bool hasSkills, bool expected)
+    public void ShouldRest_DefaultMatchesPlanNine(int hp, int sp, bool hasActiveSkills, bool expected)
     {
-        Assert.Equal(expected, RestRules.ShouldRest(Hero(hp, sp), Derived, hasSkills));
+        Assert.Equal(expected, RestRules.ShouldRest(Hero(hp, sp), Derived, hasActiveSkills));
     }
 
     [Fact]
     public void ShouldRest_DeadAlwaysRests()
     {
-        Assert.True(RestRules.ShouldRest(Hero(0, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasSkills: false));
+        Assert.True(RestRules.ShouldRest(Hero(0, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasActiveSkills: false));
     }
 
     [Fact]
     public void ShouldRest_SpSkippedWhenMinusOne()
     {
-        Assert.False(RestRules.ShouldRest(Hero(100, 0, AdventureSettings.Default with { RestSpPercent = -1 }), Derived, hasSkills: true));
+        Assert.False(RestRules.ShouldRest(Hero(100, 0, AdventureSettings.Default with { RestSpPercent = -1 }), Derived, hasActiveSkills: true));
     }
 
     [Fact]
     public void ShouldRest_HpSkippedWhenMinusOne()
     {
-        Assert.False(RestRules.ShouldRest(Hero(1, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasSkills: false));
+        Assert.False(RestRules.ShouldRest(Hero(1, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasActiveSkills: false));
     }
 }
