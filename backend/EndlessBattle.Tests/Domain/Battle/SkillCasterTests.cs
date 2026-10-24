@@ -100,6 +100,22 @@ public class SkillCasterTests
         Assert.Equal(2, random.Consumed);
     }
 
+    // SP 不夠時不發動、不擲骰，也不進冷卻：強擊 lv1 耗 5、冷卻 3。第 1 回合 SP 4 不發；第 2 回合 SP 夠了立刻發動
+    [Fact]
+    public void Caster_SpShortActive_DoesNotStartCooldown()
+    {
+        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 3);
+        var random = new ScriptedRandom(0.0);
+        var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
+
+        caster.ExpireAtRoundStart();
+        Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 4, random));
+        caster.ExpireAtRoundStart();
+        Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, random));
+
+        Assert.Equal(1, random.Consumed);
+    }
+
     // 發動那一回合本身不算冷卻：Cooldown 1 → 第 1 回合發動、第 2 回合不能發、第 3 回合起可以再發
     [Fact]
     public void Caster_CooldownOne_SkipsExactlyOneTurn()
