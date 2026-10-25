@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 # 前端
 node_modules/
 dist/
+
+# 生圖原始輸出（桃紅底），處理後才進 frontend/src/assets
+.art-out/

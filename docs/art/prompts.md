@@ -97,3 +97,25 @@ modern fantasy, semi-realistic painterly illustration, full body, isolated subje
 ```text
 modern fantasy, semi-realistic painterly illustration, full body, isolated subject on transparent background, rim light in cool cyan or amber gold, readable silhouette at small size, no text, no frame, no ground shadow, a monster facing left, Relic Core Colossus: an ancient stone golem with a glowing crystal core in its chest and cracked carved plates, brown stone and moss, boss-scale, crowned, mythic
 ```
+
+## 道具圖示（2026-10-23 畫面 redesign 起）
+
+畫面 redesign 後，道具圖示（之後角色、怪物也會）改走**Q 版卡通**：粗深棕描邊、手繪柔和陰影、暖色高光，跟選單圖示同一套。提示詞分兩段，共用風格段放在 `prompts/items/_style.txt`，每個道具一個檔 `prompts/items/<items.json 的 id>.txt` 只寫一句主體描述；`scripts/art-gen-items.sh` 會把兩段接起來丟給 agy。先把所有道具的描述檔寫齊，再一次批次產，風格才會一致。
+
+共用風格段（`_style.txt`）：
+
+```text
+a single fantasy RPG inventory item icon for a mobile game, cute chunky cartoon style, thick dark brown outline, soft hand-painted shading with warm highlights, slightly top-down three-quarter view, the object alone fills about 80 percent of the frame, centered, on a solid magenta background #FF00FF, no text, no frame, no shadow on the background, square 1024x1024.
+```
+
+主體描述的寫法：一句話、英文、只講形狀與材質顏色，不要再寫風格詞（風格段已經有），例如：
+
+```text
+an iron short sword with a straight grey steel blade, a simple dark iron crossguard, a brown leather-wrapped grip and a small red gem on the pommel, blade pointing up
+```
+
+產出後的處理：桃紅去背（含去溢色）→ 裁到不透明邊界 → 保留原始像素，顯示時用 CSS 縮到 44px 左右；不要事先縮圖。去背流程目前在個人 skill `preparing-ai-generated-ui-assets` 的 `magenta_assets.py`（key／trim）。
+
+注意：上面「共用風格段」那節是 redesign 前的半寫實方向，舞台的玩家、怪物圖之後會改成同一套卡通風格再更新。
+
+去背腳本：`python3 scripts/art-key-magenta.py <原圖.png> <輸出.png>`（純標準函式庫；色相判斷去桃紅＋去溢色、清孤立斑點、裁到不透明邊界）。agy 產出的是 JPEG，桃紅底帶壓縮雜訊，一般門檻式去背會留斑點，所以用這支。
