@@ -1,6 +1,6 @@
 import { act, render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
-import type { BuffView, CharacterView, ContentNames } from "../game/types"
+import type { BuffView, CharacterView, ContentNames, InnView } from "../game/types"
 import { makeCharacter, makeContent } from "../test/fixtures"
 import { CharacterScreen } from "./CharacterScreen"
 
@@ -54,7 +54,10 @@ const content: ContentNames = makeContent({
   })),
 })
 
-const noBuffs = () => ({ getBuffs: vi.fn<() => Promise<BuffView[]>>().mockResolvedValue([]) })
+const noBuffs = () => ({
+  getBuffs: vi.fn<() => Promise<BuffView[]>>().mockResolvedValue([]),
+  getInn: vi.fn<() => Promise<InnView>>().mockResolvedValue({ rooms: [], lodging: null }),
+})
 
 const valueOf = (term: string, container: HTMLElement = document.body) => {
   const definition = within(container).getByText(term, { selector: "dt" }).nextElementSibling
@@ -207,4 +210,52 @@ test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
   } finally {
     vi.useRealTimers()
   }
+})
+
+const loft = {
+  id: "apprentice-loft",
+  name: "學徒閣樓",
+  kind: "Exp" as const,
+  multiplier: 1.1,
+  seconds: 28_800,
+  price: 600,
+}
+
+test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
+  const api = noBuffs()
+  api.getInn.mockResolvedValue({
+    rooms: [loft],
+    lodging: { roomId: "apprentice-loft", endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+  })
+  render(<CharacterScreen api={api} character={character} content={content} />)
+
+  const card = screen.getByRole("region", { name: "密藥效果" })
+  expect(await within(card).findByText("學徒閣樓・經驗 ×1.10（剩 1:00）")).toBeInTheDocument()
+  expect(within(card).getByText("沒有生效中的密藥")).toBeInTheDocument()
+})
+
+test("CharacterScreen_HidesTheLodgingLineWithoutLodging", async () => {
+  const api = noBuffs()
+  api.getBuffs.mockResolvedValue([
+    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+  ])
+  render(<CharacterScreen api={api} character={character} content={content} />)
+
+  const card = screen.getByRole("region", { name: "密藥效果" })
+  expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
+  expect(api.getInn).toHaveBeenCalledTimes(1)
+  expect(within(card).queryByText(/・/)).not.toBeInTheDocument()
+})
+
+test("CharacterScreen_KeepsElixirsWhenTheInnFails", async () => {
+  const api = noBuffs()
+  api.getInn.mockRejectedValue(new Error("boom"))
+  api.getBuffs.mockResolvedValue([
+    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+  ])
+  render(<CharacterScreen api={api} character={character} content={content} />)
+
+  const card = screen.getByRole("region", { name: "密藥效果" })
+  expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
+  expect(within(card).queryByText(/・/)).not.toBeInTheDocument()
 })

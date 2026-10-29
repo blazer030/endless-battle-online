@@ -1,16 +1,17 @@
 import { useEffect, useId, useState } from "react"
 import type { ApiClient } from "../api/client"
 import { buffLines } from "../game/buffs"
+import { lodgingLine } from "../game/inn"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
-import type { BuffView, CharacterView, ContentNames } from "../game/types"
+import type { BuffView, CharacterView, ContentNames, InnView } from "../game/types"
 import { formatNumber } from "../game/format"
 import { BuffTickMilliseconds } from "../motion/timings"
 import { StatBar } from "./StatBar"
 import "./CharacterScreen.css"
 
 type Props = {
-  api: Pick<ApiClient, "getBuffs">
+  api: Pick<ApiClient, "getBuffs" | "getInn">
   character: CharacterView
   content: Pick<ContentNames, "elements" | "births" | "sexes">
 }
@@ -45,6 +46,8 @@ export function CharacterScreen({ api, character, content }: Props) {
   const [now, setNow] = useState(() => new Date())
   const [buffs, setBuffs] = useState<BuffView[] | null>(null)
   const [buffsFailed, setBuffsFailed] = useState(false)
+  // 讀不到旅館資料就不顯示住宿那一行，不影響密藥
+  const [inn, setInn] = useState<InnView | null>(null)
 
   useEffect(() => {
     let active = true
@@ -62,11 +65,25 @@ export function CharacterScreen({ api, character, content }: Props) {
   }, [api])
 
   useEffect(() => {
+    let active = true
+    api.getInn().then(
+      (loaded) => {
+        if (active) setInn(loaded)
+      },
+      () => {},
+    )
+    return () => {
+      active = false
+    }
+  }, [api])
+
+  useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), BuffTickMilliseconds)
     return () => clearInterval(timer)
   }, [])
 
   const activeBuffs = buffs === null ? [] : buffLines(buffs, now)
+  const lodging = inn === null ? null : lodgingLine(inn.lodging, inn.rooms, now)
   const { stats, baseStats } = character
   const profile = [
     { label: "性別", value: nameOf(content.sexes, character.sex) },
@@ -159,6 +176,7 @@ export function CharacterScreen({ api, character, content }: Props) {
             ))}
           </ul>
         )}
+        {lodging !== null && <p className="character__lodging">{lodging}</p>}
       </section>
     </div>
   )

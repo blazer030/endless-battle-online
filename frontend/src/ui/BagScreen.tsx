@@ -41,6 +41,7 @@ import { formatNumber } from "../game/format"
 import "./BagScreen.css"
 import { ForgePage, type ForgeApi } from "./ForgePage"
 import { HonourPage, type HonourApi } from "./HonourPage"
+import { InnPage, type InnApi } from "./InnPage"
 import {
   ItemDetail,
   ItemName,
@@ -70,6 +71,7 @@ export type BagApi = Pick<
   | "getMyCharacter"
   | keyof ForgeApi
   | keyof HonourApi
+  | keyof InnApi
 >
 
 type Props = {
@@ -81,7 +83,7 @@ type Props = {
   refreshSignal?: number
 }
 
-type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour"
+type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour" | "inn"
 
 const subPages: { id: SubPage; label: string }[] = [
   { id: "bag", label: "背包" },
@@ -91,6 +93,7 @@ const subPages: { id: SubPage; label: string }[] = [
   { id: "bank", label: "銀行" },
   { id: "forge", label: "鍛造" },
   { id: "honour", label: "勳章所" },
+  { id: "inn", label: "旅館" },
 ]
 
 const fallbackError = "發生錯誤，請稍後再試"
@@ -181,6 +184,8 @@ export function BagScreen({
             }}
           />
         )
+      case "inn":
+        return <InnPage api={api} character={character} busy={busy} mutate={mutate} />
     }
   }
 

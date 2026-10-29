@@ -344,3 +344,25 @@
   margin: 0;
   font-size: 13px;
 }
+
+.bag__heading {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1rem;
+}
+
+.bag__percent {
+  width: 3.4em;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+
+.bag__percent:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}

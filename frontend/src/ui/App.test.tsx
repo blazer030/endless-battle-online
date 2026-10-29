@@ -74,6 +74,8 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
   getBuffs: vi.fn().mockResolvedValue([]),
+  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
+  bookInn: vi.fn(),
   ...overrides,
 })
 

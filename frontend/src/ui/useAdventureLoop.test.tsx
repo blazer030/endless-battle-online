@@ -75,6 +75,8 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
   getBuffs: vi.fn(),
+  getInn: vi.fn(),
+  bookInn: vi.fn(),
 })
 
 const renderLoop = (api: ApiClient) =>

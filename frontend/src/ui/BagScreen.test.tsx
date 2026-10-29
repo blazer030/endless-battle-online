@@ -104,6 +104,9 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
   getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
   exchangeHonour: vi.fn().mockResolvedValue(makeHonourShop()),
+  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
+  bookInn: vi.fn(),
+  updateSettings: vi.fn(),
   ...overrides,
 })
 
@@ -120,7 +123,7 @@ const openSubPage = async (name: string) => {
   await user.click(await screen.findByRole("tab", { name }))
 }
 
-test("BagScreen_ShowsSevenSubPages", async () => {
+test("BagScreen_ShowsEightSubPages", async () => {
   renderBag()
 
   const tabs = within(await screen.findByRole("tablist", { name: "背包分頁" })).getAllByRole("tab")
@@ -132,6 +135,7 @@ test("BagScreen_ShowsSevenSubPages", async () => {
     "銀行",
     "鍛造",
     "勳章所",
+    "旅館",
   ])
   expect(screen.getByRole("tab", { name: "背包" })).toHaveAttribute("aria-selected", "true")
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()

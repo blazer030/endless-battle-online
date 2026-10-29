@@ -247,6 +247,7 @@ const fixedReasonTexts: Record<string, string> = {
   petsFull: "牧場已滿，最多只能擁有3隻寵物",
   slotEmpty: "這一欄沒有裝備",
   stackLimit: "已達堆疊上限",
+  unknownRoom: "沒有這個房間",
 }
 
 const StatTooLowPrefix = "statTooLow:"

@@ -375,3 +375,28 @@ test("getBuffs_GetsTheActiveBuffs", async () => {
     expect.objectContaining({ method: "GET" }),
   )
 })
+
+test("getInn_GetsRoomsAndLodging", async () => {
+  const inn = { rooms: [], lodging: null }
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(inn))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await expect(client.getInn()).resolves.toEqual(inn)
+  expect(fetchMock).toHaveBeenCalledWith("/api/inn", expect.objectContaining({ method: "GET" }))
+})
+
+test("bookInn_PostsTheRoomId", async () => {
+  const booked = {
+    character: {},
+    lodging: { roomId: "bulwark-room", endsAt: "2026-10-30T08:00:00Z" },
+    cost: 300,
+  }
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse(booked))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  await expect(client.bookInn("bulwark-room")).resolves.toEqual(booked)
+  expect(fetchMock).toHaveBeenCalledWith(
+    "/api/inn/book",
+    expect.objectContaining({ method: "POST", body: JSON.stringify({ roomId: "bulwark-room" }) }),
+  )
+})

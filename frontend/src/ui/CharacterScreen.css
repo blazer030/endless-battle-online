@@ -127,3 +127,8 @@
   list-style: none;
   font-size: 14px;
 }
+
+.character__lodging {
+  margin: 6px 0 0;
+  font-size: 14px;
+}

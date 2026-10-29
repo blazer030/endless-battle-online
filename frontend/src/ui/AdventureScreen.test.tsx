@@ -180,6 +180,8 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
   getBuffs: vi.fn().mockResolvedValue([]),
+  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
+  bookInn: vi.fn(),
 })
 
 const advanceTime = (milliseconds: number) =>
