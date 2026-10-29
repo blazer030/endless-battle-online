@@ -866,6 +866,10 @@ public class AdventureSimulatorTests
 
     private static AdventureRun RunWithBuffs(
         Character character, double seconds, IReadOnlyList<CharacterBuff>? buffs, IRandomSource random, params MonsterDefinition[] monsters) =>
+        RunWithLodging(character, seconds, buffs, lodging: null, random, monsters);
+
+    private static AdventureRun RunWithLodging(
+        Character character, double seconds, IReadOnlyList<CharacterBuff>? buffs, CharacterBuff? lodging, IRandomSource random, params MonsterDefinition[] monsters) =>
         AdventureSimulator.Run(
             character,
             Warrior,
@@ -876,7 +880,8 @@ public class AdventureSimulatorTests
             From,
             From.AddSeconds(seconds),
             random,
-            buffs: buffs);
+            buffs: buffs,
+            lodging: lodging);
 
     // 每個勝場的（開打秒數, 經驗, 金錢, 熟練度）；事件裡 RewardEvent 接在它那一場的 EncounterEvent 之後
     private static List<(double Start, long Exp, long Money, long JobExp)> RewardsByFightStart(AdventureRun run)
@@ -951,6 +956,53 @@ public class AdventureSimulatorTests
         Assert.Equal(withNull.Summary, withEmpty.Summary);
         Assert.Equal(withNull.Character, withEmpty.Character);
         Assert.Equal(withNull.ConsumedSeconds, withEmpty.ConsumedSeconds);
+    }
+
+    // 房型加成在 From + 30 秒到期（半開區間）；同種子下逐場對齊：到期前開打的勝場經驗 = Scale(無加成, 1.1)，之後相同
+    [Fact]
+    public void Adventure_LodgingBoostsWinExpInsideWindow()
+    {
+        var hero = Hero() with { NextExp = 1_000_000_000 };
+        var lodging = new CharacterBuff(BuffKind.Exp, 1.1, From, From.AddSeconds(30));
+
+        var plain = RewardsByFightStart(RunWithLodging(hero, 50, null, null, new SeededRandom(7)));
+        var boosted = RewardsByFightStart(RunWithLodging(hero, 50, null, lodging, new SeededRandom(7)));
+
+        Assert.Equal(plain.Count, boosted.Count);
+        Assert.Contains(plain, reward => reward.Start < 30);
+        Assert.Contains(plain, reward => reward.Start >= 30);
+        Assert.All(plain.Zip(boosted), pair =>
+        {
+            Assert.Equal(pair.First.Start, pair.Second.Start);
+            Assert.Equal(pair.First.Start < 30 ? Buffs.Scale(pair.First.Exp, 1.1) : pair.First.Exp, pair.Second.Exp);
+            Assert.Equal((pair.First.Money, pair.First.JobExp), (pair.Second.Money, pair.Second.JobExp));
+        });
+    }
+
+    // 經驗密藥 1.5 與學徒閣樓 1.1 相乘：146 → Scale(146, 1.65) = 241
+    [Fact]
+    public void Adventure_LodgingAndElixirMultiply()
+    {
+        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Exp, 1.5, From, From.AddHours(1))];
+        var lodging = new CharacterBuff(BuffKind.Exp, 1.1, From, From.AddHours(8));
+
+        var run = RunWithLodging(Hero(), seconds: 1, buffs, lodging, new ScriptedRandom(0.0));
+
+        Assert.Equal(Buffs.Scale(146, 1.65), run.Events.OfType<RewardEvent>().Single().Exp);
+    }
+
+    // 沒有房型加成時（不傳或 null）擲骰序列不變：事件、摘要、角色逐一相等
+    [Fact]
+    public void Adventure_NoLodgingKeepsRollSequence()
+    {
+        var omitted = AdventureSimulator.Run(
+            Hero(), Warrior, Place, [Dummy], ItemOf, [], From, From.AddSeconds(600), new SeededRandom(11));
+        var withNull = RunWithLodging(Hero(), 600, null, null, new SeededRandom(11));
+
+        Assert.Equal(omitted.Events, withNull.Events);
+        Assert.Equal(omitted.Summary, withNull.Summary);
+        Assert.Equal(omitted.Character, withNull.Character);
+        Assert.Equal(omitted.ConsumedSeconds, withNull.ConsumedSeconds);
     }
 
     // 物攻密藥只在開打時刻落在窗口內的場次生效：打不倒的怪物在超限前累計的傷害變大；已到期的密藥事件與沒喝相同
