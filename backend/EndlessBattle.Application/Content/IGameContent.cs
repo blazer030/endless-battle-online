@@ -4,6 +4,7 @@ using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -34,6 +35,8 @@ public interface IGameContent
 
     // 依內容檔中的順序
     IReadOnlyList<HonourExchange> HonourShop { get; }
+
+    InnDefinition Inn { get; }
 
     // 沒有冠軍紀錄時的 NPC 冠軍，滿 HP／SP
     ChampionSeat SeedChampion { get; }

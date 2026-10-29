@@ -5,6 +5,7 @@ using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 using EndlessBattle.Infrastructure.Content;
@@ -46,6 +47,9 @@ public class JsonGameContentTests
     private const string ValidMercenaries = """{ "mercenaries": [] }""";
 
     private const string ValidHonourShop = """{ "exchanges": [] }""";
+
+    private const string ValidInn =
+        """{ "seconds": 28800, "pricePerLevel": 50, "rooms": [{ "id": "loft", "name": "閣樓", "kind": "Exp", "multiplier": 1.10, "priceRate": 2 }] }""";
 
     private const string ValidChampionSeat =
         """{ "name": "冠軍", "level": 5, "element": 0, "specialAttackName": "劍", "hp": 120, "sp": 20, "at": 20, "mat": 5, "df": 8, "mdf": 5, "agi": 10, "au": 6 }""";
@@ -1646,9 +1650,90 @@ public class JsonGameContentTests
     public void Items_RejectInvalidKeys(string validField, string invalidField, string expected) =>
         AssertKeyRejects(Replace(ValidKey, validField, invalidField), expected == "17" ? "17" : "cave-key", expected);
 
-    private static void WriteCompanionContent(
-        string directory, string mercenaries = ValidMercenaries, string honourShop = ValidHonourShop, string champion = ValidChampion)
+    private static string InnRejection(string inn) =>
+        WithInn(inn, directory => Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory)).Message);
+
+    private static T WithInn<T>(string inn, Func<string, T> action)
     {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            File.WriteAllText(Path.Combine(directory.FullName, "monsters.json"), ValidMonsters);
+            File.WriteAllText(Path.Combine(directory.FullName, "jobs.json"), ValidJobs);
+            File.WriteAllText(Path.Combine(directory.FullName, "skills.json"), ValidSkills);
+            File.WriteAllText(Path.Combine(directory.FullName, "world.json"), ValidWorld);
+            File.WriteAllText(Path.Combine(directory.FullName, "items.json"), ValidItems);
+            File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
+            File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
+            WriteCompanionContent(directory.FullName, inn: inn);
+            return action(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Inn_LoadsSixRooms()
+    {
+        var inn = JsonGameContent.Load(ShippedContentDirectory).Inn;
+
+        Assert.Equal(28_800, inn.Seconds);
+        Assert.Equal(50, inn.PricePerLevel);
+        Assert.Equal(
+            [
+                new InnRoom("apprentice-loft", "學徒閣樓", BuffKind.Exp, 1.10, 2),
+                new InnRoom("training-chamber", "修練廂房", BuffKind.JobExp, 1.10, 2),
+                new InnRoom("fighters-bunk", "鬥士通鋪", BuffKind.Attack, 1.05, 1),
+                new InnRoom("stargazer-tower", "星見塔房", BuffKind.Magic, 1.05, 1),
+                new InnRoom("bulwark-room", "鐵壁客房", BuffKind.Defense, 1.05, 1),
+                new InnRoom("quiet-chapel", "靜謐禱室", BuffKind.MagicDefense, 1.05, 1),
+            ],
+            inn.Rooms);
+    }
+
+    [Fact]
+    public void Inn_AcceptsValidSample() =>
+        Assert.Equal(["loft"], WithInn(ValidInn, directory => JsonGameContent.Load(directory).Inn.Rooms.Select(room => room.Id)));
+
+    [Theory]
+    [InlineData("\"multiplier\": 1.10", "\"multiplier\": 1.0", "multiplier")]
+    [InlineData("\"multiplier\": 1.10", "\"multiplier\": 3.01", "multiplier")]
+    [InlineData("\"multiplier\": 1.10", "\"multiplier\": 1.255", "multiplier")]
+    public void Inn_RejectsMultiplierOutOfRange(string valid, string invalid, string expected)
+    {
+        var message = InnRejection(Replace(ValidInn, valid, invalid));
+        Assert.Contains("loft", message);
+        Assert.Contains(expected, message);
+    }
+
+    [Fact]
+    public void Inn_RejectsDuplicateRoomId()
+    {
+        const string Room = """{ "id": "loft", "name": "閣樓", "kind": "Exp", "multiplier": 1.10, "priceRate": 2 }""";
+        var message = InnRejection($$"""{ "seconds": 28800, "pricePerLevel": 50, "rooms": [{{Room}}, {{Room}}] }""");
+        Assert.Contains("loft", message);
+    }
+
+    [Theory]
+    [InlineData("\"priceRate\": 2", "\"priceRate\": 0", "priceRate")]
+    [InlineData("\"pricePerLevel\": 50", "\"pricePerLevel\": 0", "pricePerLevel")]
+    [InlineData("\"seconds\": 28800", "\"seconds\": 59", "seconds")]
+    [InlineData("\"seconds\": 28800", "\"seconds\": 86401", "seconds")]
+    [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Luck\"", "kind")]
+    public void Inn_RejectsInvalidFields(string valid, string invalid, string expected) =>
+        Assert.Contains(expected, InnRejection(Replace(ValidInn, valid, invalid)));
+
+    [Fact]
+    public void Inn_RejectsEmptyRooms() =>
+        Assert.Contains("rooms", InnRejection("""{ "seconds": 28800, "pricePerLevel": 50, "rooms": [] }"""));
+
+    private static void WriteCompanionContent(
+        string directory, string mercenaries = ValidMercenaries, string honourShop = ValidHonourShop, string champion = ValidChampion,
+        string inn = ValidInn)
+    {
+        File.WriteAllText(Path.Combine(directory, "inn.json"), inn);
         File.WriteAllText(Path.Combine(directory, "mercenaries.json"), mercenaries);
         File.WriteAllText(Path.Combine(directory, "honour-shop.json"), honourShop);
         File.WriteAllText(Path.Combine(directory, "champion.json"), champion);

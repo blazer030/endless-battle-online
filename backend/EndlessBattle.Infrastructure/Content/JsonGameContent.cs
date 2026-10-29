@@ -7,6 +7,7 @@ using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
@@ -75,8 +76,10 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<MissionDefinition> allMissions,
         IReadOnlyList<MercenaryDefinition> allMercenaries,
         IReadOnlyList<HonourExchange> honourShop,
+        InnDefinition inn,
         ChampionSeat seedChampion)
     {
+        Inn = inn;
         AllMercenaries = allMercenaries;
         mercenaries = allMercenaries.ToDictionary(mercenary => mercenary.Id);
         HonourShop = honourShop;
@@ -124,6 +127,8 @@ public sealed class JsonGameContent : IGameContent
 
     public IReadOnlyList<HonourExchange> HonourShop { get; }
 
+    public InnDefinition Inn { get; }
+
     public ChampionSeat SeedChampion { get; }
 
     public static JsonGameContent Load(string directory)
@@ -137,6 +142,7 @@ public sealed class JsonGameContent : IGameContent
         var missionFile = Read<MissionFile>(Path.Combine(directory, "missions.json"));
         var mercenaryFile = Read<MercenaryFile>(Path.Combine(directory, "mercenaries.json"));
         var honourShopFile = Read<HonourShopFile>(Path.Combine(directory, "honour-shop.json"));
+        var innFile = Read<InnFile>(Path.Combine(directory, "inn.json"));
         var championFile = Read<ChampionFile>(Path.Combine(directory, "champion.json"));
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
@@ -283,12 +289,14 @@ public sealed class JsonGameContent : IGameContent
             ValidateExchange(exchange, items, mercenaries);
         }
 
+        var inn = ToInn(innFile);
+
         var seedChampion = ToSeedChampion(championFile.Champion ?? throw new GameContentException("冠軍種子不可為空（champion.json 的 champion）"));
 
         return new JsonGameContent(
             allMonsters, allJobs, allSkills, monsters, jobs, skills,
             worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions,
-            allMercenaries, honourShop, seedChampion);
+            allMercenaries, honourShop, inn, seedChampion);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -1119,6 +1127,43 @@ public sealed class JsonGameContent : IGameContent
         new(entry.Id ?? "", entry.Name ?? "", entry.Price, entry.Fights, entry.MoneyPercent, entry.DropPercent, entry.ExpPercent,
             entry.DeathCost);
 
+    private static InnDefinition ToInn(InnFile file)
+    {
+        void Require([DoesNotReturnIf(false)] bool condition, string message)
+        {
+            if (!condition)
+            {
+                throw new GameContentException($"旅館 {message}");
+            }
+        }
+
+        Require(file.Seconds is >= MinimumElixirSeconds and <= MaximumElixirSeconds,
+            $"的 seconds 必須在 {MinimumElixirSeconds}～{MaximumElixirSeconds}");
+        Require(file.PricePerLevel >= 1, "的 pricePerLevel 必須至少 1");
+        Require(file.Rooms is { Count: > 0 }, "的 rooms 不可為空");
+
+        var ids = new HashSet<string>();
+        var rooms = new List<InnRoom>();
+        foreach (var entry in file.Rooms)
+        {
+            var id = entry.Id ?? "";
+            Require(id.Length > 0, "的房型必須有 id");
+            Require(ids.Add(id), $"房型 id 重複：{id}");
+            Require(!string.IsNullOrWhiteSpace(entry.Name), $"房型 {id} 必須有 name");
+            Require(Enum.TryParse<BuffKind>(entry.Kind, ignoreCase: true, out var kind) && Enum.IsDefined(kind),
+                $"房型 {id} 的 kind 無法辨識：{entry.Kind}");
+            Require(entry.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
+                $"房型 {id} 的 multiplier 必須在 {MinimumElixirMultiplier:0.00}～{MaximumElixirMultiplier:0.00}");
+            Require((decimal)entry.Multiplier == Math.Round((decimal)entry.Multiplier, 2),
+                $"房型 {id} 的 multiplier 小數最多兩位：{entry.Multiplier}");
+            Require(entry.PriceRate >= 1, $"房型 {id} 的 priceRate 必須至少 1");
+
+            rooms.Add(new InnRoom(id, entry.Name!, kind, entry.Multiplier, entry.PriceRate));
+        }
+
+        return new InnDefinition(rooms, file.Seconds, file.PricePerLevel);
+    }
+
     private static HonourExchange ToHonourExchange(ExchangeEntry entry) =>
         new(entry.Id ?? "", entry.ItemId, entry.MercenaryId, entry.Quantity, entry.Cost ?? []);
 
@@ -1441,6 +1486,10 @@ public sealed class JsonGameContent : IGameContent
     private sealed record HonourShopFile(IReadOnlyList<ExchangeEntry> Exchanges);
 
     private sealed record ExchangeEntry(string? Id, string? ItemId, string? MercenaryId, int Quantity, IReadOnlyList<ItemQuantity>? Cost);
+
+    private sealed record InnFile(int Seconds, int PricePerLevel, IReadOnlyList<InnRoomEntry>? Rooms);
+
+    private sealed record InnRoomEntry(string? Id, string? Name, string? Kind, double Multiplier, int PriceRate);
 
     private sealed record ChampionFile(ChampionEntry? Champion);
 

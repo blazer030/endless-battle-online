@@ -29,15 +29,26 @@ public static class Buffs
 {
     // 沒有生效的 → 1
     public static double Multiplier(IReadOnlyList<CharacterBuff> buffs, BuffKind kind, DateTimeOffset at) =>
-        buffs.Where(buff => buff.Kind == kind && buff.ActiveAt(at)).Select(buff => buff.Multiplier).DefaultIfEmpty(1).Max();
+        Multiplier(buffs, kind, at, lodging: null);
+
+    // 密藥與房型加成同種同時生效時相乘
+    public static double Multiplier(IReadOnlyList<CharacterBuff> buffs, BuffKind kind, DateTimeOffset at, CharacterBuff? lodging)
+    {
+        var elixir = buffs.Where(buff => buff.Kind == kind && buff.ActiveAt(at)).Select(buff => buff.Multiplier).DefaultIfEmpty(1).Max();
+
+        return lodging is not null && lodging.Kind == kind && lodging.ActiveAt(at) ? elixir * lodging.Multiplier : elixir;
+    }
 
     // 物攻、魔攻、物防、魔防各乘倍率後以 PHP round 取整
-    public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at) => player with
+    public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at) =>
+        ApplyTo(player, buffs, at, lodging: null);
+
+    public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at, CharacterBuff? lodging) => player with
     {
-        At = Scale(player.At, Multiplier(buffs, BuffKind.Attack, at)),
-        Mat = Scale(player.Mat, Multiplier(buffs, BuffKind.Magic, at)),
-        Df = Scale(player.Df, Multiplier(buffs, BuffKind.Defense, at)),
-        Mdf = Scale(player.Mdf, Multiplier(buffs, BuffKind.MagicDefense, at)),
+        At = Scale(player.At, Multiplier(buffs, BuffKind.Attack, at, lodging)),
+        Mat = Scale(player.Mat, Multiplier(buffs, BuffKind.Magic, at, lodging)),
+        Df = Scale(player.Df, Multiplier(buffs, BuffKind.Defense, at, lodging)),
+        Mdf = Scale(player.Mdf, Multiplier(buffs, BuffKind.MagicDefense, at, lodging)),
     };
 
     public static CharacterBuff Start(ElixirSpec elixir, DateTimeOffset now) =>
