@@ -2146,6 +2146,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InnResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inn/book": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InnBookRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InnBookResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2661,6 +2735,30 @@ export interface components {
             medals: components["schemas"]["HonourMedalResponse"][];
             exchanges: components["schemas"]["HonourExchangeResponse"][];
         };
+        InnBookRequest: {
+            roomId: null | string;
+        };
+        InnBookResponse: {
+            character: components["schemas"]["CharacterResponse"];
+            lodging: components["schemas"]["LodgingResponse"];
+            /** Format: int64 */
+            cost: number;
+        };
+        InnResponse: {
+            rooms: components["schemas"]["InnRoomResponse"][];
+            lodging: null | components["schemas"]["LodgingResponse"];
+        };
+        InnRoomResponse: {
+            id: string;
+            name: string;
+            kind: components["schemas"]["BuffKind"];
+            /** Format: double */
+            multiplier: number;
+            /** Format: int32 */
+            seconds: number;
+            /** Format: int64 */
+            price: number;
+        };
         InventoryItemResponse: {
             /** Format: int64 */
             inventoryId: number;
@@ -2757,6 +2855,11 @@ export interface components {
             min: number;
             /** Format: int32 */
             max: number;
+        };
+        LodgingResponse: {
+            roomId: string;
+            /** Format: date-time */
+            endsAt: string;
         };
         LoginResponse: {
             accessToken: string;
