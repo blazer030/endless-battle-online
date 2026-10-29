@@ -255,6 +255,33 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
     }
 
+    // 每個角色一列目前的入住；時刻 DATETIME(6) 保留到微秒
+    [Fact]
+    public async Task Schema_HasCharacterLodgingTable()
+    {
+        var characterId = await CreateCharacterAsync();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var startsAt = new DateTime(2026, 10, 29, 1, 2, 3, 456, DateTimeKind.Utc).AddTicks(7890);
+
+        await using var context = database.CreateDbContext();
+        context.CharacterLodgings.Add(new CharacterLodging
+        {
+            CharacterId = characterId, RoomId = "apprentice-loft", StartsAt = startsAt, EndsAt = startsAt.AddHours(8),
+        });
+        await context.SaveChangesAsync(cancellationToken);
+
+        await using var reader = database.CreateDbContext();
+        var lodging = await reader.CharacterLodgings.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
+        Assert.Equal(("apprentice-loft", startsAt, startsAt.AddHours(8)), (lodging.RoomId, lodging.StartsAt, lodging.EndsAt));
+
+        await using var second = database.CreateDbContext();
+        second.CharacterLodgings.Add(new CharacterLodging
+        {
+            CharacterId = characterId, RoomId = "quiet-chapel", StartsAt = startsAt, EndsAt = startsAt,
+        });
+        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
+    }
+
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL
     [Fact]
     public async Task Schema_HasPlaceColumns()

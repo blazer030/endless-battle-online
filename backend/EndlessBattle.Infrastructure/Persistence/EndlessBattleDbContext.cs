@@ -30,6 +30,8 @@ public partial class EndlessBattleDbContext : DbContext
 
     public virtual DbSet<CharacterJobProficiency> CharacterJobProficiencies { get; set; }
 
+    public virtual DbSet<CharacterLodging> CharacterLodgings { get; set; }
+
     public virtual DbSet<CharacterMercenary> CharacterMercenaries { get; set; }
 
     public virtual DbSet<CharacterMission> CharacterMissions { get; set; }
@@ -354,6 +356,29 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_job_proficiency_character");
+        });
+
+        modelBuilder.Entity<CharacterLodging>(entity =>
+        {
+            entity.HasKey(e => e.CharacterId).HasName("PRIMARY");
+
+            entity.ToTable("character_lodgings");
+
+            entity.Property(e => e.CharacterId).HasColumnName("character_id");
+            entity.Property(e => e.EndsAt)
+                .HasMaxLength(6)
+                .HasColumnName("ends_at");
+            entity.Property(e => e.RoomId)
+                .HasMaxLength(64)
+                .HasColumnName("room_id");
+            entity.Property(e => e.StartsAt)
+                .HasMaxLength(6)
+                .HasColumnName("starts_at");
+
+            entity.HasOne(d => d.Character).WithOne(p => p.CharacterLodging)
+                .HasForeignKey<CharacterLodging>(d => d.CharacterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_character_lodgings_character");
         });
 
         modelBuilder.Entity<CharacterMercenary>(entity =>
