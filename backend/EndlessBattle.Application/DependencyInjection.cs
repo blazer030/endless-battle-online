@@ -10,6 +10,7 @@ using EndlessBattle.Application.Honour;
 using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
+using EndlessBattle.Application.Rest;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Application.World;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<MercenaryService>();
         services.AddScoped<HonourService>();
         services.AddScoped<ChampionService>();
+        services.AddScoped<InnService>();
         return services;
     }
 }

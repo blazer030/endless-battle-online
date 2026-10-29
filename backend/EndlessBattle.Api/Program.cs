@@ -70,6 +70,7 @@ app.MapPetEndpoints();
 app.MapMercenaryEndpoints();
 app.MapHonourEndpoints();
 app.MapChampionEndpoints();
+app.MapInnEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

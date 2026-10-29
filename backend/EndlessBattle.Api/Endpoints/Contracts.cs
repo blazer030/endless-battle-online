@@ -471,3 +471,15 @@ public sealed record ChampionResponse(
 public sealed record ChampionChallengeResponse(ChampionResponse Champion, IReadOnlyList<BattleEvent> Events, bool Won, CharacterResponse Character);
 
 public sealed record HealthResponse(string Status);
+
+// Price 依角色目前等級
+public sealed record InnRoomResponse(string Id, string Name, BuffKind Kind, double Multiplier, int Seconds, long Price);
+
+// 入住中的房型；開打時刻早於 EndsAt 的場次乘上房型倍率
+public sealed record LodgingResponse(string RoomId, DateTimeOffset EndsAt);
+
+public sealed record InnResponse(IReadOnlyList<InnRoomResponse> Rooms, LodgingResponse? Lodging);
+
+public sealed record InnBookRequest(string? RoomId);
+
+public sealed record InnBookResponse(CharacterResponse Character, LodgingResponse Lodging, long Cost);

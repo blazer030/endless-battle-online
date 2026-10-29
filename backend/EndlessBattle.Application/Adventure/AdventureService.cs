@@ -6,6 +6,7 @@ using EndlessBattle.Application.Items;
 using EndlessBattle.Application.Mercenaries;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
+using EndlessBattle.Application.Rest;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Application.World;
 using EndlessBattle.Domain.Adventure;
@@ -17,6 +18,7 @@ using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
+using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Application.Adventure;
@@ -33,6 +35,7 @@ public sealed class AdventureService(
     IMercenaryRepository mercenaries,
     IAreaPassRepository areaPasses,
     IBuffRepository buffs,
+    ILodgingRepository lodgings,
     IGameContent content,
     IClock clock,
     IRandomSourceFactory randomFactory,
@@ -79,6 +82,7 @@ public sealed class AdventureService(
         var job = content.GetJob(character.JobId);
         var skills = await EquippedSkills.LoadAsync(loadout, skillBook, content, character, cancellationToken);
         var characterBuffs = await buffs.ListAsync(character.Id, cancellationToken);
+        var lodging = Inn.ToBuff(await lodgings.FindAsync(character.Id, cancellationToken), content.Inn);
         var random = randomFactory.Create();
 
         // 傭兵的時間軸先結算，角色從傭兵帶回的經驗、等級與任務進度接著冒險；沒有出擊中的傭兵時不擲任何骰。
@@ -102,7 +106,8 @@ public sealed class AdventureService(
             supplySlot.Supply,
             mercenaryRun?.Missions ?? tracked,
             new AdventureCompanions(carriedPet, ownedPets.Count, supplySlot.Capture),
-            characterBuffs);
+            characterBuffs,
+            lodging);
         var mercenaryDrops = mercenaryRun?.DroppedItemIds ?? [];
 
         // 每次推進最多結算一次飢餓（同 WOG 的線上心跳），接在模擬之後擲骰

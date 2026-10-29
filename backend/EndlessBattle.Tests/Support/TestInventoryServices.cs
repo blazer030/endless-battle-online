@@ -24,7 +24,7 @@ public static class TestInventoryServices
         var adventure = new AdventureService(
             characters, proficiency, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
             new InMemoryMissionRepository(), pets, new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), buffs,
-            content, clock, random, unitOfWork);
+            new InMemoryLodgingRepository(), content, clock, random, unitOfWork);
         return new InventoryService(characters, inventory, equipment, pets, proficiency, buffs, content, clock, random, unitOfWork, adventure);
     }
 }

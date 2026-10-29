@@ -9,6 +9,7 @@ using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
+using EndlessBattle.Domain.Rest;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
@@ -40,6 +41,7 @@ public class AdventureServiceTests
     private readonly InMemoryMercenaryRepository mercenaries;
     private readonly InMemoryAreaPassRepository passes = new();
     private readonly InMemoryBuffRepository buffs = new();
+    private readonly InMemoryLodgingRepository lodgings = new();
     private readonly FakeClock clock = new(Start);
     private readonly InMemoryUnitOfWork unitOfWork;
     private readonly AdventureService service;
@@ -54,7 +56,7 @@ public class AdventureServiceTests
         mercenaries = new InMemoryMercenaryRepository(log);
         unitOfWork = new InMemoryUnitOfWork(repository, proficiencies, inventory, missions, pets, mercenaries, passes, buffs);
         service = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock, new ScriptedRandomFactory(), unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -99,6 +101,19 @@ public class AdventureServiceTests
 
         Assert.Equal((8, 8 * 174L, 8 * 12L), (result.Summary.Wins, result.Summary.Exp, result.Summary.JobExp));
         Assert.All(result.Events.OfType<RewardEvent>(), reward => Assert.Equal(174, reward.Exp));
+    }
+
+    // 住學徒閣樓（經驗 ×1.10）：8 場勝場各 round(116 × 1.1) = 128，沒住時是 116
+    [Fact]
+    public async Task Advance_PassesLodgingToSimulation()
+    {
+        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000_000 });
+        await lodgings.SaveAsync(character.Id, new Lodging("apprentice-loft", Start, Start.AddHours(8)), CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal((8, 8 * 128L), (result.Summary.Wins, result.Summary.Exp));
     }
 
     // 內容移除了角色所在的地區（999）：時間沒有前進時照樣回傳空結果，不查地區、不寫入
@@ -207,7 +222,7 @@ public class AdventureServiceTests
         await AddCharacterAsync();
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock, new LoggingRandomFactory(unitOfWork.Log), unitOfWork);
 
         await advance.AdvanceAsync(AccountId, CancellationToken);
 
@@ -594,7 +609,7 @@ public class AdventureServiceTests
         await AddMissionAsync(character, ActiveRecord("test-sprite-bounty"));
         clock.Advance(TimeSpan.FromSeconds(20));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock,
             new HookRandomFactory(() =>
             {
                 missions.RemoveAsync(character.Id, "test-hunt", CancellationToken).GetAwaiter().GetResult();
@@ -684,7 +699,7 @@ public class AdventureServiceTests
         var loggedInventory = new InMemoryInventoryRepository(log);
         var loggedEquipment = new InMemoryEquipmentRepository(loggedInventory);
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, mercenaries, passes, buffs, Content, clock, new ScriptedRandomFactory(), unitOfWork);
+            repository, proficiencies, skillBook, loadout, loggedInventory, loggedEquipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock, new ScriptedRandomFactory(), unitOfWork);
         var character = await AddCharacterAsync();
         var netId = await EquipCaptureNetAsync(loggedInventory, loggedEquipment, character, quantity: 20);
         log.Clear();
@@ -859,7 +874,7 @@ public class AdventureServiceTests
         var sharedInventory = new InMemoryInventoryRepository(log);
         var sharedEquipment = new InMemoryEquipmentRepository(sharedInventory);
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, sharedInventory, sharedEquipment, missions, pets, mercenaries, passes, buffs, Content, clock,
+            repository, proficiencies, skillBook, loadout, sharedInventory, sharedEquipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock,
             new ScriptedRandomFactory(), new InMemoryUnitOfWork(repository, proficiencies, sharedInventory, missions, pets, mercenaries, passes, buffs));
         var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
         clock.Advance(TimeSpan.FromSeconds(20));
@@ -958,7 +973,7 @@ public class AdventureServiceTests
         clock.Advance(TimeSpan.FromSeconds(20));
         await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
         var advance = new AdventureService(
-            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, Content, clock,
+            repository, proficiencies, skillBook, loadout, inventory, equipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock,
             new HookRandomFactory(() =>
             {
                 mercenaries.RemoveAsync(character.Id, CancellationToken).GetAwaiter().GetResult();

@@ -39,7 +39,7 @@ public class InventoryServiceTests
         adventure = new AdventureService(
             characters, proficiency, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
             new InMemoryMissionRepository(), pets, new InMemoryMercenaryRepository(), new InMemoryAreaPassRepository(), buffs,
-            Content, clock, random, unitOfWork);
+            new InMemoryLodgingRepository(), Content, clock, random, unitOfWork);
         service = new InventoryService(
             characters, inventory, equipment, pets, proficiency, buffs, Content, clock, random, unitOfWork, adventure);
     }
