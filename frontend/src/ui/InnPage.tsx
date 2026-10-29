@@ -8,6 +8,9 @@ import type { CharacterView, InnView } from "../game/types"
 import { BuffTickMilliseconds } from "../motion/timings"
 import type { Mutate } from "./bagWidgets"
 
+// 內容規定 seconds 為 60～86400；顯示到小數一位，整數小時不帶小數
+const stayHours = (seconds: number) => String(Math.round((seconds / 3600) * 10) / 10)
+
 export type InnApi = Pick<ApiClient, "getInn" | "bookInn" | "updateSettings">
 
 type Props = {
@@ -18,7 +21,6 @@ type Props = {
 }
 
 export function InnPage({ api, character, busy, mutate }: Props) {
-  const currentId = useId()
   const roomsId = useId()
   const autoId = useId()
   const [inn, setInn] = useState<InnView | null>(null)
@@ -101,12 +103,8 @@ export function InnPage({ api, character, busy, mutate }: Props) {
 
   return (
     <section className="bag__card">
-      <h3 id={currentId} className="bag__heading">
-        目前入住
-      </h3>
-      <p className="bag__usage" aria-labelledby={currentId}>
-        {current ?? "目前沒有住宿加成"}
-      </p>
+      <h3 className="bag__heading">目前入住</h3>
+      <p className="bag__usage">{current ?? "目前沒有住宿加成"}</p>
       <h3 id={roomsId} className="bag__heading">
         客房
       </h3>
@@ -116,7 +114,7 @@ export function InnPage({ api, character, busy, mutate }: Props) {
           const hint = replaceHint(inn.lodging, inn.rooms, room.id, now)
           return (
             <li key={room.id} className="bag__item">
-              <span className="bag__item-name">{`${room.name}・${roomEffect(room)} ${formatNumber(room.price)} 金錢`}</span>
+              <span className="bag__item-name">{`${room.name}・${roomEffect(room)}・${stayHours(room.seconds)} 小時 ${formatNumber(room.price)} 金錢`}</span>
               {hint !== null && <p className="bag__detail">{hint}</p>}
               <div className="bag__buy">
                 <button

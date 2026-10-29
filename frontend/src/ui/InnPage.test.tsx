@@ -55,6 +55,7 @@ test("InnPage_ListsRoomsWithEffectAndPrice", async () => {
   const items = within(list).getAllByRole("listitem")
   expect(items[0]).toHaveTextContent("學徒閣樓")
   expect(items[0]).toHaveTextContent("經驗 ×1.10")
+  expect(items[0]).toHaveTextContent("8 小時")
   expect(items[0]).toHaveTextContent("600 金錢")
   expect(items[1]).toHaveTextContent("鐵壁客房")
   expect(screen.getByText("目前沒有住宿加成")).toBeInTheDocument()
