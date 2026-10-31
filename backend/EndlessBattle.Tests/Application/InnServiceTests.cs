@@ -124,6 +124,20 @@ public class InnServiceTests
         Assert.Equal("rollback", unitOfWork.Log[^1]);
     }
 
+    // 經驗 900／1000、上次結算後 2 秒：結算打 1 場拿 116 經驗升到 Lv 2，價格從 1 × 50 × 2 = 100 漲成 2 × 50 × 2 = 200
+    [Fact]
+    public async Task Book_ChargesThePriceForTheLevelReachedWhileSettling()
+    {
+        await AddCharacterAsync(character => character with { Exp = 900 });
+        clock.Advance(TimeSpan.FromSeconds(2));
+
+        var result = await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
+
+        Assert.Equal(2, result.Character.Level);
+        Assert.Equal(200, result.Cost);
+        Assert.Equal(1800, result.Character.Money);
+    }
+
     [Fact]
     public async Task Book_ReplacesPreviousRoom()
     {
