@@ -1,5 +1,5 @@
 import { expect, test } from "vitest"
-import { lodgingLine, replaceHint, roomEffect } from "./inn"
+import { lodgingLine, replaceHint, roomEffect, stayLength } from "./inn"
 import type { BuffKind, InnRoomView } from "./types"
 
 const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
@@ -26,6 +26,16 @@ test("roomEffect_LabelsEachOfTheSixKinds", () => {
   ]
   for (const [kind, text] of labels) expect(roomEffect(room({ kind }))).toBe(text)
   expect(roomEffect(room({ multiplier: 1.05 }))).toBe("經驗 ×1.05")
+})
+
+// 不到一小時改用分鐘，四捨五入後滿 60 分才進到小時
+test("stayLength_UsesMinutesUnderAnHour", () => {
+  expect(stayLength(60)).toBe("1 分鐘")
+  expect(stayLength(150)).toBe("3 分鐘")
+  expect(stayLength(3_540)).toBe("59 分鐘")
+  expect(stayLength(3_570)).toBe("1 小時")
+  expect(stayLength(5_400)).toBe("1.5 小時")
+  expect(stayLength(28_800)).toBe("8 小時")
 })
 
 test("lodgingLine_ShowsRemainingHoursAndMinutes", () => {

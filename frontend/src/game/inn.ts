@@ -4,8 +4,11 @@ import type { InnRoomView, LodgingView } from "./types"
 export const roomEffect = (room: InnRoomView) =>
   `${buffLabel(room.kind)} ×${room.multiplier.toFixed(2)}`
 
-// 內容規定 seconds 為 60～86400；顯示到小數一位，整數小時不帶小數
-export const stayLength = (seconds: number) => `${Math.round((seconds / 3600) * 10) / 10} 小時`
+// 內容規定 seconds 為 60～86400：不到 60 分顯示分鐘（四捨五入），否則小時到小數一位，整數小時不帶小數
+export function stayLength(seconds: number): string {
+  const minutes = Math.round(seconds / 60)
+  return minutes < 60 ? `${minutes} 分鐘` : `${Math.round((seconds / 3600) * 10) / 10} 小時`
+}
 
 // 到期或房型已被移除都視為沒有住宿加成
 const activeRoom = (lodging: LodgingView | null, rooms: InnRoomView[], now: Date) =>

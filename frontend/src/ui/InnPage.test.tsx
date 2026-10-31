@@ -68,6 +68,13 @@ test("InnPage_ListsRoomsWithEffectAndPrice", async () => {
   expect(screen.getByText("目前沒有住宿加成")).toBeInTheDocument()
 })
 
+test("InnPage_ShowsShortStaysInMinutes", async () => {
+  renderInn(createFakeApi({ rooms: [room({ seconds: 120 })], lodging: null }))
+
+  const list = await screen.findByRole("list", { name: "客房" })
+  expect(within(list).getByRole("listitem")).toHaveTextContent("學徒閣樓・經驗 ×1.10・2 分鐘")
+})
+
 test("InnPage_DisablesBookingWhenMoneyIsShort", async () => {
   renderInn(createFakeApi(), makeCharacter({ money: 599 }))
 
