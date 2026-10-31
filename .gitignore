@@ -490,3 +490,6 @@ dist/
 
 # 生圖原始輸出（桃紅底），處理後才進 frontend/src/assets
 .art-out/
+
+# 設計畫布的本機工作資料夾（ebo-canvas skill）
+.design-work/
