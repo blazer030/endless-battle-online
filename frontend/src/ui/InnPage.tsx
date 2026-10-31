@@ -1,15 +1,12 @@
 import { useEffect, useId, useState } from "react"
 import type { ApiClient } from "../api/client"
 import { formatNumber } from "../game/format"
-import { lodgingLine, replaceHint, roomEffect } from "../game/inn"
+import { lodgingLine, replaceHint, roomEffect, stayLength } from "../game/inn"
 import { canAfford } from "../game/inventory"
 import { parseSettings, settingsForm } from "../game/settings"
 import type { CharacterView, InnView } from "../game/types"
 import { BuffTickMilliseconds } from "../motion/timings"
 import type { Mutate } from "./bagWidgets"
-
-// 內容規定 seconds 為 60～86400；顯示到小數一位，整數小時不帶小數
-const stayHours = (seconds: number) => String(Math.round((seconds / 3600) * 10) / 10)
 
 export type InnApi = Pick<ApiClient, "getInn" | "bookInn" | "updateSettings">
 
@@ -119,7 +116,7 @@ export function InnPage({ api, character, busy, mutate }: Props) {
           const hint = replaceHint(inn.lodging, inn.rooms, room.id, now)
           return (
             <li key={room.id} className="bag__item">
-              <span className="bag__item-name">{`${room.name}・${roomEffect(room)}・${stayHours(room.seconds)} 小時 ${formatNumber(room.price)} 金錢`}</span>
+              <span className="bag__item-name">{`${room.name}・${roomEffect(room)}・${stayLength(room.seconds)} ${formatNumber(room.price)} 金錢`}</span>
               {hint !== null && <p className="bag__detail">{hint}</p>}
               <div className="bag__buy">
                 <button
