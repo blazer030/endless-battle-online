@@ -998,3 +998,35 @@ test("BagScreen_ElixirShowsSixtyMinutesWhenTheClockIsSlightlyBehind", async () =
     vi.useRealTimers()
   }
 })
+
+// 入住時伺服器先結算，可能升級讓房價上漲，入住後要重新讀取旅館
+test("BagScreen_InnBookingReloadsRoomPrices", async () => {
+  const loft = (price: number) => ({
+    id: "apprentice-loft",
+    name: "學徒閣樓",
+    kind: "Exp" as const,
+    multiplier: 1.1,
+    seconds: 28_800,
+    price,
+  })
+  const lodging = {
+    roomId: "apprentice-loft",
+    endsAt: new Date(Date.now() + 28_800_000).toISOString(),
+  }
+  renderBag(
+    createFakeApi({
+      getInn: vi
+        .fn()
+        .mockResolvedValueOnce({ rooms: [loft(600)], lodging: null })
+        .mockResolvedValue({ rooms: [loft(1200)], lodging }),
+      bookInn: vi
+        .fn()
+        .mockResolvedValue({ character: makeCharacter({ money: 400 }), lodging, cost: 600 }),
+    }),
+  )
+  await openSubPage("旅館")
+
+  await user.click(await screen.findByRole("button", { name: "入住" }))
+
+  expect(await screen.findByText(/學徒閣樓.*1,200 金錢/)).toBeInTheDocument()
+})

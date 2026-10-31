@@ -78,8 +78,13 @@ export function InnPage({ api, character, busy, mutate }: Props) {
       lodging = booked.lodging
       return { character: booked.character }
     })
-    if (message === null) setInn({ ...inn, lodging })
-    else setError(message)
+    if (message !== null) {
+      setError(message)
+      return
+    }
+    setInn({ ...inn, lodging })
+    // 入住前的結算可能升級，房價跟著變；重新讀取失敗就先保留剛入住的結果
+    api.getInn().then(setInn, () => {})
   }
 
   const saveThresholds = async () => {

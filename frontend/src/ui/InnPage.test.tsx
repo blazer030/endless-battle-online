@@ -23,15 +23,22 @@ const rooms = [
   room({ id: "bulwark-room", name: "鐵壁客房", kind: "Defense", multiplier: 1.05, price: 300 }),
 ]
 
-const createFakeApi = (inn: InnView = { rooms, lodging: null }): InnApi => ({
-  getInn: vi.fn().mockResolvedValue(inn),
-  bookInn: vi.fn().mockResolvedValue({
-    character: makeCharacter({ money: 700 }),
-    lodging: { roomId: "apprentice-loft", endsAt: new Date(Date.now() + 28_800_000).toISOString() },
-    cost: 600,
-  }),
-  updateSettings: vi.fn().mockResolvedValue(makeCharacter()),
-})
+// 跟伺服器一樣：入住之後再讀旅館會看到新的住宿
+const createFakeApi = (inn: InnView = { rooms, lodging: null }): InnApi => {
+  let current = inn
+  const lodging = {
+    roomId: "apprentice-loft",
+    endsAt: new Date(Date.now() + 28_800_000).toISOString(),
+  }
+  return {
+    getInn: vi.fn().mockImplementation(() => Promise.resolve(current)),
+    bookInn: vi.fn().mockImplementation(() => {
+      current = { ...current, lodging }
+      return Promise.resolve({ character: makeCharacter({ money: 700 }), lodging, cost: 600 })
+    }),
+    updateSettings: vi.fn().mockResolvedValue(makeCharacter()),
+  }
+}
 
 const renderInn = (api: InnApi, character: CharacterView = makeCharacter({ money: 1300 })) => {
   const onCharacterChanged = vi.fn()
@@ -78,6 +85,19 @@ test("InnPage_BookingCallsApiAndUpdatesCharacter", async () => {
   expect(api.bookInn).toHaveBeenCalledWith("apprentice-loft")
   expect(onCharacterChanged).toHaveBeenCalledWith(expect.objectContaining({ money: 700 }))
   expect(await screen.findByText(/學徒閣樓・經驗 ×1\.10（剩 8:00）/)).toBeInTheDocument()
+})
+
+test("InnPage_ReloadsInnAfterBooking", async () => {
+  const api = createFakeApi()
+  vi.mocked(api.getInn)
+    .mockResolvedValueOnce({ rooms, lodging: null })
+    .mockResolvedValue({ rooms: [room({ price: 1200 })], lodging: null })
+  renderInn(api)
+
+  await user.click((await screen.findAllByRole("button", { name: "入住" }))[0])
+
+  expect(await screen.findByText(/1,200 金錢/)).toBeInTheDocument()
+  expect(api.getInn).toHaveBeenCalledTimes(2)
 })
 
 test("InnPage_ShowsReplaceHintForOtherRooms", async () => {
