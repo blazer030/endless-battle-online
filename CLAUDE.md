@@ -47,9 +47,11 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `backend/EndlessBattle.Application` — 用例與介面（Repository、時鐘、亂數、遊戲內容）。
 - `backend/EndlessBattle.Infrastructure` — EF Core（Database-First）、內容載入、介面實作。
 - `backend/EndlessBattle.Api` — Minimal API、JWT、OpenAPI。
+  - `Endpoints/Admin/` — admin API（`/admin/...`），見「admin」。
 - `backend/EndlessBattle.Tests` — xUnit v3；需要資料庫的測試用 Testcontainers。
 - `backend/db/ddl`、`backend/db/dml` — Flyway migration。
 - `backend/content` — 遊戲內容 JSON。
+- `backend/content-draft` — admin 的內容草稿（git 忽略；發布後刪除）。
 - `backend/Dockerfile`、`frontend/Dockerfile`、`frontend/nginx.conf` — `docker compose --profile app` 用的映像。
 - `frontend` — Vite + React 19 + TypeScript + PixiJS 8 + GSAP 3，pnpm 管理。
   - `src/api` — API client；`schema.ts` 由 `pnpm generate:api` 產生。
@@ -58,6 +60,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
   - `src/render` — Pixi 舞台與用色（`palette.ts`）。
   - `src/ui` — React 畫面與 `theme.css`。
   - `src/test/setup.ts` — Vitest＋Testing Library 設定。
+- `admin` — 內容後台，Vite + React + TypeScript + Refine + Ant Design，pnpm 管理；獨立專案，不與 `frontend` 共用套件。
 
 ## 硬規則
 
@@ -72,7 +75,9 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `EndlessBattle.Tests/TestContent/`。
 7. 時間一律 UTC；資料庫時間欄位用 `DATETIME(6)`。
 
-### 前端
+### 遊戲前端（`frontend`）
+
+以下只適用於遊戲前端 `frontend`，不適用於 `admin`。
 
 1. TypeScript `strict`，禁用 `any`。
 2. 手機直式優先：以 375×667 為主要設計尺寸，360～430 寬度不得出現水平捲動；電腦上整個畫面置中、最大寬度 480px。
@@ -84,6 +89,15 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。
 8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖時顯示橫排名牌。規格（畫布、大小上限、構圖）、提示詞範本與匯入流程見 `docs/art/README.md`。
 9. `src/api/schema.ts` 是產生檔，不得手改。
+
+### admin
+
+1. 遊戲 API 走 `/api/...`，admin API 一律走 `/admin/...`；admin endpoint 只放 `backend/EndlessBattle.Api/Endpoints/Admin/`，全部掛在同一個 `/admin` 群組下，遊戲 endpoint 不得放進這個群組。
+2. admin 路由只在設定 `Admin:Enabled` 為 `true` 時註冊；`appsettings.json` 預設 `false`，只有 `appsettings.Development.json` 打開。
+3. OpenAPI 分兩份：遊戲用 `v1`（不含 `/admin/` 路徑），admin 用 `admin`。
+4. admin 的計算（例如平衡報告）寫在 Application 與 Domain，admin endpoint 只負責呼叫。
+5. admin 改內容只寫草稿（`Admin:DraftDirectory`）；只有「發布」會寫入正式內容 `backend/content/`。
+6. `admin/src/api/schema.ts` 是產生檔，不得手改。
 
 ## 指令
 
