@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using EndlessBattle.Application.Content;
 
 namespace EndlessBattle.Application.Admin;
 
@@ -11,6 +12,11 @@ public interface IContentDraftStore
 
     // 用遊戲啟動時的同一套載入程式檢查草稿
     Task<DraftStatus> CheckAsync(CancellationToken cancellationToken);
+
+    // 用遊戲的載入程式讀進整份內容；草稿要先確認存在且通過檢查
+    Task<IGameContent> LoadOfficialAsync(CancellationToken cancellationToken);
+
+    Task<IGameContent> LoadDraftAsync(CancellationToken cancellationToken);
 
     // 與建立草稿時記下的指紋不同（含新增、刪除）的正式內容檔名
     Task<IReadOnlyList<string>> ChangedOfficialFilesAsync(CancellationToken cancellationToken);

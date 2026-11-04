@@ -20,7 +20,7 @@
 
 - [x] 4.1 依「平衡報告搬到 Application」把 `backend/EndlessBattle.Tests/Content/BalanceReport.cs` 的計算搬成 Application 服務，輸入 `IGameContent` 與選項、回傳穿戴等級（Wear levels）與各地區冒險結果（Adventure results per place）的結構化資料，然後刪除測試專案裡的雛型。驗證：Application 測試用 `TestContent` 斷言穿戴等級表的一格數值、超過 Lv100 回報無法達到、同一輸入兩次結果相同。[after: 1.2]
 - [x] 4.2 依「報告帶技能」讓每筆冒險結果同時算出不帶技能與帶技能（Skills in the report），技能等級選項 `first`／`max`、預設 `max`，欄位上限照 `SkillLoadout`。驗證：Application 測試斷言提高某技能發動率後，只有帶技能的結果改變。[after: 4.1]
-- [ ] 4.3 新增 `POST /admin/reports`（Report source）：`source` 為 `official` 或 `draft`；草稿不存在 404、草稿不通過 409。驗證：API 測試涵蓋兩種來源與兩種錯誤。[after: 3.4, 4.2]
+- [x] 4.3 新增 `POST /admin/reports`（Report source）：`source` 為 `official` 或 `draft`；草稿不存在 404、草稿不通過 409。驗證：API 測試涵蓋兩種來源與兩種錯誤。[after: 3.4, 4.2]
 
 ## 5. admin 前端
 

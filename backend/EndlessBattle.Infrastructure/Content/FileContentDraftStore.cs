@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EndlessBattle.Application.Admin;
+using EndlessBattle.Application.Content;
 
 namespace EndlessBattle.Infrastructure.Content;
 
@@ -46,6 +47,12 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
             return Task.FromResult(new DraftStatus(Exists: true, Valid: false, Error: exception.Message));
         }
     }
+
+    public Task<IGameContent> LoadOfficialAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<IGameContent>(JsonGameContent.Load(officialDirectory));
+
+    public Task<IGameContent> LoadDraftAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<IGameContent>(JsonGameContent.Load(draftDirectory));
 
     public async Task<IReadOnlyList<string>> ChangedOfficialFilesAsync(CancellationToken cancellationToken)
     {

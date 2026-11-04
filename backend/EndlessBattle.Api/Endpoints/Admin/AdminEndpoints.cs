@@ -17,6 +17,7 @@ public static class AdminEndpoints
         var admin = app.MapGroup("/admin");
         admin.MapAdminContentEndpoints();
         admin.MapAdminDraftEndpoints();
+        admin.MapAdminReportEndpoints();
 
         return app;
     }
