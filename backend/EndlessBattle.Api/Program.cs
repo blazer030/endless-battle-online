@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using EndlessBattle.Api.Auth;
 using EndlessBattle.Api.Endpoints;
+using EndlessBattle.Api.Endpoints.Admin;
 using EndlessBattle.Api.Errors;
 using EndlessBattle.Application;
 using EndlessBattle.Infrastructure;
@@ -71,6 +72,11 @@ app.MapMercenaryEndpoints();
 app.MapHonourEndpoints();
 app.MapChampionEndpoints();
 app.MapInnEndpoints();
+
+if (builder.Configuration.GetValue<bool>(AdminEndpoints.EnabledSetting))
+{
+    app.MapAdminEndpoints();
+}
 
 if (app.Environment.IsDevelopment())
 {

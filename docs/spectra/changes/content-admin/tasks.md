@@ -5,7 +5,7 @@
 
 ## 2. admin 路由
 
-- [ ] 2.1 依「admin 路由與開關」新增 `Admin:Enabled` 設定與 `/admin` 群組（Admin routes live under the admin namespace；Admin is enabled only by configuration）：關閉時任何 `/admin/` 路徑 404，開啟時 `GET /admin/content/items` 回 200（此時可先回空清單）。驗證：API 測試 `Admin_DisabledReturnsNotFound`、`Admin_EnabledServesAdminRoutes`。[after: 1.1]
+- [x] 2.1 依「admin 路由與開關」新增 `Admin:Enabled` 設定與 `/admin` 群組（Admin routes live under the admin namespace；Admin is enabled only by configuration）：關閉時任何 `/admin/` 路徑 404，開啟時 `GET /admin/content/items` 回 200（此時可先回空清單）。驗證：API 測試 `Admin_DisabledReturnsNotFound`、`Admin_EnabledServesAdminRoutes`。[after: 1.1]
 - [ ] 2.2 新增名為 `admin` 的 OpenAPI 文件（Admin has its own OpenAPI document）：`/openapi/admin.json` 只含 `/admin/` 路徑，`/openapi/v1.json` 不含任何 `/admin/` 路徑。驗證：API 測試比對兩份文件的路徑集合。[after: 2.1]
 
 ## 3. 內容草稿
