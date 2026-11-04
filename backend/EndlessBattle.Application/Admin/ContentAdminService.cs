@@ -7,6 +7,8 @@ public enum ContentWriteOutcome
     Saved,
     NotFound,
     IdMismatch,
+    MissingId,
+    DuplicateId,
 }
 
 public sealed class ContentAdminService(IContentDraftStore store)
@@ -33,6 +35,26 @@ public sealed class ContentAdminService(IContentDraftStore store)
         }
 
         records[index] = record;
+        await store.WriteRecordsAsync(kind, records, cancellationToken);
+        return ContentWriteOutcome.Saved;
+    }
+
+    // 新紀錄加在陣列最後；id 不得與既有紀錄重複
+    public async Task<ContentWriteOutcome> CreateAsync(ContentKind kind, JsonObject record, CancellationToken cancellationToken)
+    {
+        var id = IdOf(record);
+        if (id is null)
+        {
+            return ContentWriteOutcome.MissingId;
+        }
+
+        var records = (await store.ReadRecordsAsync(kind, cancellationToken)).ToList();
+        if (records.Any(existing => IdOf(existing) == id))
+        {
+            return ContentWriteOutcome.DuplicateId;
+        }
+
+        records.Add(record);
         await store.WriteRecordsAsync(kind, records, cancellationToken);
         return ContentWriteOutcome.Saved;
     }

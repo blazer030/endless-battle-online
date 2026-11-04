@@ -33,6 +33,17 @@ public static class AdminContentEndpoints
                     _ => TypedResults.NotFound(),
                 });
 
+        content.MapPost("/{kind}", async Task<Results<Created, NotFound, BadRequest, Conflict>> (
+                string kind, JsonObject record, ContentAdminService service, CancellationToken cancellationToken) =>
+            ContentKind.Find(kind) is not { } found
+                ? TypedResults.NotFound()
+                : await service.CreateAsync(found, record, cancellationToken) switch
+                {
+                    ContentWriteOutcome.Saved => TypedResults.Created($"/admin/content/{found.Name}/{ContentAdminService.IdOf(record)}"),
+                    ContentWriteOutcome.DuplicateId => TypedResults.Conflict(),
+                    _ => TypedResults.BadRequest(),
+                });
+
         return admin;
     }
 }
