@@ -39,7 +39,11 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
-builder.Services.AddOpenApi();
+// 遊戲用 v1、admin 用 admin，兩份文件互不包含對方的路徑
+builder.Services.AddOpenApi(options => options.ShouldInclude = description => !AdminEndpoints.IsAdminPath(description.RelativePath));
+builder.Services.AddOpenApi(
+    AdminEndpoints.OpenApiDocument,
+    options => options.ShouldInclude = description => AdminEndpoints.IsAdminPath(description.RelativePath));
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
