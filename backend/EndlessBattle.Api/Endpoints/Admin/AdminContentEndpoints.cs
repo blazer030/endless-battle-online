@@ -22,6 +22,17 @@ public static class AdminContentEndpoints
                 ? TypedResults.Ok(record)
                 : TypedResults.NotFound());
 
+        content.MapPut("/{kind}/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (
+                string kind, string id, JsonObject record, ContentAdminService service, CancellationToken cancellationToken) =>
+            ContentKind.Find(kind) is not { } found
+                ? TypedResults.NotFound()
+                : await service.UpdateAsync(found, id, record, cancellationToken) switch
+                {
+                    ContentWriteOutcome.Saved => TypedResults.NoContent(),
+                    ContentWriteOutcome.IdMismatch => TypedResults.BadRequest(),
+                    _ => TypedResults.NotFound(),
+                });
+
         return admin;
     }
 }

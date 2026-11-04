@@ -497,3 +497,6 @@ dist/
 # Spectra app data
 .spectra/
 docs/spectra/.vector-search.db*
+
+# admin 的內容草稿（發布後刪除）
+backend/content-draft/
