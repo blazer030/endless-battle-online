@@ -1,18 +1,20 @@
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Adventure;
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Domain.World;
 
 namespace EndlessBattle.Application.Balance;
 
 // 平衡報告：用內容與 Domain 的冒險模擬算出數字，只列數字、不判好壞。
 // 參考角色：初階職業、固定配點、每級成長取期望值 (min + max) / 2 累計後捨去、地區推薦等級下限、
-// 每欄穿得上的最高商店等級裝備、固定亂數種子、從 0 元開始冒險固定時數
+// 每欄穿得上的最高商店等級裝備、固定亂數種子、從 0 元開始冒險固定時數；每格分不帶技能與帶職業技能各算一次
 public sealed class BalanceReportService
 {
     public const int Seed = 20261104;
@@ -42,7 +44,7 @@ public sealed class BalanceReportService
             new BalanceAssumptions(Allocation, Seed, SimulatedHours, MaxReportedLevel, options.SkillLevel),
             shopLevels,
             WearLevels(content, jobs, equipment, shopLevels),
-            Adventures(content, jobs, equipment));
+            Adventures(content, jobs, equipment, options.SkillLevel));
     }
 
     private static List<WearLevelRow> WearLevels(
@@ -79,7 +81,8 @@ public sealed class BalanceReportService
         return rows;
     }
 
-    private static List<AdventureRow> Adventures(IGameContent content, IReadOnlyList<JobDefinition> jobs, IReadOnlyList<ItemDefinition> equipment)
+    private static List<AdventureRow> Adventures(
+        IGameContent content, IReadOnlyList<JobDefinition> jobs, IReadOnlyList<ItemDefinition> equipment, BalanceSkillLevel skillLevel)
     {
         var rows = new List<AdventureRow>();
         foreach (var place in content.AllPlaces)
@@ -95,6 +98,7 @@ public sealed class BalanceReportService
             {
                 var character = ReferenceAt(content, job, place, level);
                 var gear = BestWearable(character, equipment);
+                var skills = Loadout(content.SkillsOf(job.Id), skillLevel);
                 rows.Add(new AdventureRow(
                     place.Id,
                     place.Name,
@@ -103,7 +107,8 @@ public sealed class BalanceReportService
                     job.Id,
                     job.Name,
                     gear.Select(item => item.ShopLevel).ToList(),
-                    Simulate(content, job, place, monsters, character, gear, equipment)));
+                    Simulate(content, job, place, monsters, character, gear, equipment, skills: []),
+                    Simulate(content, job, place, monsters, character, gear, equipment, skills)));
             }
         }
 
@@ -117,7 +122,8 @@ public sealed class BalanceReportService
         IReadOnlyList<MonsterDefinition> monsters,
         Character character,
         IReadOnlyList<ItemDefinition> gear,
-        IReadOnlyList<ItemDefinition> equipment)
+        IReadOnlyList<ItemDefinition> equipment,
+        IReadOnlyList<EquippedSkill> skills)
     {
         var bonus = new EquipmentBonus(gear.Aggregate(StatBonus.Zero, (total, item) => total + item.Bonus));
         var derived = DerivedStats.From(character.Base, bonus);
@@ -129,7 +135,7 @@ public sealed class BalanceReportService
             place,
             monsters,
             content.GetItem,
-            skills: [],
+            skills,
             Start,
             Start.AddHours(SimulatedHours),
             new SeededRandom(Seed),
@@ -155,6 +161,17 @@ public sealed class BalanceReportService
             summary.LevelsGained,
             nextSet > 0 && netPerHour > 0 ? nextSet / netPerHour : null,
             NextTierUnaffordable: nextSet > 0 && netPerHour <= 0);
+    }
+
+    // 主動技能依內容順序放主動欄、被動放被動欄，超過欄位上限的不帶
+    private static List<EquippedSkill> Loadout(IReadOnlyList<SkillDefinition> skills, BalanceSkillLevel skillLevel)
+    {
+        int LevelOf(SkillDefinition skill) => skillLevel == BalanceSkillLevel.First ? 1 : skill.MaxLevel;
+        var active = skills.Where(skill => skill.Type == SkillType.Active).Take(SkillLoadout.ActiveSlots)
+            .Select((skill, index) => new EquippedSkill(skill, LevelOf(skill), Slot: index + 1));
+        var passive = skills.Where(skill => skill.Type == SkillType.Passive).Take(SkillLoadout.PassiveSlots)
+            .Select((skill, index) => new EquippedSkill(skill, LevelOf(skill), Slot: SkillLoadout.ActiveSlots + index + 1));
+        return active.Concat(passive).ToList();
     }
 
     private static Character ReferenceAt(IGameContent content, JobDefinition job, PlaceDefinition place, int level)

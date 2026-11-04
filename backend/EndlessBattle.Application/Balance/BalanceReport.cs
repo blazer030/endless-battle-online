@@ -41,7 +41,8 @@ public sealed record AdventureRow(
     string JobId,
     string JobName,
     IReadOnlyList<int> EquipmentShopLevels,
-    AdventureResult WithoutSkills);
+    AdventureResult WithoutSkills,
+    AdventureResult WithSkills);
 
 public sealed record BalanceReport(
     BalanceAssumptions Assumptions,

@@ -75,6 +75,49 @@ public class BalanceReportServiceTests
         Assert.Equal(first, second);
     }
 
+    [Fact]
+    public void Adventures_OnlyTheWithSkillsResultsFollowASkillChange()
+    {
+        using var directories = new AdminContentDirectories();
+        var path = Path.Combine(directories.Official, "skills.json");
+        var root = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        var burst = root["skills"]!.AsArray().Single(skill => skill!["id"]!.GetValue<string>() == "burst")!;
+        foreach (var level in burst["levels"]!.AsArray())
+        {
+            level!["chance"] = 100;
+        }
+
+        File.WriteAllText(path, ContentFileFormatter.Format(root));
+
+        var official = Warrior(Service.Build(TestGameContent.Instance, new BalanceReportOptions()));
+        var changed = Warrior(Service.Build(JsonGameContent.Load(directories.Official), new BalanceReportOptions()));
+
+        Assert.Equal(official.Select(row => JsonSerializer.Serialize(row.WithoutSkills)), changed.Select(row => JsonSerializer.Serialize(row.WithoutSkills)));
+        Assert.NotEqual(official.Select(row => JsonSerializer.Serialize(row.WithSkills)), changed.Select(row => JsonSerializer.Serialize(row.WithSkills)));
+    }
+
+    [Fact]
+    public void Adventures_SkillLevelOptionChangesTheWithSkillsResults()
+    {
+        var first = Warrior(Service.Build(TestGameContent.Instance, new BalanceReportOptions(BalanceSkillLevel.First)));
+        var max = Warrior(Service.Build(TestGameContent.Instance, new BalanceReportOptions(BalanceSkillLevel.Max)));
+
+        Assert.NotEqual(first.Select(row => JsonSerializer.Serialize(row.WithSkills)), max.Select(row => JsonSerializer.Serialize(row.WithSkills)));
+        Assert.Equal(first.Select(row => JsonSerializer.Serialize(row.WithoutSkills)), max.Select(row => JsonSerializer.Serialize(row.WithoutSkills)));
+    }
+
+    [Fact]
+    public void Adventures_JobWithoutSkillsHasTheSameResultsWithAndWithoutSkills()
+    {
+        var report = Service.Build(TestGameContent.Instance, new BalanceReportOptions());
+
+        Assert.All(
+            report.Adventures.Where(row => row.JobId == "sorcerer"),
+            row => Assert.Equal(JsonSerializer.Serialize(row.WithoutSkills), JsonSerializer.Serialize(row.WithSkills)));
+    }
+
+    private static IReadOnlyList<AdventureRow> Warrior(BalanceReport report) => report.Adventures.Where(row => row.JobId == "warrior").ToList();
+
     private static IReadOnlyList<int?> StrengthLevels(BalanceReport report, string jobId) =>
         report.WearLevels.Single(row => row.JobId == jobId && row.Stat == "str").Cells.Select(cell => cell.Level).ToList();
 }
