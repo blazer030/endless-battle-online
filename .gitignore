@@ -493,3 +493,7 @@ dist/
 
 # 設計畫布的本機工作資料夾（ebo-canvas skill）
 .design-work/
+
+# Spectra app data
+.spectra/
+docs/spectra/.vector-search.db*

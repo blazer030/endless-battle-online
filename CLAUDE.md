@@ -1,11 +1,44 @@
+<!-- SPECTRA:START v1.3.0 -->
+
+# Spectra Instructions
+
+This project uses Spectra for Spec-Driven Development(SDD). Specs live in `docs/spectra/specs/`, change proposals in `docs/spectra/changes/`.
+
+## Skills
+
+Each `/spectra-*` skill carries its own trigger description; these are the groups:
+
+- Shape and plan → `/spectra-discuss`, `/spectra-propose`
+- Continue tasks for an identified change → `/spectra-apply`
+- Update requirements or plans for an identified change → `/spectra-ingest`
+- Quality gate → `/spectra-verify`, `/spectra-review`, `/spectra-analyze`, `/spectra-audit`, `/spectra-drift`, `/spectra-debug`
+- Finish → `/spectra-archive`, `/spectra-commit`
+
+Explicit skill invocation takes precedence. Apply existing authorization within its unchanged scope.
+
+## Workflow
+
+discuss? → propose → apply ⇄ ingest → verify / review → archive
+
+- `discuss` is optional — skip if requirements are clear
+- Requirements change mid-work? Plan mode → `ingest` → resume `apply`
+
+## Parked Changes
+
+Changes can be parked（暫存）— temporarily moved out of `docs/spectra/changes/`. Parked changes won't appear in `spectra list` but can be found with `spectra list --parked`. To restore: `spectra unpark <name>`. The `/spectra-apply` and `/spectra-ingest` skills disclose parking and restore when the named operation is already explicitly requested; respect a known refusal, otherwise ask for missing authorization.
+
+<!-- SPECTRA:END -->
+
 # Endless Battle Online（EBO）
 
 現代奇幻風的單人放置 RPG，WOG 4.5 的單機翻新版。後端是 .NET 10 Web API，前端是 React + PixiJS（計畫 2 開始）。
 
-- 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；v1 設計文件見 v2 §0 所指的檔案（技術架構 §6 仍有效，其餘作廢）
-- 裁定彙整：`docs/superpowers/specs/2026-10-22-wog-remake-rulings.md`（各計畫的〔裁定〕與 Claude 的判斷／設計／簡化、明確不做）；要推翻或調整規則先查這裡
+- 規格與變更：`docs/spectra/`（主規格在 `specs/`，進行中的變更在 `changes/`）；新功能、規則調整、重構都走 Spectra，見「開發流程」
+- 導入 Spectra 前的文件（只當參考，不再新增）：
+  - 設計文件：`docs/superpowers/specs/2026-10-21-wog-remake-design.md`（v2）；v1 設計文件見 v2 §0 所指的檔案（技術架構 §6 仍有效，其餘作廢）
+  - 裁定彙整：`docs/superpowers/specs/2026-10-22-wog-remake-rulings.md`（各計畫的〔裁定〕與 Claude 的判斷／設計／簡化、明確不做）；要推翻或調整舊規則先查這裡，新的決策寫進變更的 `design.md`
+  - 實作計畫：`docs/superpowers/plans/`（計畫 1～11）
 - 延後項目：`docs/superpowers/specs/2026-10-23-deferred-backlog.md`（計畫 10 結束時仍未處理的項目，做完就刪掉那一條）
-- 實作計畫：`docs/superpowers/plans/`
 - 研究與內容總表：`docs/research/README.md`；美術規格：`docs/art/README.md`
 
 ## 結構
@@ -76,9 +109,13 @@
 3. `./scripts/scaffold-db.sh` 重新產生 model。
 4. 寫用到它的測試與程式。
 
+## 開發流程
+
+- 照最上方的 Spectra 區塊；與其他流程 skill（superpowers 的 brainstorming、writing-plans、executing-plans、subagent-driven-development、requesting-code-review、systematic-debugging、finishing-a-development-branch）重疊時用 Spectra 的。
+- 設計畫布的工作（`ebo-canvas` skill）不走 Spectra。
+- `SPECTRA:START`～`SPECTRA:END` 之間由 Spectra 產生、會被覆寫，專案規則寫在區塊外。
+
 ## 慣例
 
-- 開發方式：TDD，一次一個測試；結構性與行為性變更分開 commit。
-- Commit 訊息：英文 Conventional Commits，type 前加 emoji（✨ feat、🐛 fix、♻️ refactor、🧪 test、🚧 chore、📄 docs）。
 - 程式碼註解用中文，非必要不寫。
 - 命名用完整字詞，不縮寫。
