@@ -47,6 +47,53 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
         }
     }
 
+    public async Task<IReadOnlyList<string>> ChangedOfficialFilesAsync(CancellationToken cancellationToken)
+    {
+        var recorded = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                await File.ReadAllTextAsync(Path.Combine(draftDirectory, BaseFileName), cancellationToken))
+            ?? throw new GameContentException($"草稿的 {BaseFileName} 是空的");
+        var current = await FingerprintsAsync(cancellationToken);
+        return recorded.Keys.Union(current.Keys)
+            .Where(name => recorded.GetValueOrDefault(name) != current.GetValueOrDefault(name))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+    }
+
+    public async Task PublishAsync(CancellationToken cancellationToken)
+    {
+        foreach (var file in Directory.GetFiles(draftDirectory, "*.json").Where(file => Path.GetFileName(file) != BaseFileName))
+        {
+            await File.WriteAllBytesAsync(
+                Path.Combine(officialDirectory, Path.GetFileName(file)),
+                await File.ReadAllBytesAsync(file, cancellationToken),
+                cancellationToken);
+        }
+
+        Directory.Delete(draftDirectory, recursive: true);
+    }
+
+    public Task<bool> DiscardAsync(CancellationToken cancellationToken)
+    {
+        if (!Directory.Exists(draftDirectory))
+        {
+            return Task.FromResult(false);
+        }
+
+        Directory.Delete(draftDirectory, recursive: true);
+        return Task.FromResult(true);
+    }
+
+    private async Task<Dictionary<string, string>> FingerprintsAsync(CancellationToken cancellationToken)
+    {
+        var fingerprints = new Dictionary<string, string>();
+        foreach (var file in Directory.GetFiles(officialDirectory, "*.json").Order(StringComparer.Ordinal))
+        {
+            fingerprints[Path.GetFileName(file)] = Convert.ToHexStringLower(SHA256.HashData(await File.ReadAllBytesAsync(file, cancellationToken)));
+        }
+
+        return fingerprints;
+    }
+
     private async Task EnsureDraftAsync(CancellationToken cancellationToken)
     {
         if (Directory.Exists(draftDirectory))
@@ -55,13 +102,10 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
         }
 
         Directory.CreateDirectory(draftDirectory);
-        var fingerprints = new Dictionary<string, string>();
-        foreach (var file in Directory.GetFiles(officialDirectory, "*.json").Order(StringComparer.Ordinal))
+        var fingerprints = await FingerprintsAsync(cancellationToken);
+        foreach (var name in fingerprints.Keys)
         {
-            var name = Path.GetFileName(file);
-            var bytes = await File.ReadAllBytesAsync(file, cancellationToken);
-            fingerprints[name] = Convert.ToHexStringLower(SHA256.HashData(bytes));
-            await File.WriteAllBytesAsync(Path.Combine(draftDirectory, name), bytes, cancellationToken);
+            File.Copy(Path.Combine(officialDirectory, name), Path.Combine(draftDirectory, name));
         }
 
         await File.WriteAllTextAsync(Path.Combine(draftDirectory, BaseFileName), JsonSerializer.Serialize(fingerprints), cancellationToken);

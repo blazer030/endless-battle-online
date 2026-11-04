@@ -11,4 +11,13 @@ public interface IContentDraftStore
 
     // 用遊戲啟動時的同一套載入程式檢查草稿
     Task<DraftStatus> CheckAsync(CancellationToken cancellationToken);
+
+    // 與建立草稿時記下的指紋不同（含新增、刪除）的正式內容檔名
+    Task<IReadOnlyList<string>> ChangedOfficialFilesAsync(CancellationToken cancellationToken);
+
+    // 草稿的內容檔寫回正式內容，然後刪除草稿
+    Task PublishAsync(CancellationToken cancellationToken);
+
+    // 刪除草稿；沒有草稿時回傳 false
+    Task<bool> DiscardAsync(CancellationToken cancellationToken);
 }
