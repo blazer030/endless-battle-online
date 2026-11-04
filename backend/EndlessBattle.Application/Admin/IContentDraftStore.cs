@@ -8,4 +8,7 @@ public interface IContentDraftStore
     Task<IReadOnlyList<JsonObject>> ReadRecordsAsync(ContentKind kind, CancellationToken cancellationToken);
 
     Task WriteRecordsAsync(ContentKind kind, IReadOnlyList<JsonObject> records, CancellationToken cancellationToken);
+
+    // 用遊戲啟動時的同一套載入程式檢查草稿
+    Task<DraftStatus> CheckAsync(CancellationToken cancellationToken);
 }

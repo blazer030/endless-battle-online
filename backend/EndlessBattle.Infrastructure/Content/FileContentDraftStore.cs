@@ -29,6 +29,24 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
         await File.WriteAllTextAsync(path, ContentFileFormatter.Format(root), cancellationToken);
     }
 
+    public Task<DraftStatus> CheckAsync(CancellationToken cancellationToken)
+    {
+        if (!Directory.Exists(draftDirectory))
+        {
+            return Task.FromResult(DraftStatus.None);
+        }
+
+        try
+        {
+            JsonGameContent.Load(draftDirectory);
+            return Task.FromResult(new DraftStatus(Exists: true, Valid: true, Error: null));
+        }
+        catch (Exception exception) when (exception is GameContentException or JsonException)
+        {
+            return Task.FromResult(new DraftStatus(Exists: true, Valid: false, Error: exception.Message));
+        }
+    }
+
     private async Task EnsureDraftAsync(CancellationToken cancellationToken)
     {
         if (Directory.Exists(draftDirectory))

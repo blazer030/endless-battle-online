@@ -22,25 +22,26 @@ public static class AdminContentEndpoints
                 ? TypedResults.Ok(record)
                 : TypedResults.NotFound());
 
-        content.MapPut("/{kind}/{id}", async Task<Results<NoContent, NotFound, BadRequest>> (
+        content.MapPut("/{kind}/{id}", async Task<Results<Ok<DraftStatus>, NotFound, BadRequest>> (
                 string kind, string id, JsonObject record, ContentAdminService service, CancellationToken cancellationToken) =>
             ContentKind.Find(kind) is not { } found
                 ? TypedResults.NotFound()
                 : await service.UpdateAsync(found, id, record, cancellationToken) switch
                 {
-                    ContentWriteOutcome.Saved => TypedResults.NoContent(),
-                    ContentWriteOutcome.IdMismatch => TypedResults.BadRequest(),
+                    { Outcome: ContentWriteOutcome.Saved, Draft: { } draft } => TypedResults.Ok(draft),
+                    { Outcome: ContentWriteOutcome.IdMismatch } => TypedResults.BadRequest(),
                     _ => TypedResults.NotFound(),
                 });
 
-        content.MapPost("/{kind}", async Task<Results<Created, NotFound, BadRequest, Conflict>> (
+        content.MapPost("/{kind}", async Task<Results<Created<DraftStatus>, NotFound, BadRequest, Conflict>> (
                 string kind, JsonObject record, ContentAdminService service, CancellationToken cancellationToken) =>
             ContentKind.Find(kind) is not { } found
                 ? TypedResults.NotFound()
                 : await service.CreateAsync(found, record, cancellationToken) switch
                 {
-                    ContentWriteOutcome.Saved => TypedResults.Created($"/admin/content/{found.Name}/{ContentAdminService.IdOf(record)}"),
-                    ContentWriteOutcome.DuplicateId => TypedResults.Conflict(),
+                    { Outcome: ContentWriteOutcome.Saved, Draft: { } draft } =>
+                        TypedResults.Created($"/admin/content/{found.Name}/{ContentAdminService.IdOf(record)}", draft),
+                    { Outcome: ContentWriteOutcome.DuplicateId } => TypedResults.Conflict(),
                     _ => TypedResults.BadRequest(),
                 });
 

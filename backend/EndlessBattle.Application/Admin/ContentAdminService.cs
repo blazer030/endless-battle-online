@@ -11,6 +11,9 @@ public enum ContentWriteOutcome
     DuplicateId,
 }
 
+// Draft 只在 Saved 時有值：寫入後的草稿檢查結果
+public sealed record ContentWriteResult(ContentWriteOutcome Outcome, DraftStatus? Draft = null);
+
 public sealed class ContentAdminService(IContentDraftStore store)
 {
     public Task<IReadOnlyList<JsonObject>> ListAsync(ContentKind kind, CancellationToken cancellationToken) =>
@@ -19,44 +22,46 @@ public sealed class ContentAdminService(IContentDraftStore store)
     public async Task<JsonObject?> FindAsync(ContentKind kind, string id, CancellationToken cancellationToken) =>
         (await store.ReadRecordsAsync(kind, cancellationToken)).FirstOrDefault(record => IdOf(record) == id);
 
+    public Task<DraftStatus> GetDraftAsync(CancellationToken cancellationToken) => store.CheckAsync(cancellationToken);
+
     // 以本體整筆取代；本體的 id 必須與路徑相同
-    public async Task<ContentWriteOutcome> UpdateAsync(ContentKind kind, string id, JsonObject record, CancellationToken cancellationToken)
+    public async Task<ContentWriteResult> UpdateAsync(ContentKind kind, string id, JsonObject record, CancellationToken cancellationToken)
     {
         if (IdOf(record) != id)
         {
-            return ContentWriteOutcome.IdMismatch;
+            return new(ContentWriteOutcome.IdMismatch);
         }
 
         var records = (await store.ReadRecordsAsync(kind, cancellationToken)).ToList();
         var index = records.FindIndex(existing => IdOf(existing) == id);
         if (index < 0)
         {
-            return ContentWriteOutcome.NotFound;
+            return new(ContentWriteOutcome.NotFound);
         }
 
         records[index] = record;
         await store.WriteRecordsAsync(kind, records, cancellationToken);
-        return ContentWriteOutcome.Saved;
+        return new(ContentWriteOutcome.Saved, await store.CheckAsync(cancellationToken));
     }
 
     // 新紀錄加在陣列最後；id 不得與既有紀錄重複
-    public async Task<ContentWriteOutcome> CreateAsync(ContentKind kind, JsonObject record, CancellationToken cancellationToken)
+    public async Task<ContentWriteResult> CreateAsync(ContentKind kind, JsonObject record, CancellationToken cancellationToken)
     {
         var id = IdOf(record);
         if (id is null)
         {
-            return ContentWriteOutcome.MissingId;
+            return new(ContentWriteOutcome.MissingId);
         }
 
         var records = (await store.ReadRecordsAsync(kind, cancellationToken)).ToList();
         if (records.Any(existing => IdOf(existing) == id))
         {
-            return ContentWriteOutcome.DuplicateId;
+            return new(ContentWriteOutcome.DuplicateId);
         }
 
         records.Add(record);
         await store.WriteRecordsAsync(kind, records, cancellationToken);
-        return ContentWriteOutcome.Saved;
+        return new(ContentWriteOutcome.Saved, await store.CheckAsync(cancellationToken));
     }
 
     // id 可能是字串（道具、怪物）或數字（地區）；一律以文字比對
