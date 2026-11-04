@@ -32,3 +32,5 @@ dotnet build -warnaserror
 dotnet test
 
 cd "$repository_root/frontend" && pnpm install --frozen-lockfile && pnpm check
+
+cd "$repository_root/admin" && pnpm install --frozen-lockfile && pnpm check

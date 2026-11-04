@@ -24,7 +24,7 @@
 
 ## 5. admin 前端
 
-- [ ] 5.1 依「admin 前端：Refine + Ant Design」建立 `admin/` 專案：Vite + React + TypeScript strict、`@refinedev/core`、`@refinedev/antd`、pnpm；`/admin`、`/openapi` proxy 到 `http://localhost:5062`；`pnpm generate:api` 從 `/openapi/admin.json` 產生型別；`pnpm check` 跑 lint、格式、型別檢查與測試；`scripts/check.sh` 加入 admin 的 `pnpm check`，CLAUDE.md「指令」加入 admin 的啟動與檢查指令。驗證：`./scripts/check.sh` exit code 0。[after: 2.2]
-- [ ] 5.2 五類內容的列表、編輯、新增頁（Content pages）：大陸與地區分兩頁；編輯以取得的整筆紀錄為底，表單沒有的欄位原樣送回。驗證：元件測試斷言編輯怪物等級後送出的 `PUT` 本體只改了等級、其他欄位保留。[after: 3.3, 5.1]
-- [ ] 5.3 每頁顯示草稿狀態與發布（Draft status and publishing）：顯示是否有草稿、是否通過與錯誤訊息；不通過時發布按鈕停用；發布被 409 拒絕時顯示原因或變動檔名；提供捨棄草稿。驗證：元件測試涵蓋不通過停用發布、409 顯示檔名兩個案例。[after: 3.5, 5.2]
-- [ ] 5.4 報告對照頁（Report comparison）：同一個技能等級選項下並排顯示草稿與正式內容的報告，數值不同的格子加上標記。驗證：元件測試以兩份只差一格的報告斷言只有那一格被標記；人工以 `pnpm dev` 打開頁面確認可讀。[after: 4.3, 5.1]
+- [x] 5.1 依「admin 前端：Refine + Ant Design」建立 `admin/` 專案：Vite + React + TypeScript strict、`@refinedev/core`、`@refinedev/antd`、pnpm；`/admin`、`/openapi` proxy 到 `http://localhost:5062`；`pnpm generate:api` 從 `/openapi/admin.json` 產生型別；`pnpm check` 跑 lint、格式、型別檢查與測試；`scripts/check.sh` 加入 admin 的 `pnpm check`，CLAUDE.md「指令」加入 admin 的啟動與檢查指令。驗證：`./scripts/check.sh` exit code 0。[after: 2.2]
+- [x] 5.2 五類內容的列表、編輯、新增頁（Content pages）：大陸與地區分兩頁；編輯以取得的整筆紀錄為底，表單沒有的欄位原樣送回。驗證：元件測試斷言編輯怪物等級後送出的 `PUT` 本體只改了等級、其他欄位保留。[after: 3.3, 5.1]
+- [x] 5.3 每頁顯示草稿狀態與發布（Draft status and publishing）：顯示是否有草稿、是否通過與錯誤訊息；不通過時發布按鈕停用；發布被 409 拒絕時顯示原因或變動檔名；提供捨棄草稿。驗證：元件測試涵蓋不通過停用發布、409 顯示檔名兩個案例。[after: 3.5, 5.2]
+- [x] 5.4 報告對照頁（Report comparison）：同一個技能等級選項下並排顯示草稿與正式內容的報告，數值不同的格子加上標記。驗證：元件測試以兩份只差一格的報告斷言只有那一格被標記；人工以 `pnpm dev` 打開頁面確認可讀。[after: 4.3, 5.1]

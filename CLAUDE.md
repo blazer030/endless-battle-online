@@ -101,7 +101,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、後端 build（警告視為錯誤）與測試、前端 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、後端 build（警告視為錯誤）與測試、前端與 admin 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
 - `./scripts/smoke-compose.sh` — 用獨立專案名與埠起完整 stack，經 nginx 打 `/api/health`、`/`、`/api/content`，結束一律拆掉；不在 `check.sh` 裡，改 Dockerfile、nginx 或 compose 時手動跑。
@@ -113,6 +113,9 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。
 - `cd frontend && pnpm check` — eslint、prettier 檢查、`tsc -b`、vitest。
 - `cd frontend && pnpm generate:api` — API 執行中時，從 `/openapi/v1.json` 重新產生 `src/api/schema.ts`。
+- `cd admin && pnpm dev` — 啟動內容後台（`http://localhost:5174`；`/admin`、`/openapi` proxy 到 `http://localhost:5062`，API 要以 Development 執行才有 admin 路由）。
+- `cd admin && pnpm check` — admin 的 eslint、prettier 檢查、`tsc -b`、vitest。
+- `cd admin && pnpm generate:api` — API 執行中時，從 `/openapi/admin.json` 重新產生 `admin/src/api/schema.ts`。
 
 需要資料庫的測試依賴 Docker 執行中；卡在 MySQL 啟動時先跑 `scripts/clean-test-containers.sh`。
 
