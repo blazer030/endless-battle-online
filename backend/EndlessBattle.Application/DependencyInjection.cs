@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Accounts;
+using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Champion;
 using EndlessBattle.Application.Characters;
@@ -22,6 +23,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<AccountService>();
+        services.AddScoped<ContentAdminService>();
         services.AddScoped<CharacterService>();
         services.AddScoped<AdventureService>();
         services.AddScoped<SkillService>();

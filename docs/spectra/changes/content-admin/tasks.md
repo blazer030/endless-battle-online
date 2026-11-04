@@ -10,7 +10,7 @@
 
 ## 3. 內容草稿
 
-- [ ] 3.1 依「草稿是整份內容資料夾的副本」與「以 JSON 物件逐筆讀寫」實作讀取（Editable content kinds）：`GET /admin/content/{kind}` 與 `GET /admin/content/{kind}/{id}` 支援 items、monsters、jobs、skills、areas、places，有草稿讀草稿、否則讀正式內容；其他 kind 404。驗證：API 測試涵蓋六種 kind 的列表筆數與 `recipes` 回 404。[after: 1.2, 2.1]
+- [x] 3.1 依「草稿是整份內容資料夾的副本」與「以 JSON 物件逐筆讀寫」實作讀取（Editable content kinds）：`GET /admin/content/{kind}` 與 `GET /admin/content/{kind}/{id}` 支援 items、monsters、jobs、skills、areas、places，有草稿讀草稿、否則讀正式內容；其他 kind 404。驗證：API 測試涵蓋六種 kind 的列表筆數與 `recipes` 回 404。[after: 1.2, 2.1]
 - [ ] 3.2 實作修改（Edits only change the draft）：`PUT /admin/content/{kind}/{id}` 第一次寫入時複製整份正式內容到 `Admin:DraftDirectory` 並寫入 `.base.json` 指紋，只取代該筆紀錄；正式內容檔與 API 已載入的內容不變；本體 `id` 與路徑不同 400、找不到 404。驗證：API 測試 `Draft_FirstEditCopiesContentAndLeavesOfficialUntouched`（含 `iron-sword` 價格 200 → 250 的範例）與草稿 `items.json` 只有該行改變的 diff 斷言。[after: 3.1]
 - [ ] 3.3 實作新增：`POST /admin/content/{kind}` 把新紀錄加在陣列最後並回 201；`id` 已存在回 409 且草稿不變。驗證：API 測試新增怪物與重複 id 兩個案例。[after: 3.2]
 - [ ] 3.4 每次寫入後用 `JsonGameContent.Load` 檢查草稿（Every draft write is checked），寫入照樣保存；`PUT`、`POST` 回應與 `GET /admin/draft` 都回傳是否存在、是否通過與錯誤訊息。驗證：API 測試把怪物 `placeId` 改成不存在的地區，斷言寫入保存且回報不通過與錯誤訊息。[after: 3.3]

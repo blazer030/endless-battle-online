@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Accounts;
+using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Champion;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
@@ -34,6 +35,12 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException("缺少設定 Content:Directory");
         var gameContent = JsonGameContent.Load(Path.GetFullPath(Path.Combine(contentRootPath, contentDirectory)));
         services.AddSingleton<IGameContent>(gameContent);
+
+        var draftDirectory = configuration["Admin:DraftDirectory"]
+            ?? throw new InvalidOperationException("缺少設定 Admin:DraftDirectory");
+        services.AddSingleton<IContentDraftStore>(new FileContentDraftStore(
+            Path.GetFullPath(Path.Combine(contentRootPath, contentDirectory)),
+            Path.GetFullPath(Path.Combine(contentRootPath, draftDirectory))));
 
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICharacterRepository, CharacterRepository>();
