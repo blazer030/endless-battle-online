@@ -1,116 +1,20 @@
 {
   "skills": [
-    {"id": "burst", "name": "爆氣", "jobId": "warrior", "type": "active", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "提升物理攻擊力，持續數回合", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "iron-skin", "name": "硬甲", "jobId": "warrior", "type": "passive", "timing": "beforeAttack", "effect": "DfMultiplier", "description": "提升物理防禦力", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "mana-surge", "name": "魔力增幅", "jobId": "sorcerer", "type": "active", "timing": "beforeAttack", "effect": "MatMultiplier", "description": "提升魔法攻擊力，持續數回合", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "mana-skin", "name": "魔甲", "jobId": "sorcerer", "type": "passive", "timing": "beforeAttack", "effect": "MdfMultiplier", "description": "提升魔法防禦力", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "swift-shadow", "name": "急影", "jobId": "thief", "type": "passive", "timing": "beforeAttack", "effect": "AgiMultiplier", "description": "提升敏捷", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "combo", "name": "連擊", "jobId": "thief", "type": "active", "timing": "beforeAttack", "effect": "MultiHit", "description": "物理連續攻擊多下，每下傷害略減", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "lullaby", "name": "靡靡之音", "jobId": "bard", "type": "active", "timing": "beforeAttack", "effect": "EnemyAgiDown", "description": "降低敵人敏捷，持續數回合", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "heal", "name": "治癒", "jobId": "bard", "type": "active", "timing": "beforeAttack", "effect": "Heal", "description": "HP 低於一半時依智力回復自身 HP", "trigger": {"kind": "hpBelow", "percent": 50}, "levels": [
-      {"level": 1, "sp": 5, "rounds": 1, "chance": 0, "cooldown": 4, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 1, "chance": 0, "cooldown": 4, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 1, "chance": 0, "cooldown": 4, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 1, "chance": 0, "cooldown": 4, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 1, "chance": 0, "cooldown": 4, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "war-god-wrath", "name": "戰神之怒", "jobId": "berserker", "type": "active", "timing": "beforeAttack", "effect": "WarGodWrath", "description": "以力量換取大幅攻擊力，但降低命中", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "counter", "name": "反擊", "jobId": "knight", "type": "passive", "timing": "beforeAttack", "effect": "Counter", "description": "減輕受到的物理傷害並提升攻擊力", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "magic-combo", "name": "魔連擊", "jobId": "archmage", "type": "active", "timing": "beforeAttack", "effect": "MagicMultiHit", "description": "魔法連續攻擊多下", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "weaken", "name": "減益", "jobId": "geomancer", "type": "active", "timing": "beforeAttack", "effect": "EnemyAttackDown", "description": "降低敵人物理與魔法攻擊力，持續數回合", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "keen-edge", "name": "物暴擊率", "jobId": "assassin", "type": "passive", "timing": "beforeAttack", "effect": "CritChanceUp", "description": "提升物理暴擊率", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "bloodthirst", "name": "嗜血", "jobId": "martialist", "type": "passive", "timing": "afterAttack", "effect": "Bloodthirst", "description": "物理命中後依傷害回復 HP", "levels": [
-      {"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "bonus-strike", "name": "附加傷", "jobId": "dancer", "type": "active", "timing": "beforeAttack", "effect": "BonusDamage", "description": "每次命中附加額外傷害", "levels": [
-      {"level": 1, "sp": 5, "rounds": 1, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 1, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 1, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 1, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 1, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]},
-    {"id": "stun", "name": "暈眩", "jobId": "beastmaster", "type": "active", "timing": "beforeAttack", "effect": "Stun", "description": "持續期間有機率使怪物無法行動", "levels": [
-      {"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300},
-      {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600},
-      {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900},
-      {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200},
-      {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}
-    ]}
+    {"id": "burst", "name": "爆氣", "jobId": "warrior", "type": "active", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "提升物理攻擊力，持續數回合", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "iron-skin", "name": "硬甲", "jobId": "warrior", "type": "passive", "timing": "beforeAttack", "effect": "DfMultiplier", "description": "提升物理防禦力", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "mana-surge", "name": "魔力增幅", "jobId": "sorcerer", "type": "active", "timing": "beforeAttack", "effect": "MatMultiplier", "description": "提升魔法攻擊力，持續數回合", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "mana-skin", "name": "魔甲", "jobId": "sorcerer", "type": "passive", "timing": "beforeAttack", "effect": "MdfMultiplier", "description": "提升魔法防禦力", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "swift-shadow", "name": "急影", "jobId": "thief", "type": "passive", "timing": "beforeAttack", "effect": "AgiMultiplier", "description": "提升敏捷", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "combo", "name": "連擊", "jobId": "thief", "type": "active", "timing": "beforeAttack", "effect": "MultiHit", "description": "物理連續攻擊多下，每下傷害略減", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "lullaby", "name": "靡靡之音", "jobId": "bard", "type": "active", "timing": "beforeAttack", "effect": "EnemyAgiDown", "description": "降低敵人敏捷，持續數回合", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "heal", "name": "治癒", "jobId": "bard", "type": "active", "timing": "beforeAttack", "effect": "Heal", "description": "HP 低於一半時依智力回復自身 HP", "trigger": {"kind": "hpBelow", "percent": 50}, "levels": [{"level": 1, "sp": 5, "rounds": 1, "chance": 0, "cooldown": 4, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 1, "chance": 0, "cooldown": 4, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 1, "chance": 0, "cooldown": 4, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 1, "chance": 0, "cooldown": 4, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 1, "chance": 0, "cooldown": 4, "money": 12500, "proficiency": 1500}]},
+    {"id": "war-god-wrath", "name": "戰神之怒", "jobId": "berserker", "type": "active", "timing": "beforeAttack", "effect": "WarGodWrath", "description": "以力量換取大幅攻擊力，但降低命中", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "counter", "name": "反擊", "jobId": "knight", "type": "passive", "timing": "beforeAttack", "effect": "Counter", "description": "減輕受到的物理傷害並提升攻擊力", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "magic-combo", "name": "魔連擊", "jobId": "archmage", "type": "active", "timing": "beforeAttack", "effect": "MagicMultiHit", "description": "魔法連續攻擊多下", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "weaken", "name": "減益", "jobId": "geomancer", "type": "active", "timing": "beforeAttack", "effect": "EnemyAttackDown", "description": "降低敵人物理與魔法攻擊力，持續數回合", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "keen-edge", "name": "物暴擊率", "jobId": "assassin", "type": "passive", "timing": "beforeAttack", "effect": "CritChanceUp", "description": "提升物理暴擊率", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "bloodthirst", "name": "嗜血", "jobId": "martialist", "type": "passive", "timing": "afterAttack", "effect": "Bloodthirst", "description": "物理命中後依傷害回復 HP", "levels": [{"level": 1, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 0, "rounds": 0, "chance": 0, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "bonus-strike", "name": "附加傷", "jobId": "dancer", "type": "active", "timing": "beforeAttack", "effect": "BonusDamage", "description": "每次命中附加額外傷害", "levels": [{"level": 1, "sp": 5, "rounds": 1, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 1, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 1, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 1, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 1, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]},
+    {"id": "stun", "name": "暈眩", "jobId": "beastmaster", "type": "active", "timing": "beforeAttack", "effect": "Stun", "description": "持續期間有機率使怪物無法行動", "levels": [{"level": 1, "sp": 5, "rounds": 3, "chance": 40, "cooldown": 0, "money": 500, "proficiency": 300}, {"level": 2, "sp": 8, "rounds": 3, "chance": 50, "cooldown": 0, "money": 2000, "proficiency": 600}, {"level": 3, "sp": 11, "rounds": 3, "chance": 60, "cooldown": 0, "money": 4500, "proficiency": 900}, {"level": 4, "sp": 14, "rounds": 3, "chance": 70, "cooldown": 0, "money": 8000, "proficiency": 1200}, {"level": 5, "sp": 17, "rounds": 3, "chance": 80, "cooldown": 0, "money": 12500, "proficiency": 1500}]}
   ]
 }
