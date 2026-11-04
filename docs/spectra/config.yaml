@@ -1,20 +1,59 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# 專案說明：AI 建立提案、規格、設計、工作清單時會看到。
+# 詳細規則以 CLAUDE.md 為準；這裡只摘要最常影響提案與設計的部分。
+context: |
+  遊戲：Endless Battle Online（EBO），現代奇幻風的單人放置 RPG，WOG 4.5 單人系統的翻新版
+  （能力值、職業與轉職、裝備、技能熟練度、地區冒險、商店、旅館、寵物、傭兵、任務），手機優先。
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  技術棧與職責：
+  - backend/EndlessBattle.Domain：遊戲規則（戰鬥、冒險、內容定義），純 C#，零依賴。
+  - backend/EndlessBattle.Application：用例與介面（Repository、時鐘、亂數、遊戲內容）。
+  - backend/EndlessBattle.Infrastructure：EF Core（Database-First）、內容載入、介面實作。
+  - backend/EndlessBattle.Api：.NET 10 Minimal API、JWT、OpenAPI；遊戲走 /api/...，admin 走 /admin/...。
+  - backend/EndlessBattle.Tests：xUnit v3；需要資料庫的測試用 Testcontainers（MySQL 8.4）。
+  - backend/content/*.json：遊戲內容；backend/db/ddl、dml：Flyway migration。
+  - frontend：遊戲前端，Vite + React 19 + TypeScript + PixiJS 8 + GSAP 3（pnpm）。
+  - admin：內容後台，Vite + React + TypeScript + Refine + Ant Design（pnpm），獨立專案，不與 frontend 共用套件。
+
+  硬規則（提案與設計最容易違反的）：
+  - 遊戲規則只寫在 Domain；Api 不做遊戲計算，admin 的計算（如平衡報告）也放 Application／Domain。
+  - 依賴方向：Domain 沒有任何 PackageReference／ProjectReference；Application 只引用 Domain 與
+    Microsoft.Extensions.DependencyInjection.Abstractions；scaffold 產生的 model 只在 Infrastructure 使用。
+  - 遊戲內容只放 backend/content/*.json，資料庫只存玩家狀態；測試內容用 EndlessBattle.Tests/TestContent/。
+  - 資料表結構只由 Flyway migration 決定（不用 EF Core Migrations）；已 commit 的 migration 不得修改，
+    要改就新增版本；不得 DROP TABLE／VIEW／DATABASE 或 TRUNCATE。
+  - EndlessBattleDbContext.cs 與 Persistence/Models/*.cs 由 scripts/scaffold-db.sh 產生，不得手改，擴充寫 *.Partial.cs。
+  - 時間一律 UTC；資料庫時間欄位用 DATETIME(6)。
+  - frontend/src/api/schema.ts、admin/src/api/schema.ts 是產生檔（pnpm generate:api），不得手改。
+  - admin endpoint 只放 Api/Endpoints/Admin/、掛在 /admin 群組；只在 Admin:Enabled 為 true 時註冊（預設 false）；
+    admin 改內容只寫草稿，只有「發布」寫入 backend/content/。
+
+  遊戲前端（frontend，不適用 admin）：
+  - 手機直式優先，以 375×667 為主要尺寸，360～430 寬不得水平捲動；電腦上置中、最大寬 480px。
+  - 顏色只用 src/ui/theme.css 的 CSS 變數，Pixi 從 src/render/palette.ts 取；不得寫死色碼。
+  - 遊戲狀態只存在 src/game/ 的純 TS 物件；TypeScript strict、禁用 any。
+
+  驗證：
+  - ./scripts/check.sh（SQL 檢查、compose 驗證、後端 build 警告視為錯誤與測試、前端 pnpm check）是提交門檻，以 exit code 判斷。
+  - 需要資料庫的測試依賴 Docker 執行中。
+
+  舊文件（導入 Spectra 前，只當參考、不再新增）：
+  - docs/superpowers/specs/ 的設計文件（2026-10-21-wog-remake-design.md）與裁定彙整（2026-10-22-wog-remake-rulings.md）、
+    docs/superpowers/plans/ 的計畫 1～11。推翻或調整舊規則前先查裁定彙整，新的決策寫進變更的 design.md。
+  - docs/superpowers/specs/2026-10-23-deferred-backlog.md：尚未處理的延後項目；提案前先查有沒有相關的條目，做完就從清單刪掉那一條。
+
+# 各文件的專案規則（只寫 Spectra 預設範本沒涵蓋的）
+rules:
+  proposal:
+    - Impact 列出會碰到的層與資料夾（Domain、Application、Infrastructure、Api、Tests、content、db、frontend、admin），沒碰到的不列
+    - 要推翻或調整舊規則時，在 What Changes 寫明是裁定彙整（docs/superpowers/specs/2026-10-22-wog-remake-rulings.md）的哪一條
+  design:
+    - 涉及內容檔、資料表、scaffold 產生檔、schema.ts 或 admin 路由時，寫明碰到哪幾條硬規則、如何遵守；沒碰到就寫「不涉及」
+    - 需要新資料表或欄位時寫出 migration 檔名（下一個版本號）與「migration → docker compose up -d → scaffold-db.sh」的步驟
+    - 取代 docs/superpowers 舊裁定的決策，註明原裁定出處
+  tasks:
+    - 每項照 TDD 寫：先寫哪一條失敗測試（測試名稱），再寫剛好讓它通過的實作；修缺陷寫兩條測試（API 層級＋最小重現）
+    - 結構性變更（改名、抽方法、搬移、格式整理，行為不變）獨立成一項，註明單獨以結構性變更 commit，前後測試都要綠
+    - 需要資料庫的驗證寫明用 Testcontainers 的 API 測試（EndlessBattle.Tests）；資料表變更依 migration → scaffold → 測試的順序拆項
+    - 最後一項是 ./scripts/check.sh exit code 0
