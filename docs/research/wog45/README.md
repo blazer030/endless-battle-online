@@ -2,6 +2,10 @@
 
 從 WOG 4.5 繁體釋出版的資料庫 SQL（`WOG4.5_sql_CT.rar` → `WOG4.5_sql_utf-8.sql`，2026-10-23 由使用者提供）整理出來的遊戲內容。SQL 本身不放進 repo；本目錄的 Markdown 與 `data/*.json` 就是記錄，`export.py` 可從 SQL 重新產生。欄位語意依 `docs/research/wog-research-*.md`，當初標為「資料表遺失」的數值以這裡為準。
 
+## 匯入正式內容
+
+本作的正式內容 `backend/content/*.json` 由 `scripts/import-wog45.py` 從本目錄的 `data/*.json` 產生（在 repo 根目錄執行 `python3 -I scripts/import-wog45.py`，可重跑）。原版有、但本作規則還不支援而沒有匯入的紀錄與欄位，以及保留的自訂內容，列在 [`gaps.md`](gaps.md)（由匯入腳本產生）。
+
 ## 檔案
 
 | 文件 | 內容 | JSON |
