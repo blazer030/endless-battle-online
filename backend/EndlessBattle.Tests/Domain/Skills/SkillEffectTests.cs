@@ -1,4 +1,6 @@
+using System.Text.Json;
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
@@ -162,5 +164,51 @@ public class SkillEffectTests
         caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
 
         Assert.Equal((240, 12), (AttackAfter(caster, player), caster.Current.StunChance));
+    }
+
+    private static CombatantState Monster() =>
+        new(Hp: 3000, HpMax: 3000, Sp: 0, SpMax: 0, At: 120, Mat: 0, Df: 50, Mdf: 50, Agi: 15, Au: 10, Element: 0,
+            SpecialAttackName: null, Str: 0, Smart: 0);
+
+    private static string BattleWith(SkillDefinition skill, int level, int slot = 1) =>
+        JsonSerializer.Serialize(WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(skill, level, slot)], new SeededRandom(7)).Events);
+
+    private static SkillLevel AttackLevel(int level, double percent) =>
+        Level(level, [Chance(60)], [AttackPercent(percent)], costs: [new SkillCost(SkillCostKind.SkillPoints, 5)]);
+
+    [Fact]
+    public void SameParts_GiveSameBattle()
+    {
+        var ruin = Skill(SkillType.Active, AttackLevel(1, 5));
+        var burst = Skill(SkillType.Active, AttackLevel(1, 1), AttackLevel(2, 2), AttackLevel(3, 3), AttackLevel(4, 4), AttackLevel(5, 5));
+
+        // 戰鬥事件會記錄技能等級，比較時去掉這個欄位
+        static string WithoutLevel(string events) => System.Text.RegularExpressions.Regex.Replace(events, "\"Level\":\\d+", "");
+
+        Assert.Equal(WithoutLevel(BattleWith(ruin, level: 1)), WithoutLevel(BattleWith(burst, level: 5)));
+    }
+
+    [Fact]
+    public void ActiveAndPassive_BehaveTheSame()
+    {
+        var active = Skill(SkillType.Active, AttackLevel(1, 5));
+        var passive = Skill(SkillType.Passive, AttackLevel(1, 5));
+
+        Assert.Equal(BattleWith(active, level: 1, slot: 1), BattleWith(passive, level: 1, slot: 4));
+        Assert.Contains("\"SpAfter\":95", BattleWith(passive, level: 1, slot: 4));
+    }
+
+    [Fact]
+    public void ChangingValue_ChangesResult()
+    {
+        var player = Player(at: 200);
+        int AttackWith(double percent)
+        {
+            var caster = new SkillCaster(player, [new EquippedSkill(Skill(SkillType.Active, Level(1, [Chance(100)], [AttackPercent(percent)])), 1, 1)]);
+            caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+            return AttackAfter(caster, player);
+        }
+
+        Assert.Equal((206, 212), (AttackWith(3), AttackWith(6)));
     }
 }

@@ -39,12 +39,12 @@
       - `Skill_LevelsMustMatchMaxLevel`
       - `Skill_AlwaysOnLevelWithCostIsRejected`
   - 驗證：錯誤訊息含技能 id 與等級；全部測試通過。
-- [ ] 2.2 搬移 [after: 2.1]：依決策「舊效果先等價搬到新格式，再移除」，把 `backend/EndlessBattle.Tests/TestContent/skills.json` 與正式內容的 16 個自訂技能改寫成數值等價的新格式；依原本技能的 `jobId` 建立職業與技能的關聯表 `job-skills.json`（正式與 TestContent 各一份，決策「職業與技能用關聯表連結，技能不指定職業」）。對應需求「Same parts give the same battle result」。
+- [x] 2.2 搬移 [after: 2.1]：依決策「舊效果先等價搬到新格式，再移除」，把 `backend/EndlessBattle.Tests/TestContent/skills.json` 與正式內容的 16 個自訂技能改寫成數值等價的新格式。職業與技能的關聯表 `job-skills.json` 移到 2.3 建立：那一步學習規則才開始讀它。對應需求「Same parts give the same battle result」。
   - TDD：先寫 `SkillEffectTests.SameParts_GiveSameBattle`（破滅一擊第 1 級與爆氣第 5 級，同種子同事件），再寫：
     - `ActiveAndPassive_BehaveTheSame`（同內容的主動與被動，同種子同事件、同 SP 消耗）
     - `ChangingValue_ChangesResult`（3 改 6 → 206 改 212）
   - 驗證：`SkillCasterTests`、`WogBattleSkillTests`、`WogBattlePetTests`、`AdventureSimulatorTests`、`ChampionDuelTests` 不改斷言全部通過。
-- [ ] 2.3 依決策「職業與技能用關聯表連結，技能不指定職業」改學習規則 [after: 2.2]：`job-skills.json` 有「目前職業＋技能」這一列才能學，扣目前職業的技能熟練度；前置技能未達等級時以 `prerequisite` 拒絕。對應需求「Jobs choose their skills」。
+- [ ] 2.3 依決策「職業與技能用關聯表連結，技能不指定職業」改學習規則 [after: 2.2]：依原本技能的 `jobId` 建立 `job-skills.json`（正式與 TestContent 各一份），有「目前職業＋技能」這一列才能學，扣目前職業的技能熟練度；前置技能未達等級時以 `prerequisite` 拒絕。對應需求「Jobs choose their skills」。
   - TDD：先寫 `SkillLearningTests.ListedSkill_CanBeLearned`，再寫 `UnlistedSkill_IsRefusedAsWrongJob`、`MissingPrerequisite_IsRefused`、`JsonGameContentTests.JobSkill_MissingSkillIsRejected`、`JobSkill_DuplicatePairIsRejected`，以及 API 測試 `SkillEndpointsTests.Learn_RefusesMissingPrerequisite`（400，reasons 含 `prerequisite`）。
   - 驗證：全部測試通過。
 - [ ] 2.4 收尾與畫面 [after: 2.3]，對應需求「Effect text is generated from the parts」：

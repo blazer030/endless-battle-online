@@ -84,7 +84,7 @@ public class BalanceReportServiceTests
         var burst = root["skills"]!.AsArray().Single(skill => skill!["id"]!.GetValue<string>() == "burst")!;
         foreach (var level in burst["levels"]!.AsArray())
         {
-            level!["chance"] = 100;
+            level!["conditions"]![0]!["percent"] = 100;
         }
 
         File.WriteAllText(path, ContentFileFormatter.Format(root));

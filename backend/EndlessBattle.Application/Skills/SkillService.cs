@@ -89,13 +89,33 @@ public sealed class SkillService(
         {
             var check = SkillLearning.Evaluate(character, skill, level, skillPoints);
             var target = skill.LevelAt(level + 1);
-            next = new NextLevelView(target.Level, target.Sp, target.Rounds, target.Chance, target.Cooldown, target.Money, target.Proficiency, check.Allowed, check.Reasons);
+            next = new NextLevelView(target.Level, SpOf(target), RoundsOf(target), ChanceOf(target), target.Cooldown, target.Money, target.Proficiency, check.Allowed, check.Reasons);
         }
 
         // 內容縮減等級上限時，已學等級以上限計
         var current = level == 0 ? null : skill.LevelAt(Math.Min(level, skill.MaxLevel));
         return new SkillView(
             skill.Id, skill.Name, skill.Type, skill.Timing, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel,
-            current?.Rounds ?? 0, current?.Chance ?? 0, current?.Cooldown ?? 0, skill.EffectiveTrigger, next);
+            current is null ? 0 : RoundsOf(current), current is null ? 0 : ChanceOf(current), current?.Cooldown ?? 0, TriggerOf(skill), next);
     }
+
+    // 新格式的技能在畫面改用效果文字之前，先換算成舊欄位，回應維持不變
+    private static int SpOf(SkillLevel level) => level.Costs is { } costs
+        ? costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => cost.Amount)
+        : level.Sp;
+
+    private static int RoundsOf(SkillLevel level) => level.Effects is { Count: > 0 } effects ? effects.Max(effect => effect.Rounds) : level.Rounds;
+
+    private static int ChanceOf(SkillLevel level) => level.Conditions is { } conditions
+        ? conditions.FirstOrDefault(condition => condition.Kind == SkillConditionKind.Chance)?.Percent ?? 0
+        : level.Chance;
+
+    private static SkillTrigger? TriggerOf(SkillDefinition skill) => !skill.IsComposed
+        ? skill.EffectiveTrigger
+        : skill.Levels[0].Conditions!.FirstOrDefault() switch
+        {
+            { Kind: SkillConditionKind.HitPointsBelow, Percent: var percent } => SkillTrigger.HpBelow(percent),
+            { Kind: SkillConditionKind.Chance } => SkillTrigger.Chance,
+            _ => null,
+        };
 }

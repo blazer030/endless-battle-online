@@ -252,7 +252,7 @@ public class SkillCasterTests
         { SkillEffectKind.MultiHit, 3, new BattleModifiers(At: 0.97, PhysicalHits: 4) },
         { SkillEffectKind.MagicMultiHit, 3, new BattleModifiers(MagicHits: 4) },
         { SkillEffectKind.EnemyAgiDown, 5, new BattleModifiers(EnemyAgi: 0.95) },
-        { SkillEffectKind.EnemyAttackDown, 5, new BattleModifiers(EnemyAttack: 0.9) },
+        { SkillEffectKind.EnemyAttackDown, 5, new BattleModifiers(EnemyAt: 0.9, EnemyMat: 0.9) },
         { SkillEffectKind.Heal, 5, new BattleModifiers() },
         { SkillEffectKind.WarGodWrath, 1, new BattleModifiers(FlatAt: 45, Rag: -70) },
         { SkillEffectKind.Counter, 5, new BattleModifiers(At: 1.05, PhysicalTaken: 0.82) },
@@ -283,5 +283,7 @@ public class SkillCasterTests
         PhysicalTaken = Math.Round(modifiers.PhysicalTaken, 10),
         EnemyAgi = Math.Round(modifiers.EnemyAgi, 10),
         EnemyAttack = Math.Round(modifiers.EnemyAttack, 10),
+        EnemyAt = Math.Round(modifiers.EnemyAt, 10),
+        EnemyMat = Math.Round(modifiers.EnemyMat, 10),
     };
 }

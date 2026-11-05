@@ -345,29 +345,30 @@ public class JsonGameContentTests
             foreach (var level in skill.Levels)
             {
                 var lv = level.Level;
+                var sp = level.Costs!.Sum(cost => cost.Amount);
+                var rounds = level.Effects!.Max(effect => effect.Rounds);
                 Assert.Equal(500L * lv * lv, level.Money);
                 Assert.Equal(300L * lv, level.Proficiency);
                 if (skill.Id == "heal")
                 {
                     // 治癒：HP 低於 50% 自動發動、冷卻 4，不擲發動率
-                    Assert.Equal(SkillTrigger.HpBelow(50), skill.Trigger);
-                    Assert.Equal((4, 0, 3 * lv + 2, 1), (level.Cooldown, level.Chance, level.Sp, level.Rounds));
+                    Assert.Equal([new SkillCondition(SkillConditionKind.HitPointsBelow, 50)], level.Conditions!);
+                    Assert.Equal((4, 3 * lv + 2, 1), (level.Cooldown, sp, rounds));
                     continue;
                 }
 
-                Assert.Null(skill.Trigger);
                 Assert.Equal(0, level.Cooldown);
                 if (skill.Type == SkillType.Passive)
                 {
-                    // 被動常駐：沒有消耗、持續與發動率
-                    Assert.Equal((0, 0, 0), (level.Sp, level.Rounds, level.Chance));
+                    // 被動常駐：沒有條件、消耗與持續
+                    Assert.Equal((0, 0, 0), (level.Conditions!.Count, sp, rounds));
                     continue;
                 }
 
-                Assert.Equal(3 * lv + 2, level.Sp);
-                Assert.Equal(30 + 10 * lv, level.Chance);
-                var oneRound = skill.Effect is SkillEffectKind.Heal or SkillEffectKind.BonusDamage;
-                Assert.Equal(oneRound ? 1 : 3, level.Rounds);
+                Assert.Equal(3 * lv + 2, sp);
+                Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 30 + 10 * lv)], level.Conditions!);
+                var oneRound = skill.Id is "heal" or "bonus-strike";
+                Assert.Equal(oneRound ? 1 : 3, rounds);
             }
         }
     }
