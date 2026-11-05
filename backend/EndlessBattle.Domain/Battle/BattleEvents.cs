@@ -59,12 +59,12 @@ public sealed record PetAttackEvent(double AtSeconds, string PetName, AttackKind
 // 捕捉道具損壞或捕到寵物時才產生，緊接在同一場的 RewardEvent 之後；CapturedMonsterId 為 null 表示沒捕到，Remaining 是擲完後的剩餘數量
 public sealed record CaptureEvent(double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, int Remaining) : BattleEvent(AtSeconds);
 
-// Heal 是實際回復量，非回復技能為 0
-// Damage 是對對手造成的傷害（削減 HP、持續傷害），OpponentHpAfter 是對手剩下的 HP（沒有傷害時為 null）；
-// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗
+// Heal、SpGain 是實際回復的 HP 與 SP，沒有回復時為 0
+// Damage 是對對手造成的傷害（削減 HP、持續傷害），OpponentHpAfter 是對手剩下的 HP（沒有傷害時為 null）；OpponentSpLoss 是削減對手的 SP；
+// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗；Lasting 表示這是已發動技能的持續傷害結算，不是新的發動
 public sealed record SkillEvent(
     double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal, int Damage = 0, int? OpponentHpAfter = null,
-    int HpCost = 0, int SpCost = 0, int MoneyCost = 0)
+    int HpCost = 0, int SpCost = 0, int MoneyCost = 0, int OpponentSpLoss = 0, int SpGain = 0, bool Lasting = false)
     : BattleEvent(AtSeconds);
 
 // Hp／Sp 是實際回復量（已扣掉超過上限的部分）；Remaining 是喝完後的剩餘數量

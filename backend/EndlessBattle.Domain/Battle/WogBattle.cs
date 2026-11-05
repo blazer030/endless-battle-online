@@ -205,7 +205,8 @@ public static class WogBattle
                 damageDealt += cast.OpponentDamage;
                 monsterSp = Math.Max(0, monsterSp - cast.OpponentSpLoss);
                 events.Add(new SkillEvent(atSeconds, CombatSide.Player, cast.Equipped.Skill.Id, cast.Equipped.Skill.Name, cast.Equipped.Level,
-                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null, cast.HpCost, cast.SpCost, cast.MoneyCost));
+                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null, cast.HpCost, cast.SpCost, cast.MoneyCost,
+                    cast.OpponentSpLoss, cast.SpGain));
             }
         }
 
@@ -224,7 +225,7 @@ public static class WogBattle
                 monsterHp = Math.Max(0, monsterHp - damage);
                 damageDealt += damage;
                 events.Add(new SkillEvent(atSeconds, CombatSide.Player, equipped.Skill.Id, equipped.Skill.Name, equipped.Level,
-                    playerSp, Heal: 0, damage, monsterHp));
+                    playerSp, Heal: 0, damage, monsterHp, Lasting: true));
                 if (monsterHp == 0)
                 {
                     return true;

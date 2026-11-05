@@ -51,6 +51,9 @@ const skill = (overrides: Partial<SkillEvent> = {}): BattleEvent => ({
   hpCost: 0,
   spCost: 0,
   moneyCost: 0,
+  opponentSpLoss: 0,
+  spGain: 0,
+  lasting: false,
   atSeconds: 1,
   ...overrides,
 })
@@ -280,6 +283,10 @@ describe("stageModel", () => {
       { type: "skillFlash" },
       { type: "plate", text: "爆氣", tone: "cyan" },
     ])
+  })
+
+  it("stageEffectsFor_LastingSkillDamage_HasNoCastEffects", () => {
+    expect(stageEffectsFor(skill({ damage: 50, opponentHpAfter: 10, lasting: true }))).toEqual([])
   })
 
   it("stageEffectsFor_MonsterSkill_HasNoEffects", () => {

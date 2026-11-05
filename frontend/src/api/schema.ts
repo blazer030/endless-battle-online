@@ -2548,6 +2548,18 @@ export interface components {
              * @default 0
              */
             moneyCost: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            opponentSpLoss: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            spGain: number;
+            /** @default false */
+            lasting: boolean;
             /** Format: double */
             atSeconds: number;
         };

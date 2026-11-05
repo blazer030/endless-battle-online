@@ -101,10 +101,10 @@ public static class AdventureSimulator
                 }
             }
 
-            // 施放與喝補給次數不論事件是否保留都要計入
+            // 施放與喝補給次數不論事件是否保留都要計入；持續傷害的結算不算施放
             foreach (var battleEvent in outcome.Events)
             {
-                if (battleEvent is SkillEvent { Caster: CombatSide.Player })
+                if (battleEvent is SkillEvent { Caster: CombatSide.Player, Lasting: false })
                 {
                     skillsCast++;
                 }

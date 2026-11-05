@@ -330,6 +330,23 @@ public class AdventureSimulatorTests
         Assert.Equal(91 - 3 * 5, run.Character.Sp);
     }
 
+    // 施毒每回合結束的持續傷害不算施放：施放次數只數發動（怪物 1000 血，第 1 回合打不倒，才有持續傷害）
+    [Fact]
+    public void Adventure_DoesNotCountDamageOverTimeAsCasts()
+    {
+        var poison = new SkillDefinition("poison", "施毒", SkillType.Active, SkillTiming.BeforeAttack, "說明",
+        [
+            new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 100)], [],
+                [new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 0.1)], Rounds: 3)]),
+        ]);
+
+        var run = Run(Hero(), seconds: 1, skills: [new EquippedSkill(poison, Level: 1, Slot: 1)], monsters: Monster("tough", hp: 1000));
+
+        var events = run.Events.OfType<SkillEvent>().ToList();
+        Assert.Contains(events, skill => skill.Lasting);
+        Assert.Equal(events.Count(skill => !skill.Lasting), run.Summary.SkillsCast);
+    }
+
     // 擲骰一律 0.5 → 發動擲骰 rand(1,100) = 51：發動率是技能等級固定的 30 + 10·lv，lv1（40）不施放、lv3（60）施放
     [Theory]
     [InlineData(1, false)]

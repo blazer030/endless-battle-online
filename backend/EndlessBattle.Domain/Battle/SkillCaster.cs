@@ -3,11 +3,11 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Domain.Battle;
 
-// Heal 是實際回復量（已扣掉超過 HpMax 的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
+// Heal、SpGain 是實際回復的 HP 與 SP（已扣掉超過上限的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
 // HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗
 public sealed record SkillCast(
     EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0,
-    int HpCost = 0, int SpCost = 0, int MoneyCost = 0);
+    int HpCost = 0, int SpCost = 0, int MoneyCost = 0, int SpGain = 0);
 
 // 玩家技能的施放與持續（研究 §3.3）。主動與被動規則相同，只看每級的條件、消耗與效果：
 // 沒有發動條件的技能常駐：裝上就生效、不擲骰、不扣消耗；攻擊後時機的常駐技能（嗜血）每次命中都觸發。
@@ -147,7 +147,7 @@ public sealed class SkillCaster
                     sp += passive.SpGain;
                     opponent = opponent with { Hp = opponent.Hp - passive.OpponentDamage, Sp = opponent.Sp - passive.OpponentSpLoss };
                     StartCooldown(equipped, level);
-                    casts.Add(new SkillCast(equipped, hp, sp, passive.Heal, passive.OpponentDamage, passive.OpponentSpLoss));
+                    casts.Add(new SkillCast(equipped, hp, sp, passive.Heal, passive.OpponentDamage, passive.OpponentSpLoss, SpGain: passive.SpGain));
                 }
 
                 continue;
@@ -178,7 +178,7 @@ public sealed class SkillCaster
             StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss,
-                hpCost, spCost, Money is null ? 0 : moneyCost));
+                hpCost, spCost, Money is null ? 0 : moneyCost, instant.SpGain));
         }
 
         if (recompute)

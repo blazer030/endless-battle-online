@@ -359,6 +359,30 @@ public class SkillEffectTests
         Assert.IsType<DefeatEvent>(outcome.Events[^1]);
     }
 
+    // 發動那一次是施放；同一回合結束起的持續傷害標成持續結算
+    [Fact]
+    public void DamageOverTime_TicksAreMarkedLasting()
+    {
+        var poison = Skill(SkillType.Active, Level(1, [Chance(100)], [new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 0.1)], Rounds: 3)]));
+
+        var outcome = WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(poison, 1, 1)], new SeededRandom(7));
+
+        var events = outcome.Events.OfType<SkillEvent>().Take(2).ToList();
+        Assert.Equal((false, 0), (events[0].Lasting, events[0].Damage));
+        Assert.Equal((true, 5), (events[1].Lasting, events[1].Damage));
+    }
+
+    // 常駐削減對手 SP 每回合生效：事件帶出實際削減的量（30 → 10 → 0），削完就沒有事件
+    [Fact]
+    public void AlwaysOnSkillPointsReduction_RecordsTheSpRemoved()
+    {
+        var drain = Skill(SkillType.Passive, Level(1, [], [new ReduceSkillPointsEffect(Amount: 20, PercentOfMaximum: null, Rounds: 0)]));
+
+        var outcome = WogBattle.Run(Player(), Monster() with { Sp = 30, SpMax = 30 }, AttackKind.Physical, [new EquippedSkill(drain, 1, 4)], new SeededRandom(7));
+
+        Assert.Equal([20, 10], outcome.Events.OfType<SkillEvent>().Select(skill => skill.OpponentSpLoss));
+    }
+
     [Fact]
     public void ChanceCoversAllEffects()
     {
@@ -391,7 +415,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(caster.CastBeforeAttack(1000, 50, new ScriptedRandom(0.0)));
 
-        Assert.Equal(60, cast.SpAfter);
+        Assert.Equal((60, 10), (cast.SpAfter, cast.SpGain));
     }
 
     [Fact]

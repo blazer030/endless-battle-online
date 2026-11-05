@@ -142,7 +142,8 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
     case "attack":
       return attackEffects(event)
     case "skill":
-      return event.caster === "Player"
+      // 持續傷害的結算不是施放，只扣怪物 HP
+      return event.caster === "Player" && !event.lasting
         ? [{ type: "skillFlash" }, { type: "plate", text: event.skillName, tone: "cyan" }]
         : []
     case "defeat":

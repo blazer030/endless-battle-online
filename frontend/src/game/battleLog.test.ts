@@ -85,6 +85,9 @@ const skill = (overrides: Partial<SkillEvent>) =>
     hpCost: 0,
     spCost: 0,
     moneyCost: 0,
+    opponentSpLoss: 0,
+    spGain: 0,
+    lasting: false,
     ...overrides,
   })
 
@@ -159,6 +162,27 @@ const cases: [string, PlaybackItem, Line[]][] = [
     [
       ["你施展了滅世！", "trigger"],
       ["消耗了 HP 450、SP 5。", "muted"],
+    ],
+  ],
+  [
+    "lasting skill damage",
+    skill({ skillId: "poison", skillName: "施毒", damage: 50, opponentHpAfter: 10, lasting: true }),
+    [["施毒持續作用，史萊姆受到 50 點傷害。", "normal"]],
+  ],
+  [
+    "player skill draining monster sp",
+    skill({ skillId: "burn-mana", skillName: "燃燒魔力", opponentSpLoss: 20 }),
+    [
+      ["你施展了燃燒魔力！", "trigger"],
+      ["史萊姆失去 20 點 SP。", "normal"],
+    ],
+  ],
+  [
+    "player skill restoring sp",
+    skill({ skillId: "mana-absorb", skillName: "魔力吸收", spGain: 10 }),
+    [
+      ["你施展了魔力吸收！", "trigger"],
+      ["回復了 10 點 SP。", "normal"],
     ],
   ],
   ["monster skill is not narrated", skill({ caster: "Monster" }), []],
