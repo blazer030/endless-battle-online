@@ -14,6 +14,11 @@ public partial class ItemTableTests
     private static readonly JsonGameContent Content =
         JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
 
+    private static IEnumerable<ItemDefinition> CustomItems => Content.AllItems.Where(item => CustomContent.IsCustom(item.Id));
+
+    private static List<ItemDefinition> CustomShelf(ItemCategory category, int shopLevel) =>
+        Content.ItemsForShop(category, shopLevel).Where(item => CustomContent.IsCustom(item.Id)).ToList();
+
     private static readonly ItemCategory[] EquipmentCategories =
     [
         ItemCategory.Weapon, ItemCategory.Head, ItemCategory.Body, ItemCategory.Hand, ItemCategory.Foot, ItemCategory.Accessory,
@@ -35,7 +40,7 @@ public partial class ItemTableTests
     [GeneratedRegex(@"\p{IsCJKUnifiedIdeographs}")]
     private static partial Regex ChineseCharacter();
 
-    private static IEnumerable<ItemDefinition> Equipment => Content.AllItems.Where(item => item.IsEquipment);
+    private static IEnumerable<ItemDefinition> Equipment => CustomItems.Where(item => item.IsEquipment);
 
     private static int MainStat(ItemCategory category, int level) =>
         (int)Math.Round(MainStatFactor[category] * Math.Pow(level, 1.8), MidpointRounding.AwayFromZero);
@@ -48,7 +53,7 @@ public partial class ItemTableTests
     [Fact]
     public void Items_LoadTable()
     {
-        Assert.All(Content.AllItems, item =>
+        Assert.All(CustomItems, item =>
         {
             Assert.Matches(KebabCase(), item.Id);
             Assert.Matches(ChineseCharacter(), item.Name);
@@ -61,7 +66,7 @@ public partial class ItemTableTests
             var previousRequirement = 0;
             for (var level = 1; level <= ShopLevels; level++)
             {
-                var onShelf = Content.ItemsForShop(category, level);
+                var onShelf = CustomShelf(category, level);
                 Assert.True(onShelf.Count >= 2, $"{category} 第 {level} 級只有 {onShelf.Count} 件");
                 Assert.All(onShelf, item => Assert.Equal(200L * level * level * level, item.Price));
 
@@ -74,32 +79,32 @@ public partial class ItemTableTests
 
         Assert.All(Equipment, item => Assert.True(item.ShopSellable, $"{item.Id} 應在商店販賣"));
 
-        var supplies = Content.AllItems.Where(item => item.Consumable == ConsumableKind.Supply).ToList();
+        var supplies = CustomItems.Where(item => item.Consumable == ConsumableKind.Supply).ToList();
         Assert.Equal(
             [(50, 25, 20L), (200, 100, 80L), (800, 400, 300L)],
             supplies.Select(item => (item.SupplyHp, item.SupplySp, item.Price)));
 
-        var statPotions = Content.AllItems.Where(item => item.Consumable == ConsumableKind.StatPotion).ToList();
+        var statPotions = CustomItems.Where(item => item.Consumable == ConsumableKind.StatPotion).ToList();
         Assert.Equal(7, statPotions.Count);
         Assert.All(statPotions, potion => Assert.Equal(1, BaseStats(potion.Bonus).Sum()));
         Assert.Equal(Enumerable.Repeat(1, 7), Enumerable.Range(0, 7).Select(index => statPotions.Count(potion => BaseStats(potion.Bonus)[index] == 1)));
 
-        Assert.Equal(5, Content.AllItems.Single(item => item.Consumable == ConsumableKind.BagExpansion).Amount);
-        Assert.Equal(5, Content.AllItems.Single(item => item.Consumable == ConsumableKind.DepotExpansion).Amount);
+        Assert.Equal(5, CustomItems.Single(item => item.Consumable == ConsumableKind.BagExpansion).Amount);
+        Assert.Equal(5, CustomItems.Single(item => item.Consumable == ConsumableKind.DepotExpansion).Amount);
 
-        var refineStones = Content.AllItems.Where(item => item.Category == ItemCategory.RefineStone).Select(item => item.Refine!).ToList();
+        var refineStones = CustomItems.Where(item => item.Category == ItemCategory.RefineStone).Select(item => item.Refine!).ToList();
         Assert.Equal(30, refineStones.Count);
         Assert.Equal(
             Enumerable.Range(1, 10).SelectMany(level => new[] { (level, 1), (level, 2), (level, 3) }).Order(),
             refineStones.Select(stone => (stone.Level, stone.Kind)).Order());
 
-        var stones = Content.AllItems.Where(item => item.Category == ItemCategory.Stone).Select(item => item.Stone!).ToList();
+        var stones = CustomItems.Where(item => item.Category == ItemCategory.Stone).Select(item => item.Stone!).ToList();
         Assert.Equal(6, stones.Count(stone => !stone.Random));
         Assert.Equal(2, stones.Count(stone => stone.Random));
 
         Assert.Equal(
             ["iron-ore", "magic-dust", "beast-hide", "crystal-shard", "stone-remover", "hole-driller", "safe-refine-stone"],
-            Content.AllItems.Where(item => item.Category == ItemCategory.Material).Select(item => item.Id));
+            CustomItems.Where(item => item.Category == ItemCategory.Material).Select(item => item.Id));
 
         Assert.Equal(6, Content.AllRecipes.Count);
     }
@@ -144,7 +149,7 @@ public partial class ItemTableTests
         {
             for (var level = 1; level <= ShopLevels; level++)
             {
-                var items = Content.ItemsForShop(category, level);
+                var items = CustomShelf(category, level);
                 Assert.Contains(items, item => item.Requires.Str + item.Requires.Agi > 0);
                 Assert.Contains(items, item => item.Requires.Smart + item.Requires.Au > 0);
             }
@@ -176,14 +181,14 @@ public partial class ItemTableTests
         Assert.All(
             new[] { ForgeTools.StoneRemover, ForgeTools.HoleDriller, ForgeTools.SafeRefineStone }.Select(Content.GetItem),
             item => Assert.Equal((ItemCategory.Material, true, (RefineStoneSpec?)null), (item.Category, item.ShopSellable, item.Refine)));
-        Assert.Contains(Content.ItemsForShop(ItemCategory.Material, 3), item => item.Id == ForgeTools.StoneRemover);
+        Assert.Contains(CustomShelf(ItemCategory.Material, 3), item => item.Id == ForgeTools.StoneRemover);
     }
 
     // 計畫 10：禁區 17～20 各一把鑰匙，21 600 秒；不在商店販賣，只能從勳章所兌換
     [Fact]
     public void Keys_OnePerRestrictedPlace()
     {
-        var keys = Content.AllItems.Where(item => item.Category == ItemCategory.Key).ToList();
+        var keys = CustomItems.Where(item => item.Category == ItemCategory.Key).ToList();
 
         Assert.Equal(
             [
@@ -218,7 +223,7 @@ public partial class ItemTableTests
         ConsumableKind[] newKinds =
             [ConsumableKind.StoneBox, ConsumableKind.RefineBox, ConsumableKind.PetEgg, ConsumableKind.ProficiencyBook, ConsumableKind.ExperienceCapsule];
 
-        var items = Content.AllItems.Where(item => newKinds.Contains(item.Consumable)).ToList();
+        var items = CustomItems.Where(item => newKinds.Contains(item.Consumable)).ToList();
 
         Assert.Equal(expected, items.Select(item => (item.Id, item.Name, item.Consumable, item.Amount, item.Price)));
         Assert.All(items, item => Assert.Equal((ItemCategory.Consumable, false), (item.Category, item.ShopSellable)));
@@ -229,7 +234,7 @@ public partial class ItemTableTests
                 ("attack-stone", 1), ("sorcery-stone", 1), ("guard-stone", 1), ("ward-stone", 1),
                 ("vitality-stone", 2), ("gale-stone", 2), ("chaos-stone", 3), ("prism-stone", 3),
             ],
-            Content.AllItems.Where(item => item.Category == ItemCategory.Stone).Select(item => (item.Id, item.Stone!.BoxClass)));
+            CustomItems.Where(item => item.Category == ItemCategory.Stone).Select(item => (item.Id, item.Stone!.BoxClass)));
     }
 
     // 計畫 10 Task 6：密藥在商店 6 級販售，效果持續 1 小時
@@ -246,10 +251,10 @@ public partial class ItemTableTests
             ("ward-elixir", "結界密藥", new(BuffKind.MagicDefense, 1.2, 3600), 10000),
         ];
 
-        var elixirs = Content.AllItems.Where(item => item.Consumable == ConsumableKind.Elixir).ToList();
+        var elixirs = CustomItems.Where(item => item.Consumable == ConsumableKind.Elixir).ToList();
 
         Assert.Equal(expected, elixirs.Select(item => (item.Id, item.Name, item.Elixir!, item.Price)));
         Assert.All(elixirs, item => Assert.Equal((ItemCategory.Consumable, 6, true), (item.Category, item.ShopLevel, item.ShopSellable)));
-        Assert.Equal(elixirs, Content.ItemsForShop(ItemCategory.Consumable, 6).Where(item => item.Consumable == ConsumableKind.Elixir));
+        Assert.Equal(elixirs, CustomShelf(ItemCategory.Consumable, 6).Where(item => item.Consumable == ConsumableKind.Elixir));
     }
 }

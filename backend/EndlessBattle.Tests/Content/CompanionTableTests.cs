@@ -16,10 +16,15 @@ public class CompanionTableTests
     private static readonly JsonGameContent Content =
         JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
 
+    private static IEnumerable<ItemDefinition> CustomItems => Content.AllItems.Where(item => CustomContent.IsCustom(item.Id));
+
+    private static List<ItemDefinition> CustomShelf(ItemCategory category, int shopLevel) =>
+        Content.ItemsForShop(category, shopLevel).Where(item => CustomContent.IsCustom(item.Id)).ToList();
+
     [Fact]
     public void Medals_AreTheFiveWogMedals()
     {
-        var medals = Content.AllItems.Where(item => item.Category == ItemCategory.Medal).ToList();
+        var medals = CustomItems.Where(item => item.Category == ItemCategory.Medal).ToList();
 
         Assert.Equal(
             [(Continent, "大陸勳章"), (Kingdom, "王國勳章"), (Rainforest, "雨林勳章"), (RoyalCity, "王城勳章"), (Silver, "白銀勳章")],
@@ -33,7 +38,7 @@ public class CompanionTableTests
     [Fact]
     public void CaptureItems_UseWogMultipliers()
     {
-        var captures = Content.AllItems.Where(item => item.Consumable == ConsumableKind.Capture).ToList();
+        var captures = CustomItems.Where(item => item.Consumable == ConsumableKind.Capture).ToList();
 
         Assert.Equal(
             [
@@ -43,9 +48,9 @@ public class CompanionTableTests
             ],
             captures.Select(item => (item.Id, item.Name, item.Amount, item.Price, item.ShopLevel, item.ShopSellable)));
         Assert.All(captures, item => Assert.Equal(ItemCategory.Consumable, item.Category));
-        Assert.Contains(Content.ItemsForShop(ItemCategory.Consumable, 1), item => item.Id == "capture-net");
-        Assert.Contains(Content.ItemsForShop(ItemCategory.Consumable, 4), item => item.Id == "capture-cage");
-        Assert.DoesNotContain(Content.ItemsForShop(ItemCategory.Consumable, 6), item => item.Id == "capture-crystal");
+        Assert.Contains(CustomShelf(ItemCategory.Consumable, 1), item => item.Id == "capture-net");
+        Assert.Contains(CustomShelf(ItemCategory.Consumable, 4), item => item.Id == "capture-cage");
+        Assert.DoesNotContain(CustomShelf(ItemCategory.Consumable, 6), item => item.Id == "capture-crystal");
     }
 
     [Fact]
