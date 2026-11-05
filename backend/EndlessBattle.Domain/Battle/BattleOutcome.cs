@@ -9,4 +9,5 @@ public sealed record BattleOutcome(
     CombatantState Player,
     CombatantState Monster,
     SupplyState? Supply = null,
-    bool Escaped = false);
+    bool Escaped = false,
+    long MoneySpent = 0);

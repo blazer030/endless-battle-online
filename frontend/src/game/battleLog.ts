@@ -53,6 +53,12 @@ const describeSkill = (event: SkillEvent, monster: string): LogEntry[] => {
   const lines: LogEntry[] = [{ text: `你施展了${event.skillName}！`, kind: "trigger" }]
   if (event.heal > 0)
     lines.push({ text: `回復了 ${formatNumber(event.heal)} 點 HP。`, kind: "normal" })
+  const costs = [
+    event.hpCost > 0 ? `HP ${formatNumber(event.hpCost)}` : null,
+    event.spCost > 0 ? `SP ${formatNumber(event.spCost)}` : null,
+    event.moneyCost > 0 ? `金錢 ${formatNumber(event.moneyCost)}` : null,
+  ].filter((cost): cost is string => cost !== null)
+  if (costs.length > 0) lines.push({ text: `消耗了 ${costs.join("、")}。`, kind: "muted" })
   if (event.damage > 0)
     lines.push({ text: `${monster}受到 ${formatNumber(event.damage)} 點傷害。`, kind: "normal" })
   return lines

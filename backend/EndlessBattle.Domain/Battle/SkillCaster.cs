@@ -4,7 +4,10 @@ using EndlessBattle.Domain.Skills;
 namespace EndlessBattle.Domain.Battle;
 
 // Heal 是實際回復量（已扣掉超過 HpMax 的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
-public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0);
+// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗
+public sealed record SkillCast(
+    EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0,
+    int HpCost = 0, int SpCost = 0, int MoneyCost = 0);
 
 // 玩家技能的施放與持續（研究 §3.3）。主動與被動規則相同，只看每級的條件、消耗與效果：
 // 沒有發動條件的技能常駐：裝上就生效、不擲骰、不扣消耗；攻擊後時機的常駐技能（嗜血）每次命中都觸發。
@@ -13,6 +16,9 @@ public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter,
 public sealed class SkillCaster
 {
     private readonly CombatantState player;
+
+    // 對手的基本能力，給「能力比對手高」的條件比較；沒有對手時都當 0
+    private readonly CombatantState? opponentStats;
     private readonly IReadOnlyList<EquippedSkill> skills;
     private readonly Dictionary<EquippedSkill, int> remainingRounds = [];
 
@@ -28,14 +34,23 @@ public sealed class SkillCaster
     // 被對手封鎖技能的剩餘回合（含目前回合）；期間不發動、不判斷條件
     private int silencedRounds;
 
-    public SkillCaster(CombatantState player, IReadOnlyList<EquippedSkill> skills)
+    // money 是施放者身上的錢；null 表示不限（怪物），金錢消耗不扣
+    public SkillCaster(CombatantState player, IReadOnlyList<EquippedSkill> skills, CombatantState? opponent = null, long? money = null)
     {
         this.player = player;
+        opponentStats = opponent;
+        Money = money;
         this.skills = [.. skills.OrderBy(skill => skill.Slot)];
         Recompute();
     }
 
     public BattleModifiers Current { get; private set; } = new();
+
+    // 扣完金錢消耗後身上剩下的錢；不限時為 null
+    public long? Money { get; private set; }
+
+    // 發動當下（扣消耗前）的 SP，給以 SP 為基準的效果用
+    private readonly Dictionary<EquippedSkill, int> castSkillPoints = [];
 
     // 持續 n 回合含施放回合：第 n + 1 回合開頭失效。玩家每回合出手一次，所以冷卻也在回合開頭倒數
     public void ExpireAtRoundStart()
@@ -81,7 +96,7 @@ public sealed class SkillCaster
 
     public IReadOnlyList<(EquippedSkill Skill, int Damage)> DamageOverTimeBySkill() =>
         [.. skills.Where(IsInEffect)
-            .Select(equipped => (equipped, ActiveEffects(equipped).OfType<DamageOverTimeEffect>().Sum(effect => Scaled(effect.Scaling))))
+            .Select(equipped => (equipped, ActiveEffects(equipped).OfType<DamageOverTimeEffect>().Sum(effect => Scaled(effect.Scaling, equipped))))
             .Where(entry => entry.Item2 > 0)];
 
     // 玩家出手前，依欄位 1→5 嘗試施放；opponent* 是對手目前的 HP、SP 與 SP 上限，用在削減 HP、SP 的效果
@@ -95,6 +110,11 @@ public sealed class SkillCaster
         Cast(SkillTiming.AfterHit, hp, sp, random, damage, new Opponent(opponentHp, opponentSp, opponentSpMax));
 
     private readonly record struct Opponent(int Hp, int Sp, int SpMax);
+
+    // 回合結束時嘗試施放
+    public IReadOnlyList<SkillCast> CastAtRoundEnd(
+        int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
+        Cast(SkillTiming.RoundEnd, hp, sp, random, damage: 0, new Opponent(opponentHp, opponentSp, opponentSpMax));
 
     private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, int damage, Opponent opponent)
     {
@@ -133,16 +153,20 @@ public sealed class SkillCaster
                 continue;
             }
 
-            // 持續中、不擲骰的條件不成立、SP 不足或滿血時的回復技能都不擲 Chance：SP 只在住宿回復，不浪費在回復 0 上；
+            // 持續中、不擲骰的條件不成立、消耗不夠或滿血時的回復技能都不擲 Chance：SP 只在住宿回復，不浪費在回復 0 上；
             // 這些情況耗用的亂數與沒有技能時相同
-            var spCost = SkillPointCost(level);
-            if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(level, hp) || sp < spCost
+            var (hpCost, spCost, moneyCost) = CostsOf(level, sp);
+            if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(level, hp, opponent.Hp) || !CanPay(level, hp, sp, hpCost, spCost, moneyCost)
                 || RestoresOnlyFullResources(level, hp, sp) || !ChanceConditionsHold(level, random))
             {
                 continue;
             }
 
+            // 效果的數值用扣消耗前的 SP 算，再扣消耗、套用效果
+            castSkillPoints[equipped] = sp;
+            hp -= hpCost;
             sp -= spCost;
+            Money -= Money is null ? null : moneyCost;
 
             var instant = Instant(equipped, damage, hp, sp, opponent);
             hp += instant.Heal;
@@ -153,7 +177,8 @@ public sealed class SkillCaster
             missedEffects[equipped] = RollEffectChances(level, random);
             StartCooldown(equipped, level);
             recompute = true;
-            casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss));
+            casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss,
+                hpCost, spCost, Money is null ? 0 : moneyCost));
         }
 
         if (recompute)
@@ -164,10 +189,12 @@ public sealed class SkillCaster
         return casts;
     }
 
-    private bool ConditionsWithoutRollHold(SkillLevel level, int hp) =>
+    private bool ConditionsWithoutRollHold(SkillLevel level, int hp, int opponentHp) =>
         level.Conditions.All(condition => condition.Kind switch
         {
             SkillConditionKind.HitPointsBelow => (long)hp * 100 < (long)condition.Percent * player.HpMax,
+            SkillConditionKind.HitPointsBelowOpponent => hp < opponentHp,
+            SkillConditionKind.StatAbove => StatOf(condition.Stat!.Value, player) > StatOf(condition.Stat.Value, opponentStats),
             _ => true,
         });
 
@@ -176,8 +203,22 @@ public sealed class SkillCaster
         level.Conditions.Where(condition => condition.Kind == SkillConditionKind.Chance)
             .All(condition => PhpRandom.Between(random, 1, 100) <= condition.Percent);
 
-    private static int SkillPointCost(SkillLevel level) =>
-        level.Costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => cost.Amount);
+    // 百分比一律以最大值為基準；All 是目前全部的 SP
+    private (int Hp, int Sp, int Money) CostsOf(SkillLevel level, int sp)
+    {
+        int AmountOf(SkillCost cost, int maximum) =>
+            cost.All ? sp : cost.Percent is { } percent ? BattleModifiers.Round(maximum * percent / 100) : cost.Amount;
+
+        return (
+            level.Costs.Where(cost => cost.Kind == SkillCostKind.HitPoints).Sum(cost => AmountOf(cost, player.HpMax)),
+            level.Costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => AmountOf(cost, player.SpMax)),
+            level.Costs.Where(cost => cost.Kind == SkillCostKind.Money).Sum(cost => cost.Amount));
+    }
+
+    // 不夠扣就不能發動：HP 扣完至少剩 1；SP、金錢要夠；「全部 SP」至少要有 1 點
+    private bool CanPay(SkillLevel level, int hp, int sp, int hpCost, int spCost, int moneyCost) =>
+        (hpCost == 0 || hp > hpCost) && sp >= spCost && (sp > 0 || !level.Costs.Any(cost => cost.All))
+        && (Money is null || Money >= moneyCost);
 
     // 持續中不重複發動：直到最長的效果結束；只在發動回合生效的效果也擋住同一回合
     private static int LastingRounds(SkillLevel level) => level.Effects.Max(effect => Math.Max(1, effect.Rounds));
@@ -189,7 +230,7 @@ public sealed class SkillCaster
     {
         var effects = equipped.Skill.LevelAt(equipped.Level).Effects;
         int RestoreOf(SkillResource resource, int maximum) => effects.OfType<RestoreEffect>().Where(effect => effect.Resource == resource)
-            .Sum(effect => effect.Scaling is { } scaling ? Scaled(scaling)
+            .Sum(effect => effect.Scaling is { } scaling ? Scaled(scaling, equipped)
                 : effect.PercentOfMaximum is { } percent ? BattleModifiers.Round(maximum * percent / 100)
                 : BattleModifiers.Round(damage * effect.PercentOfDamage!.Value / 100));
 
@@ -224,21 +265,26 @@ public sealed class SkillCaster
         return missed;
     }
 
-    private int Scaled(IReadOnlyList<SkillScaling> scaling) =>
-        BattleModifiers.Round(scaling.Sum(term => Basis(term.Basis) * term.Ratio));
+    // 以 SP 為基準時用該技能發動當下（扣消耗前）的 SP；常駐技能用開戰時的 SP
+    private int Scaled(IReadOnlyList<SkillScaling> scaling, EquippedSkill equipped) =>
+        BattleModifiers.Round(scaling.Sum(term => term.Ratio * (term.Basis == SkillScalingBasis.SkillPoints
+            ? castSkillPoints.GetValueOrDefault(equipped, player.Sp)
+            : StatOf(term.Basis, player))));
 
-    private int Basis(SkillScalingBasis basis) => basis switch
+    // 沒有對手資料時一律當 0
+    private static int StatOf(SkillScalingBasis basis, CombatantState? state) => state is null ? 0 : basis switch
     {
-        SkillScalingBasis.Strength => player.Str,
-        SkillScalingBasis.Intelligence => player.Smart,
-        SkillScalingBasis.Vitality => player.Vit,
-        SkillScalingBasis.Agility => player.Agi,
-        SkillScalingBasis.Charisma => player.Au,
-        SkillScalingBasis.Faith => player.Be,
-        SkillScalingBasis.Level => player.Level,
-        SkillScalingBasis.Attack => player.At,
-        SkillScalingBasis.MagicAttack => player.Mat,
-        SkillScalingBasis.Defense => player.Df,
+        SkillScalingBasis.Strength => state.Str,
+        SkillScalingBasis.Intelligence => state.Smart,
+        SkillScalingBasis.Vitality => state.Vit,
+        SkillScalingBasis.Agility => state.Agi,
+        SkillScalingBasis.Charisma => state.Au,
+        SkillScalingBasis.Faith => state.Be,
+        SkillScalingBasis.Level => state.Level,
+        SkillScalingBasis.Attack => state.At,
+        SkillScalingBasis.MagicAttack => state.Mat,
+        SkillScalingBasis.Defense => state.Df,
+        SkillScalingBasis.SkillPoints => state.Sp,
         _ => throw new ArgumentOutOfRangeException(nameof(basis), basis, "未知的能力基準"),
     };
 
@@ -287,10 +333,10 @@ public sealed class SkillCaster
                     percents[(change.Target, change.Stat)] = percents.GetValueOrDefault((change.Target, change.Stat)) + percent;
                     break;
                 case StatChangeEffect change:
-                    flats[(change.Target, change.Stat)] = flats.GetValueOrDefault((change.Target, change.Stat)) + (change.Amount ?? Scaled(change.Scaling!));
+                    flats[(change.Target, change.Stat)] = flats.GetValueOrDefault((change.Target, change.Stat)) + (change.Amount ?? Scaled(change.Scaling!, equipped));
                     break;
                 case BonusDamageEffect bonus:
-                    var amount = Scaled(bonus.Scaling);
+                    var amount = Scaled(bonus.Scaling, equipped);
                     modifiers = bonus.AttackKind switch
                     {
                         SkillAttackKind.Physical => modifiers with { PhysicalBonusDamage = modifiers.PhysicalBonusDamage + amount },

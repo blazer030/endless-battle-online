@@ -25,7 +25,8 @@ public static class WogBattle
         CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, SupplyState? supply, IRandomSource random) =>
         Run(player, monster, playerPreferred, skills, supply, random, pet: null);
 
-    // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）；escapeHpPercent 為 0 表示不逃（不擲逃跑的骰）
+    // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）；escapeHpPercent 為 0 表示不逃（不擲逃跑的骰）；
+    // money 是玩家身上的錢，給金錢消耗的技能用，null 表示不限（不扣）
     public static BattleOutcome Run(
         CombatantState player,
         CombatantState monster,
@@ -34,7 +35,8 @@ public static class WogBattle
         SupplyState? supply,
         IRandomSource random,
         PetCombatant? pet,
-        int escapeHpPercent = 0)
+        int escapeHpPercent = 0,
+        long? money = null)
     {
         var events = new List<BattleEvent>();
         var playerHp = player.Hp;
@@ -42,7 +44,7 @@ public static class WogBattle
         var monsterHp = monster.Hp;
         var monsterSp = monster.Sp;
         var damageDealt = 0;
-        var caster = new SkillCaster(player, skills);
+        var caster = new SkillCaster(player, skills, monster, money);
         var potionsUsed = 0;
         // 代擋量 ≤ 0 表示寵物不在場（退出這一場），不再代擋也不再出手
         var guard = pet?.Guard ?? 0;
@@ -89,7 +91,8 @@ public static class WogBattle
                 return Outcome(Opponent(loser), round);
             }
 
-            if (PetStrike(roundStart + PetStrikeOffsetSeconds) || DamageOverTime(roundStart + PetStrikeOffsetSeconds))
+            var roundEnd = roundStart + PetStrikeOffsetSeconds;
+            if (PetStrike(roundEnd) || RoundEndSkills(roundEnd) || DamageOverTime(roundEnd))
             {
                 events.Add(new DefeatEvent(events[^1].AtSeconds, CombatSide.Monster));
                 return Outcome(CombatSide.Player, round);
@@ -202,8 +205,15 @@ public static class WogBattle
                 damageDealt += cast.OpponentDamage;
                 monsterSp = Math.Max(0, monsterSp - cast.OpponentSpLoss);
                 events.Add(new SkillEvent(atSeconds, CombatSide.Player, cast.Equipped.Skill.Id, cast.Equipped.Skill.Name, cast.Equipped.Level,
-                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null));
+                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null, cast.HpCost, cast.SpCost, cast.MoneyCost));
             }
+        }
+
+        // 回合結束時機的技能；回傳怪物是否倒下
+        bool RoundEndSkills(double atSeconds)
+        {
+            Record(caster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
+            return monsterHp == 0;
         }
 
         // 回合結束時持續傷害生效；回傳怪物是否倒下
@@ -225,7 +235,8 @@ public static class WogBattle
         }
 
         BattleOutcome Outcome(CombatSide? winner, int rounds) =>
-            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp, Sp = monsterSp }, supply);
+            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp, Sp = monsterSp }, supply,
+                MoneySpent: money - caster.Money ?? 0);
     }
 
     private static CombatSide Opponent(CombatSide side) => side == CombatSide.Player ? CombatSide.Monster : CombatSide.Player;

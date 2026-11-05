@@ -471,6 +471,25 @@ public class JsonGameContentTests
             "lucky 第 1 級");
 
     [Fact]
+    public void Skill_ConditionsAndCostsLoad()
+    {
+        const string conditions = """[{ "kind": "StatAbove", "stat": "strength" }, { "kind": "HitPointsBelowOpponent" }, { "kind": "Chance", "percent": 40 }]""";
+        const string costs = """[{ "kind": "HitPoints", "percent": 45 }, { "kind": "SkillPoints", "all": true }, { "kind": "Money", "amount": 100 }]""";
+
+        var level = LoadSkills(ComposedSkillJson("bold", 1, ComposedLevel(1, conditions, AttackUp, costs))).GetSkill("bold").LevelAt(1);
+
+        Assert.Equal(SkillScalingBasis.Strength, level.Conditions[0].Stat);
+        Assert.Equal(SkillConditionKind.HitPointsBelowOpponent, level.Conditions[1].Kind);
+        Assert.Equal((45.0, true, 100), (level.Costs[0].Percent!.Value, level.Costs[1].All, level.Costs[2].Amount));
+    }
+
+    [Fact]
+    public void Skill_CostWithTwoValuesIsRejected() =>
+        AssertSkillsRejected(
+            ComposedSkillJson("greedy", 1, ComposedLevel(1, ChanceForty, AttackUp, """[{ "kind": "HitPoints", "amount": 10, "percent": 10 }]""")),
+            "greedy 第 1 級");
+
+    [Fact]
     public void Skills_RejectUnknownEnumValue()
     {
         AssertSkillsRejected(ComposedSkillJson("bogus-type", 1, ComposedLevel(1, ChanceForty, AttackUp)).Replace("\"Active\"", "\"bogus\""), "bogus-type");

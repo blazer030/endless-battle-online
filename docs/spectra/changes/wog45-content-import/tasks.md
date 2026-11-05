@@ -86,7 +86,7 @@
     - `AlwaysOnBonusDamage_AppliesEveryAttack`（毒傷陷阱）
     - `JsonGameContentTests.Skill_ChanceOnUnsupportedEffectIsRejected`（MultiHit 帶 chance → 失敗）
   - 驗證：全部測試通過。
-- [ ] 2.7 新增條件、消耗與時機 [after: 2.6]，對應需求「Costs block activation when unaffordable」：
+- [x] 2.7 新增條件、消耗與時機 [after: 2.6]，對應需求「Costs block activation when unaffordable」：
   - 條件 `StatAbove`、`HitPointsBelowOpponent`。
   - 消耗 `HitPoints`（amount、percent）、`SkillPoints` 的 percent 與 all、`Money`（怪物不扣）。
   - 時機 `RoundEnd`。

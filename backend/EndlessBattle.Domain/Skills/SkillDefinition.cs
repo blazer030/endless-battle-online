@@ -3,8 +3,8 @@ namespace EndlessBattle.Domain.Skills;
 // Type 只決定能裝在哪一種欄位：主動最多 3 個、被動最多 2 個；其餘規則主動被動相同
 public enum SkillType { Active, Passive }
 
-// BeforeAttack：自己出手前；AfterHit：自己物理命中後，可以用這次造成的傷害
-public enum SkillTiming { BeforeAttack, AfterHit }
+// BeforeAttack：自己出手前；AfterHit：自己物理命中後，可以用這次造成的傷害；RoundEnd：回合結束時
+public enum SkillTiming { BeforeAttack, AfterHit, RoundEnd }
 
 // 每一級的數值各自設定。Cooldown 以玩家自己的出手計：發動後接下來 Cooldown 次出手都不能再發動，0 表示沒有冷卻
 public sealed record SkillLevel(

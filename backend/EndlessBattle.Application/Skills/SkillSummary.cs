@@ -29,14 +29,21 @@ public static class SkillSummary
     {
         SkillConditionKind.Chance => $"機率 {condition.Percent}%",
         SkillConditionKind.HitPointsBelow => $"HP 低於 {condition.Percent}%",
+        SkillConditionKind.HitPointsBelowOpponent => "HP 比對手低",
+        SkillConditionKind.StatAbove => $"{BasisName(condition.Stat!.Value)}比對手高",
         _ => throw new ArgumentOutOfRangeException(nameof(condition), condition.Kind, "未知的發動條件"),
     };
 
     private static string Cost(SkillCost cost) => cost.Kind switch
     {
-        SkillCostKind.SkillPoints => $"消耗 SP {cost.Amount}",
+        SkillCostKind.SkillPoints when cost.All => "消耗全部 SP",
+        SkillCostKind.SkillPoints => $"消耗 SP {CostAmount(cost)}",
+        SkillCostKind.HitPoints => $"消耗 HP {CostAmount(cost)}",
+        SkillCostKind.Money => $"消耗金錢 {cost.Amount}",
         _ => throw new ArgumentOutOfRangeException(nameof(cost), cost.Kind, "未知的消耗"),
     };
+
+    private static string CostAmount(SkillCost cost) => cost.Percent is { } percent ? $"最大值×{Number(percent)}%" : $"{cost.Amount}";
 
     private static string Effect(SkillEffect effect)
     {
@@ -124,6 +131,7 @@ public static class SkillSummary
         SkillScalingBasis.Attack => "物攻",
         SkillScalingBasis.MagicAttack => "魔攻",
         SkillScalingBasis.Defense => "物防",
+        SkillScalingBasis.SkillPoints => "SP",
         _ => throw new ArgumentOutOfRangeException(nameof(basis), basis, "未知的能力基準"),
     };
 

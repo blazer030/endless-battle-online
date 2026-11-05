@@ -82,7 +82,8 @@ public static class AdventureSimulator
             // 寵物每場重新建立，代擋量不帶到下一場
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
             // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
-            var outcome = WogBattle.Run(player, monster, character.Settings.Attack, skills, supply, random, pet, character.Settings.EscapeHpPercent);
+            var outcome = WogBattle.Run(
+                player, monster, character.Settings.Attack, skills, supply, random, pet, character.Settings.EscapeHpPercent, character.Money);
             supply = outcome.Supply;
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
@@ -113,7 +114,7 @@ public static class AdventureSimulator
                 }
             }
 
-            character = character with { Hp = outcome.Player.Hp, Sp = outcome.Player.Sp };
+            character = character with { Hp = outcome.Player.Hp, Sp = outcome.Player.Sp, Money = character.Money - outcome.MoneySpent };
 
             long exp = 0, money = 0, jobExp = 0;
             IReadOnlyList<string> dropped = [];

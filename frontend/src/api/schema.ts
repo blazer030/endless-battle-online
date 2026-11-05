@@ -2533,6 +2533,21 @@ export interface components {
             damage: number;
             /** Format: int32 */
             opponentHpAfter?: null | number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            hpCost: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            spCost: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            moneyCost: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -3224,7 +3239,7 @@ export interface components {
             skillId: string;
         };
         /** @enum {unknown} */
-        SkillTiming: "BeforeAttack" | "AfterHit";
+        SkillTiming: "BeforeAttack" | "AfterHit" | "RoundEnd";
         /** @enum {unknown} */
         SkillType: "Active" | "Passive";
         SocketRequest: {

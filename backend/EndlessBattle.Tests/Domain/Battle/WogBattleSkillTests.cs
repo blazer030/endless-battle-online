@@ -86,7 +86,7 @@ public class WogBattleSkillTests
         var outcome = WogBattle.Run(Player(), Monster(hp: 10000), null, [Equip(Burst, level: 5)], random);
 
         Assert.Equal([171, 171, 171, 150], AttacksBy(outcome, CombatSide.Player).Take(4).Select(attack => attack.Damage));
-        Assert.Equal(new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 5, SpAfter: 83, Heal: 0), Assert.Single(outcome.Events.OfType<SkillEvent>()));
+        Assert.Equal(new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 5, SpAfter: 83, Heal: 0, SpCost: 17), Assert.Single(outcome.Events.OfType<SkillEvent>()));
         Assert.Equal(83, outcome.Player.Sp);
     }
 
@@ -104,7 +104,7 @@ public class WogBattleSkillTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0),
+                new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0, SpCost: 8),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 858, SpecialAttackName: null),
                 new AttackEvent(0.133333, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 858, SpecialAttackName: null),
                 new AttackEvent(0.266667, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 716, SpecialAttackName: null),
@@ -145,7 +145,7 @@ public class WogBattleSkillTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0),
+                new SkillEvent(0, CombatSide.Player, "combo", "連擊", Level: 2, SpAfter: 92, Heal: 0, SpCost: 8),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 58, SpecialAttackName: null),
                 new AttackEvent(0.133333, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 142, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
                 new DefeatEvent(0.133333, CombatSide.Monster),
@@ -168,7 +168,7 @@ public class WogBattleSkillTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new SkillEvent(0, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, expectedHeal),
+                new SkillEvent(0, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, expectedHeal, SpCost: 11),
                 new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
                 new DefeatEvent(0, CombatSide.Monster),
             },
@@ -371,7 +371,7 @@ public class WogBattleSkillTests
 
         var outcome = WogBattle.Run(Player(hp: 100, hpMax: 100), Monster(at: 60), null, [Equip(Heal, level: 3)], random);
 
-        Assert.Equal(new SkillEvent(0.8, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, Heal: 22), Assert.Single(outcome.Events.OfType<SkillEvent>()));
+        Assert.Equal(new SkillEvent(0.8, CombatSide.Player, "heal", "治癒", Level: 3, SpAfter: 89, Heal: 22, SpCost: 11), Assert.Single(outcome.Events.OfType<SkillEvent>()));
         Assert.Equal(100, outcome.Player.Hp);
     }
 

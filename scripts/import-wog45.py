@@ -255,7 +255,7 @@ def invalid_monster_reason(monster):
 def import_monsters(gaps, item_ids):
     title = "怪物"
     gaps.note(title, "屬性的地水火木風毒轉成 1～6；子地區名稱轉成該地點的子地區編號 1～4。")
-    gaps.note(title, "所有怪物的 `str`、`smart`、`life`、`vit`、`be`、`image`、`npcMessage` 都沒有搬：現有戰鬥規則用不到。")
+    gaps.note(title, "`str`、`smart`、`vit`、`be` 給技能的「能力比對手高」條件比較；`life`、`image`、`npcMessage` 沒有搬：現有戰鬥規則用不到。")
     gaps.note(title, "任務怪（`missionId` 有值）在任務 4.2 與任務一起匯入。")
     places = {place["id"]: place for place in load("places.json")}
     records = []
@@ -296,6 +296,7 @@ def import_monsters(gaps, item_ids):
             "placeId": monster["placeId"],
             "subPlaces": [place["subPlaces"].index(sub) + 1 for sub in monster["subPlaces"]],
             "drops": drops,
+            "str": monster.get("str", 0), "smart": monster.get("smart", 0), "vit": monster.get("vit", 0), "be": monster.get("be", 0),
         })
     return records + custom_records(read_content("monsters.json")["monsters"], "monster")
 

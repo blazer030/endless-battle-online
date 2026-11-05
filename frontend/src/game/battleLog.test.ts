@@ -82,6 +82,9 @@ const skill = (overrides: Partial<SkillEvent>) =>
     heal: 0,
     damage: 0,
     opponentHpAfter: null,
+    hpCost: 0,
+    spCost: 0,
+    moneyCost: 0,
     ...overrides,
   })
 
@@ -148,6 +151,14 @@ const cases: [string, PlaybackItem, Line[]][] = [
     [
       ["你施展了施毒！", "trigger"],
       ["史萊姆受到 50 點傷害。", "normal"],
+    ],
+  ],
+  [
+    "player skill with costs",
+    skill({ skillName: "滅世", hpCost: 450, spCost: 5 }),
+    [
+      ["你施展了滅世！", "trigger"],
+      ["消耗了 HP 450、SP 5。", "muted"],
     ],
   ],
   ["monster skill is not narrated", skill({ caster: "Monster" }), []],

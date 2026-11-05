@@ -598,11 +598,17 @@ public sealed class JsonGameContent : IGameContent
 
             foreach (var condition in level.Conditions!)
             {
-                Require(condition.Kind == SkillConditionKind.Chance ? condition.Percent is >= 1 and <= 100 : condition.Percent is >= 1 and <= 99,
-                    $"的條件 {condition.Kind} 的 percent 超出範圍：{condition.Percent}");
+                Require(condition.Kind switch
+                {
+                    SkillConditionKind.Chance => condition.Percent is >= 1 and <= 100,
+                    SkillConditionKind.HitPointsBelow => condition.Percent is >= 1 and <= 99,
+                    SkillConditionKind.StatAbove => condition.Stat is not (null or SkillScalingBasis.SkillPoints),
+                    _ => true,
+                }, $"的條件 {condition.Kind} 的數值超出範圍");
             }
 
-            Require(level.Costs!.All(cost => cost.Amount >= 1), "的消耗必須至少 1");
+            Require(level.Costs!.All(cost => cost.All || cost.Percent is > 0 and <= 100 || cost.Percent is null && cost.Amount >= 1),
+                "的消耗必須至少 1，百分比在 0～100");
             foreach (var effect in level.Effects!)
             {
                 Require(effect.Rounds >= 0, "的效果 rounds 不可為負");

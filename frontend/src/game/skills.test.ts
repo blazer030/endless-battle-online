@@ -93,6 +93,7 @@ describe("skills", () => {
 
   it("timingText_MarksSkillsThatActivateAfterAHit", () => {
     expect(timingText("AfterHit")).toBe("命中後")
+    expect(timingText("RoundEnd")).toBe("回合結束")
     expect(timingText("BeforeAttack")).toBeNull()
   })
 

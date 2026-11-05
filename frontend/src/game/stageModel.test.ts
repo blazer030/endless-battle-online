@@ -48,6 +48,9 @@ const skill = (overrides: Partial<SkillEvent> = {}): BattleEvent => ({
   heal: 0,
   damage: 0,
   opponentHpAfter: null,
+  hpCost: 0,
+  spCost: 0,
+  moneyCost: 0,
   atSeconds: 1,
   ...overrides,
 })

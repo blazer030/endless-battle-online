@@ -33,9 +33,9 @@ export const setSlot = (drafts: SlotDraft[], slot: SlotNumber, skillId: string) 
 export const clearSlot = (drafts: SlotDraft[], slot: SlotNumber) =>
   updateSlot(drafts, slot, (draft) => ({ ...draft, skillId: null }))
 
-// 命中後才發動的技能在效果文字前標出時機
+// 命中後、回合結束才發動的技能在效果文字前標出時機；出手前是預設，不標
 export const timingText = (timing: SkillView["timing"]): string | null =>
-  timing === "AfterHit" ? "命中後" : null
+  timing === "AfterHit" ? "命中後" : timing === "RoundEnd" ? "回合結束" : null
 
 // 主動欄裝入技能目前等級的效果文字；空欄、找不到技能、未學或被動欄回傳 null
 export const equippedSummary = (

@@ -2,14 +2,24 @@ namespace EndlessBattle.Domain.Skills;
 
 // 技能每一級由發動條件、消耗、效果組成；數值都寫在內容檔，戰鬥只依種類與數值計算
 
-public enum SkillConditionKind { Chance, HitPointsBelow }
+public enum SkillConditionKind { Chance, HitPointsBelow, HitPointsBelowOpponent, StatAbove }
 
-// Chance：Percent 是 1～100 的機率；HitPointsBelow：自己的 HP 低於最大 HP 的 Percent%
-public sealed record SkillCondition(SkillConditionKind Kind, int Percent);
+// Chance：Percent 是 1～100 的機率；HitPointsBelow：自己的 HP 低於最大 HP 的 Percent%；
+// HitPointsBelowOpponent：自己的 HP 比對手低；StatAbove：自己的 Stat 比對手高
+public sealed record SkillCondition(SkillConditionKind Kind, int Percent)
+{
+    public SkillScalingBasis? Stat { get; init; }
+}
 
-public enum SkillCostKind { SkillPoints }
+public enum SkillCostKind { HitPoints, SkillPoints, Money }
 
-public sealed record SkillCost(SkillCostKind Kind, int Amount);
+// Amount（固定值）、Percent（最大值的比例）、All（SP 全部）三擇一；金錢只有 Amount
+public sealed record SkillCost(SkillCostKind Kind, int Amount)
+{
+    public double? Percent { get; init; }
+
+    public bool All { get; init; }
+}
 
 public enum SkillTarget { Caster, Opponent }
 
@@ -31,7 +41,8 @@ public enum SkillStat
     EscapeRate,
 }
 
-public enum SkillScalingBasis { Strength, Intelligence, Vitality, Agility, Charisma, Faith, Level, Attack, MagicAttack, Defense }
+// SkillPoints 用發動前（扣消耗前）的 SP
+public enum SkillScalingBasis { Strength, Intelligence, Vitality, Agility, Charisma, Faith, Level, Attack, MagicAttack, Defense, SkillPoints }
 
 public sealed record SkillScaling(SkillScalingBasis Basis, double Ratio);
 

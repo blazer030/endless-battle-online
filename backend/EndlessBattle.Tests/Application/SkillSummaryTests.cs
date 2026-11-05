@@ -34,4 +34,15 @@ public class SkillSummaryTests
 
         Assert.Equal("機率 40%｜追加物理傷害 敏捷×15%（機率 20%）、每回合造成 智力×10% 傷害，3 回合、攻擊屬性轉為火，5 回合", SkillSummary.Of(level));
     }
+
+    [Fact]
+    public void Summary_DescribesNewConditionsAndCosts()
+    {
+        var level = Level(
+            [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.Strength }, new SkillCondition(SkillConditionKind.Chance, 40)],
+            [new SkillCost(SkillCostKind.HitPoints, 0) { Percent = 45 }, new SkillCost(SkillCostKind.SkillPoints, 0) { All = true }],
+            [new StatChangeEffect(SkillTarget.Caster, SkillStat.MagicAttack, null, null, [new SkillScaling(SkillScalingBasis.SkillPoints, 0.1)], Rounds: 1)]);
+
+        Assert.Equal("力量比對手高｜機率 40%｜消耗 HP 最大值×45%｜消耗全部 SP｜自己魔攻 +SP×10%，1 回合", SkillSummary.Of(level));
+    }
 }

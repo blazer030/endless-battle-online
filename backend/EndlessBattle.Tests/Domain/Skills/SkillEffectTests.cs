@@ -467,6 +467,97 @@ public class SkillEffectTests
 
         Assert.Equal([50, 45], first.Concat(second).Select(cast => cast.OpponentDamage));
     }
+
+    private static SkillCost HitPointsPercent(double percent) => new(SkillCostKind.HitPoints, 0) { Percent = percent };
+
+    [Fact]
+    public void StatAbove_BlocksWhenLower()
+    {
+        // 劍雨：魔攻比對手高才發動；50 對 60 不發動、不扣 SP、不擲骰
+        var skill = Skill(SkillType.Active, Level(1,
+            [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.MagicAttack }, Chance(40)],
+            [AttackPercent(5)], costs: [new SkillCost(SkillCostKind.SkillPoints, 5)]));
+        var random = new ScriptedRandom(0.0);
+        var caster = new SkillCaster(Player() with { Mat = 50 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { Mat = 60 });
+
+        Assert.Empty(caster.CastBeforeAttack(1000, 100, random));
+        Assert.Equal(0, random.Consumed);
+        Assert.Single(new SkillCaster(Player() with { Mat = 70 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { Mat = 60 })
+            .CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
+    }
+
+    [Fact]
+    public void HitPointsCost_PaidOnActivation()
+    {
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)], [AttackPercent(50)], costs: [HitPointsPercent(45)]));
+
+        var cast = Assert.Single(new SkillCaster(Player(hp: 1000), [new EquippedSkill(skill, 1, 1)]).CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
+
+        Assert.Equal((550, 450), (cast.HpAfter, cast.HpCost));
+    }
+
+    [Fact]
+    public void UnaffordableCost_BlocksSkill()
+    {
+        // HP 必須大於消耗量：目前 400、扣 45%（450）→ 不發動、不擲骰
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)], [AttackPercent(50)], costs: [HitPointsPercent(45)]));
+        var random = new ScriptedRandom(0.0);
+
+        Assert.Empty(new SkillCaster(Player(hp: 400), [new EquippedSkill(skill, 1, 1)]).CastBeforeAttack(400, 100, random));
+        Assert.Equal(0, random.Consumed);
+    }
+
+    [Fact]
+    public void EffectValues_UseResourcesBeforeCost()
+    {
+        // 魔力爆發：消耗全部 SP，魔攻 + SP×0.1；SP 300、魔攻 100 → 130，SP 變 0
+        var player = Player() with { Mat = 100, Sp = 300, SpMax = 300 };
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)],
+            [Change(SkillStat.MagicAttack, scaling: [new SkillScaling(SkillScalingBasis.SkillPoints, 0.1)]) with { Rounds = 1 }],
+            costs: [new SkillCost(SkillCostKind.SkillPoints, 0) { All = true }]));
+        var caster = new SkillCaster(player, [new EquippedSkill(skill, 1, 1)]);
+
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 300, new ScriptedRandom(0.0)));
+
+        Assert.Equal((130, 0, 300), (caster.Current.ApplyToPlayer(player).Mat, cast.SpAfter, cast.SpCost));
+    }
+
+    [Fact]
+    public void MonsterMoneyCost_IsNotPaid()
+    {
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)], [AttackPercent(5)], costs: [new SkillCost(SkillCostKind.Money, 100)]));
+
+        // 金錢不限（怪物）時照樣發動、不記扣錢；玩家錢不夠就不發動
+        var unlimited = Assert.Single(new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)]).CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
+        var poor = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)], money: 50).CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+        var rich = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)], money: 500);
+        var paid = Assert.Single(rich.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
+
+        Assert.Equal((0, 0, 100, 400L), (unlimited.MoneyCost, poor.Count, paid.MoneyCost, rich.Money!.Value));
+    }
+
+    [Theory]
+    [InlineData(300, 500, true)]
+    [InlineData(600, 500, false)]
+    public void HitPointsBelowOpponent_TriggersOnlyWhenBehind(int hp, int opponentHp, bool activates)
+    {
+        var skill = Skill(SkillType.Active, Level(1, [new SkillCondition(SkillConditionKind.HitPointsBelowOpponent, 0)], [AttackPercent(5)]));
+
+        var casts = new SkillCaster(Player(hp: hp), [new EquippedSkill(skill, 1, 1)]).CastBeforeAttack(hp, 100, new ScriptedRandom(0.0), opponentHp);
+
+        Assert.Equal(activates, casts.Count == 1);
+    }
+
+    [Fact]
+    public void RoundEndTiming_ActivatesAtRoundEnd()
+    {
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)], [new RestoreEffect(SkillResource.HitPoints, [new SkillScaling(SkillScalingBasis.Intelligence, 1)], null, 0)]))
+            with { Timing = SkillTiming.RoundEnd };
+        var caster = new SkillCaster(Player(hp: 500), [new EquippedSkill(skill, 1, 1)]);
+
+        Assert.Empty(caster.CastBeforeAttack(500, 100, new ScriptedRandom(0.0)));
+        Assert.Equal(550, Assert.Single(caster.CastAtRoundEnd(500, 100, new ScriptedRandom(0.0))).HpAfter);
+    }
 }
 
 internal static class SkillCasterTestExtensions

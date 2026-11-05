@@ -11,15 +11,36 @@ internal sealed class SkillPartsReader(string skillId, int level)
     public SkillCondition Condition(JsonElement element)
     {
         var kind = Enum<SkillConditionKind>(element, "kind", "條件");
-        Allow(element, kind.ToString(), "kind", "percent");
-        return new SkillCondition(kind, Int(element, "percent"));
+        switch (kind)
+        {
+            case SkillConditionKind.StatAbove:
+                Allow(element, kind.ToString(), "kind", "stat");
+                return new SkillCondition(kind, 0) { Stat = Enum<SkillScalingBasis>(element, "stat", "能力") };
+            case SkillConditionKind.HitPointsBelowOpponent:
+                Allow(element, kind.ToString(), "kind");
+                return new SkillCondition(kind, 0);
+            default:
+                Allow(element, kind.ToString(), "kind", "percent");
+                return new SkillCondition(kind, Int(element, "percent"));
+        }
     }
 
+    // amount、percent（最大值的比例）、all（只有 SP）三擇一；金錢只有 amount
     public SkillCost Cost(JsonElement element)
     {
         var kind = Enum<SkillCostKind>(element, "kind", "消耗");
-        Allow(element, kind.ToString(), "kind", "amount");
-        return new SkillCost(kind, Int(element, "amount"));
+        Allow(element, kind.ToString(), kind == SkillCostKind.Money ? ["kind", "amount"] : kind == SkillCostKind.SkillPoints
+            ? ["kind", "amount", "percent", "all"]
+            : ["kind", "amount", "percent"]);
+        var amount = OptionalInt(element, "amount");
+        var percent = OptionalDouble(element, "percent");
+        var all = element.TryGetProperty("all", out var value) && value.ValueKind == JsonValueKind.True;
+        if (new object?[] { amount, percent, all ? true : null }.Count(entry => entry is not null) != 1)
+        {
+            throw Rejected($"的消耗 {kind} 必須恰好有 amount、percent、all 其中一項");
+        }
+
+        return new SkillCost(kind, amount ?? 0) { Percent = percent, All = all };
     }
 
     public SkillEffect Effect(JsonElement element)
