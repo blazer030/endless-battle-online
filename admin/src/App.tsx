@@ -7,7 +7,8 @@ import { Outlet, Route, Routes } from "react-router"
 import { dataProvider } from "./api/dataProvider"
 import { ContentCreate, ContentEdit, ContentList } from "./content/ContentPages"
 import { contentResources } from "./content/resources"
-import { DraftBar } from "./draft/DraftBar"
+import { DraftError } from "./draft/DraftBar"
+import { AdminHeader } from "./layout/AdminHeader"
 import { ReportPage } from "./report/ReportPage"
 import "@refinedev/antd/dist/reset.css"
 
@@ -36,8 +37,11 @@ export function App() {
           <Routes>
             <Route
               element={
-                <ThemedLayout Title={(props) => <ThemedTitle {...props} text={AppTitle} />}>
-                  <DraftBar />
+                <ThemedLayout
+                  Header={AdminHeader}
+                  Title={(props) => <ThemedTitle {...props} text={AppTitle} />}
+                >
+                  <DraftError />
                   <Outlet />
                 </ThemedLayout>
               }
