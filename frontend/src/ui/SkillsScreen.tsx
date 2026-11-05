@@ -2,12 +2,9 @@ import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
 import {
   ActiveSlots,
-  activationText,
   clearSlot,
-  cooldownText,
   draftsFrom,
-  durationText,
-  equippedActivation,
+  equippedSummary,
   jobReasonText,
   learnReasonText,
   markCurrentJob,
@@ -208,8 +205,8 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
   const loadoutReasons = validateLoadout(drafts, overview)
   const learnedSkills = overview.skills.filter((skill) => skill.level > 0)
   // 主動與被動欄都不限職業：學過就能裝
-  const activeOptions = learnedSkills.filter((skill) => skill.type === "Active")
-  const passiveOptions = learnedSkills.filter((skill) => skill.type === "Passive")
+  const activeOptions = learnedSkills.filter((skill) => skill.slotType === "Active")
+  const passiveOptions = learnedSkills.filter((skill) => skill.slotType === "Passive")
 
   return (
     <div className="skills">
@@ -286,7 +283,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
           <SlotRow
             key={slot}
             draft={draftOf(drafts, slot)}
-            activation={equippedActivation(drafts, overview, slot)}
+            activation={equippedSummary(drafts, overview, slot)}
             options={activeOptions}
             onChange={editDrafts}
             drafts={drafts}
@@ -339,44 +336,13 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
 const draftOf = (drafts: SlotDraft[], slot: SlotNumber): SlotDraft =>
   drafts.find((draft) => draft.slot === slot) ?? { slot, skillId: null }
 
-const joinParts = (parts: (string | null)[]) =>
-  parts.filter((part): part is string => part !== null).join("・")
+// 下一級：後端產生的效果文字，最後是學習費用
+const nextLevelText = (next: NonNullable<SkillView["next"]>) =>
+  `${next.summary}・${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
 
-type LevelNumbers = { rounds: number; chance: number; cooldown: number }
-
-// 觸發型被動（有發動條件）列時機・條件・持續・冷卻；常駐被動只有冷卻（通常為 0、不顯示）
-const passiveParts = (skill: SkillView, level: LevelNumbers): (string | null)[] =>
-  skill.trigger === null
-    ? [cooldownText(level.cooldown)]
-    : [
-        timingText(skill.timing),
-        activationText(skill.trigger, level.chance),
-        durationText(level.rounds),
-        cooldownText(level.cooldown),
-      ]
-
-// 下一級：主動列 SP、持續回合、發動條件與冷卻；被動見 passiveParts；最後是學習費用
-const nextLevelText = (skill: SkillView, next: NonNullable<SkillView["next"]>) => {
-  const cost = `${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
-  return skill.type === "Active"
-    ? joinParts([
-        `SP ${next.sp}`,
-        `${next.rounds} 回合`,
-        activationText(skill.trigger, next.chance),
-        cooldownText(next.cooldown),
-        cost,
-      ])
-    : joinParts([...passiveParts(skill, next), cost])
-}
-
-// 已學技能在標題列顯示目前等級的特性：主動顯示發動條件與冷卻，被動見 passiveParts
+// 已學技能在標題列顯示時機（命中後）與目前等級的效果文字
 const currentParts = (skill: SkillView): string[] =>
-  skill.level === 0
-    ? []
-    : (skill.type === "Active"
-        ? [activationText(skill.trigger, skill.chance), cooldownText(skill.cooldown)]
-        : passiveParts(skill, skill)
-      ).filter((part): part is string => part !== null)
+  [timingText(skill.timing), skill.summary].filter((part): part is string => part !== null)
 
 function SkillCard({
   skill,
@@ -393,7 +359,7 @@ function SkillCard({
     <li className="skills__item">
       <div className="skills__item-head">
         <h3 className="skills__item-name">{`${skill.name} Lv ${skill.level}/${skill.maxLevel}`}</h3>
-        <span className="skills__type">{skill.type === "Active" ? "主動" : "被動"}</span>
+        <span className="skills__type">{skill.slotType === "Active" ? "主動" : "被動"}</span>
         {current.map((part) => (
           <span key={part} className="skills__chance-value">
             {part}
@@ -405,7 +371,7 @@ function SkillCard({
         <p className="skills__next">已達最高等級</p>
       ) : (
         <>
-          <p className="skills__next">{nextLevelText(skill, next)}</p>
+          <p className="skills__next">{nextLevelText(next)}</p>
           {!next.canLearn && (
             <p className="skills__unmet">{next.reasons.map(learnReasonText).join("、")}</p>
           )}

@@ -149,36 +149,20 @@ public sealed record SkillOverviewResponse(
     IReadOnlyList<SkillResponse> Skills,
     IReadOnlyList<SkillSlotResponse> Slots);
 
-// Level 0 表示尚未學習；Rounds、Chance、Cooldown 是目前等級的值（未學為 0）；Timing 是觸發時機；Trigger 是發動條件（常駐被動為 null）；
-// Next 在已滿級時為 null
+// Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null），Description 是技能的文字說明；Next 在已滿級時為 null
 public sealed record SkillResponse(
     string Id,
     string Name,
-    SkillType Type,
+    SkillType SlotType,
     SkillTiming Timing,
     string Description,
-    string JobId,
+    string? Icon,
     int Level,
     int MaxLevel,
-    int Rounds,
-    int Chance,
-    int Cooldown,
-    SkillTriggerResponse? Trigger,
+    string? Summary,
     SkillNextLevelResponse? Next);
 
-// Kind 為 Chance（擲該級發動率）或 HpBelow（HP 低於 Percent% 自動發動，Percent 只對 HpBelow 有意義）
-public sealed record SkillTriggerResponse(SkillTriggerKind Kind, int Percent);
-
-public sealed record SkillNextLevelResponse(
-    int Level,
-    int Sp,
-    int Rounds,
-    int Chance,
-    int Cooldown,
-    long Money,
-    long Proficiency,
-    bool CanLearn,
-    IReadOnlyList<string> Reasons);
+public sealed record SkillNextLevelResponse(int Level, long Money, long Proficiency, string Summary, bool CanLearn, IReadOnlyList<string> Reasons);
 
 public sealed record SkillSlotResponse(int Slot, string SkillId);
 

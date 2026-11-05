@@ -44,15 +44,12 @@ public static class SkillEndpoints
             skill.Type,
             skill.Timing,
             skill.Description,
-            skill.JobId,
+            skill.Icon,
             skill.Level,
             skill.MaxLevel,
-            skill.Rounds,
-            skill.Chance,
-            skill.Cooldown,
-            skill.Trigger is { } trigger ? new SkillTriggerResponse(trigger.Kind, trigger.Percent) : null,
+            skill.Summary,
             skill.Next is { } next
-                ? new SkillNextLevelResponse(next.Level, next.Sp, next.Rounds, next.Chance, next.Cooldown, next.Money, next.Proficiency, next.CanLearn, next.Reasons)
+                ? new SkillNextLevelResponse(next.Level, next.Money, next.Proficiency, next.Summary, next.CanLearn, next.Reasons)
                 : null)).ToList(),
         overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId)).ToList());
 }

@@ -3174,23 +3174,14 @@ export interface components {
             /** Format: int32 */
             refineMax: number;
         };
-        /** @enum {unknown} */
-        SkillEffectKind: "AtMultiplier" | "MatMultiplier" | "DfMultiplier" | "MdfMultiplier" | "AgiMultiplier" | "MultiHit" | "MagicMultiHit" | "EnemyAgiDown" | "EnemyAttackDown" | "Heal" | "WarGodWrath" | "Counter" | "CritChanceUp" | "Bloodthirst" | "BonusDamage" | "Stun";
         SkillNextLevelResponse: {
             /** Format: int32 */
             level: number;
-            /** Format: int32 */
-            sp: number;
-            /** Format: int32 */
-            rounds: number;
-            /** Format: int32 */
-            chance: number;
-            /** Format: int32 */
-            cooldown: number;
             /** Format: int64 */
             money: number;
             /** Format: int64 */
             proficiency: number;
+            summary: string;
             canLearn: boolean;
             reasons: string[];
         };
@@ -3204,22 +3195,15 @@ export interface components {
         SkillResponse: {
             id: string;
             name: string;
-            type: components["schemas"]["SkillType"];
+            slotType: components["schemas"]["SkillType"];
             timing: components["schemas"]["SkillTiming"];
-            effect: components["schemas"]["SkillEffectKind"];
             description: string;
-            jobId: string;
+            icon: null | string;
             /** Format: int32 */
             level: number;
             /** Format: int32 */
             maxLevel: number;
-            /** Format: int32 */
-            rounds: number;
-            /** Format: int32 */
-            chance: number;
-            /** Format: int32 */
-            cooldown: number;
-            trigger: null | components["schemas"]["SkillTriggerResponse"];
+            summary: null | string;
             next: null | components["schemas"]["SkillNextLevelResponse"];
         };
         SkillSlotRequest: {
@@ -3233,14 +3217,7 @@ export interface components {
             skillId: string;
         };
         /** @enum {unknown} */
-        SkillTiming: "BeforeAttack" | "AfterAttack";
-        /** @enum {unknown} */
-        SkillTriggerKind: "Chance" | "HpBelow";
-        SkillTriggerResponse: {
-            kind: components["schemas"]["SkillTriggerKind"];
-            /** Format: int32 */
-            percent: number;
-        };
+        SkillTiming: "BeforeAttack" | "AfterHit";
         /** @enum {unknown} */
         SkillType: "Active" | "Passive";
         SocketRequest: {

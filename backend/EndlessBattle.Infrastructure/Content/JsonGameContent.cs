@@ -1324,10 +1324,10 @@ public sealed class JsonGameContent : IGameContent
                 [.. level.Conditions.Select(reader.Condition)], [.. level.Costs.Select(reader.Cost)], [.. level.Effects.Select(reader.Effect)]);
         });
 
-        // 內容檔寫 AfterHit；舊名 AfterAttack 在畫面改用效果文字時一起改
-        var timing = entry.Timing.Equals("AfterHit", StringComparison.OrdinalIgnoreCase) ? SkillTiming.AfterAttack : ParseEnum<SkillTiming>(entry.Timing, "timing");
-        return new SkillDefinition(entry.Id, entry.Name, ParseEnum<SkillType>(entry.SlotType ?? "", "slotType"), timing, entry.Description, [.. levels])
+        return new SkillDefinition(
+            entry.Id, entry.Name, ParseEnum<SkillType>(entry.SlotType ?? "", "slotType"), ParseEnum<SkillTiming>(entry.Timing, "timing"), entry.Description, [.. levels])
         {
+            Icon = entry.Icon,
             Prerequisite = entry.Prerequisite is { } prerequisite ? new SkillPrerequisite(prerequisite.SkillId, prerequisite.Level) : null,
         };
     }
@@ -1442,7 +1442,8 @@ public sealed class JsonGameContent : IGameContent
         string Description,
         IReadOnlyList<SkillLevelEntry> Levels,
         int? MaxLevel,
-        PrerequisiteEntry? Prerequisite);
+        PrerequisiteEntry? Prerequisite,
+        string? Icon);
 
     private sealed record SkillLevelEntry(
         int Level,

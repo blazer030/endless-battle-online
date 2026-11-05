@@ -44,15 +44,12 @@ const jobs: JobOption[] = [
   }),
 ]
 
-// 主動技能的 chance 是該級固定的發動率（30 + 10·lv）；被動沒有發動率，一律 0
+// 效果文字由後端依每級的條件、消耗、效果產生，畫面照樣顯示
 const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
   level: 1,
-  sp: 5,
-  rounds: 3,
-  chance: 40,
-  cooldown: 0,
   money: 500,
   proficiency: 300,
+  summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
   canLearn: true,
   reasons: [],
   ...overrides,
@@ -61,17 +58,13 @@ const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
 const skill = (overrides: Partial<SkillView>): SkillView => ({
   id: "burst",
   name: "爆氣",
-  type: "Active",
+  slotType: "Active",
   timing: "BeforeAttack",
-  effect: "AtMultiplier",
   description: "提高物理攻擊力",
-  jobId: "warrior",
+  icon: null,
   level: 0,
   maxLevel: 5,
-  rounds: 0,
-  chance: 0,
-  cooldown: 0,
-  trigger: { kind: "Chance", percent: 0 },
+  summary: null,
   next: next(),
   ...overrides,
 })
@@ -84,16 +77,13 @@ const overview: SkillOverview = {
     skill({
       id: "iron-skin",
       name: "硬甲",
-      type: "Passive",
-      effect: "DfMultiplier",
+      slotType: "Passive",
       description: "提高物理防禦",
       level: 2,
-      trigger: null,
+      summary: "常駐｜自己物防 +2%",
       next: next({
         level: 3,
-        sp: 0,
-        rounds: 0,
-        chance: 0,
+        summary: "常駐｜自己物防 +3%",
         money: 4500,
         canLearn: false,
         reasons: ["notEnoughMoney"],
@@ -102,46 +92,40 @@ const overview: SkillOverview = {
     skill({
       id: "combo",
       name: "連擊",
-      jobId: "thief",
-      effect: "MultiHit",
       level: 5,
-      chance: 80,
+      summary: "機率 80%｜消耗 SP 17｜物理連擊 6 次，3 回合",
       next: null,
     }),
     skill({
       id: "swift-shadow",
       name: "急影",
-      type: "Passive",
-      effect: "AgiMultiplier",
+      slotType: "Passive",
       description: "提高敏捷",
-      jobId: "thief",
       level: 1,
-      trigger: null,
-      next: next({ level: 2, sp: 0, rounds: 0, chance: 0, money: 2000 }),
+      summary: "常駐｜自己速度 +1%",
+      next: next({ level: 2, summary: "常駐｜自己速度 +2%", money: 2000 }),
     }),
     skill({
       id: "heal",
       name: "治癒",
-      effect: "Heal",
       description: "回復 HP",
-      jobId: "bard",
       level: 1,
-      cooldown: 4,
-      trigger: { kind: "HpBelow", percent: 50 },
-      next: next({ level: 2, sp: 8, rounds: 1, chance: 0, cooldown: 4, money: 2000 }),
+      summary: "HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合",
+      next: next({
+        level: 2,
+        summary: "HP 低於 50%｜消耗 SP 8｜回復 HP 智力×137.5%，1 回合｜冷卻 4 回合",
+        money: 2000,
+      }),
     }),
     skill({
       id: "parry",
       name: "架式",
-      type: "Passive",
-      timing: "AfterAttack",
-      effect: "DfMultiplier",
+      slotType: "Passive",
+      timing: "AfterHit",
       description: "命中後提高物理防禦",
       level: 1,
-      rounds: 2,
-      chance: 40,
-      cooldown: 3,
-      next: next({ level: 2, sp: 0, rounds: 2, chance: 50, cooldown: 3, money: 2000 }),
+      summary: "機率 40%｜自己物防 +1%，2 回合｜冷卻 3 回合",
+      next: next({ level: 2, summary: "機率 50%｜自己物防 +2%，2 回合｜冷卻 3 回合", money: 2000 }),
     }),
   ],
   slots: [{ slot: 4, skillId: "iron-skin" }],
@@ -152,7 +136,12 @@ const learned: SkillOverview = {
   skillPoints: 900,
   skills: overview.skills.map((entry) =>
     entry.id === "burst"
-      ? { ...entry, level: 1, chance: 40, next: next({ level: 2, chance: 50 }) }
+      ? {
+          ...entry,
+          level: 1,
+          summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
+          next: next({ level: 2, summary: "機率 50%｜消耗 SP 8｜自己物攻 +2%，3 回合" }),
+        }
       : entry,
   ),
 }
@@ -257,42 +246,36 @@ test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
   const burst = await skillCard("爆氣 Lv 0/5")
   expect(within(burst).getByText("提高物理攻擊力")).toBeInTheDocument()
   expect(
-    within(burst).getByText("SP 5・3 回合・發動率 40%・500 金錢・300 熟練度"),
+    within(burst).getByText("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合・500 金錢・300 熟練度"),
   ).toBeInTheDocument()
   expect(within(burst).getByRole("button", { name: "學習" })).toBeEnabled()
 
-  // 被動常駐：不顯示 SP、回合、發動率
+  // 被動常駐：效果文字與費用
   const ironSkin = await skillCard("硬甲 Lv 2/5")
-  expect(within(ironSkin).getByText("4,500 金錢・300 熟練度")).toBeInTheDocument()
-  expect(within(ironSkin).queryByText(/SP|回合|發動率/)).not.toBeInTheDocument()
+  expect(within(ironSkin).getByText("常駐｜自己物防 +2%")).toBeInTheDocument()
+  expect(
+    within(ironSkin).getByText("常駐｜自己物防 +3%・4,500 金錢・300 熟練度"),
+  ).toBeInTheDocument()
   const upgrade = within(ironSkin).getByRole("button", { name: "升級" })
   expect(upgrade).toBeDisabled()
   expect(upgrade).toHaveAttribute("title", "金錢不足")
   expect(within(ironSkin).getByText("金錢不足")).toBeInTheDocument()
 
-  // 觸發型被動：時機・條件・持續・冷卻，不顯示 SP；常駐被動（硬甲）照舊只有費用
+  // 命中後才發動的技能在效果文字前標出時機
   const parry = await skillCard("架式 Lv 1/5")
-  for (const part of ["命中後", "發動率 40%", "持續 2 回合", "冷卻 3 回合"])
-    expect(within(parry).getByText(part)).toBeInTheDocument()
-  expect(
-    within(parry).getByText("命中後・發動率 50%・持續 2 回合・冷卻 3 回合・2,000 金錢・300 熟練度"),
-  ).toBeInTheDocument()
-  expect(within(parry).queryByText(/SP/)).not.toBeInTheDocument()
+  expect(within(parry).getByText("命中後")).toBeInTheDocument()
+  expect(within(parry).getByText("機率 40%｜自己物防 +1%，2 回合｜冷卻 3 回合")).toBeInTheDocument()
 
-  // hpBelow 技能以門檻取代發動率，並顯示冷卻（0 不顯示）
+  // 有冷卻與 HP 條件的技能照效果文字顯示
   const heal = await skillCard("治癒 Lv 1/5")
-  expect(within(heal).getByText("HP 低於 50% 自動發動")).toBeInTheDocument()
-  expect(within(heal).getByText("冷卻 4 回合")).toBeInTheDocument()
   expect(
-    within(heal).getByText(
-      "SP 8・1 回合・HP 低於 50% 自動發動・冷卻 4 回合・2,000 金錢・300 熟練度",
-    ),
+    within(heal).getByText("HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合"),
   ).toBeInTheDocument()
-  expect(within(burst).queryByText(/冷卻/)).not.toBeInTheDocument()
+  expect(within(burst).queryByText("命中後")).not.toBeInTheDocument()
 
-  // 已學的主動技能顯示目前等級的發動率
+  // 已學滿級的技能顯示目前等級的效果文字
   const combo = await skillCard("連擊 Lv 5/5")
-  expect(within(combo).getByText("發動率 80%")).toBeInTheDocument()
+  expect(within(combo).getByText("機率 80%｜消耗 SP 17｜物理連擊 6 次，3 回合")).toBeInTheDocument()
   expect(within(combo).getByText("已達最高等級")).toBeInTheDocument()
   expect(within(combo).queryByRole("button")).not.toBeInTheDocument()
 })
@@ -327,19 +310,19 @@ test("SkillsScreen_SavesSlotsWithPutBody", async () => {
   const api = createApi({ getSkills: vi.fn().mockResolvedValue(learned) })
   renderScreen(api)
 
-  // 主動欄顯示技能固定的發動率（空欄沒有），沒有 −／＋ 可調
+  // 主動欄顯示裝入技能目前等級的效果文字（空欄沒有）
   const slot1 = await screen.findByLabelText("欄位 1 技能")
   const row = slot1.parentElement as HTMLElement
-  expect(within(row).queryByText(/發動率/)).not.toBeInTheDocument()
+  expect(within(row).queryByText(/機率/)).not.toBeInTheDocument()
   await user.selectOptions(slot1, "burst")
-  expect(within(row).getByText("發動率 40%")).toBeInTheDocument()
-  // hpBelow 技能在發動率的位置改顯示門檻
+  expect(within(row).getByText("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合")).toBeInTheDocument()
   const slot2 = screen.getByLabelText("欄位 2 技能")
   await user.selectOptions(slot2, "heal")
   expect(
-    within(slot2.parentElement as HTMLElement).getByText("HP 低於 50% 自動發動"),
+    within(slot2.parentElement as HTMLElement).getByText(
+      "HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合",
+    ),
   ).toBeInTheDocument()
-  expect(screen.queryByRole("button", { name: /發動率/ })).not.toBeInTheDocument()
   await user.click(screen.getByRole("button", { name: "儲存欄位" }))
 
   expect(api.setSkillSlots).toHaveBeenCalledWith([

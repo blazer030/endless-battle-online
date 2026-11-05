@@ -1,7 +1,7 @@
 import { statLabel } from "./stats"
 import type { JobOption, SkillOverview, SkillSlotCommand, SkillView } from "./types"
 
-// 與後端 SkillLoadout 相同：1～3 主動欄（發動率由技能等級固定），4～5 被動欄（常駐）；兩種欄位都不限職業
+// 與後端 SkillLoadout 相同：1～3 主動欄、4～5 被動欄；兩種欄位都不限職業，規則相同、只差欄位
 export type SlotNumber = 1 | 2 | 3 | 4 | 5
 export type SlotDraft = { slot: SlotNumber; skillId: string | null }
 
@@ -33,33 +33,19 @@ export const setSlot = (drafts: SlotDraft[], slot: SlotNumber, skillId: string) 
 export const clearSlot = (drafts: SlotDraft[], slot: SlotNumber) =>
   updateSlot(drafts, slot, (draft) => ({ ...draft, skillId: null }))
 
-// 發動條件的說明：擲骰的顯示發動率，hpBelow 顯示門檻；常駐被動（沒有條件）回傳 null
-export const activationText = (trigger: SkillView["trigger"], chance: number): string | null => {
-  if (trigger === null) return null
-  return trigger.kind === "HpBelow" ? `HP 低於 ${trigger.percent}% 自動發動` : `發動率 ${chance}%`
-}
+// 命中後才發動的技能在效果文字前標出時機
+export const timingText = (timing: SkillView["timing"]): string | null =>
+  timing === "AfterHit" ? "命中後" : null
 
-// 冷卻以玩家出手回合計，0 表示沒有冷卻、不顯示
-export const cooldownText = (cooldown: number): string | null =>
-  cooldown > 0 ? `冷卻 ${cooldown} 回合` : null
-
-// 觸發型被動的觸發時機
-export const timingText = (timing: SkillView["timing"]): string =>
-  timing === "AfterAttack" ? "命中後" : "每回合出手前"
-
-// 觸發後效果持續的回合數
-export const durationText = (rounds: number): string => `持續 ${rounds} 回合`
-
-// 主動欄裝入技能目前等級的發動條件；空欄、找不到技能或被動欄回傳 null
-export const equippedActivation = (
+// 主動欄裝入技能目前等級的效果文字；空欄、找不到技能、未學或被動欄回傳 null
+export const equippedSummary = (
   drafts: SlotDraft[],
   overview: SkillOverview,
   slot: SlotNumber,
 ): string | null => {
   if (!isActiveSlot(slot)) return null
   const skillId = drafts.find((draft) => draft.slot === slot)?.skillId ?? null
-  const skill = overview.skills.find((candidate) => candidate.id === skillId)
-  return skill === undefined ? null : activationText(skill.trigger, skill.chance)
+  return overview.skills.find((candidate) => candidate.id === skillId)?.summary ?? null
 }
 
 // 空欄不送，後端把未列出的欄位視為清空
@@ -87,8 +73,8 @@ export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): s
     if (seenSkills.has(skillId)) reasons.push("duplicateSkill")
     seenSkills.add(skillId)
 
-    if (isActive && skill.type === "Passive") reasons.push("passiveInActiveSlot")
-    else if (isPassiveSlot(slot) && skill.type === "Active") reasons.push("activeInPassiveSlot")
+    if (isActive && skill.slotType === "Passive") reasons.push("passiveInActiveSlot")
+    else if (isPassiveSlot(slot) && skill.slotType === "Active") reasons.push("activeInPassiveSlot")
   }
   return [...new Set(reasons)]
 }

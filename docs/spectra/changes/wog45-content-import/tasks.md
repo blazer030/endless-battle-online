@@ -47,7 +47,7 @@
 - [x] 2.3 依決策「職業與技能用關聯表連結，技能不指定職業」改學習規則 [after: 2.2]：依原本技能的 `jobId` 建立 `job-skills.json`（正式與 TestContent 各一份），有「目前職業＋技能」這一列才能學，扣目前職業的技能熟練度；前置技能未達等級時以 `prerequisite` 拒絕。對應需求「Jobs choose their skills」。
   - TDD：先寫 `SkillLearningTests.ListedSkill_CanBeLearned`，再寫 `UnlistedSkill_IsRefusedAsWrongJob`、`MissingPrerequisite_IsRefused`、`JsonGameContentTests.JobSkill_MissingSkillIsRejected`、`JobSkill_DuplicatePairIsRejected`，以及 API 測試 `SkillEndpointsTests.Learn_RefusesMissingPrerequisite`（400，reasons 含 `prerequisite`）。
   - 驗證：全部測試通過。
-- [ ] 2.4 收尾與畫面 [after: 2.3]，對應需求「Effect text is generated from the parts」：
+- [x] 2.4 收尾與畫面 [after: 2.3]，對應需求「Effect text is generated from the parts」：
   - 移除 `SkillEffectKind`、`SkillTrigger`、技能的 `JobId`、`SkillLevel.Chance` 與舊格式。
   - 依決策「效果文字自動產生」在 Application 產生每級的效果文字。
   - 遊戲 API 的技能回應改成 `slotType`、`summary`（目前與下一級）、`description`、`icon`。

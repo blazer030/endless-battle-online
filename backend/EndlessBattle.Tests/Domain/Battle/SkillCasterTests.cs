@@ -59,7 +59,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_PassiveAfterHit_HealsWithoutRollOrSp()
     {
-        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
+        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterHit, rounds: 1);
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
 
@@ -214,7 +214,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_PassiveAfterHit_RespectsCooldown()
     {
-        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1, cooldown: 1);
+        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterHit, rounds: 1, cooldown: 1);
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
         var heals = new List<int>();

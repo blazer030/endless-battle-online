@@ -71,7 +71,7 @@ public sealed class SkillCaster
 
     // 玩家物理命中後（嗜血）；主動技能施放後本回合持續中，同一回合不會再發動
     public IReadOnlyList<SkillCast> CastAfterPhysicalHit(int damage, int hp, int sp, IRandomSource random) =>
-        Cast(SkillTiming.AfterAttack, hp, sp, random, damage);
+        Cast(SkillTiming.AfterHit, hp, sp, random, damage);
 
     private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, int damage)
     {

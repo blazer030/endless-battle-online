@@ -124,16 +124,18 @@ public class SkillServiceTests
     public async Task Learn_Throws_WhenNoCharacter_EvenIfSkillUnknown() =>
         await Assert.ThrowsAsync<NotFoundException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
 
-    // 主動技能的發動率是目前等級的固定值（30 + 10·lv）：burst lv1 → 40，升到 lv2 → 50
+    // 效果文字取目前等級的數值：burst 升到 lv2 → 機率 50%、SP 8、物攻 +2%；下一級是 lv3
     [Fact]
-    public async Task Learn_RaisingAnActive_UpdatesItsChance()
+    public async Task Learn_RaisingAnActive_UpdatesItsSummary()
     {
         await ArrangeAsync(600, new LearnedSkill("burst", 1));
 
         var overview = await service.LearnAsync(AccountId, "burst", CancellationToken);
 
         var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
-        Assert.Equal((2, 50, 60), (burst.Level, burst.Chance, burst.Next!.Chance));
+        Assert.Equal(
+            (2, "機率 50%｜消耗 SP 8｜自己物攻 +2%，3 回合", "機率 60%｜消耗 SP 11｜自己物攻 +3%，3 回合"),
+            (burst.Level, burst.Summary, burst.Next!.Summary));
     }
 
     [Fact]
@@ -203,41 +205,28 @@ public class SkillServiceTests
         var burst = overview.Skills[0];
         Assert.Equal(0, burst.Level);
         Assert.Equal(5, burst.MaxLevel);
-        Assert.Equal(0, burst.Chance);
-        Assert.Equal(new NextLevelView(1, 5, 3, 40, 0, 500, 300, true, []), burst.Next, NextLevelViewComparer.Instance);
+        Assert.Null(burst.Summary);
+        Assert.Equal(new NextLevelView(1, 500, 300, "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", true, []), burst.Next, NextLevelViewComparer.Instance);
         var combo = overview.Skills[2];
         Assert.Equal(2, combo.Level);
-        Assert.Equal(50, combo.Chance);
+        Assert.Equal("機率 50%｜消耗 SP 8｜物理連擊 3 次，3 回合、自己物攻 -2%，3 回合", combo.Summary);
         Assert.Equal(["wrongJob", "notEnoughProficiency", "notEnoughMoney"], combo.Next!.Reasons);
         Assert.False(combo.Next.CanLearn);
     }
 
-    // 冷卻與發動條件取目前等級：治癒 lv1 是 hpBelow 50、冷卻 4；burst 擲發動率、無冷卻；硬甲常駐沒有條件。下一級也帶冷卻
+    // 效果文字取目前等級：治癒 lv1 是 HP 低於 50%、冷卻 4；下一級也帶冷卻；未學的硬甲沒有目前等級的文字
     [Fact]
-    public async Task Get_ShowsCooldownAndTrigger()
+    public async Task Get_ShowsSummaryOfCurrentLevel()
     {
         await ArrangeAsync(0, new LearnedSkill("heal", 1), new LearnedSkill("burst", 1));
 
         var overview = await service.GetAsync(AccountId, CancellationToken);
 
         var heal = Assert.Single(overview.Skills, skill => skill.Id == "heal");
-        Assert.Equal((4, SkillTrigger.HpBelow(50), 4), (heal.Cooldown, heal.Trigger, heal.Next!.Cooldown));
-        Assert.Equal((SkillTiming.BeforeAttack, 1), (heal.Timing, heal.Rounds));
-        var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
-        Assert.Equal((0, SkillTrigger.Chance), (burst.Cooldown, burst.Trigger));
-        Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Trigger);
-    }
-
-    [Fact]
-    public async Task Get_ShowsNoNextLevel_AtMaxLevel()
-    {
-        await ArrangeAsync(0, new LearnedSkill("burst", 5));
-
-        var overview = await service.GetAsync(AccountId, CancellationToken);
-
-        var burst = Assert.Single(overview.Skills, skill => skill.Id == "burst");
-        Assert.Equal(5, burst.Level);
-        Assert.Null(burst.Next);
+        Assert.Equal("HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合", heal.Summary);
+        Assert.EndsWith("｜冷卻 4 回合", heal.Next!.Summary);
+        Assert.Equal(SkillTiming.BeforeAttack, heal.Timing);
+        Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Summary);
     }
 
     private sealed class NextLevelViewComparer : IEqualityComparer<NextLevelView?>

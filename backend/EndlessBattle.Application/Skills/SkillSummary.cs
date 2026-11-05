@@ -1,0 +1,98 @@
+using System.Globalization;
+using EndlessBattle.Domain.Skills;
+
+namespace EndlessBattle.Application.Skills;
+
+// 技能頁與戰鬥紀錄用的效果文字，由每級的條件、消耗、效果產生；description 是另外寫的技能說明，與效果無關
+public static class SkillSummary
+{
+    public static string Of(SkillLevel level)
+    {
+        var parts = new List<string>();
+        if (level.Conditions is [])
+        {
+            parts.Add("常駐");
+        }
+
+        parts.AddRange(level.Conditions.Select(Condition));
+        parts.AddRange(level.Costs.Select(Cost));
+        parts.Add(string.Join("、", level.Effects.Select(Effect)));
+        if (level.Cooldown > 0)
+        {
+            parts.Add($"冷卻 {level.Cooldown} 回合");
+        }
+
+        return string.Join("｜", parts);
+    }
+
+    private static string Condition(SkillCondition condition) => condition.Kind switch
+    {
+        SkillConditionKind.Chance => $"機率 {condition.Percent}%",
+        SkillConditionKind.HitPointsBelow => $"HP 低於 {condition.Percent}%",
+        _ => throw new ArgumentOutOfRangeException(nameof(condition), condition.Kind, "未知的發動條件"),
+    };
+
+    private static string Cost(SkillCost cost) => cost.Kind switch
+    {
+        SkillCostKind.SkillPoints => $"消耗 SP {cost.Amount}",
+        _ => throw new ArgumentOutOfRangeException(nameof(cost), cost.Kind, "未知的消耗"),
+    };
+
+    private static string Effect(SkillEffect effect)
+    {
+        var text = effect switch
+        {
+            StatChangeEffect change => $"{(change.Target == SkillTarget.Caster ? "自己" : "對手")}{StatName(change.Stat)} {StatValue(change)}",
+            BonusDamageEffect bonus => $"追加{AttackKindName(bonus.AttackKind)}傷害 {Scaling(bonus.Scaling)}",
+            MultiHitEffect multiHit => $"{AttackKindName(multiHit.AttackKind)}連擊 {multiHit.Hits} 次",
+            DamageReductionEffect reduction => $"受到的{AttackKindName(reduction.AttackKind)}傷害 -{Number(reduction.Percent)}%",
+            RestoreEffect restore => $"回復 HP {(restore.Scaling is { } scaling ? Scaling(scaling) : $"傷害×{Number(restore.PercentOfDamage!.Value)}%")}",
+            StunEffect stun => $"對手無法行動 機率 {stun.Chance}%",
+            _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, "未知的效果"),
+        };
+        return effect.Rounds > 0 ? $"{text}，{effect.Rounds} 回合" : text;
+    }
+
+    private static string StatValue(StatChangeEffect change) =>
+        change.Percent is { } percent ? $"{Signed(percent)}%"
+        : change.Amount is { } amount ? Signed(amount)
+        : $"+{Scaling(change.Scaling!)}";
+
+    private static string Scaling(IReadOnlyList<SkillScaling> scaling) =>
+        string.Join(" + ", scaling.Select(term => $"{BasisName(term.Basis)}×{Number(term.Ratio * 100)}%"));
+
+    private static string Signed(double value) => value >= 0 ? $"+{Number(value)}" : $"-{Number(-value)}";
+
+    private static string Number(double value) => Math.Round(value, 2).ToString("0.##", CultureInfo.InvariantCulture);
+
+    private static string StatName(SkillStat stat) => stat switch
+    {
+        SkillStat.Attack => "物攻",
+        SkillStat.MagicAttack => "魔攻",
+        SkillStat.Defense => "物防",
+        SkillStat.MagicDefense => "魔防",
+        SkillStat.Agility => "速度",
+        SkillStat.HitRate => "命中",
+        SkillStat.PhysicalCriticalChance => "物攻必殺率",
+        _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
+    };
+
+    private static string BasisName(SkillScalingBasis basis) => basis switch
+    {
+        SkillScalingBasis.Strength => "力量",
+        SkillScalingBasis.Intelligence => "智力",
+        SkillScalingBasis.Agility => "敏捷",
+        SkillScalingBasis.Charisma => "魅力",
+        SkillScalingBasis.Attack => "物攻",
+        SkillScalingBasis.MagicAttack => "魔攻",
+        SkillScalingBasis.Defense => "物防",
+        _ => throw new ArgumentOutOfRangeException(nameof(basis), basis, "未知的能力基準"),
+    };
+
+    private static string AttackKindName(SkillAttackKind kind) => kind switch
+    {
+        SkillAttackKind.Physical => "物理",
+        SkillAttackKind.Magic => "魔法",
+        _ => "",
+    };
+}

@@ -19,7 +19,7 @@ public class WogBattleSkillTests
     private static readonly SkillDefinition Combo = TestSkills.Battle("combo", "連擊", SkillPreset.MultiHit);
     private static readonly SkillDefinition Heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1);
     private static readonly SkillDefinition Stun = TestSkills.Battle("stun", "暈眩", SkillPreset.Stun);
-    private static readonly SkillDefinition Bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
+    private static readonly SkillDefinition Bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterHit, rounds: 1);
     private static readonly SkillDefinition Counter = TestSkills.Battle("counter", "反擊", SkillPreset.Counter, SkillType.Passive);
     private static readonly SkillDefinition WarGodWrath = TestSkills.Battle("war-god-wrath", "戰神之怒", SkillPreset.WarGodWrath);
     private static readonly SkillDefinition Weaken = TestSkills.Battle("weaken", "減益", SkillPreset.EnemyAttackDown);

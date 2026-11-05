@@ -72,7 +72,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(["burst", "iron-skin"], skills.Select(skill => skill.GetProperty("id").GetString()));
         var burst = skills[0];
         Assert.Equal("爆氣", burst.GetProperty("name").GetString());
-        Assert.Equal("Active", burst.GetProperty("type").GetString());
+        Assert.Equal("Active", burst.GetProperty("slotType").GetString());
         Assert.Equal(0, burst.GetProperty("level").GetInt32());
         Assert.Equal(5, burst.GetProperty("maxLevel").GetInt32());
         var next = burst.GetProperty("next");
@@ -81,10 +81,10 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(300, next.GetProperty("proficiency").GetInt64());
         Assert.False(next.GetProperty("canLearn").GetBoolean());
         Assert.Equal(["notEnoughProficiency"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
-        // 主動技能每級固定發動率 30 + 10·lv；未學時目前等級的 chance 為 0；被動沒有發動率
-        Assert.Equal(40, next.GetProperty("chance").GetInt32());
-        Assert.Equal(0, burst.GetProperty("chance").GetInt32());
-        Assert.Equal(0, skills[1].GetProperty("next").GetProperty("chance").GetInt32());
+        // 效果文字由條件、消耗、效果產生；未學時目前等級沒有效果文字；被動硬甲常駐
+        Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", next.GetProperty("summary").GetString());
+        Assert.Equal(JsonValueKind.Null, burst.GetProperty("summary").ValueKind);
+        Assert.Equal("常駐｜自己物防 +1%", skills[1].GetProperty("next").GetProperty("summary").GetString());
     }
 
     // 滿級時 next 為 null；直接寫入技能書，跳過五次學習
@@ -107,9 +107,9 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, burst.GetProperty("next").ValueKind);
     }
 
-    // 冷卻與發動條件：治癒（他職業技能，已學 lv1）是 HpBelow 50、冷卻 4；burst 是 Chance、冷卻 0；被動硬甲沒有條件（null）
+    // 治癒（他職業技能，已學 lv1）：效果文字含 HP 條件、SP 消耗、回復量與冷卻；舊的 trigger、chance、rounds 欄位不再回傳
     [Fact]
-    public async Task Overview_ShowsCooldownAndTrigger()
+    public async Task Skills_ReturnSummaryAndDescription()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await CreateClientWithCharacterAsync(factory);
@@ -124,15 +124,12 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
             .ToDictionary(skill => skill.GetProperty("id").GetString()!);
 
         var heal = skills["heal"];
-        Assert.Equal(4, heal.GetProperty("cooldown").GetInt32());
-        Assert.Equal("HpBelow", heal.GetProperty("trigger").GetProperty("kind").GetString());
-        Assert.Equal(50, heal.GetProperty("trigger").GetProperty("percent").GetInt32());
-        Assert.Equal(4, heal.GetProperty("next").GetProperty("cooldown").GetInt32());
+        Assert.Equal("HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合", heal.GetProperty("summary").GetString());
+        Assert.False(string.IsNullOrEmpty(heal.GetProperty("description").GetString()));
         Assert.Equal("BeforeAttack", heal.GetProperty("timing").GetString());
-        Assert.Equal(1, heal.GetProperty("rounds").GetInt32());
-        Assert.Equal("Chance", skills["burst"].GetProperty("trigger").GetProperty("kind").GetString());
-        Assert.Equal(0, skills["burst"].GetProperty("cooldown").GetInt32());
-        Assert.Equal(JsonValueKind.Null, skills["iron-skin"].GetProperty("trigger").ValueKind);
+        Assert.False(heal.TryGetProperty("trigger", out _));
+        Assert.False(heal.TryGetProperty("chance", out _));
+        Assert.False(heal.TryGetProperty("jobId", out _));
     }
 
     [Fact]
@@ -147,7 +144,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(0, body.GetProperty("skillPoints").GetInt64());
         var burst = body.GetProperty("skills").EnumerateArray().First(skill => skill.GetProperty("id").GetString() == "burst");
         Assert.Equal(1, burst.GetProperty("level").GetInt32());
-        Assert.Equal(40, burst.GetProperty("chance").GetInt32());
+        Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", burst.GetProperty("summary").GetString());
         Assert.Equal(2, burst.GetProperty("next").GetProperty("level").GetInt32());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(1500, me.GetProperty("money").GetInt64());

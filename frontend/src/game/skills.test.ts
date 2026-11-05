@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest"
 import {
   clearSlot,
-  activationText,
-  cooldownText,
   draftsFrom,
-  durationText,
-  equippedActivation,
+  equippedSummary,
   jobReasonText,
   learnReasonText,
   markCurrentJob,
@@ -23,17 +20,13 @@ import { makeJob } from "../test/fixtures"
 const skill = (overrides: Partial<SkillView>): SkillView => ({
   id: "burst",
   name: "爆氣",
-  type: "Active",
+  slotType: "Active",
   timing: "BeforeAttack",
-  effect: "AtMultiplier",
   description: "",
-  jobId: "warrior",
+  icon: null,
   level: 1,
   maxLevel: 5,
-  rounds: 3,
-  chance: 40,
-  cooldown: 0,
-  trigger: { kind: "Chance", percent: 0 },
+  summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
   next: null,
   ...overrides,
 })
@@ -43,33 +36,20 @@ const overview: SkillOverview = {
   skillPoints: 0,
   skills: [
     skill({}),
-    skill({
-      id: "iron-skin",
-      name: "硬甲",
-      type: "Passive",
-      effect: "DfMultiplier",
-      chance: 0,
-      trigger: null,
-    }),
+    skill({ id: "iron-skin", name: "硬甲", slotType: "Passive", summary: "常駐｜自己物防 +1%" }),
     skill({
       id: "heal",
       name: "治癒",
-      effect: "Heal",
-      jobId: "bard",
-      chance: 0,
-      cooldown: 4,
-      trigger: { kind: "HpBelow", percent: 50 },
+      summary: "HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合",
     }),
-    skill({ id: "combo", name: "連擊", jobId: "thief", effect: "MultiHit", level: 3, chance: 60 }),
     skill({
-      id: "swift-shadow",
-      name: "急影",
-      type: "Passive",
-      jobId: "thief",
-      chance: 0,
-      trigger: null,
+      id: "combo",
+      name: "連擊",
+      level: 3,
+      summary: "機率 60%｜消耗 SP 11｜物理連擊 4 次，3 回合",
     }),
-    skill({ id: "war-cry", name: "未學", level: 0, chance: 0 }),
+    skill({ id: "swift-shadow", name: "急影", slotType: "Passive", summary: "常駐｜自己速度 +1%" }),
+    skill({ id: "war-cry", name: "未學", level: 0, summary: null }),
   ],
   slots: [
     { slot: 1, skillId: "burst" },
@@ -100,27 +80,20 @@ describe("skills", () => {
     expect(draftOf(cleared, 1)).toEqual({ slot: 1, skillId: null })
   })
 
-  // 主動欄顯示裝入技能的發動條件：擲骰的顯示發動率，hpBelow 顯示門檻；空欄與被動欄沒有
-  it("equippedActivation_DescribesTheSkillsOwnTrigger", () => {
-    expect(equippedActivation(drafts, overview, 1)).toBe("發動率 40%")
-    expect(equippedActivation(setSlot(drafts, 2, "combo"), overview, 2)).toBe("發動率 60%")
-    expect(equippedActivation(setSlot(drafts, 2, "heal"), overview, 2)).toBe("HP 低於 50% 自動發動")
-    expect(equippedActivation(drafts, overview, 3)).toBeNull()
-    expect(equippedActivation(drafts, overview, 4)).toBeNull()
+  // 主動欄顯示裝入技能目前等級的效果文字；空欄、未學與被動欄沒有
+  it("equippedSummary_ShowsTheSkillsCurrentSummary", () => {
+    expect(equippedSummary(drafts, overview, 1)).toBe("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合")
+    expect(equippedSummary(setSlot(drafts, 2, "heal"), overview, 2)).toBe(
+      "HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合",
+    )
+    expect(equippedSummary(setSlot(drafts, 2, "war-cry"), overview, 2)).toBeNull()
+    expect(equippedSummary(drafts, overview, 3)).toBeNull()
+    expect(equippedSummary(drafts, overview, 4)).toBeNull()
   })
 
-  it("activationText_AndCooldownText_DescribeTriggerAndCooldown", () => {
-    expect(activationText({ kind: "Chance", percent: 0 }, 70)).toBe("發動率 70%")
-    expect(activationText({ kind: "HpBelow", percent: 30 }, 0)).toBe("HP 低於 30% 自動發動")
-    expect(activationText(null, 0)).toBeNull()
-    expect(cooldownText(4)).toBe("冷卻 4 回合")
-    expect(cooldownText(0)).toBeNull()
-  })
-
-  it("timingText_AndDurationText_DescribeTriggeredPassives", () => {
-    expect(timingText("BeforeAttack")).toBe("每回合出手前")
-    expect(timingText("AfterAttack")).toBe("命中後")
-    expect(durationText(3)).toBe("持續 3 回合")
+  it("timingText_MarksSkillsThatActivateAfterAHit", () => {
+    expect(timingText("AfterHit")).toBe("命中後")
+    expect(timingText("BeforeAttack")).toBeNull()
   })
 
   it("toSlotCommands_SendsOnlyFilledSlots", () => {
