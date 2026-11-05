@@ -4,7 +4,7 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Content;
 
-// scripts/import-wog45.py 在原版資料缺欄位時：以非 0 結束、印出檔名與紀錄 id，而且不寫任何檔
+// scripts/import-wog45.py 在原版資料缺欄位或參照不存在時：以非 0 結束、印出檔名與紀錄 id，而且不寫任何檔
 public class ImportScriptTests
 {
     private static readonly string RepositoryDirectory = Path.GetFullPath(Path.Combine(BackendPaths.BackendDirectory, ".."));
@@ -13,7 +13,21 @@ public class ImportScriptTests
     [Theory]
     [InlineData("items.json", "price", "items.json 的紀錄 1 缺少欄位 price")]
     [InlineData("recipes.json", "materials.count", "recipes.json 的紀錄 1 缺少欄位 count")]
-    public async Task Import_MissingSourceFieldStopsWithoutWriting(string file, string field, string message)
+    public Task Import_MissingSourceFieldStopsWithoutWriting(string file, string field, string message) =>
+        AssertImportStopsAsync(file, records => RemoveFirstRecordField(records, field), message);
+
+    // 前置技能指到不存在的紀錄
+    [Fact]
+    public Task Import_UnknownPrerequisiteStopsWithoutWriting() =>
+        AssertImportStopsAsync("skills.json", records =>
+        {
+            foreach (var record in records.Select(record => record!.AsObject()).Where(record => record["requiresSkillId"] is { } required && required.GetValue<int>() != 0))
+            {
+                record["requiresSkillId"] = 999999;
+            }
+        }, "的 requiresSkillId 999999 不存在");
+
+    private static async Task AssertImportStopsAsync(string file, Action<JsonArray> change, string message)
     {
         var root = Directory.CreateTempSubdirectory("ebo-import-").FullName;
         try
@@ -21,13 +35,14 @@ public class ImportScriptTests
             CopyDirectory(Path.Combine(RepositoryDirectory, "scripts"), Path.Combine(root, "scripts"));
             CopyDirectory(Path.Combine(RepositoryDirectory, "docs/research/wog45/data"), Path.Combine(root, "docs/research/wog45/data"));
             CopyDirectory(Path.Combine(RepositoryDirectory, "backend/content"), Path.Combine(root, "backend/content"));
-            RemoveFirstRecordField(Path.Combine(root, "docs/research/wog45/data", file), field);
+            ChangeRecords(Path.Combine(root, "docs/research/wog45/data", file), change);
             var contentBefore = Snapshot(Path.Combine(root, "backend/content"));
 
             var (exitCode, error) = await RunAsync(Path.Combine(root, "scripts/import-wog45.py"));
 
             Assert.NotEqual(0, exitCode);
             Assert.Contains(message, error);
+            Assert.Contains($"{file} 的紀錄", error);
             Assert.Equal(contentBefore, Snapshot(Path.Combine(root, "backend/content")));
             Assert.False(File.Exists(Path.Combine(root, "docs/research/wog45/gaps.md")));
         }
@@ -37,9 +52,15 @@ public class ImportScriptTests
         }
     }
 
-    private static void RemoveFirstRecordField(string path, string field)
+    private static void ChangeRecords(string path, Action<JsonArray> change)
     {
         var records = JsonNode.Parse(File.ReadAllText(path))!.AsArray();
+        change(records);
+        File.WriteAllText(path, records.ToJsonString());
+    }
+
+    private static void RemoveFirstRecordField(JsonArray records, string field)
+    {
         var first = records[0]!.AsObject();
         if (field.Split('.') is [var list, var nested])
         {
@@ -49,8 +70,6 @@ public class ImportScriptTests
         {
             first.Remove(field);
         }
-
-        File.WriteAllText(path, records.ToJsonString());
     }
 
     private static async Task<(int ExitCode, string Error)> RunAsync(string script)

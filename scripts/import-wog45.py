@@ -969,6 +969,8 @@ def import_skills(gaps):
                   "timing": "AfterHit" if first["timing"] == 2 else "BeforeAttack", "description": "", "maxLevel": len(levels)}
         required = first["requiresSkillId"]
         if required:
+            if required not in owners:
+                raise SourceError(f"skills.json 的紀錄 {first['id']} 的 requiresSkillId {required} 不存在")
             owner, owner_level = owners[required]
             if owner in excluded:
                 gaps.field(title, first["id"], name, f"前置技能 {owner} 沒有匯入，不設前置技能")
