@@ -169,6 +169,19 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(2000, me.GetProperty("money").GetInt64());
     }
 
+    // advanced-burst 要先把 burst 學到 3 級；新戰士 burst 0 級，而且戰士不教這個技能（job-skills.json 只有狂戰士）
+    [Fact]
+    public async Task Learn_RefusesMissingPrerequisite()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 10_000);
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "advanced-burst" }, CancellationToken);
+
+        Assert.Contains("prerequisite", await ReadReasonsAsync(response));
+    }
+
     [Theory]
     [InlineData("""{"skillId":"no-such-skill"}""")]
     [InlineData("""{}""")]

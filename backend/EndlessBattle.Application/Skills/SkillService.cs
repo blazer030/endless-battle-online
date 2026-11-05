@@ -22,9 +22,10 @@ public sealed class SkillService(
         var levels = learned.ToDictionary(skill => skill.SkillId, skill => skill.Level, StringComparer.Ordinal);
 
         var currentJobSkills = content.SkillsOf(character.JobId);
-        var learnedOthers = content.AllSkills.Where(skill => skill.JobId != character.JobId && levels.ContainsKey(skill.Id));
+        var learnedOthers = content.AllSkills.Where(skill => !content.Teaches(character.JobId, skill.Id) && levels.ContainsKey(skill.Id));
+        var skillPoints = SkillPointsOf(points, character.JobId);
         var views = currentJobSkills.Concat(learnedOthers)
-            .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), SkillPointsOf(points, skill.JobId)))
+            .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), skillPoints, TeachingOf(character, skill, levels)))
             .ToList();
 
         var slots = await loadout.ListAsync(character.Id, cancellationToken);
@@ -37,19 +38,22 @@ public sealed class SkillService(
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var skill = FindSkill(skillId)
             ?? throw new InputValidationException("不存在的技能");
-        var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), skill.JobId);
-        var currentLevel = (await skillBook.ListAsync(character.Id, cancellationToken))
-            .FirstOrDefault(learned => learned.SkillId == skill.Id)?.Level ?? 0;
+        // 學習扣的是目前職業的技能點：關聯表有目前職業＋這個技能才能學
+        var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), character.JobId);
+        var levels = (await skillBook.ListAsync(character.Id, cancellationToken))
+            .ToDictionary(learned => learned.SkillId, learned => learned.Level, StringComparer.Ordinal);
+        var currentLevel = levels.GetValueOrDefault(skill.Id);
+        var teaching = TeachingOf(character, skill, levels);
 
-        var check = SkillLearning.Evaluate(character, skill, currentLevel, skillPoints);
+        var check = SkillLearning.Evaluate(character, skill, currentLevel, skillPoints, teaching);
         if (!check.Allowed)
         {
             throw new InputValidationException("無法學習技能", check.Reasons);
         }
 
-        var (updated, proficiencyCost, learnedSkill) = SkillLearning.Apply(character, skill, currentLevel, skillPoints);
+        var (updated, proficiencyCost, learnedSkill) = SkillLearning.Apply(character, skill, currentLevel, skillPoints, teaching);
         await characters.UpdateAsync(updated, cancellationToken);
-        await proficiencies.SpendSkillPointsAsync(character.Id, skill.JobId, proficiencyCost, cancellationToken);
+        await proficiencies.SpendSkillPointsAsync(character.Id, character.JobId, proficiencyCost, cancellationToken);
         await skillBook.UpsertAsync(character.Id, learnedSkill, cancellationToken);
         return await GetAsync(accountId, cancellationToken);
     }
@@ -82,12 +86,15 @@ public sealed class SkillService(
     private static long SkillPointsOf(IReadOnlyList<JobProficiency> points, string jobId) =>
         points.FirstOrDefault(row => row.JobId == jobId)?.SkillPoints ?? 0;
 
-    private static SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints)
+    private SkillTeaching TeachingOf(Character character, SkillDefinition skill, IReadOnlyDictionary<string, int> levels) =>
+        new(content.Teaches(character.JobId, skill.Id), skill.Prerequisite is { } prerequisite ? levels.GetValueOrDefault(prerequisite.SkillId) : 0);
+
+    private static SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
     {
         NextLevelView? next = null;
         if (level < skill.MaxLevel)
         {
-            var check = SkillLearning.Evaluate(character, skill, level, skillPoints);
+            var check = SkillLearning.Evaluate(character, skill, level, skillPoints, teaching);
             var target = skill.LevelAt(level + 1);
             next = new NextLevelView(target.Level, SpOf(target), RoundsOf(target), ChanceOf(target), target.Cooldown, target.Money, target.Proficiency, check.Allowed, check.Reasons);
         }

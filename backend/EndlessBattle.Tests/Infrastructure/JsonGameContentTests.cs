@@ -333,6 +333,46 @@ public class JsonGameContentTests
                 costs: """[{ "kind": "SkillPoints", "amount": 3 }]""")),
             "burst 第 1 級");
 
+    // 以 TestContent 為底，換掉職業與技能的關聯表
+    private static void AssertJobSkillsRejected(string jobSkills, string offendingText)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            foreach (var file in Directory.GetFiles(TestContentDirectory))
+            {
+                File.Copy(file, Path.Combine(directory.FullName, Path.GetFileName(file)));
+            }
+
+            File.WriteAllText(Path.Combine(directory.FullName, "job-skills.json"), $$"""{ "jobSkills": [{{jobSkills}}] }""");
+            var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
+            Assert.Contains(offendingText, exception.Message);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void JobSkill_MissingSkillIsRejected() =>
+        AssertJobSkillsRejected("""{ "jobId": "warrior", "skillId": "ghost-skill" }""", "warrior＋ghost-skill");
+
+    [Fact]
+    public void JobSkill_DuplicatePairIsRejected() =>
+        AssertJobSkillsRejected(
+            """{ "jobId": "warrior", "skillId": "burst" }, { "jobId": "warrior", "skillId": "burst" }""", "warrior＋burst");
+
+    [Fact]
+    public void JobSkills_DecideWhichJobTeachesASkill()
+    {
+        var content = JsonGameContent.Load(TestContentDirectory);
+
+        Assert.True(content.Teaches("warrior", "burst"));
+        Assert.False(content.Teaches("thief", "burst"));
+        Assert.Equal(new SkillPrerequisite("burst", 3), content.GetSkill("advanced-burst").Prerequisite);
+    }
+
     [Fact]
     public void Skills_LoadSixteenWithFiveLevels()
     {

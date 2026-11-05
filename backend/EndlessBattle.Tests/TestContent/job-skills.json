@@ -1,0 +1,12 @@
+{
+  "jobSkills": [
+    {"jobId": "warrior", "skillId": "burst"},
+    {"jobId": "warrior", "skillId": "iron-skin"},
+    {"jobId": "thief", "skillId": "combo"},
+    {"jobId": "bard", "skillId": "lullaby"},
+    {"jobId": "bard", "skillId": "heal"},
+    {"jobId": "martialist", "skillId": "bloodthirst"},
+    {"jobId": "beastmaster", "skillId": "stun"},
+    {"jobId": "berserker", "skillId": "advanced-burst"}
+  ]
+}

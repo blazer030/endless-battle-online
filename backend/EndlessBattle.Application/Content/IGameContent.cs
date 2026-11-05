@@ -69,8 +69,11 @@ public interface IGameContent
     // 該地區與全域怪物，依內容檔中的順序
     IReadOnlyList<MonsterDefinition> MonstersOf(int placeId);
 
-    // 依內容檔中的順序
+    // 職業與技能的關聯表（job-skills.json）列出的技能，依技能檔中的順序
     IReadOnlyList<SkillDefinition> SkillsOf(string jobId);
+
+    // 關聯表有沒有「這個職業＋這個技能」
+    bool Teaches(string jobId, string skillId);
 
     // 商店該分類、該等級頁上販賣的品項，依內容檔中的順序
     IReadOnlyList<ItemDefinition> ItemsForShop(ItemCategory category, int level);

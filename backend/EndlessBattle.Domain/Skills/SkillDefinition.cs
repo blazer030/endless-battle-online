@@ -63,6 +63,9 @@ public sealed record SkillDefinition(
 {
     public int MaxLevel => Levels.Count;
 
+    // 前置技能：要先學到指定等級才能學這個技能
+    public SkillPrerequisite? Prerequisite { get; init; }
+
     // 由發動條件、消耗、效果組成的新格式；每一級的種類相同（載入時驗證），看第 1 級即可
     public bool IsComposed => Levels is [{ Effects: not null }, ..];
 
@@ -77,3 +80,5 @@ public sealed record SkillDefinition(
             ? Levels[level - 1]
             : throw new ArgumentOutOfRangeException(nameof(level), level, $"技能 {Id} 的等級必須在 1～{MaxLevel}");
 }
+
+public sealed record SkillPrerequisite(string SkillId, int Level);

@@ -13,7 +13,7 @@ public class AdminContentReadTests(MySqlDatabaseFixture database)
     [InlineData("items", 31, "test-sword")]
     [InlineData("monsters", 6, "test-sprite")]
     [InlineData("jobs", 7, "warrior")]
-    [InlineData("skills", 7, "burst")]
+    [InlineData("skills", 8, "burst")]
     [InlineData("areas", 2, "central")]
     [InlineData("places", 4, "1")]
     public async Task List_ReturnsEveryRecordOfTheKind(string kind, int count, string firstId)

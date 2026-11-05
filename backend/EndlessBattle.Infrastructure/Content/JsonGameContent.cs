@@ -53,6 +53,7 @@ public sealed class JsonGameContent : IGameContent
     private readonly Dictionary<string, MonsterDefinition> monsters;
     private readonly Dictionary<string, JobDefinition> jobs;
     private readonly Dictionary<string, SkillDefinition> skills;
+    private readonly HashSet<(string JobId, string SkillId)> jobSkills;
     private readonly Dictionary<int, PlaceDefinition> places;
     private readonly Dictionary<string, ItemDefinition> items;
     private readonly Dictionary<string, Recipe> recipes;
@@ -77,8 +78,10 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<MercenaryDefinition> allMercenaries,
         IReadOnlyList<HonourExchange> honourShop,
         InnDefinition inn,
-        ChampionSeat seedChampion)
+        ChampionSeat seedChampion,
+        HashSet<(string JobId, string SkillId)> jobSkills)
     {
+        this.jobSkills = jobSkills;
         Inn = inn;
         AllMercenaries = allMercenaries;
         mercenaries = allMercenaries.ToDictionary(mercenary => mercenary.Id);
@@ -195,6 +198,9 @@ public sealed class JsonGameContent : IGameContent
             ValidateSkill(skill, jobs);
         }
 
+        ValidatePrerequisites(allSkills, skills);
+        var jobSkills = ReadJobSkills(directory, allSkills, jobs, skills);
+
         var allItems = itemFile.Items.Select(ToItemDefinition).ToList();
         var items = new Dictionary<string, ItemDefinition>();
         foreach (var item in allItems)
@@ -296,7 +302,7 @@ public sealed class JsonGameContent : IGameContent
         return new JsonGameContent(
             allMonsters, allJobs, allSkills, monsters, jobs, skills,
             worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions,
-            allMercenaries, honourShop, inn, seedChampion);
+            allMercenaries, honourShop, inn, seedChampion, jobSkills);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -336,7 +342,50 @@ public sealed class JsonGameContent : IGameContent
         AllMonsters.Where(monster => monster.PlaceId == placeId || monster.PlaceId == MonsterPool.GlobalPlaceId).ToList();
 
     public IReadOnlyList<SkillDefinition> SkillsOf(string jobId) =>
-        AllSkills.Where(skill => skill.JobId == jobId).ToList();
+        AllSkills.Where(skill => Teaches(jobId, skill.Id)).ToList();
+
+    public bool Teaches(string jobId, string skillId) => jobSkills.Contains((jobId, skillId));
+
+    // 職業與技能的關聯表；搬移期間沒有這個檔案時，依技能的 jobId 建立
+    private static HashSet<(string JobId, string SkillId)> ReadJobSkills(
+        string directory, IReadOnlyList<SkillDefinition> allSkills, Dictionary<string, JobDefinition> jobs, Dictionary<string, SkillDefinition> skills)
+    {
+        var path = Path.Combine(directory, "job-skills.json");
+        if (!File.Exists(path))
+        {
+            return [.. allSkills.Select(skill => (skill.JobId, skill.Id))];
+        }
+
+        var pairs = new HashSet<(string JobId, string SkillId)>();
+        foreach (var row in Read<JobSkillFile>(path).JobSkills)
+        {
+            var pair = $"{row.JobId}＋{row.SkillId}";
+            if (!jobs.ContainsKey(row.JobId) || !skills.ContainsKey(row.SkillId))
+            {
+                throw new GameContentException($"職業與技能的關聯 {pair} 引用了不存在的職業或技能");
+            }
+
+            if (!pairs.Add((row.JobId, row.SkillId)))
+            {
+                throw new GameContentException($"職業與技能的關聯 {pair} 重複");
+            }
+        }
+
+        return pairs;
+    }
+
+    private static void ValidatePrerequisites(IReadOnlyList<SkillDefinition> allSkills, Dictionary<string, SkillDefinition> skills)
+    {
+        foreach (var skill in allSkills)
+        {
+            if (skill.Prerequisite is { } prerequisite
+                && (!skills.TryGetValue(prerequisite.SkillId, out var required) || prerequisite.Level < 1 || prerequisite.Level > required.MaxLevel
+                    || prerequisite.SkillId == skill.Id))
+            {
+                throw new GameContentException($"技能 {skill.Id} 的前置技能 {prerequisite.SkillId} 第 {prerequisite.Level} 級不存在");
+            }
+        }
+    }
 
     private static (IReadOnlyList<AreaDefinition>, IReadOnlyList<PlaceDefinition>, Dictionary<int, PlaceDefinition>) BuildWorld(
         WorldFile world)
@@ -1361,7 +1410,10 @@ public sealed class JsonGameContent : IGameContent
         // 內容檔寫 AfterHit；舊格式的 AfterAttack 在收尾時改名
         var timing = entry.Timing.Equals("AfterHit", StringComparison.OrdinalIgnoreCase) ? SkillTiming.AfterAttack : parseTiming(entry.Timing, "timing");
         return new SkillDefinition(entry.Id, entry.Name, entry.JobId, parseSlotType(entry.SlotType ?? "", "slotType"), timing, Effect: null,
-            entry.Description, [.. levels]);
+            entry.Description, [.. levels])
+        {
+            Prerequisite = entry.Prerequisite is { } prerequisite ? new SkillPrerequisite(prerequisite.SkillId, prerequisite.Level) : null,
+        };
     }
 
     // 成長在內容檔裡寫成 [min, max]
@@ -1478,7 +1530,14 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<SkillLevelEntry> Levels,
         SkillTriggerEntry? Trigger,
         string? SlotType,
-        int? MaxLevel);
+        int? MaxLevel,
+        PrerequisiteEntry? Prerequisite);
+
+    private sealed record PrerequisiteEntry(string SkillId, int Level);
+
+    private sealed record JobSkillFile(IReadOnlyList<JobSkillEntry> JobSkills);
+
+    private sealed record JobSkillEntry(string JobId, string SkillId);
 
     private sealed record SkillLevelEntry(
         int Level,
