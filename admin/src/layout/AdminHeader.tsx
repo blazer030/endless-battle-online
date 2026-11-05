@@ -12,7 +12,8 @@ export function AdminHeader() {
       style={{
         position: "sticky",
         top: 0,
-        zIndex: 1,
+        // 要蓋過表格的固定欄（2）與 sticky 表頭（3）
+        zIndex: 10,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
