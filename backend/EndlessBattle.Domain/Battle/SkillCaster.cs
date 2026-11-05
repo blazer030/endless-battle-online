@@ -20,6 +20,9 @@ public sealed class SkillCaster
     // 冷卻中的技能：值是還要經過幾個回合開頭才能再發動。每場戰鬥建立新的 SkillCaster，冷卻自然歸零
     private readonly Dictionary<EquippedSkill, int> cooldowns = [];
 
+    // 新格式持續中的技能已經過幾個回合開頭（發動回合為 0）；每個效果在 age < max(1, rounds) 時生效
+    private readonly Dictionary<EquippedSkill, int> ages = [];
+
     public SkillCaster(CombatantState player, IReadOnlyList<EquippedSkill> skills)
     {
         this.player = player;
@@ -40,13 +43,19 @@ public sealed class SkillCaster
             }
         }
 
-        var expired = false;
+        var expired = ages.Count > 0;
+        foreach (var skill in ages.Keys.ToList())
+        {
+            ages[skill]++;
+        }
+
         foreach (var skill in remainingRounds.Keys.ToList())
         {
             remainingRounds[skill]--;
             if (remainingRounds[skill] <= 0)
             {
                 remainingRounds.Remove(skill);
+                ages.Remove(skill);
                 expired = true;
             }
         }
@@ -59,15 +68,19 @@ public sealed class SkillCaster
 
     // 玩家出手前，依欄位 1→5 嘗試施放
     public IReadOnlyList<SkillCast> CastBeforeAttack(int hp, int sp, IRandomSource random) =>
-        Cast(SkillTiming.BeforeAttack, hp, sp, random, equipped => equipped.Skill.Effect == SkillEffectKind.Heal
-            ? BattleModifiers.Round(player.Smart * (1 + 0.375 * (equipped.Level - 1)))
-            : 0);
+        Cast(SkillTiming.BeforeAttack, hp, sp, random, equipped => equipped.Skill.IsComposed
+            ? RestoreAmount(equipped, damage: 0)
+            : equipped.Skill.Effect == SkillEffectKind.Heal
+                ? BattleModifiers.Round(player.Smart * (1 + 0.375 * (equipped.Level - 1)))
+                : 0);
 
     // 玩家物理命中後（嗜血）；主動技能施放後本回合持續中，同一回合不會再發動
     public IReadOnlyList<SkillCast> CastAfterPhysicalHit(int damage, int hp, int sp, IRandomSource random) =>
-        Cast(SkillTiming.AfterAttack, hp, sp, random, equipped => equipped.Skill.Effect == SkillEffectKind.Bloodthirst
-            ? BattleModifiers.Round(damage * 0.02 * equipped.Level)
-            : 0);
+        Cast(SkillTiming.AfterAttack, hp, sp, random, equipped => equipped.Skill.IsComposed
+            ? RestoreAmount(equipped, damage)
+            : equipped.Skill.Effect == SkillEffectKind.Bloodthirst
+                ? BattleModifiers.Round(damage * 0.02 * equipped.Level)
+                : 0);
 
     private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, Func<EquippedSkill, int> healOf)
     {
@@ -100,20 +113,22 @@ public sealed class SkillCaster
             // 持續中、SP 不足（被動不耗 SP，不檢查）或滿血時的回復技能都不判斷發動：SP 只在住宿回復，不浪費在回復 0 上；
             // 這些情況耗用的亂數與沒有技能時相同
             var isPassive = equipped.Skill.Type == SkillType.Passive;
-            if (remainingRounds.ContainsKey(equipped) || (!isPassive && sp < level.Sp) || (IsHealing(equipped) && hp >= player.HpMax)
-                || !Triggers(equipped, level, hp, random))
+            var spCost = equipped.Skill.IsComposed ? SkillPointCost(level) : isPassive ? 0 : level.Sp;
+            if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(equipped, level, hp) || sp < spCost
+                || (IsHealing(equipped) && hp >= player.HpMax) || !Triggers(equipped, level, hp, random))
             {
                 continue;
             }
 
-            if (!isPassive)
-            {
-                sp -= level.Sp;
-            }
+            sp -= spCost;
 
             var heal = Math.Min(healOf(equipped), player.HpMax - hp);
             hp += heal;
-            remainingRounds[equipped] = level.Rounds;
+            remainingRounds[equipped] = equipped.Skill.IsComposed ? LastingRounds(level) : level.Rounds;
+            if (equipped.Skill.IsComposed)
+            {
+                ages[equipped] = 0;
+            }
             StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, heal));
@@ -127,11 +142,53 @@ public sealed class SkillCaster
         return casts;
     }
 
-    // hpBelow 看當下 HP 比例、不擲骰；chance 擲該級的固定發動率
-    private bool Triggers(EquippedSkill equipped, SkillLevel level, int hp, IRandomSource random) =>
-        equipped.Skill.EffectiveTrigger is { Kind: SkillTriggerKind.HpBelow, Percent: var percent }
+    // 新格式：不需要亂數的條件先判斷，全部成立且消耗夠，才在 Triggers 擲 Chance；舊格式沒有這類條件
+    private bool ConditionsWithoutRollHold(EquippedSkill equipped, SkillLevel level, int hp) =>
+        !equipped.Skill.IsComposed || level.Conditions!.All(condition => condition.Kind switch
+        {
+            SkillConditionKind.HitPointsBelow => (long)hp * 100 < (long)condition.Percent * player.HpMax,
+            _ => true,
+        });
+
+    // hpBelow 看當下 HP 比例、不擲骰；chance 擲該級的固定發動率。新格式依序擲每個 Chance 條件
+    private bool Triggers(EquippedSkill equipped, SkillLevel level, int hp, IRandomSource random)
+    {
+        if (equipped.Skill.IsComposed)
+        {
+            return level.Conditions!.Where(condition => condition.Kind == SkillConditionKind.Chance)
+                .All(condition => PhpRandom.Between(random, 1, 100) <= condition.Percent);
+        }
+
+        return equipped.Skill.EffectiveTrigger is { Kind: SkillTriggerKind.HpBelow, Percent: var percent }
             ? (long)hp * 100 < (long)percent * player.HpMax
             : PhpRandom.Between(random, 1, 100) <= level.Chance;
+    }
+
+    private static int SkillPointCost(SkillLevel level) =>
+        level.Costs!.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => cost.Amount);
+
+    // 持續中不重複發動：直到最長的效果結束；只在發動回合生效的效果也擋住同一回合
+    private static int LastingRounds(SkillLevel level) => level.Effects!.Max(effect => Math.Max(1, effect.Rounds));
+
+    private int RestoreAmount(EquippedSkill equipped, int damage) =>
+        equipped.Skill.LevelAt(equipped.Level).Effects!.OfType<RestoreEffect>().Sum(effect => effect.Scaling is { } scaling
+            ? Scaled(scaling)
+            : BattleModifiers.Round(damage * effect.PercentOfDamage!.Value / 100));
+
+    private int Scaled(IReadOnlyList<SkillScaling> scaling) =>
+        BattleModifiers.Round(scaling.Sum(term => Basis(term.Basis) * term.Ratio));
+
+    private int Basis(SkillScalingBasis basis) => basis switch
+    {
+        SkillScalingBasis.Strength => player.Str,
+        SkillScalingBasis.Intelligence => player.Smart,
+        SkillScalingBasis.Agility => player.Agi,
+        SkillScalingBasis.Charisma => player.Au,
+        SkillScalingBasis.Attack => player.At,
+        SkillScalingBasis.MagicAttack => player.Mat,
+        SkillScalingBasis.Defense => player.Df,
+        _ => throw new ArgumentOutOfRangeException(nameof(basis), basis, "未知的能力基準"),
+    };
 
     // 冷卻 n：接下來 n 次玩家出手不能發動。倒數在每回合開頭，下一回合開頭就會先扣 1，所以存 n + 1
     private void StartCooldown(EquippedSkill equipped, SkillLevel level)
@@ -142,8 +199,11 @@ public sealed class SkillCaster
         }
     }
 
+    // 效果全部是回復的技能，在要回復的資源已滿時不發動
     private static bool IsHealing(EquippedSkill equipped) =>
-        equipped.Skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst;
+        equipped.Skill.IsComposed
+            ? equipped.Skill.LevelAt(equipped.Level).Effects!.All(effect => effect is RestoreEffect)
+            : equipped.Skill.Effect is SkillEffectKind.Heal or SkillEffectKind.Bloodthirst;
 
     private bool IsInEffect(EquippedSkill equipped) =>
         equipped.Skill.IsAlwaysOn || remainingRounds.ContainsKey(equipped);
@@ -154,6 +214,11 @@ public sealed class SkillCaster
     // 技能數值照 plan 的技能表，value = lv
     private BattleModifiers Apply(BattleModifiers modifiers, EquippedSkill equipped)
     {
+        if (equipped.Skill.IsComposed)
+        {
+            return ApplyComposed(modifiers, equipped);
+        }
+
         var level = equipped.Level;
         return equipped.Skill.Effect switch
         {
@@ -182,5 +247,85 @@ public sealed class SkillCaster
             SkillEffectKind.Heal or SkillEffectKind.Bloodthirst => modifiers,
             _ => throw new ArgumentOutOfRangeException(nameof(equipped), equipped.Skill.Effect, "未知的技能效果"),
         };
+    }
+
+    // 同一技能裡同一項能力的百分比相加後才乘進修正值；不同技能之間相乘；固定值與 scaling 一律相加
+    private BattleModifiers ApplyComposed(BattleModifiers modifiers, EquippedSkill equipped)
+    {
+        var age = ages.GetValueOrDefault(equipped);
+        var effects = equipped.Skill.LevelAt(equipped.Level).Effects!
+            .Where(effect => equipped.Skill.IsAlwaysOn || age < Math.Max(1, effect.Rounds))
+            .ToList();
+        var percents = new Dictionary<(SkillTarget, SkillStat), double>();
+        var flats = new Dictionary<SkillStat, int>();
+        var physicalReduction = 0.0;
+        foreach (var effect in effects)
+        {
+            switch (effect)
+            {
+                case StatChangeEffect { Percent: { } percent } change:
+                    percents[(change.Target, change.Stat)] = percents.GetValueOrDefault((change.Target, change.Stat)) + percent;
+                    break;
+                case StatChangeEffect change:
+                    flats[change.Stat] = flats.GetValueOrDefault(change.Stat) + (change.Amount ?? Scaled(change.Scaling!));
+                    break;
+                case BonusDamageEffect bonus:
+                    var amount = Scaled(bonus.Scaling);
+                    modifiers = bonus.AttackKind switch
+                    {
+                        SkillAttackKind.Physical => modifiers with { PhysicalBonusDamage = modifiers.PhysicalBonusDamage + amount },
+                        SkillAttackKind.Magic => modifiers with { MagicBonusDamage = modifiers.MagicBonusDamage + amount },
+                        _ => modifiers with { BonusDamage = modifiers.BonusDamage + amount },
+                    };
+                    break;
+                case MultiHitEffect multiHit:
+                    modifiers = modifiers with
+                    {
+                        PhysicalHits = multiHit.AttackKind == SkillAttackKind.Magic ? modifiers.PhysicalHits : Math.Max(modifiers.PhysicalHits, multiHit.Hits),
+                        MagicHits = multiHit.AttackKind == SkillAttackKind.Physical ? modifiers.MagicHits : Math.Max(modifiers.MagicHits, multiHit.Hits),
+                    };
+                    break;
+                case DamageReductionEffect reduction:
+                    physicalReduction += reduction.Percent;
+                    break;
+                case StunEffect stun:
+                    modifiers = modifiers with { StunChance = Math.Max(modifiers.StunChance, stun.Chance) };
+                    break;
+            }
+        }
+
+        foreach (var ((target, stat), percent) in percents)
+        {
+            var multiplier = 1 + percent / 100;
+            modifiers = (target, stat) switch
+            {
+                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { At = modifiers.At * multiplier },
+                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { Mat = modifiers.Mat * multiplier },
+                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { Df = modifiers.Df * multiplier },
+                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { Mdf = modifiers.Mdf * multiplier },
+                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { Agi = modifiers.Agi * multiplier },
+                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyAt = modifiers.EnemyAt * multiplier },
+                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyMat = modifiers.EnemyMat * multiplier },
+                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyAgi = modifiers.EnemyAgi * multiplier },
+                _ => throw new ArgumentOutOfRangeException(nameof(equipped), (target, stat), "這項能力不能用百分比增減"),
+            };
+        }
+
+        foreach (var (stat, flat) in flats)
+        {
+            modifiers = stat switch
+            {
+                SkillStat.Attack => modifiers with { FlatAt = modifiers.FlatAt + flat },
+                SkillStat.MagicAttack => modifiers with { FlatMat = modifiers.FlatMat + flat },
+                SkillStat.Defense => modifiers with { FlatDf = modifiers.FlatDf + flat },
+                SkillStat.MagicDefense => modifiers with { FlatMdf = modifiers.FlatMdf + flat },
+                SkillStat.Agility => modifiers with { FlatAgi = modifiers.FlatAgi + flat },
+                SkillStat.HitRate => modifiers with { Rag = modifiers.Rag + flat },
+                SkillStat.PhysicalCriticalChance => modifiers with { CritChanceBonus = modifiers.CritChanceBonus + flat },
+                _ => throw new ArgumentOutOfRangeException(nameof(equipped), stat, "未知的能力"),
+            };
+        }
+
+        return physicalReduction == 0 ? modifiers : modifiers with { PhysicalTaken = modifiers.PhysicalTaken * (1 - physicalReduction / 100) };
     }
 }

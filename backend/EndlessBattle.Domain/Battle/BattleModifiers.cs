@@ -21,27 +21,38 @@ public sealed record BattleModifiers(
     int MagicHits = 1,
     double EnemyAgi = 1,
     double EnemyAttack = 1,
-    int StunChance = 0)
+    int StunChance = 0,
+    int FlatMat = 0,
+    int FlatDf = 0,
+    int FlatMdf = 0,
+    int FlatAgi = 0,
+    double EnemyAt = 1,
+    double EnemyMat = 1,
+    int PhysicalBonusDamage = 0,
+    int MagicBonusDamage = 0)
 {
     // 能力倍率最低 0.9，正值四捨五入後仍至少 1，所以不另設下限；倍率為 1 時數值完全不變
     public CombatantState ApplyToPlayer(CombatantState player) => player with
     {
         At = Scale(player.At, this.At) + FlatAt,
-        Mat = Scale(player.Mat, this.Mat),
-        Df = Scale(player.Df, this.Df),
-        Mdf = Scale(player.Mdf, this.Mdf),
-        Agi = Scale(player.Agi, this.Agi),
+        Mat = Scale(player.Mat, this.Mat) + FlatMat,
+        Df = Scale(player.Df, this.Df) + FlatDf,
+        Mdf = Scale(player.Mdf, this.Mdf) + FlatMdf,
+        Agi = Scale(player.Agi, this.Agi) + FlatAgi,
     };
 
     public CombatantState ApplyToMonster(CombatantState monster) => monster with
     {
-        At = Scale(monster.At, EnemyAttack),
-        Mat = Scale(monster.Mat, EnemyAttack),
+        At = Scale(monster.At, EnemyAttack * EnemyAt),
+        Mat = Scale(monster.Mat, EnemyAttack * EnemyMat),
         Agi = Scale(monster.Agi, EnemyAgi),
     };
 
     // 玩家受到的物理傷害；原本有傷害時減免後至少 1
     public int PhysicalDamageTaken(int damage) => damage > 0 ? Math.Max(1, Round(damage * PhysicalTaken)) : damage;
+
+    // 玩家這一下的附加傷害：不分攻擊方式的加上該方式專屬的
+    public int BonusDamageFor(AttackKind kind) => BonusDamage + (kind == AttackKind.Physical ? PhysicalBonusDamage : MagicBonusDamage);
 
     internal static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);
 

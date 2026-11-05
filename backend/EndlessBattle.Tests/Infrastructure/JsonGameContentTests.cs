@@ -284,6 +284,55 @@ public class JsonGameContentTests
     private static void AssertSkillsRejected(string skills, string offendingText) =>
         AssertLoadRejects(ValidMonsters, ValidJobs, offendingText, $$"""{ "skills": [{{skills}}] }""");
 
+    // 新格式：每一級由發動條件、消耗、效果組成
+    private static string ComposedLevel(int level, string conditions, string effects, string costs = """[{ "kind": "SkillPoints", "amount": 2 }]""") =>
+        $$"""{ "level": {{level}}, "money": 500, "proficiency": 300, "cooldown": 0, "conditions": {{conditions}}, "costs": {{costs}}, "effects": {{effects}} }""";
+
+    private const string ChanceForty = """[{ "kind": "Chance", "percent": 40 }]""";
+
+    private const string AttackUp = """[{ "kind": "StatChange", "target": "Caster", "stat": "attack", "percent": 1, "rounds": 3 }]""";
+
+    private static string ComposedSkillJson(string id, int maxLevel, params string[] levels) =>
+        $$"""{ "id": "{{id}}", "name": "技", "jobId": "warrior", "slotType": "Active", "timing": "BeforeAttack", "description": "說明", "maxLevel": {{maxLevel}}, "levels": [{{string.Join(", ", levels)}}] }""";
+
+    [Fact]
+    public void Skill_ComposedLevelsLoad()
+    {
+        var skill = LoadSkills(ComposedSkillJson("burst", 2, ComposedLevel(1, ChanceForty, AttackUp), ComposedLevel(2, ChanceForty, AttackUp)))
+            .GetSkill("burst");
+
+        Assert.True(skill.IsComposed);
+        Assert.Equal(2, skill.MaxLevel);
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 40)], skill.LevelAt(2).Conditions!);
+        Assert.Equal([new SkillCost(SkillCostKind.SkillPoints, 2)], skill.LevelAt(2).Costs!);
+        Assert.Equal(new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, 1, null, null, 3), Assert.Single(skill.LevelAt(1).Effects!));
+    }
+
+    [Fact]
+    public void Skill_MissingEffectValueIsRejected() =>
+        AssertSkillsRejected(
+            ComposedSkillJson("burst", 1, ComposedLevel(1, ChanceForty, """[{ "kind": "StatChange", "target": "Caster", "stat": "attack", "rounds": 3 }]""")),
+            "burst 第 1 級");
+
+    [Fact]
+    public void Skill_LevelsWithDifferentKindsAreRejected() =>
+        AssertSkillsRejected(
+            ComposedSkillJson("burst", 2,
+                ComposedLevel(1, ChanceForty, AttackUp),
+                ComposedLevel(2, ChanceForty, """[{ "kind": "Stun", "chance": 10, "rounds": 1 }]""")),
+            "burst 第 2 級");
+
+    [Fact]
+    public void Skill_LevelsMustMatchMaxLevel() =>
+        AssertSkillsRejected(ComposedSkillJson("burst", 2, ComposedLevel(1, ChanceForty, AttackUp)), "burst");
+
+    [Fact]
+    public void Skill_AlwaysOnLevelWithCostIsRejected() =>
+        AssertSkillsRejected(
+            ComposedSkillJson("burst", 1, ComposedLevel(1, "[]", """[{ "kind": "StatChange", "target": "Caster", "stat": "defense", "percent": 1, "rounds": 0 }]""",
+                costs: """[{ "kind": "SkillPoints", "amount": 3 }]""")),
+            "burst 第 1 級");
+
     [Fact]
     public void Skills_LoadSixteenWithFiveLevels()
     {

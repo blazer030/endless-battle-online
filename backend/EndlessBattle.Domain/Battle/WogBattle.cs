@@ -105,7 +105,7 @@ public static class WogBattle
             for (var hit = 0; hit < hits; hit++)
             {
                 var hitSeconds = atSeconds + hit * intervalSeconds;
-                var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CritChanceBonus, modifiers.BonusDamage);
+                var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CritChanceBonus, modifiers.BonusDamageFor(playerKind));
                 monsterHp = Math.Max(0, monsterHp - result.Damage);
                 damageDealt += result.Damage;
                 events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, result.Damage,

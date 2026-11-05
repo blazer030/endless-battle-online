@@ -522,6 +522,12 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"技能 {skill.Id} 至少要有一個等級");
         }
 
+        if (skill.IsComposed)
+        {
+            ValidateComposedSkill(skill);
+            return;
+        }
+
         if (skill.Trigger is { Kind: SkillTriggerKind.HpBelow, Percent: < 1 or > 99 })
         {
             throw new GameContentException($"技能 {skill.Id} 的 hpBelow 門檻 percent 必須在 1～99");
@@ -569,6 +575,59 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException(rollsChance
                     ? $"技能 {skill.Id} 第 {level.Level} 級的 chance 必須在 1～100"
                     : $"hpBelow 技能 {skill.Id} 第 {level.Level} 級的 chance 必須為 0");
+            }
+        }
+    }
+
+    // 新格式：每一級的種類與第 1 級相同；常駐（沒有條件）的級數不能有消耗、持續回合與冷卻
+    private static void ValidateComposedSkill(SkillDefinition skill)
+    {
+        static string Kinds(SkillLevel level) => string.Join(",",
+            level.Conditions!.Select(condition => condition.Kind.ToString())
+                .Concat(["|"]).Concat(level.Costs!.Select(cost => cost.Kind.ToString()))
+                .Concat(["|"]).Concat(level.Effects!.Select(effect => effect.GetType().Name)));
+
+        var signature = Kinds(skill.Levels[0]);
+        foreach (var level in skill.Levels)
+        {
+            void Require(bool condition, string detail)
+            {
+                if (!condition)
+                {
+                    throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級{detail}");
+                }
+            }
+
+            Require(level.Money >= 0 && level.Proficiency >= 0 && level.Cooldown >= 0, "的 money、proficiency、cooldown 不可為負");
+            Require(level.Effects!.Count > 0, "至少要有一個效果");
+            Require(Kinds(level) == signature, "的條件、消耗、效果種類與順序必須與第 1 級相同");
+            if (level.Conditions is [])
+            {
+                Require(level.Costs is [] && level.Cooldown == 0 && level.Effects!.All(effect => effect.Rounds == 0),
+                    "沒有發動條件（常駐），不能有消耗、冷卻或持續回合");
+            }
+
+            foreach (var condition in level.Conditions!)
+            {
+                Require(condition.Kind == SkillConditionKind.Chance ? condition.Percent is >= 1 and <= 100 : condition.Percent is >= 1 and <= 99,
+                    $"的條件 {condition.Kind} 的 percent 超出範圍：{condition.Percent}");
+            }
+
+            Require(level.Costs!.All(cost => cost.Amount >= 1), "的消耗必須至少 1");
+            foreach (var effect in level.Effects!)
+            {
+                Require(effect.Rounds >= 0, "的效果 rounds 不可為負");
+                var valid = effect switch
+                {
+                    StatChangeEffect { Target: SkillTarget.Opponent } change => change.Percent is not null
+                        && change.Stat is SkillStat.Attack or SkillStat.MagicAttack or SkillStat.Agility,
+                    StatChangeEffect change when change.Stat is SkillStat.HitRate or SkillStat.PhysicalCriticalChance => change.Amount is not null,
+                    MultiHitEffect multiHit => multiHit.Hits >= 2,
+                    DamageReductionEffect reduction => reduction.AttackKind == SkillAttackKind.Physical && reduction.Percent is > 0 and < 100,
+                    StunEffect stun => stun.Chance is >= 1 and <= 100,
+                    _ => true,
+                };
+                Require(valid, $"的效果 {effect.GetType().Name.Replace("Effect", "")} 的數值不在支援的範圍");
             }
         }
     }
@@ -1262,16 +1321,47 @@ public sealed class JsonGameContent : IGameContent
                 ? parsed
                 : throw new GameContentException($"技能 {entry.Id} 的 {field} 無法辨識：{value}");
 
+        if (entry.Levels.Any(level => level.Effects is not null))
+        {
+            return ToComposedSkill(entry, ParseEnum<SkillType>, ParseEnum<SkillTiming>);
+        }
+
         return new SkillDefinition(
             entry.Id,
             entry.Name,
             entry.JobId,
-            ParseEnum<SkillType>(entry.Type, "type"),
+            ParseEnum<SkillType>(entry.Type ?? "", "type"),
             ParseEnum<SkillTiming>(entry.Timing, "timing"),
-            ParseEnum<SkillEffectKind>(entry.Effect, "effect"),
+            ParseEnum<SkillEffectKind>(entry.Effect ?? "", "effect"),
             entry.Description,
-            entry.Levels,
+            [.. entry.Levels.Select(level => new SkillLevel(level.Level, level.Sp, level.Rounds, level.Chance, level.Money, level.Proficiency, level.Cooldown))],
             entry.Trigger is { } trigger ? new SkillTrigger(ParseEnum<SkillTriggerKind>(trigger.Kind, "trigger.kind"), trigger.Percent) : null);
+    }
+
+    private static SkillDefinition ToComposedSkill(SkillEntry entry, Func<string, string, SkillType> parseSlotType, Func<string, string, SkillTiming> parseTiming)
+    {
+        if (entry.MaxLevel is not { } maxLevel || maxLevel < 1 || entry.Levels.Count != maxLevel
+            || entry.Levels.Select(level => level.Level).Where((value, index) => value != index + 1).Any())
+        {
+            throw new GameContentException($"技能 {entry.Id} 的 maxLevel 必須至少 1，且等級剛好是 1～maxLevel 各一級");
+        }
+
+        var levels = entry.Levels.Select(level =>
+        {
+            if (level.Effects is null || level.Conditions is null || level.Costs is null)
+            {
+                throw new GameContentException($"技能 {entry.Id} 第 {level.Level} 級必須有 conditions、costs、effects");
+            }
+
+            var reader = new SkillPartsReader(entry.Id, level.Level);
+            return new SkillLevel(level.Level, Sp: 0, Rounds: 0, Chance: 0, level.Money, level.Proficiency, level.Cooldown,
+                [.. level.Conditions.Select(reader.Condition)], [.. level.Costs.Select(reader.Cost)], [.. level.Effects.Select(reader.Effect)]);
+        });
+
+        // 內容檔寫 AfterHit；舊格式的 AfterAttack 在收尾時改名
+        var timing = entry.Timing.Equals("AfterHit", StringComparison.OrdinalIgnoreCase) ? SkillTiming.AfterAttack : parseTiming(entry.Timing, "timing");
+        return new SkillDefinition(entry.Id, entry.Name, entry.JobId, parseSlotType(entry.SlotType ?? "", "slotType"), timing, Effect: null,
+            entry.Description, [.. levels]);
     }
 
     // 成長在內容檔裡寫成 [min, max]
@@ -1376,16 +1466,31 @@ public sealed class JsonGameContent : IGameContent
 
     private sealed record SkillFile(IReadOnlyList<SkillEntry> Skills);
 
+    // 舊格式用 type、effect、trigger 與每級的 sp、rounds、chance；新格式用 slotType、maxLevel 與每級的 conditions、costs、effects
     private sealed record SkillEntry(
         string Id,
         string Name,
         string JobId,
-        string Type,
+        string? Type,
         string Timing,
-        string Effect,
+        string? Effect,
         string Description,
-        IReadOnlyList<SkillLevel> Levels,
-        SkillTriggerEntry? Trigger);
+        IReadOnlyList<SkillLevelEntry> Levels,
+        SkillTriggerEntry? Trigger,
+        string? SlotType,
+        int? MaxLevel);
+
+    private sealed record SkillLevelEntry(
+        int Level,
+        int Sp,
+        int Rounds,
+        int Chance,
+        long Money,
+        long Proficiency,
+        int Cooldown,
+        IReadOnlyList<JsonElement>? Conditions,
+        IReadOnlyList<JsonElement>? Costs,
+        IReadOnlyList<JsonElement>? Effects);
 
     // 發動條件：kind 為 chance 或 hpBelow；percent 只有 hpBelow 用
     private sealed record SkillTriggerEntry(string Kind, int Percent);

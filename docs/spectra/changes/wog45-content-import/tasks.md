@@ -15,7 +15,7 @@
 
 ## 2. 技能改成四個部分（Domain、內容載入、API、遊戲畫面）
 
-- [ ] 2.1 擴充：依決策「技能由四個部分組成」、「發動條件是一份清單，沒有條件就是常駐」、「消耗不夠就不能發動」、「效果目錄」，新增新格式的技能模型。對應需求「Skills are assembled from conditions, costs and effects」、「Activation conditions are a list」、「Effect stacking」、「Every level is set separately up to the maximum level」、「Invalid skills are rejected at load」。
+- [x] 2.1 擴充：依決策「技能由四個部分組成」、「發動條件是一份清單，沒有條件就是常駐」、「消耗不夠就不能發動」、「效果目錄」，新增新格式的技能模型。對應需求「Skills are assembled from conditions, costs and effects」、「Activation conditions are a list」、「Effect stacking」、「Every level is set separately up to the maximum level」、「Invalid skills are rejected at load」。
   - 模型：基本資料、`maxLevel`、每級 `conditions`／`costs`／`effects`，每個效果有自己的 `rounds`。
   - 這一步先支援：
     - 條件：`Chance`、`HitPointsBelow`。
