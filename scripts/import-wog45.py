@@ -113,8 +113,28 @@ def require(record, field, source):
     return record[field]
 
 
+class SourceRecord(dict):
+    """原版資料的一筆紀錄（含裡面的子物件）；取不到的欄位以檔名與紀錄 id 報錯，不是 KeyError。"""
+
+    def __init__(self, source, record_id, values):
+        super().__init__(values)
+        self.source, self.record_id = source, record_id
+
+    def __missing__(self, field):
+        raise SourceError(f"{self.source} 的紀錄 {self.record_id} 缺少欄位 {field}")
+
+
+def wrap(value, source, record_id):
+    if isinstance(value, dict):
+        return SourceRecord(source, record_id, {key: wrap(item, source, record_id) for key, item in value.items()})
+    if isinstance(value, list):
+        return [wrap(item, source, record_id) for item in value]
+    return value
+
+
 def load(name):
-    return json.loads((DATA / name).read_text(encoding="utf-8"))
+    records = json.loads((DATA / name).read_text(encoding="utf-8"))
+    return [wrap(record, name, record.get("id", record.get("me_id", "？"))) for record in records]
 
 
 def read_content(name):
