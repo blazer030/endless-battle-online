@@ -206,7 +206,7 @@ Content loading SHALL fail with a message that names the skill and level when a 
 
 The import script SHALL import each original skill as conditions, costs and effects, with per-level values taken from that level's original description. Activation SHALL follow the current rules:
 
-- A chance in the description that covers all effects SHALL become the `Chance` condition; otherwise active skills SHALL get `Chance` `30 + 10·level`.
+- A chance in the description that covers all effects SHALL become the `Chance` condition; otherwise active skills SHALL get `Chance` `min(100, 30 + 10·level)`.
 - Original passive skills without a stated condition SHALL be always on.
 - The original SP SHALL become a `SkillPoints` cost.
 - `job-skills.json` rows SHALL come from the original job of each skill, and the original prerequisite SHALL become the prerequisite.
@@ -217,7 +217,7 @@ A skill the model cannot express SHALL be left out and listed in `docs/research/
 
 - **GIVEN** the original 爆氣 levels whose descriptions read 物攻上升1% through 物攻上升10%
 - **WHEN** the import runs
-- **THEN** `skill-1` level n has condition `Chance` `30 + 10·n` and the single effect `StatChange` caster attack percent n
+- **THEN** `skill-1` level n has condition `Chance` `min(100, 30 + 10·n)` and the single effect `StatChange` caster attack percent n
 
 #### Scenario: Activation follows the current rules, not the original
 

@@ -32,8 +32,8 @@
 **Non-Goals:**
 
 - 技能以外的規則不改：不放寬內容驗證，也不新增怪物技能、寵物技能或任務條件。這些依 `gaps.md` 另開變更。
-- 不做技能說明文字的自動產生；說明沿用原版第 1 級的文字。
-- 不改 `EndlessBattle.Tests/TestContent/`，也不改用它的規則測試。
+- 技能的 `description` 是另外寫的技能說明，匯入時留空；效果文字由條件、消耗、效果自動產生（見「效果文字自動產生」）。
+- 不改 `EndlessBattle.Tests/TestContent/`，也不改用它的規則測試；例外見「硬規則」的規則 6。
 - 不搬本機玩家存檔，資料庫重建即可。
 - 不做 content-editor 的調整。
 
@@ -367,7 +367,7 @@ ALTER TABLE characters ALTER COLUMN job_id SET DEFAULT 'job-6';
 
 ### 硬規則
 
-- **規則 6**：內容只放 `backend/content/*.json`，`TestContent/` 不動。
+- **規則 6**：內容只放 `backend/content/*.json`，`TestContent/` 不動。例外：技能改成四部分時 `TestContent/skills.json` 改寫成新格式並新增 `job-skills.json`；鍛造工具的 id 寫死在 `ForgeTools`，改成原版 `item-1378`、`item-3361` 時 `TestContent/items.json` 同名的兩筆跟著改 id。
 - **規則 3**：新增的 migration 用下一個版本號 000000016，不改已 commit 的 migration。
 - **規則 4**：不手改 scaffold 產生檔。
 - **規則 1**：技能條件、消耗、效果的計算都在 Domain（`SkillCaster`、`BattleModifiers`、`RoundResolver`、`SkillLearning`），Infrastructure 只負責讀取與驗證；效果文字是顯示用，放 Application。

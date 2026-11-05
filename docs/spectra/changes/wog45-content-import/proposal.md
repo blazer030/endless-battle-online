@@ -53,13 +53,13 @@
 - Affected specs: `wog-content-import`（新增）、`skill-effects`（新增）
 - Affected code:
   - New: backend/content/job-skills.json, backend/EndlessBattle.Tests/TestContent/job-skills.json, scripts/import-wog45.py, docs/research/wog45/gaps.md, backend/db/ddl/V000000016__default_job_id.sql
-  - Modified: backend/content/items.json, backend/content/monsters.json, backend/content/jobs.json, backend/content/skills.json, backend/content/missions.json, backend/content/recipes.json, backend/content/honour-shop.json, backend/content/mercenaries.json, backend/content/world.json
+  - Modified: backend/content/items.json, backend/content/monsters.json, backend/content/jobs.json, backend/content/skills.json, backend/content/missions.json, backend/content/recipes.json, backend/content/honour-shop.json, backend/content/mercenaries.json
   - Modified tests: backend/EndlessBattle.Tests/Content/MonsterRosterTests.cs, backend/EndlessBattle.Tests/Content/ItemTableTests.cs, backend/EndlessBattle.Tests/Content/MissionTableTests.cs, backend/EndlessBattle.Tests/Content/CompanionTableTests.cs, backend/EndlessBattle.Tests/Content/BalanceTests.cs
   - New tests: backend/EndlessBattle.Tests/Content/WogImportTests.cs, backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
   - Domain: backend/EndlessBattle.Domain/Skills/SkillDefinition.cs, backend/EndlessBattle.Domain/Battle/SkillCaster.cs, backend/EndlessBattle.Domain/Battle/BattleModifiers.cs, backend/EndlessBattle.Domain/Battle/RoundResolver.cs, backend/EndlessBattle.Domain/Battle/WogBattle.cs
   - Application / Api: backend/EndlessBattle.Application/Skills/SkillOverview.cs, backend/EndlessBattle.Application/Skills/SkillService.cs, backend/EndlessBattle.Api/Endpoints/Contracts.cs（技能回應改成 `slotType`、`summary`、`description`、`icon`）；Domain 另含 backend/EndlessBattle.Domain/Skills/SkillLearning.cs、backend/EndlessBattle.Domain/Battle/BattleEvents.cs
   - Infrastructure: backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs（技能的讀取與驗證）
   - Test content: backend/EndlessBattle.Tests/TestContent/skills.json 改成新格式，參數與舊效果等價；用到技能的戰鬥測試照舊要通過
-  - frontend: frontend/src/api/schema.ts 重新產生；frontend/src/ui/SkillsScreen.tsx 改顯示 `summary`、frontend/src/ui/BattleLog.tsx 顯示技能消耗
+  - frontend: frontend/src/api/schema.ts 重新產生；frontend/src/ui/SkillsScreen.tsx 改顯示 `summary`、frontend/src/game/battleLog.ts 顯示技能消耗
   - Modified: docs/research/README.md, docs/research/wog45/README.md, docs/research/monster-roster.md, docs/research/item-table.md, docs/research/mission-table.md, docs/research/companion-table.md, docs/research/job-growth-expectation.md
 - Not affected: admin（技能表單留給 content-editor）
