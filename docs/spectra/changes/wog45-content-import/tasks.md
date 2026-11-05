@@ -135,7 +135,7 @@
 
 ## 5. 收尾（移除自訂內容、資料庫預設值）
 
-- [ ] 5.1 依決策「保留原版沒有的自訂內容，逐筆寫原因」移除不在保留清單上的自訂道具、怪物、職業、技能、傭兵，完成「先擴充、再切換、最後收尾」的最後一步 [after: 4.2]。保留清單寫在腳本裡，`gaps.md` 的「保留的自訂內容」一節逐筆列出原因，並列出 `inn.json`、`champion.json` 與 `world.json` 的區域、推薦等級、起始地點。對應需求「Custom content without an original counterpart is kept」。
+- [x] 5.1 依決策「保留原版沒有的自訂內容，逐筆寫原因」移除不在保留清單上的自訂道具、怪物、職業、技能、傭兵，完成「先擴充、再切換、最後收尾」的最後一步 [after: 4.2]。保留清單寫在腳本裡，`gaps.md` 的「保留的自訂內容」一節逐筆列出原因，並列出 `inn.json`、`champion.json` 與 `world.json` 的區域、推薦等級、起始地點。對應需求「Custom content without an original counterpart is kept」。
   - TDD：先寫 `WogImportTests.CustomContent_WithoutCounterpartIsRemoved`（`wandering-puff` 不存在），再寫 `CustomContent_KeptRecordsAreListed`（每一筆 kebab-case id 的紀錄都出現在 `gaps.md` 的保留一節）。
   - 改寫 `MonsterRosterTests`、`ItemTableTests` 中釘住自訂內容表的測試（每地區 3 隻、kebab-case id、公式區間），改成釘住匯入結果。
   - 驗證：

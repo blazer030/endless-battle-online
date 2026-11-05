@@ -140,24 +140,9 @@
     {"id": "honour-140", "itemId": "item-2259", "quantity": 1, "cost": [{"itemId": "item-2222", "quantity": 6}]},
     {"id": "honour-141", "itemId": "item-2260", "quantity": 1, "cost": [{"itemId": "item-2222", "quantity": 6}]},
     {"id": "honour-142", "itemId": "item-3361", "quantity": 3, "cost": [{"itemId": "item-1304", "quantity": 1}, {"itemId": "item-1305", "quantity": 1}, {"itemId": "item-1306", "quantity": 1}, {"itemId": "item-1307", "quantity": 1}, {"itemId": "item-2222", "quantity": 1}]},
-    {"id": "honour-capture-crystal", "itemId": "capture-crystal", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 2}]},
-    {"id": "honour-attack-stone", "itemId": "attack-stone", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 2}]},
-    {"id": "honour-sorcery-stone", "itemId": "sorcery-stone", "quantity": 1, "cost": [{"itemId": "kingdom-medal", "quantity": 2}]},
-    {"id": "honour-guard-stone", "itemId": "guard-stone", "quantity": 1, "cost": [{"itemId": "rainforest-medal", "quantity": 2}]},
-    {"id": "honour-ward-stone", "itemId": "ward-stone", "quantity": 1, "cost": [{"itemId": "royal-city-medal", "quantity": 2}]},
-    {"id": "honour-vitality-stone", "itemId": "vitality-stone", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}]},
-    {"id": "honour-gale-stone", "itemId": "gale-stone", "quantity": 1, "cost": [{"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
-    {"id": "honour-chaos-stone", "itemId": "chaos-stone", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 2}]},
-    {"id": "honour-prism-stone", "itemId": "prism-stone", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 2}]},
-    {"id": "honour-iron-refine-5", "itemId": "iron-refine-stone-5", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
-    {"id": "honour-arcane-refine-5", "itemId": "arcane-refine-stone-5", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
-    {"id": "honour-vigor-refine-5", "itemId": "vigor-refine-stone-5", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
-    {"id": "honour-stone-box", "itemId": "stone-box", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}]},
-    {"id": "honour-large-stone-box", "itemId": "large-stone-box", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 1}]},
-    {"id": "honour-refine-box", "itemId": "refine-box", "quantity": 1, "cost": [{"itemId": "kingdom-medal", "quantity": 1}, {"itemId": "rainforest-medal", "quantity": 1}]},
-    {"id": "honour-pet-egg", "itemId": "pet-egg", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 3}]},
-    {"id": "honour-job-notes", "itemId": "job-notes", "quantity": 1, "cost": [{"itemId": "continent-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]},
-    {"id": "honour-advanced-job-notes", "itemId": "advanced-job-notes", "quantity": 1, "cost": [{"itemId": "silver-medal", "quantity": 2}]},
-    {"id": "honour-exp-capsule", "itemId": "exp-capsule", "quantity": 1, "cost": [{"itemId": "rainforest-medal", "quantity": 1}, {"itemId": "royal-city-medal", "quantity": 1}]}
+    {"id": "honour-stone-box", "itemId": "stone-box", "quantity": 1, "cost": [{"itemId": "item-1304", "quantity": 1}]},
+    {"id": "honour-large-stone-box", "itemId": "large-stone-box", "quantity": 1, "cost": [{"itemId": "item-2222", "quantity": 1}]},
+    {"id": "honour-refine-box", "itemId": "refine-box", "quantity": 1, "cost": [{"itemId": "item-1305", "quantity": 1}, {"itemId": "item-1306", "quantity": 1}]},
+    {"id": "honour-pet-egg", "itemId": "pet-egg", "quantity": 1, "cost": [{"itemId": "item-2222", "quantity": 3}]}
   ]
 }

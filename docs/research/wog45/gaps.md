@@ -872,3 +872,18 @@
 |---|---|---|
 | 85 | 堅固腿甲（1481） | 類型 0：原版的勳章所沒有這個分頁，兌換不到 |
 | 86 | 守護軍腿甲（1482） | 類型 0：原版的勳章所沒有這個分頁，兌換不到 |
+
+## 保留的自訂內容
+
+- `stone-box` 魔石寶箱：原版寶石箱的分級對不上本作寶箱（只開 boxClass 1），沒有匯入
+- `large-stone-box` 大魔石寶箱：同上，一次開 2 顆
+- `refine-box` 精鍊寶盒：原版沒有開出精鍊石的道具
+- `pet-egg` 寵物蛋：原版沒有孵出寵物的道具
+- `safe-refine-stone` 安全精鍊石：原版的 2284 不在匯出的資料裡
+- `honour-stone-box`：兌換保留的自訂道具 `stone-box`
+- `honour-large-stone-box`：兌換保留的自訂道具 `large-stone-box`
+- `honour-refine-box`：兌換保留的自訂道具 `refine-box`
+- `honour-pet-egg`：兌換保留的自訂道具 `pet-egg`
+- `inn.json`：旅館房型與價格，原版沒有對應的資料表
+- `champion.json`：冠軍的初始種子，原版冠軍是玩家
+- `world.json` 的 `areas`、`recommended`、`startingPlaceId`、`startingSubPlace`：`wog_area_lv` 與地點 id 不同，只當參考

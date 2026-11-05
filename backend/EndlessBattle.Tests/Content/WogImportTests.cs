@@ -199,4 +199,34 @@ public class WogImportTests
         Assert.Null(Content.GetMission("mission-182").Rewards.Pet);
         Assert.Contains("| 182 | 變髮革命 | 寵物獎勵 monster-232 沒有匯入或是任務怪，不給 |", Gaps);
     }
+
+    [Fact]
+    public void CustomContent_WithoutCounterpartIsRemoved()
+    {
+        Assert.DoesNotContain(Content.AllMonsters, monster => monster.Id == "wandering-puff");
+        Assert.DoesNotContain(Content.AllJobs, job => job.Id == "warrior");
+        Assert.DoesNotContain(Content.AllSkills, skill => skill.Id == "burst");
+        Assert.DoesNotContain(Content.AllItems, item => item.Id == "iron-sword");
+    }
+
+    [Fact]
+    public void CustomContent_KeptRecordsAreListed()
+    {
+        var kept = Gaps[Gaps.IndexOf("## 保留的自訂內容", StringComparison.Ordinal)..];
+        var customIds = Content.AllItems.Select(item => item.Id)
+            .Concat(Content.AllMonsters.Select(monster => monster.Id))
+            .Concat(Content.AllJobs.Select(job => job.Id))
+            .Concat(Content.AllSkills.Select(skill => skill.Id))
+            .Concat(Content.AllMissions.Select(mission => mission.Id))
+            .Concat(Content.AllRecipes.Select(recipe => recipe.Id))
+            .Concat(Content.AllMercenaries.Select(mercenary => mercenary.Id))
+            .Concat(Content.HonourShop.Select(exchange => exchange.Id))
+            .Where(CustomContent.IsCustom)
+            .ToList();
+
+        Assert.NotEmpty(customIds);
+        Assert.All(customIds, id => Assert.Contains($"`{id}`", kept));
+        Assert.Contains("`inn.json`", kept);
+        Assert.Contains("`champion.json`", kept);
+    }
 }

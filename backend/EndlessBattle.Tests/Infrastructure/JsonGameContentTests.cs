@@ -87,36 +87,12 @@ public class JsonGameContentTests
     {
         var content = JsonGameContent.Load(ShippedContentDirectory);
         Assert.Contains(content.AllMonsters, monster => monster.PlaceId == content.StartingPlaceId);
-        Assert.Equal(12, content.AllJobs.Count(job => CustomContent.IsCustom(job.Id)));
+        // 原版 12 個職業：一轉 4 個、二轉 8 個
+        Assert.Equal(12, content.AllJobs.Count);
+        Assert.All(content.AllJobs, job => Assert.False(CustomContent.IsCustom(job.Id)));
         Assert.All(
             content.AllJobs.Where(job => job.Tier == 2),
             job => Assert.Equal(1, content.GetJob(job.ParentId!).Tier));
-    }
-
-    public static TheoryData<string> ShippedJobIds =>
-        new(JsonGameContent.Load(ShippedContentDirectory).AllJobs.Where(job => CustomContent.IsCustom(job.Id)).Select(job => job.Id));
-
-    // spec §5.3：每級期望總成長（七項 (min+max)/2 之和）基礎 7～9、進階 9～12
-    [Theory]
-    [MemberData(nameof(ShippedJobIds))]
-    public void JobGrowth_TotalsWithinSpecBands(string jobId)
-    {
-        var job = JsonGameContent.Load(ShippedContentDirectory).GetJob(jobId);
-        var growth = job.Growth;
-        var total = new[] { growth.Str, growth.Smart, growth.Life, growth.Vit, growth.Agi, growth.Au, growth.Be }
-            .Sum(range => (range.Min + range.Max) / 2.0);
-
-        var (minimum, maximum) = job.Tier == 1 ? (7.0, 9.0) : (9.0, 12.0);
-        Assert.InRange(total, minimum, maximum);
-    }
-
-    // spec §5.2 的例子：騎士 體質 ≥ 60
-    [Fact]
-    public void Knight_RequiresVitSixty()
-    {
-        var knight = JsonGameContent.Load(ShippedContentDirectory).GetJob("knight");
-
-        Assert.Equal([new StatRequirement("vit", 60)], knight.StatRequirements);
     }
 
     [Fact]
@@ -148,23 +124,6 @@ public class JsonGameContentTests
         Assert.Equivalent(
             new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
             content.GetMonster("test-sprite"),
-            strict: true);
-    }
-
-    // 既有的雪精、寒狼改歸 16 冷峰寒地，依公式重算（雪精 Lv36 普通；寒狼 Lv40 速：agi ×1.4、at ×0.9、hp ×0.8）
-    [Fact]
-    public void Load_ShippedContent_DescribesFrostPeakMonsters()
-    {
-        var content = JsonGameContent.Load(ShippedContentDirectory);
-        Assert.Equivalent(
-            new MonsterDefinition("snow-sprite", "雪精", Level: 36, Hp: 1067, Sp: 82, At: 128, Mat: 76, Df: 41, Mdf: 34, Agi: 53, Au: 44, Element: 2, JobExp: 66, Meet: 0, PlaceId: 16, SubPlaces: [1, 2, 3, 4],
-                Drops: [new DropEntry("medium-supply", 4), new DropEntry("iron-ore", 6)]),
-            content.GetMonster("snow-sprite"),
-            strict: true);
-        Assert.Equivalent(
-            new MonsterDefinition("frost-wolf", "寒狼", Level: 40, Hp: 996, Sp: 90, At: 127, Mat: 84, Df: 45, Mdf: 38, Agi: 81, Au: 48, Element: 2, JobExp: 72, Meet: 30, PlaceId: 16, SubPlaces: [2, 3],
-                Drops: [new DropEntry("medium-supply", 5), new DropEntry("magic-dust", 7), new DropEntry("arcane-refine-stone-2", 175)]),
-            content.GetMonster("frost-wolf"),
             strict: true);
     }
 
@@ -358,46 +317,6 @@ public class JsonGameContentTests
         Assert.True(content.Teaches("warrior", "burst"));
         Assert.False(content.Teaches("thief", "burst"));
         Assert.Equal(new SkillPrerequisite("burst", 3), content.GetSkill("advanced-burst").Prerequisite);
-    }
-
-    [Fact]
-    public void Skills_LoadSixteenWithFiveLevels()
-    {
-        var customSkills = JsonGameContent.Load(ShippedContentDirectory).AllSkills.Where(skill => CustomContent.IsCustom(skill.Id)).ToList();
-        Assert.Equal(16, customSkills.Count);
-        Assert.Equal(16, customSkills.Select(skill => skill.Id).Distinct().Count());
-        foreach (var skill in customSkills)
-        {
-            Assert.Equal(5, skill.MaxLevel);
-            foreach (var level in skill.Levels)
-            {
-                var lv = level.Level;
-                var sp = level.Costs!.Sum(cost => cost.Amount);
-                var rounds = level.Effects!.Max(effect => effect.Rounds);
-                Assert.Equal(500L * lv * lv, level.Money);
-                Assert.Equal(300L * lv, level.Proficiency);
-                if (skill.Id == "heal")
-                {
-                    // 治癒：HP 低於 50% 自動發動、冷卻 4，不擲發動率
-                    Assert.Equal([new SkillCondition(SkillConditionKind.HitPointsBelow, 50)], level.Conditions!);
-                    Assert.Equal((4, 3 * lv + 2, 1), (level.Cooldown, sp, rounds));
-                    continue;
-                }
-
-                Assert.Equal(0, level.Cooldown);
-                if (skill.Type == SkillType.Passive)
-                {
-                    // 被動常駐：沒有條件、消耗與持續
-                    Assert.Equal((0, 0, 0), (level.Conditions!.Count, sp, rounds));
-                    continue;
-                }
-
-                Assert.Equal(3 * lv + 2, sp);
-                Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 30 + 10 * lv)], level.Conditions!);
-                var oneRound = skill.Id is "heal" or "bonus-strike";
-                Assert.Equal(oneRound ? 1 : 3, rounds);
-            }
-        }
     }
 
     [Fact]
@@ -706,7 +625,7 @@ public class JsonGameContentTests
                 "test-sword", "test-helm", "test-supply", "test-refine-stone", "test-stone", "test-ore",
                 "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
-                "test-refine-stone-2", "stone-remover", "hole-driller", "safe-refine-stone",
+                "test-refine-stone-2", "item-1378", "item-3361", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
                 "test-arcane-refine-stone-2", "test-vigor-refine-stone", "test-stone-box", "test-pet-egg", "test-job-notes",
                 "test-exp-elixir",

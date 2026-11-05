@@ -510,8 +510,8 @@ const forgeItems = [
   bagItem(40, "attack-stone", "攻擊魔石", "Stone"),
   bagItem(41, "guard-stone", "守護魔石", "Stone"),
   bagItem(50, "safe-refine-stone", "安全精鍊石", "Material"),
-  bagItem(51, "stone-remover", "拆石器", "Material"),
-  bagItem(52, "hole-driller", "鑽孔器", "Material"),
+  bagItem(51, "item-1378", "拆石器", "Material"),
+  bagItem(52, "item-3361", "鑽孔器", "Material"),
   bagItem(60, "iron-ore", "鐵礦石", "Material", 7),
   bagItem(61, "magic-dust", "魔法粉塵", "Material", 5),
 ]
@@ -759,7 +759,7 @@ test("BagScreen_ForgeSynthesizeNeedsMoneyForEveryAttempt", async () => {
 
 test("BagScreen_ForgeToolButtonsNeedTheirTools", async () => {
   const withoutTools = makeInventory(
-    forgeItems.filter((item) => item.itemId !== "stone-remover" && item.itemId !== "hole-driller"),
+    forgeItems.filter((item) => item.itemId !== "item-1378" && item.itemId !== "item-3361"),
     { equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }] },
   )
   await renderForge({ getInventory: vi.fn().mockResolvedValue(withoutTools) })

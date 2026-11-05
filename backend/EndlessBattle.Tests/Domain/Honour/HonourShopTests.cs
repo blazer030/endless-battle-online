@@ -22,7 +22,7 @@ public class HonourShopTests
     private static readonly Dictionary<string, ItemDefinition> Items = new[]
     {
         TestItems.Item("test-ore", ItemCategory.Material),
-        TestItems.Item("stone-remover", ItemCategory.Material),
+        TestItems.Item("item-1378", ItemCategory.Material),
         TestItems.Item("test-medal-a", ItemCategory.Medal),
         TestItems.Item("test-medal-b", ItemCategory.Medal),
     }.ToDictionary(item => item.Id);
@@ -33,7 +33,7 @@ public class HonourShopTests
         HonourShop.Exchange(Hero, exchange, bag, current, id => Items[id], _ => HonourMercenary, Now);
 
     private static List<InventoryEntry> FullMaterials() =>
-        Enumerable.Range(100, 15).Select(id => TestItems.Entry(id, "stone-remover", 99)).ToList();
+        Enumerable.Range(100, 15).Select(id => TestItems.Entry(id, "item-1378", 99)).ToList();
 
     [Fact]
     public void Exchange_PaysMedalsAndAddsItem()

@@ -74,22 +74,6 @@
     {"jobId": "job-11", "skillId": "skill-510"},
     {"jobId": "job-15", "skillId": "skill-550"},
     {"jobId": "job-13", "skillId": "skill-560"},
-    {"jobId": "job-17", "skillId": "skill-588"},
-    {"jobId": "warrior", "skillId": "burst"},
-    {"jobId": "warrior", "skillId": "iron-skin"},
-    {"jobId": "sorcerer", "skillId": "mana-surge"},
-    {"jobId": "sorcerer", "skillId": "mana-skin"},
-    {"jobId": "thief", "skillId": "swift-shadow"},
-    {"jobId": "thief", "skillId": "combo"},
-    {"jobId": "bard", "skillId": "lullaby"},
-    {"jobId": "bard", "skillId": "heal"},
-    {"jobId": "berserker", "skillId": "war-god-wrath"},
-    {"jobId": "knight", "skillId": "counter"},
-    {"jobId": "archmage", "skillId": "magic-combo"},
-    {"jobId": "geomancer", "skillId": "weaken"},
-    {"jobId": "assassin", "skillId": "keen-edge"},
-    {"jobId": "martialist", "skillId": "bloodthirst"},
-    {"jobId": "dancer", "skillId": "bonus-strike"},
-    {"jobId": "beastmaster", "skillId": "stun"}
+    {"jobId": "job-17", "skillId": "skill-588"}
   ]
 }

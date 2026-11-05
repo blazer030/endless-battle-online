@@ -75,12 +75,12 @@ const ChoiceGroup = <T extends Option>({
 
 type JobContent = ContentNames["jobs"][number]
 
-// 內容只有數值，初階職業的定位文字在此維護；成長文字由 content 的 growth 算出
+// 內容只有數值，初階職業（原版的戰士、術士、盜賊、樂手）的定位文字在此維護；成長文字由 content 的 growth 算出
 const jobRoles: Readonly<Partial<Record<string, string>>> = {
-  warrior: "近身前排，攻守兼備",
-  sorcerer: "遠距施法，魔攻見長",
-  thief: "身手敏捷，先發制人",
-  bard: "樂聲支援，攻守靈活",
+  "job-6": "近身前排，攻守兼備",
+  "job-7": "遠距施法，魔攻見長",
+  "job-8": "身手敏捷，先發制人",
+  "job-9": "樂聲支援，攻守靈活",
 }
 
 const JobCard = ({ job }: { job: JobContent }) => {

@@ -11,7 +11,7 @@ using EndlessBattle.Tests.Support;
 namespace EndlessBattle.Tests.Application;
 
 // TestContent：test-sword（at 8、1 孔、精鍊上限 4）、test-refine-stone（Lv1 種類 1，at／df [1, 2]）、test-refine-stone-2（Lv2 種類 1）、
-// test-stone（固定 at +5）、stone-remover、hole-driller、safe-refine-stone（材料）。
+// test-stone（固定 at +5）、item-1378、item-3361、safe-refine-stone（材料）。
 // ScriptedRandom 的值 v 對 rand(1, 100) 取 ⌊100v⌋ + 1
 public class ForgeServiceTests
 {
@@ -196,7 +196,7 @@ public class ForgeServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.UnsocketAsync(AccountId, sword, 1, CancellationToken));
 
-        Assert.Equal(["missingTool:stone-remover"], exception.Reasons);
+        Assert.Equal(["missingTool:item-1378"], exception.Reasons);
         Assert.Single(Find(character, sword).Sockets);
         Assert.Empty(log);
     }
@@ -207,7 +207,7 @@ public class ForgeServiceTests
     {
         var character = await AddCharacterAsync();
         var sword = await SocketedSwordAsync(character);
-        await GiveAsync(character, "stone-remover");
+        await GiveAsync(character, "item-1378");
         inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.0);
 
@@ -226,7 +226,7 @@ public class ForgeServiceTests
     {
         var character = await AddCharacterAsync();
         var sword = await SocketedSwordAsync(character);
-        var remover = await GiveAsync(character, "stone-remover", 2);
+        var remover = await GiveAsync(character, "item-1378", 2);
         for (var index = 0; index < 15; index++)
         {
             await GiveAsync(character, "test-stone", 99);
@@ -250,14 +250,14 @@ public class ForgeServiceTests
     {
         var character = await AddCharacterAsync();
         var sword = await GiveAsync(character, "test-sword");
-        await GiveAsync(character, "hole-driller", 2);
+        await GiveAsync(character, "item-3361", 2);
         random.Next = new ScriptedRandom(0.99);
 
         var result = await service.DrillAsync(AccountId, sword, CancellationToken);
 
         Assert.False(result.Success);
         Assert.Equal(1, Find(character, sword).Holes);
-        Assert.Equal([("test-sword", 1), ("hole-driller", 1)], await ItemsAsync(character));
+        Assert.Equal([("test-sword", 1), ("item-3361", 1)], await ItemsAsync(character));
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public class ForgeServiceTests
     {
         var character = await AddCharacterAsync();
         var sword = await GiveAsync(character, "test-sword");
-        await GiveAsync(character, "hole-driller");
+        await GiveAsync(character, "item-3361");
         inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.0);
 
@@ -276,7 +276,7 @@ public class ForgeServiceTests
         Assert.Equal(2, Find(character, sword).Holes);
         Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
         Assert.Equal(
-            ["missingTool:hole-driller"],
+            ["missingTool:item-3361"],
             (await Assert.ThrowsAsync<InputValidationException>(() => service.DrillAsync(AccountId, sword, CancellationToken))).Reasons);
     }
 
@@ -411,7 +411,7 @@ public class ForgeServiceTests
     {
         var character = await AddCharacterAsync();
         var sword = await SocketedSwordAsync(character);
-        await GiveAsync(character, "stone-remover");
+        await GiveAsync(character, "item-1378");
         inventory.Writes.Clear();
         random.Next = new ScriptedRandom(0.99);
 

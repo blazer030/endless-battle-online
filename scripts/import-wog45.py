@@ -45,6 +45,25 @@ KEY_SECONDS = 86400
 HONOUR_MEDALS = {"h_1": 1304, "h_2": 1305, "h_3": 1306, "h_4": 1307, "h_5": 2222}
 
 
+# 原版沒有承擔同樣角色、而現有功能需要的自訂內容；其餘自訂內容都由原版取代（design.md「保留原版沒有的自訂內容」）
+KEPT_CUSTOM_ITEMS = {
+    "stone-box": "魔石寶箱：原版寶石箱的分級對不上本作寶箱（只開 boxClass 1），沒有匯入",
+    "large-stone-box": "大魔石寶箱：同上，一次開 2 顆",
+    "refine-box": "精鍊寶盒：原版沒有開出精鍊石的道具",
+    "pet-egg": "寵物蛋：原版沒有孵出寵物的道具",
+    "safe-refine-stone": "安全精鍊石：原版的 2284 不在匯出的資料裡",
+}
+# 自訂勳章與原版勳章同名，保留的兌換改付原版勳章
+CUSTOM_MEDALS = {"continent-medal": "item-1304", "kingdom-medal": "item-1305", "rainforest-medal": "item-1306",
+                 "royal-city-medal": "item-1307", "silver-medal": "item-2222"}
+KEPT_TITLE = "保留的自訂內容"
+KEPT_CONTENT_FILES = [
+    "`inn.json`：旅館房型與價格，原版沒有對應的資料表",
+    "`champion.json`：冠軍的初始種子，原版冠軍是玩家",
+    "`world.json` 的 `areas`、`recommended`、`startingPlaceId`、`startingSubPlace`：`wog_area_lv` 與地點 id 不同，只當參考",
+]
+
+
 class SourceError(Exception):
     pass
 
@@ -77,7 +96,8 @@ class Gaps:
         for title, section in self.sections.items():
             lines += ["", f"## {title}"]
             if section["notes"]:
-                lines += ["", "### 對照方式", ""] + [f"- {text}" for text in section["notes"]]
+                heading = [] if title == KEPT_TITLE else ["", "### 對照方式"]
+                lines += heading + [""] + [f"- {text}" for text in section["notes"]]
             if section["excluded"]:
                 lines += ["", "### 沒有匯入的紀錄", "", "| 原版 id | 名稱 | 原因 |", "|---|---|---|"]
                 lines += [f"| {i} | {n} | {r} |" for i, n, r in sorted(section["excluded"], key=lambda row: row[0])]
@@ -228,7 +248,7 @@ def import_items(gaps):
         record.update(shop_fields(item))
         records.append(order_item(compact(record)))
 
-    custom = [item for item in custom_records(read_content("items.json")["items"], "item") if item.get("category") != "Key"]
+    custom = [item for item in custom_records(read_content("items.json")["items"], "item") if item["id"] in KEPT_CUSTOM_ITEMS]
     return records + custom
 
 
@@ -249,7 +269,7 @@ def import_jobs(gaps):
             "statRequirements": [],
             "growth": {field: parse_range(require(growth, field, "jobs.json"), "jobs.json", job["id"]) for field in GROWTH_FIELDS},
         })
-    return records + custom_records(read_content("jobs.json")["jobs"], "job")
+    return records
 
 
 def invalid_monster_reason(monster):
@@ -316,9 +336,7 @@ def import_monsters(gaps, item_ids, mission_monsters):
         if monster_id in mission_monsters:
             record["missionId"] = mission_monsters[monster_id]
         records.append(record)
-    # 自訂任務已換成原版，自訂任務怪一起移除
-    return records + [monster for monster in custom_records(read_content("monsters.json")["monsters"], "monster")
-                      if monster.get("missionId") is None]
+    return records
 
 
 def stone_spec(stone):
@@ -435,9 +453,10 @@ def import_honour_shop(gaps, item_ids, mercenary_ids):
             record["itemId"] = target
         record.update(quantity=require(exchange, "count", "honour-shop.json"), cost=cost)
         records.append(record)
-    # 自訂道具的兌換先留著（收尾時依保留清單處理）；自訂傭兵與鑰匙已改成原版
-    custom = [exchange for exchange in custom_records(read_content("honour-shop.json")["exchanges"], "honour")
-              if exchange.get("itemId") in item_ids]
+    # 保留的自訂道具，兌換也一起保留
+    custom = [{**exchange, "cost": [{**cost, "itemId": CUSTOM_MEDALS.get(cost["itemId"], cost["itemId"])} for cost in exchange["cost"]]}
+              for exchange in custom_records(read_content("honour-shop.json")["exchanges"], "honour")
+              if exchange.get("itemId") in KEPT_CUSTOM_ITEMS]
     return records + custom
 
 
@@ -939,9 +958,7 @@ def import_skills(gaps):
         records.append(record)
         job_skills.append({"jobId": f"job-{first['jobId']}", "skillId": skill_id})
 
-    custom_skills = custom_records(read_content("skills.json")["skills"], "skill")
-    custom_job_skills = [row for row in read_content("job-skills.json")["jobSkills"] if not re.fullmatch(r"skill-\d+", row["skillId"])]
-    return records + custom_skills, job_skills + custom_job_skills
+    return records, job_skills
 
 
 ITEM_FIELD_ORDER = ["id", "name", "category", "consumable", "bonus", "supplyHp", "supplySp", "amount", "requires", "jobId",
@@ -977,7 +994,7 @@ def format_content(root):
 def main():
     gaps = Gaps()
     # gaps.md 依內容種類固定順序
-    for title in ("道具", "職業", "怪物", "技能", "任務", "配方", "傭兵", "勳章所"):
+    for title in ("道具", "職業", "怪物", "技能", "任務", "配方", "傭兵", "勳章所", KEPT_TITLE):
         gaps.section(title)
     try:
         items = import_items(gaps)
@@ -986,6 +1003,8 @@ def main():
         skills, job_skills = import_skills(gaps)
         missions, mission_monsters = import_missions(
             gaps, item_ids, {skill["id"] for skill in skills}, {(row["jobId"], row["skillId"]) for row in job_skills})
+        kept = gaps.section(KEPT_TITLE)
+        kept["notes"] += [f"`{item['id']}` {KEPT_CUSTOM_ITEMS[item['id']]}" for item in items if item["id"] in KEPT_CUSTOM_ITEMS]
         outputs = {
             "items.json": {"items": items},
             "jobs.json": {"jobs": import_jobs(gaps)},
@@ -997,6 +1016,9 @@ def main():
             "job-skills.json": {"jobSkills": job_skills},
             "missions.json": {"missions": missions},
         }
+        kept["notes"] += [f"`{exchange['id']}`：兌換保留的自訂道具 `{exchange['itemId']}`"
+                          for exchange in outputs["honour-shop.json"]["exchanges"] if exchange.get("itemId") in KEPT_CUSTOM_ITEMS]
+        kept["notes"] += KEPT_CONTENT_FILES
     except (SourceError, KeyError) as error:
         print(f"匯入失敗：{error}", file=sys.stderr)
         return 1

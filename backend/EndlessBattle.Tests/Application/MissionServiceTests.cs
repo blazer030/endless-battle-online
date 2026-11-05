@@ -76,12 +76,12 @@ public class MissionServiceTests
 
     private Task<IReadOnlyList<InventoryEntry>> BagAsync(Character character) => inventory.ListAsync(character.Id, CancellationToken);
 
-    // 材料分類 15 格：14 格 stone-remover ×99 ＋ 1 格 test-ore
+    // 材料分類 15 格：14 格 item-1378 ×99 ＋ 1 格 test-ore
     private async Task FillMaterialsAsync(Character character, int ore)
     {
         for (var slot = 0; slot < 14; slot++)
         {
-            await GiveAsync(character, "stone-remover", 99);
+            await GiveAsync(character, "item-1378", 99);
         }
 
         await GiveAsync(character, "test-ore", ore);

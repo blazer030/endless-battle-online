@@ -206,8 +206,8 @@ export const isBankLocked = (level: number) => level < BankMinimumLevel
 // 鍛造消耗的道具（與後端 ForgeTools 一致）
 export const ForgeTools = {
   safeRefineStone: "safe-refine-stone",
-  stoneRemover: "stone-remover",
-  holeDriller: "hole-driller",
+  stoneRemover: "item-1378",
+  holeDriller: "item-3361",
 } as const
 
 const toolNames: Record<string, string> = {

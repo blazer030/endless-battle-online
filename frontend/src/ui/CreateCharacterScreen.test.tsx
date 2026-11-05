@@ -11,12 +11,12 @@ const job = (id: string, name: string, tier = 1) =>
     id,
     name,
     tier,
-    parentId: tier === 1 ? null : "warrior",
+    parentId: tier === 1 ? null : "job-6",
     unlockLevel: tier === 1 ? 1 : 30,
   })
 
 const warrior = {
-  ...job("warrior", "戰士"),
+  ...job("job-6", "戰士"),
   growth: {
     str: [2, 3],
     smart: [0, 1],
@@ -31,10 +31,10 @@ const warrior = {
 const content: ContentNames = makeContent({
   jobs: [
     warrior,
-    job("sorcerer", "術士"),
-    job("thief", "盜賊"),
-    job("bard", "樂手"),
-    job("berserker", "狂戰士", 2),
+    job("job-7", "術士"),
+    job("job-8", "盜賊"),
+    job("job-9", "樂手"),
+    job("job-10", "狂戰士", 2),
   ],
   elements: ["地", "水", "火", "木", "風", "毒"].map((name, index) => ({
     id: String(index + 1),
@@ -129,7 +129,7 @@ test("CreateCharacterScreen_SubmitsTheSelections", async () => {
     sex: 2,
     element: 3,
     birth: 4,
-    jobId: "sorcerer",
+    jobId: "job-7",
     allocation: { str: 1, smart: 5, life: 2, agi: 1 },
     specialAttackName: "流星火雨",
   })

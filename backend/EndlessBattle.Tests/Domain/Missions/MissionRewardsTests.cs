@@ -22,7 +22,7 @@ public class MissionRewardsTests
     private static readonly Dictionary<string, ItemDefinition> Items = new[]
     {
         TestItems.Item("test-ore", ItemCategory.Material),
-        TestItems.Item("stone-remover", ItemCategory.Material),
+        TestItems.Item("item-1378", ItemCategory.Material),
         TestItems.Item("safe-refine-stone", ItemCategory.Material),
         TestItems.Consumable("test-supply"),
     }.ToDictionary(item => item.Id);
@@ -78,7 +78,7 @@ public class MissionRewardsTests
     [Fact]
     public void Apply_RejectsWhenRewardItemsDoNotFit()
     {
-        var bag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "stone-remover", 99)).ToList();
+        var bag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "item-1378", 99)).ToList();
 
         var outcome = Apply(Hero, Objective(level: 1, money: 50, [new ItemQuantity("safe-refine-stone", 1)]), bag);
 
@@ -154,7 +154,7 @@ public class MissionRewardsTests
     public void Apply_PetRewardRejectedWhenPetsFull()
     {
         var objective = Objective(level: 1, money: 50, [new ItemQuantity("safe-refine-stone", 1)], pet: new PetReward("test-wolf", 2));
-        var fullBag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "stone-remover", 99)).ToList();
+        var fullBag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "item-1378", 99)).ToList();
 
         Assert.Equal(["petsFull"], Apply(Hero, objective, petCount: PetRules.MaxPets).Reasons);
         Assert.Equal(["bagFull", "petsFull"], Apply(Hero, objective, fullBag, petCount: PetRules.MaxPets).Reasons);

@@ -10,47 +10,32 @@ namespace EndlessBattle.Tests.Content;
 // 釘住 backend/content 的勳章、捕捉道具、傭兵、勳章所與冠軍種子：plan 9 Task 1（docs/research/companion-table.md）
 public class CompanionTableTests
 {
-    private const string Continent = "continent-medal", Kingdom = "kingdom-medal", Rainforest = "rainforest-medal",
-        RoyalCity = "royal-city-medal", Silver = "silver-medal";
+    private const string Continent = "item-1304", Kingdom = "item-1305", Rainforest = "item-1306", RoyalCity = "item-1307", Silver = "item-2222";
 
     private static readonly JsonGameContent Content =
         JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
 
-    private static IEnumerable<ItemDefinition> CustomItems => Content.AllItems.Where(item => CustomContent.IsCustom(item.Id));
-
-    private static List<ItemDefinition> CustomShelf(ItemCategory category, int shopLevel) =>
-        Content.ItemsForShop(category, shopLevel).Where(item => CustomContent.IsCustom(item.Id)).ToList();
-
     [Fact]
     public void Medals_AreTheFiveWogMedals()
     {
-        var medals = CustomItems.Where(item => item.Category == ItemCategory.Medal).ToList();
+        var medals = Content.AllItems.Where(item => item.Category == ItemCategory.Medal).ToList();
 
         Assert.Equal(
             [(Continent, "大陸勳章"), (Kingdom, "王國勳章"), (Rainforest, "雨林勳章"), (RoyalCity, "王城勳章"), (Silver, "白銀勳章")],
             medals.Select(item => (item.Id, item.Name)));
-        Assert.All(medals, medal => Assert.Equal(
-            (ConsumableKind.None, 0L, 1, false),
-            (medal.Consumable, medal.Price, medal.ShopLevel, medal.ShopSellable)));
+        Assert.All(medals, medal => Assert.Equal((ConsumableKind.None, false), (medal.Consumable, medal.ShopSellable)));
     }
 
-    // WOG 258 捕獸網、1837 捕獸籠、2236 封印水晶；封印水晶只能從勳章所兌換
+    // 原版 258 捕捉器、1837 強力捕捉器、2236 魔法捕捉器（倍率見 wog-research-world.md）；魔法捕捉器只能從勳章所兌換
     [Fact]
     public void CaptureItems_UseWogMultipliers()
     {
-        var captures = CustomItems.Where(item => item.Consumable == ConsumableKind.Capture).ToList();
+        var captures = Content.AllItems.Where(item => item.Consumable == ConsumableKind.Capture).ToList();
 
         Assert.Equal(
-            [
-                ("capture-net", "捕獸網", 1, 200L, 1, true),
-                ("capture-cage", "捕獸籠", 8, 3000L, 4, true),
-                ("capture-crystal", "封印水晶", 13, 5000L, 6, false),
-            ],
-            captures.Select(item => (item.Id, item.Name, item.Amount, item.Price, item.ShopLevel, item.ShopSellable)));
+            [("item-258", "捕捉器", 1, true), ("item-1837", "強力捕捉器", 8, true), ("item-2236", "魔法捕捉器", 13, false)],
+            captures.Select(item => (item.Id, item.Name, item.Amount, item.ShopSellable)));
         Assert.All(captures, item => Assert.Equal(ItemCategory.Consumable, item.Category));
-        Assert.Contains(CustomShelf(ItemCategory.Consumable, 1), item => item.Id == "capture-net");
-        Assert.Contains(CustomShelf(ItemCategory.Consumable, 4), item => item.Id == "capture-cage");
-        Assert.DoesNotContain(CustomShelf(ItemCategory.Consumable, 6), item => item.Id == "capture-crystal");
     }
 
     // 原版 wog_mercenary_main：me_status 1 的 C、B 級不在商店賣，只能從勳章所兌換
@@ -112,16 +97,13 @@ public class CompanionTableTests
         Assert.All(keyExchanges, exchange => Assert.Equal(1, exchange.Quantity));
     }
 
-    // 計畫 10 Task 5：寶箱、寵物蛋、心得書、經驗膠囊（大＝大陸、國＝王國、雨＝雨林、城＝王城、銀＝白銀）
+    // 保留的自訂道具的兌換，改付原版勳章（大＝大陸、國＝王國、雨＝雨林、銀＝白銀）
     private static readonly (string Id, string ItemId, ItemQuantity[] Cost)[] NewConsumableExchanges =
     [
         ("honour-stone-box", "stone-box", Cost((Continent, 1))),
         ("honour-large-stone-box", "large-stone-box", Cost((Silver, 1))),
         ("honour-refine-box", "refine-box", Cost((Kingdom, 1), (Rainforest, 1))),
         ("honour-pet-egg", "pet-egg", Cost((Silver, 3))),
-        ("honour-job-notes", "job-notes", Cost((Continent, 1), (RoyalCity, 1))),
-        ("honour-advanced-job-notes", "advanced-job-notes", Cost((Silver, 2))),
-        ("honour-exp-capsule", "exp-capsule", Cost((Rainforest, 1), (RoyalCity, 1))),
     ];
 
     [Fact]
