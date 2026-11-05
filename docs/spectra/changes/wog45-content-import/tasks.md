@@ -147,7 +147,7 @@
 
 ## 6. 文件與最終驗證
 
-- [ ] 6.1 更新研究文件，並做最終驗證 [after: 5.2]：
+- [x] 6.1 更新研究文件，並做最終驗證 [after: 5.2]：
   - 文件：
     - `docs/research/README.md` 與 `docs/research/wog45/README.md` 說明正式內容由 `scripts/import-wog45.py` 產生，並連到 `gaps.md`。
     - `monster-roster.md`、`item-table.md`、`mission-table.md`、`companion-table.md`、`job-growth-expectation.md` 開頭註明哪些總表已由原版取代。

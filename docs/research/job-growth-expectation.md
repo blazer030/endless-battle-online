@@ -1,5 +1,7 @@
 # 職業成長期望值（Lv1 → Lv100）
 
+> **已由原版取代**（2026-11-05，變更 `wog45-content-import`）：`jobs.json` 改由 `scripts/import-wog45.py` 從 WOG 4.5 原版資料產生（`job-6` 戰士等 12 個職業），本檔的自訂成長與期望值試算不再適用，`JobGrowth_TotalsWithinSpecBands` 已移除；原版成長見 [`wog45/jobs-and-skills.md`](wog45/jobs-and-skills.md)。
+
 spec §5.3 要求：基礎職業每級總成長約 7～9 點、進階約 9～12 點，定位能力的範圍明顯較高，並附 Lv1→Lv100 期望值試算。數值來源 `backend/content/jobs.json`；`JsonGameContentTests.JobGrowth_TotalsWithinSpecBands` 會檢查區間。
 
 ## 算法

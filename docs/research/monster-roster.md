@@ -1,5 +1,7 @@
 # 怪物總表（計畫 6）
 
+> **已由原版取代**（2026-11-05，變更 `wog45-content-import`）：`monsters.json` 改由 `scripts/import-wog45.py` 從 WOG 4.5 原版資料產生，本檔的自訂怪物與公式不再使用，留作歷史紀錄。「新手安全規則」仍由 `BalanceTests` 檢查（原版飛兔 `monster-9` 是已知例外）；沒有匯入的原版怪物見 [`wog45/gaps.md`](wog45/gaps.md)。
+
 `backend/content/monsters.json` 共 65 隻一般怪：21 個地區各 3 隻，另加 2 隻全域怪（`placeId 0`）；計畫 8 另加 3 隻任務怪（見「任務怪」）。測試 `Tests/Content/MonsterRosterTests.cs` 釘住下列規則；基準值由 `Domain/World/MonsterFormula.Baseline(level)` 計算。
 
 ## 公式與倍率

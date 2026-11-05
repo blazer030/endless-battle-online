@@ -1,5 +1,7 @@
 # 道具總表（計畫 7）
 
+> **已由原版取代**（2026-11-05，變更 `wog45-content-import`）：`items.json`、`recipes.json` 改由 `scripts/import-wog45.py` 從 WOG 4.5 原版資料產生，本檔的自訂道具與公式不再使用，留作歷史紀錄。只剩魔石寶箱、大魔石寶箱、精鍊寶盒、寵物蛋、安全精鍊石 5 件自訂道具，原因見 [`wog45/gaps.md`](wog45/gaps.md)「保留的自訂內容」。
+
 `backend/content/items.json` 共 166 件（計畫 9 加入捕捉道具 3 件、勳章 5 件，計畫 10 加入鑰匙 4 件、寶箱與書 7 件、密藥 6 件），`recipes.json` 共 6 條。WOG 的 `wog_df` 等資料表數值已遺失，以下是 Claude 的設計；測試 `Tests/Content/ItemTableTests.cs` 釘住公式；改數值時本檔與內容檔一起改。
 
 ## 裝備公式

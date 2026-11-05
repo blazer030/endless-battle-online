@@ -1,5 +1,7 @@
 # 任務總表（計畫 8、計畫 9）
 
+> **已由原版取代**（2026-11-05，變更 `wog45-content-import`）：`missions.json` 改由 `scripts/import-wog45.py` 從 WOG 4.5 原版資料產生，本檔的自訂任務與任務怪不再使用，留作歷史紀錄。每日任務改成 `mission-222` 等，目標池與報酬池照抄原版 PHP；沒有匯入的任務見 [`wog45/gaps.md`](wog45/gaps.md)。
+
 `backend/content/missions.json` 共 24 筆：16 筆一般任務、8 筆每日任務；`monsters.json` 另有 3 隻任務怪。WOG 的主線任務全部存在資料表 `wog_mission_main`，SQL 已遺失（見 `wog-research-world.md` §2），一般任務是 Claude 的設計；每日任務移植自 `mission/wog_mission_{222～225,271～274}.php` 的模板規則。測試 `Tests/Content/MissionTableTests.cs` 釘住下列規則；改內容時本檔與內容檔一起改。
 
 ## 規則

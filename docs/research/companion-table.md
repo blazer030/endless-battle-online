@@ -1,5 +1,7 @@
 # 同伴總表（計畫 9）
 
+> **已由原版取代**（2026-11-05，變更 `wog45-content-import`）：勳章、捕捉道具、傭兵、勳章所改由 `scripts/import-wog45.py` 從 WOG 4.5 原版資料產生，本檔的自訂數值不再使用，留作歷史紀錄；冠軍種子（`champion.json`）照舊。對照方式見 [`wog45/gaps.md`](wog45/gaps.md)。
+
 寵物、傭兵、勳章所與冠軍用到的內容：勳章與捕捉道具在 `backend/content/items.json`，勳章掉落在 `monsters.json`，傭兵目錄在 `mercenaries.json`，勳章所在 `honour-shop.json`，NPC 冠軍種子在 `champion.json`。WOG 的傭兵、勳章所、冠軍資料表都已遺失，數值是 Claude 的設計（F 級傭兵取自 WOG 傭兵所的說明文字）。測試 `Tests/Content/CompanionTableTests.cs` 與 `MonsterRosterTests.Roster_EliteMonstersDropTheirAreaMedal` 釘住下列數值；改內容時本檔與內容檔一起改。
 
 ## 載入驗證
