@@ -38,6 +38,11 @@ GROWTH_FIELDS = ["str", "smart", "life", "vit", "agi", "au", "be"]
 # 本作地圖的地點 id 範圍；原版的 99（特殊）不在地圖上
 PLACE_IDS = range(0, 22)
 MAXIMUM_BOX_STONES = 3
+# shops-and-misc.md 的地區鑰匙表（wog_key_main）：鑰匙道具 → 開放的地點；有效秒數都是 86400
+KEY_PLACES = {1338: 17, 1339: 18, 1405: 19, 1522: 20}
+KEY_SECONDS = 86400
+# wog_act_honor.php：h_1～h_5 依序是大陸、王國、雨林、王城、白銀勳章
+HONOUR_MEDALS = {"h_1": 1304, "h_2": 1305, "h_3": 1306, "h_4": 1307, "h_5": 2222}
 
 
 class SourceError(Exception):
@@ -162,7 +167,7 @@ def import_items(gaps):
     gaps.note(title, "魔石的 class 1～3 是寶箱分級，轉成 `boxClass`；class 0、4 不從寶箱出（`boxClass` 0）；class 99 是隨機魔石。")
     gaps.note(title, "背包、倉庫擴充：原版是「容量設為 d_g_bag」，本作是每張加 `amount` 格，`amount` 取 d_g_bag。")
     gaps.note(title, "心得書：原版綁定職業（ch_id），本作只加目前職業（裁定彙整第 98 行），`amount` 取 d_g_exp。")
-    gaps.note(title, "鑰匙在任務 4.1 與榮譽商店一起切換：現有規則每個禁區只能有一把鑰匙，擴充期間先不匯入原版鑰匙。")
+    gaps.note(title, "鑰匙：開放地點與有效秒數取自地區鑰匙表（wog_key_main），取代自訂鑰匙。")
 
     records = []
     for item in sorted(items, key=lambda row: require(row, "id", "items.json")):
@@ -186,8 +191,10 @@ def import_items(gaps):
         elif type_name == "勳章":
             record["category"] = "Medal"
         elif type_name == "鑰匙":
-            gaps.exclude(title, item_id, name, "鑰匙在任務 4.1 與榮譽商店一起切換")
-            continue
+            if item_id not in KEY_PLACES:
+                raise SourceError(f"items.json 的鑰匙 {item_id} 不在地區鑰匙表")
+            record["category"] = "Key"
+            record["key"] = {"placeId": KEY_PLACES[item_id], "seconds": KEY_SECONDS}
         elif type_name == "魔石":
             stone = stones.get(item_id)
             if stone is None:
@@ -221,7 +228,8 @@ def import_items(gaps):
         record.update(shop_fields(item))
         records.append(order_item(compact(record)))
 
-    return records + custom_records(read_content("items.json")["items"], "item")
+    custom = [item for item in custom_records(read_content("items.json")["items"], "item") if item.get("category") != "Key"]
+    return records + custom
 
 
 def import_jobs(gaps):
@@ -344,6 +352,81 @@ def consumable_spec(item, effect, gaps, title):
     }
     gaps.exclude(title, item_id, name, reasons.get(used_type, f"使用效果種類 d_type {used_type} 不明"))
     return None
+
+
+def import_recipes(gaps, item_ids):
+    title = "配方"
+    gaps.note(title, "成品與材料改引用 `item-<id>`；`amount` 轉 `resultQuantity`、`count` 轉 `quantity`。")
+    records = []
+    for recipe in sorted(load("recipes.json"), key=lambda row: require(row, "id", "recipes.json")):
+        recipe_id, result = recipe["id"], require(recipe, "result", "recipes.json")
+        materials = [{"itemId": f"item-{material['itemId']}", "quantity": material["count"]}
+                     for material in require(recipe, "materials", "recipes.json")]
+        missing = [entry for entry in [f"item-{require(recipe, 'resultId', 'recipes.json')}"] + [m["itemId"] for m in materials]
+                   if entry not in item_ids]
+        if missing:
+            gaps.exclude(title, recipe_id, result, f"引用的道具沒有匯入：{'、'.join(missing)}")
+            continue
+        if require(recipe, "requiresMissionId", "recipes.json") is not None:
+            gaps.field(title, recipe_id, result, f"要先完成任務 {recipe['requiresMissionId']}：本作的配方沒有前置條件")
+        if require(recipe, "missionRecipe", "recipes.json"):
+            gaps.field(title, recipe_id, result, "原版的任務配方：本作沒有任務配方，一般就能用")
+        records.append({
+            "id": f"recipe-{recipe_id}", "resultItemId": f"item-{recipe['resultId']}",
+            "resultQuantity": require(recipe, "amount", "recipes.json"), "materials": materials,
+            "successRate": require(recipe, "successRate", "recipes.json"),
+        })
+    return records
+
+
+def import_mercenaries(gaps):
+    title = "傭兵"
+    gaps.note(title, "`me_count` 轉 `fights`，金錢、道具、經驗的比例照搬，`me_die` 轉 `deathCost`；`me_status` 1 的不在商店賣，`price` 寫 null（只能在勳章所兌換）。")
+    records = []
+    for mercenary in sorted(load("mercenaries.json"), key=lambda row: int(require(row, "me_id", "mercenaries.json"))):
+        on_sale = require(mercenary, "me_status", "mercenaries.json") == "0"
+        records.append({
+            "id": f"mercenary-{mercenary['me_id']}", "name": require(mercenary, "me_name", "mercenaries.json"),
+            "price": int(require(mercenary, "me_money", "mercenaries.json")) if on_sale else None,
+            "fights": int(require(mercenary, "me_count", "mercenaries.json")),
+            "moneyPercent": int(require(mercenary, "me_get_money", "mercenaries.json")),
+            "dropPercent": int(require(mercenary, "me_get_item", "mercenaries.json")),
+            "expPercent": int(require(mercenary, "me_get_exp", "mercenaries.json")),
+            "deathCost": int(require(mercenary, "me_die", "mercenaries.json")),
+        })
+    return records
+
+
+def import_honour_shop(gaps, item_ids, mercenary_ids):
+    title = "勳章所"
+    gaps.note(title, "`h_1`～`h_5` 依序是大陸、王國、雨林、王城、白銀勳章（`item-1304`～`item-1307`、`item-2222`）。")
+    gaps.note(title, "傭兵商品的 `itemId` 是傭兵編號，轉成 `mercenaryId`；其餘商品轉成 `itemId`，`count` 轉 `quantity`。")
+    records = []
+    for exchange in sorted(load("honour-shop.json"), key=lambda row: require(row, "id", "honour-shop.json")):
+        exchange_id, name, kind = exchange["id"], require(exchange, "item", "honour-shop.json"), require(exchange, "kind", "honour-shop.json")
+        if kind == "0":
+            gaps.exclude(title, exchange_id, name, "類型 0：原版的勳章所沒有這個分頁，兌換不到")
+            continue
+        cost = [{"itemId": f"item-{HONOUR_MEDALS[field]}", "quantity": quantity}
+                for field, quantity in sorted(require(exchange, "cost", "honour-shop.json").items()) if quantity]
+        record = {"id": f"honour-{exchange_id}"}
+        if kind == "傭兵":
+            target = f"mercenary-{exchange['itemId']}"
+            if target not in mercenary_ids:
+                raise SourceError(f"honour-shop.json 的紀錄 {exchange_id} 引用了不存在的傭兵 {exchange['itemId']}")
+            record["mercenaryId"] = target
+        else:
+            target = f"item-{exchange['itemId']}"
+            if target not in item_ids:
+                gaps.exclude(title, exchange_id, name, f"商品 {target} 沒有匯入")
+                continue
+            record["itemId"] = target
+        record.update(quantity=require(exchange, "count", "honour-shop.json"), cost=cost)
+        records.append(record)
+    # 自訂道具的兌換先留著（收尾時依保留清單處理）；自訂傭兵與鑰匙已改成原版
+    custom = [exchange for exchange in custom_records(read_content("honour-shop.json")["exchanges"], "honour")
+              if exchange.get("itemId") in item_ids]
+    return records + custom
 
 
 # ---- 技能 ----
@@ -676,6 +759,11 @@ def main():
             "jobs.json": {"jobs": import_jobs(gaps)},
             "monsters.json": {"monsters": import_monsters(gaps, {item["id"] for item in items})},
         }
+        item_ids = {item["id"] for item in items}
+        mercenaries = import_mercenaries(gaps)
+        outputs["recipes.json"] = {"recipes": import_recipes(gaps, item_ids)}
+        outputs["mercenaries.json"] = {"mercenaries": mercenaries}
+        outputs["honour-shop.json"] = {"exchanges": import_honour_shop(gaps, item_ids, {row["id"] for row in mercenaries})}
         skills, job_skills = import_skills(gaps)
         outputs["skills.json"] = {"skills": skills}
         outputs["job-skills.json"] = {"jobSkills": job_skills}

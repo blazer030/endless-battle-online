@@ -40,6 +40,9 @@ public partial class ItemTableTests
     [GeneratedRegex(@"\p{IsCJKUnifiedIdeographs}")]
     private static partial Regex ChineseCharacter();
 
+    [GeneratedRegex(@"^recipe-\d+$")]
+    private static partial Regex OriginalRecipeId();
+
     private static IEnumerable<ItemDefinition> Equipment => CustomItems.Where(item => item.IsEquipment);
 
     private static int MainStat(ItemCategory category, int level) =>
@@ -105,8 +108,6 @@ public partial class ItemTableTests
         Assert.Equal(
             ["iron-ore", "magic-dust", "beast-hide", "crystal-shard", "stone-remover", "hole-driller", "safe-refine-stone"],
             CustomItems.Where(item => item.Category == ItemCategory.Material).Select(item => item.Id));
-
-        Assert.Equal(6, Content.AllRecipes.Count);
     }
 
     [Fact]
@@ -159,14 +160,15 @@ public partial class ItemTableTests
     [Fact]
     public void Recipes_UseShippedItems()
     {
+        // 原版 196 筆配方，成品與材料都是匯入的原版道具
+        Assert.Equal(196, Content.AllRecipes.Count);
         Assert.All(Content.AllRecipes, recipe =>
         {
-            Assert.Matches(KebabCase(), recipe.Id);
+            Assert.Matches(OriginalRecipeId(), recipe.Id);
             Assert.InRange(recipe.SuccessRate, 1, 100);
+            Assert.All(recipe.Materials.Select(material => material.ItemId).Prepend(recipe.ResultItemId), itemId =>
+                Assert.False(CustomContent.IsCustom(itemId)));
         });
-        var forge = Content.GetRecipe("forge-iron-sword");
-        Assert.Equal(("iron-sword", 1, 70), (forge.ResultItemId, forge.ResultQuantity, forge.SuccessRate));
-        Assert.Equal([("iron-ore", 3)], forge.Materials);
     }
 
     // 鍛造消耗的道具：材料分類、商店販賣
@@ -184,26 +186,21 @@ public partial class ItemTableTests
         Assert.Contains(CustomShelf(ItemCategory.Material, 3), item => item.Id == ForgeTools.StoneRemover);
     }
 
-    // 計畫 10：禁區 17～20 各一把鑰匙，21 600 秒；不在商店販賣，只能從勳章所兌換
+    // 原版地區鑰匙表：禁區 17～20 各一把，86 400 秒；不在商店販賣，只能從勳章所兌換
     [Fact]
     public void Keys_OnePerRestrictedPlace()
     {
-        var keys = CustomItems.Where(item => item.Category == ItemCategory.Key).ToList();
+        var keys = Content.AllItems.Where(item => item.Category == ItemCategory.Key).ToList();
 
         Assert.Equal(
-            [
-                ("abandoned-cave-key", "廢棄洞窟鑰匙", 17),
-                ("sunset-fort-key", "日沒碉堡鑰匙", 18),
-                ("still-city-key", "靜止之城鑰匙", 19),
-                ("obsidian-temple-key", "黑曜神廟鑰匙", 20),
-            ],
+            [("item-1338", "洞窟鑰匙", 17), ("item-1339", "日末鑰匙", 18), ("item-1405", "靜止鑰匙", 19), ("item-1522", "黑曜鑰匙", 20)],
             keys.Select(item => (item.Id, item.Name, item.Key!.PlaceId)));
         Assert.Equal(
             Content.AllPlaces.Where(place => place.Restricted).Select(place => place.Id).Order(),
             keys.Select(item => item.Key!.PlaceId).Order());
         Assert.All(keys, key => Assert.Equal(
-            (21_600, ConsumableKind.None, 0L, 1, false),
-            (key.Key!.Seconds, key.Consumable, key.Price, key.ShopLevel, key.ShopSellable)));
+            (86_400, ConsumableKind.None, false),
+            (key.Key!.Seconds, key.Consumable, key.ShopSellable)));
     }
 
     // 計畫 10 Task 5：寶箱、寵物蛋、心得書、經驗膠囊都不在商店販賣（從勳章所兌換）

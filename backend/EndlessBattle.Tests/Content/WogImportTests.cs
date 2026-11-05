@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
@@ -146,5 +147,32 @@ public class WogImportTests
     {
         Assert.True(Content.Teaches("job-6", "skill-1"));
         Assert.Equal(new SkillPrerequisite("skill-21", 3), Content.GetSkill("skill-31").Prerequisite);
+    }
+
+    [Fact]
+    public void Recipes_KeepOriginalMaterials()
+    {
+        var shield = Content.GetRecipe("recipe-1");
+
+        Assert.Equal(("item-308", 1, 100), (shield.ResultItemId, shield.ResultQuantity, shield.SuccessRate));
+        Assert.Equal([("item-125", 1), ("item-306", 1)], shield.Materials);
+    }
+
+    [Fact]
+    public void HonourShop_UsesOriginalExchanges()
+    {
+        var exchange = Content.HonourShop.Single(entry => entry.Id == "honour-1");
+
+        Assert.Equal(("mercenary-4", "C級傭兵", (long?)null), (exchange.MercenaryId!, Content.GetMercenary("mercenary-4").Name, Content.GetMercenary("mercenary-4").Price));
+        Assert.Equal([new ItemQuantity("item-1304", 13), new ItemQuantity("item-1305", 13)], exchange.Cost);
+    }
+
+    [Fact]
+    public void Keys_ReplaceCustomKeys()
+    {
+        var caveKey = Content.GetItem("item-1338");
+
+        Assert.Equal((ItemCategory.Key, 17, 86400), (caveKey.Category, caveKey.Key!.PlaceId, caveKey.Key.Seconds));
+        Assert.DoesNotContain(Content.AllItems, item => item.Id == "abandoned-cave-key");
     }
 }

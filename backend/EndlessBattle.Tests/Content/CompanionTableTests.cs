@@ -53,17 +53,17 @@ public class CompanionTableTests
         Assert.DoesNotContain(CustomShelf(ItemCategory.Consumable, 6), item => item.Id == "capture-crystal");
     }
 
+    // 原版 wog_mercenary_main：me_status 1 的 C、B 級不在商店賣，只能從勳章所兌換
     [Fact]
     public void Mercenaries_MatchTable()
     {
         Assert.Equal(
             [
-                new MercenaryDefinition("mercenary-f", "F級傭兵", 3000, 100, 30, 30, 65, 5),
-                new MercenaryDefinition("mercenary-e", "E級傭兵", 12000, 150, 40, 40, 70, 4),
-                new MercenaryDefinition("mercenary-d", "D級傭兵", 40000, 200, 50, 50, 75, 3),
-                new MercenaryDefinition("mercenary-c", "C級傭兵", 120000, 300, 60, 60, 80, 2),
-                new MercenaryDefinition("mercenary-b", "B級傭兵", null, 400, 70, 70, 85, 1),
-                new MercenaryDefinition("mercenary-a", "A級傭兵", null, 500, 80, 80, 90, 1),
+                new MercenaryDefinition("mercenary-1", "F級傭兵", 500, 850, 30, 30, 65, 5),
+                new MercenaryDefinition("mercenary-2", "E級傭兵", 100000, 900, 40, 40, 75, 4),
+                new MercenaryDefinition("mercenary-3", "D級傭兵", 1000000, 950, 50, 50, 85, 3),
+                new MercenaryDefinition("mercenary-4", "C級傭兵", null, 900, 70, 70, 100, 2),
+                new MercenaryDefinition("mercenary-5", "B級傭兵", null, 900, 80, 80, 100, 1),
             ],
             Content.AllMercenaries);
     }
@@ -71,52 +71,34 @@ public class CompanionTableTests
     private static ItemQuantity[] Cost(params (string MedalId, int Quantity)[] medals) =>
         medals.Select(medal => new ItemQuantity(medal.MedalId, medal.Quantity)).ToArray();
 
+    // 原版勳章所 142 筆，類型 0 的 2 筆兌換不到；h_1～h_5 是大陸、王國、雨林、王城、白銀勳章
     [Fact]
     public void HonourShop_CostsOnlyMedals()
     {
-        var fourMedals = Cost((Continent, 1), (Kingdom, 1), (Rainforest, 1), (RoyalCity, 1));
-        (string Id, string? ItemId, string? MercenaryId, ItemQuantity[] Cost)[] expected =
-        [
-            ("honour-mercenary-b", null, "mercenary-b", Cost((Continent, 3), (Kingdom, 3), (Rainforest, 3), (RoyalCity, 3))),
-            ("honour-mercenary-a", null, "mercenary-a", Cost((Silver, 5), (Continent, 3), (Kingdom, 3), (Rainforest, 3), (RoyalCity, 3))),
-            ("honour-capture-crystal", "capture-crystal", null, Cost((Silver, 1), (Rainforest, 2))),
-            ("honour-attack-stone", "attack-stone", null, Cost((Continent, 2))),
-            ("honour-sorcery-stone", "sorcery-stone", null, Cost((Kingdom, 2))),
-            ("honour-guard-stone", "guard-stone", null, Cost((Rainforest, 2))),
-            ("honour-ward-stone", "ward-stone", null, Cost((RoyalCity, 2))),
-            ("honour-vitality-stone", "vitality-stone", null, Cost((Continent, 1), (Rainforest, 1))),
-            ("honour-gale-stone", "gale-stone", null, Cost((Kingdom, 1), (RoyalCity, 1))),
-            ("honour-chaos-stone", "chaos-stone", null, Cost((Silver, 2))),
-            ("honour-prism-stone", "prism-stone", null, Cost((Silver, 2))),
-            ("honour-iron-refine-5", "iron-refine-stone-5", null, fourMedals),
-            ("honour-arcane-refine-5", "arcane-refine-stone-5", null, fourMedals),
-            ("honour-vigor-refine-5", "vigor-refine-stone-5", null, fourMedals),
-            ("honour-key-abandoned-cave", "abandoned-cave-key", null, fourMedals),
-            ("honour-key-sunset-fort", "sunset-fort-key", null, Cost((Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
-            ("honour-key-still-city", "still-city-key", null, Cost((Silver, 1), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
-            ("honour-key-obsidian-temple", "obsidian-temple-key", null, Cost((Silver, 3), (Continent, 2), (Kingdom, 2), (Rainforest, 2), (RoyalCity, 2))),
-            .. NewConsumableExchanges.Select(row => (row.Id, (string?)row.ItemId, (string?)null, row.Cost)),
-        ];
+        var original = Content.HonourShop.Where(exchange => !CustomContent.IsCustom(exchange.Id)).ToList();
 
-        Assert.Equal(25, Content.HonourShop.Count);
-        Assert.Equal(expected.Length, Content.HonourShop.Count);
-        foreach (var (row, exchange) in expected.Zip(Content.HonourShop))
-        {
-            Assert.Equal((row.Id, row.ItemId, row.MercenaryId, 1), (exchange.Id, exchange.ItemId, exchange.MercenaryId, exchange.Quantity));
-            Assert.Equal(row.Cost, exchange.Cost);
-        }
+        Assert.Equal(140, original.Count);
+        Assert.Equal(("honour-2", "mercenary-5"), (original[1].Id, original[1].MercenaryId!));
+        Assert.Equal(Cost(("item-1304", 23), ("item-1305", 23)), original[1].Cost);
+        Assert.Equal(("honour-142", "item-3361", 3), (original[^1].Id, original[^1].ItemId!, original[^1].Quantity));
+        Assert.Equal(
+            Cost(("item-1304", 1), ("item-1305", 1), ("item-1306", 1), ("item-1307", 1), ("item-2222", 1)),
+            original[^1].Cost);
+        Assert.Equal(
+            ["item-1304", "item-1305", "item-1306", "item-1307", "item-2222"],
+            original.SelectMany(exchange => exchange.Cost).Select(cost => cost.ItemId).Distinct().Order());
 
         Assert.All(
             Content.HonourShop.SelectMany(exchange => exchange.Cost),
             cost => Assert.Equal(ItemCategory.Medal, Content.GetItem(cost.ItemId).Category));
 
-        // B／A 級傭兵只能從勳章所取得
+        // 不在商店賣的傭兵只能從勳章所取得
         Assert.Equal(
             Content.AllMercenaries.Where(mercenary => mercenary.Price is null).Select(mercenary => mercenary.Id),
             Content.HonourShop.Where(exchange => exchange.MercenaryId is not null).Select(exchange => exchange.MercenaryId!));
     }
 
-    // 計畫 10：四把禁區鑰匙各一筆兌換、數量 1
+    // 四把禁區鑰匙各一筆兌換、數量 1
     [Fact]
     public void HonourShop_SellsTheFourKeys()
     {
@@ -125,10 +107,7 @@ public class CompanionTableTests
             .ToList();
 
         Assert.Equal(
-            [
-                ("honour-key-abandoned-cave", 17), ("honour-key-sunset-fort", 18),
-                ("honour-key-still-city", 19), ("honour-key-obsidian-temple", 20),
-            ],
+            [("honour-3", 17), ("honour-4", 18), ("honour-29", 19), ("honour-101", 20)],
             keyExchanges.Select(exchange => (exchange.Id, Content.GetItem(exchange.ItemId!).Key!.PlaceId)));
         Assert.All(keyExchanges, exchange => Assert.Equal(1, exchange.Quantity));
     }

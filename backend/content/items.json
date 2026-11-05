@@ -1317,6 +1317,8 @@
     {"id": "item-1335", "name": "石鬥士雙劍", "category": "Weapon", "bonus": {"str": 106, "smart": 14, "vit": 13, "at": 3000, "df": 110}, "requires": {"str": 2700}, "holes": 2, "refineMax": 7, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1336", "name": "石鬥士頭盔", "category": "Head", "bonus": {"str": 45, "smart": 14, "vit": 13, "au": 13, "at": 135, "df": 380}, "requires": {"str": 1300}, "holes": 3, "refineMax": 7, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1337", "name": "迷幻毒藥", "category": "Material", "price": 8, "shopLevel": 1, "shopSellable": false},
+    {"id": "item-1338", "name": "洞窟鑰匙", "category": "Key", "price": 8, "shopLevel": 1, "shopSellable": false, "bound": true, "key": {"placeId": 17, "seconds": 86400}},
+    {"id": "item-1339", "name": "日末鑰匙", "category": "Key", "price": 8, "shopLevel": 1, "shopSellable": false, "bound": true, "key": {"placeId": 18, "seconds": 86400}},
     {"id": "item-1340", "name": "初心戰士手套", "category": "Hand", "bonus": {"str": 23, "agi": 15, "au": 15, "be": 15, "at": 50, "df": 157, "mdf": 80}, "requires": {"str": 280}, "holes": 2, "refineMax": 6, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1341", "name": "初心法師手套", "category": "Hand", "bonus": {"smart": 9, "vit": 16, "agi": 14, "be": 14, "mat": 60, "df": 70, "mdf": 162}, "requires": {"smart": 270}, "holes": 2, "refineMax": 5, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1342", "name": "初心敏捷手套", "category": "Hand", "bonus": {"str": 13, "life": 13, "agi": 11, "au": 13, "at": 10, "df": 90, "mdf": 90}, "requires": {"agi": 260}, "holes": 2, "refineMax": 7, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
@@ -1381,6 +1383,7 @@
     {"id": "item-1402", "name": "狼族頭帶", "category": "Head", "bonus": {"life": 15, "vit": 15, "agi": 47, "at": 20, "df": 176, "mdf": 158}, "requires": {"agi": 820}, "holes": 2, "refineMax": 4, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1403", "name": "怒海頭帶", "category": "Head", "bonus": {"str": 13, "agi": 52, "be": 14, "at": 45, "df": 205, "mdf": 205}, "requires": {"agi": 875}, "holes": 2, "refineMax": 7, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1404", "name": "輕靈頭盔", "category": "Head", "bonus": {"str": 15, "agi": 41, "au": 14, "be": 14, "at": 45, "df": 240, "mdf": 225}, "requires": {"agi": 950}, "holes": 2, "refineMax": 5, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
+    {"id": "item-1405", "name": "靜止鑰匙", "category": "Key", "price": 8, "shopLevel": 1, "shopSellable": false, "bound": true, "key": {"placeId": 19, "seconds": 86400}},
     {"id": "item-1406", "name": "強化戰士手套", "category": "Hand", "bonus": {"str": 62, "smart": 13, "vit": 14, "agi": 13, "at": 90, "df": 490, "mdf": 300}, "requires": {"str": 1800}, "holes": 2, "refineMax": 4, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1407", "name": "強化魔力手套", "category": "Hand", "bonus": {"smart": 74, "agi": 16, "au": 15, "mat": 90, "df": 300, "mdf": 490}, "requires": {"smart": 1800}, "holes": 2, "refineMax": 6, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1408", "name": "強化敏捷手套", "category": "Hand", "bonus": {"str": 14, "smart": 15, "agi": 96, "au": 14, "be": 15, "at": 40, "df": 250, "mdf": 250}, "requires": {"agi": 1900}, "holes": 2, "refineMax": 5, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
@@ -1493,6 +1496,7 @@
     {"id": "item-1519", "name": "黑曜魔力皮衣", "category": "Body", "bonus": {"smart": 137, "vit": 14, "agi": 13, "au": 13, "mat": 180, "df": 500, "mdf": 1260}, "requires": {"smart": 4000}, "holes": 2, "refineMax": 5, "price": 6, "shopLevel": 1, "shopSellable": false, "bound": true},
     {"id": "item-1520", "name": "時空齒輪", "category": "Material", "price": 8, "shopLevel": 1, "shopSellable": false},
     {"id": "item-1521", "name": "貂皮", "category": "Material", "price": 8, "shopLevel": 1, "shopSellable": false},
+    {"id": "item-1522", "name": "黑曜鑰匙", "category": "Key", "price": 8, "shopLevel": 1, "shopSellable": false, "bound": true, "key": {"placeId": 20, "seconds": 86400}},
     {"id": "item-1523", "name": "木琴", "category": "Weapon", "bonus": {"at": 19, "mat": 19}, "requires": {"au": 20}, "holes": 1, "refineMax": 3, "price": 14, "shopLevel": 1, "shopSellable": true},
     {"id": "item-1524", "name": "木琴", "category": "Weapon", "bonus": {"vit": 2, "au": 3, "at": 19, "mat": 19}, "requires": {"au": 20}, "holes": 2, "refineMax": 5, "price": 14, "shopLevel": 1, "shopSellable": false},
     {"id": "item-1525", "name": "木琴", "category": "Weapon", "bonus": {"vit": 4, "be": 3, "at": 19, "mat": 19}, "requires": {"au": 20}, "holes": 3, "refineMax": 4, "price": 14, "shopLevel": 1, "shopSellable": false},
@@ -3279,10 +3283,6 @@
     {"id": "kingdom-medal", "name": "王國勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
     {"id": "rainforest-medal", "name": "雨林勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
     {"id": "royal-city-medal", "name": "王城勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
-    {"id": "silver-medal", "name": "白銀勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false},
-    {"id": "abandoned-cave-key", "name": "廢棄洞窟鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 17, "seconds": 21600}},
-    {"id": "sunset-fort-key", "name": "日沒碉堡鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 18, "seconds": 21600}},
-    {"id": "still-city-key", "name": "靜止之城鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 19, "seconds": 21600}},
-    {"id": "obsidian-temple-key", "name": "黑曜神廟鑰匙", "category": "Key", "price": 0, "shopLevel": 1, "shopSellable": false, "key": {"placeId": 20, "seconds": 21600}}
+    {"id": "silver-medal", "name": "白銀勳章", "category": "Medal", "price": 0, "shopLevel": 1, "shopSellable": false}
   ]
 }

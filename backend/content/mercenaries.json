@@ -1,10 +1,9 @@
 {
   "mercenaries": [
-    {"id": "mercenary-f", "name": "F級傭兵", "price": 3000, "fights": 100, "moneyPercent": 30, "dropPercent": 30, "expPercent": 65, "deathCost": 5},
-    {"id": "mercenary-e", "name": "E級傭兵", "price": 12000, "fights": 150, "moneyPercent": 40, "dropPercent": 40, "expPercent": 70, "deathCost": 4},
-    {"id": "mercenary-d", "name": "D級傭兵", "price": 40000, "fights": 200, "moneyPercent": 50, "dropPercent": 50, "expPercent": 75, "deathCost": 3},
-    {"id": "mercenary-c", "name": "C級傭兵", "price": 120000, "fights": 300, "moneyPercent": 60, "dropPercent": 60, "expPercent": 80, "deathCost": 2},
-    {"id": "mercenary-b", "name": "B級傭兵", "price": null, "fights": 400, "moneyPercent": 70, "dropPercent": 70, "expPercent": 85, "deathCost": 1},
-    {"id": "mercenary-a", "name": "A級傭兵", "price": null, "fights": 500, "moneyPercent": 80, "dropPercent": 80, "expPercent": 90, "deathCost": 1}
+    {"id": "mercenary-1", "name": "F級傭兵", "price": 500, "fights": 850, "moneyPercent": 30, "dropPercent": 30, "expPercent": 65, "deathCost": 5},
+    {"id": "mercenary-2", "name": "E級傭兵", "price": 100000, "fights": 900, "moneyPercent": 40, "dropPercent": 40, "expPercent": 75, "deathCost": 4},
+    {"id": "mercenary-3", "name": "D級傭兵", "price": 1000000, "fights": 950, "moneyPercent": 50, "dropPercent": 50, "expPercent": 85, "deathCost": 3},
+    {"id": "mercenary-4", "name": "C級傭兵", "price": null, "fights": 900, "moneyPercent": 70, "dropPercent": 70, "expPercent": 100, "deathCost": 2},
+    {"id": "mercenary-5", "name": "B級傭兵", "price": null, "fights": 900, "moneyPercent": 80, "dropPercent": 80, "expPercent": 100, "deathCost": 1}
   ]
 }

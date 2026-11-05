@@ -121,7 +121,7 @@
 
 ## 4. 切換（改成原版、改引用原版 id）
 
-- [ ] 4.1 配方、榮譽商店、傭兵改成原版 [after: 3.1]：`recipe-<id>`、`honour-<id>`、`mercenary-<id>`；榮譽商店的 `h_1`～`h_5` 依 `docs/research/wog-research-world.md` 對到五種勳章道具。榮譽商店的裝備商品照現有兌換格式匯入（取代裁定第 77 行）。原版鑰匙（`item-1338`、`item-1339`、`item-1405`、`item-1522`）同時匯入、取代自訂鑰匙，`key.placeId` 依 `docs/research/wog45/shops-and-misc.md` 的地區鑰匙表、`seconds` 原版有就用原版。
+- [x] 4.1 配方、榮譽商店、傭兵改成原版 [after: 3.1]：`recipe-<id>`、`honour-<id>`、`mercenary-<id>`；榮譽商店的 `h_1`～`h_5` 依 `docs/research/wog-research-world.md` 對到五種勳章道具。榮譽商店的裝備商品照現有兌換格式匯入（取代裁定第 77 行）。原版鑰匙（`item-1338`、`item-1339`、`item-1405`、`item-1522`）同時匯入、取代自訂鑰匙，`key.placeId` 依 `docs/research/wog45/shops-and-misc.md` 的地區鑰匙表、`seconds` 原版有就用原版。
   - TDD：先寫 `WogImportTests.Recipes_KeepOriginalMaterials`（`recipe-1` 產出鋼鐵圓桌盾 `item-308`，材料 `item-125` 與 `item-306` 各 1），再寫 `HonourShop_UsesOriginalExchanges`（`honour-1` 兌換 C 級傭兵，代價是 `h_1`、`h_2` 對到的勳章各 13）。
   - 改寫 `CompanionTableTests`、`ItemTableTests` 中釘住自訂配方、兌換、傭兵的測試，改成釘住原版值。
   - 驗證：`OfficialContent_Loads` 與改寫後的測試通過。
