@@ -1,6 +1,7 @@
 import { ThemedLayout, ThemedSider, ThemedTitle, useNotificationProvider } from "@refinedev/antd"
 import { Refine } from "@refinedev/core"
 import routerProvider, { NavigateToResource } from "@refinedev/react-router"
+import { BarChartOutlined } from "@ant-design/icons"
 import { App as AntdApp, ConfigProvider } from "antd"
 import zhTW from "antd/locale/zh_TW"
 import { Outlet, Route, Routes } from "react-router"
@@ -29,9 +30,13 @@ export function App() {
               list: `/${resource.name}`,
               create: `/${resource.name}/create`,
               edit: `/${resource.name}/edit/:id`,
-              meta: { label: resource.label },
+              meta: { label: resource.label, icon: <resource.icon /> },
             })),
-            { name: "reports", list: "/reports", meta: { label: "平衡報告" } },
+            {
+              name: "reports",
+              list: "/reports",
+              meta: { label: "平衡報告", icon: <BarChartOutlined /> },
+            },
           ]}
         >
           <Routes>

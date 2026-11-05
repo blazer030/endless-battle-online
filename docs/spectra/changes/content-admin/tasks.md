@@ -37,5 +37,5 @@
 - [x] 6.2 補齊情境「Admin document lists admin paths」：`AdminOpenApiTests` 除了 `/admin/content/{kind}`，再斷言 admin 文件含 `/admin/draft` 與 `/admin/reports`。驗證：`cd backend && dotnet test --filter-class "*AdminOpenApiTests"` 通過。
 - [x] 6.3 依「admin 版面」加上 header（Console layout）：header 固定在頂端，顯示目前頁面名稱、草稿狀態與「發布」「捨棄」按鈕；草稿列從內容區移進 header，草稿不通過時錯誤訊息仍在內容區最上方。驗證：元件測試 `Header shows page name and draft status` 打開怪物列表，斷言 header 內有怪物頁名稱與「發布」按鈕；`DraftBar` 既有測試照樣通過。
 - [x] 6.4 sidebar 改成固定、不隨頁面捲動（Console layout）。驗證：元件測試 `Sidebar is fixed` 斷言 sidebar 元素的 `position` 為 `fixed`。[after: 6.3]
-- [ ] 6.5 sidebar 每個項目換成 design.md「admin 版面」列出的 icon（Console layout）。驗證：元件測試 `Sidebar entries have distinct icons` 斷言七個項目的 icon（`aria-label`）各不相同且符合對照表。[after: 6.4]
+- [x] 6.5 sidebar 每個項目換成 design.md「admin 版面」列出的 icon（Console layout）。驗證：元件測試 `Sidebar entries have distinct icons` 斷言七個項目的 icon（`aria-label`）各不相同且符合對照表。[after: 6.4]
 - [ ] 6.6 最終檢查：`./scripts/check.sh` exit code 0；以 `pnpm dev` 打開 admin，人工確認捲動長列表時 header 與 sidebar 都留在原位。[after: 6.1, 6.2, 6.5]

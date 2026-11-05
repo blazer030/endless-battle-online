@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { MemoryRouter } from "react-router"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { App } from "../App"
@@ -32,5 +32,28 @@ describe("AdminSider", () => {
     await screen.findByRole("banner")
     const sider = screen.getByRole("link", { name: /怪物/ }).closest(".ant-layout-sider")
     expect(sider).toHaveStyle({ position: "fixed" })
+  })
+
+  it("Sidebar entries have distinct icons", async () => {
+    renderApp()
+
+    await screen.findByRole("banner")
+    const icons = Object.fromEntries(
+      screen
+        .getAllByRole("menuitem")
+        .map((item) => [
+          item.textContent,
+          within(item).getByRole("img").getAttribute("aria-label"),
+        ]),
+    )
+    expect(icons).toEqual({
+      道具: "shopping",
+      怪物: "bug",
+      職業: "idcard",
+      技能: "thunderbolt",
+      大陸: "global",
+      地區: "environment",
+      平衡報告: "bar-chart",
+    })
   })
 })
