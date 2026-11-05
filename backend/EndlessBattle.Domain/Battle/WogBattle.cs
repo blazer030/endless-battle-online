@@ -40,6 +40,7 @@ public static class WogBattle
         var playerHp = player.Hp;
         var playerSp = player.Sp;
         var monsterHp = monster.Hp;
+        var monsterSp = monster.Sp;
         var damageDealt = 0;
         var caster = new SkillCaster(player, skills);
         var potionsUsed = 0;
@@ -68,7 +69,12 @@ public static class WogBattle
                 return Outcome(null, round) with { Escaped = true };
             }
 
-            Record(caster.CastBeforeAttack(playerHp, playerSp, random), roundStart);
+            Record(caster.CastBeforeAttack(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), roundStart);
+            if (monsterHp == 0)
+            {
+                events.Add(new DefeatEvent(roundStart, CombatSide.Monster));
+                return Outcome(CombatSide.Player, round);
+            }
 
             modifiers = caster.Current;
             fighter = modifiers.ApplyToPlayer(player);
@@ -83,7 +89,7 @@ public static class WogBattle
                 return Outcome(Opponent(loser), round);
             }
 
-            if (PetStrike(roundStart + PetStrikeOffsetSeconds))
+            if (PetStrike(roundStart + PetStrikeOffsetSeconds) || DamageOverTime(roundStart + PetStrikeOffsetSeconds))
             {
                 events.Add(new DefeatEvent(events[^1].AtSeconds, CombatSide.Monster));
                 return Outcome(CombatSide.Player, round);
@@ -105,8 +111,9 @@ public static class WogBattle
             for (var hit = 0; hit < hits; hit++)
             {
                 var hitSeconds = atSeconds + hit * intervalSeconds;
-                var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CriticalChanceFor(playerKind),
-                    modifiers.BonusDamageFor(playerKind), modifiers.CriticalCapFor(playerKind));
+                var result = RoundResolver.Strike(modifiers.AttackingAs(fighter), opponent, playerKind, random, modifiers.Rag,
+                    modifiers.CriticalChanceFor(playerKind), modifiers.BonusDamageFor(playerKind), modifiers.CriticalCapFor(playerKind),
+                    modifiers.ElementAdvantagePercent);
                 monsterHp = Math.Max(0, monsterHp - result.Damage);
                 damageDealt += result.Damage;
                 events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, result.Damage,
@@ -114,7 +121,7 @@ public static class WogBattle
 
                 if (playerKind == AttackKind.Physical && result.Hit)
                 {
-                    Record(caster.CastAfterPhysicalHit(result.Damage, playerHp, playerSp, random), hitSeconds);
+                    Record(caster.CastAfterPhysicalHit(result.Damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
                 }
 
                 if (monsterHp == 0)
@@ -136,8 +143,8 @@ public static class WogBattle
             }
 
             var monsterKind = RoundResolver.ChooseKind(opponent.At, opponent.Mat, random);
-            var result = RoundResolver.Strike(opponent, fighter, monsterKind, random, rag: modifiers.EnemyRag);
-            var damage = monsterKind == AttackKind.Physical ? modifiers.PhysicalDamageTaken(result.Damage) : result.Damage;
+            var result = RoundResolver.Strike(opponent, modifiers.DefendingAs(fighter), monsterKind, random, rag: modifiers.EnemyRag);
+            var damage = modifiers.DamageTaken(monsterKind, result.Damage);
 
             // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受
             if (result.Hit && pet is not null && guard > 0 && PetBattle.Activates(pet, random))
@@ -191,13 +198,34 @@ public static class WogBattle
             {
                 playerHp = cast.HpAfter;
                 playerSp = cast.SpAfter;
+                monsterHp = Math.Max(0, monsterHp - cast.OpponentDamage);
+                damageDealt += cast.OpponentDamage;
+                monsterSp = Math.Max(0, monsterSp - cast.OpponentSpLoss);
                 events.Add(new SkillEvent(atSeconds, CombatSide.Player, cast.Equipped.Skill.Id, cast.Equipped.Skill.Name, cast.Equipped.Level,
-                    cast.SpAfter, cast.Heal));
+                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null));
             }
         }
 
+        // 回合結束時持續傷害生效；回傳怪物是否倒下
+        bool DamageOverTime(double atSeconds)
+        {
+            foreach (var (equipped, damage) in caster.DamageOverTimeBySkill())
+            {
+                monsterHp = Math.Max(0, monsterHp - damage);
+                damageDealt += damage;
+                events.Add(new SkillEvent(atSeconds, CombatSide.Player, equipped.Skill.Id, equipped.Skill.Name, equipped.Level,
+                    playerSp, Heal: 0, damage, monsterHp));
+                if (monsterHp == 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         BattleOutcome Outcome(CombatSide? winner, int rounds) =>
-            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp }, supply);
+            new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp, Sp = monsterSp }, supply);
     }
 
     private static CombatSide Opponent(CombatSide side) => side == CombatSide.Player ? CombatSide.Monster : CombatSide.Player;

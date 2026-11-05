@@ -64,7 +64,7 @@
     - `Scaling_UsesCharisma`（力量之舞：物攻 + 魅力×5%）
     - `StunChance_DoesNotAffectOtherEffects`（斯巴達：必殺率 +20 一定生效，Stun 擲 50 對 12 不生效）
   - 驗證：全部測試通過。
-- [ ] 2.6 新增傷害、回復與屬性類的效果 [after: 2.5]：
+- [x] 2.6 新增傷害、回復與屬性類的效果 [after: 2.5]：
   - `PercentDamage`、`DamageOverTime`。
   - 魔法 `DamageReduction`。
   - `ReduceSkillPoints`、`Silence`。

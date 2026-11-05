@@ -3,8 +3,8 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Domain.Battle;
 
-// Heal 是實際回復量（已扣掉超過 HpMax 的部分）
-public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal);
+// Heal 是實際回復量（已扣掉超過 HpMax 的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
+public sealed record SkillCast(EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0);
 
 // 玩家技能的施放與持續（研究 §3.3）。主動與被動規則相同，只看每級的條件、消耗與效果：
 // 沒有發動條件的技能常駐：裝上就生效、不擲骰、不扣消耗；攻擊後時機的常駐技能（嗜血）每次命中都觸發。
@@ -22,6 +22,12 @@ public sealed class SkillCaster
     // 持續中的技能已經過幾個回合開頭（發動回合為 0）；每個效果在 age < max(1, rounds) 時生效
     private readonly Dictionary<EquippedSkill, int> ages = [];
 
+    // 發動時自己的機率沒擲中的效果（第幾個效果），這次持續期間不生效
+    private readonly Dictionary<EquippedSkill, HashSet<int>> missedEffects = [];
+
+    // 被對手封鎖技能的剩餘回合（含目前回合）；期間不發動、不判斷條件
+    private int silencedRounds;
+
     public SkillCaster(CombatantState player, IReadOnlyList<EquippedSkill> skills)
     {
         this.player = player;
@@ -34,6 +40,7 @@ public sealed class SkillCaster
     // 持續 n 回合含施放回合：第 n + 1 回合開頭失效。玩家每回合出手一次，所以冷卻也在回合開頭倒數
     public void ExpireAtRoundStart()
     {
+        silencedRounds = Math.Max(0, silencedRounds - 1);
         foreach (var skill in cooldowns.Keys.ToList())
         {
             if (--cooldowns[skill] <= 0)
@@ -55,6 +62,7 @@ public sealed class SkillCaster
             {
                 remainingRounds.Remove(skill);
                 ages.Remove(skill);
+                missedEffects.Remove(skill);
                 expired = true;
             }
         }
@@ -65,20 +73,41 @@ public sealed class SkillCaster
         }
     }
 
-    // 玩家出手前，依欄位 1→5 嘗試施放
-    public IReadOnlyList<SkillCast> CastBeforeAttack(int hp, int sp, IRandomSource random) =>
-        Cast(SkillTiming.BeforeAttack, hp, sp, random, damage: 0);
+    // 對手的封鎖技能：接下來 rounds 回合（含目前回合）這一方的技能都不發動
+    public void Silence(int rounds) => silencedRounds = Math.Max(silencedRounds, rounds);
+
+    // 這一回合持續傷害的總量：仍在持續、沒有失手的 DamageOverTime 效果
+    public int DamageOverTime() => DamageOverTimeBySkill().Sum(entry => entry.Damage);
+
+    public IReadOnlyList<(EquippedSkill Skill, int Damage)> DamageOverTimeBySkill() =>
+        [.. skills.Where(IsInEffect)
+            .Select(equipped => (equipped, ActiveEffects(equipped).OfType<DamageOverTimeEffect>().Sum(effect => Scaled(effect.Scaling))))
+            .Where(entry => entry.Item2 > 0)];
+
+    // 玩家出手前，依欄位 1→5 嘗試施放；opponent* 是對手目前的 HP、SP 與 SP 上限，用在削減 HP、SP 的效果
+    public IReadOnlyList<SkillCast> CastBeforeAttack(
+        int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
+        Cast(SkillTiming.BeforeAttack, hp, sp, random, damage: 0, new Opponent(opponentHp, opponentSp, opponentSpMax));
 
     // 玩家物理命中後（嗜血）；主動技能施放後本回合持續中，同一回合不會再發動
-    public IReadOnlyList<SkillCast> CastAfterPhysicalHit(int damage, int hp, int sp, IRandomSource random) =>
-        Cast(SkillTiming.AfterHit, hp, sp, random, damage);
+    public IReadOnlyList<SkillCast> CastAfterPhysicalHit(
+        int damage, int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
+        Cast(SkillTiming.AfterHit, hp, sp, random, damage, new Opponent(opponentHp, opponentSp, opponentSpMax));
 
-    private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, int damage)
+    private readonly record struct Opponent(int Hp, int Sp, int SpMax);
+
+    private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, int damage, Opponent opponent)
     {
         var casts = new List<SkillCast>();
         var recompute = false;
         foreach (var equipped in skills.Where(skill => skill.Skill.Timing == timing))
         {
+            // 被封鎖時連條件都不判斷
+            if (silencedRounds > 0)
+            {
+                break;
+            }
+
             var level = equipped.Skill.LevelAt(equipped.Level);
 
             // 冷卻中不擲骰也不觸發
@@ -89,13 +118,16 @@ public sealed class SkillCaster
 
             if (equipped.Skill.IsAlwaysOn)
             {
-                // 常駐不擲骰、不扣消耗；只有實際回復時才留下紀錄（滿血時沒有事件、耗用的亂數也和沒有技能時相同）
-                var passiveHeal = Math.Min(RestoreAmount(equipped, damage), player.HpMax - hp);
-                if (passiveHeal > 0)
+                // 常駐不擲骰、不扣消耗；一次性效果（回復、削減）每到時機都生效，有作用才留下紀錄
+                //（滿血時沒有事件、耗用的亂數也和沒有技能時相同）
+                var passive = Instant(equipped, damage, hp, sp, opponent);
+                if (passive.Heal > 0 || passive.SpGain > 0 || passive.OpponentDamage > 0 || passive.OpponentSpLoss > 0)
                 {
-                    hp += passiveHeal;
+                    hp += passive.Heal;
+                    sp += passive.SpGain;
+                    opponent = opponent with { Hp = opponent.Hp - passive.OpponentDamage, Sp = opponent.Sp - passive.OpponentSpLoss };
                     StartCooldown(equipped, level);
-                    casts.Add(new SkillCast(equipped, hp, sp, passiveHeal));
+                    casts.Add(new SkillCast(equipped, hp, sp, passive.Heal, passive.OpponentDamage, passive.OpponentSpLoss));
                 }
 
                 continue;
@@ -105,20 +137,23 @@ public sealed class SkillCaster
             // 這些情況耗用的亂數與沒有技能時相同
             var spCost = SkillPointCost(level);
             if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(level, hp) || sp < spCost
-                || (IsHealing(equipped) && hp >= player.HpMax) || !ChanceConditionsHold(level, random))
+                || RestoresOnlyFullResources(level, hp, sp) || !ChanceConditionsHold(level, random))
             {
                 continue;
             }
 
             sp -= spCost;
 
-            var heal = Math.Min(RestoreAmount(equipped, damage), player.HpMax - hp);
-            hp += heal;
+            var instant = Instant(equipped, damage, hp, sp, opponent);
+            hp += instant.Heal;
+            sp += instant.SpGain;
+            opponent = opponent with { Hp = opponent.Hp - instant.OpponentDamage, Sp = opponent.Sp - instant.OpponentSpLoss };
             remainingRounds[equipped] = LastingRounds(level);
             ages[equipped] = 0;
+            missedEffects[equipped] = RollEffectChances(level, random);
             StartCooldown(equipped, level);
             recompute = true;
-            casts.Add(new SkillCast(equipped, hp, sp, heal));
+            casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss));
         }
 
         if (recompute)
@@ -147,10 +182,47 @@ public sealed class SkillCaster
     // 持續中不重複發動：直到最長的效果結束；只在發動回合生效的效果也擋住同一回合
     private static int LastingRounds(SkillLevel level) => level.Effects.Max(effect => Math.Max(1, effect.Rounds));
 
-    private int RestoreAmount(EquippedSkill equipped, int damage) =>
-        equipped.Skill.LevelAt(equipped.Level).Effects.OfType<RestoreEffect>().Sum(effect => effect.Scaling is { } scaling
-            ? Scaled(scaling)
-            : BattleModifiers.Round(damage * effect.PercentOfDamage!.Value / 100));
+    private readonly record struct InstantResult(int Heal, int SpGain, int OpponentDamage, int OpponentSpLoss);
+
+    // 發動當下生效一次的效果：回復 HP／SP、削減對手 HP 與 SP；都不超過可回復或可削減的量
+    private InstantResult Instant(EquippedSkill equipped, int damage, int hp, int sp, Opponent opponent)
+    {
+        var effects = equipped.Skill.LevelAt(equipped.Level).Effects;
+        int RestoreOf(SkillResource resource, int maximum) => effects.OfType<RestoreEffect>().Where(effect => effect.Resource == resource)
+            .Sum(effect => effect.Scaling is { } scaling ? Scaled(scaling)
+                : effect.PercentOfMaximum is { } percent ? BattleModifiers.Round(maximum * percent / 100)
+                : BattleModifiers.Round(damage * effect.PercentOfDamage!.Value / 100));
+
+        var opponentDamage = effects.OfType<PercentDamageEffect>().Sum(effect => BattleModifiers.Round(opponent.Hp * effect.Percent / 100));
+        var opponentSpLoss = effects.OfType<ReduceSkillPointsEffect>()
+            .Sum(effect => effect.Amount ?? BattleModifiers.Round(opponent.SpMax * effect.PercentOfMaximum!.Value / 100));
+        return new InstantResult(
+            Math.Min(RestoreOf(SkillResource.HitPoints, player.HpMax), player.HpMax - hp),
+            Math.Max(0, Math.Min(RestoreOf(SkillResource.SkillPoints, player.SpMax), player.SpMax - sp)),
+            Math.Min(opponentDamage, Math.Max(0, opponent.Hp)),
+            Math.Min(opponentSpLoss, Math.Max(0, opponent.Sp)));
+    }
+
+    // 有自己機率的效果在發動後依序擲；回傳沒擲中的效果
+    private static HashSet<int> RollEffectChances(SkillLevel level, IRandomSource random)
+    {
+        var missed = new HashSet<int>();
+        for (var index = 0; index < level.Effects.Count; index++)
+        {
+            var chance = level.Effects[index] switch
+            {
+                BonusDamageEffect bonus => bonus.Chance,
+                StatChangeEffect change => change.Chance,
+                _ => null,
+            };
+            if (chance is { } percent && PhpRandom.Between(random, 1, 100) > percent)
+            {
+                missed.Add(index);
+            }
+        }
+
+        return missed;
+    }
 
     private int Scaled(IReadOnlyList<SkillScaling> scaling) =>
         BattleModifiers.Round(scaling.Sum(term => Basis(term.Basis) * term.Ratio));
@@ -179,9 +251,10 @@ public sealed class SkillCaster
         }
     }
 
-    // 效果全部是回復的技能，在要回復的資源已滿時不發動
-    private static bool IsHealing(EquippedSkill equipped) =>
-        equipped.Skill.LevelAt(equipped.Level).Effects.All(effect => effect is RestoreEffect);
+    // 效果全部是回復的技能，在要回復的資源都已滿時不發動
+    private bool RestoresOnlyFullResources(SkillLevel level, int hp, int sp) =>
+        level.Effects.All(effect => effect is RestoreEffect restore
+            && (restore.Resource == SkillResource.HitPoints ? hp >= player.HpMax : sp >= player.SpMax));
 
     private bool IsInEffect(EquippedSkill equipped) =>
         equipped.Skill.IsAlwaysOn || remainingRounds.ContainsKey(equipped);
@@ -190,15 +263,22 @@ public sealed class SkillCaster
         Current = skills.Where(IsInEffect).Aggregate(new BattleModifiers(), ApplyComposed);
 
     // 同一技能裡同一項能力的百分比相加後才乘進修正值；不同技能之間相乘；固定值與 scaling 一律相加
-    private BattleModifiers ApplyComposed(BattleModifiers modifiers, EquippedSkill equipped)
+    // 正在生效的效果：常駐全部生效；持續中的照各自 rounds，發動時沒擲中機率的不算
+    private IEnumerable<SkillEffect> ActiveEffects(EquippedSkill equipped)
     {
         var age = ages.GetValueOrDefault(equipped);
-        var effects = equipped.Skill.LevelAt(equipped.Level).Effects
-            .Where(effect => equipped.Skill.IsAlwaysOn || age < Math.Max(1, effect.Rounds))
-            .ToList();
+        var missed = missedEffects.GetValueOrDefault(equipped);
+        return equipped.Skill.LevelAt(equipped.Level).Effects
+            .Where((effect, index) => equipped.Skill.IsAlwaysOn || (age < Math.Max(1, effect.Rounds) && missed?.Contains(index) != true));
+    }
+
+    private BattleModifiers ApplyComposed(BattleModifiers modifiers, EquippedSkill equipped)
+    {
+        var effects = ActiveEffects(equipped).ToList();
         var percents = new Dictionary<(SkillTarget, SkillStat), double>();
         var flats = new Dictionary<(SkillTarget, SkillStat), int>();
         var physicalReduction = 0.0;
+        var magicReduction = 0.0;
         foreach (var effect in effects)
         {
             switch (effect)
@@ -226,10 +306,23 @@ public sealed class SkillCaster
                     };
                     break;
                 case DamageReductionEffect reduction:
-                    physicalReduction += reduction.Percent;
+                    physicalReduction += reduction.AttackKind == SkillAttackKind.Magic ? 0 : reduction.Percent;
+                    magicReduction += reduction.AttackKind == SkillAttackKind.Physical ? 0 : reduction.Percent;
                     break;
                 case StunEffect stun:
                     modifiers = modifiers with { StunChance = Math.Max(modifiers.StunChance, stun.Chance) };
+                    break;
+                case SilenceEffect silence:
+                    modifiers = modifiers with { SilenceChance = Math.Max(modifiers.SilenceChance, silence.Chance) };
+                    break;
+                case AttackElementEffect element:
+                    modifiers = modifiers with { AttackElement = element.Element };
+                    break;
+                case DefenseElementEffect element:
+                    modifiers = modifiers with { DefenseElement = element.Element };
+                    break;
+                case ElementAdvantageEffect advantage:
+                    modifiers = modifiers with { ElementAdvantagePercent = modifiers.ElementAdvantagePercent + advantage.Percent };
                     break;
             }
         }
@@ -283,6 +376,11 @@ public sealed class SkillCaster
             };
         }
 
-        return physicalReduction == 0 ? modifiers : modifiers with { PhysicalTaken = modifiers.PhysicalTaken * (1 - physicalReduction / 100) };
+        if (physicalReduction != 0)
+        {
+            modifiers = modifiers with { PhysicalTaken = modifiers.PhysicalTaken * (1 - physicalReduction / 100) };
+        }
+
+        return magicReduction == 0 ? modifiers : modifiers with { MagicTaken = modifiers.MagicTaken * (1 - magicReduction / 100) };
     }
 }

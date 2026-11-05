@@ -47,12 +47,14 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
     : { text: `${monster}攻擊，你受到 ${damage} 點傷害。`, kind: "normal" }
 }
 
-// 本計畫怪物沒有技能，只敘述玩家的施放
-const describeSkill = (event: SkillEvent): LogEntry[] => {
+// 怪物還沒有技能，只敘述玩家的施放：回復與對怪物造成的傷害（削減 HP、持續傷害）
+const describeSkill = (event: SkillEvent, monster: string): LogEntry[] => {
   if (event.caster !== "Player") return []
   const lines: LogEntry[] = [{ text: `你施展了${event.skillName}！`, kind: "trigger" }]
   if (event.heal > 0)
     lines.push({ text: `回復了 ${formatNumber(event.heal)} 點 HP。`, kind: "normal" })
+  if (event.damage > 0)
+    lines.push({ text: `${monster}受到 ${formatNumber(event.damage)} 點傷害。`, kind: "normal" })
   return lines
 }
 
@@ -172,7 +174,7 @@ export const describePlaybackItem = (
     case "attack":
       return [describeAttack(event, current)]
     case "skill":
-      return describeSkill(event)
+      return describeSkill(event, current)
     case "defeat":
       return [
         event.loser === "Monster"

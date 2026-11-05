@@ -80,6 +80,8 @@ const skill = (overrides: Partial<SkillEvent>) =>
     level: 1,
     spAfter: 3,
     heal: 0,
+    damage: 0,
+    opponentHpAfter: null,
     ...overrides,
   })
 
@@ -138,6 +140,14 @@ const cases: [string, PlaybackItem, Line[]][] = [
     [
       ["你施展了治癒！", "trigger"],
       ["回復了 1,234 點 HP。", "normal"],
+    ],
+  ],
+  [
+    "player damaging skill",
+    skill({ skillId: "poison", skillName: "施毒", damage: 50, opponentHpAfter: 10 }),
+    [
+      ["你施展了施毒！", "trigger"],
+      ["史萊姆受到 50 點傷害。", "normal"],
     ],
   ],
   ["monster skill is not narrated", skill({ caster: "Monster" }), []],

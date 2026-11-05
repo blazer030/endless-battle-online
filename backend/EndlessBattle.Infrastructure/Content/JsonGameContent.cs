@@ -585,8 +585,13 @@ public sealed class JsonGameContent : IGameContent
             Require(level.Money >= 0 && level.Proficiency >= 0 && level.Cooldown >= 0, "的 money、proficiency、cooldown 不可為負");
             Require(level.Effects!.Count > 0, "至少要有一個效果");
             Require(Kinds(level) == signature, "的條件、消耗、效果種類與順序必須與第 1 級相同");
+            Require(level.Effects.All(effect => EffectChance(effect) is null or >= 1 and <= 100), "的效果機率必須在 1～100");
+            Require(level.Effects.OfType<StatChangeEffect>().All(change => change.Chance is null || change.Target == SkillTarget.Opponent),
+                "的效果機率只能用在對手的能力增減");
             if (level.Conditions is [])
             {
+                // 常駐不會「發動」，效果自己的機率沒有擲的時機
+                Require(level.Effects.All(effect => EffectChance(effect) is null), "沒有發動條件（常駐），效果不能有機率");
                 Require(level.Costs is [] && level.Cooldown == 0 && level.Effects!.All(effect => effect.Rounds == 0),
                     "沒有發動條件（常駐），不能有消耗、冷卻或持續回合");
             }
@@ -607,14 +612,25 @@ public sealed class JsonGameContent : IGameContent
                     StatChangeEffect { Target: SkillTarget.Opponent } change => change.Stat is SkillStat.Attack or SkillStat.MagicAttack
                         or SkillStat.Defense or SkillStat.MagicDefense or SkillStat.Agility or SkillStat.Charisma or SkillStat.HitRate,
                     MultiHitEffect multiHit => multiHit.Hits >= 2,
-                    DamageReductionEffect reduction => reduction.AttackKind == SkillAttackKind.Physical && reduction.Percent is > 0 and < 100,
+                    DamageReductionEffect reduction => reduction.Percent is > 0 and < 100,
                     StunEffect stun => stun.Chance is >= 1 and <= 100,
+                    SilenceEffect silence => silence.Chance is >= 1 and <= 100,
+                    PercentDamageEffect damage => damage.Percent is > 0 and <= 100,
+                    ReduceSkillPointsEffect loss => loss.Amount is null or >= 1 && loss.PercentOfMaximum is null or > 0 and <= 100,
+                    ElementAdvantageEffect advantage => advantage.Percent > 0,
                     _ => true,
                 };
                 Require(valid, $"的效果 {effect.GetType().Name.Replace("Effect", "")} 的數值不在支援的範圍");
             }
         }
     }
+
+    private static int? EffectChance(SkillEffect effect) => effect switch
+    {
+        BonusDamageEffect bonus => bonus.Chance,
+        StatChangeEffect change => change.Chance,
+        _ => null,
+    };
 
     // 命中、迴避、暴擊率、暴擊上限、逃跑率是百分點，只能用 amount 或 scaling
     private static bool IsPointStat(SkillStat stat) => stat is SkillStat.HitRate or SkillStat.Evasion or SkillStat.PhysicalCriticalChance

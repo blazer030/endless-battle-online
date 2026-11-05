@@ -60,7 +60,10 @@ public sealed record PetAttackEvent(double AtSeconds, string PetName, AttackKind
 public sealed record CaptureEvent(double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, int Remaining) : BattleEvent(AtSeconds);
 
 // Heal 是實際回復量，非回復技能為 0
-public sealed record SkillEvent(double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal) : BattleEvent(AtSeconds);
+// Damage 是對對手造成的傷害（削減 HP、持續傷害），OpponentHpAfter 是對手剩下的 HP（沒有傷害時為 null）
+public sealed record SkillEvent(
+    double AtSeconds, CombatSide Caster, string SkillId, string SkillName, int Level, int SpAfter, int Heal, int Damage = 0, int? OpponentHpAfter = null)
+    : BattleEvent(AtSeconds);
 
 // Hp／Sp 是實際回復量（已扣掉超過上限的部分）；Remaining 是喝完後的剩餘數量
 public sealed record PotionEvent(double AtSeconds, string ItemId, string Name, int Hp, int Sp, int Remaining) : BattleEvent(AtSeconds);

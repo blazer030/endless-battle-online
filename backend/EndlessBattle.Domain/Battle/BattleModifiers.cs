@@ -44,7 +44,12 @@ public sealed record BattleModifiers(
     double MagicCritChanceBonus = 0,
     double PhysicalCritCapBonus = 0,
     double MagicCritCapBonus = 0,
-    int EscapeBonus = 0)
+    int EscapeBonus = 0,
+    double MagicTaken = 1,
+    int? AttackElement = null,
+    int? DefenseElement = null,
+    double ElementAdvantagePercent = 0,
+    int SilenceChance = 0)
 {
     // 能力倍率最低 0.9，正值四捨五入後仍至少 1，所以不另設下限；倍率為 1 時數值完全不變
     public CombatantState ApplyToPlayer(CombatantState player) => player with
@@ -68,7 +73,16 @@ public sealed record BattleModifiers(
     };
 
     // 玩家受到的物理傷害；原本有傷害時減免後至少 1
-    public int PhysicalDamageTaken(int damage) => damage > 0 ? Math.Max(1, Round(damage * PhysicalTaken)) : damage;
+    public int PhysicalDamageTaken(int damage) => DamageTaken(AttackKind.Physical, damage);
+
+    // 玩家受到的傷害，依攻擊方式套用減傷；原本有傷害時減免後至少 1
+    public int DamageTaken(AttackKind kind, int damage) =>
+        damage > 0 ? Math.Max(1, Round(damage * (kind == AttackKind.Physical ? PhysicalTaken : MagicTaken))) : damage;
+
+    // 玩家出手時的攻擊屬性、被攻擊時的防禦屬性（魔劍、魔盾）；沒有轉換時用角色屬性
+    public CombatantState AttackingAs(CombatantState player) => AttackElement is { } element ? player with { Element = element } : player;
+
+    public CombatantState DefendingAs(CombatantState player) => DefenseElement is { } element ? player with { Element = element } : player;
 
     // 玩家這一下的暴擊率加成（百分點）與暴擊倍率上限加成（百分比），依攻擊方式
     public double CriticalChanceFor(AttackKind kind) => kind == AttackKind.Physical ? CritChanceBonus : MagicCritChanceBonus;

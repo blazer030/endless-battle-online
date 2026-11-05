@@ -447,6 +447,30 @@ public class JsonGameContentTests
         AssertSkillsRejected(ComposedSkillJson("odd-stat", 1, ComposedLevel(1, ChanceForty, effects)), "odd-stat 第 1 級");
 
     [Fact]
+    public void Skill_DamageControlAndElementEffectsLoad()
+    {
+        const string effects = """
+            [{ "kind": "BonusDamage", "attackKind": "Physical", "scaling": [{ "basis": "agility", "ratio": 0.15 }], "chance": 20, "rounds": 1 },
+             { "kind": "Silence", "chance": 10, "rounds": 2 },
+             { "kind": "AttackElement", "element": "Fire", "rounds": 5 },
+             { "kind": "Restore", "resource": "SkillPoints", "percentOfMaximum": 2, "rounds": 0 }]
+            """;
+
+        var level = LoadSkills(ComposedSkillJson("mixed", 1, ComposedLevel(1, ChanceForty, effects))).GetSkill("mixed").LevelAt(1);
+
+        Assert.Equal(20, Assert.IsType<BonusDamageEffect>(level.Effects[0]).Chance);
+        Assert.Equal(new SilenceEffect(10, 2), level.Effects[1]);
+        Assert.Equal(new AttackElementEffect(3, 5), level.Effects[2]);
+        Assert.Equal(2, Assert.IsType<RestoreEffect>(level.Effects[3]).PercentOfMaximum);
+    }
+
+    [Fact]
+    public void Skill_ChanceOnUnsupportedEffectIsRejected() =>
+        AssertSkillsRejected(
+            ComposedSkillJson("lucky", 1, ComposedLevel(1, ChanceForty, """[{ "kind": "MultiHit", "attackKind": "Physical", "hits": 2, "chance": 50, "rounds": 1 }]""")),
+            "lucky 第 1 級");
+
+    [Fact]
     public void Skills_RejectUnknownEnumValue()
     {
         AssertSkillsRejected(ComposedSkillJson("bogus-type", 1, ComposedLevel(1, ChanceForty, AttackUp)).Replace("\"Active\"", "\"bogus\""), "bogus-type");

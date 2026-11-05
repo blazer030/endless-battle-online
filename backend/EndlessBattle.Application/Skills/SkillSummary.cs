@@ -42,16 +42,41 @@ public static class SkillSummary
     {
         var text = effect switch
         {
-            StatChangeEffect change => $"{(change.Target == SkillTarget.Caster ? "自己" : "對手")}{StatName(change.Stat)} {StatValue(change)}",
-            BonusDamageEffect bonus => $"追加{AttackKindName(bonus.AttackKind)}傷害 {Scaling(bonus.Scaling)}",
+            StatChangeEffect change => $"{(change.Target == SkillTarget.Caster ? "自己" : "對手")}{StatName(change.Stat)} {StatValue(change)}{ChanceText(change.Chance)}",
+            BonusDamageEffect bonus => $"追加{AttackKindName(bonus.AttackKind)}傷害 {Scaling(bonus.Scaling)}{ChanceText(bonus.Chance)}",
+            PercentDamageEffect damage => $"削減對手目前 HP {Number(damage.Percent)}%",
+            DamageOverTimeEffect overTime => $"每回合造成 {Scaling(overTime.Scaling)} 傷害",
+            ReduceSkillPointsEffect loss => $"削減對手 SP {(loss.Amount is { } amount ? amount.ToString(CultureInfo.InvariantCulture) : $"最大值×{Number(loss.PercentOfMaximum!.Value)}%")}",
+            SilenceEffect silence => $"封鎖對手技能 機率 {silence.Chance}%",
+            AttackElementEffect element => $"攻擊屬性轉為{ElementName(element.Element)}",
+            DefenseElementEffect element => $"防禦屬性轉為{ElementName(element.Element)}",
+            ElementAdvantageEffect advantage => $"剋制時屬性傷害 +{Number(advantage.Percent)}%",
             MultiHitEffect multiHit => $"{AttackKindName(multiHit.AttackKind)}連擊 {multiHit.Hits} 次",
             DamageReductionEffect reduction => $"受到的{AttackKindName(reduction.AttackKind)}傷害 -{Number(reduction.Percent)}%",
-            RestoreEffect restore => $"回復 HP {(restore.Scaling is { } scaling ? Scaling(scaling) : $"傷害×{Number(restore.PercentOfDamage!.Value)}%")}",
+            RestoreEffect restore => $"回復 {(restore.Resource == SkillResource.HitPoints ? "HP" : "SP")} {RestoreAmount(restore)}",
             StunEffect stun => $"對手無法行動 機率 {stun.Chance}%",
             _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, "未知的效果"),
         };
         return effect.Rounds > 0 ? $"{text}，{effect.Rounds} 回合" : text;
     }
+
+    private static string RestoreAmount(RestoreEffect restore) =>
+        restore.Scaling is { } scaling ? Scaling(scaling)
+        : restore.PercentOfMaximum is { } maximum ? $"最大值×{Number(maximum)}%"
+        : $"傷害×{Number(restore.PercentOfDamage!.Value)}%";
+
+    private static string ChanceText(int? chance) => chance is { } percent ? $"（機率 {percent}%）" : "";
+
+    private static string ElementName(int element) => element switch
+    {
+        1 => "地",
+        2 => "水",
+        3 => "火",
+        4 => "木",
+        5 => "風",
+        6 => "毒",
+        _ => "無",
+    };
 
     private static string StatValue(StatChangeEffect change) =>
         change.Percent is { } percent ? $"{Signed(percent)}%"

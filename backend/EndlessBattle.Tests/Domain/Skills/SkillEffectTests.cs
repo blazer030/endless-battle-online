@@ -306,4 +306,175 @@ public class SkillEffectTests
 
         Assert.Equal((20, 12), (caster.Current.CriticalChanceFor(AttackKind.Physical), caster.Current.StunChance));
     }
+
+    private static SkillCaster Active(CombatantState player, params SkillEffect[] effects) =>
+        new(player, [new EquippedSkill(Skill(SkillType.Active, Level(1, [Chance(100)], effects)), 1, 1)]);
+
+    [Fact]
+    public void PercentDamage_CutsOpponentCurrentHp()
+    {
+        var caster = Active(Player(), new PercentDamageEffect(Percent: 10, Rounds: 0));
+
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 500));
+
+        Assert.Equal(50, cast.OpponentDamage);
+    }
+
+    [Fact]
+    public void DamageOverTime_HitsEachRound()
+    {
+        // 施毒：每回合智力×10%（智力 50 → 5），持續 3 回合
+        var caster = Active(Player(), new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 0.1)], Rounds: 3));
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+
+        var damage = new List<int> { caster.DamageOverTime() };
+        for (var round = 2; round <= 4; round++)
+        {
+            caster.ExpireAtRoundStart();
+            damage.Add(caster.DamageOverTime());
+        }
+
+        Assert.Equal([5, 5, 5, 0], damage);
+    }
+
+    // 持續傷害在回合結束時生效，記成技能事件；打倒怪物就結束戰鬥
+    [Fact]
+    public void DamageOverTime_DefeatsMonsterAtRoundEnd()
+    {
+        var poison = Skill(SkillType.Active, Level(1, [Chance(100)], [new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 100)], Rounds: 3)]));
+
+        var outcome = WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(poison, 1, 1)], new SeededRandom(7));
+
+        Assert.Equal(CombatSide.Player, outcome.Winner);
+        var tick = outcome.Events.OfType<SkillEvent>().Last();
+        Assert.Equal((5000, 0), (tick.Damage, tick.OpponentHpAfter));
+        Assert.IsType<DefeatEvent>(outcome.Events[^1]);
+    }
+
+    [Fact]
+    public void ChanceCoversAllEffects()
+    {
+        // 施毒：機率 25% 擲 20，對手物攻降低與持續傷害兩個效果都生效
+        var skill = Skill(SkillType.Active, Level(1, [Chance(25)],
+        [
+            Change(SkillStat.Attack, percent: -8, target: SkillTarget.Opponent) with { Rounds = 3 },
+            new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 0.1)], Rounds: 3),
+        ]));
+        var caster = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)]);
+
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(Roll(20)));
+
+        Assert.Equal((0.92, 5), (Math.Round(caster.Current.EnemyAt, 10), caster.DamageOverTime()));
+    }
+
+    [Fact]
+    public void MagicDamageReduction_LowersMagicTaken()
+    {
+        var caster = AlwaysOn(Player(), new DamageReductionEffect(SkillAttackKind.Magic, 20, Rounds: 0));
+
+        Assert.Equal((80, 100), (caster.Current.DamageTaken(AttackKind.Magic, 100), caster.Current.DamageTaken(AttackKind.Physical, 100)));
+    }
+
+    [Fact]
+    public void RestoreSkillPoints_UsesPercentOfMaximum()
+    {
+        // 魔力吸收：回復 SP 最大值×10%（最大 100 → 10）
+        var caster = Active(Player(sp: 50), new RestoreEffect(SkillResource.SkillPoints, null, null, Rounds: 0) { PercentOfMaximum = 10 });
+
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 50, new ScriptedRandom(0.0)));
+
+        Assert.Equal(60, cast.SpAfter);
+    }
+
+    [Fact]
+    public void AttackElement_ChangesElementMultiplier()
+    {
+        // 魔劍-火：攻擊屬性轉成火（3），打木（4）的怪是剋制 1.2
+        var caster = AlwaysOn(Player(), new AttackElementEffect(Element: 3, Rounds: 0));
+        var attacker = caster.Current.AttackingAs(Player());
+
+        Assert.Equal(1.2, RoundResolver.Strike(attacker, Monster() with { Element = 4 }, AttackKind.Magic, new ScriptedRandom(0.0)).ElementMultiplier);
+        Assert.Equal(0, caster.Current.DefendingAs(Player()).Element);
+    }
+
+    [Fact]
+    public void ElementAdvantage_RaisesAdvantageDamage()
+    {
+        var fire = Player() with { Element = 3 };
+
+        var result = RoundResolver.Strike(fire, Monster() with { Element = 4 }, AttackKind.Magic, new ScriptedRandom(0.0), elementAdvantagePercent: 5);
+
+        Assert.Equal(1.26, result.ElementMultiplier, 10);
+        Assert.Equal(5, AlwaysOn(Player(), new ElementAdvantageEffect(Percent: 5, Rounds: 0)).Current.ElementAdvantagePercent);
+    }
+
+    [Fact]
+    public void ReduceSkillPoints_LowersOpponentSp()
+    {
+        var caster = Active(Player(), new ReduceSkillPointsEffect(Amount: 20, PercentOfMaximum: null, Rounds: 0));
+
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentSp: 100));
+
+        Assert.Equal(20, cast.OpponentSpLoss);
+    }
+
+    [Fact]
+    public void Silence_BlocksOpponentSkills()
+    {
+        // 被封鎖 2 回合的一方：技能不發動也不擲骰，第 3 回合恢復
+        var random = new ScriptedRandom(0.0);
+        var silenced = Active(Player(), AttackPercent(5, rounds: 0));
+        silenced.Silence(rounds: 2);
+
+        var activations = new List<int>();
+        for (var round = 1; round <= 3; round++)
+        {
+            if (round > 1)
+            {
+                silenced.ExpireAtRoundStart();
+            }
+
+            activations.Add(silenced.CastBeforeAttack(1000, 100, random).Count);
+        }
+
+        Assert.Equal([0, 0, 1], activations);
+        Assert.Equal(1, random.Consumed);
+        Assert.Equal((10, 2), (Active(Player(), new SilenceEffect(Chance: 10, Rounds: 2)).AfterCast().Current.SilenceChance, 2));
+    }
+
+    [Theory]
+    [InlineData(25, 0)]
+    [InlineData(15, 45)]
+    public void BonusDamageChance_RollsAfterActivation(int roll, int expected)
+    {
+        // 暗器：發動後另擲 20%，擲中才追加 力量×45%（力量 100 → 45）
+        var caster = Active(Player(str: 100),
+            new BonusDamageEffect(SkillAttackKind.Physical, [new SkillScaling(SkillScalingBasis.Strength, 0.45)], Rounds: 1) { Chance = 20 });
+
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0, 0.0, Roll(roll)));
+
+        Assert.Equal(expected, caster.Current.BonusDamageFor(AttackKind.Physical));
+    }
+
+    [Fact]
+    public void AlwaysOnPercentDamage_AppliesEveryTiming()
+    {
+        var caster = AlwaysOn(Player(), new PercentDamageEffect(Percent: 10, Rounds: 0));
+
+        var first = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 500);
+        caster.ExpireAtRoundStart();
+        var second = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 450);
+
+        Assert.Equal([50, 45], first.Concat(second).Select(cast => cast.OpponentDamage));
+    }
+}
+
+internal static class SkillCasterTestExtensions
+{
+    // 施放一次（擲骰都中），回傳同一個 caster 方便串接
+    public static SkillCaster AfterCast(this SkillCaster caster)
+    {
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+        return caster;
+    }
 }

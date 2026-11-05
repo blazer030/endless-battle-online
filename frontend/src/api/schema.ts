@@ -2526,6 +2526,13 @@ export interface components {
             spAfter: number;
             /** Format: int32 */
             heal: number;
+            /**
+             * Format: int32
+             * @default 0
+             */
+            damage: number;
+            /** Format: int32 */
+            opponentHpAfter?: null | number;
             /** Format: double */
             atSeconds: number;
         };

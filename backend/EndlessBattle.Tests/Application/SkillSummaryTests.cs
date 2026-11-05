@@ -19,4 +19,19 @@ public class SkillSummaryTests
 
         Assert.Equal("機率 40%｜消耗 SP 2｜自己物攻 +1%，3 回合", SkillSummary.Of(burst));
     }
+
+    [Fact]
+    public void Summary_DescribesChanceDamageAndElementEffects()
+    {
+        var level = Level(
+            [new SkillCondition(SkillConditionKind.Chance, 40)],
+            [],
+            [
+                new BonusDamageEffect(SkillAttackKind.Physical, [new SkillScaling(SkillScalingBasis.Agility, 0.15)], Rounds: 0) { Chance = 20 },
+                new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Intelligence, 0.1)], Rounds: 3),
+                new AttackElementEffect(3, Rounds: 5),
+            ]);
+
+        Assert.Equal("機率 40%｜追加物理傷害 敏捷×15%（機率 20%）、每回合造成 智力×10% 傷害，3 回合、攻擊屬性轉為火，5 回合", SkillSummary.Of(level));
+    }
 }

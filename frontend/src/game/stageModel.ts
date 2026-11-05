@@ -66,10 +66,17 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
       return event.retired ? { ...state, petActive: false } : state
     case "petAttack":
       return { ...state, monsterHp: event.targetHpAfter }
-    case "skill":
-      return event.caster === "Player" && event.heal > 0
-        ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
-        : state
+    case "skill": {
+      if (event.caster !== "Player") return state
+      // 回復玩家 HP；削減 HP、持續傷害時改成怪物剩下的 HP
+      const healed =
+        event.heal > 0
+          ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
+          : state
+      return event.opponentHpAfter === null || event.opponentHpAfter === undefined
+        ? healed
+        : { ...healed, monsterHp: event.opponentHpAfter }
+    }
     case "potion":
       return { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.hp) }
     case "rest":

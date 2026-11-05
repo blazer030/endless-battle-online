@@ -35,7 +35,8 @@ public static class RoundResolver
         int rag = 0,
         double criticalChanceBonus = 0,
         int bonusDamage = 0,
-        double criticalCapPercent = 0)
+        double criticalCapPercent = 0,
+        double elementAdvantagePercent = 0)
     {
         var physical = kind == AttackKind.Physical;
 
@@ -51,7 +52,12 @@ public static class RoundResolver
 
         // 暴擊率技能加在 20% 上限之後、不再封頂
         var critical = PhpRandom.Between(random, 1, 100) < criticalChance + criticalChanceBonus;
+        // 屬性迫害：剋制時倍率再提高
         var elementMultiplier = ElementTable.Multiplier(attacker.Element, defender.Element);
+        if (elementMultiplier > ElementTable.Neutral)
+        {
+            elementMultiplier *= 1 + elementAdvantagePercent / 100;
+        }
         var (attack, defense) = physical ? (attacker.At, defender.Df) : (attacker.Mat, defender.Mdf);
         var damage = WogDamage.Fight(critical ? attack * criticalMultiplier : attack, defense, elementMultiplier, random, bonusDamage: bonusDamage);
         return new AttackResult(Hit: true, critical, damage, elementMultiplier);

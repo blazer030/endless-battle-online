@@ -46,6 +46,8 @@ const skill = (overrides: Partial<SkillEvent> = {}): BattleEvent => ({
   level: 1,
   spAfter: 3,
   heal: 0,
+  damage: 0,
+  opponentHpAfter: null,
   atSeconds: 1,
   ...overrides,
 })
@@ -217,6 +219,10 @@ describe("stageModel", () => {
     expect(applyToStage(midFight, skill({ heal: 30 })).playerHp).toBe(42)
     expect(applyToStage(midFight, skill({ heal: 500 })).playerHp).toBe(80)
     expect(applyToStage(midFight, skill())).toBe(midFight)
+  })
+
+  it("applyToStage_DamagingSkillSetsMonsterHealth", () => {
+    expect(applyToStage(midFight, skill({ damage: 50, opponentHpAfter: 10 })).monsterHp).toBe(10)
   })
 
   it("applyToStage_PotionRaisesPlayerHealthUpToMax", () => {
