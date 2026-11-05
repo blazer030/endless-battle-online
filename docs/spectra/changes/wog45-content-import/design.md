@@ -227,7 +227,7 @@
 - 全部成立才發動。例如「HP 低於 30% 而且 30% 機率」寫成 `[HitPointsBelow 30, Chance 30]`。
 - 機率也是條件：只要發動條件成立，所有效果都發動。例如施毒寫成 `[Chance 25]`，效果是「對手物攻降低」與「持續傷害」兩個。
 - 有些效果種類本身可以帶機率（`StatChange` 對對手時、`BonusDamage`、`Stun`、`Silence`），這個機率是效果的一環：效果發動了才擲骰，擲中才生效。它不是發動條件，也不影響同一技能的其他效果。例如斯巴達寫成條件 `[StatAbove strength, Chance 40]`，效果「物攻必殺率 +20%」與「`Stun` 機率 12%」：條件成立時兩個效果都發動，必殺率一定提升，無法行動要再擲 12%。
-- 哪些效果種類能帶機率由效果目錄決定（下表「參數」欄有 `chance` 的），之後要開放給其他種類，只改目錄。
+- 哪些效果種類能帶機率由效果目錄決定（下表「參數」欄有 `chance` 的）。程式裡這份對照只有 Domain 的 `SkillPartRules.EffectChance` 一份，內容驗證、戰鬥擲骰共用；之後要開放給其他種類，改目錄、這個方法，以及讀取器讀 `chance` 的那一種效果。
 - 沒有任何條件就是常駐：裝上就生效、不擲骰。這一級不能有消耗，效果的 rounds 與冷卻都必須是 0，否則載入失敗。
 - 持續中不重複發動：技能發動後，在它最長的效果結束前，即使條件都成立也不會再發動，也不判斷條件、不擲骰。這是現行 `SkillCaster` 的行為，新格式照樣保留。冷卻另外計算。
 - 判斷順序：
@@ -283,7 +283,7 @@
 - `stat` 可用：attack、magicAttack、defense、magicDefense、agility、charisma、hitRate、evasion、physicalCriticalChance、magicCriticalChance、physicalCriticalCap、magicCriticalCap、escapeRate。
 - `scaling` 是 `[{"basis": ..., "ratio": ...}]`。`basis` 可用 strength、intelligence、vitality、agility、charisma、faith、level、attack、magicAttack、defense、skillPoints、damageDealt。
 - `target` 只有 `StatChange` 可選；傷害、控制類一律對對手；回復、防護、屬性類一律對自己。
-- 效果的 `chance` 是 1～100；目錄沒列 `chance` 的種類寫了就載入失敗。之後要開放給其他種類，只改目錄。
+- 效果的 `chance` 是 1～100；目錄沒列 `chance` 的種類寫了就載入失敗。哪些能力是百分點（只能用 `amount` 或 `scaling`）同樣只有 `SkillPartRules.IsPercentagePoint` 一份，驗證與效果文字共用。
 - 常駐（沒有條件）的效果，每到技能的時機都生效：能力增減、減傷、屬性整場持續；追加傷害、削減 SP 這類「一次性」效果每次到時機都再生效一次。例如毒傷陷阱常駐，每次出手都追加傷害。
 - `Silence` 與 `ReduceSkillPoints` 對任何施放者的對手都成立。目前怪物不會用技能，玩家用這兩種效果時戰鬥裡看不出作用，要等怪物技能的後續變更；但規則與測試這次先完成，用「被封鎖的一方不發動技能」的單元測試釘住。
 - 疊加：同一個技能裡同一項能力的百分比**相加**（兩個 +5% 是 +10%）；不同技能之間**相乘**（1.05 × 1.05）。固定值、`scaling` 一律相加。
