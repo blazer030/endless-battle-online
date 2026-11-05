@@ -250,13 +250,7 @@ public sealed class SkillCaster
         var missed = new HashSet<int>();
         for (var index = 0; index < level.Effects.Count; index++)
         {
-            var chance = level.Effects[index] switch
-            {
-                BonusDamageEffect bonus => bonus.Chance,
-                StatChangeEffect change => change.Chance,
-                _ => null,
-            };
-            if (chance is { } percent && PhpRandom.Between(random, 1, 100) > percent)
+            if (SkillPartRules.EffectChance(level.Effects[index]) is { } percent && PhpRandom.Between(random, 1, 100) > percent)
             {
                 missed.Add(index);
             }

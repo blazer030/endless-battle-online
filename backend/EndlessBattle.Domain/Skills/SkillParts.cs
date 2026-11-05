@@ -99,3 +99,19 @@ public sealed record DefenseElementEffect(int Element, int Rounds) : SkillEffect
 
 // 屬性剋制（倍率大於 1）時，倍率再提高 Percent%
 public sealed record ElementAdvantageEffect(double Percent, int Rounds) : SkillEffect(Rounds);
+
+// 效果與能力的共通規則：內容驗證、戰鬥與效果文字共用，要開放新的種類只改這裡
+public static class SkillPartRules
+{
+    // 效果自己的機率，技能發動後才擲；只有能力增減與追加傷害可以有
+    public static int? EffectChance(SkillEffect effect) => effect switch
+    {
+        BonusDamageEffect bonus => bonus.Chance,
+        StatChangeEffect change => change.Chance,
+        _ => null,
+    };
+
+    // 命中、迴避、暴擊率、暴擊上限、逃跑率是百分點：固定值就是百分點，不能用 percent
+    public static bool IsPercentagePoint(SkillStat stat) => stat is SkillStat.HitRate or SkillStat.Evasion or SkillStat.PhysicalCriticalChance
+        or SkillStat.MagicCriticalChance or SkillStat.PhysicalCriticalCap or SkillStat.MagicCriticalCap or SkillStat.EscapeRate;
+}

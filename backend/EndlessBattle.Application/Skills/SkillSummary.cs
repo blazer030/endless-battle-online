@@ -87,12 +87,8 @@ public static class SkillSummary
 
     private static string StatValue(StatChangeEffect change) =>
         change.Percent is { } percent ? $"{Signed(percent)}%"
-        : change.Amount is { } amount ? $"{Signed(amount)}{(IsPointStat(change.Stat) ? "%" : "")}"
+        : change.Amount is { } amount ? $"{Signed(amount)}{(SkillPartRules.IsPercentagePoint(change.Stat) ? "%" : "")}"
         : $"+{Scaling(change.Scaling!)}";
-
-    // 命中、迴避、暴擊率、暴擊上限、逃跑率的固定值是百分點
-    private static bool IsPointStat(SkillStat stat) => stat is SkillStat.HitRate or SkillStat.Evasion or SkillStat.PhysicalCriticalChance
-        or SkillStat.MagicCriticalChance or SkillStat.PhysicalCriticalCap or SkillStat.MagicCriticalCap or SkillStat.EscapeRate;
 
     private static string Scaling(IReadOnlyList<SkillScaling> scaling) =>
         string.Join(" + ", scaling.Select(term => $"{BasisName(term.Basis)}×{Number(term.Ratio * 100)}%"));
