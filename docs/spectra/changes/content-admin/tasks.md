@@ -28,3 +28,14 @@
 - [x] 5.2 五類內容的列表、編輯、新增頁（Content pages）：大陸與地區分兩頁；編輯以取得的整筆紀錄為底，表單沒有的欄位原樣送回。驗證：元件測試斷言編輯怪物等級後送出的 `PUT` 本體只改了等級、其他欄位保留。[after: 3.3, 5.1]
 - [x] 5.3 每頁顯示草稿狀態與發布（Draft status and publishing）：顯示是否有草稿、是否通過與錯誤訊息；不通過時發布按鈕停用；發布被 409 拒絕時顯示原因或變動檔名；提供捨棄草稿。驗證：元件測試涵蓋不通過停用發布、409 顯示檔名兩個案例。[after: 3.5, 5.2]
 - [x] 5.4 報告對照頁（Report comparison）：同一個技能等級選項下並排顯示草稿與正式內容的報告，數值不同的格子加上標記。驗證：元件測試以兩份只差一格的報告斷言只有那一格被標記；人工以 `pnpm dev` 打開頁面確認可讀。[after: 4.3, 5.1]
+
+> 變更註記：5.4 原本寫「並排顯示」，已由 design.md「報告對照：單一表格」取代（Supersedes）；實作本來就是單一表格，不需補做。
+
+## 6. 補測試與 admin 版面
+
+- [x] 6.1 補齊情境「Edit a record」的後半段：在 `admin/src/content/ContentPages.test.tsx` 的編輯測試裡，送出 `PUT` 後讓 `GET /admin/content/monsters` 回傳等級 9 的怪物，斷言列表頁顯示 9。驗證：`cd admin && pnpm check` 通過。
+- [x] 6.2 補齊情境「Admin document lists admin paths」：`AdminOpenApiTests` 除了 `/admin/content/{kind}`，再斷言 admin 文件含 `/admin/draft` 與 `/admin/reports`。驗證：`cd backend && dotnet test --filter-class "*AdminOpenApiTests"` 通過。
+- [ ] 6.3 依「admin 版面」加上 header（Console layout）：header 固定在頂端，顯示目前頁面名稱、草稿狀態與「發布」「捨棄」按鈕；草稿列從內容區移進 header，草稿不通過時錯誤訊息仍在內容區最上方。驗證：元件測試 `Header shows page name and draft status` 打開怪物列表，斷言 header 內有怪物頁名稱與「發布」按鈕；`DraftBar` 既有測試照樣通過。
+- [ ] 6.4 sidebar 改成固定、不隨頁面捲動（Console layout）。驗證：元件測試 `Sidebar is fixed` 斷言 sidebar 元素的 `position` 為 `fixed`。[after: 6.3]
+- [ ] 6.5 sidebar 每個項目換成 design.md「admin 版面」列出的 icon（Console layout）。驗證：元件測試 `Sidebar entries have distinct icons` 斷言七個項目的 icon（`aria-label`）各不相同且符合對照表。[after: 6.4]
+- [ ] 6.6 最終檢查：`./scripts/check.sh` exit code 0；以 `pnpm dev` 打開 admin，人工確認捲動長列表時 header 與 sidebar 都留在原位。[after: 6.1, 6.2, 6.5]

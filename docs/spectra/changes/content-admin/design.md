@@ -14,7 +14,8 @@
 - 道具、怪物、職業、技能、世界（大陸、地區）五類內容可在 admin 逐筆修改與新增。
 - 所有改動先進草稿；正式內容與執行中的遊戲在發布前不變。
 - 草稿每次寫入都經過遊戲同一套內容檢查，錯誤顯示在 admin。
-- 可對草稿與正式內容產生平衡報告並並排對照，報告可帶技能。
+- 可對草稿與正式內容產生平衡報告並對照（單一表格，與正式內容不同的格子標成「正式 → 草稿」），報告可帶技能。
+- admin 版面有固定的 header 與不隨頁面捲動的 sidebar，sidebar 每種內容有各自的 icon。
 - 發布寫回正式內容並刪除草稿；正式內容在草稿建立後被改過時拒絕發布。
 - 發布產生的 git diff 只出現真正改動的那幾筆。
 
@@ -64,11 +65,26 @@ Infrastructure 以 `System.Text.Json.Nodes.JsonObject` 讀寫每一筆紀錄，�
 
 ### 報告帶技能
 
-每個地區與職業的冒險結果算兩次：不帶技能、帶技能。帶技能時取 `IGameContent.SkillsOf(職業)`，主動技能依內容順序放主動欄、被動放被動欄，數量上限照 `SkillLoadout.ActiveSlots`、`SkillLoadout.PassiveSlots`。技能等級由請求選項決定：`first`（Lv1）或 `max`（各技能最高級），預設 `max`。目前每個職業最多 2 個技能（`backend/content/skills.json`），不會超過欄位上限。
+每個地區與職業的冒險結果算兩次：不帶技能、帶技能。帶技能時取 `IGameContent.SkillsOf(職業)`，主動技能依內容順序放主動欄、被動放被動欄，數量上限照 `SkillLoadout.ActiveSlots`、`SkillLoadout.PassiveSlots`。技能等級由請求選項決定：`First`（Lv1）或 `Max`（各技能最高級），預設 `Max`。目前每個職業最多 2 個技能（`backend/content/skills.json`），不會超過欄位上限。
 
 ### admin 前端：Refine + Ant Design
 
 `admin/` 是獨立的 pnpm 專案：Vite + React + TypeScript strict + `@refinedev/core` + `@refinedev/antd`（皆 MIT 授權）。開發伺服器把 `/admin`、`/openapi` proxy 到 `http://localhost:5062`；API 型別用 `openapi-typescript` 從 `/openapi/admin.json` 產生。遊戲前端的硬規則（手機直式、`theme.css` 色彩變數、字型、Pixi）不適用於 admin。`scripts/check.sh` 加入 admin 的 lint、型別檢查與測試。
+
+### 報告對照：單一表格
+
+報告頁只放一張表，顯示草稿的數值（沒有草稿時顯示正式內容）；和正式內容不同的格子寫成「正式 → 草稿」（例如 `8 → 10`）並加上標記。
+
+- Supersedes：原本的「並排顯示草稿與正式內容的報告」（本文件 Goals 與 tasks 5.4 的舊寫法）。實作時改成單一表格，因為兩張大表左右擺要來回對位置，單一表格直接在格子上看出變化；實作已是單一表格，不需補做。
+- 報告內容本身的改版（重點清單、職業與地區的圖表、先選職業／地區再看）不在本變更，另開變更處理。
+
+### admin 版面
+
+用 Refine `ThemedLayout` 的 `Header` 與 `Sider`：
+
+- header 固定在頁面頂端（`sticky`），左邊是目前頁面的名稱，右邊是草稿狀態與「發布」「捨棄」按鈕（原本放在內容上方的草稿列移進 header）；草稿不通過時的錯誤訊息仍顯示在內容區最上方。
+- sidebar 用 `fixed`，頁面捲動時 sidebar 留在原位。
+- sidebar 每個項目用 `@ant-design/icons` 的不同 icon：道具 `ShoppingOutlined`、怪物 `BugOutlined`、職業 `IdcardOutlined`、技能 `ThunderboltOutlined`、大陸 `GlobalOutlined`、地區 `EnvironmentOutlined`、平衡報告 `BarChartOutlined`。
 
 ## Implementation Contract
 
@@ -83,13 +99,13 @@ Infrastructure 以 `System.Text.Json.Nodes.JsonObject` 讀寫每一筆紀錄，�
 | `GET /admin/draft` | 草稿狀態：是否存在、是否通過檢查、錯誤訊息 | — |
 | `DELETE /admin/draft` | 刪除草稿 | 沒有草稿 → 404 |
 | `POST /admin/draft/publish` | 草稿寫回正式內容並刪除草稿 | 沒有草稿 → 404；檢查不通過 → 409 附錯誤訊息；正式內容指紋不同 → 409 附變動的檔名 |
-| `POST /admin/reports` | 本體 `{ source: "official" \| "draft", skillLevel: "first" \| "max" }`，回傳報告 | 草稿不存在 → 404；草稿檢查不通過 → 409 |
+| `POST /admin/reports` | 本體 `{ source: "Official" \| "Draft", skillLevel: "First" \| "Max" }`（讀入時不分大小寫），回傳報告 | 草稿不存在 → 404；草稿檢查不通過 → 409 |
 
 **報告結果**：穿戴等級（職業 × 需求能力 × 商店等級 → 等級或「無法達到」）、冒險結果（地區 × 職業 × 有無技能 → 場數、勝率、敗場、超時、經驗／時、毛收入／時、淨收入／時、升級數、下一階整套裝備所需小時），以及產生時使用的假設（配點、種子、模擬時長、技能等級選項）。
 
-**範圍內**：上表 API、草稿資料夾、內容檔格式化、報告服務與兩種技能選項、admin 前端的列表／編輯／新增／草稿狀態／發布／報告對照、CLAUDE.md 與 check.sh 更新。
+**範圍內**：上表 API、草稿資料夾、內容檔格式化、報告服務與兩種技能選項、admin 前端的列表／編輯／新增／草稿狀態／發布／報告對照、admin 版面（header、固定 sidebar、各項目 icon）、CLAUDE.md 與 check.sh 更新。
 
-**範圍外**：Non-Goals 所列各項；遊戲 API、遊戲前端與遊戲規則的行為。
+**範圍外**：Non-Goals 所列各項；遊戲 API、遊戲前端與遊戲規則的行為；平衡報告內容的改版（重點清單、圖表、依職業／地區篩選）。
 
 **測試**：admin API 測試用 `EndlessBattleApiFactory`，正式內容與草稿資料夾都指向測試暫存資料夾裡 `TestContent` 的副本，不得改到 `EndlessBattle.Tests/TestContent/` 本身。
 

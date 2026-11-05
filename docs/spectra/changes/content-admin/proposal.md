@@ -8,8 +8,9 @@
 - `EndlessBattle.Api` 新增 `/admin/...` 路由群組，與遊戲的 `/api/...` 以網址區分；以設定 `Admin:Enabled` 開關，預設關閉、開發環境開啟；admin 有自己的 OpenAPI 文件，遊戲的 `v1` 文件不含 admin 路由。
 - 內容草稿：道具、怪物、職業、技能、世界五類可逐筆修改與新增；改動只寫入草稿資料夾，正式內容與執行中的遊戲不受影響；每次寫入後用遊戲的內容載入檢查草稿並回報錯誤。
 - 發布：草稿通過檢查、且正式內容在草稿建立後沒被改過時，寫回 `backend/content/` 並刪除草稿；重啟後遊戲才套用。也可以捨棄草稿。
-- 平衡報告：從測試專案的 `BalanceReport` 搬到 Application，改成回傳結構化資料，可對草稿或正式內容產生；參考角色可帶職業技能；admin 可並排對照草稿與正式內容的報告。
+- 平衡報告：從測試專案的 `BalanceReport` 搬到 Application，改成回傳結構化資料，可對草稿或正式內容產生；參考角色可帶職業技能；admin 的報告頁以單一表格對照草稿與正式內容，不同的格子標成「正式 → 草稿」。
 - 五個可編輯的內容檔先統一成固定格式（一筆一行），之後發布的 diff 只出現真正改動的那幾筆。
+- admin 版面：固定在頂端的 header（頁面名稱、草稿狀態與發布）、不隨頁面捲動的 sidebar、sidebar 每種內容有各自的 icon。
 - CLAUDE.md 加上 admin 的結構與規則，前端硬規則限定為遊戲前端 `frontend`。
 
 ## Non-Goals (optional)
@@ -23,7 +24,7 @@
 - `admin-access`: `/admin/...` 路由命名空間、`Admin:Enabled` 開關、admin 專用的 OpenAPI 文件
 - `content-draft`: 五類內容的讀取、逐筆修改與新增、草稿檢查、捨棄與發布
 - `balance-report`: 對草稿或正式內容產生平衡報告（穿戴等級、各地區冒險效率，可帶技能）
-- `admin-console`: admin 前端的內容列表、編輯與新增表單、草稿狀態與發布、報告對照頁
+- `admin-console`: admin 前端的內容列表、編輯與新增表單、草稿狀態與發布、報告對照頁、版面（header、sidebar、icon）
 
 ### Modified Capabilities
 
