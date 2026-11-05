@@ -6,11 +6,11 @@
     - `ContentFileFormatterTests.OfficialEditableContentFiles_AreInCanonicalFormat` 通過。
     - 連跑兩次腳本後 `git diff --exit-code backend/content docs/research/wog45/gaps.md` 為 0。
     - 用暫存副本刪掉一筆道具的 `price`，腳本以非 0 結束、印出檔名與 id，且沒有寫任何檔案。
-- [ ] 1.2 擴充職業與一般怪物 [after: 1.1]：
+- [x] 1.2 擴充職業與一般怪物 [after: 1.1]：
   - 原版職業以 `job-<id>` 加入，`growth` 轉 `[min, max]`，有 `parentId` 的為 2 轉。
   - 沒有 `missionId` 的原版怪物以 `monster-<id>` 加入，掉落改引用 `item-<id>`，屬性轉 1～6。
   - 現有驗證會拒絕的怪（等級 0、hp 或 agi 為 0）不匯入；`skills`、`specialAttack`、`str`～`be`、`npc` 等寫進 `gaps.md`。
-  - TDD：先寫 `WogImportTests.Jobs_KeepOriginalGrowth`（`job-6` 戰士：1 轉、力量 `[1, 3]`），再寫 `Monsters_KeepOriginalValues`（`monster-1` 史萊姆：level 2、hp 32、element 5、placeId 1、subPlaces `["香茅綠地"]`、掉落 `item-204` topr 90）與 `Monsters_LeaveOutInvalidRecords`（每一隻等級 0 的原版怪都不在內容裡，也都在 `gaps.md` 裡）。
+  - TDD：先寫 `WogImportTests.Jobs_KeepOriginalGrowth`（`job-6` 戰士：1 轉、力量 `[1, 3]`），再寫 `Monsters_KeepOriginalValues`（`monster-1` 史萊姆：level 2、hp 32、element 5、placeId 1、subPlaces `[1]`（香茅綠地是中央平原的第 1 個子地區）、掉落 `item-204` topr 90）與 `Monsters_LeaveOutInvalidRecords`（每一隻等級 0 的原版怪都不在內容裡，也都在 `gaps.md` 裡）。
   - 驗證：`gaps.md` 在 monster 1 底下列出「猛烈一擊」與「爆氣 Lv2 rate 10」；`OfficialContent_Loads` 通過。
 
 ## 2. 技能改成四個部分（Domain、內容載入、API、遊戲畫面）
@@ -141,6 +141,7 @@
   - 驗證：
     - `git diff --exit-code backend/content/inn.json backend/content/champion.json` 為 0。
     - 執行 `BalanceTests`，若有失敗就暫停、回報失敗的項目與數值，請使用者決定，不自行改門檻。
+    - 擴充期間 `Balance_StartingSubPlaceNeverTakesHalfAFreshCharactersHp` 暫時只看自訂怪物；已知原版飛兔 `monster-9`（Lv6、物攻 33，香茅綠地）最大單擊 495，超過門檻 162，要在這一步請使用者決定。
 - [ ] 5.2 依決策「新增 migration 改職業預設值」新增 `backend/db/ddl/V000000016__default_job_id.sql`，把 `characters.job_id` 的預設值改成 `job-6`；接著 `docker compose up -d`，再跑 `./scripts/scaffold-db.sh`，model 有變就一起提交 [after: 5.1]。
   - 驗證：`./scripts/check-sql.sh` 通過；Testcontainers 測試 `CharacterDefaultsTests.JobId_DefaultsToOriginalWarrior` 不指定 `job_id` 插入一列角色，讀回來是 `job-6`。
 

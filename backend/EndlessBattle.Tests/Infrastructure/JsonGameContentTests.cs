@@ -91,14 +91,14 @@ public class JsonGameContentTests
     {
         var content = JsonGameContent.Load(ShippedContentDirectory);
         Assert.Contains(content.AllMonsters, monster => monster.PlaceId == content.StartingPlaceId);
-        Assert.Equal(12, content.AllJobs.Count);
+        Assert.Equal(12, content.AllJobs.Count(job => CustomContent.IsCustom(job.Id)));
         Assert.All(
             content.AllJobs.Where(job => job.Tier == 2),
             job => Assert.Equal(1, content.GetJob(job.ParentId!).Tier));
     }
 
     public static TheoryData<string> ShippedJobIds =>
-        new(JsonGameContent.Load(ShippedContentDirectory).AllJobs.Select(job => job.Id));
+        new(JsonGameContent.Load(ShippedContentDirectory).AllJobs.Where(job => CustomContent.IsCustom(job.Id)).Select(job => job.Id));
 
     // spec §5.3：每級期望總成長（七項 (min+max)/2 之和）基礎 7～9、進階 9～12
     [Theory]

@@ -17,7 +17,7 @@ The official content files in `backend/content/` SHALL be generated from `docs/r
 
 - **GIVEN** the original monster 1 史萊姆 with level 2, hp 32, element 風, place 1, sub-place 香茅綠地, and a drop of item 204 錢包 with topr 90
 - **WHEN** the official content is loaded
-- **THEN** monster `monster-1` is named 史萊姆 with level 2, hp 32, element 5, placeId 1, subPlaces `["香茅綠地"]`, and a drop of `item-204` with topr 90
+- **THEN** monster `monster-1` is named 史萊姆 with level 2, hp 32, element 5, placeId 1, subPlaces `[1]` (香茅綠地 is sub-place 1 of 中央平原), and a drop of `item-204` with topr 90
 
 #### Scenario: Item variants stay separate
 

@@ -19,9 +19,12 @@ public partial class MonsterRosterTests
     private static readonly JsonGameContent Content =
         JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
 
-    public static TheoryData<string> MonsterIds => new(Content.AllMonsters.Select(monster => monster.Id));
+    private static IEnumerable<MonsterDefinition> CustomMonsters =>
+        Content.AllMonsters.Where(monster => CustomContent.IsCustom(monster.Id)).ToList();
 
-    private static IEnumerable<MonsterDefinition> RegularMonsters => Content.AllMonsters.Where(monster => monster.MissionId is null);
+    public static TheoryData<string> MonsterIds => new(CustomMonsters.Select(monster => monster.Id));
+
+    private static IEnumerable<MonsterDefinition> RegularMonsters => CustomMonsters.Where(monster => monster.MissionId is null);
 
     [GeneratedRegex("^[a-z]+(-[a-z]+)*$")]
     private static partial Regex KebabCase();
@@ -29,9 +32,9 @@ public partial class MonsterRosterTests
     [Fact]
     public void Roster_CoversEveryPlaceWithThreeMonsters()
     {
-        Assert.Equal(65 + 3, Content.AllMonsters.Count);
+        Assert.Equal(65 + 3, CustomMonsters.Count());
         Assert.Equal(65, RegularMonsters.Count());
-        Assert.All(Content.AllMonsters, monster => Assert.Matches(KebabCase(), monster.Id));
+        Assert.All(CustomMonsters, monster => Assert.Matches(KebabCase(), monster.Id));
 
         foreach (var place in Content.AllPlaces)
         {
@@ -59,7 +62,7 @@ public partial class MonsterRosterTests
     [Fact]
     public void Roster_DropsReferenceKnownItems()
     {
-        Assert.All(Content.AllMonsters, monster =>
+        Assert.All(CustomMonsters, monster =>
         {
             Assert.InRange(monster.Drops.Count(drop => !IsMedal(drop)), 1, 3);
             Assert.Equal(monster.Drops.Count, monster.Drops.Select(drop => drop.ItemId).Distinct().Count());
@@ -94,7 +97,7 @@ public partial class MonsterRosterTests
     [Fact]
     public void Roster_EliteMonstersDropTheirAreaMedal()
     {
-        var elites = Content.AllMonsters.Where(monster => monster.Meet == EliteMeet && monster.PlaceId != 0).ToList();
+        var elites = CustomMonsters.Where(monster => monster.Meet == EliteMeet && monster.PlaceId != 0).ToList();
         Assert.Equal(17, elites.Count);
         Assert.All(elites, monster =>
         {
@@ -103,14 +106,14 @@ public partial class MonsterRosterTests
             Assert.Single(monster.Drops, IsMedal);
         });
         Assert.All(
-            Content.AllMonsters.Except(elites),
+            CustomMonsters.Except(elites),
             monster => Assert.DoesNotContain(monster.Drops, IsMedal));
     }
 
     [Fact]
     public void Roster_HasTwoGlobalMonsters()
     {
-        var globals = Content.AllMonsters.Where(monster => monster.PlaceId == 0).ToList();
+        var globals = CustomMonsters.Where(monster => monster.PlaceId == 0).ToList();
 
         Assert.Equal([1, 5], globals.Select(monster => monster.Level).Order());
         Assert.All(globals, monster =>

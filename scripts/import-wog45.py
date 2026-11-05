@@ -34,6 +34,9 @@ ELIXIR_KINDS = {1: ("Exp", "exp"), 2: ("JobExp", "skill_exp"), 3: ("Attack", "at
 BOX_CLASSES = {0: 0, 1: 1, 2: 2, 3: 3, 4: 0}
 RANDOM_STONE_CLASS = 99
 MINIMUM_SHOP_LEVEL = 1
+GROWTH_FIELDS = ["str", "smart", "life", "vit", "agi", "au", "be"]
+# 本作地圖的地點 id 範圍；原版的 99（特殊）不在地圖上
+PLACE_IDS = range(0, 22)
 MAXIMUM_BOX_STONES = 3
 
 
@@ -221,6 +224,82 @@ def import_items(gaps):
     return records + custom_records(read_content("items.json")["items"], "item")
 
 
+def import_jobs(gaps):
+    title = "職業"
+    gaps.note(title, "成長的 `\"a,b\"` 轉成 `[a, b]`；有前置職業的是 2 轉，`requiredProficiency` 轉成 `proficiencyRequired`；原版沒有能力需求，`statRequirements` 為空。")
+    records = []
+    for job in sorted(load("jobs.json"), key=lambda row: require(row, "id", "jobs.json")):
+        growth = require(job, "growth", "jobs.json")
+        parent = require(job, "parentId", "jobs.json")
+        records.append({
+            "id": f"job-{job['id']}",
+            "name": require(job, "name", "jobs.json"),
+            "tier": 1 if parent is None else 2,
+            "parentId": None if parent is None else f"job-{parent}",
+            "unlockLevel": require(job, "unlockLevel", "jobs.json"),
+            "proficiencyRequired": require(job, "requiredProficiency", "jobs.json"),
+            "statRequirements": [],
+            "growth": {field: parse_range(require(growth, field, "jobs.json"), "jobs.json", job["id"]) for field in GROWTH_FIELDS},
+        })
+    return records + custom_records(read_content("jobs.json")["jobs"], "job")
+
+
+def invalid_monster_reason(monster):
+    if monster["level"] < 1:
+        return "等級必須至少 1（現有內容驗證）"
+    if monster["hp"] < 1 or monster["agi"] < 1:
+        return "hp 與 agi 必須大於 0（現有內容驗證）"
+    return None
+
+
+def import_monsters(gaps, item_ids):
+    title = "怪物"
+    gaps.note(title, "屬性的地水火木風毒轉成 1～6；子地區名稱轉成該地點的子地區編號 1～4。")
+    gaps.note(title, "所有怪物的 `str`、`smart`、`life`、`vit`、`be`、`image`、`npcMessage` 都沒有搬：現有戰鬥規則用不到。")
+    gaps.note(title, "任務怪（`missionId` 有值）在任務 4.2 與任務一起匯入。")
+    places = {place["id"]: place for place in load("places.json")}
+    records = []
+    for monster in sorted(load("monsters.json"), key=lambda row: require(row, "id", "monsters.json")):
+        monster_id, name = monster["id"], require(monster, "name", "monsters.json")
+        for field in ("level", "hp", "sp", "at", "mat", "df", "mdf", "agi", "au", "jobExp", "meet", "placeId", "subPlaces", "drops"):
+            require(monster, field, "monsters.json")
+        reason = invalid_monster_reason(monster)
+        if reason is None and monster.get("missionId") is not None:
+            reason = "任務怪：任務 4.2 與任務一起匯入"
+        place = places.get(monster["placeId"])
+        if reason is None and monster["placeId"] not in PLACE_IDS:
+            reason = f"地點 {monster['placeId']}（{place['name'] if place else '？'}）不在本作地圖"
+        if reason is None and place["subPlaces"] and not monster["subPlaces"]:
+            reason = "原版子地區遮罩為 0：選了子地區時不會出現"
+        if reason:
+            gaps.exclude(title, monster_id, name, reason)
+            continue
+
+        unsupported = []
+        if monster.get("specialAttack"):
+            unsupported.append(f"必殺技 {monster['specialAttack']}")
+        unsupported += [f"技能 {skill['name']} rate {skill['rate']}" for skill in monster.get("skills", [])]
+        drops = []
+        for drop in monster["drops"]:
+            item_id = f"item-{drop['itemId']}"
+            if item_id in item_ids:
+                drops.append({"itemId": item_id, "topr": drop["topr"]})
+            else:
+                unsupported.append(f"掉落 {drop['itemId']} {drop['item']}（道具沒有匯入）")
+        if unsupported:
+            gaps.field(title, monster_id, name, "；".join(unsupported))
+
+        records.append({
+            "id": f"monster-{monster_id}", "name": name, "level": monster["level"], "hp": monster["hp"], "sp": monster["sp"],
+            "at": monster["at"], "mat": monster["mat"], "df": monster["df"], "mdf": monster["mdf"], "agi": monster["agi"],
+            "au": monster["au"], "element": ELEMENTS[monster.get("element")], "jobExp": monster["jobExp"], "meet": monster["meet"],
+            "placeId": monster["placeId"],
+            "subPlaces": [place["subPlaces"].index(sub) + 1 for sub in monster["subPlaces"]],
+            "drops": drops,
+        })
+    return records + custom_records(read_content("monsters.json")["monsters"], "monster")
+
+
 def stone_spec(stone):
     effects = stone["effects"]
     if stone["class"] == RANDOM_STONE_CLASS:
@@ -299,7 +378,12 @@ def format_content(root):
 def main():
     gaps = Gaps()
     try:
-        outputs = {"items.json": {"items": import_items(gaps)}}
+        items = import_items(gaps)
+        outputs = {
+            "items.json": {"items": items},
+            "jobs.json": {"jobs": import_jobs(gaps)},
+            "monsters.json": {"monsters": import_monsters(gaps, {item["id"] for item in items})},
+        }
     except (SourceError, KeyError) as error:
         print(f"匯入失敗：{error}", file=sys.stderr)
         return 1

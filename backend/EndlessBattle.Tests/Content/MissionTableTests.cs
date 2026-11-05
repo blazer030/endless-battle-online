@@ -113,7 +113,7 @@ public class MissionTableTests
         var mission = Content.GetMission(missionId);
 
         Assert.Equal(("獸欄管理員", level), (mission.Giver, mission.Level));
-        var expected = Content.AllMonsters
+        var expected = Content.AllMonsters.Where(monster => CustomContent.IsCustom(monster.Id))
             .Where(monster => monster.PlaceId >= firstPlace && monster.PlaceId <= lastPlace && monster.Meet == 0 && monster.MissionId is null)
             .Select(monster => monster.Id)
             .ToList();
@@ -154,7 +154,7 @@ public class MissionTableTests
     public void MissionTable_BountyPoolsAreMeetZeroTimesFiveToSeven(string missionId, int[] placeIds)
     {
         var mission = Content.GetMission(missionId);
-        var expectedKills = Content.AllMonsters
+        var expectedKills = Content.AllMonsters.Where(monster => CustomContent.IsCustom(monster.Id))
             .Where(monster => placeIds.Contains(monster.PlaceId) && monster.Meet == 0 && monster.MissionId is null)
             .SelectMany(monster => new[] { 5, 6, 7 }.Select(count => new KillTarget(monster.Id, count)))
             .ToList();
@@ -170,7 +170,7 @@ public class MissionTableTests
     [Fact]
     public void MissionTable_MissionMonstersBelongToOneMission()
     {
-        var missionMonsters = Content.AllMonsters.Where(monster => monster.MissionId is not null).ToList();
+        var missionMonsters = Content.AllMonsters.Where(monster => CustomContent.IsCustom(monster.Id)).Where(monster => monster.MissionId is not null).ToList();
         Assert.Equal(["pyre-high-priest", "rift-ogre-king", "relic-core-colossus"], missionMonsters.Select(monster => monster.Id));
 
         Assert.All(missionMonsters, monster =>

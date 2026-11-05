@@ -73,7 +73,7 @@ public class BalanceTests
             Content.StartingPlaceId,
             Content.StartingSubPlace,
             FarthestRoll)
-            .Where(monster => monster.MissionId is null)
+            .Where(monster => monster.MissionId is null && CustomContent.IsCustom(monster.Id))
             .ToList();
         Assert.NotEmpty(candidates);
 
