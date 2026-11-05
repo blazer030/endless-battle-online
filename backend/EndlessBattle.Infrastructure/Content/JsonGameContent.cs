@@ -379,6 +379,30 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"技能 {skill.Id} 的前置技能 {prerequisite.SkillId} 第 {prerequisite.Level} 級不存在");
             }
         }
+
+        var cyclic = allSkills.FirstOrDefault(skill => HasPrerequisiteCycle(skill, skills));
+        if (cyclic is not null)
+        {
+            throw new GameContentException($"技能 {cyclic.Id} 的前置鏈有循環");
+        }
+    }
+
+    // 每個技能至多一個前置，沿著前置走回到走過的技能就是循環
+    private static bool HasPrerequisiteCycle(SkillDefinition skill, Dictionary<string, SkillDefinition> skills)
+    {
+        var visited = new HashSet<string> { skill.Id };
+        var current = skill;
+        while (current.Prerequisite is { } prerequisite)
+        {
+            if (!visited.Add(prerequisite.SkillId))
+            {
+                return true;
+            }
+
+            current = skills[prerequisite.SkillId];
+        }
+
+        return false;
     }
 
     private static (IReadOnlyList<AreaDefinition>, IReadOnlyList<PlaceDefinition>, Dictionary<int, PlaceDefinition>) BuildWorld(

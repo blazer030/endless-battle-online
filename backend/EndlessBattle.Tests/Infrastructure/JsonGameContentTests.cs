@@ -285,6 +285,17 @@ public class JsonGameContentTests
         AssertSkillsRejected($"{burst}, {advanced}", message);
     }
 
+    // 互為前置的技能永遠學不到
+    [Fact]
+    public void Skill_PrerequisiteCycleIsRejected()
+    {
+        string Requiring(string id, string prerequisiteId) =>
+            ComposedSkillJson(id, 1, ComposedLevel(1, ChanceForty, AttackUp))
+                .Replace("\"maxLevel\": 1,", "\"maxLevel\": 1, \"prerequisite\": { \"skillId\": \"" + prerequisiteId + "\", \"level\": 1 },");
+
+        AssertSkillsRejected($"{Requiring("burst", "advanced")}, {Requiring("advanced", "burst")}", "技能 burst 的前置鏈有循環");
+    }
+
     [Fact]
     public void Skill_AlwaysOnLevelWithCostIsRejected() =>
         AssertSkillsRejected(
