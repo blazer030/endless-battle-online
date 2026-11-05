@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Battle;
@@ -204,6 +205,26 @@ public class WogBattleTests
         Assert.Equal(new EscapeEvent(1.6), events.OfType<EscapeEvent>().Single());
         Assert.True(outcome.Escaped);
         Assert.Equal(3, outcome.Rounds);
+    }
+
+    // 第 1 回合發動逃跑率 +5（發動骰 0.0 → 1 ≤ 100），之後同上的 7 次；第 2 回合開頭擲 0.145 → 15：
+    // 持續 2 回合時加成還在（15 ≤ 15）第 2 回合就逃；持續 1 回合時第 2 回合開頭已失效（15 > 10），第 3 回合才逃
+    [Theory]
+    [InlineData(2, 0.8)]
+    [InlineData(1, 1.6)]
+    public void Battle_EscapeBonusEndsWithItsRounds(int rounds, double escapeAt)
+    {
+        var smokeScreen = new SkillDefinition("smoke-screen", "煙遁", SkillType.Active, SkillTiming.BeforeAttack, "說明",
+        [
+            new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 100)], [],
+                [new StatChangeEffect(SkillTarget.Caster, SkillStat.EscapeRate, null, 5, null, rounds)]),
+        ]);
+        var random = new ScriptedRandom(0.0, [.. Enumerable.Repeat(0.0, 8), 0.145]);
+
+        var outcome = WogBattle.Run(
+            Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [new EquippedSkill(smokeScreen, 1, 1)], supply: null, random, pet: null, escapeHpPercent: 30);
+
+        Assert.Equal(new EscapeEvent(escapeAt), outcome.Events.OfType<EscapeEvent>().Single());
     }
 
     // 門檻 0 不逃也不擲骰：同上的局面每回合固定擲 7 次，玩家 20 血每回合扣 1，第 20 回合倒下。

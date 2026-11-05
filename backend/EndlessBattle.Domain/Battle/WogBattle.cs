@@ -64,8 +64,8 @@ public static class WogBattle
             events.Add(new RoundEvent(roundStart, round));
             DrinkPotion(roundStart);
 
-            // 第 2 回合起，喝完補給後 HP 仍低於門檻才擲逃跑
-            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random, modifiers.EscapeBonus))
+            // 第 2 回合起，喝完補給後 HP 仍低於門檻才擲逃跑；逃跑率加成看回合開頭失效後的修正
+            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random, caster.Current.EscapeBonus))
             {
                 events.Add(new EscapeEvent(roundStart));
                 return Outcome(null, round) with { Escaped = true };
