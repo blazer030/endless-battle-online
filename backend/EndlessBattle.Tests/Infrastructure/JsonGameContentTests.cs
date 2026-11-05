@@ -272,6 +272,19 @@ public class JsonGameContentTests
     public void Skill_LevelsMustMatchMaxLevel() =>
         AssertSkillsRejected(ComposedSkillJson("burst", 2, ComposedLevel(1, ChanceForty, AttackUp)), "burst");
 
+    // 前置技能要存在、等級在 1～前置技能的 maxLevel
+    [Theory]
+    [InlineData("ghost", 1, "advanced 的前置技能 ghost 第 1 級不存在")]
+    [InlineData("burst", 2, "advanced 的前置技能 burst 第 2 級不存在")]
+    public void Skill_MissingPrerequisiteIsRejected(string prerequisiteId, int level, string message)
+    {
+        var burst = ComposedSkillJson("burst", 1, ComposedLevel(1, ChanceForty, AttackUp));
+        var advanced = ComposedSkillJson("advanced", 1, ComposedLevel(1, ChanceForty, AttackUp))
+            .Replace("\"maxLevel\": 1,", "\"maxLevel\": 1, \"prerequisite\": { \"skillId\": \"" + prerequisiteId + "\", \"level\": " + level + " },");
+
+        AssertSkillsRejected($"{burst}, {advanced}", message);
+    }
+
     [Fact]
     public void Skill_AlwaysOnLevelWithCostIsRejected() =>
         AssertSkillsRejected(

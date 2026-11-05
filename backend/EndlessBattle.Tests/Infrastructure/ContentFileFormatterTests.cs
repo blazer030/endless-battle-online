@@ -43,6 +43,11 @@ public class ContentFileFormatterTests
     [InlineData("jobs.json")]
     [InlineData("skills.json")]
     [InlineData("world.json")]
+    [InlineData("missions.json")]
+    [InlineData("recipes.json")]
+    [InlineData("honour-shop.json")]
+    [InlineData("mercenaries.json")]
+    [InlineData("job-skills.json")]
     public void OfficialEditableContentFiles_AreInCanonicalFormat(string fileName)
     {
         var text = File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "content", fileName));

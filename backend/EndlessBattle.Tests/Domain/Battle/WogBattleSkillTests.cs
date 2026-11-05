@@ -228,6 +228,28 @@ public class WogBattleSkillTests
             AttacksBy(outcome, CombatSide.Monster).Take(2));
     }
 
+    // 斯巴達（力量比對手高、Chance 40）：發動骰 0.29 → 30 ≤ 40 發動；先攻 0.99 怪物先；暈眩骰 0.49 → 50 > 12 → 怪物照常出手：
+    // 命中 0.0、暴擊 0.99、傷害 0.0 → 150
+    [Fact]
+    public void Battle_StunRollMissesAfterActivation()
+    {
+        var sparta = new SkillDefinition("sparta", "斯巴達", SkillType.Active, SkillTiming.BeforeAttack, "",
+        [
+            new SkillLevel(1, 0, 0, 0,
+                [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.Strength }, new SkillCondition(SkillConditionKind.Chance, 40)],
+                [],
+                [new StatChangeEffect(SkillTarget.Caster, SkillStat.PhysicalCriticalChance, null, 20, null, 1), new StunEffect(12, 1)]),
+        ]);
+        var random = new ScriptedRandom(0.99, 0.29, 0.99, 0.49, 0.0, 0.99, 0.0);
+
+        var outcome = WogBattle.Run(Player(str: 150), Monster(at: 100), null, [Equip(sparta, level: 1)], random);
+
+        Assert.Equal("sparta", outcome.Events.OfType<SkillEvent>().First().SkillId);
+        Assert.Equal(
+            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
+            AttacksBy(outcome, CombatSide.Monster).First());
+    }
+
     // 嗜血 lv5（被動、攻擊後）：常駐，物理命中後不擲骰、不扣 SP，回復 round(150 × 0.1) = 15，事件與那一下同時。
     // 第 1 回合：先攻 0.0；命中 0.0、暴擊 0.99、傷害 0.0 → 150；怪物命中 0.99 未命中。
     // 第 2 回合：先攻 0.0；命中 0.99 未命中 → 不回復；怪物 0.99 未命中。之後全是 0.99，雙方都未命中

@@ -68,16 +68,17 @@ public class WogImportTests
     {
         using var source = JsonDocument.Parse(
             File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/data/monsters.json")));
+        // 等級 0 的原因是等級；等級正常但 hp 0 的原因是 hp
         var invalid = source.RootElement.EnumerateArray()
             .Where(monster => monster.GetProperty("level").GetInt32() < 1 || monster.GetProperty("hp").GetInt32() < 1)
-            .Select(monster => monster.GetProperty("id").GetInt32())
+            .Select(monster => (Id: monster.GetProperty("id").GetInt32(), Reason: monster.GetProperty("level").GetInt32() < 1 ? "等級必須至少 1" : "hp 與 agi 必須大於 0"))
             .ToList();
 
         Assert.NotEmpty(invalid);
-        Assert.All(invalid, id =>
+        Assert.All(invalid, entry =>
         {
-            Assert.DoesNotContain(Content.AllMonsters, monster => monster.Id == $"monster-{id}");
-            Assert.Contains($"| {id} |", Gaps);
+            Assert.DoesNotContain(Content.AllMonsters, monster => monster.Id == $"monster-{entry.Id}");
+            Assert.Matches($@"\| {entry.Id} \| [^|]+ \| {entry.Reason}", Gaps);
         });
     }
 
@@ -228,5 +229,49 @@ public class WogImportTests
         Assert.All(customIds, id => Assert.Contains($"`{id}`", kept));
         Assert.Contains("`inn.json`", kept);
         Assert.Contains("`champion.json`", kept);
+    }
+
+    // 每種內容匯入的筆數 = 原版筆數 − gaps.md 該節「沒有匯入的紀錄」的列數（技能以名稱分組，一個技能多列）
+    [Theory]
+    [InlineData("道具", "items.json")]
+    [InlineData("怪物", "monsters.json")]
+    [InlineData("技能", "skills.json")]
+    [InlineData("任務", "missions.json")]
+    [InlineData("配方", "recipes.json")]
+    [InlineData("勳章所", "honour-shop.json")]
+    public void Imported_CountsMatchSourceMinusGaps(string section, string sourceFile)
+    {
+        using var source = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/data", sourceFile)));
+        var records = source.RootElement.EnumerateArray().ToList();
+        var sourceCount = section == "技能"
+            ? records.Select(record => record.GetProperty("name").GetString()).Distinct().Count()
+            : records.Count;
+        var imported = section switch
+        {
+            "道具" => Content.AllItems.Count(item => !CustomContent.IsCustom(item.Id)),
+            "怪物" => Content.AllMonsters.Count,
+            "技能" => Content.AllSkills.Count,
+            "任務" => Content.AllMissions.Count,
+            "配方" => Content.AllRecipes.Count,
+            _ => Content.HonourShop.Count(exchange => !CustomContent.IsCustom(exchange.Id)),
+        };
+
+        Assert.Equal(sourceCount - ExcludedRows(section), imported);
+    }
+
+    private static int ExcludedRows(string section)
+    {
+        var start = Gaps.IndexOf($"\n## {section}\n", StringComparison.Ordinal);
+        var end = Gaps.IndexOf("\n## ", start + 1, StringComparison.Ordinal);
+        var body = Gaps[start..(end < 0 ? Gaps.Length : end)];
+        var excluded = body.IndexOf("### 沒有匯入的紀錄", StringComparison.Ordinal);
+        if (excluded < 0)
+        {
+            return 0;
+        }
+
+        var next = body.IndexOf("\n### ", excluded + 1, StringComparison.Ordinal);
+        return body[excluded..(next < 0 ? body.Length : next)].Split('\n').Count(line => line.StartsWith("| ") && char.IsDigit(line[2]));
     }
 }

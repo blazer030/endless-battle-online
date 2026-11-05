@@ -304,13 +304,14 @@ public class SkillEffectTests
     [Fact]
     public void StunChance_DoesNotAffectOtherEffects()
     {
-        // 斯巴達：發動後必殺率 +20 一定生效，無法行動另外擲 12%
-        var skill = Skill(SkillType.Active, Level(1, [Chance(100)],
+        // 斯巴達：力量比對手高、發動骰 30 ≤ 40 → 必殺率 +20 一定生效；無法行動的 12% 留到怪物出手前另外擲（WogBattleSkillTests）
+        var skill = Skill(SkillType.Active, Level(1, [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.Strength }, Chance(40)],
             [Change(SkillStat.PhysicalCriticalChance, amount: 20) with { Rounds = 1 }, new StunEffect(Chance: 12, Rounds: 1)]));
-        var caster = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)]);
+        var random = new ScriptedRandom(0.99, 0.29);
+        var caster = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)], opponent: Monster());
 
-        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
-
+        Assert.Single(caster.CastBeforeAttack(1000, 100, random));
+        Assert.Equal(1, random.Consumed);
         Assert.Equal((20, 12), (caster.Current.CriticalChanceFor(AttackKind.Physical), caster.Current.StunChance));
     }
 
