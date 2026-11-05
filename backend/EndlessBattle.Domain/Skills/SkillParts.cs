@@ -55,7 +55,7 @@ public abstract record SkillEffect(int Rounds);
 
 // Percent、Amount、Scaling 恰好一項有值；可為負。Chance：效果自己的機率，技能發動後才擲（只有對手的能力增減可以有）
 public sealed record StatChangeEffect(
-    SkillTarget Target, SkillStat Stat, double? Percent, int? Amount, IReadOnlyList<SkillScaling>? Scaling, int Rounds) : SkillEffect(Rounds)
+    SkillTarget Target, SkillStat Stat, double? Percent, double? Amount, IReadOnlyList<SkillScaling>? Scaling, int Rounds) : SkillEffect(Rounds)
 {
     public int? Chance { get; init; }
 }

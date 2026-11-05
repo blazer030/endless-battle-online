@@ -212,7 +212,7 @@ public class SkillEffectTests
         Assert.Equal((206, 212), (AttackWith(3), AttackWith(6)));
     }
 
-    private static StatChangeEffect Change(SkillStat stat, double? percent = null, int? amount = null, IReadOnlyList<SkillScaling>? scaling = null,
+    private static StatChangeEffect Change(SkillStat stat, double? percent = null, double? amount = null, IReadOnlyList<SkillScaling>? scaling = null,
         SkillTarget target = SkillTarget.Caster) => new(target, stat, percent, amount, scaling, Rounds: 0);
 
     private static SkillCaster AlwaysOn(CombatantState player, params SkillEffect[] effects) =>
@@ -251,6 +251,13 @@ public class SkillEffectTests
         Assert.Equal(2, RoundResolver.CriticalOdds(100, 10).Multiplier);
         Assert.Equal(2.5, RoundResolver.CriticalOdds(100, 10, criticalCapPercent: 25).Multiplier, 10);
         Assert.Equal(25, AlwaysOn(Player(), Change(SkillStat.PhysicalCriticalCap, amount: 25)).Current.CriticalCapFor(AttackKind.Physical));
+    }
+
+    [Fact]
+    public void MagicCriticalCap_AcceptsFractionalAmount()
+    {
+        // 熱情律動第 1 級：魔攻必殺上限 +2.5%
+        Assert.Equal(2.5, AlwaysOn(Player(), Change(SkillStat.MagicCriticalCap, amount: 2.5)).Current.CriticalCapFor(AttackKind.Magic), 10);
     }
 
     [Fact]

@@ -52,7 +52,7 @@ internal sealed class SkillPartsReader(string skillId, int level)
             case "StatChange":
                 Allow(element, kind, "kind", "rounds", "target", "stat", "percent", "amount", "scaling", "chance");
                 var percent = OptionalDouble(element, "percent");
-                var amount = OptionalInt(element, "amount");
+                var amount = OptionalDouble(element, "amount");
                 var scaling = OptionalScaling(element);
                 if (new object?[] { percent, amount, scaling }.Count(value => value is not null) != 1)
                 {
