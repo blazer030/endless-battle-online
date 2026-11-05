@@ -346,6 +346,297 @@ def consumable_spec(item, effect, gaps, title):
     return None
 
 
+# ---- 技能 ----
+# 每種技能一列樣板：從每一級的 text 擷取數值的正規表示式，以及用擷取到的數值組出條件、消耗、效果的函式。
+# 規則見 design.md「原版技能的發動方式照現行規則」「原版技能的每級數值取自各級說明」。
+
+NUMBER = r"(\d+(?:\.\d+)?)"
+
+
+def number(text):
+    value = float(text)
+    return int(value) if value.is_integer() else value
+
+
+def ratio(percent):
+    return round(percent / 100, 6)
+
+
+def scale(*terms):
+    return [{"basis": basis, "ratio": value} for basis, value in terms]
+
+
+def stat(name, target="Caster", percent=None, amount=None, scaling=None, chance=None):
+    effect = {"kind": "StatChange", "target": target, "stat": name}
+    if percent is not None:
+        effect["percent"] = percent
+    if amount is not None:
+        effect["amount"] = amount
+    if scaling is not None:
+        effect["scaling"] = scaling
+    if chance is not None:
+        effect["chance"] = chance
+    return effect
+
+
+def bonus(attack_kind, scaling, chance=None):
+    effect = {"kind": "BonusDamage", "attackKind": attack_kind, "scaling": scaling}
+    if chance is not None:
+        effect["chance"] = chance
+    return effect
+
+
+def multi_hit(attack_kind, hits):
+    return {"kind": "MultiHit", "attackKind": attack_kind, "hits": hits}
+
+
+def reduction(attack_kind, percent):
+    return {"kind": "DamageReduction", "attackKind": attack_kind, "percent": percent}
+
+
+def restore(resource, **value):
+    return {"kind": "Restore", "resource": resource, **value}
+
+
+def stun(chance):
+    return {"kind": "Stun", "chance": chance}
+
+
+def silence(chance):
+    return {"kind": "Silence", "chance": chance}
+
+
+def above(basis):
+    return {"kind": "StatAbove", "stat": basis}
+
+
+def hp_cost(percent):
+    return {"kind": "HitPoints", "percent": percent}
+
+
+def parts(effects, conditions=(), chance=None, costs=(), all_skill_points=False):
+    """conditions：放在 Chance 前面的其他條件；chance：說明裡涵蓋全部效果的機率；costs：SP 以外的消耗。"""
+    return {"effects": effects, "conditions": list(conditions), "chance": chance, "costs": list(costs),
+            "allSkillPoints": all_skill_points}
+
+
+ELEMENT_NAMES = {"地": "Earth", "水": "Water", "火": "Fire", "木": "Wood", "風": "Wind", "毒": "Poison"}
+
+SKILL_TEMPLATES = {
+    "爆氣": (r"物攻上升#%", lambda n: parts([stat("attack", percent=n)])),
+    "魔力增幅": (r"魔攻上升#%", lambda n: parts([stat("magicAttack", percent=n)])),
+    # 「連續攻擊 n 次」是額外的次數：總共 n + 1 下（研究文件 at_count = lv + 1）
+    "連擊": (r"連續攻擊#次，攻擊力下降#%，命中下降#%",
+             lambda hits, attack, hit: parts([multi_hit("Physical", hits + 1), stat("attack", percent=-attack), stat("hitRate", amount=-hit)])),
+    "急影": (r"提升速度#%", lambda n: parts([stat("agility", percent=n)])),
+    "硬甲之樂": (r"物防提升#%", lambda n: parts([stat("defense", percent=n)])),
+    "魔甲之樂": (r"魔防提升#%", lambda n: parts([stat("magicDefense", percent=n)])),
+    "防禦心得": (r"減少物攻傷害#%", lambda n: parts([reduction("Physical", n)])),
+    "魔力盾": (r"減少魔攻傷害#%", lambda n: parts([reduction("Magic", n)])),
+    "破滅一擊": (r"物攻上升#%", lambda n: parts([stat("attack", percent=n)])),
+    "嗜血": (r"給予物理傷害的同時，回復HP\(傷害\*#%\)", lambda n: parts([restore("HitPoints", percentOfDamage=n)])),
+    "治癒術": (r"回復hp\(智力\*#\)", lambda n: parts([restore("HitPoints", scaling=scale(("intelligence", n)))])),
+    "要害狙擊": (r"提升物攻必殺技機率#%", lambda n: parts([stat("physicalCriticalChance", amount=n)])),
+    "煙遁": (r"提高逃跑成功率#%", lambda n: parts([stat("escapeRate", amount=n)])),
+    "靡靡之音": (r"降低敵人速度#%", lambda n: parts([stat("agility", "Opponent", percent=-n)])),
+    "暗月之曲": (r"增加物攻魔攻傷害\(魅力\*#%\)", lambda n: parts([bonus("Any", scale(("charisma", ratio(n))))])),
+    "祝福之曲": (r"回復hp\(魅力\*#\)", lambda n: parts([restore("HitPoints", scaling=scale(("charisma", n)))])),
+    "捨身一擊": (r"提升物攻必殺技機率#%，物防降低#%",
+                 lambda chance, defense: parts([stat("physicalCriticalChance", amount=chance), stat("defense", percent=-defense)])),
+    "戰神之怒": (r"提高物理傷害\(力量\*#%\)，命中降低#%",
+                 lambda strength, hit: parts([stat("attack", scaling=scale(("strength", ratio(strength)))), stat("hitRate", amount=-hit)])),
+    "無我": (r"物攻提高#%，速度上升#%，物攻連擊#次",
+             lambda attack, agility, hits: parts([stat("attack", percent=attack), stat("agility", percent=agility), multi_hit("Physical", hits)])),
+    "滅世": (r"物攻提高#%，hp減少#%，命中提高#%",
+             lambda attack, hp, hit: parts([stat("attack", percent=attack), stat("hitRate", amount=hit)], costs=[hp_cost(hp)])),
+    "暈擊": (r"#%機率使敵人無法動作", lambda n: parts([stun(n)])),
+    "重擊": (r"#%物防轉換成物攻傷害值", lambda n: parts([bonus("Physical", scale(("defense", ratio(n))))])),
+    "反擊": (r"減少物攻傷害#%，物攻上升#%", lambda damage, attack: parts([reduction("Physical", damage), stat("attack", percent=attack)])),
+    # 原版是 SP 增加目前 SP 的 n%，HP 扣最大 HP 的 m%
+    "仁義": (r"sp增加#%，hp減少#%",
+             lambda sp, hp: parts([restore("SkillPoints", scaling=scale(("skillPoints", ratio(sp))))], costs=[hp_cost(hp)])),
+    "魔法連擊": (r"魔法連續攻擊#次", lambda hits: parts([multi_hit("Magic", hits + 1)])),
+    "魔力吸收": (r"回復sp #%，該回合無法攻擊", lambda n: parts([restore("SkillPoints", percentOfMaximum=n)])),
+    "弱化詛咒": (r"降低敵人魔攻物攻#%",
+                 lambda n: parts([stat("attack", "Opponent", percent=-n), stat("magicAttack", "Opponent", percent=-n)])),
+    "魔力爆發": (r"魔攻增加\(sp\*#\)，並消耗所有sp，hp低於#%情況下才能使用",
+                 lambda sp, hp: parts([stat("magicAttack", scaling=scale(("skillPoints", sp)))],
+                                      conditions=[{"kind": "HitPointsBelow", "percent": hp}], all_skill_points=True)),
+    **{f"魔劍-{element}": (rf"攻擊屬性轉換成{element}屬性", lambda name=name: parts([{"kind": "AttackElement", "element": name}]))
+       for element, name in ELEMENT_NAMES.items()},
+    **{f"魔盾-{element}": (rf"防禦屬性轉換成{element}屬性", lambda name=name: parts([{"kind": "DefenseElement", "element": name}]))
+       for element, name in ELEMENT_NAMES.items()},
+    "雷火": (r"魔攻時必殺技機率提升#%", lambda n: parts([stat("magicCriticalChance", amount=n)])),
+    "暴雪": (r"降低敵人速度#%，給予敵人固定攻擊傷害加成\(智力\*#%\)",
+             lambda agility, smart: parts([stat("agility", "Opponent", percent=-agility), bonus("Any", scale(("intelligence", ratio(smart))))])),
+    "劍雨": (r"魔攻比敵人高時，給予敵人固定攻擊傷害加成\(力量\*#%\+智力\*#%\)",
+             lambda strength, smart: parts([bonus("Any", scale(("strength", ratio(strength)), ("intelligence", ratio(smart))))],
+                                           conditions=[above("magicAttack")])),
+    # 原版的物防魔防降低是施放者自己（skill_50）
+    "星芒": (r"物防魔防降低#%，減少敵人hp#%",
+             lambda defense, hp: parts([stat("defense", percent=-defense), stat("magicDefense", percent=-defense),
+                                        {"kind": "PercentDamage", "percent": hp}])),
+    "心眼": (r"迴避力提升#%", lambda n: parts([stat("evasion", amount=n)])),
+    "背襲": (r"提高命中率#%", lambda n: parts([stat("hitRate", amount=n)])),
+    "暗器": (r"提升物攻必殺技機率#%，#%機率增加物攻固定傷害\(敏捷\*#%\)，迴避力降低#%",
+             lambda critical, chance, agility, evasion: parts([
+                 stat("physicalCriticalChance", amount=critical), bonus("Physical", scale(("agility", ratio(agility))), chance=chance),
+                 stat("evasion", amount=-evasion)])),
+    "昇龍拳": (r"使用物攻時，給予敵人固定攻擊傷害加成\(物攻\*#%\)", lambda n: parts([bonus("Physical", scale(("attack", ratio(n))))])),
+    "流星拳": (r"物攻連擊#次，命中率降低#%", lambda hits, hit: parts([multi_hit("Physical", hits), stat("hitRate", amount=-hit)])),
+    "氣波": (r"提高物攻\(體質\*#%\)", lambda n: parts([stat("attack", scaling=scale(("vitality", ratio(n))))])),
+    # 原版的附加傷害在範圍內隨機，本作取中間值
+    "犧牲": (r"用自身HP #%給予敵人物攻附加傷害\(物攻\*#-#%傷害\)，提高命中#%，提升物攻必殺技機率#%",
+             lambda hp, low, high, hit, critical: parts([
+                 bonus("Physical", scale(("attack", ratio((low + high) / 2)))), stat("hitRate", amount=hit),
+                 stat("physicalCriticalChance", amount=critical)], costs=[hp_cost(hp)])),
+    "力量之舞": (r"提高物攻\(魅力\*#%\)", lambda n: parts([stat("attack", scaling=scale(("charisma", ratio(n))))])),
+    "魔力之舞": (r"提高魔攻\(魅力\*#%\)", lambda n: parts([stat("magicAttack", scaling=scale(("charisma", ratio(n))))])),
+    "敏捷之舞": (r"提高速度\(魅力\*#%\)", lambda n: parts([stat("agility", scaling=scale(("charisma", ratio(n))))])),
+    "毀滅之舞": (r"提高物攻魔攻必殺技機率#%",
+                 lambda n: parts([stat("physicalCriticalChance", amount=n), stat("magicCriticalChance", amount=n)])),
+    "鋒針陷阱": (r"#%機率使敵人暫停行動，並給予傷害加成\(魅力\*#%\)",
+                 lambda chance, charisma: parts([stun(100), bonus("Any", scale(("charisma", ratio(charisma))))], chance=chance)),
+    "精靈之力": (r"魔攻提升#%", lambda n: parts([stat("magicAttack", percent=n)])),
+    "屬性迫害": (r"屬性剋制情況下，提高屬性傷害#%", lambda n: parts([{"kind": "ElementAdvantage", "percent": n}])),
+    "燃燒魔力": (r"降低對方#點sp", lambda n: parts([{"kind": "ReduceSkillPoints", "amount": n}])),
+    "葬心": (r"#%機率對方無法使用技能", lambda n: parts([silence(n)])),
+    "瘟疫的微笑": (r"當智力比對手高時，有#%使癱瘓對手攻擊，使用魔攻時給予敵人固定攻擊傷害加成\(智力\*#%\)",
+                   lambda chance, smart: parts([stun(chance), bonus("Magic", scale(("intelligence", ratio(smart))))],
+                                               conditions=[above("intelligence")])),
+    "斯巴達": (r"力量大於敵人時，增加物攻必殺技機率#%，並有#%機率使敵人無法行動",
+               lambda critical, chance: parts([stat("physicalCriticalChance", amount=critical), stun(chance)], conditions=[above("strength")])),
+    "壓制": (r"體質大於敵人時，敵人敏捷降低#%，物防降低#%",
+             lambda agility, defense: parts([stat("agility", "Opponent", percent=-agility), stat("defense", "Opponent", percent=-defense)],
+                                            conditions=[above("vitality")])),
+    "施毒": (r"#%機率使敵人，物攻降低#%，並給予固定傷害\(智力\*#%\)",
+             lambda chance, attack, smart: parts([stat("attack", "Opponent", percent=-attack),
+                                                  {"kind": "DamageOverTime", "scaling": scale(("intelligence", ratio(smart)))}], chance=chance)),
+    "明王": (r"增加物攻必殺技機率#%，#%機率使敵人，物防降低#%",
+             lambda critical, chance, defense: parts([stat("physicalCriticalChance", amount=critical),
+                                                      stat("defense", "Opponent", percent=-defense, chance=chance)])),
+    "復仇": (r"HP低於敵人時，HP恢復\(體質\*#%\)，命中率上升#%，物理攻擊提高#%",
+             lambda vitality, hit, attack: parts([restore("HitPoints", scaling=scale(("vitality", ratio(vitality)))),
+                                                  stat("hitRate", amount=hit), stat("attack", percent=attack)],
+                                                 conditions=[{"kind": "HitPointsBelowOpponent"}])),
+    "豪鬼": (r"物攻必殺攻擊力上限提升#%，#%機率使敵人無法使用技能",
+             lambda cap, chance: parts([stat("physicalCriticalCap", amount=cap), silence(chance)])),
+    "煉獄": (r"當智力比對手高時，魔攻時必殺技機率提升#%",
+             lambda n: parts([stat("magicCriticalChance", amount=n)], conditions=[above("intelligence")])),
+    "熱情律動": (r"魅力大於敵人時，魔攻必殺攻擊力上限提升#%",
+                 lambda n: parts([stat("magicCriticalCap", amount=n)], conditions=[above("charisma")])),
+    "華爾滋": (r"魔攻必殺技機率提升#%", lambda n: parts([stat("magicCriticalChance", amount=n)])),
+    "毒傷陷阱": (r"固定傷害\(智力\*#%\+力量\*#%\)",
+                 lambda smart, strength: parts([bonus("Any", scale(("intelligence", ratio(smart)), ("strength", ratio(strength))))])),
+    "正義火雷": (r"降低敵人敏捷#", lambda n: parts([stat("agility", "Opponent", amount=-n)])),
+    "石人陣": (r"提高物防#", lambda n: parts([stat("defense", amount=n)])),
+    "黑渦": (r"降低敵人魅力#", lambda n: parts([stat("charisma", "Opponent", amount=-n)])),
+    "獸騎": (r"提高敏捷#", lambda n: parts([stat("agility", amount=n)])),
+}
+
+PET_SKILLS = {"物攻命令", "魔攻命令", "戰意驅使", "狂性連結", "魔性連結", "閃電痛擊", "獸靈", "精密陷阱"}
+TEAM_SKILLS = {"神頌曲", "地獄禮讚", "詐騙", "友情之舞"}
+EXCLUDED_SKILLS = {
+    **{name: "寵物技能：等寵物系統的調整確定後再做" for name in PET_SKILLS},
+    **{name: "組隊技能：本作沒有隊友" for name in TEAM_SKILLS},
+    "假死": "智力比較會改變機率：目錄沒有「條件改變機率」",
+}
+SKILL_NOTES = {
+    "連擊": "「連續攻擊 n 次」是額外的次數，連擊總數 n + 1（與研究文件 at_count = lv + 1 一致）",
+    "魔法連擊": "「魔法連續攻擊 n 次」是額外的次數，連擊總數 n + 1（與研究文件 mat_count = lv + 1 一致）",
+    "魔力吸收": "「該回合無法攻擊」沒有搬：目前不做「該回合不攻擊」",
+    "犧牲": "附加傷害原版在物攻×a～b% 之間隨機，本作取中間值",
+    "滅世": "原版是目前 HP 降為 (0.5 + 0.05·lv) 倍，本作是消耗最大 HP 的 n%（HP 不夠就不發動）",
+    "星芒": "研究文件寫 (0.9 − 0.01·lv) 倍；原始碼與說明都是第 1 級 10%、每級 +1%，以說明為準",
+    "鋒針陷阱": "說明的機率涵蓋全部效果，轉成 Chance 條件，暫停行動寫成 Stun 機率 100",
+    "暴雪": "「固定攻擊傷害加成」沒寫物攻或魔攻，寫成 Any",
+    "劍雨": "「固定攻擊傷害加成」沒寫物攻或魔攻，寫成 Any",
+}
+DEFAULT_CHANCE_BASE = 30
+DEFAULT_CHANCE_STEP = 10
+MAXIMUM_CHANCE = 100
+
+
+def skill_values(row, template):
+    pattern, build = template
+    regex = "^" + pattern.replace("#", NUMBER) + "$"
+    match = re.fullmatch(regex, row["text"])
+    if match is None:
+        raise SourceError(f"skills.json 的紀錄 {row['id']}（{row['name']} 第 {row['level']} 級）的說明對不上樣板：{row['text']}")
+    return build(*[number(value) for value in match.groups()])
+
+
+def import_skills(gaps):
+    title = "技能"
+    gaps.note(title, "原版技能以 `skill-<第 1 級的 id>` 匯入；每級的 `cost` 轉 `money`、`proficiency` 照搬；`description` 留空，`text` 只用來擷取數值。")
+    gaps.note(title, "主動技能：說明有涵蓋全部效果的機率就當 `Chance` 條件，否則每級加 `Chance min(100, 30 + 10·lv)`；`sp` 轉成 SP 消耗、`duration` 轉成各效果的 `rounds`。")
+    gaps.note(title, "被動技能：說明沒寫條件的是常駐，原版的 `passiveRate`、`sp`、`duration` 不採用；說明有條件的照主動技能的方式轉。")
+    gaps.note(title, "寫在「使敵人無法行動」、追加傷害、對手能力降低、封鎖技能上的機率，轉成那個效果自己的 `chance`。")
+    gaps.note(title, "`need_sid` 轉成 `prerequisite`；魔劍、魔盾的每種屬性只有一列（原版等級 2～6 是同系列的編號），本作各為 1 級。")
+    groups = {}
+    for row in sorted(load("skills.json"), key=lambda row: require(row, "id", "skills.json")):
+        for field in ("name", "jobId", "level", "passive", "sp", "timing", "duration", "passiveRate", "text", "cost", "proficiency"):
+            require(row, field, "skills.json")
+        groups.setdefault(row["name"], []).append(row)
+    owners = {row["id"]: (rows[0]["id"], index + 1) for rows in groups.values() for index, row in enumerate(rows)}
+    excluded = {rows[0]["id"] for name, rows in groups.items() if name in EXCLUDED_SKILLS}
+
+    records, job_skills = [], []
+    for name, rows in groups.items():
+        first = rows[0]
+        if name in EXCLUDED_SKILLS:
+            gaps.exclude(title, first["id"], name, EXCLUDED_SKILLS[name])
+            continue
+        if name not in SKILL_TEMPLATES:
+            raise SourceError(f"skills.json 的技能 {first['id']}（{name}）沒有樣板")
+        if name in SKILL_NOTES:
+            gaps.field(title, first["id"], name, SKILL_NOTES[name])
+        if first["master"]:
+            gaps.field(title, first["id"], name, "原版 s_master 1：不在學習列表、由任務獎勵取得；本作照職業關聯表也能學")
+
+        levels = []
+        always_on = False
+        for index, row in enumerate(rows):
+            level = index + 1
+            values = skill_values(row, SKILL_TEMPLATES[name])
+            always_on = row["passive"] and not values["conditions"] and values["chance"] is None
+            if always_on:
+                conditions, costs, rounds = [], [], 0
+            else:
+                chance = values["chance"]
+                if chance is None:
+                    chance = min(MAXIMUM_CHANCE, DEFAULT_CHANCE_BASE + DEFAULT_CHANCE_STEP * level)
+                conditions = values["conditions"] + [{"kind": "Chance", "percent": chance}]
+                skill_points = {"kind": "SkillPoints", "all": True} if values["allSkillPoints"] else {"kind": "SkillPoints", "amount": row["sp"]}
+                costs = [skill_points] + values["costs"]
+                rounds = row["duration"]
+            levels.append({
+                "level": level, "money": row["cost"], "proficiency": row["proficiency"], "cooldown": 0,
+                "conditions": conditions, "costs": costs,
+                "effects": [{**effect, "rounds": rounds} for effect in values["effects"]],
+            })
+        if always_on:
+            gaps.field(title, first["id"], name, f"原版被動發動率 {first['passiveRate']}%，本作常駐")
+
+        skill_id = f"skill-{first['id']}"
+        record = {"id": skill_id, "name": name, "slotType": "Passive" if first["passive"] else "Active",
+                  "timing": "AfterHit" if first["timing"] == 2 else "BeforeAttack", "description": "", "maxLevel": len(levels)}
+        required = first["requiresSkillId"]
+        if required:
+            owner, owner_level = owners[required]
+            if owner in excluded:
+                gaps.field(title, first["id"], name, f"前置技能 {owner} 沒有匯入，不設前置技能")
+            else:
+                record["prerequisite"] = {"skillId": f"skill-{owner}", "level": owner_level}
+        record["levels"] = levels
+        records.append(record)
+        job_skills.append({"jobId": f"job-{first['jobId']}", "skillId": skill_id})
+
+    custom_skills = custom_records(read_content("skills.json")["skills"], "skill")
+    custom_job_skills = [row for row in read_content("job-skills.json")["jobSkills"] if not re.fullmatch(r"skill-\d+", row["skillId"])]
+    return records + custom_skills, job_skills + custom_job_skills
+
+
 ITEM_FIELD_ORDER = ["id", "name", "category", "consumable", "bonus", "supplyHp", "supplySp", "amount", "requires", "jobId",
                     "element", "holes", "refineMax", "price", "shopLevel", "shopSellable", "bound", "refine", "stone", "key", "elixir"]
 
@@ -385,6 +676,9 @@ def main():
             "jobs.json": {"jobs": import_jobs(gaps)},
             "monsters.json": {"monsters": import_monsters(gaps, {item["id"] for item in items})},
         }
+        skills, job_skills = import_skills(gaps)
+        outputs["skills.json"] = {"skills": skills}
+        outputs["job-skills.json"] = {"jobSkills": job_skills}
     except (SourceError, KeyError) as error:
         print(f"匯入失敗：{error}", file=sys.stderr)
         return 1

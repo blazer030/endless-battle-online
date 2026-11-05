@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -83,5 +84,67 @@ public class WogImportTests
     public void Monsters_ListUnsupportedSkillsInGaps()
     {
         Assert.Matches(@"\| 1 \| 史萊姆 \| [^\n]*猛烈一擊[^\n]*爆氣 Lv2 rate 10", Gaps);
+    }
+
+    [Fact]
+    public void Skills_FollowDescriptions()
+    {
+        var burst = Content.GetSkill("skill-1");
+
+        Assert.Equal(("爆氣", SkillType.Active, SkillTiming.BeforeAttack, 10), (burst.Name, burst.Type, burst.Timing, burst.MaxLevel));
+        Assert.All(Enumerable.Range(1, 10), level =>
+        {
+            var values = burst.LevelAt(level);
+            Assert.Equal([new SkillCondition(SkillConditionKind.Chance, Math.Min(100, 30 + 10 * level))], values.Conditions);
+            Assert.Equal([new SkillCost(SkillCostKind.SkillPoints, 2 * level)], values.Costs);
+            Assert.Equal([new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, level, null, null, 3)], values.Effects);
+        });
+    }
+
+    [Fact]
+    public void Skills_ActivationFollowsCurrentRules()
+    {
+        var stoneWall = Content.GetSkill("skill-550");
+
+        Assert.Equal(("石人陣", SkillType.Passive, true), (stoneWall.Name, stoneWall.Type, stoneWall.IsAlwaysOn));
+        Assert.Empty(stoneWall.LevelAt(1).Costs);
+        Assert.Equal([new StatChangeEffect(SkillTarget.Caster, SkillStat.Defense, null, 150, null, 0)], stoneWall.LevelAt(1).Effects);
+        Assert.Contains("| 550 | 石人陣 | 原版被動發動率 28%，本作常駐 |", Gaps);
+    }
+
+    [Fact]
+    public void Skills_StunChanceIsEffectChance()
+    {
+        var stunStrike = Content.GetSkill("skill-142").LevelAt(1);
+
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 40)], stunStrike.Conditions);
+        Assert.Equal([new StunEffect(3, 1)], stunStrike.Effects);
+    }
+
+    [Fact]
+    public void Skills_BonusDamageChanceIsEffectChance()
+    {
+        var hiddenWeapon = Content.GetSkill("skill-248").LevelAt(1);
+
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 40)], hiddenWeapon.Conditions);
+        Assert.Equal(3, hiddenWeapon.Effects.Count);
+        Assert.Equal(new StatChangeEffect(SkillTarget.Caster, SkillStat.PhysicalCriticalChance, null, 40, null, 1), hiddenWeapon.Effects[0]);
+        var bonus = Assert.IsType<BonusDamageEffect>(hiddenWeapon.Effects[1]);
+        Assert.Equal((SkillAttackKind.Physical, new SkillScaling(SkillScalingBasis.Agility, 0.15), 20), (bonus.AttackKind, Assert.Single(bonus.Scaling), bonus.Chance));
+        Assert.Equal(new StatChangeEffect(SkillTarget.Caster, SkillStat.Evasion, null, -80, null, 1), hiddenWeapon.Effects[2]);
+    }
+
+    [Fact]
+    public void Skills_PetSkillsAreListed()
+    {
+        Assert.DoesNotContain(Content.AllSkills, skill => skill.Id == "skill-320");
+        Assert.Contains("| 320 | 物攻命令 | 寵物技能：等寵物系統的調整確定後再做 |", Gaps);
+    }
+
+    [Fact]
+    public void JobSkills_FollowOriginalJobs()
+    {
+        Assert.True(Content.Teaches("job-6", "skill-1"));
+        Assert.Equal(new SkillPrerequisite("skill-21", 3), Content.GetSkill("skill-31").Prerequisite);
     }
 }

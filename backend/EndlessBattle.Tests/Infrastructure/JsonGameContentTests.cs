@@ -363,10 +363,10 @@ public class JsonGameContentTests
     [Fact]
     public void Skills_LoadSixteenWithFiveLevels()
     {
-        var content = JsonGameContent.Load(ShippedContentDirectory);
-        Assert.Equal(16, content.AllSkills.Count);
-        Assert.Equal(16, content.AllSkills.Select(skill => skill.Id).Distinct().Count());
-        foreach (var skill in content.AllSkills)
+        var customSkills = JsonGameContent.Load(ShippedContentDirectory).AllSkills.Where(skill => CustomContent.IsCustom(skill.Id)).ToList();
+        Assert.Equal(16, customSkills.Count);
+        Assert.Equal(16, customSkills.Select(skill => skill.Id).Distinct().Count());
+        foreach (var skill in customSkills)
         {
             Assert.Equal(5, skill.MaxLevel);
             foreach (var level in skill.Levels)

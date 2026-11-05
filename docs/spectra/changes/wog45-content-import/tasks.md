@@ -104,14 +104,14 @@
 
 ## 3. 技能匯入
 
-- [ ] 3.1 依決策「原版技能的每級數值取自各級說明」、「原版技能的發動方式照現行規則」匯入原版技能 [after: 1.2, 2.7]。對應需求「Original skills are imported as combinations」。
+- [x] 3.1 依決策「原版技能的每級數值取自各級說明」、「原版技能的發動方式照現行規則」匯入原版技能 [after: 1.2, 2.7]。對應需求「Original skills are imported as combinations」。
   - 腳本為每種技能寫一列樣板（條件、消耗、效果的種類與擷取數值的正規表示式），擷取失敗以非 0 結束。
   - 有 `wog-research-battle.md` §3.4 公式的技能逐一比對，不一致寫進 `gaps.md`。
   - 寫在「使敵人無法行動」上的機率轉成 `Stun` 的 `chance`；涵蓋全部效果的機率轉成 `Chance` 條件。
   - 寫在追加傷害、對手能力降低、封鎖技能上的機率，轉成那個效果的 `chance`。
   - 表達不了的技能整個寫進 `gaps.md`：寵物（等寵物系統調整）、組隊（不做）、條件改變機率（假死）。
   - 原版技能以 `skill-<第 1 級 id>` 加入；`job-skills.json` 依原版技能的 `jobId` 產生；`need_sid` 轉成 `prerequisite`；`maxLevel` 取原版的最高等級；`description` 留空。
-  - TDD：先寫 `WogImportTests.Skills_FollowDescriptions`（`skill-1` 爆氣第 n 級：條件 `Chance 30 + 10·n`、效果 `StatChange Caster attack percent n`，n = 1～10），再寫：
+  - TDD：先寫 `WogImportTests.Skills_FollowDescriptions`（`skill-1` 爆氣第 n 級：條件 `Chance min(100, 30 + 10·n)`（機率上限 100）、效果 `StatChange Caster attack percent n`，n = 1～10），再寫：
     - `Skills_ActivationFollowsCurrentRules`（石人陣常駐、沒有條件與消耗，`gaps.md` 註明原版發動率 28% 未採用）
     - `Skills_StunChanceIsEffectChance`（暈擊第 1 級：條件 `Chance 40`、效果 `Stun chance 3`）
     - `Skills_BonusDamageChanceIsEffectChance`（暗器第 1 級：必殺率 +40、追加傷害敏捷×15% 機率 20、迴避 −80）
