@@ -149,7 +149,7 @@ public sealed record SkillOverviewResponse(
     IReadOnlyList<SkillResponse> Skills,
     IReadOnlyList<SkillSlotResponse> Slots);
 
-// Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null），Description 是技能的文字說明；Next 在已滿級時為 null
+// Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null），Description 是技能的文字說明；Prerequisite 在沒有前置技能時為 null；Next 在已滿級時為 null
 public sealed record SkillResponse(
     string Id,
     string Name,
@@ -160,7 +160,10 @@ public sealed record SkillResponse(
     int Level,
     int MaxLevel,
     string? Summary,
+    SkillPrerequisiteResponse? Prerequisite,
     SkillNextLevelResponse? Next);
+
+public sealed record SkillPrerequisiteResponse(string SkillId, string Name, int Level);
 
 public sealed record SkillNextLevelResponse(int Level, long Money, long Proficiency, string Summary, bool CanLearn, IReadOnlyList<string> Reasons);
 

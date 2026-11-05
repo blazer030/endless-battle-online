@@ -107,6 +107,30 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, burst.GetProperty("next").ValueKind);
     }
 
+    // 狂暴爆氣（他職業技能，已學 lv1）要先把爆氣學到 3 級：回傳前置技能的 id、名稱與等級；沒有前置技能時為 null
+    [Fact]
+    public async Task Skills_ReturnPrerequisite()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(characterId, new LearnedSkill("advanced-burst", 1), CancellationToken);
+        }
+
+        var skills = (await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken)).GetProperty("skills").EnumerateArray()
+            .ToDictionary(skill => skill.GetProperty("id").GetString()!);
+
+        var prerequisite = skills["advanced-burst"].GetProperty("prerequisite");
+        Assert.Equal("burst", prerequisite.GetProperty("skillId").GetString());
+        Assert.Equal("爆氣", prerequisite.GetProperty("name").GetString());
+        Assert.Equal(3, prerequisite.GetProperty("level").GetInt32());
+        Assert.Contains("prerequisite", skills["advanced-burst"].GetProperty("next").GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(JsonValueKind.Null, skills["burst"].GetProperty("prerequisite").ValueKind);
+    }
+
     // 治癒（他職業技能，已學 lv1）：效果文字含 HP 條件、SP 消耗、回復量與冷卻；舊的 trigger、chance、rounds 欄位不再回傳
     [Fact]
     public async Task Skills_ReturnSummaryAndDescription()

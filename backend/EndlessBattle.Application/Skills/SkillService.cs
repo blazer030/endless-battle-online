@@ -89,7 +89,7 @@ public sealed class SkillService(
     private SkillTeaching TeachingOf(Character character, SkillDefinition skill, IReadOnlyDictionary<string, int> levels) =>
         new(content.Teaches(character.JobId, skill.Id), skill.Prerequisite is { } prerequisite ? levels.GetValueOrDefault(prerequisite.SkillId) : 0);
 
-    private static SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
+    private SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
     {
         NextLevelView? next = null;
         if (level < skill.MaxLevel)
@@ -103,6 +103,10 @@ public sealed class SkillService(
         var current = level == 0 ? null : skill.LevelAt(Math.Min(level, skill.MaxLevel));
         return new SkillView(
             skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, skill.Icon, level, skill.MaxLevel,
-            current is null ? null : SkillSummary.Of(current), next);
+            current is null ? null : SkillSummary.Of(current),
+            skill.Prerequisite is { } prerequisite
+                ? new SkillPrerequisiteView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level)
+                : null,
+            next);
     }
 }

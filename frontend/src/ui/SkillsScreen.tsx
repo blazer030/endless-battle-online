@@ -7,6 +7,7 @@ import {
   equippedSummary,
   jobReasonText,
   learnReasonText,
+  learnReasonTextOf,
   markCurrentJob,
   PassiveSlots,
   setSlot,
@@ -355,6 +356,7 @@ function SkillCard({
 }) {
   const { next } = skill
   const current = currentParts(skill)
+  const reasonText = learnReasonTextOf(skill)
   return (
     <li className="skills__item">
       <div className="skills__item-head">
@@ -373,13 +375,13 @@ function SkillCard({
         <>
           <p className="skills__next">{nextLevelText(next)}</p>
           {!next.canLearn && (
-            <p className="skills__unmet">{next.reasons.map(learnReasonText).join("、")}</p>
+            <p className="skills__unmet">{next.reasons.map(reasonText).join("、")}</p>
           )}
           <button
             type="button"
             className="skills__action"
             disabled={!next.canLearn || busy}
-            title={reasonsTitle(next.reasons, learnReasonText)}
+            title={reasonsTitle(next.reasons, reasonText)}
             onClick={() => onLearn(skill.id)}
           >
             {skill.level === 0 ? "學習" : "升級"}

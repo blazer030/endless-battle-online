@@ -3214,6 +3214,12 @@ export interface components {
             skills: components["schemas"]["SkillResponse"][];
             slots: components["schemas"]["SkillSlotResponse"][];
         };
+        SkillPrerequisiteResponse: {
+            skillId: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
+        };
         SkillResponse: {
             id: string;
             name: string;
@@ -3226,6 +3232,7 @@ export interface components {
             /** Format: int32 */
             maxLevel: number;
             summary: null | string;
+            prerequisite: null | components["schemas"]["SkillPrerequisiteResponse"];
             next: null | components["schemas"]["SkillNextLevelResponse"];
         };
         SkillSlotRequest: {

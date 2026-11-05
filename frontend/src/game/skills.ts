@@ -102,7 +102,18 @@ export const learnReasonText = translate({
   maxLevel: "已達最高等級",
   notEnoughProficiency: "技能熟練度不足",
   notEnoughMoney: "金錢不足",
+  prerequisite: "前置技能等級不足",
 })
+
+const Prerequisite = "prerequisite"
+
+// 技能卡上的未達成原因：前置技能寫出名稱與要求等級
+export const learnReasonTextOf =
+  ({ prerequisite }: SkillView) =>
+  (code: string) =>
+    code === Prerequisite && prerequisite !== null
+      ? `前置技能：${prerequisite.name} Lv ${prerequisite.level}`
+      : learnReasonText(code)
 
 export const slotReasonText = translate({
   slotOutOfRange: "欄位編號不正確",

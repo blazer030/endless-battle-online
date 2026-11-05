@@ -5,6 +5,7 @@ import {
   equippedSummary,
   jobReasonText,
   learnReasonText,
+  learnReasonTextOf,
   markCurrentJob,
   proficiencyPercent,
   setSlot,
@@ -27,6 +28,7 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   level: 1,
   maxLevel: 5,
   summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
+  prerequisite: null,
   next: null,
   ...overrides,
 })
@@ -172,8 +174,20 @@ describe("skills", () => {
     expect(learnReasonText("maxLevel")).toBe("已達最高等級")
     expect(learnReasonText("notEnoughProficiency")).toBe("技能熟練度不足")
     expect(learnReasonText("notEnoughMoney")).toBe("金錢不足")
+    expect(learnReasonText("prerequisite")).toBe("前置技能等級不足")
     expect(slotReasonText("duplicateSkill")).toBe("同一技能不能裝在兩個欄位")
     expect(slotReasonText("activeInPassiveSlot")).toBe("被動欄只能放被動技能")
     expect(slotReasonText("somethingNew")).toBe("somethingNew")
+  })
+
+  it("learnReasonTextOf_NamesThePrerequisiteSkillAndLevel", () => {
+    const advanced = skill({
+      id: "advanced-burst",
+      prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
+    })
+
+    expect(learnReasonTextOf(advanced)("prerequisite")).toBe("前置技能：爆氣 Lv 3")
+    expect(learnReasonTextOf(advanced)("notEnoughMoney")).toBe("金錢不足")
+    expect(learnReasonTextOf(skill({}))("prerequisite")).toBe("前置技能等級不足")
   })
 })

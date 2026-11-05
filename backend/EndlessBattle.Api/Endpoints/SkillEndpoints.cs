@@ -48,6 +48,9 @@ public static class SkillEndpoints
             skill.Level,
             skill.MaxLevel,
             skill.Summary,
+            skill.Prerequisite is { } prerequisite
+                ? new SkillPrerequisiteResponse(prerequisite.SkillId, prerequisite.Name, prerequisite.Level)
+                : null,
             skill.Next is { } next
                 ? new SkillNextLevelResponse(next.Level, next.Money, next.Proficiency, next.Summary, next.CanLearn, next.Reasons)
                 : null)).ToList(),

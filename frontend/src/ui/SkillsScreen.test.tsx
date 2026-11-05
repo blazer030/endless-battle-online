@@ -65,6 +65,7 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   level: 0,
   maxLevel: 5,
   summary: null,
+  prerequisite: null,
   next: next(),
   ...overrides,
 })
@@ -237,6 +238,25 @@ test("SkillsScreen_KeepsTheJobChange_WhenReloadFails", async () => {
   expect(within(thief).getByText("目前")).toBeInTheDocument()
   expect(within(thief).getByRole("button", { name: "轉職" })).toBeDisabled()
   expect(within(await jobCard("戰士（基礎）")).queryByText("目前")).not.toBeInTheDocument()
+})
+
+test("SkillsScreen_NamesThePrerequisiteSkill", async () => {
+  const advanced = skill({
+    id: "advanced-burst",
+    name: "狂暴爆氣",
+    prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
+    next: next({ canLearn: false, reasons: ["prerequisite", "notEnoughMoney"] }),
+  })
+  renderScreen(
+    createApi({ getSkills: vi.fn().mockResolvedValue({ ...overview, skills: [advanced] }) }),
+  )
+
+  const card = await skillCard("狂暴爆氣 Lv 0/5")
+  expect(within(card).getByText("前置技能：爆氣 Lv 3、金錢不足")).toBeInTheDocument()
+  expect(within(card).getByRole("button", { name: "學習" })).toHaveAttribute(
+    "title",
+    "前置技能：爆氣 Lv 3、金錢不足",
+  )
 })
 
 test("SkillsScreen_ShowsSkillCardsWithNextLevelCost", async () => {
