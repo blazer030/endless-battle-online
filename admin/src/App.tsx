@@ -1,4 +1,4 @@
-import { ThemedLayout, ThemedTitle, useNotificationProvider } from "@refinedev/antd"
+import { ThemedLayout, ThemedSider, ThemedTitle, useNotificationProvider } from "@refinedev/antd"
 import { Refine } from "@refinedev/core"
 import routerProvider, { NavigateToResource } from "@refinedev/react-router"
 import { App as AntdApp, ConfigProvider } from "antd"
@@ -39,6 +39,7 @@ export function App() {
               element={
                 <ThemedLayout
                   Header={AdminHeader}
+                  Sider={(props) => <ThemedSider {...props} fixed />}
                   Title={(props) => <ThemedTitle {...props} text={AppTitle} />}
                 >
                   <DraftError />
