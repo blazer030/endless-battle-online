@@ -142,8 +142,8 @@
     - `git diff --exit-code backend/content/inn.json backend/content/champion.json` 為 0。
     - 執行 `BalanceTests`，若有失敗就暫停、回報失敗的項目與數值，請使用者決定，不自行改門檻。
     - 擴充期間 `Balance_StartingSubPlaceNeverTakesHalfAFreshCharactersHp` 暫時只看自訂怪物；已知原版飛兔 `monster-9`（Lv6、物攻 33，香茅綠地）最大單擊 495，超過門檻 162，要在這一步請使用者決定。
-- [ ] 5.2 依決策「新增 migration 改職業預設值」新增 `backend/db/ddl/V000000016__default_job_id.sql`，把 `characters.job_id` 的預設值改成 `job-6`；接著 `docker compose up -d`，再跑 `./scripts/scaffold-db.sh`，model 有變就一起提交 [after: 5.1]。
-  - 驗證：`./scripts/check-sql.sh` 通過；Testcontainers 測試 `CharacterDefaultsTests.JobId_DefaultsToOriginalWarrior` 不指定 `job_id` 插入一列角色，讀回來是 `job-6`。
+- [x] 5.2 依決策「新增 migration 改職業預設值」新增 `backend/db/ddl/V000000016__default_job_id.sql`，把 `characters.job_id` 的預設值改成 `job-6`；接著 `docker compose up -d`，再跑 `./scripts/scaffold-db.sh`，model 有變就一起提交 [after: 5.1]。
+  - 驗證：`./scripts/check-sql.sh` 通過；Testcontainers 測試不指定 `job_id` 插入一列角色，讀回來是 `job-6`（既有的 `DatabaseSchemaTests.Migration_GivesExistingRowsDefaults` 就是這個情境，改它的預期值，不另寫 `CharacterDefaultsTests`）。
 
 ## 6. 文件與最終驗證
 

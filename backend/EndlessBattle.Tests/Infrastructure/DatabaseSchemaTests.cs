@@ -26,7 +26,7 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         var stored = await reader.Characters.SingleAsync(character => character.Id == characterId, TestContext.Current.CancellationToken);
         Assert.Equal(1, stored.Level);
         Assert.Equal(1000, stored.NextExp);
-        Assert.Equal("warrior", stored.JobId);
+        Assert.Equal("job-6", stored.JobId);
         Assert.Equal(10, stored.BaseStr);
         Assert.Equal(50, stored.Hp);
         Assert.Equal(0, stored.Money);

@@ -124,7 +124,7 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasColumnName("hp");
             entity.Property(e => e.JobId)
                 .HasMaxLength(32)
-                .HasDefaultValueSql("'warrior'")
+                .HasDefaultValueSql("'job-6'")
                 .HasColumnName("job_id");
             entity.Property(e => e.LastSettledAt)
                 .HasMaxLength(6)
