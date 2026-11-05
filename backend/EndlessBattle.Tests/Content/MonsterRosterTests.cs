@@ -32,7 +32,8 @@ public partial class MonsterRosterTests
     [Fact]
     public void Roster_CoversEveryPlaceWithThreeMonsters()
     {
-        Assert.Equal(65 + 3, CustomMonsters.Count());
+        // 自訂任務怪已隨自訂任務換成原版
+        Assert.Equal(65, CustomMonsters.Count());
         Assert.Equal(65, RegularMonsters.Count());
         Assert.All(CustomMonsters, monster => Assert.Matches(KebabCase(), monster.Id));
 
@@ -93,12 +94,12 @@ public partial class MonsterRosterTests
         ["restricted"] = "silver-medal",
     };
 
-    // 每隻 meet 60 的非全域怪（含任務怪）最後一項掉落是所屬大區的勳章 topr 60；其他怪沒有勳章
+    // 每隻 meet 60 的非全域怪最後一項掉落是所屬大區的勳章 topr 60；其他怪沒有勳章
     [Fact]
     public void Roster_EliteMonstersDropTheirAreaMedal()
     {
         var elites = CustomMonsters.Where(monster => monster.Meet == EliteMeet && monster.PlaceId != 0).ToList();
-        Assert.Equal(17, elites.Count);
+        Assert.Equal(14, elites.Count);
         Assert.All(elites, monster =>
         {
             var medal = AreaMedals[Content.GetPlace(monster.PlaceId).AreaId];

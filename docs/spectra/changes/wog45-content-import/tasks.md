@@ -125,7 +125,7 @@
   - TDD：先寫 `WogImportTests.Recipes_KeepOriginalMaterials`（`recipe-1` 產出鋼鐵圓桌盾 `item-308`，材料 `item-125` 與 `item-306` 各 1），再寫 `HonourShop_UsesOriginalExchanges`（`honour-1` 兌換 C 級傭兵，代價是 `h_1`、`h_2` 對到的勳章各 13）。
   - 改寫 `CompanionTableTests`、`ItemTableTests` 中釘住自訂配方、兌換、傭兵的測試，改成釘住原版值。
   - 驗證：`OfficialContent_Loads` 與改寫後的測試通過。
-- [ ] 4.2 任務與任務怪改成原版 [after: 4.1]：
+- [x] 4.2 任務與任務怪改成原版 [after: 4.1]：
   - 一般任務以 `mission-<id>` 匯入，欄位依決策「欄位對照只搬現有規則用得到的」的任務列；有 `missionId` 的原版怪同時加入。
   - 每日任務依決策「每日任務沿用現有結構、改引用原版」改名為 `mission-222` 等，池裡的怪物與道具改成原版 id。
   - 多個擊殺目標、交寵物、`needSkillId`，以及引用了被排除紀錄的獎勵，都寫進 `gaps.md`。

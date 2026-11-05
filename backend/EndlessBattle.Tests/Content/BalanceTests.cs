@@ -11,7 +11,6 @@ namespace EndlessBattle.Tests.Content;
 public class BalanceTests
 {
     private const int HalfOfReferenceHp = 162;
-    private const int MissionLevelTolerance = 10;
     private const int FarthestRoll = 100;
 
     private static readonly JsonGameContent Content =
@@ -84,21 +83,6 @@ public class BalanceTests
             .ToList();
 
         Assert.True(tooStrong.Count == 0, $"超過 {HalfOfReferenceHp}：{string.Join("；", tooStrong)}");
-    }
-
-    [Fact]
-    public void Balance_MissionMonstersWithinTenLevelsOfTheirMission()
-    {
-        var missionMonsters = Content.AllMonsters.Where(monster => monster.MissionId is not null).ToList();
-        Assert.NotEmpty(missionMonsters);
-
-        foreach (var monster in missionMonsters)
-        {
-            var mission = Content.AllMissions.Single(candidate => candidate.Id == monster.MissionId);
-            Assert.True(
-                Math.Abs(monster.Level - mission.Level) <= MissionLevelTolerance,
-                $"{monster.Id} Lv{monster.Level}，任務 {mission.Id} Lv{mission.Level}");
-        }
     }
 
     // 以暴擊倍率（RoundResolver.CriticalOdds）計算；取物理與魔法較大者

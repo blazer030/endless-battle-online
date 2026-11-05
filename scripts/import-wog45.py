@@ -260,25 +260,32 @@ def invalid_monster_reason(monster):
     return None
 
 
-def import_monsters(gaps, item_ids):
+def monster_exclusion(monster, places):
+    """現有規則載入不了、或在本作遇不到的怪物；任務怪另外看任務。"""
+    reason = invalid_monster_reason(monster)
+    place = places.get(monster["placeId"])
+    if reason is None and monster["placeId"] not in PLACE_IDS:
+        reason = f"地點 {monster['placeId']}（{place['name'] if place else '？'}）不在本作地圖"
+    if reason is None and place["subPlaces"] and not monster["subPlaces"]:
+        reason = "原版子地區遮罩為 0：選了子地區時不會出現"
+    return reason
+
+
+def import_monsters(gaps, item_ids, mission_monsters):
+    """mission_monsters：任務怪的原版 id → 匯入的任務 id；只有任務成功匯入、且以牠為擊殺目標的任務怪才匯入。"""
     title = "怪物"
     gaps.note(title, "屬性的地水火木風毒轉成 1～6；子地區名稱轉成該地點的子地區編號 1～4。")
     gaps.note(title, "`str`、`smart`、`vit`、`be` 給技能的「能力比對手高」條件比較；`life`、`image`、`npcMessage` 沒有搬：現有戰鬥規則用不到。")
-    gaps.note(title, "任務怪（`missionId` 有值）在任務 4.2 與任務一起匯入。")
+    gaps.note(title, "任務怪（`missionId` 有值）跟著任務匯入：任務沒有匯入的，任務怪也不匯入。")
     places = {place["id"]: place for place in load("places.json")}
     records = []
     for monster in sorted(load("monsters.json"), key=lambda row: require(row, "id", "monsters.json")):
         monster_id, name = monster["id"], require(monster, "name", "monsters.json")
         for field in ("level", "hp", "sp", "at", "mat", "df", "mdf", "agi", "au", "jobExp", "meet", "placeId", "subPlaces", "drops"):
             require(monster, field, "monsters.json")
-        reason = invalid_monster_reason(monster)
-        if reason is None and monster.get("missionId") is not None:
-            reason = "任務怪：任務 4.2 與任務一起匯入"
-        place = places.get(monster["placeId"])
-        if reason is None and monster["placeId"] not in PLACE_IDS:
-            reason = f"地點 {monster['placeId']}（{place['name'] if place else '？'}）不在本作地圖"
-        if reason is None and place["subPlaces"] and not monster["subPlaces"]:
-            reason = "原版子地區遮罩為 0：選了子地區時不會出現"
+        reason = monster_exclusion(monster, places)
+        if reason is None and monster.get("missionId") is not None and monster_id not in mission_monsters:
+            reason = f"任務怪：任務 {monster['missionId']} 沒有匯入"
         if reason:
             gaps.exclude(title, monster_id, name, reason)
             continue
@@ -297,16 +304,21 @@ def import_monsters(gaps, item_ids):
         if unsupported:
             gaps.field(title, monster_id, name, "；".join(unsupported))
 
-        records.append({
+        record = {
             "id": f"monster-{monster_id}", "name": name, "level": monster["level"], "hp": monster["hp"], "sp": monster["sp"],
             "at": monster["at"], "mat": monster["mat"], "df": monster["df"], "mdf": monster["mdf"], "agi": monster["agi"],
             "au": monster["au"], "element": ELEMENTS[monster.get("element")], "jobExp": monster["jobExp"], "meet": monster["meet"],
             "placeId": monster["placeId"],
-            "subPlaces": [place["subPlaces"].index(sub) + 1 for sub in monster["subPlaces"]],
+            "subPlaces": [places[monster["placeId"]]["subPlaces"].index(sub) + 1 for sub in monster["subPlaces"]],
             "drops": drops,
             "str": monster.get("str", 0), "smart": monster.get("smart", 0), "vit": monster.get("vit", 0), "be": monster.get("be", 0),
-        })
-    return records + custom_records(read_content("monsters.json")["monsters"], "monster")
+        }
+        if monster_id in mission_monsters:
+            record["missionId"] = mission_monsters[monster_id]
+        records.append(record)
+    # 自訂任務已換成原版，自訂任務怪一起移除
+    return records + [monster for monster in custom_records(read_content("monsters.json")["monsters"], "monster")
+                      if monster.get("missionId") is None]
 
 
 def stone_spec(stone):
@@ -427,6 +439,218 @@ def import_honour_shop(gaps, item_ids, mercenary_ids):
     custom = [exchange for exchange in custom_records(read_content("honour-shop.json")["exchanges"], "honour")
               if exchange.get("itemId") in item_ids]
     return records + custom
+
+
+# ---- 任務 ----
+# 每日任務的目標池與報酬池寫在原版 mission/wog_mission_<id>.php，不在資料表裡，照抄在這裡。
+# kills：(怪物 id, 數量)；pets：寵物從這些地點的一般怪（meet 0、非任務怪、非 NPC）擲；
+# bounty：擊殺目標從這些地點的一般怪擲，數量 5～7；rewards：每一筆是 (道具 id, 數量) 的清單
+DAILY_MISSIONS = {
+    222: {"kills": [(1, 6), (49, 6), (19, 6), (104, 6), (22, 5), (26, 5), (36, 4), (57, 4)],
+          "rewards": [[(1304, 1)], [(1305, 1)], [(1306, 1)], [(2222, 1)], [(1307, 1)]]},
+    223: {"pets": [1, 2, 3, 4],
+          "rewards": [[(1422, 1), (1304, 1)], [(1422, 1), (1305, 1)], [(1422, 1), (1306, 1)], [(2222, 1)], [(1422, 1), (1307, 1)]]},
+    224: {"kills": [(57, 6), (59, 6), (65, 6), (67, 6), (73, 5), (77, 5), (109, 5), (44, 5)],
+          "rewards": [[(260, 3), (1304, 2)], [(260, 3), (1305, 2)], [(260, 3), (1306, 2)], [(260, 3), (2222, 2)], [(260, 3), (1307, 2)]]},
+    225: {"pets": [5, 6, 7, 8],
+          "rewards": [[(1423, 1), (1304, 1)], [(1423, 1), (1305, 1)], [(1423, 1), (1306, 1)], [(1423, 1), (2222, 1)], [(1423, 1), (1307, 1)]]},
+    # 原版報酬是交易所物資（本作沒有），沿用計畫 8 的金錢報酬
+    271: {"bounty": [3, 4], "money": [400, 500, 600]},
+    272: {"bounty": [5, 6], "money": [2400, 3000, 3600]},
+    273: {"bounty": [7, 13], "money": [1000, 1250, 1500]},
+    274: {"bounty": [8, 16], "money": [800, 1000, 1200]},
+}
+BOUNTY_COUNTS = [5, 6, 7]
+SEX_ANY = 3
+
+
+def text(value):
+    return (value or "").strip()
+
+
+def merge_quantities(entries):
+    merged = {}
+    for item_id, quantity in entries:
+        merged[item_id] = merged.get(item_id, 0) + quantity
+    return [{"itemId": item_id, "quantity": quantity} for item_id, quantity in merged.items()]
+
+
+def skill_owners():
+    groups = {}
+    for row in sorted(load("skills.json"), key=lambda row: row["id"]):
+        groups.setdefault(row["name"], []).append(row)
+    return {row["id"]: (f"skill-{rows[0]['id']}", index + 1) for rows in groups.values() for index, row in enumerate(rows)}
+
+
+def import_missions(gaps, item_ids, skill_ids, job_skills):
+    """回傳 (任務紀錄, 任務怪的原版 id → 任務 id)。"""
+    title = "任務"
+    gaps.note(title, "`npc`、`subject`、`body`、`endMessage` 轉 `giver`、`title`、`description`、`completionMessage`；單一擊殺轉 `kill`、`needItems` 轉 `deliver`。")
+    gaps.note(title, "`job`、`sex`、`requiresMissionId`、`excludesMissionId` 轉 `requirements`；`rewardMoney`、`rewardItems`、`rewardSkillId`、`rewardPet` 轉 `rewards`。")
+    gaps.note(title, "`placeId`：有擊殺目標的是目標所在的地點；沒有的用原版 `areaId`，`areaId` 是 0 或禁區時寫起始地點（只用來顯示）。`storeId`、`repeatable` 沒有搬。")
+    gaps.note(title, "每日任務的目標池與報酬池照抄原版 `mission/wog_mission_<id>.php`；271～274 原版報酬是交易所物資（本作沒有），沿用計畫 8 的金錢報酬。")
+    gaps.note(title, "任務引用的道具、技能、寵物沒有匯入時，那一項獎勵不給；前置或互斥的任務沒有匯入時，拿掉那項條件。")
+    sources = sorted(load("missions.json"), key=lambda row: require(row, "id", "missions.json"))
+    monsters = {monster["id"]: monster for monster in load("monsters.json")}
+    places = {place["id"]: place for place in load("places.json")}
+    jobs = {job["name"]: f"job-{job['id']}" for job in load("jobs.json")}
+    owners = skill_owners()
+    starting_place = read_content("world.json")["startingPlaceId"]
+    restricted = set(KEY_PLACES.values())
+    daily_ids = {mission["id"] for mission in sources if require(mission, "daily", "missions.json")}
+
+    def monster_ok(monster_id, mission_id):
+        monster = monsters.get(monster_id)
+        if monster is None or monster_exclusion(monster, places) is not None:
+            return False
+        return monster.get("missionId") in (None, mission_id)
+
+    # 第一輪：決定哪些一般任務能匯入
+    accepted, mission_monsters = {}, {}
+    for mission in sources:
+        mission_id, name = mission["id"], require(mission, "subject", "missions.json")
+        if mission_id in daily_ids:
+            continue
+        kills, needs = require(mission, "kills", "missions.json"), require(mission, "needItems", "missions.json")
+        reason = None
+        if len(kills) > 1:
+            reason = f"擊殺目標 {len(kills)} 種：一般任務只能有一個擊殺目標"
+        elif require(mission, "petId", "missions.json") is not None:
+            reason = "交寵物的目標：一般任務只能擊殺或交付道具"
+        elif not kills and not needs:
+            reason = "沒有擊殺或交付目標"
+        elif any(f"item-{need['itemId']}" not in item_ids for need in needs):
+            reason = "交付的道具沒有匯入：" + "、".join(f"item-{need['itemId']}" for need in needs if f"item-{need['itemId']}" not in item_ids)
+        elif kills and not monster_ok(kills[0]["monsterId"], mission_id):
+            reason = f"擊殺目標 monster-{kills[0]['monsterId']} 沒有匯入"
+        elif kills and monsters[kills[0]["monsterId"]]["placeId"] in restricted:
+            reason = "擊殺目標在禁區：任務不能在禁區"
+        elif kills and monsters[kills[0]["monsterId"]]["placeId"] == 0:
+            reason = "擊殺目標是全域怪（地點 0）：任務要有所在的地點"
+        if reason:
+            gaps.exclude(title, mission_id, name, reason)
+            continue
+        accepted[mission_id] = mission
+        if kills and monsters[kills[0]["monsterId"]].get("missionId") == mission_id:
+            mission_monsters[kills[0]["monsterId"]] = f"mission-{mission_id}"
+
+    records = []
+    for mission in sources:
+        mission_id = mission["id"]
+        if mission_id in daily_ids:
+            records.append(daily_mission(mission, gaps, title, item_ids, monsters, places))
+            continue
+        if mission_id not in accepted:
+            continue
+        name = mission["subject"]
+        kills = mission["kills"]
+        if kills:
+            place_id = monsters[kills[0]["monsterId"]]["placeId"]
+        else:
+            area = require(mission, "areaId", "missions.json")
+            place_id = area if area in places and area in PLACE_IDS and area != 0 and area not in restricted else starting_place
+
+        requirements = {}
+        job = require(mission, "job", "missions.json")
+        if job != "不限":
+            requirements["jobId"] = jobs[job]
+        if require(mission, "sex", "missions.json") != SEX_ANY:
+            requirements["sex"] = mission["sex"]
+        for field, source in (("prerequisiteId", "requiresMissionId"), ("conflictsWith", "excludesMissionId")):
+            target = require(mission, source, "missions.json")
+            if target is None:
+                continue
+            if target == mission_id:
+                gaps.field(title, mission_id, name, f"{source} 是自己（{target}），拿掉")
+            elif target not in accepted:
+                gaps.field(title, mission_id, name, f"{source} {target} 沒有匯入，拿掉這項條件")
+            else:
+                requirements[field] = f"mission-{target}"
+        if mission.get("needSkillId") is not None:
+            gaps.field(title, mission_id, name, f"needSkillId {mission['needSkillId']}：本作的任務沒有技能條件")
+
+        reward_items = []
+        for reward in require(mission, "rewardItems", "missions.json"):
+            item_id = f"item-{reward['itemId']}"
+            if item_id in item_ids:
+                reward_items.append((item_id, reward["count"]))
+            else:
+                gaps.field(title, mission_id, name, f"獎勵 {item_id} {reward['item']} 沒有匯入，不給")
+        rewards = {"money": require(mission, "rewardMoney", "missions.json")}
+        if reward_items:
+            rewards["items"] = merge_quantities(reward_items)
+        skill_row = require(mission, "rewardSkillId", "missions.json")
+        if skill_row is not None:
+            skill_id, level = owners.get(skill_row, (None, None))
+            if skill_id not in skill_ids or level != 1:
+                gaps.field(title, mission_id, name, f"技能獎勵 {skill_row} 沒有匯入或不是第 1 級，不給")
+            elif (requirements.get("jobId"), skill_id) not in job_skills:
+                gaps.field(title, mission_id, name, f"技能獎勵 {skill_id} 不是任務職業能學的技能，不給")
+            else:
+                rewards["skill"] = {"skillId": skill_id, "level": 1}
+        pet = require(mission, "rewardPet", "missions.json")
+        if pet is not None:
+            if monster_ok(pet["id"], None) and monsters[pet["id"]].get("missionId") is None:
+                rewards["pet"] = {"monsterId": f"monster-{pet['id']}", "level": pet["level"]}
+            else:
+                gaps.field(title, mission_id, name, f"寵物獎勵 monster-{pet['id']} 沒有匯入或是任務怪，不給")
+
+        record = {"id": f"mission-{mission_id}", "giver": text(mission["npc"]), "title": text(name),
+                  "description": text(mission["body"]), "completionMessage": text(mission["endMessage"]),
+                  "level": require(mission, "level", "missions.json"), "placeId": place_id, "daily": False}
+        if kills:
+            record["kill"] = {"monsterId": f"monster-{kills[0]['monsterId']}", "count": kills[0]["count"]}
+        if mission["needItems"]:
+            record["deliver"] = merge_quantities((f"item-{need['itemId']}", need["count"]) for need in mission["needItems"])
+        if requirements:
+            record["requirements"] = requirements
+        record["rewards"] = rewards
+        records.append(record)
+    return records, mission_monsters
+
+
+def daily_mission(mission, gaps, title, item_ids, monsters, places):
+    mission_id, name = mission["id"], mission["subject"]
+    pools = DAILY_MISSIONS.get(mission_id)
+    if pools is None:
+        raise SourceError(f"missions.json 的每日任務 {mission_id} 沒有目標池")
+
+    def ordinary(place_ids):
+        return [monster_id for monster_id, monster in sorted(monsters.items())
+                if monster["placeId"] in place_ids and monster["meet"] == 0 and monster.get("missionId") is None
+                and not monster.get("npc") and monster_exclusion(monster, places) is None]
+
+    record = {"id": f"mission-{mission_id}", "giver": text(mission["npc"]), "title": text(name),
+              "description": text(mission["body"]), "completionMessage": text(mission["endMessage"]),
+              "level": require(mission, "level", "missions.json"), "placeId": None, "daily": True}
+    if "kills" in pools:
+        kills = []
+        for monster_id, count in pools["kills"]:
+            if monsters.get(monster_id) is None or monster_exclusion(monsters[monster_id], places) is not None:
+                gaps.field(title, mission_id, name, f"目標池的 monster-{monster_id} 沒有匯入，拿掉")
+            else:
+                kills.append({"monsterId": f"monster-{monster_id}", "count": count})
+        record["dailyKills"] = kills
+    elif "pets" in pools:
+        record["dailyPets"] = [f"monster-{monster_id}" for monster_id in ordinary(pools["pets"])]
+    else:
+        record["dailyKills"] = [{"monsterId": f"monster-{monster_id}", "count": count}
+                                for monster_id in ordinary(pools["bounty"]) for count in BOUNTY_COUNTS]
+
+    if "money" in pools:
+        record["dailyRewards"] = [{"money": money} for money in pools["money"]]
+    else:
+        rewards = []
+        for entry in pools["rewards"]:
+            items = []
+            for item_id, quantity in entry:
+                if f"item-{item_id}" in item_ids:
+                    items.append((f"item-{item_id}", quantity))
+                else:
+                    gaps.field(title, mission_id, name, f"報酬池的 item-{item_id} 沒有匯入，不給")
+            rewards.append({"money": 0, "items": merge_quantities(items)})
+        record["dailyRewards"] = rewards
+    return record
 
 
 # ---- 技能 ----
@@ -752,21 +976,27 @@ def format_content(root):
 
 def main():
     gaps = Gaps()
+    # gaps.md 依內容種類固定順序
+    for title in ("道具", "職業", "怪物", "技能", "任務", "配方", "傭兵", "勳章所"):
+        gaps.section(title)
     try:
         items = import_items(gaps)
+        item_ids = {item["id"] for item in items}
+        mercenaries = import_mercenaries(gaps)
+        skills, job_skills = import_skills(gaps)
+        missions, mission_monsters = import_missions(
+            gaps, item_ids, {skill["id"] for skill in skills}, {(row["jobId"], row["skillId"]) for row in job_skills})
         outputs = {
             "items.json": {"items": items},
             "jobs.json": {"jobs": import_jobs(gaps)},
-            "monsters.json": {"monsters": import_monsters(gaps, {item["id"] for item in items})},
+            "monsters.json": {"monsters": import_monsters(gaps, item_ids, mission_monsters)},
+            "recipes.json": {"recipes": import_recipes(gaps, item_ids)},
+            "mercenaries.json": {"mercenaries": mercenaries},
+            "honour-shop.json": {"exchanges": import_honour_shop(gaps, item_ids, {row["id"] for row in mercenaries})},
+            "skills.json": {"skills": skills},
+            "job-skills.json": {"jobSkills": job_skills},
+            "missions.json": {"missions": missions},
         }
-        item_ids = {item["id"] for item in items}
-        mercenaries = import_mercenaries(gaps)
-        outputs["recipes.json"] = {"recipes": import_recipes(gaps, item_ids)}
-        outputs["mercenaries.json"] = {"mercenaries": mercenaries}
-        outputs["honour-shop.json"] = {"exchanges": import_honour_shop(gaps, item_ids, {row["id"] for row in mercenaries})}
-        skills, job_skills = import_skills(gaps)
-        outputs["skills.json"] = {"skills": skills}
-        outputs["job-skills.json"] = {"jobSkills": job_skills}
     except (SourceError, KeyError) as error:
         print(f"匯入失敗：{error}", file=sys.stderr)
         return 1

@@ -175,4 +175,28 @@ public class WogImportTests
         Assert.Equal((ItemCategory.Key, 17, 86400), (caveKey.Category, caveKey.Key!.PlaceId, caveKey.Key.Seconds));
         Assert.DoesNotContain(Content.AllItems, item => item.Id == "abandoned-cave-key");
     }
+
+    [Fact]
+    public void Missions_KeepOriginalGoals()
+    {
+        var fishingNet = Content.GetMission("mission-1");
+        var mile = Content.GetMission("mission-2");
+
+        Assert.Equal(("漁人碼頭村長 周漁民", "製作漁網", 20), (fishingNet.Giver, fishingNet.Title, fishingNet.Level));
+        Assert.Equal([new ItemQuantity("item-331", 1)], fishingNet.Deliver);
+        Assert.Equal([new ItemQuantity("item-342", 1)], fishingNet.Rewards.Items);
+        Assert.Equal((new KillTarget("monster-212", 1), "mission-1", 4), (mile.Kill!, mile.Requirements.PrerequisiteId!, mile.PlaceId!.Value));
+        Assert.Equal("mission-2", Content.GetMonster("monster-212").MissionId);
+    }
+
+    [Fact]
+    public void Missions_DropReferencesToExcludedRecords()
+    {
+        var petCapture = Content.GetMission("mission-223");
+
+        Assert.All(petCapture.DailyRewards, reward => Assert.DoesNotContain(reward.Items, item => item.ItemId == "item-1422"));
+        Assert.Contains("| 223 | [每日]寵物捕捉任務 | 報酬池的 item-1422 沒有匯入，不給 |", Gaps);
+        Assert.Null(Content.GetMission("mission-182").Rewards.Pet);
+        Assert.Contains("| 182 | 變髮革命 | 寵物獎勵 monster-232 沒有匯入或是任務怪，不給 |", Gaps);
+    }
 }
