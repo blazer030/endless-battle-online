@@ -101,7 +101,7 @@ public class ChampionDuelTests
     [Fact]
     public void Duel_AppliesEquippedSkills()
     {
-        var burst = new EquippedSkill(TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier), Level: 1, Slot: 1);
+        var burst = new EquippedSkill(TestSkills.Battle("burst", "爆氣", SkillPreset.AtMultiplier), Level: 1, Slot: 1);
 
         var result = ChampionDuel.Fight(Weak, EquipmentBonus.Zero, [burst], Seat, Now, new ScriptedRandom(0.0));
 

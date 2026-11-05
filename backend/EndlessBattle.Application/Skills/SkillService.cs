@@ -89,7 +89,7 @@ public sealed class SkillService(
     private SkillTeaching TeachingOf(Character character, SkillDefinition skill, IReadOnlyDictionary<string, int> levels) =>
         new(content.Teaches(character.JobId, skill.Id), skill.Prerequisite is { } prerequisite ? levels.GetValueOrDefault(prerequisite.SkillId) : 0);
 
-    private static SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
+    private SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
     {
         NextLevelView? next = null;
         if (level < skill.MaxLevel)
@@ -102,27 +102,29 @@ public sealed class SkillService(
         // 內容縮減等級上限時，已學等級以上限計
         var current = level == 0 ? null : skill.LevelAt(Math.Min(level, skill.MaxLevel));
         return new SkillView(
-            skill.Id, skill.Name, skill.Type, skill.Timing, skill.Effect, skill.Description, skill.JobId, level, skill.MaxLevel,
+            skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, JobOf(character, skill), level, skill.MaxLevel,
             current is null ? 0 : RoundsOf(current), current is null ? 0 : ChanceOf(current), current?.Cooldown ?? 0, TriggerOf(skill), next);
     }
 
-    // 新格式的技能在畫面改用效果文字之前，先換算成舊欄位，回應維持不變
-    private static int SpOf(SkillLevel level) => level.Costs is { } costs
-        ? costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => cost.Amount)
-        : level.Sp;
+    // 技能頁改用效果文字之前，先把每級的條件、消耗、效果換算成舊欄位，回應維持不變
+    private static int SpOf(SkillLevel level) =>
+        level.Costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => cost.Amount);
 
-    private static int RoundsOf(SkillLevel level) => level.Effects is { Count: > 0 } effects ? effects.Max(effect => effect.Rounds) : level.Rounds;
+    private static int RoundsOf(SkillLevel level) => level.Effects.Max(effect => effect.Rounds);
 
-    private static int ChanceOf(SkillLevel level) => level.Conditions is { } conditions
-        ? conditions.FirstOrDefault(condition => condition.Kind == SkillConditionKind.Chance)?.Percent ?? 0
-        : level.Chance;
+    private static int ChanceOf(SkillLevel level) =>
+        level.Conditions.FirstOrDefault(condition => condition.Kind == SkillConditionKind.Chance)?.Percent ?? 0;
 
-    private static SkillTrigger? TriggerOf(SkillDefinition skill) => !skill.IsComposed
-        ? skill.EffectiveTrigger
-        : skill.Levels[0].Conditions!.FirstOrDefault() switch
-        {
-            { Kind: SkillConditionKind.HitPointsBelow, Percent: var percent } => SkillTrigger.HpBelow(percent),
-            { Kind: SkillConditionKind.Chance } => SkillTrigger.Chance,
-            _ => null,
-        };
+    private static SkillTrigger? TriggerOf(SkillDefinition skill) => skill.Levels[0].Conditions.FirstOrDefault() switch
+    {
+        { Kind: SkillConditionKind.HitPointsBelow, Percent: var percent } => SkillTrigger.HpBelow(percent),
+        { Kind: SkillConditionKind.Chance } => SkillTrigger.Chance,
+        _ => null,
+    };
+
+    // 目前職業教的技能回目前職業，其餘回第一個教它的職業
+    private string JobOf(Character character, SkillDefinition skill) =>
+        content.Teaches(character.JobId, skill.Id)
+            ? character.JobId
+            : content.AllJobs.FirstOrDefault(job => content.Teaches(job.Id, skill.Id))?.Id ?? "";
 }

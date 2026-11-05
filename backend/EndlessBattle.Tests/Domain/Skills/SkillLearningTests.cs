@@ -8,8 +8,8 @@ namespace EndlessBattle.Tests.Domain.Skills;
 public class SkillLearningTests
 {
     private static readonly Character Warrior = TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch);
-    private static readonly SkillDefinition Burst = TestSkills.Create("burst", "warrior", SkillType.Active);
-    private static readonly SkillDefinition Combo = TestSkills.Create("combo", "thief", SkillType.Active);
+    private static readonly SkillDefinition Burst = TestSkills.Create("burst", SkillType.Active);
+    private static readonly SkillDefinition Combo = TestSkills.Create("combo", SkillType.Active);
 
     // 目前職業有沒有教這個技能（job-skills.json）與前置技能已學的等級，由呼叫端查好傳入
     private static readonly SkillTeaching Taught = new(TaughtByCurrentJob: true, PrerequisiteLevel: 0);

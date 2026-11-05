@@ -39,7 +39,7 @@ public class AdventureSimulatorTests
 
     private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", 1, 1, From);
 
-    private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", "warrior", SkillType.Active), Level: 1, Slot: 1);
+    private static readonly EquippedSkill Burst = new(TestSkills.Create("burst", SkillType.Active), Level: 1, Slot: 1);
 
     private static AdventureRun Run(Character character, double seconds, IRandomSource? random = null, params MonsterDefinition[] monsters) =>
         Run(character, seconds, skills: [], random, monsters);
@@ -272,7 +272,7 @@ public class AdventureSimulatorTests
     public void Adventure_RestsWhenSpBelowThreshold_OnlyWithActiveSkills()
     {
         var hero = Hero() with { Hp = 350, Sp = 13 };
-        var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", "warrior", SkillType.Passive), Level: 1, Slot: 4);
+        var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", SkillType.Passive), Level: 1, Slot: 4);
 
         Assert.IsType<RestEvent>(Run(hero, seconds: 1, skills: [Burst]).Events[0]);
         Assert.IsType<EncounterEvent>(Run(hero, seconds: 1).Events[0]);
@@ -308,7 +308,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_ResetsCooldownEachFight()
     {
-        var longCooldown = Burst with { Skill = TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier, cooldown: 99) };
+        var longCooldown = Burst with { Skill = TestSkills.Battle("burst", "爆氣", SkillPreset.AtMultiplier, cooldown: 99) };
 
         var run = Run(Hero(), seconds: 3, skills: [longCooldown]);
 

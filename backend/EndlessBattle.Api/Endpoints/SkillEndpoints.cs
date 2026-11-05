@@ -43,7 +43,6 @@ public static class SkillEndpoints
             skill.Name,
             skill.Type,
             skill.Timing,
-            skill.Effect,
             skill.Description,
             skill.JobId,
             skill.Level,

@@ -4,15 +4,16 @@ namespace EndlessBattle.Tests.Domain.Skills;
 
 public class SkillDefinitionTests
 {
-    private static readonly SkillDefinition Skill = new(
-        "burst", "爆氣", "warrior", SkillType.Active, SkillTiming.BeforeAttack, SkillEffectKind.AtMultiplier, "說明",
-        [new SkillLevel(1, 5, 3, 0, 500, 300), new SkillLevel(2, 8, 3, 0, 2000, 600)]);
+    private static SkillLevel Level(int level, long money) => new(level, money, 300L * level, 0,
+        [new SkillCondition(SkillConditionKind.Chance, 40)], [], [new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, level, null, null, 3)]);
+
+    private static readonly SkillDefinition Skill = new("burst", "爆氣", SkillType.Active, SkillTiming.BeforeAttack, "說明", [Level(1, 500), Level(2, 2000)]);
 
     [Fact]
     public void LevelAt_ReturnsMatchingLevel()
     {
         Assert.Equal(2, Skill.MaxLevel);
-        Assert.Equal(8, Skill.LevelAt(2).Sp);
+        Assert.Equal(2000, Skill.LevelAt(2).Money);
     }
 
     [Theory]

@@ -20,7 +20,6 @@ public sealed record BattleModifiers(
     int PhysicalHits = 1,
     int MagicHits = 1,
     double EnemyAgi = 1,
-    double EnemyAttack = 1,
     int StunChance = 0,
     int FlatMat = 0,
     int FlatDf = 0,
@@ -43,8 +42,8 @@ public sealed record BattleModifiers(
 
     public CombatantState ApplyToMonster(CombatantState monster) => monster with
     {
-        At = Scale(monster.At, EnemyAttack * EnemyAt),
-        Mat = Scale(monster.Mat, EnemyAttack * EnemyMat),
+        At = Scale(monster.At, EnemyAt),
+        Mat = Scale(monster.Mat, EnemyMat),
         Agi = Scale(monster.Agi, EnemyAgi),
     };
 

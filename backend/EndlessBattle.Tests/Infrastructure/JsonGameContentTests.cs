@@ -57,10 +57,6 @@ public class JsonGameContentTests
     private const string ValidChampion = $$"""{ "champion": {{ValidChampionSeat}} }""";
 
     // 主動技能的一級；被動常駐，sp／rounds／chance 都是 0
-    private const string ValidLevel = """{ "level": 1, "sp": 5, "rounds": 3, "chance": 40, "money": 500, "proficiency": 300 }""";
-
-    private const string ValidPassiveLevel = """{ "level": 1, "sp": 0, "rounds": 0, "chance": 0, "money": 500, "proficiency": 300 }""";
-
     private const string ValidJobs = $$"""{ "jobs": [{{ValidWarrior}}] }""";
 
     // 怪物數值範圍：hp、agi（命中公式的分母）必須大於 0，屬性 0～6，遇敵率 0～100，等級至少 1
@@ -273,14 +269,6 @@ public class JsonGameContentTests
         AssertLoadRejects(ValidMonsters, jobsJson, offendingId);
     }
 
-    // trigger 是技能層級的發動條件 JSON，null 表示不寫（主動擲發動率、被動常駐）
-    private static string SkillJson(string id, string jobId, string type, string levels, string? trigger = null) =>
-        $$"""{ "id": "{{id}}", "name": "技", "jobId": "{{jobId}}", "type": "{{type}}", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", {{(trigger is null ? "" : $"\"trigger\": {trigger}, ")}}"levels": [{{levels}}] }""";
-
-    private const string HpBelowFifty = """{ "kind": "hpBelow", "percent": 50 }""";
-
-    private static readonly string HpBelowLevel = ValidLevel.Replace("\"chance\": 40", "\"chance\": 0");
-
     private static void AssertSkillsRejected(string skills, string offendingText) =>
         AssertLoadRejects(ValidMonsters, ValidJobs, offendingText, $$"""{ "skills": [{{skills}}] }""");
 
@@ -293,7 +281,7 @@ public class JsonGameContentTests
     private const string AttackUp = """[{ "kind": "StatChange", "target": "Caster", "stat": "attack", "percent": 1, "rounds": 3 }]""";
 
     private static string ComposedSkillJson(string id, int maxLevel, params string[] levels) =>
-        $$"""{ "id": "{{id}}", "name": "技", "jobId": "warrior", "slotType": "Active", "timing": "BeforeAttack", "description": "說明", "maxLevel": {{maxLevel}}, "levels": [{{string.Join(", ", levels)}}] }""";
+        $$"""{ "id": "{{id}}", "name": "技", "slotType": "Active", "timing": "BeforeAttack", "description": "說明", "maxLevel": {{maxLevel}}, "levels": [{{string.Join(", ", levels)}}] }""";
 
     [Fact]
     public void Skill_ComposedLevelsLoad()
@@ -301,7 +289,6 @@ public class JsonGameContentTests
         var skill = LoadSkills(ComposedSkillJson("burst", 2, ComposedLevel(1, ChanceForty, AttackUp), ComposedLevel(2, ChanceForty, AttackUp)))
             .GetSkill("burst");
 
-        Assert.True(skill.IsComposed);
         Assert.Equal(2, skill.MaxLevel);
         Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 40)], skill.LevelAt(2).Conditions!);
         Assert.Equal([new SkillCost(SkillCostKind.SkillPoints, 2)], skill.LevelAt(2).Costs!);
@@ -414,139 +401,49 @@ public class JsonGameContentTests
     }
 
     [Fact]
-    public void Skills_RejectUnknownJob() =>
-        AssertSkillsRejected(SkillJson("ghost-skill", "nobody", "active", ValidLevel), "nobody");
+    public void Skills_RejectDuplicateId()
+    {
+        var twin = ComposedSkillJson("twin", 1, ComposedLevel(1, ChanceForty, AttackUp));
+        AssertSkillsRejected($"{twin}, {twin}", "twin");
+    }
 
     [Fact]
-    public void Skills_RejectDuplicateId() =>
-        AssertSkillsRejected(
-            $"{SkillJson("twin", "warrior", "active", ValidLevel)}, {SkillJson("twin", "warrior", "active", ValidLevel)}",
-            "twin");
+    public void Skills_LoadHitPointsBelowCondition()
+    {
+        var skill = LoadSkills(ComposedSkillJson("rescue", 1, ComposedLevel(1, """[{ "kind": "HitPointsBelow", "percent": 50 }]""", AttackUp)))
+            .GetSkill("rescue");
 
-    [Fact]
-    public void Skills_RejectNonIncreasingLevels() =>
-        AssertSkillsRejected(
-            SkillJson("jumpy", "warrior", "active", $"{ValidLevel}, {ValidLevel.Replace("\"level\": 1", "\"level\": 3")}"),
-            "jumpy");
+        Assert.Equal([new SkillCondition(SkillConditionKind.HitPointsBelow, 50)], skill.LevelAt(1).Conditions);
+    }
 
-    // 被動常駐：sp、rounds、chance 任一不為 0 都拒絕
+    // HitPointsBelow 1～99、Chance 1～100
     [Theory]
-    [InlineData("\"sp\": 0", "\"sp\": 5")]
-    [InlineData("\"rounds\": 0", "\"rounds\": 3")]
-    [InlineData("\"chance\": 0", "\"chance\": 30")]
-    public void Skills_RejectPassiveWithCostDurationOrChance(string zero, string nonZero)
-    {
-        Assert.Equal(0, LoadSkills(SkillJson("calm", "warrior", "passive", ValidPassiveLevel)).GetSkill("calm").LevelAt(1).Chance);
-        AssertSkillsRejected(SkillJson("lazy", "warrior", "passive", ValidPassiveLevel.Replace(zero, nonZero)), "lazy");
-    }
-
-    [Fact]
-    public void Skills_LoadHpBelowTrigger()
-    {
-        var loaded = LoadSkills(
-            $"{SkillJson("rescue", "warrior", "active", HpBelowLevel, HpBelowFifty)}, {SkillJson("guard", "warrior", "passive", TriggeredPassiveLevel.Replace("\"chance\": 40", "\"chance\": 0"), HpBelowFifty)}");
-
-        Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("rescue").Trigger);
-        Assert.Equal(SkillTrigger.HpBelow(50), loaded.GetSkill("guard").Trigger);
-    }
-
-    // percent 必須 1～99
-    [Theory]
-    [InlineData(0)]
-    [InlineData(100)]
-    public void Skills_RejectHpBelowPercentOutOfRange(int percent) =>
+    [InlineData("HitPointsBelow", 0)]
+    [InlineData("HitPointsBelow", 100)]
+    [InlineData("Chance", 0)]
+    [InlineData("Chance", 101)]
+    public void Skills_RejectConditionPercentOutOfRange(string kind, int percent) =>
         AssertSkillsRejected(
-            SkillJson("edge", "warrior", "active", HpBelowLevel, $$"""{ "kind": "hpBelow", "percent": {{percent}} }"""), "edge");
-
-    // hpBelow 不擲骰，chance 必須是 0
-    [Fact]
-    public void Skills_RejectHpBelowWithChance() =>
-        AssertSkillsRejected(SkillJson("greedy", "warrior", "active", ValidLevel, HpBelowFifty), "greedy");
-
-    // 觸發型被動：sp 0、rounds ≥ 1；chance 型 chance 1～100，hpBelow 型 chance 0
-    private const string TriggeredPassiveLevel = """{ "level": 1, "sp": 0, "rounds": 3, "chance": 40, "money": 500, "proficiency": 300 }""";
+            ComposedSkillJson("edge", 1, ComposedLevel(1, $$"""[{ "kind": "{{kind}}", "percent": {{percent}} }]""", AttackUp)), "edge 第 1 級");
 
     [Fact]
-    public void Skills_LoadTriggeredPassives()
-    {
-        var loaded = LoadSkills(
-            $$"""{{SkillJson("parry", "warrior", "passive", TriggeredPassiveLevel, """{ "kind": "chance" }""")}}, {{SkillJson("rally", "warrior", "passive", TriggeredPassiveLevel.Replace("\"chance\": 40", "\"chance\": 0"), HpBelowFifty)}}""");
-
-        Assert.Equal((SkillTrigger.Chance, 3, 40), (loaded.GetSkill("parry").Trigger, loaded.GetSkill("parry").LevelAt(1).Rounds, loaded.GetSkill("parry").LevelAt(1).Chance));
-        Assert.Equal((3, 0), (loaded.GetSkill("rally").LevelAt(1).Rounds, loaded.GetSkill("rally").LevelAt(1).Chance));
-    }
-
-    [Theory]
-    [InlineData("chance", "\"rounds\": 3", "\"rounds\": 0")]
-    [InlineData("chance", "\"sp\": 0", "\"sp\": 5")]
-    [InlineData("chance", "\"chance\": 40", "\"chance\": 0")]
-    [InlineData("chance", "\"chance\": 40", "\"chance\": 101")]
-    [InlineData("hpBelow", "\"chance\": 40", "\"chance\": 40")]
-    public void Skills_RejectInvalidTriggeredPassive(string kind, string from, string to)
-    {
-        var level = kind == "hpBelow" ? TriggeredPassiveLevel : TriggeredPassiveLevel.Replace(from, to);
-        AssertSkillsRejected(SkillJson("shaky", "warrior", "passive", level, $$"""{ "kind": "{{kind}}", "percent": 50 }"""), "shaky");
-    }
-
-    [Fact]
-    public void Skills_RejectUnknownTriggerKind() =>
-        AssertSkillsRejected(SkillJson("odd", "warrior", "active", ValidLevel, """{ "kind": "moonlight" }"""), "odd");
-
-    // 明寫 chance 等同不寫：照該級 chance 擲骰，chance 仍須 1～100
-    [Fact]
-    public void Skills_AcceptExplicitChanceTrigger()
-    {
-        var loaded = LoadSkills(SkillJson("plain", "warrior", "active", ValidLevel, """{ "kind": "chance" }"""));
-        Assert.Equal(SkillTrigger.Chance, loaded.GetSkill("plain").Trigger);
-        AssertSkillsRejected(SkillJson("zero", "warrior", "active", HpBelowLevel, """{ "kind": "chance" }"""), "zero");
-    }
+    public void Skills_RejectUnknownConditionKind() =>
+        AssertSkillsRejected(ComposedSkillJson("odd", 1, ComposedLevel(1, """[{ "kind": "Moonlight", "percent": 50 }]""", AttackUp)), "odd 第 1 級");
 
     [Fact]
     public void Skills_RejectNegativeCooldown()
     {
-        var withCooldown = ValidLevel.Replace("\"proficiency\": 300", "\"proficiency\": 300, \"cooldown\": 4");
-        Assert.Equal(4, LoadSkills(SkillJson("patient", "warrior", "active", withCooldown)).GetSkill("patient").LevelAt(1).Cooldown);
+        var patient = ComposedLevel(1, ChanceForty, AttackUp).Replace("\"cooldown\": 0", "\"cooldown\": 4");
+        Assert.Equal(4, LoadSkills(ComposedSkillJson("patient", 1, patient)).GetSkill("patient").LevelAt(1).Cooldown);
         AssertSkillsRejected(
-            SkillJson("hasty", "warrior", "active", ValidLevel.Replace("\"proficiency\": 300", "\"proficiency\": 300, \"cooldown\": -1")),
-            "hasty");
+            ComposedSkillJson("hasty", 1, ComposedLevel(1, ChanceForty, AttackUp).Replace("\"cooldown\": 0", "\"cooldown\": -1")), "hasty");
     }
-
-    [Fact]
-    public void Skills_RejectActiveWithZeroChance() =>
-        AssertSkillsRejected(
-            SkillJson("eager", "warrior", "active", ValidLevel.Replace("\"chance\": 40", "\"chance\": 0")),
-            "eager");
-
-    [Fact]
-    public void Skills_RejectActiveChanceAboveHundred()
-    {
-        var chance100 = ValidLevel.Replace("\"chance\": 40", "\"chance\": 100");
-        var loaded = LoadSkills(SkillJson("sure", "warrior", "active", chance100));
-        Assert.Equal(100, loaded.GetSkill("sure").LevelAt(1).Chance);
-        AssertSkillsRejected(
-            SkillJson("overflow", "warrior", "active", ValidLevel.Replace("\"chance\": 40", "\"chance\": 101")),
-            "overflow");
-    }
-
-    [Fact]
-    public void Skills_RejectFirstLevelNotOne() =>
-        AssertSkillsRejected(
-            SkillJson("late", "warrior", "active", ValidLevel.Replace("\"level\": 1", "\"level\": 2")),
-            "late");
-
-    [Fact]
-    public void Skills_RejectZeroRounds() =>
-        AssertSkillsRejected(
-            SkillJson("instant", "warrior", "active", ValidLevel.Replace("\"rounds\": 3", "\"rounds\": 0")),
-            "instant");
 
     [Fact]
     public void Skills_RejectUnknownEnumValue()
     {
-        AssertSkillsRejected(SkillJson("bogus-type", "warrior", "bogus", ValidLevel), "bogus-type");
-        AssertSkillsRejected(
-            SkillJson("numeric-effect", "warrior", "active", ValidLevel).Replace("AtMultiplier", "99"),
-            "numeric-effect");
+        AssertSkillsRejected(ComposedSkillJson("bogus-type", 1, ComposedLevel(1, ChanceForty, AttackUp)).Replace("\"Active\"", "\"bogus\""), "bogus-type");
+        AssertSkillsRejected(ComposedSkillJson("bogus-stat", 1, ComposedLevel(1, ChanceForty, AttackUp.Replace("attack", "moonlight"))), "bogus-stat 第 1 級");
     }
 
     [Fact]
@@ -1077,8 +974,12 @@ public class JsonGameContentTests
           { "id": "puff", "name": "絨球", "level": 1, "hp": 59, "sp": 12, "at": 16, "mat": 6, "df": 6, "mdf": 3, "agi": 7, "au": 5, "element": 0, "jobExp": 10, "meet": 95, "placeId": 0 }] }
         """;
 
-    private const string MissionSkills =
-        $$"""{ "skills": [{ "id": "guard", "name": "守", "jobId": "warrior", "type": "active", "timing": "beforeAttack", "effect": "AtMultiplier", "description": "說明", "levels": [{{ValidLevel}}] }] }""";
+    private const string NoJobSkills = """{ "jobSkills": [] }""";
+
+    private static readonly string MissionSkills =
+        $$"""{ "skills": [{{ComposedSkillJson("guard", 1, ComposedLevel(1, ChanceForty, AttackUp))}}] }""";
+
+    private const string MissionJobSkills = """{ "jobSkills": [{ "jobId": "warrior", "skillId": "guard" }] }""";
 
     private const string ValidHunt =
         """{ "id": "hunt", "giver": "村長", "title": "討伐", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "sprite", "count": 3 }, "deliver": [{ "itemId": "herb", "quantity": 2 }], "requirements": { "jobId": "warrior" }, "rewards": { "money": 50, "items": [{ "itemId": "herb", "quantity": 1 }], "skill": { "skillId": "guard", "level": 1 } } }""";
@@ -1106,7 +1007,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "items.json"), MissionItems);
             File.WriteAllText(Path.Combine(directory.FullName, "recipes.json"), ValidRecipes);
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), $$"""{ "missions": [{{missions}}] }""");
-            WriteCompanionContent(directory.FullName);
+            WriteCompanionContent(directory.FullName, jobSkills: MissionJobSkills);
             return action(directory.FullName);
         }
         finally
@@ -1821,8 +1722,9 @@ public class JsonGameContentTests
 
     private static void WriteCompanionContent(
         string directory, string mercenaries = ValidMercenaries, string honourShop = ValidHonourShop, string champion = ValidChampion,
-        string inn = ValidInn)
+        string inn = ValidInn, string jobSkills = NoJobSkills)
     {
+        File.WriteAllText(Path.Combine(directory, "job-skills.json"), jobSkills);
         File.WriteAllText(Path.Combine(directory, "inn.json"), inn);
         File.WriteAllText(Path.Combine(directory, "mercenaries.json"), mercenaries);
         File.WriteAllText(Path.Combine(directory, "honour-shop.json"), honourShop);

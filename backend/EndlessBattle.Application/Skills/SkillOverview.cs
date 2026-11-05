@@ -12,7 +12,6 @@ public sealed record SkillView(
     string Name,
     SkillType Type,
     SkillTiming Timing,
-    SkillEffectKind? Effect,
     string Description,
     string JobId,
     int Level,

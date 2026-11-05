@@ -195,11 +195,11 @@ public sealed class JsonGameContent : IGameContent
                 throw new GameContentException($"技能 id 重複：{skill.Id}");
             }
 
-            ValidateSkill(skill, jobs);
+            ValidateSkill(skill);
         }
 
         ValidatePrerequisites(allSkills, skills);
-        var jobSkills = ReadJobSkills(directory, allSkills, jobs, skills);
+        var jobSkills = ReadJobSkills(directory, jobs, skills);
 
         var allItems = itemFile.Items.Select(ToItemDefinition).ToList();
         var items = new Dictionary<string, ItemDefinition>();
@@ -255,7 +255,7 @@ public sealed class JsonGameContent : IGameContent
 
         foreach (var mission in allMissions)
         {
-            ValidateMission(mission, missions, monsters, items, skills, jobs, places);
+            ValidateMission(mission, missions, monsters, items, skills, jobs, places, jobSkills);
         }
 
         var cyclic = allMissions.FirstOrDefault(mission => HasPrerequisiteCycle(mission, missions));
@@ -346,18 +346,12 @@ public sealed class JsonGameContent : IGameContent
 
     public bool Teaches(string jobId, string skillId) => jobSkills.Contains((jobId, skillId));
 
-    // 職業與技能的關聯表；搬移期間沒有這個檔案時，依技能的 jobId 建立
+    // 職業與技能的關聯表：一列是「這個職業能學這個技能」
     private static HashSet<(string JobId, string SkillId)> ReadJobSkills(
-        string directory, IReadOnlyList<SkillDefinition> allSkills, Dictionary<string, JobDefinition> jobs, Dictionary<string, SkillDefinition> skills)
+        string directory, Dictionary<string, JobDefinition> jobs, Dictionary<string, SkillDefinition> skills)
     {
-        var path = Path.Combine(directory, "job-skills.json");
-        if (!File.Exists(path))
-        {
-            return [.. allSkills.Select(skill => (skill.JobId, skill.Id))];
-        }
-
         var pairs = new HashSet<(string JobId, string SkillId)>();
-        foreach (var row in Read<JobSkillFile>(path).JobSkills)
+        foreach (var row in Read<JobSkillFile>(Path.Combine(directory, "job-skills.json")).JobSkills)
         {
             var pair = $"{row.JobId}＋{row.SkillId}";
             if (!jobs.ContainsKey(row.JobId) || !skills.ContainsKey(row.SkillId))
@@ -559,73 +553,14 @@ public sealed class JsonGameContent : IGameContent
         }
     }
 
-    private static void ValidateSkill(SkillDefinition skill, Dictionary<string, JobDefinition> jobs)
+    private static void ValidateSkill(SkillDefinition skill)
     {
-        if (!jobs.ContainsKey(skill.JobId))
-        {
-            throw new GameContentException($"技能 {skill.Id} 引用了不存在的職業：{skill.JobId}");
-        }
-
         if (skill.Levels.Count == 0)
         {
             throw new GameContentException($"技能 {skill.Id} 至少要有一個等級");
         }
 
-        if (skill.IsComposed)
-        {
-            ValidateComposedSkill(skill);
-            return;
-        }
-
-        if (skill.Trigger is { Kind: SkillTriggerKind.HpBelow, Percent: < 1 or > 99 })
-        {
-            throw new GameContentException($"技能 {skill.Id} 的 hpBelow 門檻 percent 必須在 1～99");
-        }
-
-        var rollsChance = skill.EffectiveTrigger?.Kind == SkillTriggerKind.Chance;
-        for (var index = 0; index < skill.Levels.Count; index++)
-        {
-            var level = skill.Levels[index];
-            if (level.Level != index + 1)
-            {
-                throw new GameContentException($"技能 {skill.Id} 的等級必須從 1 起連續遞增");
-            }
-
-            if (level.Money < 0 || level.Proficiency < 0 || level.Cooldown < 0)
-            {
-                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 money、proficiency、cooldown 不可為負");
-            }
-
-            // 常駐被動：不消耗 SP、沒有持續回合與發動率
-            if (skill.IsAlwaysOn)
-            {
-                if (level.Sp != 0 || level.Rounds != 0 || level.Chance != 0)
-                {
-                    throw new GameContentException($"常駐被動技能 {skill.Id} 第 {level.Level} 級的 sp、rounds、chance 必須為 0");
-                }
-
-                continue;
-            }
-
-            // 主動與觸發型被動：被動永遠不耗 SP；rounds 至少 1
-            if (skill.Type == SkillType.Passive ? level.Sp != 0 : level.Sp < 0)
-            {
-                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 sp 不正確（主動不可為負、被動必須為 0）");
-            }
-
-            if (level.Rounds < 1)
-            {
-                throw new GameContentException($"技能 {skill.Id} 第 {level.Level} 級的 rounds 至少 1");
-            }
-
-            // 擲發動率的 chance 必須 1～100；hpBelow 不擲骰，chance 必須為 0
-            if (rollsChance ? level.Chance is < 1 or > 100 : level.Chance != 0)
-            {
-                throw new GameContentException(rollsChance
-                    ? $"技能 {skill.Id} 第 {level.Level} 級的 chance 必須在 1～100"
-                    : $"hpBelow 技能 {skill.Id} 第 {level.Level} 級的 chance 必須為 0");
-            }
-        }
+        ValidateComposedSkill(skill);
     }
 
     // 新格式：每一級的種類與第 1 級相同；常駐（沒有條件）的級數不能有消耗、持續回合與冷卻
@@ -961,7 +896,8 @@ public sealed class JsonGameContent : IGameContent
         Dictionary<string, ItemDefinition> items,
         Dictionary<string, SkillDefinition> skills,
         Dictionary<string, JobDefinition> jobs,
-        Dictionary<int, PlaceDefinition> places)
+        Dictionary<int, PlaceDefinition> places,
+        HashSet<(string JobId, string SkillId)> jobSkills)
     {
         var id = mission.Id;
 
@@ -1022,8 +958,8 @@ public sealed class JsonGameContent : IGameContent
             {
                 Require(skills.TryGetValue(skillReward.SkillId, out var skill), $"的 {field} 引用了不存在的技能：{skillReward.SkillId}");
                 Require(skillReward.Level == 1, $"的技能獎勵 {skillReward.SkillId} 的 level 必須為 1");
-                Require(requirements.JobId == skill.JobId,
-                    $"的技能獎勵 {skillReward.SkillId} 屬於職業 {skill.JobId}，requirements.jobId 必須相同");
+                Require(requirements.JobId is { } jobId && jobSkills.Contains((jobId, skill.Id)),
+                    $"的技能獎勵 {skillReward.SkillId} 必須是 requirements.jobId 的職業能學的技能（job-skills.json）");
             }
 
             if (reward.Pet is { } pet)
@@ -1370,25 +1306,6 @@ public sealed class JsonGameContent : IGameContent
                 ? parsed
                 : throw new GameContentException($"技能 {entry.Id} 的 {field} 無法辨識：{value}");
 
-        if (entry.Levels.Any(level => level.Effects is not null))
-        {
-            return ToComposedSkill(entry, ParseEnum<SkillType>, ParseEnum<SkillTiming>);
-        }
-
-        return new SkillDefinition(
-            entry.Id,
-            entry.Name,
-            entry.JobId,
-            ParseEnum<SkillType>(entry.Type ?? "", "type"),
-            ParseEnum<SkillTiming>(entry.Timing, "timing"),
-            ParseEnum<SkillEffectKind>(entry.Effect ?? "", "effect"),
-            entry.Description,
-            [.. entry.Levels.Select(level => new SkillLevel(level.Level, level.Sp, level.Rounds, level.Chance, level.Money, level.Proficiency, level.Cooldown))],
-            entry.Trigger is { } trigger ? new SkillTrigger(ParseEnum<SkillTriggerKind>(trigger.Kind, "trigger.kind"), trigger.Percent) : null);
-    }
-
-    private static SkillDefinition ToComposedSkill(SkillEntry entry, Func<string, string, SkillType> parseSlotType, Func<string, string, SkillTiming> parseTiming)
-    {
         if (entry.MaxLevel is not { } maxLevel || maxLevel < 1 || entry.Levels.Count != maxLevel
             || entry.Levels.Select(level => level.Level).Where((value, index) => value != index + 1).Any())
         {
@@ -1403,14 +1320,13 @@ public sealed class JsonGameContent : IGameContent
             }
 
             var reader = new SkillPartsReader(entry.Id, level.Level);
-            return new SkillLevel(level.Level, Sp: 0, Rounds: 0, Chance: 0, level.Money, level.Proficiency, level.Cooldown,
+            return new SkillLevel(level.Level, level.Money, level.Proficiency, level.Cooldown,
                 [.. level.Conditions.Select(reader.Condition)], [.. level.Costs.Select(reader.Cost)], [.. level.Effects.Select(reader.Effect)]);
         });
 
-        // 內容檔寫 AfterHit；舊格式的 AfterAttack 在收尾時改名
-        var timing = entry.Timing.Equals("AfterHit", StringComparison.OrdinalIgnoreCase) ? SkillTiming.AfterAttack : parseTiming(entry.Timing, "timing");
-        return new SkillDefinition(entry.Id, entry.Name, entry.JobId, parseSlotType(entry.SlotType ?? "", "slotType"), timing, Effect: null,
-            entry.Description, [.. levels])
+        // 內容檔寫 AfterHit；舊名 AfterAttack 在畫面改用效果文字時一起改
+        var timing = entry.Timing.Equals("AfterHit", StringComparison.OrdinalIgnoreCase) ? SkillTiming.AfterAttack : ParseEnum<SkillTiming>(entry.Timing, "timing");
+        return new SkillDefinition(entry.Id, entry.Name, ParseEnum<SkillType>(entry.SlotType ?? "", "slotType"), timing, entry.Description, [.. levels])
         {
             Prerequisite = entry.Prerequisite is { } prerequisite ? new SkillPrerequisite(prerequisite.SkillId, prerequisite.Level) : null,
         };
@@ -1518,32 +1434,18 @@ public sealed class JsonGameContent : IGameContent
 
     private sealed record SkillFile(IReadOnlyList<SkillEntry> Skills);
 
-    // 舊格式用 type、effect、trigger 與每級的 sp、rounds、chance；新格式用 slotType、maxLevel 與每級的 conditions、costs、effects
     private sealed record SkillEntry(
         string Id,
         string Name,
-        string JobId,
-        string? Type,
+        string? SlotType,
         string Timing,
-        string? Effect,
         string Description,
         IReadOnlyList<SkillLevelEntry> Levels,
-        SkillTriggerEntry? Trigger,
-        string? SlotType,
         int? MaxLevel,
         PrerequisiteEntry? Prerequisite);
 
-    private sealed record PrerequisiteEntry(string SkillId, int Level);
-
-    private sealed record JobSkillFile(IReadOnlyList<JobSkillEntry> JobSkills);
-
-    private sealed record JobSkillEntry(string JobId, string SkillId);
-
     private sealed record SkillLevelEntry(
         int Level,
-        int Sp,
-        int Rounds,
-        int Chance,
         long Money,
         long Proficiency,
         int Cooldown,
@@ -1551,8 +1453,11 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<JsonElement>? Costs,
         IReadOnlyList<JsonElement>? Effects);
 
-    // 發動條件：kind 為 chance 或 hpBelow；percent 只有 hpBelow 用
-    private sealed record SkillTriggerEntry(string Kind, int Percent);
+    private sealed record PrerequisiteEntry(string SkillId, int Level);
+
+    private sealed record JobSkillFile(IReadOnlyList<JobSkillEntry> JobSkills);
+
+    private sealed record JobSkillEntry(string JobId, string SkillId);
 
     private sealed record JobFile(IReadOnlyList<JobEntry> Jobs);
 

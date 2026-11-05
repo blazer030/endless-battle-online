@@ -14,11 +14,11 @@ public class SkillEffectTests
             SpecialAttackName: null, Str: str, Smart: 50);
 
     private static SkillDefinition Skill(SkillType type, params SkillLevel[] levels) =>
-        new("skill", "技能", "test-job", type, SkillTiming.BeforeAttack, Effect: null, "說明", levels);
+        new("skill", "技能", type, SkillTiming.BeforeAttack, "說明", levels);
 
     private static SkillLevel Level(int level, IReadOnlyList<SkillCondition> conditions, IReadOnlyList<SkillEffect> effects,
         IReadOnlyList<SkillCost>? costs = null, int cooldown = 0) =>
-        new(level, Sp: 0, Rounds: 0, Chance: 0, Money: 500, Proficiency: 300, cooldown, conditions, costs ?? [], effects);
+        new(level, Money: 500, Proficiency: 300, cooldown, conditions, costs ?? [], effects);
 
     private static SkillCondition Chance(int percent) => new(SkillConditionKind.Chance, percent);
 

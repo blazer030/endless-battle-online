@@ -7,10 +7,10 @@ namespace EndlessBattle.Tests.Domain.Battle;
 
 public class SkillCasterTests
 {
-    private static readonly SkillDefinition Burst = TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier);
-    private static readonly SkillDefinition IronSkin = TestSkills.Battle("iron-skin", "硬甲", SkillEffectKind.DfMultiplier, SkillType.Passive);
-    private static readonly SkillDefinition Lullaby = TestSkills.Battle("lullaby", "靡靡之音", SkillEffectKind.EnemyAgiDown);
-    private static readonly SkillDefinition ManaSurge = TestSkills.Battle("mana-surge", "魔力增幅", SkillEffectKind.MatMultiplier);
+    private static readonly SkillDefinition Burst = TestSkills.Battle("burst", "爆氣", SkillPreset.AtMultiplier);
+    private static readonly SkillDefinition IronSkin = TestSkills.Battle("iron-skin", "硬甲", SkillPreset.DfMultiplier, SkillType.Passive);
+    private static readonly SkillDefinition Lullaby = TestSkills.Battle("lullaby", "靡靡之音", SkillPreset.EnemyAgiDown);
+    private static readonly SkillDefinition ManaSurge = TestSkills.Battle("mana-surge", "魔力增幅", SkillPreset.MatMultiplier);
 
     private static CombatantState Player(int sp) =>
         new(Hp: 100, HpMax: 100, Sp: sp, SpMax: sp, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0, SpecialAttackName: null, Str: 100, Smart: 0);
@@ -59,7 +59,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_PassiveAfterHit_HealsWithoutRollOrSp()
     {
-        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillEffectKind.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
+        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
 
@@ -92,7 +92,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_CooldownBlocksTheNextPlayerTurns()
     {
-        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 2);
+        var strike = TestSkills.Battle("strike", "強擊", SkillPreset.AtMultiplier, rounds: 1, cooldown: 2);
         var random = new ScriptedRandom(0.0);
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
 
@@ -104,7 +104,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_SpShortActive_DoesNotStartCooldown()
     {
-        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 3);
+        var strike = TestSkills.Battle("strike", "強擊", SkillPreset.AtMultiplier, rounds: 1, cooldown: 3);
         var random = new ScriptedRandom(0.0);
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
 
@@ -120,7 +120,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_CooldownOne_SkipsExactlyOneTurn()
     {
-        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1, cooldown: 1);
+        var strike = TestSkills.Battle("strike", "強擊", SkillPreset.AtMultiplier, rounds: 1, cooldown: 1);
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
 
         Assert.Equal([1, 3], CastRounds(caster, rounds: 3, hp: 100, new ScriptedRandom(0.0)));
@@ -130,7 +130,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_CooldownZero_AllowsTheNextTurn()
     {
-        var strike = TestSkills.Battle("strike", "強擊", SkillEffectKind.AtMultiplier, rounds: 1);
+        var strike = TestSkills.Battle("strike", "強擊", SkillPreset.AtMultiplier, rounds: 1);
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
 
         Assert.Equal([1, 2, 3], CastRounds(caster, rounds: 3, hp: 100, new ScriptedRandom(0.0)));
@@ -142,7 +142,7 @@ public class SkillCasterTests
     [InlineData(50, false)]
     public void Caster_HpBelow_FiresOnlyUnderThresholdWithoutRoll(int hp, bool fires)
     {
-        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, trigger: SkillTrigger.HpBelow(50));
+        var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, trigger: TestTrigger.HpBelow(50));
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
@@ -156,7 +156,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_HpBelowHeal_SkipsAtFullHp()
     {
-        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, trigger: SkillTrigger.HpBelow(99));
+        var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, trigger: TestTrigger.HpBelow(99));
         var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
         Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0)));
@@ -166,7 +166,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_HpBelow_RespectsCooldown()
     {
-        var heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1, cooldown: 4, trigger: SkillTrigger.HpBelow(50));
+        var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, cooldown: 4, trigger: TestTrigger.HpBelow(50));
         var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
         Assert.Equal([1, 6], CastRounds(caster, rounds: 6, hp: 10, new ScriptedRandom(0.0)));
@@ -176,7 +176,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_TriggeredPassive_AppliesOnlyWhenTriggered_WithoutSp()
     {
-        var lastStand = TestSkills.Battle("last-stand", "背水", SkillEffectKind.DfMultiplier, SkillType.Passive, trigger: SkillTrigger.HpBelow(30));
+        var lastStand = TestSkills.Battle("last-stand", "背水", SkillPreset.DfMultiplier, SkillType.Passive, trigger: TestTrigger.HpBelow(30));
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(lastStand, Level: 2, Slot: 4)]);
 
@@ -194,7 +194,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_ChancePassive_RollsAndLastsItsRounds()
     {
-        var guard = TestSkills.Battle("guard", "架式", SkillEffectKind.DfMultiplier, SkillType.Passive, rounds: 3, trigger: SkillTrigger.Chance);
+        var guard = TestSkills.Battle("guard", "架式", SkillPreset.DfMultiplier, SkillType.Passive, rounds: 3, trigger: TestTrigger.Chance);
         var random = new ScriptedRandom(0.0, 0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(guard, Level: 5, Slot: 4)]);
         var dfByRound = new List<double>();
@@ -214,7 +214,7 @@ public class SkillCasterTests
     [Fact]
     public void Caster_PassiveAfterHit_RespectsCooldown()
     {
-        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillEffectKind.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1, cooldown: 1);
+        var bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1, cooldown: 1);
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
         var heals = new List<int>();
@@ -242,29 +242,29 @@ public class SkillCasterTests
     }
 
     // 技能表的公式（value = lv）；玩家 str 100、au 25
-    public static TheoryData<SkillEffectKind, int, BattleModifiers> EffectFormulas => new()
+    public static TheoryData<SkillPreset, int, BattleModifiers> EffectFormulas => new()
     {
-        { SkillEffectKind.AtMultiplier, 5, new BattleModifiers(At: 1.05) },
-        { SkillEffectKind.MatMultiplier, 5, new BattleModifiers(Mat: 1.05) },
-        { SkillEffectKind.DfMultiplier, 5, new BattleModifiers(Df: 1.05) },
-        { SkillEffectKind.MdfMultiplier, 5, new BattleModifiers(Mdf: 1.05) },
-        { SkillEffectKind.AgiMultiplier, 5, new BattleModifiers(Agi: 1.05) },
-        { SkillEffectKind.MultiHit, 3, new BattleModifiers(At: 0.97, PhysicalHits: 4) },
-        { SkillEffectKind.MagicMultiHit, 3, new BattleModifiers(MagicHits: 4) },
-        { SkillEffectKind.EnemyAgiDown, 5, new BattleModifiers(EnemyAgi: 0.95) },
-        { SkillEffectKind.EnemyAttackDown, 5, new BattleModifiers(EnemyAt: 0.9, EnemyMat: 0.9) },
-        { SkillEffectKind.Heal, 5, new BattleModifiers() },
-        { SkillEffectKind.WarGodWrath, 1, new BattleModifiers(FlatAt: 45, Rag: -70) },
-        { SkillEffectKind.Counter, 5, new BattleModifiers(At: 1.05, PhysicalTaken: 0.82) },
-        { SkillEffectKind.CritChanceUp, 5, new BattleModifiers(CritChanceBonus: 10) },
-        { SkillEffectKind.Bloodthirst, 5, new BattleModifiers() },
-        { SkillEffectKind.BonusDamage, 5, new BattleModifiers(BonusDamage: 10) },
-        { SkillEffectKind.Stun, 5, new BattleModifiers(StunChance: 15) },
+        { SkillPreset.AtMultiplier, 5, new BattleModifiers(At: 1.05) },
+        { SkillPreset.MatMultiplier, 5, new BattleModifiers(Mat: 1.05) },
+        { SkillPreset.DfMultiplier, 5, new BattleModifiers(Df: 1.05) },
+        { SkillPreset.MdfMultiplier, 5, new BattleModifiers(Mdf: 1.05) },
+        { SkillPreset.AgiMultiplier, 5, new BattleModifiers(Agi: 1.05) },
+        { SkillPreset.MultiHit, 3, new BattleModifiers(At: 0.97, PhysicalHits: 4) },
+        { SkillPreset.MagicMultiHit, 3, new BattleModifiers(MagicHits: 4) },
+        { SkillPreset.EnemyAgiDown, 5, new BattleModifiers(EnemyAgi: 0.95) },
+        { SkillPreset.EnemyAttackDown, 5, new BattleModifiers(EnemyAt: 0.9, EnemyMat: 0.9) },
+        { SkillPreset.Heal, 5, new BattleModifiers() },
+        { SkillPreset.WarGodWrath, 1, new BattleModifiers(FlatAt: 45, Rag: -70) },
+        { SkillPreset.Counter, 5, new BattleModifiers(At: 1.05, PhysicalTaken: 0.82) },
+        { SkillPreset.CritChanceUp, 5, new BattleModifiers(CritChanceBonus: 10) },
+        { SkillPreset.Bloodthirst, 5, new BattleModifiers() },
+        { SkillPreset.BonusDamage, 5, new BattleModifiers(BonusDamage: 10) },
+        { SkillPreset.Stun, 5, new BattleModifiers(StunChance: 15) },
     };
 
     [Theory]
     [MemberData(nameof(EffectFormulas))]
-    public void Caster_AppliesEffectFormulas(SkillEffectKind effect, int level, BattleModifiers expected)
+    public void Caster_AppliesEffectFormulas(SkillPreset effect, int level, BattleModifiers expected)
     {
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(TestSkills.Battle("skill", "技能", effect), level, Slot: 1)]);
 
@@ -282,7 +282,6 @@ public class SkillCasterTests
         Agi = Math.Round(modifiers.Agi, 10),
         PhysicalTaken = Math.Round(modifiers.PhysicalTaken, 10),
         EnemyAgi = Math.Round(modifiers.EnemyAgi, 10),
-        EnemyAttack = Math.Round(modifiers.EnemyAttack, 10),
         EnemyAt = Math.Round(modifiers.EnemyAt, 10),
         EnemyMat = Math.Round(modifiers.EnemyMat, 10),
     };

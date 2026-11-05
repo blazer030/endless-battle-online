@@ -15,14 +15,14 @@ public class WogBattleSkillTests
 {
     private const string SpecialAttack = "烈焰斬";
 
-    private static readonly SkillDefinition Burst = TestSkills.Battle("burst", "爆氣", SkillEffectKind.AtMultiplier);
-    private static readonly SkillDefinition Combo = TestSkills.Battle("combo", "連擊", SkillEffectKind.MultiHit);
-    private static readonly SkillDefinition Heal = TestSkills.Battle("heal", "治癒", SkillEffectKind.Heal, rounds: 1);
-    private static readonly SkillDefinition Stun = TestSkills.Battle("stun", "暈眩", SkillEffectKind.Stun);
-    private static readonly SkillDefinition Bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillEffectKind.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
-    private static readonly SkillDefinition Counter = TestSkills.Battle("counter", "反擊", SkillEffectKind.Counter, SkillType.Passive);
-    private static readonly SkillDefinition WarGodWrath = TestSkills.Battle("war-god-wrath", "戰神之怒", SkillEffectKind.WarGodWrath);
-    private static readonly SkillDefinition Weaken = TestSkills.Battle("weaken", "減益", SkillEffectKind.EnemyAttackDown);
+    private static readonly SkillDefinition Burst = TestSkills.Battle("burst", "爆氣", SkillPreset.AtMultiplier);
+    private static readonly SkillDefinition Combo = TestSkills.Battle("combo", "連擊", SkillPreset.MultiHit);
+    private static readonly SkillDefinition Heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1);
+    private static readonly SkillDefinition Stun = TestSkills.Battle("stun", "暈眩", SkillPreset.Stun);
+    private static readonly SkillDefinition Bloodthirst = TestSkills.Battle("bloodthirst", "嗜血", SkillPreset.Bloodthirst, SkillType.Passive, SkillTiming.AfterAttack, rounds: 1);
+    private static readonly SkillDefinition Counter = TestSkills.Battle("counter", "反擊", SkillPreset.Counter, SkillType.Passive);
+    private static readonly SkillDefinition WarGodWrath = TestSkills.Battle("war-god-wrath", "戰神之怒", SkillPreset.WarGodWrath);
+    private static readonly SkillDefinition Weaken = TestSkills.Battle("weaken", "減益", SkillPreset.EnemyAttackDown);
 
     private static CombatantState Player(int hp = 1000, int hpMax = 1000, int sp = 100, int str = 100, int smart = 20) =>
         new(hp, hpMax, sp, SpMax: 100, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 10, Element: 0, SpecialAttack, str, smart);
@@ -310,7 +310,7 @@ public class WogBattleSkillTests
     [InlineData(AttackKind.Magic, false, 150)]
     public void Battle_KeenEdgeAffectsPhysicalCritOnly(AttackKind kind, bool expectedCritical, int expectedDamage)
     {
-        var keenEdge = TestSkills.Battle("keen-edge", "物暴擊率", SkillEffectKind.CritChanceUp, SkillType.Passive);
+        var keenEdge = TestSkills.Battle("keen-edge", "物暴擊率", SkillPreset.CritChanceUp, SkillType.Passive);
         double[] rolls = kind == AttackKind.Physical ? [0.0, 0.0, 0.145, 0.0] : [0.0, 0.145, 0.0];
         var player = Player() with { Mat = 100, Agi = 10 };
 
@@ -328,8 +328,8 @@ public class WogBattleSkillTests
     [Fact]
     public void Battle_BonusDamageAddsToEveryMagicHit()
     {
-        var magicCombo = TestSkills.Battle("magic-combo", "魔連擊", SkillEffectKind.MagicMultiHit);
-        var bonusStrike = TestSkills.Battle("bonus-strike", "附加傷", SkillEffectKind.BonusDamage, rounds: 1);
+        var magicCombo = TestSkills.Battle("magic-combo", "魔連擊", SkillPreset.MagicMultiHit);
+        var bonusStrike = TestSkills.Battle("bonus-strike", "附加傷", SkillPreset.BonusDamage, rounds: 1);
         var random = new ScriptedRandom(0.99, 0.0, 0.0, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
         var player = Player() with { At = 0, Mat = 100 };
 
@@ -394,7 +394,7 @@ public class WogBattleSkillTests
     [Fact]
     public void Battle_FirstStrikeUsesModifiedAgi()
     {
-        var swiftShadow = TestSkills.Battle("swift-shadow", "急影", SkillEffectKind.AgiMultiplier, SkillType.Passive);
+        var swiftShadow = TestSkills.Battle("swift-shadow", "急影", SkillPreset.AgiMultiplier, SkillType.Passive);
 
         var outcome = WogBattle.Run(Player(), Monster() with { Agi = 20 }, null, [Equip(swiftShadow, level: 5, slot: 4)], new ScriptedRandom(0.99, 0.5));
 

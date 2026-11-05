@@ -8,12 +8,12 @@ public class SkillLoadoutTests
 {
     private static readonly Dictionary<string, SkillDefinition> Skills = new[]
     {
-        TestSkills.Create("burst", "warrior", SkillType.Active),
-        TestSkills.Create("iron-skin", "warrior", SkillType.Passive),
-        TestSkills.Create("combo", "thief", SkillType.Active),
-        TestSkills.Create("lullaby", "bard", SkillType.Active),
-        TestSkills.Create("bloodthirst", "martialist", SkillType.Passive),
-        TestSkills.Create("guard", "warrior", SkillType.Passive),
+        TestSkills.Create("burst", SkillType.Active),
+        TestSkills.Create("iron-skin", SkillType.Passive),
+        TestSkills.Create("combo", SkillType.Active),
+        TestSkills.Create("lullaby", SkillType.Active),
+        TestSkills.Create("bloodthirst", SkillType.Passive),
+        TestSkills.Create("guard", SkillType.Passive),
     }.ToDictionary(skill => skill.Id);
 
     private static readonly IReadOnlyList<LearnedSkill> Learned = Skills.Keys.Select(id => new LearnedSkill(id, 1)).ToList();
