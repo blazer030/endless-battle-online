@@ -62,7 +62,7 @@ public static class WogBattle
             DrinkPotion(roundStart);
 
             // 第 2 回合起，喝完補給後 HP 仍低於門檻才擲逃跑
-            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random))
+            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random, modifiers.EscapeBonus))
             {
                 events.Add(new EscapeEvent(roundStart));
                 return Outcome(null, round) with { Escaped = true };
@@ -105,7 +105,8 @@ public static class WogBattle
             for (var hit = 0; hit < hits; hit++)
             {
                 var hitSeconds = atSeconds + hit * intervalSeconds;
-                var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CritChanceBonus, modifiers.BonusDamageFor(playerKind));
+                var result = RoundResolver.Strike(fighter, opponent, playerKind, random, modifiers.Rag, modifiers.CriticalChanceFor(playerKind),
+                    modifiers.BonusDamageFor(playerKind), modifiers.CriticalCapFor(playerKind));
                 monsterHp = Math.Max(0, monsterHp - result.Damage);
                 damageDealt += result.Damage;
                 events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, result.Damage,
@@ -135,7 +136,7 @@ public static class WogBattle
             }
 
             var monsterKind = RoundResolver.ChooseKind(opponent.At, opponent.Mat, random);
-            var result = RoundResolver.Strike(opponent, fighter, monsterKind, random);
+            var result = RoundResolver.Strike(opponent, fighter, monsterKind, random, rag: modifiers.EnemyRag);
             var damage = monsterKind == AttackKind.Physical ? modifiers.PhysicalDamageTaken(result.Damage) : result.Damage;
 
             // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受

@@ -159,8 +159,11 @@ public sealed class SkillCaster
     {
         SkillScalingBasis.Strength => player.Str,
         SkillScalingBasis.Intelligence => player.Smart,
+        SkillScalingBasis.Vitality => player.Vit,
         SkillScalingBasis.Agility => player.Agi,
         SkillScalingBasis.Charisma => player.Au,
+        SkillScalingBasis.Faith => player.Be,
+        SkillScalingBasis.Level => player.Level,
         SkillScalingBasis.Attack => player.At,
         SkillScalingBasis.MagicAttack => player.Mat,
         SkillScalingBasis.Defense => player.Df,
@@ -194,7 +197,7 @@ public sealed class SkillCaster
             .Where(effect => equipped.Skill.IsAlwaysOn || age < Math.Max(1, effect.Rounds))
             .ToList();
         var percents = new Dictionary<(SkillTarget, SkillStat), double>();
-        var flats = new Dictionary<SkillStat, int>();
+        var flats = new Dictionary<(SkillTarget, SkillStat), int>();
         var physicalReduction = 0.0;
         foreach (var effect in effects)
         {
@@ -204,7 +207,7 @@ public sealed class SkillCaster
                     percents[(change.Target, change.Stat)] = percents.GetValueOrDefault((change.Target, change.Stat)) + percent;
                     break;
                 case StatChangeEffect change:
-                    flats[change.Stat] = flats.GetValueOrDefault(change.Stat) + (change.Amount ?? Scaled(change.Scaling!));
+                    flats[(change.Target, change.Stat)] = flats.GetValueOrDefault((change.Target, change.Stat)) + (change.Amount ?? Scaled(change.Scaling!));
                     break;
                 case BonusDamageEffect bonus:
                     var amount = Scaled(bonus.Scaling);
@@ -241,25 +244,42 @@ public sealed class SkillCaster
                 (SkillTarget.Caster, SkillStat.Defense) => modifiers with { Df = modifiers.Df * multiplier },
                 (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { Mdf = modifiers.Mdf * multiplier },
                 (SkillTarget.Caster, SkillStat.Agility) => modifiers with { Agi = modifiers.Agi * multiplier },
+                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { Au = modifiers.Au * multiplier },
                 (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyAt = modifiers.EnemyAt * multiplier },
                 (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyMat = modifiers.EnemyMat * multiplier },
+                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyDf = modifiers.EnemyDf * multiplier },
+                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyMdf = modifiers.EnemyMdf * multiplier },
                 (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyAgi = modifiers.EnemyAgi * multiplier },
+                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyAu = modifiers.EnemyAu * multiplier },
                 _ => throw new ArgumentOutOfRangeException(nameof(equipped), (target, stat), "這項能力不能用百分比增減"),
             };
         }
 
-        foreach (var (stat, flat) in flats)
+        foreach (var ((target, stat), flat) in flats)
         {
-            modifiers = stat switch
+            modifiers = (target, stat) switch
             {
-                SkillStat.Attack => modifiers with { FlatAt = modifiers.FlatAt + flat },
-                SkillStat.MagicAttack => modifiers with { FlatMat = modifiers.FlatMat + flat },
-                SkillStat.Defense => modifiers with { FlatDf = modifiers.FlatDf + flat },
-                SkillStat.MagicDefense => modifiers with { FlatMdf = modifiers.FlatMdf + flat },
-                SkillStat.Agility => modifiers with { FlatAgi = modifiers.FlatAgi + flat },
-                SkillStat.HitRate => modifiers with { Rag = modifiers.Rag + flat },
-                SkillStat.PhysicalCriticalChance => modifiers with { CritChanceBonus = modifiers.CritChanceBonus + flat },
-                _ => throw new ArgumentOutOfRangeException(nameof(equipped), stat, "未知的能力"),
+                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { FlatAt = modifiers.FlatAt + flat },
+                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { FlatMat = modifiers.FlatMat + flat },
+                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { FlatDf = modifiers.FlatDf + flat },
+                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { FlatMdf = modifiers.FlatMdf + flat },
+                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { FlatAgi = modifiers.FlatAgi + flat },
+                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { FlatAu = modifiers.FlatAu + flat },
+                (SkillTarget.Caster, SkillStat.HitRate) => modifiers with { Rag = modifiers.Rag + flat },
+                (SkillTarget.Caster, SkillStat.Evasion) => modifiers with { EnemyRag = modifiers.EnemyRag - flat },
+                (SkillTarget.Caster, SkillStat.PhysicalCriticalChance) => modifiers with { CritChanceBonus = modifiers.CritChanceBonus + flat },
+                (SkillTarget.Caster, SkillStat.MagicCriticalChance) => modifiers with { MagicCritChanceBonus = modifiers.MagicCritChanceBonus + flat },
+                (SkillTarget.Caster, SkillStat.PhysicalCriticalCap) => modifiers with { PhysicalCritCapBonus = modifiers.PhysicalCritCapBonus + flat },
+                (SkillTarget.Caster, SkillStat.MagicCriticalCap) => modifiers with { MagicCritCapBonus = modifiers.MagicCritCapBonus + flat },
+                (SkillTarget.Caster, SkillStat.EscapeRate) => modifiers with { EscapeBonus = modifiers.EscapeBonus + flat },
+                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyFlatAt = modifiers.EnemyFlatAt + flat },
+                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyFlatMat = modifiers.EnemyFlatMat + flat },
+                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyFlatDf = modifiers.EnemyFlatDf + flat },
+                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyFlatMdf = modifiers.EnemyFlatMdf + flat },
+                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyFlatAgi = modifiers.EnemyFlatAgi + flat },
+                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyFlatAu = modifiers.EnemyFlatAu + flat },
+                (SkillTarget.Opponent, SkillStat.HitRate) => modifiers with { EnemyRag = modifiers.EnemyRag + flat },
+                _ => throw new ArgumentOutOfRangeException(nameof(equipped), (target, stat), "這項能力不能用固定值增減"),
             };
         }
 

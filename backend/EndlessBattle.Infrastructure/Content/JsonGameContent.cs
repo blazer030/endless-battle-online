@@ -603,9 +603,9 @@ public sealed class JsonGameContent : IGameContent
                 Require(effect.Rounds >= 0, "的效果 rounds 不可為負");
                 var valid = effect switch
                 {
-                    StatChangeEffect { Target: SkillTarget.Opponent } change => change.Percent is not null
-                        && change.Stat is SkillStat.Attack or SkillStat.MagicAttack or SkillStat.Agility,
-                    StatChangeEffect change when change.Stat is SkillStat.HitRate or SkillStat.PhysicalCriticalChance => change.Amount is not null,
+                    StatChangeEffect change when IsPointStat(change.Stat) && change.Percent is not null => false,
+                    StatChangeEffect { Target: SkillTarget.Opponent } change => change.Stat is SkillStat.Attack or SkillStat.MagicAttack
+                        or SkillStat.Defense or SkillStat.MagicDefense or SkillStat.Agility or SkillStat.Charisma or SkillStat.HitRate,
                     MultiHitEffect multiHit => multiHit.Hits >= 2,
                     DamageReductionEffect reduction => reduction.AttackKind == SkillAttackKind.Physical && reduction.Percent is > 0 and < 100,
                     StunEffect stun => stun.Chance is >= 1 and <= 100,
@@ -615,6 +615,10 @@ public sealed class JsonGameContent : IGameContent
             }
         }
     }
+
+    // 命中、迴避、暴擊率、暴擊上限、逃跑率是百分點，只能用 amount 或 scaling
+    private static bool IsPointStat(SkillStat stat) => stat is SkillStat.HitRate or SkillStat.Evasion or SkillStat.PhysicalCriticalChance
+        or SkillStat.MagicCriticalChance or SkillStat.PhysicalCriticalCap or SkillStat.MagicCriticalCap or SkillStat.EscapeRate;
 
     private static void ValidateItem(ItemDefinition item, Dictionary<string, JobDefinition> jobs)
     {

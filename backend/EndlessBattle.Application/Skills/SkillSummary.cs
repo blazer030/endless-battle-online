@@ -55,8 +55,12 @@ public static class SkillSummary
 
     private static string StatValue(StatChangeEffect change) =>
         change.Percent is { } percent ? $"{Signed(percent)}%"
-        : change.Amount is { } amount ? Signed(amount)
+        : change.Amount is { } amount ? $"{Signed(amount)}{(IsPointStat(change.Stat) ? "%" : "")}"
         : $"+{Scaling(change.Scaling!)}";
+
+    // 命中、迴避、暴擊率、暴擊上限、逃跑率的固定值是百分點
+    private static bool IsPointStat(SkillStat stat) => stat is SkillStat.HitRate or SkillStat.Evasion or SkillStat.PhysicalCriticalChance
+        or SkillStat.MagicCriticalChance or SkillStat.PhysicalCriticalCap or SkillStat.MagicCriticalCap or SkillStat.EscapeRate;
 
     private static string Scaling(IReadOnlyList<SkillScaling> scaling) =>
         string.Join(" + ", scaling.Select(term => $"{BasisName(term.Basis)}×{Number(term.Ratio * 100)}%"));
@@ -72,8 +76,14 @@ public static class SkillSummary
         SkillStat.Defense => "物防",
         SkillStat.MagicDefense => "魔防",
         SkillStat.Agility => "速度",
+        SkillStat.Charisma => "魅力",
         SkillStat.HitRate => "命中",
+        SkillStat.Evasion => "迴避",
         SkillStat.PhysicalCriticalChance => "物攻必殺率",
+        SkillStat.MagicCriticalChance => "魔攻必殺率",
+        SkillStat.PhysicalCriticalCap => "物攻必殺上限",
+        SkillStat.MagicCriticalCap => "魔攻必殺上限",
+        SkillStat.EscapeRate => "逃跑率",
         _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
     };
 
@@ -81,8 +91,11 @@ public static class SkillSummary
     {
         SkillScalingBasis.Strength => "力量",
         SkillScalingBasis.Intelligence => "智力",
+        SkillScalingBasis.Vitality => "體質",
         SkillScalingBasis.Agility => "敏捷",
         SkillScalingBasis.Charisma => "魅力",
+        SkillScalingBasis.Faith => "信仰",
+        SkillScalingBasis.Level => "等級",
         SkillScalingBasis.Attack => "物攻",
         SkillScalingBasis.MagicAttack => "魔攻",
         SkillScalingBasis.Defense => "物防",

@@ -439,6 +439,13 @@ public class JsonGameContentTests
             ComposedSkillJson("hasty", 1, ComposedLevel(1, ChanceForty, AttackUp).Replace("\"cooldown\": 0", "\"cooldown\": -1")), "hasty");
     }
 
+    // 命中、迴避、暴擊率等百分點只能用 amount；對手只能增減戰鬥用的能力
+    [Theory]
+    [InlineData("""[{ "kind": "StatChange", "target": "Caster", "stat": "evasion", "percent": 5, "rounds": 3 }]""")]
+    [InlineData("""[{ "kind": "StatChange", "target": "Opponent", "stat": "escapeRate", "amount": 5, "rounds": 3 }]""")]
+    public void Skills_RejectStatChangesOutsideTheirUse(string effects) =>
+        AssertSkillsRejected(ComposedSkillJson("odd-stat", 1, ComposedLevel(1, ChanceForty, effects)), "odd-stat 第 1 級");
+
     [Fact]
     public void Skills_RejectUnknownEnumValue()
     {

@@ -13,9 +13,25 @@ public sealed record SkillCost(SkillCostKind Kind, int Amount);
 
 public enum SkillTarget { Caster, Opponent }
 
-public enum SkillStat { Attack, MagicAttack, Defense, MagicDefense, Agility, HitRate, PhysicalCriticalChance }
+// HitRate、Evasion、CriticalChance、CriticalCap、EscapeRate 是點數（百分點），只能用 amount
+public enum SkillStat
+{
+    Attack,
+    MagicAttack,
+    Defense,
+    MagicDefense,
+    Agility,
+    Charisma,
+    HitRate,
+    Evasion,
+    PhysicalCriticalChance,
+    MagicCriticalChance,
+    PhysicalCriticalCap,
+    MagicCriticalCap,
+    EscapeRate,
+}
 
-public enum SkillScalingBasis { Strength, Intelligence, Agility, Charisma, Attack, MagicAttack, Defense }
+public enum SkillScalingBasis { Strength, Intelligence, Vitality, Agility, Charisma, Faith, Level, Attack, MagicAttack, Defense }
 
 public sealed record SkillScaling(SkillScalingBasis Basis, double Ratio);
 

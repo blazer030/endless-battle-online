@@ -211,4 +211,99 @@ public class SkillEffectTests
 
         Assert.Equal((206, 212), (AttackWith(3), AttackWith(6)));
     }
+
+    private static StatChangeEffect Change(SkillStat stat, double? percent = null, int? amount = null, IReadOnlyList<SkillScaling>? scaling = null,
+        SkillTarget target = SkillTarget.Caster) => new(target, stat, percent, amount, scaling, Rounds: 0);
+
+    private static SkillCaster AlwaysOn(CombatantState player, params SkillEffect[] effects) =>
+        new(player, [new EquippedSkill(Skill(SkillType.Passive, Level(1, [], effects)), 1, 4)]);
+
+    [Fact]
+    public void Evasion_LowersOpponentHitChance()
+    {
+        // 怪物 agi 15 對玩家 20：命中 15/35×100 + 20 ≈ 62.9；迴避 70 後低於 0，整場打不中
+        var caster = AlwaysOn(Player(), Change(SkillStat.Evasion, amount: 70));
+        var outcome = WogBattle.Run(Player(), Monster(), AttackKind.Physical,
+            [new EquippedSkill(Skill(SkillType.Passive, Level(1, [], [Change(SkillStat.Evasion, amount: 70)])), 1, 4)], new SeededRandom(3));
+
+        Assert.Equal(-70, caster.Current.EnemyRag);
+        Assert.DoesNotContain(outcome.Events.OfType<AttackEvent>(), attack => attack.Attacker == CombatSide.Monster && attack.Hit);
+    }
+
+    [Fact]
+    public void MagicCriticalChance_RaisesMagicCriticalOdds()
+    {
+        var mage = Player() with { Mat = 300, Au = 10 };
+        var target = Monster() with { Au = 10 };
+        // 魔法必中；暴擊擲 30：基本 10% 不暴擊，加 50% 後暴擊
+        var withoutBonus = RoundResolver.Strike(mage, target, AttackKind.Magic, new ScriptedRandom(0.0, Roll(30)));
+        var withBonus = RoundResolver.Strike(mage, target, AttackKind.Magic, new ScriptedRandom(0.0, Roll(30)), criticalChanceBonus: 50);
+
+        Assert.Equal((false, true), (withoutBonus.Critical, withBonus.Critical));
+        Assert.Equal(50, AlwaysOn(Player(), Change(SkillStat.MagicCriticalChance, amount: 50)).Current.CriticalChanceFor(AttackKind.Magic));
+        Assert.Equal(0, AlwaysOn(Player(), Change(SkillStat.MagicCriticalChance, amount: 50)).Current.CriticalChanceFor(AttackKind.Physical));
+    }
+
+    [Fact]
+    public void PhysicalCriticalCap_RaisesCriticalMultiplierLimit()
+    {
+        // 比值 10 → 1.2×10 = 12，上限 2；上限提高 25% 後是 2.5
+        Assert.Equal(2, RoundResolver.CriticalOdds(100, 10).Multiplier);
+        Assert.Equal(2.5, RoundResolver.CriticalOdds(100, 10, criticalCapPercent: 25).Multiplier, 10);
+        Assert.Equal(25, AlwaysOn(Player(), Change(SkillStat.PhysicalCriticalCap, amount: 25)).Current.CriticalCapFor(AttackKind.Physical));
+    }
+
+    [Fact]
+    public void EscapeRate_RaisesEscapeChance()
+    {
+        Assert.False(EscapeRules.Succeeds(new ScriptedRandom(Roll(25))));
+        Assert.True(EscapeRules.Succeeds(new ScriptedRandom(Roll(25)), bonus: 20));
+        Assert.Equal(20, AlwaysOn(Player(), Change(SkillStat.EscapeRate, amount: 20)).Current.EscapeBonus);
+    }
+
+    [Fact]
+    public void OpponentStat_LowersMonsterAgility()
+    {
+        var monster = Monster() with { Agi = 250, Au = 100 };
+
+        var lowered = AlwaysOn(Player(), Change(SkillStat.Agility, amount: -200, target: SkillTarget.Opponent)).Current.ApplyToMonster(monster);
+        var floored = AlwaysOn(Player(), Change(SkillStat.Charisma, amount: -4900, target: SkillTarget.Opponent)).Current.ApplyToMonster(monster);
+
+        Assert.Equal((50, 1), (lowered.Agi, floored.Au));
+    }
+
+    [Fact]
+    public void Scaling_UsesCharisma()
+    {
+        // 力量之舞：物攻 + 魅力×5%；魅力 100 → +5
+        var player = Player(at: 200) with { Au = 100 };
+        var caster = AlwaysOn(player, Change(SkillStat.Attack, scaling: [new SkillScaling(SkillScalingBasis.Charisma, 0.05)]));
+
+        Assert.Equal(205, caster.Current.ApplyToPlayer(player).At);
+    }
+
+    [Fact]
+    public void Scaling_UsesVitalityFaithAndLevel()
+    {
+        var player = Player(at: 200) with { Vit = 40, Be = 20, Level = 10 };
+        var caster = AlwaysOn(player, Change(SkillStat.Attack, scaling:
+        [
+            new SkillScaling(SkillScalingBasis.Vitality, 0.5), new SkillScaling(SkillScalingBasis.Faith, 1), new SkillScaling(SkillScalingBasis.Level, 2),
+        ]));
+
+        Assert.Equal(260, caster.Current.ApplyToPlayer(player).At);
+    }
+
+    [Fact]
+    public void StunChance_DoesNotAffectOtherEffects()
+    {
+        // 斯巴達：發動後必殺率 +20 一定生效，無法行動另外擲 12%
+        var skill = Skill(SkillType.Active, Level(1, [Chance(100)],
+            [Change(SkillStat.PhysicalCriticalChance, amount: 20) with { Rounds = 1 }, new StunEffect(Chance: 12, Rounds: 1)]));
+        var caster = new SkillCaster(Player(), [new EquippedSkill(skill, 1, 1)]);
+
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+
+        Assert.Equal((20, 12), (caster.Current.CriticalChanceFor(AttackKind.Physical), caster.Current.StunChance));
+    }
 }

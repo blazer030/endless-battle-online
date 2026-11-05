@@ -27,6 +27,9 @@ public static class CombatBridge
             Element: character.Element,
             SpecialAttackName: character.SpecialAttackName,
             Str: total.Str,
-            Smart: total.Smart);
+            Smart: total.Smart,
+            Vit: total.Vit,
+            Be: total.Be,
+            Level: character.Level);
     }
 }

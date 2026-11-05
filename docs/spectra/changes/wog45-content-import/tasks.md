@@ -54,7 +54,7 @@
   - `pnpm generate:api` 重新產生 `frontend/src/api/schema.ts`，技能頁 `SkillsScreen` 改顯示 `summary` 與 `description`。
   - TDD：先寫 `SkillSummaryTests.Summary_ReflectsLevelValues`（爆氣第 1 級 →「機率 40%｜消耗 SP 2｜自己物攻 +1%，3 回合」），再寫 API 測試 `SkillEndpointsTests.Skills_ReturnSummaryAndDescription` 與前端測試 `SkillsScreen` 顯示 summary。
   - 驗證：`grep -rn "SkillEffectKind\|SkillTrigger" backend` 沒有結果；`SkillCaster` 沒有依等級計算數值的係數；`cd frontend && pnpm check` 通過。
-- [ ] 2.5 新增能力類的效果 [after: 2.4]：`StatChange` 支援 charisma、hitRate、evasion、physicalCriticalChance、magicCriticalChance、physicalCriticalCap、magicCriticalCap、escapeRate 與 `target: Opponent`，`scaling` 支援效果目錄列出的全部 `basis`。計算寫在 `BattleModifiers`、`RoundResolver`、`WogBattle`、`EscapeRules`。
+- [x] 2.5 新增能力類的效果 [after: 2.4]：`StatChange` 支援 charisma、hitRate、evasion、physicalCriticalChance、magicCriticalChance、physicalCriticalCap、magicCriticalCap、escapeRate 與 `target: Opponent`，`scaling` 支援效果目錄列出的全部 `basis`。計算寫在 `BattleModifiers`、`RoundResolver`、`WogBattle`、`EscapeRules`。
   - TDD：每個 stat 一條 `SkillEffectTests`，例如：
     - `Evasion_LowersOpponentHitChance`
     - `MagicCriticalChance_RaisesMagicCriticalOdds`

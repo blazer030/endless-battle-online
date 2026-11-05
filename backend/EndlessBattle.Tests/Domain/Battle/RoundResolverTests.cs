@@ -15,7 +15,9 @@ public class RoundResolverTests
         var fighter = new CombatantState(100, 100, 0, 0, At: 100, Mat: 100, Df: 50, Mdf: 50, Agi: 10, Au: 10, Element: 0, SpecialAttackName: null, Str: 100, Smart: 100);
         var rolls = kind == AttackKind.Physical ? new[] { 0.0, 0.145, 0.0 } : [0.145, 0.0];
 
-        var result = RoundResolver.Strike(fighter, fighter, kind, new ScriptedRandom(0.99, rolls), physicalCriticalChanceBonus: 10);
+        // 物理暴擊率技能只算進物理攻擊：依攻擊方式取這一下的暴擊率加成
+        var bonus = new BattleModifiers(CritChanceBonus: 10).CriticalChanceFor(kind);
+        var result = RoundResolver.Strike(fighter, fighter, kind, new ScriptedRandom(0.99, rolls), criticalChanceBonus: bonus);
 
         Assert.Equal(expectedCritical, result.Critical);
     }

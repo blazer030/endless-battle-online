@@ -26,15 +26,16 @@ public static class RoundResolver
     public static bool PlayerStrikesFirst(int playerAgi, int monsterAgi, IRandomSource random) =>
         PhpRandom.Between(random, 1, 100) <= (playerAgi > monsterAgi ? 70 : 30);
 
-    // rag、物理暴擊率加成、附加傷害來自技能（BattleModifiers），只有玩家出手時不為 0
+    // rag、暴擊率加成（這次攻擊方式的）、附加傷害、暴擊倍率上限加成來自技能（BattleModifiers）；怪物出手時只有 rag（玩家的迴避）
     public static AttackResult Strike(
         CombatantState attacker,
         CombatantState defender,
         AttackKind kind,
         IRandomSource random,
         int rag = 0,
-        double physicalCriticalChanceBonus = 0,
-        int bonusDamage = 0)
+        double criticalChanceBonus = 0,
+        int bonusDamage = 0,
+        double criticalCapPercent = 0)
     {
         var physical = kind == AttackKind.Physical;
 
@@ -45,19 +46,19 @@ public static class RoundResolver
         }
 
         var (criticalChance, criticalMultiplier) = physical
-            ? CriticalOdds(attacker.Agi, defender.Agi)
-            : CriticalOdds(attacker.Au, defender.Au);
+            ? CriticalOdds(attacker.Agi, defender.Agi, criticalCapPercent)
+            : CriticalOdds(attacker.Au, defender.Au, criticalCapPercent);
 
-        // 物暴擊率技能只加在物理，加在 20% 上限之後、不再封頂
-        var critical = PhpRandom.Between(random, 1, 100) < criticalChance + (physical ? physicalCriticalChanceBonus : 0);
+        // 暴擊率技能加在 20% 上限之後、不再封頂
+        var critical = PhpRandom.Between(random, 1, 100) < criticalChance + criticalChanceBonus;
         var elementMultiplier = ElementTable.Multiplier(attacker.Element, defender.Element);
         var (attack, defense) = physical ? (attacker.At, defender.Df) : (attacker.Mat, defender.Mdf);
         var damage = WogDamage.Fight(critical ? attack * criticalMultiplier : attack, defense, elementMultiplier, random, bonusDamage: bonusDamage);
         return new AttackResult(Hit: true, critical, damage, elementMultiplier);
     }
 
-    // 物理比 agi、魔法比 au；攻方較高時依比值提高，怪物與玩家用同一套
-    public static (double Chance, double Multiplier) CriticalOdds(int attackerStat, int defenderStat)
+    // 物理比 agi、魔法比 au；攻方較高時依比值提高，怪物與玩家用同一套；criticalCapPercent 把倍率上限提高該百分比
+    public static (double Chance, double Multiplier) CriticalOdds(int attackerStat, int defenderStat, double criticalCapPercent = 0)
     {
         if (attackerStat <= defenderStat)
         {
@@ -65,7 +66,7 @@ public static class RoundResolver
         }
 
         var ratio = (double)attackerStat / defenderStat;
-        return (Math.Min(MaximumCriticalChance, ratio * BaseCriticalChance), Math.Min(ratio * BaseCriticalMultiplier, MaximumCriticalMultiplier));
+        return (Math.Min(MaximumCriticalChance, ratio * BaseCriticalChance), Math.Min(ratio * BaseCriticalMultiplier, MaximumCriticalMultiplier * (1 + criticalCapPercent / 100)));
     }
 
     // agi/(agi+敵agi)×100 + rag + 20 > rand(1,100)；rag 目前只有技能（戰神之怒）會改，裝備加成在計畫 7

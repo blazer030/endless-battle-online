@@ -11,5 +11,6 @@ public static class EscapeRules
     public static bool ShouldTry(int hp, int hpMax, int escapeHpPercent) =>
         escapeHpPercent > 0 && (long)hp * 100 < (long)escapeHpPercent * hpMax;
 
-    public static bool Succeeds(IRandomSource random) => PhpRandom.Between(random, 1, 100) <= Chance;
+    // bonus 是技能加的逃跑率（百分點）
+    public static bool Succeeds(IRandomSource random, int bonus = 0) => PhpRandom.Between(random, 1, 100) <= Chance + bonus;
 }

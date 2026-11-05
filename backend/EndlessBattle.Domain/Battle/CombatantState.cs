@@ -17,7 +17,10 @@ public sealed record CombatantState(
     int Element,
     string? SpecialAttackName,
     int Str,
-    int Smart)
+    int Smart,
+    int Vit = 0,
+    int Be = 0,
+    int Level = 0)
 {
     // 怪物每場都從滿 HP／SP 開始；怪物沒有技能，Str／Smart 用不到，填 0
     public static CombatantState From(MonsterDefinition monster) => new(
@@ -34,5 +37,6 @@ public sealed record CombatantState(
         Element: monster.Element,
         SpecialAttackName: null,
         Str: 0,
-        Smart: 0);
+        Smart: 0,
+        Level: monster.Level);
 }

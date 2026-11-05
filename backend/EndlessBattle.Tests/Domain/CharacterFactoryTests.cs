@@ -152,7 +152,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺", Str: 12, Smart: 12),
+            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺", Str: 12, Smart: 12, Vit: 10, Be: 10, Level: 1),
             combatant);
     }
 
@@ -167,7 +167,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character, bonus);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, SpecialAttackName: "必殺", Str: 14, Smart: 13),
+            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, SpecialAttackName: "必殺", Str: 14, Smart: 13, Vit: 13, Be: 12, Level: 1),
             combatant);
     }
 
