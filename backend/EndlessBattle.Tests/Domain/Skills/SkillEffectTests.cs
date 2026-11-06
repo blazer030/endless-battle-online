@@ -469,7 +469,28 @@ public class SkillEffectTests
 
         Assert.Equal([0, 0, 1], activations);
         Assert.Equal(1, random.Consumed);
-        Assert.Equal((10, 2), (Active(Player(), new SilenceEffect(Chance: 10, Rounds: 2)).AfterCast().Current.SilenceChance, 2));
+    }
+
+    [Theory]
+    [InlineData(2, 2)]
+    [InlineData(0, 1)]
+    public void Silence_OnSuccess_ReportsRoundsForTheOpponent(int rounds, int expected)
+    {
+        var cast = Assert.Single(Active(Player(), new SilenceEffect(Chance: 10, rounds)).CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
+
+        Assert.Equal(expected, cast.SilenceRounds);
+    }
+
+    [Fact]
+    public void Silence_KeepsSkillsAlreadyActive()
+    {
+        var player = Player();
+        var caster = Active(player, AttackPercent(5, rounds: 3));
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+
+        caster.Silence(rounds: 2);
+
+        Assert.Equal(210, AttackAfter(caster, player));
     }
 
     [Theory]

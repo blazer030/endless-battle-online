@@ -48,8 +48,7 @@ public sealed record BattleModifiers(
     double MagicTaken = 1,
     int? AttackElement = null,
     int? DefenseElement = null,
-    double ElementAdvantagePercent = 0,
-    int SilenceChance = 0)
+    double ElementAdvantagePercent = 0)
 {
     // 能力倍率最低 0.9，正值四捨五入後仍至少 1，所以不另設下限；倍率為 1 時數值完全不變
     public CombatantState ApplyToCaster(CombatantState caster) => caster with

@@ -89,7 +89,7 @@ public sealed record RestoreEffect(
 // 持續期間，對手每次出手前擲 Chance，擲中就無法行動
 public sealed record StunEffect(int Chance, int Rounds) : SkillEffect(Rounds);
 
-// 持續期間對手的技能不發動、不判斷條件；Chance 是發動後擲的機率
+// 發動後擲 Chance，擲中時接下來 Rounds 回合（含目前回合，至少 1 回合）對手的技能不發動、不判斷條件；已經生效的技能不受影響
 public sealed record SilenceEffect(int Chance, int Rounds) : SkillEffect(Rounds);
 
 // Element 1～6：地、水、火、木、風、毒

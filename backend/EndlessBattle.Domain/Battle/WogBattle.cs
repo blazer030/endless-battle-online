@@ -123,6 +123,13 @@ public static class WogBattle
         // 連打每下各自擲命中／暴擊／傷害，擊倒就停；各下平均分在攻方的半回合內，最後一下早於對手出手
         bool PlayerStrike(double atSeconds)
         {
+            if (monsterModifiers.StunChance > 0 && PhpRandom.Between(random, 1, 100) <= monsterModifiers.StunChance)
+            {
+                events.Add(new AttackEvent(atSeconds, CombatSide.Player, playerKind, Hit: false, Critical: false, Damage: 0,
+                    ElementMultiplier: 1.0, monsterHp, Stunned: true));
+                return false;
+            }
+
             var hits = playerKind == AttackKind.Physical ? playerModifiers.PhysicalHits : playerModifiers.MagicHits;
             var intervalSeconds = SecondStrikeOffsetSeconds / hits;
             for (var hit = 0; hit < hits; hit++)
@@ -239,6 +246,7 @@ public static class WogBattle
                 monsterHp = Math.Max(0, monsterHp - cast.OpponentDamage);
                 damageDealt += cast.OpponentDamage;
                 monsterSp = Math.Max(0, monsterSp - cast.OpponentSpLoss);
+                monsterCaster.Silence(cast.SilenceRounds);
                 events.Add(SkillEventOf(cast, CombatSide.Player, monsterHp, atSeconds));
             }
         }
@@ -251,6 +259,7 @@ public static class WogBattle
                 monsterSp = cast.SpAfter;
                 playerHp = Math.Max(0, playerHp - cast.OpponentDamage);
                 playerSp = Math.Max(0, playerSp - cast.OpponentSpLoss);
+                caster.Silence(cast.SilenceRounds);
                 events.Add(SkillEventOf(cast, CombatSide.Monster, playerHp, atSeconds));
             }
         }

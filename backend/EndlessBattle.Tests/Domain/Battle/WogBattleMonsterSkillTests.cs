@@ -343,4 +343,69 @@ public class WogBattleMonsterSkillTests
         Assert.Equal(CombatSide.Player, ((DefeatEvent)outcome.Events[^1]).Loser);
         Assert.Equal(CombatSide.Monster, outcome.Winner);
     }
+
+    // 只在發動回合生效，下一回合可以再發動；用施放時間判斷第幾回合
+    private static readonly SkillEffect OneRoundBuff = new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, 1, null, null, Rounds: 0);
+
+    private static double RoundStart(int round) => (round - 1) * BattleTiming.SecondsPerRound;
+
+    [Fact]
+    public void Run_StunnedPlayer_DoesNotAttack()
+    {
+        var stun = Skill("暈擊", [], new StunEffect(100, Rounds: 3));
+
+        var outcome = RunWithMonsterSkill(stun, [FirstRoll, FirstRoll, FirstRoll]);
+
+        var attack = FirstAttackBy(outcome, CombatSide.Player);
+        Assert.Equal((true, false, 0, 1000), (attack.Stunned, attack.Hit, attack.Damage, attack.TargetHpAfter));
+    }
+
+    [Fact]
+    public void Run_PlayerSilencesMonster_BlocksForRounds()
+    {
+        // 玩家的 SP 只夠放一次，第 3 回合不會再封鎖
+        var silence = Skill("葬心", [new SkillCost(SkillCostKind.SkillPoints, 5)], new SilenceEffect(100, Rounds: 2));
+
+        var outcome = WogBattle.Run(Player(sp: 5), Monster(), null, [silence], null, new ScriptedRandom(LastRoll), null, monsterSkills: [Skill("爆氣", [], OneRoundBuff)]);
+
+        var firstCast = outcome.Events.OfType<SkillEvent>().First(cast => cast.Caster == CombatSide.Monster);
+        Assert.Equal(RoundStart(3), firstCast.AtSeconds);
+    }
+
+    [Fact]
+    public void Run_MonsterSilencesPlayer_BlocksRoundEndSkill()
+    {
+        var silence = Skill("葬心", [], new SilenceEffect(100, Rounds: 1));
+        var roundEnd = Timed(SkillTiming.RoundEnd, "回合結束", OneRoundBuff);
+
+        var outcome = WogBattle.Run(Player(), Monster(), null, [roundEnd], null, new ScriptedRandom(LastRoll), null, monsterSkills: [silence]);
+
+        Assert.DoesNotContain(outcome.Events.OfType<SkillEvent>(), cast => cast.Caster == CombatSide.Player);
+    }
+
+    [Fact]
+    public void Run_FailedSilenceRoll_BlocksNothing()
+    {
+        var silence = Skill("葬心", [], new SilenceEffect(10, Rounds: 2));
+
+        // 擲骰：玩家發動 → 封鎖擲 11，超過 10 → 怪物照常施放
+        var outcome = WogBattle.Run(Player(), Monster(), null, [silence], null, new ScriptedRandom(LastRoll, FirstRoll, 0.1), null, monsterSkills: [Skill("爆氣", [], OneRoundBuff)]);
+
+        var firstCast = outcome.Events.OfType<SkillEvent>().First(cast => cast.Caster == CombatSide.Monster);
+        Assert.Equal(RoundStart(1), firstCast.AtSeconds);
+    }
+
+    [Fact]
+    public void Run_SilenceRoll_ComesAfterEffectChances()
+    {
+        var weakenThenSilence = Skill("葬心", [new SkillCost(SkillCostKind.SkillPoints, 5)],
+            new StatChangeEffect(SkillTarget.Opponent, SkillStat.Attack, -1, null, null, Rounds: 2) { Chance = 50 }, new SilenceEffect(10, Rounds: 2));
+
+        // 擲骰：玩家發動 → 效果機率擲 100 落空 → 封鎖擲 1 成功；順序相反的話封鎖會落空
+        var outcome = WogBattle.Run(Player(sp: 5), Monster(), null, [weakenThenSilence], null, new ScriptedRandom(LastRoll, FirstRoll, LastRoll, FirstRoll), null,
+            monsterSkills: [Skill("爆氣", [], OneRoundBuff)]);
+
+        var firstCast = outcome.Events.OfType<SkillEvent>().First(cast => cast.Caster == CombatSide.Monster);
+        Assert.Equal(RoundStart(3), firstCast.AtSeconds);
+    }
 }

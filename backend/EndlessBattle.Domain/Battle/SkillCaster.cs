@@ -4,10 +4,10 @@ using EndlessBattle.Domain.Skills;
 namespace EndlessBattle.Domain.Battle;
 
 // Heal、SpGain 是實際回復的 HP 與 SP（已扣掉超過上限的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
-// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗
+// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗；SilenceRounds 是對手要被封鎖的回合數（含目前回合），沒擲中或沒有封鎖效果時為 0
 public sealed record SkillCast(
     EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0,
-    int HpCost = 0, int SpCost = 0, int MoneyCost = 0, int SpGain = 0);
+    int HpCost = 0, int SpCost = 0, int MoneyCost = 0, int SpGain = 0, int SilenceRounds = 0);
 
 // 技能的施放與持續（研究 §3.3），玩家與怪物共用。主動與被動規則相同，只看每級的條件、消耗與效果：
 // 沒有發動條件的技能常駐：裝上就生效、不擲骰、不扣消耗；攻擊後時機的常駐技能（嗜血）每次命中都觸發。
@@ -175,10 +175,11 @@ public sealed class SkillCaster
             remainingRounds[equipped] = LastingRounds(level);
             ages[equipped] = 0;
             missedEffects[equipped] = RollEffectChances(level, random);
+            var silenceRounds = RollSilence(level, random);
             StartCooldown(equipped, level);
             recompute = true;
             casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss,
-                hpCost, spCost, Money is null ? 0 : moneyCost, instant.SpGain));
+                hpCost, spCost, Money is null ? 0 : moneyCost, instant.SpGain, silenceRounds));
         }
 
         if (recompute)
@@ -258,6 +259,14 @@ public sealed class SkillCaster
 
         return missed;
     }
+
+    // 封鎖在效果自己的機率之後依序擲；只在發動回合生效的封鎖也算 1 回合
+    private static int RollSilence(SkillLevel level, IRandomSource random) =>
+        level.Effects.OfType<SilenceEffect>()
+            .Where(silence => PhpRandom.Between(random, 1, 100) <= silence.Chance)
+            .Select(silence => Math.Max(1, silence.Rounds))
+            .DefaultIfEmpty(0)
+            .Max();
 
     // 以 SP 為基準時用該技能發動當下（扣消耗前）的 SP；常駐技能用開戰時的 SP
     private int Scaled(IReadOnlyList<SkillScaling> scaling, EquippedSkill equipped) =>
@@ -351,9 +360,6 @@ public sealed class SkillCaster
                     break;
                 case StunEffect stun:
                     modifiers = modifiers with { StunChance = Math.Max(modifiers.StunChance, stun.Chance) };
-                    break;
-                case SilenceEffect silence:
-                    modifiers = modifiers with { SilenceChance = Math.Max(modifiers.SilenceChance, silence.Chance) };
                     break;
                 case AttackElementEffect element:
                     modifiers = modifiers with { AttackElement = element.Element };
