@@ -220,6 +220,31 @@ describe("stageModel", () => {
     for (const event of events) expect(applyToStage(midFight, event)).toBe(midFight)
   })
 
+  it.each([
+    [{ heal: 50 }, 150, 800],
+    [{ heal: 450 }, 500, 800],
+    [{ hpCost: 10 }, 90, 800],
+    [{ opponentHpAfter: 700 }, 100, 700],
+  ])("applyToStage_MonsterSkill_UpdatesBothSides %o", (overrides, monsterHp, playerHp) => {
+    const state: StageState = {
+      ...midFight,
+      monsterHp: 100,
+      monsterHpMax: 500,
+      playerHp: 800,
+      playerHpMax: 1000,
+    }
+
+    const next = applyToStage(state, skill({ caster: "Monster", ...overrides }))
+
+    expect([next.monsterHp, next.playerHp]).toEqual([monsterHp, playerHp])
+  })
+
+  it("applyToStage_PlayerHpCostLowersPlayerHealth", () => {
+    const state: StageState = { ...midFight, playerHp: 800, playerHpMax: 1000 }
+
+    expect(applyToStage(state, skill({ hpCost: 10 })).playerHp).toBe(790)
+  })
+
   it("applyToStage_HealSkillRaisesPlayerHealthUpToMax", () => {
     expect(applyToStage(midFight, skill({ heal: 30 })).playerHp).toBe(42)
     expect(applyToStage(midFight, skill({ heal: 500 })).playerHp).toBe(80)
@@ -286,10 +311,6 @@ describe("stageModel", () => {
 
   it("stageEffectsFor_LastingSkillDamage_HasNoCastEffects", () => {
     expect(stageEffectsFor(skill({ damage: 50, opponentHpAfter: 10, lasting: true }))).toEqual([])
-  })
-
-  it("stageEffectsFor_MonsterSkill_HasNoEffects", () => {
-    expect(stageEffectsFor(skill({ caster: "Monster" }))).toEqual([])
   })
 
   it("stageEffectsFor_StunnedMonster_ShowsMutedPlateOverMonster", () => {
@@ -435,5 +456,25 @@ describe("stageModel", () => {
     }
     const round: BattleEvent = { type: "round", round: 1, atSeconds: 0 }
     for (const event of [encounter, round, reward]) expect(stageEffectsFor(event)).toEqual([])
+  })
+
+  it("stageEffectsFor_MonsterSkill_ShowsPlateOverMonster", () => {
+    expect(stageEffectsFor(skill({ caster: "Monster" }))).toEqual([
+      { type: "plate", text: "爆氣", tone: "cyan", over: "monster" },
+    ])
+  })
+
+  it("stageEffectsFor_MonsterLastingSkill_ShowsNothing", () => {
+    expect(
+      stageEffectsFor(
+        skill({ caster: "Monster", lasting: true, damage: 25, opponentHpAfter: 700 }),
+      ),
+    ).toEqual([])
+  })
+
+  it("stageEffectsFor_StunnedPlayer_ShowsPlateOverPlayer", () => {
+    expect(stageEffectsFor(attack({ hit: false, damage: 0, stunned: true }))).toEqual([
+      { type: "plate", text: "暈眩", tone: "muted", over: "player" },
+    ])
   })
 })

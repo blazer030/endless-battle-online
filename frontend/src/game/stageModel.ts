@@ -64,15 +64,19 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "petAttack":
       return { ...state, monsterHp: event.targetHpAfter }
     case "skill": {
-      if (event.caster !== "Player") return state
-      // 回復玩家 HP；削減 HP、持續傷害時改成怪物剩下的 HP
-      const healed =
-        event.heal > 0
-          ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.heal) }
-          : state
-      return event.opponentHpAfter === null || event.opponentHpAfter === undefined
-        ? healed
-        : { ...healed, monsterHp: event.opponentHpAfter }
+      // 施放者扣消耗、加回復；削減 HP、持續傷害時對手改成剩下的 HP
+      const change = event.heal - event.hpCost
+      const casterChanged =
+        change === 0
+          ? state
+          : event.caster === "Player"
+            ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + change) }
+            : { ...state, monsterHp: Math.min(state.monsterHpMax, state.monsterHp + change) }
+      if (event.opponentHpAfter === null || event.opponentHpAfter === undefined)
+        return casterChanged
+      return event.caster === "Player"
+        ? { ...casterChanged, monsterHp: event.opponentHpAfter }
+        : { ...casterChanged, playerHp: event.opponentHpAfter }
     }
     case "potion":
       return { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.hp) }
@@ -100,6 +104,7 @@ const attackEffects = (event: AttackEvent): StageEffect[] => {
         ]
       : [{ type: "miss", side: "player" }]
   }
+  if (event.stunned) return [{ type: "plate", text: "暈眩", tone: "muted", over: "player" }]
   const stroke: StageEffect = event.kind === "Magic" ? { type: "beam" } : { type: "slash" }
   if (!event.hit) return [stroke, { type: "miss", side: "monster" }]
   return [
@@ -131,10 +136,11 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
     case "attack":
       return attackEffects(event)
     case "skill":
-      // 持續傷害的結算不是施放，只扣怪物 HP
-      return event.caster === "Player" && !event.lasting
+      // 持續傷害的結算不是施放，只扣對手 HP；怪物施放只有名牌，全畫面閃光留給玩家
+      if (event.lasting) return []
+      return event.caster === "Player"
         ? [{ type: "skillFlash" }, { type: "plate", text: event.skillName, tone: "cyan" }]
-        : []
+        : [{ type: "plate", text: event.skillName, tone: "cyan", over: "monster" }]
     case "defeat":
       return event.loser === "Monster" ? [{ type: "impactBurst" }] : []
     case "timeout":
