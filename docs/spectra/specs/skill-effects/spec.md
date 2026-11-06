@@ -1291,3 +1291,175 @@ tests:
   - frontend/src/game/stageModel.test.ts
   - frontend/src/ui/CreateCharacterScreen.test.tsx
 -->
+
+---
+### Requirement: A stun chance can depend on comparing a stat
+
+A `Stun` effect SHALL be able to declare `chanceByStat` with a stat and a percent. When the caster's base stat is above the opponent's, the stun chance SHALL rise by the percent; otherwise, including a tie, it SHALL fall by the percent. A resulting chance of 0 or less SHALL never stun. Loading SHALL be rejected with a `GameContentException` when the percent is outside 1 to 100. The generated effect text SHALL show the adjustment.
+
+#### Scenario: The stun chance follows the comparison
+
+##### Example: 假死 level 1 has `Stun` chance 2 and `chanceByStat` intelligence 5
+
+| Caster's intelligence | Opponent's intelligence | Stun chance |
+| --- | --- | --- |
+| 100 | 50 | 7 |
+| 50 | 50 | never |
+| 50 | 100 | never |
+
+- **WHEN** 假死 is active and the opponent is about to attack
+- **THEN** the stun chance is as in the table
+
+##### Example: 假死 level 7 has `Stun` chance 14
+
+| Caster's intelligence | Opponent's intelligence | Stun chance |
+| --- | --- | --- |
+| 100 | 50 | 19 |
+| 50 | 100 | 9 |
+
+- **WHEN** 假死 is active and the opponent is about to attack
+- **THEN** the stun chance is as in the table
+
+#### Scenario: An invalid adjustment is rejected
+
+- **WHEN** a `Stun` effect has `chanceByStat` percent 0 or 101
+- **THEN** loading throws a `GameContentException`
+
+#### Scenario: The effect text shows the adjustment
+
+- **WHEN** the effect text is generated for `Stun` chance 2 with `chanceByStat` intelligence 5
+- **THEN** the text is `對手無法行動 機率 2%（智力比對手高 +5%，否則 -5%）`
+
+
+<!-- @trace
+source: monster-skills
+updated: 2026-11-07
+code:
+  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
+  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
+  - docs/research/wog45/gaps.md
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
+  - backend/EndlessBattle.Tests/TestContent/monster-skills.json
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
+  - frontend/src/game/stageModel.ts
+  - backend/EndlessBattle.Domain/Skills/SkillLoadout.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Application/Skills/EquippedSkills.cs
+  - backend/content/job-skills.json
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
+  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
+  - backend/content/items.json
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/TestContent/items.json
+  - backend/content/monster-skills.json
+  - backend/content/skills.json
+  - frontend/src/api/schema.ts
+  - frontend/src/game/battleLog.ts
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - README.md
+tests:
+  - frontend/src/test/fixtures.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/game/battleLog.test.ts
+  - frontend/src/ui/bagWidgets.test.tsx
+  - frontend/src/game/stageModel.test.ts
+-->
+
+---
+### Requirement: Silence blocks the opponent during a battle
+
+When a skill with a `Silence` effect activates in a battle, its chance SHALL be rolled after the other effect chances. On success, the opponent's skills SHALL NOT activate or roll for the effect's rounds, counting the current round, and for at least 1 round. Skills already active SHALL continue until they expire. Silence SHALL work for both the player and the monster.
+
+#### Scenario: A player silences a monster
+
+- **GIVEN** a player's skill with `Silence` chance 100 for 2 rounds, cast in round 1, and a monster skill at rate 100
+- **WHEN** rounds 1 to 3 run
+- **THEN** the monster casts no skill in rounds 1 and 2 and casts in round 3
+
+#### Scenario: A monster silences a player
+
+- **GIVEN** a monster skill with `Silence` chance 100 for 1 round at rate 100, cast in round 1, and a player's `RoundEnd` skill with `Chance` 100
+- **WHEN** round 1 ends
+- **THEN** the player's skill does not activate
+
+#### Scenario: A failed silence roll does nothing
+
+- **GIVEN** a skill with `Silence` chance 10
+- **WHEN** it activates and the silence roll is 11
+- **THEN** the opponent's skills are not blocked
+
+<!-- @trace
+source: monster-skills
+updated: 2026-11-07
+code:
+  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
+  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
+  - docs/research/wog45/gaps.md
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
+  - backend/EndlessBattle.Tests/TestContent/monster-skills.json
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
+  - frontend/src/game/stageModel.ts
+  - backend/EndlessBattle.Domain/Skills/SkillLoadout.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Application/Skills/EquippedSkills.cs
+  - backend/content/job-skills.json
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
+  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
+  - backend/content/items.json
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/TestContent/items.json
+  - backend/content/monster-skills.json
+  - backend/content/skills.json
+  - frontend/src/api/schema.ts
+  - frontend/src/game/battleLog.ts
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - README.md
+tests:
+  - frontend/src/test/fixtures.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/game/battleLog.test.ts
+  - frontend/src/ui/bagWidgets.test.tsx
+  - frontend/src/game/stageModel.test.ts
+-->
