@@ -276,6 +276,8 @@ Original data that the current rules cannot use SHALL be left out of the content
 - skills the effect catalogue cannot express;
 - references removed because their target was left out.
 
+A monster's special attack name SHALL be left out of the content files and SHALL NOT be listed per monster, because it was decided not to be used rather than waiting for a rule; `gaps.md` SHALL state this decision once in the monster mapping notes.
+
 The official content SHALL load without errors after every import.
 
 #### Scenario: An NPC with level 0 is listed, not imported
@@ -288,7 +290,13 @@ The official content SHALL load without errors after every import.
 
 - **GIVEN** the original monster 1 史萊姆 with the special attack 猛烈一擊 and the skill 爆氣 Lv2 at rate 10
 - **WHEN** the import runs
-- **THEN** `monster-1` is imported without those fields, and `gaps.md` lists 猛烈一擊 and 爆氣 Lv2 rate 10 under monster 1
+- **THEN** `monster-1` is imported without those fields, and `gaps.md` lists 爆氣 Lv2 rate 10 under monster 1 and does not mention 猛烈一擊
+
+#### Scenario: A monster with only a special attack is not listed
+
+- **GIVEN** the original monster 13 白蛇龍 with the special attack 白龍巨浪 and no skills
+- **WHEN** the import runs
+- **THEN** `gaps.md` has no row for monster 13 in its list of fields that were not moved
 
 #### Scenario: A reference to an excluded record is removed and listed
 
@@ -302,106 +310,73 @@ The official content SHALL load without errors after every import.
 
 
 <!-- @trace
-source: wog45-content-import
+source: remove-special-attack-name
 updated: 2026-11-06
 code:
-  - docs/research/README.md
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Api/Endpoints/SkillEndpoints.cs
-  - backend/content/monsters.json
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillLearningTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/ContentFileFormatterTests.cs
-  - docs/research/mission-table.md
-  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
-  - backend/EndlessBattle.Domain/Forge/ForgeTools.cs
-  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
-  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
-  - docs/research/companion-table.md
-  - backend/EndlessBattle.Domain/Battle/BattleOutcome.cs
-  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
-  - frontend/src/game/stageModel.ts
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - backend/EndlessBattle.Application/Content/IGameContent.cs
-  - docs/research/wog45/export.py
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
-  - docs/research/wog45/gaps.md
-  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
-  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
-  - docs/research/monster-roster.md
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Domain/Skills/SkillLearning.cs
-  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
-  - docs/research/item-table.md
-  - backend/content/items.json
-  - backend/EndlessBattle.Tests/Application/SkillServiceTests.cs
-  - backend/EndlessBattle.Tests/Support/SkillPreset.cs
-  - frontend/src/game/battleLog.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - backend/EndlessBattle.Tests/Content/MonsterRosterTests.cs
-  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
-  - frontend/src/game/skills.ts
-  - frontend/src/ui/SkillsScreen.tsx
-  - scripts/import-wog45.py
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - backend/EndlessBattle.Tests/TestContent/job-skills.json
-  - docs/research/wog45/README.md
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Tests/Support/CustomContent.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/content/honour-shop.json
-  - backend/content/job-skills.json
-  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillDefinitionTests.cs
-  - frontend/src/game/inventory.ts
-  - backend/EndlessBattle.Tests/Support/TestSkills.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - backend/EndlessBattle.Application/Skills/SkillOverview.cs
-  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
-  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
-  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
-  - backend/content/jobs.json
-  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
-  - backend/content/missions.json
-  - backend/content/skills.json
-  - backend/EndlessBattle.Application/Skills/SkillService.cs
-  - backend/db/ddl/V000000016__default_job_id.sql
-  - backend/EndlessBattle.Tests/Api/SkillEndpointsTests.cs
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - docs/research/job-growth-expectation.md
-  - frontend/src/api/schema.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/content/mercenaries.json
-  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
-  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
-  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
-  - backend/EndlessBattle.Tests/TestContent/items.json
-  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentUpdateTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillLoadoutTests.cs
-  - backend/content/recipes.json
-  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
-  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Tests/Content/ItemTableTests.cs
-  - backend/EndlessBattle.Tests/TestContent/skills.json
+  - backend/EndlessBattle.Domain/Characters/Character.cs
+  - backend/EndlessBattle.Application/Characters/CharacterService.cs
+  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
+  - backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/BattleEventsTests.cs
   - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
+  - backend/EndlessBattle.Tests/Domain/Pets/PetBattleTests.cs
+  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
+  - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
+  - backend/EndlessBattle.Tests/Support/TestCharacters.cs
+  - docs/superpowers/screenshots/plan-10-settings.png
+  - README.md
+  - frontend/src/render/effects.ts
+  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
+  - frontend/src/api/schema.ts
+  - scripts/import-wog45.py
+  - backend/db/ddl/V000000018__remove_character_special_attack_name.sql
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
+  - frontend/src/game/settings.ts
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
+  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
+  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
+  - backend/EndlessBattle.Tests/Application/CharacterServiceTests.cs
+  - frontend/src/game/names.ts
+  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/Models/Character.cs
+  - frontend/src/ui/CharacterScreen.tsx
+  - frontend/src/game/battleLog.ts
+  - docs/research/wog45/gaps.md
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePotionTests.cs
+  - frontend/src/ui/SettingsPanel.css
+  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
+  - frontend/src/render/StageRenderer.ts
+  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
+  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
+  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
+  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
+  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
+  - frontend/src/game/stageModel.ts
+  - frontend/src/motion/timings.ts
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Domain/Characters/CreateCharacterCommand.cs
+  - frontend/src/ui/SettingsPanel.tsx
+  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
+  - frontend/src/ui/CreateCharacterScreen.tsx
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
 tests:
-  - frontend/src/game/inventory.test.ts
+  - frontend/src/ui/CharacterScreen.test.tsx
   - frontend/src/game/battleLog.test.ts
-  - frontend/src/game/skills.test.ts
-  - frontend/src/ui/SkillsScreen.test.tsx
-  - frontend/src/ui/BagScreen.test.tsx
   - frontend/src/game/stageModel.test.ts
+  - frontend/src/ui/InnPage.test.tsx
+  - frontend/src/ui/SettingsPanel.test.tsx
+  - frontend/src/ui/BattleLog.test.tsx
   - frontend/src/ui/CreateCharacterScreen.test.tsx
+  - frontend/src/game/settings.test.ts
+  - frontend/src/test/fixtures.ts
+  - frontend/src/ui/AdventureScreen.test.tsx
+  - frontend/src/api/client.test.ts
 -->
 
 ---
