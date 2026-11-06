@@ -559,8 +559,15 @@ def main() -> None:
           "- 道具（不同名稱）：" + "、".join(f"{ITEM_TYPES.get(t, t)} {len({r['d_name'] for r in items if r['d_type'] == t})}" for t in sorted(counts, key=int)) + "。",
           f"- 職業 {len(jobs)}、技能 {len({(s['ch_id'], s['main_sid'], s['s_name']) for s in skills})} 種（{len(skills)} 列）、配方 {len(recipes)}、任務 {len(missions)}（每日 {len(repeats)}）、榮譽商店 {len(honour)}、傭兵 {len(mercs)}。",
           "\n## 沒有整理的表\n",
-          "公會（`wog_group_*`、`wog_build_*`、`wog_weapon_*`）、玩家與存檔（`wog_player*`、`wog_item`、`wog_skill_book`、`wog_stone_setup`、`wog_plus_setup`、`wog_pet`、`wog_message`、`wog_log_main`）、"
-          "聊天與論壇。這些是執行期資料或確定不做的多人系統。\n",
+          "SQL 共 79 張表，下列都是執行期資料或確定不做的多人系統，沒有整理：\n",
+          "- 公會：`wog_group_*`（27 張）、`wog_build_*`、`wog_weapon_*`。",
+          "- 玩家存檔與進度：`wog_player*`、`wog_item`、`wog_pet`、`wog_skill_book`、`wog_skill_setup`、`wog_stone_setup`、`wog_stone_temp`、`wog_plus_setup`、"
+          "`wog_ch_exp`、`wog_mission_book`、`wog_key_list`、`wog_mercenary_list`、`wog_mercenary_book`、`wog_cp`（目前的冠軍）、`wog_log_main`。",
+          "- 社交與交易：`wog_message`、`wog_message_box`、`wog_friend_list`、`wog_sns_player`、`wog_team_main`、`wog_team_join`、`wog_sale`（拍賣）、"
+          "`wog_exchange_list`、`wog_exchange_book`（交易所持有與成交紀錄）。",
+          "- 加值商城：`wog_vip_log`（釋出版已移除商城；程式裡還有讀 `wog_df_vip`，但 SQL 裡沒有這張表）。",
+          "- 頭像清單：`wog_img`（95 張，檔名都是「編號.gif」，本作不會用到）。",
+          "- 聊天與論壇：不在這份 SQL 裡。\n",
           "## 已知限制\n",
           "- 怪物子地區用 `m_subplace` 位元遮罩還原；黑曜神廟（20）沒有子地區。",
           "- 怪物技能欄 `skill_1～5` 以 `wog_ch_skill.s_id` 查名稱；查不到的顯示為「技能 id」。",

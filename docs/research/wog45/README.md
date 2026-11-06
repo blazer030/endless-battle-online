@@ -27,7 +27,14 @@
 
 ## 沒有整理的表
 
-公會（`wog_group_*`、`wog_build_*`、`wog_weapon_*`）、玩家與存檔（`wog_player*`、`wog_item`、`wog_skill_book`、`wog_stone_setup`、`wog_plus_setup`、`wog_pet`、`wog_message`、`wog_log_main`）、聊天與論壇。這些是執行期資料或確定不做的多人系統。
+SQL 共 79 張表，下列都是執行期資料或確定不做的多人系統，沒有整理：
+
+- 公會：`wog_group_*`（27 張）、`wog_build_*`、`wog_weapon_*`。
+- 玩家存檔與進度：`wog_player*`、`wog_item`、`wog_pet`、`wog_skill_book`、`wog_skill_setup`、`wog_stone_setup`、`wog_stone_temp`、`wog_plus_setup`、`wog_ch_exp`、`wog_mission_book`、`wog_key_list`、`wog_mercenary_list`、`wog_mercenary_book`、`wog_cp`（目前的冠軍）、`wog_log_main`。
+- 社交與交易：`wog_message`、`wog_message_box`、`wog_friend_list`、`wog_sns_player`、`wog_team_main`、`wog_team_join`、`wog_sale`（拍賣）、`wog_exchange_list`、`wog_exchange_book`（交易所持有與成交紀錄）。
+- 加值商城：`wog_vip_log`（釋出版已移除商城；程式裡還有讀 `wog_df_vip`，但 SQL 裡沒有這張表）。
+- 頭像清單：`wog_img`（95 張，檔名都是「編號.gif」，本作不會用到）。
+- 聊天與論壇：不在這份 SQL 裡。
 
 ## 已知限制
 
