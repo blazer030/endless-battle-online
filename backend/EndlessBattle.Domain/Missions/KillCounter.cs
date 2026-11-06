@@ -11,12 +11,13 @@ public static class KillCounter
         var advanced = new List<ActiveMission>();
         var updated = missions.Select(mission =>
         {
-            if (mission.MonsterId != monsterId || !IsOpen(mission, killedAt))
+            var target = mission.Targets[0];
+            if (target.MonsterId != monsterId || !IsOpen(mission, killedAt))
             {
                 return mission;
             }
 
-            var next = mission with { Progress = mission.Progress + 1 };
+            var next = mission with { Targets = [target with { Progress = target.Progress + 1 }] };
             advanced.Add(next);
             return next;
         }).ToList();
@@ -40,13 +41,14 @@ public static class KillCounter
             }
 
             var objective = DailyMissions.Resolve(mission, characterId, record.DailyPeriod);
-            if (objective.Kill is not { } kill || MissionBoard.Ready(objective, record.ProgressOf(0)))
+            if (objective.Kills.Count == 0 || MissionBoard.Ready(objective, record))
             {
                 continue;
             }
 
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
-            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.ProgressOf(0), record.AcceptedAt, expiresAt,
+            var targets = objective.Kills.Select((kill, index) => new MissionTarget(kill.MonsterId, kill.Count, record.ProgressOf(index))).ToList();
+            tracked.Add(new ActiveMission(mission.Id, mission.Title, targets, record.AcceptedAt, expiresAt,
                 RequiresDelivery: objective.Deliver.Count > 0));
         }
 
@@ -59,7 +61,7 @@ public static class KillCounter
 
     // 接取當下（含）起、嚴格早於 ExpiresAt 為止
     private static bool IsOpen(ActiveMission mission, DateTimeOffset at) =>
-        mission.Progress < mission.Required
+        mission.Targets[0].Progress < mission.Targets[0].Required
         && mission.AcceptedAt <= at
         && (mission.ExpiresAt is not { } expiresAt || at < expiresAt);
 }

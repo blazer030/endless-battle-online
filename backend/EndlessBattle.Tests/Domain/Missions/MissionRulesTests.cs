@@ -11,7 +11,7 @@ public class MissionRulesTests
     private static Character Hero(int level = 1) => TestCharacters.Default(1, "測試者", 1, 1, Now) with { Level = level };
 
     private static MissionDefinition Mission(string id, int level = 1, MissionRequirements? requirements = null) => new(
-        id, "村長", "標題", "說明", "謝謝", level, 1, false, new KillTarget("test-sprite", 3), [],
+        id, "村長", "標題", "說明", "謝謝", level, 1, false, [new KillTarget("test-sprite", 3)], [],
         requirements ?? new MissionRequirements(), new MissionReward(50, []), [], []);
 
     private static MissionRecord Active(string id) => new(id, MissionState.Active, [0], null, Now, null);

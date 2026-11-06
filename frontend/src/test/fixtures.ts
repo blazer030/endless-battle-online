@@ -265,14 +265,16 @@ export const makeMission = (overrides: Partial<MissionView> = {}): MissionView =
   placeId: 1,
   placeName: "中央平原",
   daily: false,
-  kill: {
-    monsterId: "grass-slime",
-    monsterName: "草原史萊姆",
-    placeId: 1,
-    placeName: "中央平原",
-    count: 8,
-    progress: 3,
-  },
+  kills: [
+    {
+      monsterId: "grass-slime",
+      monsterName: "草原史萊姆",
+      placeId: 1,
+      placeName: "中央平原",
+      count: 8,
+      progress: 3,
+    },
+  ],
   deliver: [],
   requirements: {
     jobId: null,

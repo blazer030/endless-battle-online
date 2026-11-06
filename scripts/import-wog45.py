@@ -693,7 +693,7 @@ def import_missions(gaps, item_ids, skill_ids, job_skills):
                   "description": text(mission["body"]), "completionMessage": text(mission["endMessage"]),
                   "level": require(mission, "level", "missions.json"), "placeId": place_id, "daily": False}
         if kills:
-            record["kill"] = {"monsterId": f"monster-{kills[0]['monsterId']}", "count": kills[0]["count"]}
+            record["kills"] = [{"monsterId": f"monster-{kills[0]['monsterId']}", "count": kills[0]["count"]}]
         if mission["needItems"]:
             record["deliver"] = merge_quantities((f"item-{need['itemId']}", need["count"]) for need in mission["needItems"])
         if requirements:

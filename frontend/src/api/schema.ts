@@ -2937,7 +2937,7 @@ export interface components {
             placeId: null | number;
             placeName: null | string;
             daily: boolean;
-            kill: null | components["schemas"]["MissionKillResponse"];
+            kills: components["schemas"]["MissionKillResponse"][];
             deliver: components["schemas"]["MissionDeliverResponse"][];
             requirements: components["schemas"]["MissionRequirementsResponse"];
             rewards: components["schemas"]["MissionRewardResponse"];

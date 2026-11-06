@@ -33,7 +33,7 @@ const content = makeContent({
 
 const delivery = makeMission({
   id: "test-delivery",
-  kill: null,
+  kills: [],
   deliver: [
     { itemId: "herb", name: "藥草", quantity: 5, owned: 7 },
     { itemId: "fang", name: "狼牙", quantity: 3, owned: 1 },
@@ -106,7 +106,7 @@ describe("objectiveLines", () => {
     expect(
       objectiveLines(
         makeMission({
-          kill: null,
+          kills: [],
           deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: false },
         }),
       ),
@@ -152,7 +152,10 @@ describe("progressRatio", () => {
   it("caps kill progress at one", () => {
     const mission = makeMission()
     expect(
-      progressRatio({ ...mission, kill: mission.kill && { ...mission.kill, progress: 12 } }),
+      progressRatio({
+        ...mission,
+        kills: mission.kills.map((kill) => ({ ...kill, progress: 12 })),
+      }),
     ).toBe(1)
   })
 
@@ -170,7 +173,7 @@ describe("progressRatio", () => {
     const mission = makeMission()
     const mixed = {
       ...mission,
-      kill: mission.kill && { ...mission.kill, progress: 12 },
+      kills: mission.kills.map((kill) => ({ ...kill, progress: 12 })),
       deliver: delivery.deliver.map((item) => ({ ...item, owned: 0 })),
     }
     // min(12,8) / (8 + 8)，不是 12 / 16
@@ -178,8 +181,8 @@ describe("progressRatio", () => {
   })
 
   it("is full for a ready mission without objectives", () => {
-    expect(progressRatio(makeMission({ kill: null, ready: true }))).toBe(1)
-    expect(progressRatio(makeMission({ kill: null }))).toBe(0)
+    expect(progressRatio(makeMission({ kills: [], ready: true }))).toBe(1)
+    expect(progressRatio(makeMission({ kills: [] }))).toBe(0)
   })
 })
 

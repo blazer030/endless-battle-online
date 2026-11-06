@@ -1097,7 +1097,7 @@ public sealed class JsonGameContent : IGameContent
         if (mission.Daily)
         {
             Require(mission.PlaceId is null, "是每日任務，placeId 必須為 null");
-            Require(mission.Kill is null && mission.Deliver.Count == 0, "是每日任務，不能有 kill 或 deliver");
+            Require(mission.Kills.Count == 0 && mission.Deliver.Count == 0, "是每日任務，不能有 kills 或 deliver");
             Require(requirements.PrerequisiteId is null && requirements.ConflictsWith is null,
                 "是每日任務，不能有 prerequisiteId 或 conflictsWith");
             Require(mission.Rewards is { Money: 0, Items.Count: 0, Skill: null, Pet: null },
@@ -1130,11 +1130,11 @@ public sealed class JsonGameContent : IGameContent
         }
 
         Require(!place.Restricted, $"的地區 {place.Id} 是禁區");
-        Require(mission.Kill is not null || mission.Deliver.Count > 0, "至少要有擊殺目標（kill）或交付道具（deliver）");
+        Require(mission.Kills.Count > 0 || mission.Deliver.Count > 0, "至少要有擊殺目標（kills）或交付道具（deliver）");
         Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
         Require(mission.DailyPets.Count == 0, "不是每日任務，不能有 dailyPets");
         Require(mission.DailyRewards.Count == 0, "不是每日任務，不能有 dailyRewards");
-        if (mission.Kill is { } fixedKill)
+        foreach (var fixedKill in mission.Kills)
         {
             var monster = RequireKill(fixedKill);
             Require(monster.PlaceId == place.Id, $"的擊殺目標 {fixedKill.MonsterId} 不在地區 {place.Id}");
@@ -1176,7 +1176,7 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"怪物 {monster.Id} 是全域怪，不能是任務怪（missionId {missionId}）");
         }
 
-        if (!missions.TryGetValue(missionId, out var mission) || mission.Daily || mission.Kill?.MonsterId != monster.Id)
+        if (!missions.TryGetValue(missionId, out var mission) || mission.Daily || mission.Kills.All(kill => kill.MonsterId != monster.Id))
         {
             throw new GameContentException($"怪物 {monster.Id} 的 missionId {missionId} 必須指向以牠為擊殺目標的一般任務");
         }
@@ -1354,9 +1354,9 @@ public sealed class JsonGameContent : IGameContent
             return new MissionReward(reward.Money, reward.Items ?? [], reward.Skill, reward.Pet);
         }
 
-        if (entry.Kill is { } kill)
+        foreach (var kill in entry.Kills ?? [])
         {
-            Require(kill.MonsterId, "kill 的 monsterId");
+            Require(kill.MonsterId, "kills 的 monsterId");
         }
 
         RequireItems(entry.Deliver, "deliver");
@@ -1379,7 +1379,7 @@ public sealed class JsonGameContent : IGameContent
             entry.Level,
             entry.PlaceId,
             entry.Daily,
-            entry.Kill,
+            entry.Kills ?? [],
             entry.Deliver ?? [],
             entry.Requirements ?? new MissionRequirements(),
             ToReward(entry.Rewards, "rewards"),
@@ -1632,7 +1632,7 @@ public sealed class JsonGameContent : IGameContent
         int Level,
         int? PlaceId,
         bool Daily,
-        KillTarget? Kill,
+        IReadOnlyList<KillTarget>? Kills,
         IReadOnlyList<ItemQuantity>? Deliver,
         MissionRequirements? Requirements,
         RewardEntry? Rewards,

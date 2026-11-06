@@ -76,7 +76,8 @@ public static class MissionBoard
     }
 
     // 擊殺目標已達成；沒有擊殺目標也算
-    public static bool Ready(MissionObjective objective, int progress) => objective.Kill is null || progress >= objective.Kill.Count;
+    public static bool Ready(MissionObjective objective, MissionRecord record) =>
+        objective.Kills.Count == 0 || record.ProgressOf(0) >= objective.Kills[0].Count;
 
     // 內容中有這個任務，且紀錄的種類與定義相符（每日任務有週期、一般任務沒有）
     internal static bool Known(MissionRecord record, [NotNullWhen(true)] MissionDefinition? definition) =>
@@ -87,7 +88,7 @@ public static class MissionBoard
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
         var ready = record.State == MissionState.Active
-            && Ready(objective, record.ProgressOf(0))
+            && Ready(objective, record)
             && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity)
             && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId);
         var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;

@@ -17,7 +17,7 @@ const daily = makeMission({
 const delivery = makeMission({
   id: "test-delivery",
   title: "藥草採集",
-  kill: null,
+  kills: [],
   deliver: [{ itemId: "herb", name: "藥草", quantity: 5, owned: 5 }],
   ready: true,
 })
@@ -225,7 +225,7 @@ test("MissionsScreen_PetDeliveryAsksForTheCarriedPetAndAnnouncesPetRewards", asy
   const petDelivery = makeMission({
     id: "test-tamer",
     title: "馴獸師的考驗",
-    kill: null,
+    kills: [],
     deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: true },
     rewards: {
       exp: 0,
@@ -269,7 +269,7 @@ test("MissionsScreen_ShowsMissingPetError", async () => {
   const petDelivery = makeMission({
     id: "test-tamer",
     title: "馴獸師的考驗",
-    kill: null,
+    kills: [],
     deliverPet: { monsterId: "grass-slime", name: "草原史萊姆", carried: true },
     ready: true,
   })

@@ -321,7 +321,7 @@ public sealed record MissionBoardResponse(
     int ActiveLimit,
     DateTimeOffset NextDailyReset);
 
-// 每日任務的 Kill 與 Rewards 是該週期擲出的結果；ExpiresAt 只有每日任務有值
+// 每日任務的 Kills 與 Rewards 是該週期擲出的結果；ExpiresAt 只有每日任務有值
 public sealed record MissionResponse(
     string Id,
     string Giver,
@@ -331,7 +331,7 @@ public sealed record MissionResponse(
     int? PlaceId,
     string? PlaceName,
     bool Daily,
-    MissionKillResponse? Kill,
+    IReadOnlyList<MissionKillResponse> Kills,
     IReadOnlyList<MissionDeliverResponse> Deliver,
     MissionRequirementsResponse Requirements,
     MissionRewardResponse Rewards,

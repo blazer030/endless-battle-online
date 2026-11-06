@@ -8,13 +8,13 @@ public class DailyMissionsTests
     private static readonly DateOnly October22 = new(2026, 10, 22);
 
     private static readonly MissionDefinition Daily = new(
-        "test-daily", "測試公會", "測試每日", "每日討伐。", "明天再來。", 1, null, true, null, [], new MissionRequirements(),
+        "test-daily", "測試公會", "測試每日", "每日討伐。", "明天再來。", 1, null, true, [], [], new MissionRequirements(),
         new MissionReward(0, []),
         [new KillTarget("test-sprite", 2), new KillTarget("test-wolf", 2)],
         [new MissionReward(100, []), new MissionReward(0, [new ItemQuantity("test-supply", 2)])]);
 
     private static readonly MissionDefinition Delivery = new(
-        "test-delivery", "測試鐵匠", "測試交付", "帶礦石來。", "收下了。", 4, 1, false, new KillTarget("test-sprite", 3),
+        "test-delivery", "測試鐵匠", "測試交付", "帶礦石來。", "收下了。", 4, 1, false, [new KillTarget("test-sprite", 3)],
         [new ItemQuantity("test-ore", 3)], new MissionRequirements(),
         new MissionReward(50, [new ItemQuantity("safe-refine-stone", 1)]), [], []);
 
@@ -56,14 +56,14 @@ public class DailyMissionsTests
         Assert.Equivalent(DailyMissions.Resolve(Daily, 7, October22), DailyMissions.Resolve(Daily, 7, October22));
 
         var kills = Enumerable.Range(0, 30)
-            .Select(offset => DailyMissions.Resolve(Daily, 7, new DateOnly(2026, 10, 1).AddDays(offset)).Kill)
+            .Select(offset => DailyMissions.Resolve(Daily, 7, new DateOnly(2026, 10, 1).AddDays(offset)).Kills[0])
             .Distinct()
             .ToList();
         Assert.True(kills.Count >= 2);
 
         var objective = DailyMissions.Resolve(Delivery, 7, October22);
         Assert.Equal("test-delivery", objective.MissionId);
-        Assert.Equal(Delivery.Kill, objective.Kill);
+        Assert.Equal(Delivery.Kills, objective.Kills);
         Assert.Equal(Delivery.Deliver, objective.Deliver);
         Assert.Equal(Delivery.Rewards, objective.Reward);
         Assert.Equal(4 * 190, objective.Exp);
@@ -108,7 +108,7 @@ public class DailyMissionsTests
 
         var objective = DailyMissions.Resolve(daily, characterId, October22);
 
-        Assert.Equal(kills[killIndex], objective.Kill);
+        Assert.Equal(kills[killIndex], Assert.Single(objective.Kills));
         Assert.Equal(rewards[rewardIndex], objective.Reward);
     }
 
@@ -127,7 +127,7 @@ public class DailyMissionsTests
         var objective = DailyMissions.Resolve(daily, characterId, October22);
 
         Assert.Equivalent(objective, DailyMissions.Resolve(daily, characterId, October22));
-        Assert.Null(objective.Kill);
+        Assert.Empty(objective.Kills);
         Assert.Empty(objective.Deliver);
         Assert.Equal(pets[petIndex], objective.DeliverPet);
         Assert.Equal(rewards[rewardIndex], objective.Reward);

@@ -378,7 +378,7 @@ public class MissionServiceTests
     {
         var character = await AddCharacterAsync();
         var accepted = await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
-        var required = Assert.Single(accepted.Active).Objective.Kill!.Count;
+        var required = Assert.Single(accepted.Active).Objective.Kills[0].Count;
         await missions.UpdateProgressAsync(character.Id, "test-daily", [required], CancellationToken);
 
         await service.CompleteAsync(AccountId, "test-daily", CancellationToken);

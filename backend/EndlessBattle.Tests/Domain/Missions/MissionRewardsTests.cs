@@ -35,7 +35,7 @@ public class MissionRewardsTests
         int level, long money, IReadOnlyList<ItemQuantity>? items = null, SkillReward? skill = null, PetReward? pet = null) =>
         DailyMissions.Resolve(
             new MissionDefinition(
-                "m", "村長", "標題", "說明", "謝謝", level, 1, false, new KillTarget("test-sprite", 3), [],
+                "m", "村長", "標題", "說明", "謝謝", level, 1, false, [new KillTarget("test-sprite", 3)], [],
                 new MissionRequirements(), new MissionReward(money, items ?? [], skill, pet), [], []),
             Hero.Id,
             null);

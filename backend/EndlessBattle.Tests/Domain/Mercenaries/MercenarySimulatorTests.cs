@@ -183,13 +183,13 @@ public class MercenarySimulatorTests
     public void Mercenary_CountsMissionKills()
     {
         var start = Now.AddSeconds(-300);
-        var hunt = new ActiveMission("hunt", "討伐", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: null);
-        var daily = new ActiveMission("daily", "每日", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: Now.AddSeconds(-50));
+        var hunt = TrackedMissions.Single("hunt", "討伐", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: null);
+        var daily = TrackedMissions.Single("daily", "每日", "dummy", Required: 10, Progress: 0, AcceptedAt: start.AddSeconds(50), ExpiresAt: Now.AddSeconds(-50));
 
         var run = Run(Hero(), Contract(10, start), missions: [hunt, daily]);
 
         Assert.Equal(4, run.Fights.Count);
-        Assert.Equal([hunt with { Progress = 3 }, daily with { Progress = 2 }], run.Missions);
+        TrackedMissions.AssertSame([hunt.WithProgress(3), daily.WithProgress(2)], run.Missions);
     }
 
     // 寶物 30% → 分母 ⌊10 × 0.9 × 1.7⌋ = 15。掉落是該場最後一骰（NextExp 很大、不升級），先數出全 0.0 時一場用掉幾骰，

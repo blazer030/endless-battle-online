@@ -1044,7 +1044,7 @@ public class JsonGameContentTests
         Assert.Equivalent(
             new MissionDefinition(
                 "test-delivery", "測試鐵匠", "測試交付", "帶三塊測試礦石來。", "收下了。",
-                Level: 1, PlaceId: 1, Daily: false, Kill: null, Deliver: [new ItemQuantity("test-ore", 3)],
+                Level: 1, PlaceId: 1, Daily: false, Kills: [], Deliver: [new ItemQuantity("test-ore", 3)],
                 Requirements: new MissionRequirements(),
                 Rewards: new MissionReward(50, [new ItemQuantity("safe-refine-stone", 1)]),
                 DailyKills: [], DailyRewards: []),
@@ -1055,7 +1055,7 @@ public class JsonGameContentTests
         var skillReward = content.GetMission("test-skill-reward");
         Assert.Equal(new MissionRequirements(JobId: "warrior", PrerequisiteId: "test-hunt"), skillReward.Requirements);
         Assert.Equal(new SkillReward("iron-skin", 1), skillReward.Rewards.Skill);
-        Assert.Equal(new KillTarget("test-wolf", 2), skillReward.Kill);
+        Assert.Equal(new KillTarget("test-wolf", 2), Assert.Single(skillReward.Kills));
 
         Assert.Equal(["test-sprite", "test-wolf"], content.GetMission("test-daily-pet").DailyPets);
         Assert.Equal(new PetReward("test-wolf", 2), content.GetMission("test-pet-reward").Rewards.Pet);
@@ -1101,13 +1101,13 @@ public class JsonGameContentTests
     private const string MissionJobSkills = """{ "jobSkills": [{ "jobId": "warrior", "skillId": "guard" }] }""";
 
     private const string ValidHunt =
-        """{ "id": "hunt", "giver": "村長", "title": "討伐", "level": 1, "placeId": 1, "daily": false, "kill": { "monsterId": "sprite", "count": 3 }, "deliver": [{ "itemId": "herb", "quantity": 2 }], "requirements": { "jobId": "warrior" }, "rewards": { "money": 50, "items": [{ "itemId": "herb", "quantity": 1 }], "skill": { "skillId": "guard", "level": 1 } } }""";
+        """{ "id": "hunt", "giver": "村長", "title": "討伐", "level": 1, "placeId": 1, "daily": false, "kills": [{ "monsterId": "sprite", "count": 3 }], "deliver": [{ "itemId": "herb", "quantity": 2 }], "requirements": { "jobId": "warrior" }, "rewards": { "money": 50, "items": [{ "itemId": "herb", "quantity": 1 }], "skill": { "skillId": "guard", "level": 1 } } }""";
 
     private const string ValidChiefHunt =
-        """{ "id": "chief-hunt", "giver": "隊長", "title": "首領", "level": 2, "placeId": 1, "kill": { "monsterId": "chief", "count": 1 }, "requirements": { "sex": 2, "birth": 4, "prerequisiteId": "hunt" } }""";
+        """{ "id": "chief-hunt", "giver": "隊長", "title": "首領", "level": 2, "placeId": 1, "kills": [{ "monsterId": "chief", "count": 1 }], "requirements": { "sex": 2, "birth": 4, "prerequisiteId": "hunt" } }""";
 
     private const string ValidRival =
-        """{ "id": "rival", "giver": "對手", "title": "對手", "level": 1, "placeId": 1, "kill": { "monsterId": "sprite", "count": 4 }, "requirements": { "conflictsWith": "hunt" } }""";
+        """{ "id": "rival", "giver": "對手", "title": "對手", "level": 1, "placeId": 1, "kills": [{ "monsterId": "sprite", "count": 4 }], "requirements": { "conflictsWith": "hunt" } }""";
 
     private const string ValidDaily =
         """{ "id": "daily", "giver": "公會", "title": "每日", "level": 1, "placeId": null, "daily": true, "dailyKills": [{ "monsterId": "sprite", "count": 2 }], "dailyRewards": [{ "money": 100, "items": [{ "itemId": "herb", "quantity": 1 }] }] }""";
@@ -1165,7 +1165,7 @@ public class JsonGameContentTests
     [Theory]
     [InlineData("\"title\": \"討伐\", ", "", "hunt", "title")]
     [InlineData("\"giver\": \"村長\", ", "", "hunt", "giver")]
-    [InlineData("\"kill\": { \"monsterId\": \"sprite\", \"count\": 3 }", "\"kill\": { \"count\": 3 }", "hunt", "monsterId")]
+    [InlineData("\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }]", "\"kills\": [{ \"count\": 3 }]", "hunt", "monsterId")]
     [InlineData("\"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }]", "\"deliver\": [{ \"quantity\": 2 }]", "hunt", "itemId")]
     [InlineData("\"skill\": { \"skillId\": \"guard\", \"level\": 1 }", "\"skill\": { \"level\": 1 }", "hunt", "skillId")]
     [InlineData("\"dailyKills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }]", "\"dailyKills\": [{ \"count\": 2 }]", "daily", "monsterId")]
@@ -1203,7 +1203,7 @@ public class JsonGameContentTests
     public void Missions_RejectWithoutObjective()
     {
         var message = MissionFieldRejection(
-            "\"kill\": { \"monsterId\": \"sprite\", \"count\": 3 }, \"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }], ", "");
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }], \"deliver\": [{ \"itemId\": \"herb\", \"quantity\": 2 }], ", "");
         Assert.Contains("hunt", message);
         Assert.Contains("kill", message);
     }
@@ -1227,7 +1227,7 @@ public class JsonGameContentTests
     [Fact]
     public void Missions_RejectDailyWithFixedObjective()
     {
-        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"kill\": { \"monsterId\": \"sprite\", \"count\": 2 },");
+        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"kills\": [{ \"monsterId\": \"sprite\", \"count\": 2 }],");
         Assert.Contains("daily", message);
         Assert.Contains("kill", message);
     }
@@ -1373,7 +1373,7 @@ public class JsonGameContentTests
               { "id": "chief", "name": "首領", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 60, "placeId": 2, "missionId": "cave-hunt" }] }
             """;
         const string missions =
-            """{ "id": "cave-hunt", "giver": "隊長", "title": "洞", "level": 1, "placeId": 2, "kill": { "monsterId": "chief", "count": 1 } }""";
+            """{ "id": "cave-hunt", "giver": "隊長", "title": "洞", "level": 1, "placeId": 2, "kills": [{ "monsterId": "chief", "count": 1 }] }""";
         Assert.Contains("地區 2", MissionRejection(missions, monsters));
     }
 

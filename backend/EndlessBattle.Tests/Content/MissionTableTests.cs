@@ -33,7 +33,7 @@ public class MissionTableTests
         {
             Assert.False(CustomContent.IsCustom(mission.Id));
             Assert.Equal(MissionDefinition.ExpPerLevel * mission.Level, mission.Exp);
-            if (mission.Kill is { } kill)
+            foreach (var kill in mission.Kills)
             {
                 Assert.Equal(Content.GetMonster(kill.MonsterId).PlaceId, mission.PlaceId);
             }
@@ -127,7 +127,7 @@ public class MissionTableTests
         Assert.Equal(54, missionMonsters.Count);
         Assert.All(missionMonsters, monster =>
         {
-            var owner = Assert.Single(Content.AllMissions, mission => mission.Kill?.MonsterId == monster.Id);
+            var owner = Assert.Single(Content.AllMissions, mission => mission.Kills.Any(kill => kill.MonsterId == monster.Id));
             Assert.Equal((owner.Id, owner.PlaceId), (monster.MissionId, monster.PlaceId));
             Assert.DoesNotContain(Dailies.SelectMany(mission => mission.DailyKills), kill => kill.MonsterId == monster.Id);
         });

@@ -197,10 +197,10 @@ public sealed class AdventureService(
     private async Task StoreMissionProgressAsync(
         long characterId, IReadOnlyList<ActiveMission> before, IReadOnlyList<ActiveMission> after, CancellationToken cancellationToken)
     {
-        var progressBefore = before.ToDictionary(mission => mission.MissionId, mission => mission.Progress);
-        foreach (var mission in after.Where(mission => mission.Progress != progressBefore[mission.MissionId]))
+        var targetsBefore = before.ToDictionary(mission => mission.MissionId, mission => mission.Targets);
+        foreach (var mission in after.Where(mission => !mission.Targets.SequenceEqual(targetsBefore[mission.MissionId])))
         {
-            await missions.UpdateProgressAsync(characterId, mission.MissionId, [mission.Progress], cancellationToken);
+            await missions.UpdateProgressAsync(characterId, mission.MissionId, mission.Targets.Select(target => target.Progress).ToList(), cancellationToken);
         }
     }
 

@@ -12,11 +12,11 @@ public class MissionBoardTests
     private static readonly Character Hero = TestCharacters.Default(1, "測試者", 1, 1, Now) with { Id = 7, Level = 10 };
 
     private static MissionDefinition General(string id, int level = 1, KillTarget? kill = null, IReadOnlyList<ItemQuantity>? deliver = null) => new(
-        id, "村長", "標題", "說明", "謝謝", level, 1, false, kill ?? new KillTarget("test-sprite", 3), deliver ?? [],
+        id, "村長", "標題", "說明", "謝謝", level, 1, false, [kill ?? new KillTarget("test-sprite", 3)], deliver ?? [],
         new MissionRequirements(), new MissionReward(50, []), [], []);
 
     private static MissionDefinition DailyMission(string id) => new(
-        id, "公會", "每日", "說明", "明天再來", 1, null, true, null, [], new MissionRequirements(), new MissionReward(0, []),
+        id, "公會", "每日", "說明", "明天再來", 1, null, true, [], [], new MissionRequirements(), new MissionReward(0, []),
         [new KillTarget("test-sprite", 2), new KillTarget("test-wolf", 2)], [new MissionReward(100, [])]);
 
     private static MissionRecord Active(string id, int progress = 0, DateOnly? period = null, int acceptedHour = 2) =>

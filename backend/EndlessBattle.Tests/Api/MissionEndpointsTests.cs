@@ -73,7 +73,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(new DateTimeOffset(2026, 1, 1, 1, 0, 0, TimeSpan.Zero), board.GetProperty("nextDailyReset").GetDateTimeOffset());
         var hunt = board.GetProperty("available").EnumerateArray().Single(mission => mission.GetProperty("id").GetString() == "test-hunt");
         Assert.Equal("測試平原", hunt.GetProperty("placeName").GetString());
-        var kill = hunt.GetProperty("kill");
+        var kill = Assert.Single(hunt.GetProperty("kills").EnumerateArray());
         Assert.Equal(("測試雪精", "測試平原", 3, 0), (
             kill.GetProperty("monsterName").GetString(), kill.GetProperty("placeName").GetString(),
             kill.GetProperty("count").GetInt32(), kill.GetProperty("progress").GetInt32()));
@@ -175,7 +175,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         var board = await ReadAsync(await client.GetAsync("/api/missions", CancellationToken));
 
         var available = Mission(board, "available", "test-daily-pet");
-        Assert.Equal(JsonValueKind.Null, available.GetProperty("kill").ValueKind);
+        Assert.Empty(available.GetProperty("kills").EnumerateArray());
         var deliverPet = available.GetProperty("deliverPet");
         var species = deliverPet.GetProperty("monsterId").GetString()!;
         var names = new Dictionary<string, string> { ["test-sprite"] = "測試雪精", ["test-wolf"] = "測試寒狼" };

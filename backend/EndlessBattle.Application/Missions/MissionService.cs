@@ -81,7 +81,7 @@ public sealed class MissionService(
                 ?? throw new InputValidationException("無法完成任務", ["missionNotActive"]);
             var mission = content.GetMission(missionId);
             var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
-            if (!MissionBoard.Ready(objective, record.ProgressOf(0)))
+            if (!MissionBoard.Ready(objective, record))
             {
                 throw new InputValidationException("無法完成任務", ["objectiveIncomplete"]);
             }

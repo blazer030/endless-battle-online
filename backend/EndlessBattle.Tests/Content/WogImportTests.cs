@@ -244,7 +244,7 @@ public class WogImportTests
         Assert.Equal(("漁人碼頭村長 周漁民", "製作漁網", 20), (fishingNet.Giver, fishingNet.Title, fishingNet.Level));
         Assert.Equal([new ItemQuantity("item-331", 1)], fishingNet.Deliver);
         Assert.Equal([new ItemQuantity("item-342", 1)], fishingNet.Rewards.Items);
-        Assert.Equal((new KillTarget("monster-212", 1), "mission-1", 4), (mile.Kill!, mile.Requirements.PrerequisiteId!, mile.PlaceId!.Value));
+        Assert.Equal((new KillTarget("monster-212", 1), "mission-1", 4), (mile.Kills[0], mile.Requirements.PrerequisiteId!, mile.PlaceId!.Value));
         Assert.Equal("mission-2", Content.GetMonster("monster-212").MissionId);
     }
 

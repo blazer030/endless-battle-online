@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Infrastructure.Content;
+using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Missions;
 
@@ -14,50 +15,50 @@ public class KillCounterTests
     [Fact]
     public void KillCounter_CountsEveryMatchingMission()
     {
-        var hunt = new ActiveMission("test-hunt", "測試討伐", "test-sprite", Required: 3, Progress: 0, AcceptedAt: Accepted, ExpiresAt: null);
-        var bounty = new ActiveMission("test-sprite-bounty", "測試懸賞", "test-sprite", Required: 2, Progress: 1, AcceptedAt: Accepted, ExpiresAt: null);
-        var reached = new ActiveMission("sprite-reached", "已達成", "test-sprite", Required: 2, Progress: 2, AcceptedAt: Accepted, ExpiresAt: null);
-        var wolves = new ActiveMission("test-skill-reward", "測試傳授", "test-wolf", Required: 2, Progress: 0, AcceptedAt: Accepted, ExpiresAt: null);
+        var hunt = TrackedMissions.Single("test-hunt", "測試討伐", "test-sprite", Required: 3, Progress: 0, AcceptedAt: Accepted, ExpiresAt: null);
+        var bounty = TrackedMissions.Single("test-sprite-bounty", "測試懸賞", "test-sprite", Required: 2, Progress: 1, AcceptedAt: Accepted, ExpiresAt: null);
+        var reached = TrackedMissions.Single("sprite-reached", "已達成", "test-sprite", Required: 2, Progress: 2, AcceptedAt: Accepted, ExpiresAt: null);
+        var wolves = TrackedMissions.Single("test-skill-reward", "測試傳授", "test-wolf", Required: 2, Progress: 0, AcceptedAt: Accepted, ExpiresAt: null);
 
         var result = KillCounter.Apply([hunt, reached, bounty, wolves], "test-sprite", Now);
 
-        Assert.Equal([hunt with { Progress = 1 }, reached, bounty with { Progress = 2 }, wolves], result.Missions);
-        Assert.Equal([hunt with { Progress = 1 }, bounty with { Progress = 2 }], result.Advanced);
+        TrackedMissions.AssertSame([hunt.WithProgress(1), reached, bounty.WithProgress(2), wolves], result.Missions);
+        TrackedMissions.AssertSame([hunt.WithProgress(1), bounty.WithProgress(2)], result.Advanced);
     }
 
     // 嚴格早於 ExpiresAt 才計入：剛好在重置時刻打完不算，前一刻算
     [Fact]
     public void KillCounter_IgnoresKillsAtOrAfterExpiry()
     {
-        var daily = new ActiveMission("test-daily", "測試每日", "test-sprite", Required: 2, Progress: 0, AcceptedAt: Accepted, ExpiresAt: Now);
+        var daily = TrackedMissions.Single("test-daily", "測試每日", "test-sprite", Required: 2, Progress: 0, AcceptedAt: Accepted, ExpiresAt: Now);
 
         var atExpiry = KillCounter.Apply([daily], "test-sprite", Now);
         var justBefore = KillCounter.Apply([daily], "test-sprite", Now.AddTicks(-1));
 
-        Assert.Equal([daily], atExpiry.Missions);
+        TrackedMissions.AssertSame([daily], atExpiry.Missions);
         Assert.Empty(atExpiry.Advanced);
-        Assert.Equal([daily with { Progress = 1 }], justBefore.Advanced);
+        TrackedMissions.AssertSame([daily.WithProgress(1)], justBefore.Advanced);
     }
 
     // 接取之前打完的不算，接取當下（含）起才計入
     [Fact]
     public void KillCounter_IgnoresKillsBeforeAcceptance()
     {
-        var hunt = new ActiveMission("test-hunt", "測試討伐", "test-sprite", Required: 3, Progress: 0, AcceptedAt: Now, ExpiresAt: null);
+        var hunt = TrackedMissions.Single("test-hunt", "測試討伐", "test-sprite", Required: 3, Progress: 0, AcceptedAt: Now, ExpiresAt: null);
 
         var before = KillCounter.Apply([hunt], "test-sprite", Now.AddTicks(-1));
         var atAcceptance = KillCounter.Apply([hunt], "test-sprite", Now);
 
-        Assert.Equal([hunt], before.Missions);
+        TrackedMissions.AssertSame([hunt], before.Missions);
         Assert.Empty(before.Advanced);
-        Assert.Equal([hunt with { Progress = 1 }], atAcceptance.Advanced);
+        TrackedMissions.AssertSame([hunt.WithProgress(1)], atAcceptance.Advanced);
     }
 
     // 任務怪也要等接取之後才出現
     [Fact]
     public void KillCounter_MissionMonsterNotSpawnableBeforeAcceptance()
     {
-        var chiefHunt = new ActiveMission("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, AcceptedAt: Now, ExpiresAt: null);
+        var chiefHunt = TrackedMissions.Single("test-chief-hunt", "測試首領", "test-sprite-chief", Required: 1, Progress: 0, AcceptedAt: Now, ExpiresAt: null);
 
         Assert.Empty(KillCounter.SpawnableMissionIds([chiefHunt], Now.AddTicks(-1)));
         Assert.Equal(["test-chief-hunt"], KillCounter.SpawnableMissionIds([chiefHunt], Now));
@@ -71,7 +72,7 @@ public class KillCounterTests
         var missions = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent")).AllMissions;
         var yesterday = new DateOnly(2026, 10, 21);
         var daily = missions.Single(mission => mission.Id == "test-daily");
-        var kill = DailyMissions.Resolve(daily, characterId: 7, yesterday).Kill!;
+        var kill = DailyMissions.Resolve(daily, characterId: 7, yesterday).Kills[0];
         MissionRecord[] records =
         [
             new("test-daily", MissionState.Active, [1], yesterday, Now.AddDays(-1), null),
@@ -81,10 +82,10 @@ public class KillCounterTests
         var tracked = KillCounter.Track(records, missions, characterId: 7);
         var mismatched = KillCounter.Track([records[0] with { DailyPeriod = null }], missions, characterId: 7);
 
-        Assert.Equal(
+        TrackedMissions.AssertSame(
             [
-                new ActiveMission("test-daily", "測試每日", kill.MonsterId, kill.Count, 1, Now.AddDays(-1), new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero)),
-                new ActiveMission("test-hunt", "測試討伐", "test-sprite", 3, 2, Now, null),
+                TrackedMissions.Single("test-daily", "測試每日", kill.MonsterId, kill.Count, 1, Now.AddDays(-1), new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero)),
+                TrackedMissions.Single("test-hunt", "測試討伐", "test-sprite", 3, 2, Now, null),
             ],
             tracked);
         Assert.Empty(mismatched);
@@ -95,7 +96,7 @@ public class KillCounterTests
     public void KillCounter_TracksWhetherDeliveryIsRequired()
     {
         MissionDefinition Mission(string id, IReadOnlyList<ItemQuantity> deliver) => new(
-            id, "村長", "標題", "說明", "謝謝", 1, 1, false, new KillTarget("test-sprite", 3), deliver,
+            id, "村長", "標題", "說明", "謝謝", 1, 1, false, [new KillTarget("test-sprite", 3)], deliver,
             new MissionRequirements(), new MissionReward(50, []), [], []);
         MissionRecord[] records =
             [new("mixed", MissionState.Active, [0], null, Now, null), new("kill-only", MissionState.Active, [0], null, Now, null)];

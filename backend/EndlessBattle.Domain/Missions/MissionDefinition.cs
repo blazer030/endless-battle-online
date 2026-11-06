@@ -15,7 +15,7 @@ public sealed record PetReward(string MonsterId, int Level);
 
 public sealed record MissionReward(long Money, IReadOnlyList<ItemQuantity> Items, SkillReward? Skill = null, PetReward? Pet = null);
 
-// 一般任務：Kill 與 Deliver 至少一項；每日任務：Rewards 為空，目標從 DailyKills 或 DailyPets（恰好一個非空）擲出、報酬從 DailyRewards 擲出
+// 一般任務：Kills 與 Deliver 至少一項；每日任務：Rewards 為空，目標從 DailyKills 或 DailyPets（恰好一個非空）擲出、報酬從 DailyRewards 擲出
 public sealed record MissionDefinition(
     string Id,
     string Giver,
@@ -25,7 +25,7 @@ public sealed record MissionDefinition(
     int Level,
     int? PlaceId,
     bool Daily,
-    KillTarget? Kill,
+    IReadOnlyList<KillTarget> Kills,
     IReadOnlyList<ItemQuantity> Deliver,
     MissionRequirements Requirements,
     MissionReward Rewards,
