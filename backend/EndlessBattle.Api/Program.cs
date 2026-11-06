@@ -74,7 +74,6 @@ app.MapMissionEndpoints();
 app.MapPetEndpoints();
 app.MapMercenaryEndpoints();
 app.MapHonourEndpoints();
-app.MapChampionEndpoints();
 app.MapInnEndpoints();
 
 if (builder.Configuration.GetValue<bool>(AdminEndpoints.EnabledSetting))

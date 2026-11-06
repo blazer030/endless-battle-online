@@ -2,7 +2,6 @@ using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Balance;
 using EndlessBattle.Application.Adventure;
-using EndlessBattle.Application.Champion;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Economy;
 using EndlessBattle.Application.Forge;
@@ -41,7 +40,6 @@ public static class DependencyInjection
         services.AddScoped<PetService>();
         services.AddScoped<MercenaryService>();
         services.AddScoped<HonourService>();
-        services.AddScoped<ChampionService>();
         services.AddScoped<InnService>();
         return services;
     }

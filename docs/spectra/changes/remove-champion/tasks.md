@@ -8,7 +8,7 @@
 
 ## 3. API 與服務
 
-- [ ] 3.1 讓冠軍路由不存在。先寫失敗測試 `Champion_RoutesAreGone`（帶登入的 `GET /api/champion`、`POST /api/champion/challenge` 都回 404），再移除 `ChampionEndpoints`、`Program.cs` 的註冊、`Contracts.cs` 的回應型別、`ChampionService`、`IChampionRepository`、`ChampionRepository`、兩個 `DependencyInjection.cs` 的註冊，並刪除 `ChampionEndpointsTests`、`ChampionServiceTests`、`InMemoryChampionRepository`、`CompanionRepositoryTests` 的冠軍案例。API 執行中跑 `pnpm generate:api` 更新 `frontend/src/api/schema.ts`。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 2.1]
+- [x] 3.1 讓冠軍路由不存在。先寫失敗測試 `Champion_RoutesAreGone`（帶登入的 `GET /api/champion`、`POST /api/champion/challenge` 都回 404），再移除 `ChampionEndpoints`、`Program.cs` 的註冊、`Contracts.cs` 的回應型別、`ChampionService`、`IChampionRepository`、`ChampionRepository`、兩個 `DependencyInjection.cs` 的註冊，並刪除 `ChampionEndpointsTests`、`ChampionServiceTests`、`InMemoryChampionRepository`、`CompanionRepositoryTests` 的冠軍案例。API 執行中跑 `pnpm generate:api` 更新 `frontend/src/api/schema.ts`。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 2.1]
 
 ## 4. 規則與內容
 

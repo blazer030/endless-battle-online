@@ -2076,76 +2076,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/champion": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ChampionResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/champion/challenge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ChampionChallengeResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/inn": {
         parameters: {
             query?: never;
@@ -2586,49 +2516,6 @@ export interface components {
             itemId: null | string;
             /** Format: int32 */
             quantity: null | number;
-        };
-        ChampionChallengeResponse: {
-            champion: components["schemas"]["ChampionResponse"];
-            events: components["schemas"]["BattleEvent"][];
-            won: boolean;
-            character: components["schemas"]["CharacterResponse"];
-        };
-        ChampionResponse: {
-            name: string;
-            /** Format: int32 */
-            level: number;
-            /** Format: int32 */
-            element: number;
-            /** Format: int32 */
-            hp: number;
-            /** Format: int32 */
-            hpMax: number;
-            /** Format: int32 */
-            sp: number;
-            /** Format: int32 */
-            spMax: number;
-            /** Format: int32 */
-            at: number;
-            /** Format: int32 */
-            mat: number;
-            /** Format: int32 */
-            df: number;
-            /** Format: int32 */
-            mdf: number;
-            /** Format: int32 */
-            agi: number;
-            /** Format: int32 */
-            au: number;
-            isPlayer: boolean;
-            /** Format: int32 */
-            defenses: number;
-            /** Format: date-time */
-            crownedAt: null | string;
-            /** Format: date-time */
-            lockedUntil: null | string;
-            /** Format: int64 */
-            fee: number;
-            reasons: string[];
         };
         ChangeJobRequest: {
             jobId: null | string;
