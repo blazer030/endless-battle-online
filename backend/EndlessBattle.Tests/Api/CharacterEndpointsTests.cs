@@ -35,7 +35,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(body.ToString(), me.ToString());
     }
 
-    // 戰士、配點 4/2/3/1 → Base (14,12,13,10,11,10,10)
     [Fact]
     public async Task Create_WithoutSpecialAttackName_CreatesCharacter()
     {
@@ -58,6 +57,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.False(character.TryGetProperty("specialAttackName", out _));
     }
 
+    // 戰士、配點 4/2/3/1 → Base (14,12,13,10,11,10,10)
     [Fact]
     public async Task Create_ReturnsFullCharacter()
     {

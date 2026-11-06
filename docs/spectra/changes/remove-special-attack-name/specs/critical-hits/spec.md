@@ -6,7 +6,7 @@ Critical hits are shown by the damage number on the battle stage and by the word
 
 ### Requirement: Critical hits are shown by the damage number
 
-The battle stage SHALL mark a critical hit only through its damage number, and SHALL show no plate for it. The stage effects of a critical hit SHALL be the same whichever side attacks, apart from the side that takes the damage. A pet's attack SHALL follow the same rule. Non-critical hits SHALL use the normal damage number.
+The battle stage SHALL mark a critical hit only through its damage number, and SHALL show no plate for it. The damage number and hit shake of a critical hit SHALL be the same whichever side attacks, apart from the side that takes the damage. A pet's attack SHALL follow the same rule. Non-critical hits SHALL use the normal damage number.
 
 #### Scenario: A player's critical hit shows no plate
 

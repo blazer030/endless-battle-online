@@ -5,7 +5,7 @@ namespace EndlessBattle.Tests.Domain.Battle;
 
 public class CombatantStateTests
 {
-    // 怪物每場都從滿 HP／SP 開始，沒有必殺技名
+    // 怪物每場都從滿 HP／SP 開始
     [Fact]
     public void From_MonsterStartsAtFullHpAndSp()
     {
