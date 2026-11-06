@@ -107,8 +107,9 @@ public static class WogBattle
             var roundEnd = roundStart + PetStrikeOffsetSeconds;
             if (PetStrike(roundEnd) || RoundEndSkills(roundEnd) || DamageOverTime(roundEnd))
             {
-                events.Add(new DefeatEvent(events[^1].AtSeconds, CombatSide.Monster));
-                return Outcome(CombatSide.Player, round);
+                var loser = monsterHp == 0 ? CombatSide.Monster : CombatSide.Player;
+                events.Add(new DefeatEvent(events[^1].AtSeconds, loser));
+                return Outcome(Opponent(loser), round);
             }
         }
 
@@ -160,23 +161,40 @@ public static class WogBattle
             }
 
             var monsterKind = RoundResolver.ChooseKind(opponent.At, opponent.Mat, random);
-            var result = RoundResolver.Strike(monsterModifiers.AttackingAs(opponent), playerModifiers.DefendingAs(fighter), monsterKind, random,
-                playerModifiers.EnemyRag + monsterModifiers.Rag, monsterModifiers.CriticalChanceFor(monsterKind), monsterModifiers.BonusDamageFor(monsterKind),
-                monsterModifiers.CriticalCapFor(monsterKind), monsterModifiers.ElementAdvantagePercent);
-            var damage = playerModifiers.DamageTaken(monsterKind, result.Damage);
-
-            // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受
-            if (result.Hit && pet is not null && guard > 0 && PetBattle.Activates(pet, random))
+            var hits = monsterKind == AttackKind.Physical ? monsterModifiers.PhysicalHits : monsterModifiers.MagicHits;
+            var intervalSeconds = SecondStrikeOffsetSeconds / hits;
+            for (var hit = 0; hit < hits; hit++)
             {
-                guard -= damage;
-                events.Add(new PetGuardEvent(atSeconds, pet.Name, damage, GuardAfter: Math.Max(0, guard), Retired: guard <= 0));
-                return false;
+                var hitSeconds = atSeconds + hit * intervalSeconds;
+                var result = RoundResolver.Strike(monsterModifiers.AttackingAs(opponent), playerModifiers.DefendingAs(fighter), monsterKind, random,
+                    playerModifiers.EnemyRag + monsterModifiers.Rag, monsterModifiers.CriticalChanceFor(monsterKind), monsterModifiers.BonusDamageFor(monsterKind),
+                    monsterModifiers.CriticalCapFor(monsterKind), monsterModifiers.ElementAdvantagePercent);
+                var damage = playerModifiers.DamageTaken(monsterKind, result.Damage);
+
+                // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受，玩家沒有受傷，也不觸發怪物的命中後技能
+                if (result.Hit && pet is not null && guard > 0 && PetBattle.Activates(pet, random))
+                {
+                    guard -= damage;
+                    events.Add(new PetGuardEvent(hitSeconds, pet.Name, damage, GuardAfter: Math.Max(0, guard), Retired: guard <= 0));
+                    continue;
+                }
+
+                playerHp = Math.Max(0, playerHp - damage);
+                events.Add(new AttackEvent(hitSeconds, CombatSide.Monster, monsterKind, result.Hit, result.Critical, damage,
+                    result.ElementMultiplier, playerHp));
+
+                if (monsterKind == AttackKind.Physical && result.Hit)
+                {
+                    RecordMonster(monsterCaster.CastAfterPhysicalHit(damage, monsterHp, monsterSp, random, playerHp, playerSp, player.SpMax), hitSeconds);
+                }
+
+                if (playerHp == 0)
+                {
+                    return true;
+                }
             }
 
-            playerHp = Math.Max(0, playerHp - damage);
-            events.Add(new AttackEvent(atSeconds, CombatSide.Monster, monsterKind, result.Hit, result.Critical, damage,
-                result.ElementMultiplier, playerHp));
-            return playerHp == 0;
+            return false;
         }
 
         // 回傳怪物是否倒下；寵物傷害計入對怪物的累計傷害
@@ -237,14 +255,20 @@ public static class WogBattle
             }
         }
 
-        // 回合結束時機的技能；回傳怪物是否倒下
+        // 回合結束時機的技能，玩家先、怪物後；回傳是否有人倒下
         bool RoundEndSkills(double atSeconds)
         {
             RecordPlayer(caster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
-            return monsterHp == 0;
+            if (monsterHp == 0)
+            {
+                return true;
+            }
+
+            RecordMonster(monsterCaster.CastAtRoundEnd(monsterHp, monsterSp, random, playerHp, playerSp, player.SpMax), atSeconds);
+            return playerHp == 0;
         }
 
-        // 回合結束時持續傷害生效；回傳怪物是否倒下
+        // 回合結束時持續傷害生效，玩家的先、怪物的後；回傳是否有人倒下
         bool DamageOverTime(double atSeconds)
         {
             foreach (var (equipped, damage) in caster.DamageOverTimeBySkill())
@@ -254,6 +278,17 @@ public static class WogBattle
                 events.Add(new SkillEvent(atSeconds, CombatSide.Player, equipped.Skill.Id, equipped.Skill.Name, equipped.Level,
                     playerSp, Heal: 0, damage, monsterHp, Lasting: true));
                 if (monsterHp == 0)
+                {
+                    return true;
+                }
+            }
+
+            foreach (var (equipped, damage) in monsterCaster.DamageOverTimeBySkill())
+            {
+                playerHp = Math.Max(0, playerHp - damage);
+                events.Add(new SkillEvent(atSeconds, CombatSide.Monster, equipped.Skill.Id, equipped.Skill.Name, equipped.Level,
+                    monsterSp, Heal: 0, damage, playerHp, Lasting: true));
+                if (playerHp == 0)
                 {
                     return true;
                 }

@@ -238,4 +238,109 @@ public class WogBattleMonsterSkillTests
 
         Assert.Equal(180, FirstAttackBy(outcome, CombatSide.Player).Damage);
     }
+
+    private static EquippedSkill Timed(SkillTiming timing, string name, params SkillEffect[] effects) =>
+        new(new SkillDefinition(name, name, SkillType.Active, timing, "",
+            [new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 100)], [], effects)]), 1, 1);
+
+    [Fact]
+    public void Run_MonsterMultiHit_StopsWhenPlayerFalls()
+    {
+        var combo = Skill("連擊", [], new MultiHitEffect(SkillAttackKind.Physical, 3, Rounds: 3));
+
+        // 每下 150，玩家 200：第 2 下倒下，第 3 下不打
+        var outcome = RunWithMonsterSkill(combo, [FirstRoll, LastRoll, FirstRoll, NoCritical, FirstRoll, FirstRoll, NoCritical, FirstRoll], Player(hp: 200));
+
+        var hits = outcome.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == CombatSide.Monster).ToList();
+        Assert.Equal([50, 0], hits.Select(hit => hit.TargetHpAfter));
+        // 3 下平分在怪物的半回合內，第 2 下不是下一回合才打
+        Assert.Equal(BattleTiming.SecondsPerRound / 2 / 3, hits[1].AtSeconds - hits[0].AtSeconds, 6);
+        Assert.Equal(CombatSide.Monster, outcome.Winner);
+    }
+
+    [Fact]
+    public void Run_MonsterAfterHit_UsesItsDamage()
+    {
+        var bloodthirst = Timed(SkillTiming.AfterHit, "嗜血", new RestoreEffect(SkillResource.HitPoints, null, PercentOfDamage: 50, 0));
+
+        // 擲骰：先攻怪物 → 命中、不暴擊、傷害 150 → 命中後技能回復 75
+        var outcome = RunWithMonsterSkill(bloodthirst, [LastRoll, FirstRoll, NoCritical, FirstRoll, FirstRoll], monster: Monster(hp: 500));
+
+        var cast = outcome.Events.OfType<SkillEvent>().First();
+        Assert.Equal((CombatSide.Monster, 75), (cast.Caster, cast.Heal));
+        Assert.Equal(FirstAttackBy(outcome, CombatSide.Monster).AtSeconds, cast.AtSeconds);
+    }
+
+    [Fact]
+    public void Run_GuardedHit_TriggersNoAfterHitSkill()
+    {
+        var bloodthirst = Timed(SkillTiming.AfterHit, "嗜血", new RestoreEffect(SkillResource.HitPoints, null, PercentOfDamage: 50, 0));
+        var pet = new PetCombatant("小雪", Attack: 0, Magic: 0, Guard: 500, Activation: 35);
+
+        // 擲骰：先攻怪物 → 命中、不暴擊、傷害 → 寵物代擋；之後全部落空
+        var outcome = WogBattle.Run(Player(), Monster(hp: 500), null, [], null,
+            new ScriptedRandom(LastRoll, LastRoll, FirstRoll, NoCritical, FirstRoll, FirstRoll), pet, monsterSkills: [bloodthirst]);
+
+        Assert.NotEmpty(outcome.Events.OfType<PetGuardEvent>());
+        Assert.Empty(outcome.Events.OfType<SkillEvent>());
+    }
+
+    [Fact]
+    public void Run_MonsterDamageOverTime_CanDefeatPlayer()
+    {
+        var poison = Skill("施毒", [], new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Strength, 1)], Rounds: 3));
+
+        // 怪物力量 100：回合結束扣 100，玩家 50 倒下；雙方攻擊都落空
+        var outcome = WogBattle.Run(Player(hp: 50), Monster(), null, [], null, new ScriptedRandom(LastRoll), null, monsterSkills: [poison]);
+
+        var lasting = outcome.Events.OfType<SkillEvent>().Last();
+        Assert.Equal((CombatSide.Monster, true, 100, (int?)0), (lasting.Caster, lasting.Lasting, lasting.Damage, lasting.OpponentHpAfter));
+        Assert.IsType<DefeatEvent>(outcome.Events[^1]);
+        Assert.Equal(CombatSide.Player, ((DefeatEvent)outcome.Events[^1]).Loser);
+        Assert.Equal(CombatSide.Monster, outcome.Winner);
+    }
+
+    [Fact]
+    public void Run_MonsterSkillDamage_SkipsPetGuard()
+    {
+        var starlight = Skill("星芒", [], new PercentDamageEffect(10, 0));
+        var pet = new PetCombatant("小雪", Attack: 0, Magic: 0, Guard: 500, Activation: 35);
+
+        var outcome = WogBattle.Run(Player(), Monster(), null, [], null, new ScriptedRandom(LastRoll), pet, monsterSkills: [starlight]);
+
+        Assert.Equal(900, outcome.Events.OfType<SkillEvent>().First().OpponentHpAfter);
+        Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
+    }
+
+    [Fact]
+    public void Run_RoundEnd_TriesPlayerThenMonsterThenDamageOverTime()
+    {
+        SkillEffect Poison() => new DamageOverTimeEffect([new SkillScaling(SkillScalingBasis.Strength, 0.01)], Rounds: 3);
+        SkillEffect Restore() => new RestoreEffect(SkillResource.SkillPoints, null, null, 0) { PercentOfMaximum = 1 };
+        var player = new[] { Timed(SkillTiming.BeforeAttack, "玩家毒", Poison()), Timed(SkillTiming.RoundEnd, "玩家回合結束", Restore()) with { Slot = 2 } };
+        var monster = new[] { Timed(SkillTiming.BeforeAttack, "怪物毒", Poison()), Timed(SkillTiming.RoundEnd, "怪物回合結束", Restore()) with { Slot = 2 } };
+
+        var outcome = WogBattle.Run(Player(sp: 50), Monster(sp: 50), null, player, null, new ScriptedRandom(LastRoll), null, monsterSkills: monster);
+
+        var firstRoundEnd = outcome.Events.OfType<SkillEvent>().Where(cast => cast.AtSeconds > 0).Take(4)
+            .Select(cast => (cast.SkillName, cast.Caster, cast.Lasting));
+        Assert.Equal(
+        [
+            ("玩家回合結束", CombatSide.Player, false),
+            ("怪物回合結束", CombatSide.Monster, false),
+            ("玩家毒", CombatSide.Player, true),
+            ("怪物毒", CombatSide.Monster, true),
+        ], firstRoundEnd);
+    }
+
+    [Fact]
+    public void Run_MonsterRoundEndSkill_CanDefeatPlayer()
+    {
+        var finisher = Timed(SkillTiming.RoundEnd, "星芒", new PercentDamageEffect(100, 0));
+
+        var outcome = WogBattle.Run(Player(), Monster(), null, [], null, new ScriptedRandom(LastRoll), null, monsterSkills: [finisher]);
+
+        Assert.Equal(CombatSide.Player, ((DefeatEvent)outcome.Events[^1]).Loser);
+        Assert.Equal(CombatSide.Monster, outcome.Winner);
+    }
 }
