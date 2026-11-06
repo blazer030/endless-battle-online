@@ -1493,7 +1493,7 @@ public class JsonGameContentTests
 
         Assert.Contains("ghost-monster", MissionRejection(WithPetReward("ghost-monster", 1)));
         Assert.Contains("level", MissionRejection(WithPetReward("sprite", 0)));
-        Assert.Contains("level", MissionRejection(WithPetReward("sprite", 281)));
+        Assert.Contains("level", MissionRejection(WithPetReward("sprite", 531)));
     }
 
     [Fact]

@@ -34,7 +34,7 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumMissionIdLength = 32;
     private const int MaximumMissionQuantity = 99;
     // WOG 寵物蛋的最大倍率
-    private const int MaximumPetRewardLevel = 280;
+    private const int MaximumPetRewardLevel = 530;
     private const int MaximumBirth = 4;
     private const int MaximumCompanionIdLength = 32;
     private const int MaximumMercenaryNameLength = 8;

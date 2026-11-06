@@ -28,7 +28,7 @@ public class MissionTableTests
     [Fact]
     public void MissionTable_RegularMissionsAreOriginal()
     {
-        Assert.Equal(240, Regular.Count());
+        Assert.Equal(336, Regular.Count());
         Assert.All(Regular, mission =>
         {
             Assert.False(CustomContent.IsCustom(mission.Id));
@@ -124,11 +124,12 @@ public class MissionTableTests
     {
         var missionMonsters = Content.AllMonsters.Where(monster => monster.MissionId is not null).ToList();
 
-        Assert.Equal(54, missionMonsters.Count);
+        Assert.Equal(106, missionMonsters.Count);
         Assert.All(missionMonsters, monster =>
         {
-            var owner = Assert.Single(Content.AllMissions, mission => mission.Kills.Any(kill => kill.MonsterId == monster.Id));
-            Assert.Equal((owner.Id, owner.PlaceId), (monster.MissionId, monster.PlaceId));
+            var owner = Content.GetMission(monster.MissionId!);
+            Assert.False(owner.Daily);
+            Assert.True(!monster.Npc || owner.Kills.Any(kill => kill.MonsterId == monster.Id));
             Assert.DoesNotContain(Dailies.SelectMany(mission => mission.DailyKills), kill => kill.MonsterId == monster.Id);
         });
         Assert.Equal(("mission-2", 4, 40), (Content.GetMonster("monster-212").MissionId, Content.GetMonster("monster-212").PlaceId, Content.GetMonster("monster-212").Level));

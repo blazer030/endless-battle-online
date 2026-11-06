@@ -15,7 +15,7 @@ public class MonsterRosterTests
     [Fact]
     public void Roster_CoversEveryPlace()
     {
-        Assert.Equal(337, RegularMonsters.Count());
+        Assert.Equal(355, RegularMonsters.Count());
         Assert.All(Content.AllMonsters, monster => Assert.False(CustomContent.IsCustom(monster.Id)));
 
         foreach (var place in Content.AllPlaces)
@@ -24,11 +24,8 @@ public class MonsterRosterTests
             Assert.NotEmpty(monsters);
             Assert.All(monsters, monster =>
             {
-                if (place.HasSubPlaces)
-                {
-                    Assert.NotEmpty(monster.SubPlaces);
-                }
-                else
+                // 有子地區的地區，沒設子地區的怪在每個子地區都會出現
+                if (!place.HasSubPlaces)
                 {
                     Assert.Empty(monster.SubPlaces);
                 }

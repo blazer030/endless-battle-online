@@ -29,7 +29,7 @@
 
 ## 6. 匯入與收尾
 
-- [ ] 6.1 [after: 2.2, 3.1, 4.2, 5.1] 實作 Requirement "Missions, monsters and recipes use the extended rules" 與 "Data the rules cannot use is listed"：匯入腳本寫入多目標、交寵物、技能條件、NPC（依 design 的「NPC 訊息在匯入時整理」，訊息的 `rn` 換成空格）、沒設子地區的怪、配方前置，並依 design 的「寵物獎勵等級上限調成 530」調整 `MaximumPetRewardLevel`；`gaps.md` 同步縮減。先寫失敗測試：`WogImportTests` 依 spec 的每個情境各一條（任務 29、16、318、325、131、240，怪物 265、399、434、324，配方 174，任務 312 的寵物獎勵），並以舊內容確認它們會失敗。驗證：一般任務 336 個、怪物 461 隻、第二次匯入 `git diff --exit-code` 為 0、`JsonGameContent.Load` 通過；原有內容拿掉新欄位後與舊版相同（用 `jq` 比對）。若實際數字與 `design.md` 不符，回來修正文件並說明原因。
+- [x] 6.1 [after: 2.2, 3.1, 4.2, 5.1] 實作 Requirement "Missions, monsters and recipes use the extended rules" 與 "Data the rules cannot use is listed"：匯入腳本寫入多目標、交寵物、技能條件、NPC（依 design 的「NPC 訊息在匯入時整理」，訊息的 `rn` 換成空格）、沒設子地區的怪、配方前置，並依 design 的「寵物獎勵等級上限調成 530」調整 `MaximumPetRewardLevel`；`gaps.md` 同步縮減。先寫失敗測試：`WogImportTests` 依 spec 的每個情境各一條（任務 29、16、318、325、131、240，怪物 265、399、434、324，配方 174，任務 312 的寵物獎勵），並以舊內容確認它們會失敗。驗證：一般任務 336 個、怪物 461 隻、第二次匯入 `git diff --exit-code` 為 0、`JsonGameContent.Load` 通過；原有內容拿掉新欄位後與舊版相同（用 `jq` 比對）。若實際數字與 `design.md` 不符，回來修正文件並說明原因。
 - [ ] 6.2 [after: 6.1] 量測新怪的影響：跑平衡報告比較變更前後的勝率，以及 `Advance_SixHours_ReturnsSummaryQuickly` 的耗時，寫進本文件的變更紀錄。平衡數值不調整；耗時增加超過 20% 就先查原因再繼續。
 - [ ] 6.3 [after: 1.4, 3.1, 4.4, 4.5, 5.2, 6.1] 手動確認 375×667 的實際畫面，沒有水平捲動：任務頁的多目標、交寵物與技能條件，遇到 NPC 時的舞台與戰報，鐵舖鎖住與解鎖的配方。看不到的狀態可以用本機測試帳號直接改本機資料庫，做法寫進變更紀錄。
 - [ ] 6.4 [after: 6.2, 6.3] `./scripts/check.sh` exit code 0。

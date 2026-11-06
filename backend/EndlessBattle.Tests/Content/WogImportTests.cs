@@ -28,6 +28,117 @@ public class WogImportTests
     }
 
     [Fact]
+    public void Import_WritesEveryRegularMissionExcept130()
+    {
+        var missionsInSource = JsonDocument.Parse(File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/data/missions.json")))
+            .RootElement.GetArrayLength();
+
+        Assert.Equal(missionsInSource - 1, Content.AllMissions.Count);
+        Assert.DoesNotContain(Content.AllMissions, mission => mission.Id == "mission-130");
+        Assert.Contains("| 130 | 被盜走的清水精靈珠 | 擊殺目標是全域怪", Gaps);
+    }
+
+    [Fact]
+    public void Import_WritesEveryMonsterExceptThree()
+    {
+        var excluded = new[] { "monster-261", "monster-287", "monster-324" };
+        var monstersInSource = JsonDocument.Parse(File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/data/monsters.json")))
+            .RootElement.GetArrayLength();
+
+        Assert.Equal(monstersInSource - excluded.Length, Content.AllMonsters.Count);
+        Assert.DoesNotContain(Content.AllMonsters, monster => excluded.Contains(monster.Id));
+    }
+
+    [Fact]
+    public void Import_KeepsSeveralKillTargetsInOrder()
+    {
+        Assert.Equal(
+            [new KillTarget("monster-111", 3), new KillTarget("monster-112", 3)],
+            Content.GetMission("mission-29").Kills);
+    }
+
+    [Fact]
+    public void Import_WritesPetObjective()
+    {
+        Assert.Equal("monster-1", Content.GetMission("mission-16").DeliverPet);
+    }
+
+    [Fact]
+    public void Import_WritesSkillCondition()
+    {
+        Assert.Equal(new RequiredSkill("skill-414", 2), Content.GetMission("mission-318").RequiredSkill);
+    }
+
+    [Fact]
+    public void Import_ListsSkillConditionThatCannotBeUsed()
+    {
+        Assert.Null(Content.GetMission("mission-325").RequiredSkill);
+        Assert.Contains("| 325 | 背叛與憎恨(1) | needSkillId 324", Gaps);
+    }
+
+    [Fact]
+    public void Import_WritesNpcWithCleanedMessage()
+    {
+        var npc = Content.GetMonster("monster-265");
+
+        Assert.Equal((true, "mission-133", 0), (npc.Npc, npc.MissionId, npc.Level));
+        Assert.Equal("我是倫魯 你想要前往熔炎火山打敗熔炎巨龍？ 那你一定會需要我的協助，但是你也必須拿到召喚 希瓦", npc.NpcMessage);
+    }
+
+    [Fact]
+    public void Import_WritesMonsterWithoutSubPlaces()
+    {
+        Assert.Empty(Content.GetMonster("monster-399").SubPlaces);
+    }
+
+    [Fact]
+    public void Import_WritesMissionMonsterThatIsNotTarget()
+    {
+        Assert.Equal("mission-267", Content.GetMonster("monster-434").MissionId);
+    }
+
+    [Fact]
+    public void Import_ListsNpcThatIsNotTarget()
+    {
+        Assert.Contains("| 324 | 錫得里克 | NPC 必須是任務的擊殺目標", Gaps);
+    }
+
+    [Fact]
+    public void Import_WritesRecipePrerequisite()
+    {
+        Assert.Equal("mission-317", Content.GetRecipe("recipe-174").RequiredMissionId);
+        Assert.DoesNotContain("| 174 | 剛龍巨斧．極 |", Gaps);
+    }
+
+    [Fact]
+    public void Import_WritesPetRewardAboveOldLimit()
+    {
+        Assert.Equal(new PetReward("monster-417", 530), Content.GetMission("mission-312").Rewards.Pet);
+    }
+
+    [Fact]
+    public void Import_ListsPrerequisiteOfMission131()
+    {
+        Assert.Null(Content.GetMission("mission-131").Requirements.PrerequisiteId);
+        Assert.Contains("| 131 | 失去光芒的精靈珠 | requiresMissionId 130 沒有匯入", Gaps);
+    }
+
+    [Fact]
+    public void Import_ListsSkillRewardAboveLevelOne()
+    {
+        Assert.Null(Content.GetMission("mission-240").Rewards.Skill);
+        Assert.Contains("| 240 | 狂戰士修煉(無我) | 技能獎勵 356", Gaps);
+    }
+
+    // 規則不支援時才拿掉的前置條件，現在都還原了
+    [Fact]
+    public void Import_RestoresPrerequisitesOfMissionsNowImported()
+    {
+        Assert.Equal("mission-111", Content.GetMission("mission-112").Requirements.PrerequisiteId);
+        Assert.Equal("mission-317", Content.GetMission("mission-318").Requirements.PrerequisiteId);
+    }
+
+    [Fact]
     public void OfficialContent_Loads()
     {
         var content = JsonGameContent.Load(ContentDirectory);
@@ -74,22 +185,18 @@ public class WogImportTests
     }
 
     [Fact]
-    public void Monsters_LeaveOutInvalidRecords()
+    public void Monsters_ZeroStatRecordsAreNpcs()
     {
         using var source = JsonDocument.Parse(
             File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/data/monsters.json")));
-        // 等級 0 的原因是等級；等級正常但 hp 0 的原因是 hp
-        var invalid = source.RootElement.EnumerateArray()
+        var zeroStats = source.RootElement.EnumerateArray()
             .Where(monster => monster.GetProperty("level").GetInt32() < 1 || monster.GetProperty("hp").GetInt32() < 1)
-            .Select(monster => (Id: monster.GetProperty("id").GetInt32(), Reason: monster.GetProperty("level").GetInt32() < 1 ? "等級必須至少 1" : "hp 與 agi 必須大於 0"))
+            .Select(monster => monster.GetProperty("id").GetInt32())
             .ToList();
 
-        Assert.NotEmpty(invalid);
-        Assert.All(invalid, entry =>
-        {
-            Assert.DoesNotContain(Content.AllMonsters, monster => monster.Id == $"monster-{entry.Id}");
-            Assert.Matches($@"\| {entry.Id} \| [^|]+ \| {entry.Reason}", Gaps);
-        });
+        Assert.Equal(28, zeroStats.Count);
+        Assert.All(zeroStats.Where(id => id != 324), id => Assert.True(Content.GetMonster($"monster-{id}").Npc));
+        Assert.DoesNotContain(Content.AllMonsters, monster => !monster.Npc && (monster.Level < 1 || monster.Hp < 1));
     }
 
     private static (string SkillId, int Level, int Rate) Row(EquippedSkill skill) =>
@@ -105,7 +212,7 @@ public class WogImportTests
         Assert.Equal(("skill-235", 1, 6), Row(Assert.Single(Content.GetMonster("monster-95").Skills)));
         Assert.Equal(("skill-31", 2, 16), Row(Assert.Single(Content.GetMonster("monster-139").Skills, skill => skill.Skill.Name == "急影")));
         Assert.Contains("急影 Lv1 rate 19", Gaps);
-        Assert.Equal(568, Content.AllMonsters.Sum(monster => monster.Skills.Count));
+        Assert.Equal(664, Content.AllMonsters.Sum(monster => monster.Skills.Count));
     }
 
     [Fact]
