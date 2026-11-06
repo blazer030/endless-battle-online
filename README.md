@@ -11,7 +11,7 @@
 | 系統 | 內容 | 截圖 |
 |---|---|---|
 | 角色 | 七項能力與衍生值，創角選性別、屬性、出生地、職業並配點；角色頁顯示能力、裝備與生效中的密藥 | [創角](docs/superpowers/screenshots/plan-3-create.png)、[角色](docs/superpowers/screenshots/plan-3-character.png)、[密藥](docs/superpowers/screenshots/plan-10-elixir.png) |
-| 戰鬥 | WOG 回合制（先攻、命中、暴擊、屬性、40 回合上限）、自動補給、死亡與住宿；離線時間在回來時一次結算，舞台播放最後一段戰鬥 | [戰鬥](docs/superpowers/screenshots/plan-4-battle.png)、[離線摘要](docs/superpowers/screenshots/plan-4-summary.png) |
+| 戰鬥 | WOG 回合制（先攻、命中、暴擊、屬性、40 回合上限）、怪物技能與武器附帶技能、自動補給、死亡與住宿；離線時間在回來時一次結算，舞台播放最後一段戰鬥 | [戰鬥](docs/superpowers/screenshots/plan-4-battle.png)、[離線摘要](docs/superpowers/screenshots/plan-4-summary.png) |
 | 職業與技能 | 職業樹與轉職、熟練度、16 個技能的學習、裝備與戰鬥施放 | [技能](docs/superpowers/screenshots/plan-5-skills.png) |
 | 世界與禁區 | 21 個地區（四大區加禁區）與子地區、推薦等級；4 個禁區要鑰匙，進入後有 360 分鐘的通行時間 | [地圖](docs/superpowers/screenshots/plan-6-world.png)、[禁區](docs/superpowers/screenshots/plan-10-restricted.png) |
 | 道具與經濟 | 背包、商店、販售、倉庫、銀行、補給品、精鍊／鑲嵌／合成（含異類精鍊石合成）；魔石寶箱、精鍊寶盒、寵物蛋、心得書、經驗膠囊、密藥 | [背包](docs/superpowers/screenshots/plan-7-bag.png)、[消耗品](docs/superpowers/screenshots/plan-10-consumables.png) |
