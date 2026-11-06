@@ -588,10 +588,9 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"怪物 {monster.Id} 引用了不存在的地區：{monster.PlaceId}");
         }
 
-        if (place.HasSubPlaces != monster.SubPlaces.Count > 0)
+        if (!place.HasSubPlaces && monster.SubPlaces.Count > 0)
         {
-            throw new GameContentException(
-                $"怪物 {monster.Id} 的 subPlaces 與地區 {place.Id} 不符：有子地區的地區至少指定一個，沒有的必須為空");
+            throw new GameContentException($"怪物 {monster.Id} 的 subPlaces 與地區 {place.Id} 不符：沒有子地區的地區必須為空");
         }
     }
 

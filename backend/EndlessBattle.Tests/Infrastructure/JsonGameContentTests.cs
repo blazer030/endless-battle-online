@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
@@ -178,12 +179,8 @@ public class JsonGameContentTests
     [Theory]
     [InlineData("2")]
     [InlineData("0")]
-    public void Monster_RejectsSubPlacesForPlaceWithoutThem(string placeId) =>
+    public void Monster_RejectsSubPlacesInPlaceWithout(string placeId) =>
         AssertLoadRejects(MonsterAt(placeId, "[1]"), ValidJobs, "sprite");
-
-    [Fact]
-    public void Monster_RequiresSubPlaceForPlaceWithThem() =>
-        AssertLoadRejects(MonsterAt("1", "[]"), ValidJobs, "sprite");
 
     // ValidWorld 的地區 2 沒有任何怪物（也沒有全域怪）
     [Fact]
@@ -1243,6 +1240,16 @@ public class JsonGameContentTests
         var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"requiredSkill\": { \"skillId\": \"guard\", \"level\": 1 },");
 
         Assert.Contains("requiredSkill", message);
+    }
+
+    [Fact]
+    public void Monster_AcceptsEmptySubPlacesInPlaceWithSubPlaces()
+    {
+        var monsters = Regex.Replace(MissionMonsters, "(\"id\": \"sprite\".*?\"subPlaces\": )\\[[^\\]]*\\]", "$1[]");
+
+        var sprite = WithMissionContent(ValidMissionList, monsters, directory => JsonGameContent.Load(directory).GetMonster("sprite"));
+
+        Assert.Empty(sprite.SubPlaces);
     }
 
     [Fact]

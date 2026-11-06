@@ -54,5 +54,5 @@ public static class MonsterPool
 
     private static bool InSubPlace(MonsterDefinition monster, int placeId, int? subPlace) =>
         monster.PlaceId == GlobalPlaceId
-        || (monster.PlaceId == placeId && (subPlace is null || monster.SubPlaces.Contains(subPlace.Value)));
+        || (monster.PlaceId == placeId && (subPlace is null || monster.SubPlaces.Count == 0 || monster.SubPlaces.Contains(subPlace.Value)));
 }

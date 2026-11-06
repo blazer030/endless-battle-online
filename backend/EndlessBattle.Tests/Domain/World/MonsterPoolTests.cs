@@ -42,6 +42,37 @@ public class MonsterPoolTests
         Assert.Equal(["global"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 0)));
     }
 
+    // 地區 3 有子地區：沒設子地區的 a 在每個子地區都會出現
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Candidates_EmptySubPlacesEligibleInEverySubPlace(int subPlace)
+    {
+        // anchor 讓這個子地區有候選，不會走「沒有候選就退回全地區」的分支
+        MonsterDefinition[] monsters = [Monster("a", 0, 3), Monster("anchor", 0, 3, subPlace), Monster("other", 0, 3, subPlace % 4 + 1)];
+
+        Assert.Equal(["a", "anchor"], Ids(MonsterPool.Candidates(monsters, 3, subPlace, roll: 100)));
+    }
+
+    // Example：子地區 2 的候選
+    [Fact]
+    public void Candidates_ListedSubPlacesStillFilter()
+    {
+        MonsterDefinition[] monsters = [Monster("empty", 0, 3), Monster("two", 0, 3, 2), Monster("others", 0, 3, 1, 3)];
+
+        Assert.Equal(["empty", "two"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 100)));
+    }
+
+    // 別的地區沒設子地區的怪不會混進來
+    [Fact]
+    public void Candidates_EmptySubPlacesStaysInItsPlace()
+    {
+        MonsterDefinition[] monsters = [Monster("here", 0, 3), Monster("elsewhere", 0, 4)];
+
+        Assert.Equal(["here"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 100)));
+    }
+
     // 子地區 4 沒有任何怪 → 退回該地區全部（含全域），連 meet 也不看（meet 90 > 擲 0）
     [Fact]
     public void Pool_FallsBackToPlace_WhenSubPlaceHasNoCandidates()
