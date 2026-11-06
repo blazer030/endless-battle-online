@@ -1,6 +1,6 @@
 ## 1. 硬規則
 
-- [ ] 1.1 依「危險語句每次使用前都要先問使用者」，把 `CLAUDE.md` 硬規則與 `docs/spectra/config.yaml` 的「不得含」替換成「每次都要先問使用者這次可不可以用，同意才能用」，並讓 `scripts/check-sql.sh` 只檢查檔名。先在 scratchpad 建立含 `DROP TABLE` 且檔名合法的 migration，執行 `./scripts/check-sql.sh <目錄>` 確認回 exit code 1（改之前），改完後確認回 exit code 0；另一個不合法檔名的 migration 仍回 exit code 1。
+- [x] 1.1 依「危險語句每次使用前都要先問使用者」，把 `CLAUDE.md` 硬規則與 `docs/spectra/config.yaml` 的「不得含」替換成「每次都要先問使用者這次可不可以用，同意才能用」，並讓 `scripts/check-sql.sh` 只檢查檔名。先在 scratchpad 建立含 `DROP TABLE` 且檔名合法的 migration，執行 `./scripts/check-sql.sh <目錄>` 確認回 exit code 1（改之前），改完後確認回 exit code 0；另一個不合法檔名的 migration 仍回 exit code 1。
 
 ## 2. 前端
 

@@ -69,7 +69,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 3. 資料表結構只由 Flyway migration 決定，不使用 EF Core Migrations。
    - 檔名 `V<9 位數>__<小寫英文與底線>.sql`，ddl 與 dml 共用一條版本號序列。
    - 已 commit 的 migration 不得修改，要改就新增版本。
-   - 不得含 `DROP TABLE`、`DROP VIEW`、`DROP DATABASE`、`TRUNCATE`（`scripts/check-sql.sh` 會擋）。
+   - migration 要用 `DROP TABLE`、`DROP VIEW`、`DROP DATABASE`、`TRUNCATE` 時，每次都要先問使用者這次可不可以用，同意才能用；同意只算當次。
 4. `EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs` 與 `Persistence/Models/*.cs` 由 `scripts/scaffold-db.sh` 產生，**不得手改**；擴充寫在 `*.Partial.cs`。
 5. scaffold 產生的 model 只在 Infrastructure 使用，Application 與 Domain 只看見 Domain 型別。
 6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `EndlessBattle.Tests/TestContent/`。

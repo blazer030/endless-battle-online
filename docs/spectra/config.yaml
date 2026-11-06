@@ -22,7 +22,7 @@ context: |
     Microsoft.Extensions.DependencyInjection.Abstractions；scaffold 產生的 model 只在 Infrastructure 使用。
   - 遊戲內容只放 backend/content/*.json，資料庫只存玩家狀態；測試內容用 EndlessBattle.Tests/TestContent/。
   - 資料表結構只由 Flyway migration 決定（不用 EF Core Migrations）；已 commit 的 migration 不得修改，
-    要改就新增版本；不得 DROP TABLE／VIEW／DATABASE 或 TRUNCATE。
+    要改就新增版本；要用 DROP TABLE／VIEW／DATABASE 或 TRUNCATE 時，每次都要先問使用者這次可不可以用，同意才能用。
   - EndlessBattleDbContext.cs 與 Persistence/Models/*.cs 由 scripts/scaffold-db.sh 產生，不得手改，擴充寫 *.Partial.cs。
   - 時間一律 UTC；資料庫時間欄位用 DATETIME(6)。
   - frontend/src/api/schema.ts、admin/src/api/schema.ts 是產生檔（pnpm generate:api），不得手改。
