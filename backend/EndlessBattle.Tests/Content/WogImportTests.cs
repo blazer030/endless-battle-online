@@ -17,6 +17,16 @@ public class WogImportTests
 
     private static readonly string Gaps = File.ReadAllText(Path.Combine(BackendPaths.BackendDirectory, "..", "docs/research/wog45/gaps.md"));
 
+    // 怪物必殺技是決定不搬，不是規則還不支援，所以不逐隻列；只有必殺技的白蛇龍也就不在清單上
+    [Fact]
+    public void Gaps_DoesNotListMonsterSpecialAttacks()
+    {
+        Assert.DoesNotContain("猛烈一擊", Gaps);
+        Assert.Contains("爆氣 Lv2 rate 10", Gaps);
+        Assert.DoesNotContain("| 13 | 白蛇龍 |", Gaps);
+        Assert.Contains("- 必殺技名稱只是暴擊時顯示的文字，決定不搬；原始資料留在 `docs/research/wog45/data/monsters.json`。", Gaps);
+    }
+
     [Fact]
     public void OfficialContent_Loads()
     {
@@ -85,7 +95,7 @@ public class WogImportTests
     [Fact]
     public void Monsters_ListUnsupportedSkillsInGaps()
     {
-        Assert.Matches(@"\| 1 \| 史萊姆 \| [^\n]*猛烈一擊[^\n]*爆氣 Lv2 rate 10", Gaps);
+        Assert.Matches(@"\| 1 \| 史萊姆 \| [^\n]*爆氣 Lv2 rate 10", Gaps);
     }
 
     [Fact]

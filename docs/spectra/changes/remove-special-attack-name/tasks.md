@@ -19,7 +19,7 @@
 
 ## 5. 匯入清單
 
-- [ ] 5.1 依「怪物必殺技記為決定不搬」與 Requirement「Data the rules cannot use is listed」，先在 `WogImportTests` 寫失敗測試 `Gaps_DoesNotListMonsterSpecialAttacks`（`gaps.md` 沒有「必殺技 猛烈一擊」、仍有「爆氣 Lv2 rate 10」，`monster-13` 不在沒有搬的欄位，怪物對照方式寫明決定），再改 `scripts/import-wog45.py` 的怪物段落，執行 `python3 -I scripts/import-wog45.py` 重新產生 `docs/research/wog45/gaps.md`，測試轉綠後 commit。接著再跑一次腳本，以 `git diff --exit-code backend/content docs/research/wog45/gaps.md` exit code 0 確認第二次沒有變動。
+- [x] 5.1 依「怪物必殺技記為決定不搬」與 Requirement「Data the rules cannot use is listed」，先在 `WogImportTests` 寫失敗測試 `Gaps_DoesNotListMonsterSpecialAttacks`（`gaps.md` 沒有「必殺技 猛烈一擊」、仍有「爆氣 Lv2 rate 10」，`monster-13` 不在沒有搬的欄位，怪物對照方式寫明決定），再改 `scripts/import-wog45.py` 的怪物段落，執行 `python3 -I scripts/import-wog45.py` 重新產生 `docs/research/wog45/gaps.md`，測試轉綠後 commit。接著再跑一次腳本，以 `git diff --exit-code backend/content docs/research/wog45/gaps.md` exit code 0 確認第二次沒有變動。
 
 ## 6. 收尾
 

@@ -316,6 +316,7 @@ def import_monsters(gaps, item_ids, mission_monsters):
     gaps.note(title, "屬性的地水火木風毒轉成 1～6；子地區名稱轉成該地點的子地區編號 1～4。")
     gaps.note(title, "`str`、`smart`、`vit`、`be` 給技能的「能力比對手高」條件比較；`life`、`image`、`npcMessage` 沒有搬：現有戰鬥規則用不到。")
     gaps.note(title, "任務怪（`missionId` 有值）跟著任務匯入：任務沒有匯入的，任務怪也不匯入。")
+    gaps.note(title, "必殺技名稱只是暴擊時顯示的文字，決定不搬；原始資料留在 `docs/research/wog45/data/monsters.json`。")
     places = {place["id"]: place for place in load("places.json")}
     records = []
     for monster in sorted(load("monsters.json"), key=lambda row: require(row, "id", "monsters.json")):
@@ -329,10 +330,7 @@ def import_monsters(gaps, item_ids, mission_monsters):
             gaps.exclude(title, monster_id, name, reason)
             continue
 
-        unsupported = []
-        if monster.get("specialAttack"):
-            unsupported.append(f"必殺技 {monster['specialAttack']}")
-        unsupported += [f"技能 {skill['name']} rate {skill['rate']}" for skill in monster.get("skills", [])]
+        unsupported = [f"技能 {skill['name']} rate {skill['rate']}" for skill in monster.get("skills", [])]
         drops = []
         for drop in monster["drops"]:
             item_id = f"item-{drop['itemId']}"
