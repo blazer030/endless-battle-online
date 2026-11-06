@@ -2,7 +2,7 @@ using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Domain.Battle;
 
-// 戰鬥中一方的狀態；SpecialAttackName 只有玩家有，暴擊時顯示；Str／Smart 是有效值（裸點 + 裝備），供戰神之怒與治癒計算
+// 戰鬥中一方的狀態；Str／Smart 是有效值（裸點 + 裝備），供戰神之怒與治癒計算
 public sealed record CombatantState(
     int Hp,
     int HpMax,
@@ -15,7 +15,6 @@ public sealed record CombatantState(
     int Agi,
     int Au,
     int Element,
-    string? SpecialAttackName,
     int Str,
     int Smart,
     int Vit = 0,
@@ -35,7 +34,6 @@ public sealed record CombatantState(
         Agi: monster.Agi,
         Au: monster.Au,
         Element: monster.Element,
-        SpecialAttackName: null,
         Str: monster.Str,
         Smart: monster.Smart,
         Vit: monster.Vit,

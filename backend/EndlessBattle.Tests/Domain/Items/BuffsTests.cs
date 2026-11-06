@@ -40,7 +40,7 @@ public class BuffsTests
     {
         var player = new CombatantState(
             Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 25, Mat: 17, Df: 11, Mdf: 9, Agi: 12, Au: 10, Element: 1,
-            SpecialAttackName: "必殺", Str: 12, Smart: 12);
+            Str: 12, Smart: 12);
 
         var buffed = Buffs.ApplyTo(player, [Buff(BuffKind.Attack, 1.2), Buff(BuffKind.Defense, 1.2)], StartsAt);
 
@@ -51,7 +51,7 @@ public class BuffsTests
     // 四項戰鬥數值各不相同，乘 1.2 後也各不相同：任兩種對應互換都會被抓到
     private static readonly CombatantState Player = new(
         Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 25, Mat: 40, Df: 11, Mdf: 15, Agi: 12, Au: 10, Element: 1,
-        SpecialAttackName: "必殺", Str: 12, Smart: 12);
+        Str: 12, Smart: 12);
 
     // mat 40 × 1.2 = 48，其他不變
     [Fact]

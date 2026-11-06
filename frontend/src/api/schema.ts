@@ -2298,7 +2298,6 @@ export interface components {
             elementMultiplier: number;
             /** Format: int32 */
             targetHpAfter: number;
-            specialAttackName: null | string;
             /** @default false */
             stunned: boolean;
             /** Format: double */

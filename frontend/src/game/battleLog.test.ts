@@ -51,7 +51,6 @@ const attack = (overrides: Partial<AttackEvent>) =>
     damage: 1234,
     elementMultiplier: 1,
     targetHpAfter: 5,
-    specialAttackName: null,
     stunned: false,
     ...overrides,
   })

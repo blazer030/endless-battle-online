@@ -6,7 +6,7 @@
 
 ## 2. 戰鬥資料
 
-- [ ] 2.1 依「拿掉名稱的順序：戰鬥資料、設定、角色」與 Requirement「Nobody has a special attack name」，讓戰鬥事件不帶名稱。先寫失敗測試 `AttackEvent_SerializesWithoutSpecialAttackName`，再從 `AttackEvent`、`CombatantState`、`WogBattle`、`CombatBridge` 移除，並改掉測試呼叫（數值斷言一律不動），API 執行中跑 `pnpm generate:api` 更新 `frontend/src/api/schema.ts`、移除前端測試資料的這個欄位。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 1.1, 1.2]
+- [x] 2.1 依「拿掉名稱的順序：戰鬥資料、設定、角色」與 Requirement「Nobody has a special attack name」，讓戰鬥事件不帶名稱。先寫失敗測試 `AttackEvent_SerializesWithoutSpecialAttackName`，再從 `AttackEvent`、`CombatantState`、`WogBattle`、`CombatBridge` 移除，並改掉測試呼叫（數值斷言一律不動），API 執行中跑 `pnpm generate:api` 更新 `frontend/src/api/schema.ts`、移除前端測試資料的這個欄位。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 1.1, 1.2]
 
 ## 3. 設定
 

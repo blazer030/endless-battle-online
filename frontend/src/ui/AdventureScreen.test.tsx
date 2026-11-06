@@ -326,7 +326,6 @@ test("AdventureScreen_RestRefillsStageHealth", async () => {
         damage: 100,
         elementMultiplier: 1,
         targetHpAfter: 0,
-        specialAttackName: null,
         stunned: false,
       },
       { type: "defeat", atSeconds: 0.4, loser: "Player" },

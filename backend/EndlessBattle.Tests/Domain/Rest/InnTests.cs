@@ -127,7 +127,7 @@ public class InnTests
     {
         var player = new CombatantState(
             Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 100, Mat: 40, Df: 11, Mdf: 15, Agi: 12, Au: 10, Element: 1,
-            SpecialAttackName: "必殺", Str: 12, Smart: 12);
+            Str: 12, Smart: 12);
 
         var buffed = Buffs.ApplyTo(player, [Elixir(BuffKind.Attack, 1.2)], Now, Stay(BuffKind.Attack, 1.05));
 

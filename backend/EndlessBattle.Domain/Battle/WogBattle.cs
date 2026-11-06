@@ -120,7 +120,7 @@ public static class WogBattle
                 monsterHp = Math.Max(0, monsterHp - result.Damage);
                 damageDealt += result.Damage;
                 events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, result.Damage,
-                    result.ElementMultiplier, monsterHp, result.Critical ? player.SpecialAttackName : null));
+                    result.ElementMultiplier, monsterHp));
 
                 if (playerKind == AttackKind.Physical && result.Hit)
                 {
@@ -141,7 +141,7 @@ public static class WogBattle
             if (modifiers.StunChance > 0 && PhpRandom.Between(random, 1, 100) <= modifiers.StunChance)
             {
                 events.Add(new AttackEvent(atSeconds, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0,
-                    ElementMultiplier: 1.0, playerHp, SpecialAttackName: null, Stunned: true));
+                    ElementMultiplier: 1.0, playerHp, Stunned: true));
                 return false;
             }
 
@@ -159,7 +159,7 @@ public static class WogBattle
 
             playerHp = Math.Max(0, playerHp - damage);
             events.Add(new AttackEvent(atSeconds, CombatSide.Monster, monsterKind, result.Hit, result.Critical, damage,
-                result.ElementMultiplier, playerHp, SpecialAttackName: null));
+                result.ElementMultiplier, playerHp));
             return playerHp == 0;
         }
 

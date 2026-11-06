@@ -13,10 +13,10 @@ public class WogBattlePetTests
     private static readonly double PetAttackOffset = BattleTiming.SecondsPerRound * 0.95;
 
     private static CombatantState Player(int hp = 100, int at = 10, int df = 50, int agi = 10, int au = 10) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, agi, au, Element: 0, "烈焰斬", Str: at, Smart: 0);
+        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, agi, au, Element: 0, Str: at, Smart: 0);
 
     private static CombatantState Monster(int hp = 1000, int at = 0, int df = 50, int mdf = 50, int agi = 10, int au = 10) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, mdf, agi, au, Element: 0, SpecialAttackName: null, Str: at, Smart: 0);
+        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, mdf, agi, au, Element: 0, Str: at, Smart: 0);
 
     // 對上測試雪精的數值：df 6、mdf 4、agi 9、au 6；怪物 at 0 也打不中（擲 100）
     private static CombatantState Sprite(int hp = 1000) => Monster(hp, at: 0, df: 6, mdf: 4, agi: 9, au: 6);
@@ -38,7 +38,7 @@ public class WogBattlePetTests
             {
                 new RoundEvent(0, 1),
                 new PetGuardEvent(0, PetName, Damage: 150, GuardAfter: 350, Retired: false),
-                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 1000, SpecialAttackName: null),
+                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 1000),
                 new RoundEvent(BattleTiming.SecondsPerRound, 2),
             },
             outcome.Events.Take(4));
@@ -54,7 +54,7 @@ public class WogBattlePetTests
 
         Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
         Assert.Equal(
-            new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
+            new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850),
             outcome.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player));
     }
 
@@ -70,7 +70,7 @@ public class WogBattlePetTests
 
         Assert.Equal(new PetGuardEvent(0, PetName, Damage: 15, GuardAfter: 0, Retired: true), outcome.Events.OfType<PetGuardEvent>().Single());
         Assert.Contains(
-            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85, SpecialAttackName: null),
+            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85),
             outcome.Events);
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
         Assert.Equal(CombatSide.Monster, outcome.Winner);
@@ -86,7 +86,7 @@ public class WogBattlePetTests
 
         Assert.Equal(new PetGuardEvent(0, PetName, Damage: 15, GuardAfter: 0, Retired: true), outcome.Events.OfType<PetGuardEvent>().Single());
         Assert.Contains(
-            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85, SpecialAttackName: null),
+            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85),
             outcome.Events);
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
     }
@@ -120,7 +120,7 @@ public class WogBattlePetTests
         Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850, SpecialAttackName: null),
+            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
@@ -135,7 +135,7 @@ public class WogBattlePetTests
         var quicken = TestSkills.Battle("quicken", "加敏", SkillPreset.AgiMultiplier);
         var slow = TestSkills.Battle("slow", "降敵敏", SkillPreset.EnemyAgiDown);
         EquippedSkill[] skills = [new(quicken, Level: 5, Slot: 1), new(slow, Level: 5, Slot: 2)];
-        var player = new CombatantState(1000, 1000, Sp: 100, SpMax: 100, At: 10, Mat: 0, Df: 50, Mdf: 50, Agi: 100, Au: 10, Element: 0, "烈焰斬", Str: 10, Smart: 0);
+        var player = new CombatantState(1000, 1000, Sp: 100, SpMax: 100, At: 10, Mat: 0, Df: 50, Mdf: 50, Agi: 100, Au: 10, Element: 0, Str: 10, Smart: 0);
         var monster = Monster(at: 0, df: 6, mdf: 4, agi: 100, au: 10);
 
         var outcome = WogBattle.Run(player, monster, playerPreferred: null, skills, supply: null,
@@ -204,8 +204,8 @@ public class WogBattlePetTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 5, SpecialAttackName: null),
-                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 5),
+                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100),
                 new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: false, Damage: 146, TargetHpAfter: 0),
                 new DefeatEvent(PetAttackOffset, CombatSide.Monster),
             },

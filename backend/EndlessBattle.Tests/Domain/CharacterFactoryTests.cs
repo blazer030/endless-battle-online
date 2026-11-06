@@ -152,7 +152,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, SpecialAttackName: "必殺", Str: 12, Smart: 12, Vit: 10, Be: 10, Level: 1),
+            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, Str: 12, Smart: 12, Vit: 10, Be: 10, Level: 1),
             combatant);
     }
 
@@ -167,7 +167,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character, bonus);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, SpecialAttackName: "必殺", Str: 14, Smart: 13, Vit: 13, Be: 12, Level: 1),
+            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, Str: 14, Smart: 13, Vit: 13, Be: 12, Level: 1),
             combatant);
     }
 
@@ -180,7 +180,7 @@ public class CharacterFactoryTests
         var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
         var bonus = new EquipmentBonus(StatBonus.Zero with { Agi = 5, Au = 5 });
         var monster = new CombatantState(
-            Hp: 1, HpMax: 1, Sp: 0, SpMax: 0, At: 0, Mat: 0, Df: 1, Mdf: 1, Agi: 15, Au: 12, Element: 0, SpecialAttackName: null, Str: 0, Smart: 0);
+            Hp: 1, HpMax: 1, Sp: 0, SpMax: 0, At: 0, Mat: 0, Df: 1, Mdf: 1, Agi: 15, Au: 12, Element: 0, Str: 0, Smart: 0);
 
         var outcome = WogBattle.Run(CombatBridge.ToCombatant(character, bonus), monster, AttackKind.Magic, new ScriptedRandom(0.99, 0.5, 0.11));
 

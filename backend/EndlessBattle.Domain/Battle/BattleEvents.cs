@@ -46,7 +46,6 @@ public sealed record AttackEvent(
     int Damage,
     double ElementMultiplier,
     int TargetHpAfter,
-    string? SpecialAttackName,
     bool Stunned = false) : BattleEvent(AtSeconds);
 
 // 寵物代擋怪物的這一下（取代那一下的怪物 AttackEvent，玩家 HP 不變）；Retired 表示代擋量用完、寵物退出這一場

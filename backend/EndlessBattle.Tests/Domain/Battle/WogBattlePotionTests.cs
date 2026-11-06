@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Battle;
 public class WogBattlePotionTests
 {
     private static CombatantState Player(int hp, int sp, int hpMax = 100, int spMax = 100, int at = 100, int df = 50) =>
-        new(hp, hpMax, sp, spMax, at, Mat: 0, df, Mdf: 50, Agi: 20, Au: 10, Element: 0, "烈焰斬", Str: 100, Smart: 0);
+        new(hp, hpMax, sp, spMax, at, Mat: 0, df, Mdf: 50, Agi: 20, Au: 10, Element: 0, Str: 100, Smart: 0);
 
     private static SupplyState Supply(int hp = 50, int sp = 25, int quantity = 5, int hpPercent = 15, int spPercent = 100) =>
         new("test-supply", "測試補給藥劑", hp, sp, quantity) { HpPercent = hpPercent, SpPercent = spPercent };
@@ -68,7 +68,7 @@ public class WogBattlePotionTests
             {
                 new RoundEvent(0, 1),
                 new PotionEvent(0, "test-supply", "測試補給藥劑", Hp: 50, Sp: 25, Remaining: 4),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0, CombatSide.Monster),
             },
             outcome.Events);
@@ -151,7 +151,7 @@ public class WogBattlePotionTests
     }
 
     private static CombatantState Monster(int hp = 100, int at = 0, int df = 50) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, Agi: 10, Au: 10, Element: 0, SpecialAttackName: null, Str: at, Smart: 0);
+        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, Agi: 10, Au: 10, Element: 0, Str: at, Smart: 0);
 
     private static BattleOutcome Run(CombatantState player, SupplyState? supply, ScriptedRandom random, CombatantState? monster = null) =>
         WogBattle.Run(player, monster ?? Monster(), playerPreferred: null, skills: [], supply, random);

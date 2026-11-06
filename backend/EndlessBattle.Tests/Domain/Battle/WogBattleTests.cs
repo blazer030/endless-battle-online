@@ -8,13 +8,11 @@ namespace EndlessBattle.Tests.Domain.Battle;
 // ScriptedRandom 的擲骰換算：rand(1,100) = ⌊v×100⌋ + 1；rand(1,10) = ⌊v×10⌋ + 1；rand(a,b) = ⌊v×(b−a+1)⌋ + a
 public class WogBattleTests
 {
-    private const string SpecialAttack = "烈焰斬";
-
     private static CombatantState Player(int hp = 100, int at = 100, int mat = 0, int df = 50, int mdf = 50, int agi = 20, int au = 10, int element = 0) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttack, Str: at, Smart: mat);
+        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, Str: at, Smart: mat);
 
     private static CombatantState Monster(int hp = 100, int at = 0, int mat = 0, int df = 50, int mdf = 50, int agi = 10, int au = 10, int element = 0) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, SpecialAttackName: null, Str: at, Smart: mat);
+        new(hp, hp, Sp: 0, SpMax: 0, at, mat, df, mdf, agi, au, element, Str: at, Smart: mat);
 
     // 玩家 agi 20 > 怪物 10，先攻門檻 70。
     // 擲骰：先攻 0.695 → 70 ≤ 70 玩家先；命中 0.0 → 1，20/30×100+20 = 86.7 > 1 命中；
@@ -29,7 +27,7 @@ public class WogBattleTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0, CombatSide.Monster),
             },
             outcome.Events);
@@ -51,8 +49,8 @@ public class WogBattleTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100, SpecialAttackName: null),
-                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100),
+                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0.4, CombatSide.Monster),
             },
             outcome.Events);
@@ -66,7 +64,7 @@ public class WogBattleTests
         var outcome = WogBattle.Run(Player(element: 1), Monster(element: 2), null, new ScriptedRandom(0.99, 0.0, 0.99));
 
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100, SpecialAttackName: null),
+            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
@@ -82,7 +80,7 @@ public class WogBattleTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0, CombatSide.Monster),
             },
             outcome.Events);
@@ -101,14 +99,14 @@ public class WogBattleTests
 
         Assert.Equal(
             new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, expectedCritical, expectedDamage, ElementMultiplier: 1.0,
-                TargetHpAfter: 1000 - expectedDamage, expectedCritical ? SpecialAttack : null),
+                TargetHpAfter: 1000 - expectedDamage),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
     // 怪物 agi 90 對玩家 10，用與玩家相同的公式（WOG 原程式的反向比值是 bug）：機率 20、倍率 2；怪物沒有必殺技名。
     // 擲骰：先攻 0.99 → 100 > 30 怪物先；命中 0.0；暴擊 0.185 → 19 < 20；傷害擲骰 0.0 → 751，玩家 HP 不低於 0
     [Fact]
-    public void Battle_MonsterCritUsesSameFormula_WithoutSpecialAttackName()
+    public void Battle_MonsterCritUsesSameFormula()
     {
         var outcome = WogBattle.Run(Player(agi: 10), Monster(at: 100, agi: 90), null, new ScriptedRandom(0.99, 0.99, 0.0, 0.185, 0.0));
 
@@ -116,7 +114,7 @@ public class WogBattleTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: true, Damage: 751, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: true, Damage: 751, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0, CombatSide.Player),
             },
             outcome.Events);
@@ -155,10 +153,10 @@ public class WogBattleTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 1, SpecialAttack),
-                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 999, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 1),
+                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 999),
                 new RoundEvent(0.8, 2),
-                new AttackEvent(0.8, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttack),
+                new AttackEvent(0.8, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: true, Damage: 1, ElementMultiplier: 1.0, TargetHpAfter: 0),
                 new DefeatEvent(0.8, CombatSide.Monster),
             },
             outcome.Events);
@@ -273,7 +271,7 @@ public class WogBattleTests
 
         var playerAttacks = outcome.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == CombatSide.Player).ToList();
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Player, expectedKind, expectedHit, Critical: false, expectedDamage, ElementMultiplier: 1.0, TargetHpAfter: 1000 - expectedDamage, SpecialAttackName: null),
+            new AttackEvent(0, CombatSide.Player, expectedKind, expectedHit, Critical: false, expectedDamage, ElementMultiplier: 1.0, TargetHpAfter: 1000 - expectedDamage),
             playerAttacks[0]);
         Assert.True(playerAttacks.Count > 1);
         Assert.All(playerAttacks, attack => Assert.Equal(expectedKind, attack.Kind));
@@ -292,8 +290,8 @@ public class WogBattleTests
         Assert.Equal(
             new[]
             {
-                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100, SpecialAttackName: null),
-                new AttackEvent(0.8, CombatSide.Monster, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0, SpecialAttackName: null),
+                new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100),
+                new AttackEvent(0.8, CombatSide.Monster, AttackKind.Magic, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
             },
             monsterAttacks);
         Assert.Equal(new DefeatEvent(0.8, CombatSide.Player), outcome.Events[^1]);
@@ -307,7 +305,7 @@ public class WogBattleTests
         var outcome = WogBattle.Run(Player(element: 1), Monster(hp: 1000, element: 2), null, new ScriptedRandom(0.99, 0.0, 0.0, 0.99, 0.5));
 
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 180, ElementMultiplier: 1.2, TargetHpAfter: 820, SpecialAttackName: null),
+            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 180, ElementMultiplier: 1.2, TargetHpAfter: 820),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
@@ -327,7 +325,7 @@ public class WogBattleTests
 
         var damage = expectedHit ? 150 : 0;
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, expectedHit, Critical: false, damage, ElementMultiplier: 1.0, TargetHpAfter: 1000 - damage, SpecialAttackName: null),
+            new AttackEvent(0, CombatSide.Player, AttackKind.Physical, expectedHit, Critical: false, damage, ElementMultiplier: 1.0, TargetHpAfter: 1000 - damage),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
@@ -362,7 +360,7 @@ public class WogBattleTests
         var outcome = WogBattle.Run(Player(at: 0, mat: 100, agi: 10, au: 90), Monster(hp: 1000, agi: 10, au: 10), AttackKind.Magic, new ScriptedRandom(0.99, 0.0, 0.185, 0.0));
 
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: true, Damage: 751, ElementMultiplier: 1.0, TargetHpAfter: 249, SpecialAttack),
+            new AttackEvent(0, CombatSide.Player, AttackKind.Magic, Hit: true, Critical: true, Damage: 751, ElementMultiplier: 1.0, TargetHpAfter: 249),
             outcome.Events.OfType<AttackEvent>().First());
     }
 }

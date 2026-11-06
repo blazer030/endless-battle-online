@@ -25,7 +25,6 @@ public static class CombatBridge
             Agi: total.Agi,
             Au: total.Au,
             Element: character.Element,
-            SpecialAttackName: character.SpecialAttackName,
             Str: total.Str,
             Smart: total.Smart,
             Vit: total.Vit,

@@ -10,8 +10,7 @@ namespace EndlessBattle.Tests.Domain.Skills;
 public class SkillEffectTests
 {
     private static CombatantState Player(int at = 200, int hp = 1000, int sp = 100, int str = 100) =>
-        new(Hp: hp, HpMax: 1000, Sp: sp, SpMax: 100, At: at, Mat: 100, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0,
-            SpecialAttackName: null, Str: str, Smart: 50);
+        new(Hp: hp, HpMax: 1000, Sp: sp, SpMax: 100, At: at, Mat: 100, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0, Str: str, Smart: 50);
 
     private static SkillDefinition Skill(SkillType type, params SkillLevel[] levels) =>
         new("skill", "技能", type, SkillTiming.BeforeAttack, "說明", levels);
@@ -167,8 +166,7 @@ public class SkillEffectTests
     }
 
     private static CombatantState Monster() =>
-        new(Hp: 3000, HpMax: 3000, Sp: 0, SpMax: 0, At: 120, Mat: 0, Df: 50, Mdf: 50, Agi: 15, Au: 10, Element: 0,
-            SpecialAttackName: null, Str: 0, Smart: 0);
+        new(Hp: 3000, HpMax: 3000, Sp: 0, SpMax: 0, At: 120, Mat: 0, Df: 50, Mdf: 50, Agi: 15, Au: 10, Element: 0, Str: 0, Smart: 0);
 
     private static string BattleWith(SkillDefinition skill, int level, int slot = 1) =>
         JsonSerializer.Serialize(WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(skill, level, slot)], new SeededRandom(7)).Events);
