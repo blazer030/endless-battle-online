@@ -37,6 +37,10 @@
 
 `scaffold` 的 `--force` 只覆寫不刪檔，所以重新產生後要刪掉過期的 `Persistence/Models/CharacterChampion.cs`。
 
+### 不留防回歸測試
+
+使用者決定不留檢查「冠軍已移除」的測試（路由回 404、沒有按鈕、沒有 `champion.json`、資料表不存在），讓 `backend`、`frontend/src` 等處完全找不到這些字。這些測試只在實作過程中用來確認修改有效，收尾時刪除。代價是之後冠軍被加回來時不會有測試發現。
+
 ### 舊文件保留原樣
 
 `docs/superpowers`、`docs/research` 是當時的紀錄，專案規定不再更新，決策改記在這份 design。裁定彙整裡被推翻的項目已列在 proposal 的 What Changes。
@@ -58,7 +62,7 @@
 - `character_champions` 不存在，其他資料表不變。
 - `./scripts/check-sql.sh` 對含 `DROP TABLE` 的 migration 回 exit code 0，對不符命名規則的檔名仍回 exit code 1。
 
-**驗收：** `tasks.md` 的測試全綠，`git grep` 在 `backend`、`frontend/src`、`admin/src`、`scripts`、`CLAUDE.md`、`README.md` 找不到 `champion` 與「冠軍」（`backend/db/ddl` 的 migration 除外），`./scripts/check.sh` exit code 0。
+**驗收：** 全部測試全綠，`git grep` 在 `backend`、`frontend/src`、`admin/src`、`scripts`、`CLAUDE.md`、`README.md` 找不到 `champion` 與「冠軍」（`backend/db/ddl` 的 migration 除外），`./scripts/check.sh` exit code 0。
 
 **範圍外：** Non-Goals 所列項目。
 
@@ -66,5 +70,6 @@
 
 - [本機開發資料庫的冠軍資料會消失] → 使用者已同意完全移除，資料沒有保留價值。
 - [腳本不再擋這些語句，漏問時不會有東西攔下] → 靠 `CLAUDE.md` 的規則與審查；這是使用者的決定。
+- [沒有測試防止冠軍被加回來] → 使用者已決定接受，靠 `git grep` 在這次驗收時確認。
 - [之後的 migration 可能誤刪資料] → 每次使用前都要問使用者；已 commit 的 migration 仍不得修改。
 - [舊文件仍提到冠軍，讀者可能以為功能還在] → 裁定彙整是歷史紀錄，現行規則以主規格與 `CLAUDE.md` 為準。

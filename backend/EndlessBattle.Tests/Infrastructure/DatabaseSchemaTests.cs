@@ -48,7 +48,7 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Empty(columns);
     }
 
-    // 同伴相關的時間欄位都是 DATETIME(6)；冠軍一個角色一列
+    // 同伴相關的時間欄位都是 DATETIME(6)
     [Fact]
     public async Task CompanionTables_HaveExpectedColumnTypes()
     {
@@ -60,22 +60,16 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
             SELECT CONCAT(TABLE_NAME, '.', COLUMN_NAME, ' ', COLUMN_TYPE) AS Value FROM information_schema.COLUMNS
             WHERE TABLE_SCHEMA = DATABASE() AND (TABLE_NAME, COLUMN_NAME) IN (
                 ('character_pets', 'born_at'), ('character_pets', 'hunger_since'),
-                ('character_mercenaries', 'next_fight_at'), ('character_champions', 'locked_until'))
+                ('character_mercenaries', 'next_fight_at'))
             ORDER BY Value
-            """).ToListAsync(cancellationToken);
-        var championKey = await context.Database.SqlQueryRaw<string>(
-            """
-            SELECT COLUMN_NAME AS Value FROM information_schema.KEY_COLUMN_USAGE
-            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'character_champions' AND CONSTRAINT_NAME = 'PRIMARY'
             """).ToListAsync(cancellationToken);
 
         Assert.Equal(
             [
-                "character_champions.locked_until datetime(6)", "character_mercenaries.next_fight_at datetime(6)",
+                "character_mercenaries.next_fight_at datetime(6)",
                 "character_pets.born_at datetime(6)", "character_pets.hunger_since datetime(6)",
             ],
             columns);
-        Assert.Equal(["character_id"], championKey);
     }
 
     [Fact]
@@ -187,11 +181,6 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         {
             CharacterId = characterId, MercenaryId = "knight", Name = "騎士", Remaining = 9, HiredAt = at,
         });
-        context.CharacterChampions.Add(new CharacterChampion
-        {
-            CharacterId = characterId, Name = "冠軍", Level = 50, Element = 2, SpecialAttackName = "斬", Hp = 1, HpMax = 2, Sp = 3, SpMax = 4,
-            At = 5, Mat = 6, Df = 7, Mdf = 8, Agi = 9, Au = 10, IsPlayer = true, Defenses = 0,
-        });
         await context.SaveChangesAsync(cancellationToken);
 
         await using var reader = database.CreateDbContext();
@@ -199,8 +188,6 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal((3, true, at, at), ((int)pet.Personality, pet.Carried, pet.BornAt, pet.HungerSince));
         var mercenary = await reader.CharacterMercenaries.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
         Assert.Equal((9, (int?)null, (DateTime?)null), (mercenary.Remaining, mercenary.PlaceId, mercenary.NextFightAt));
-        var champion = await reader.CharacterChampions.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
-        Assert.Equal((true, (DateTime?)null, (DateTime?)null), (champion.IsPlayer, champion.CrownedAt, champion.LockedUntil));
 
         await using var second = database.CreateDbContext();
         second.CharacterMercenaries.Add(new CharacterMercenary { CharacterId = characterId, MercenaryId = "x", Name = "x", Remaining = 1, HiredAt = at });

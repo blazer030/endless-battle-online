@@ -16,14 +16,18 @@
 
 ## 5. 資料表
 
-- [ ] 5.1 依「用 DROP TABLE 刪除 character_champions」，先問使用者這次可不可以用 `DROP TABLE`，同意才繼續；不同意就停下來討論替代做法。接著把 `DatabaseSchemaTests` 的冠軍斷言換成失敗的 Testcontainers 測試 `CharacterChampions_TableIsGone`，再新增 `backend/db/ddl/V000000017__drop_character_champions.sql`，`docker compose up -d` 後跑 `./scripts/scaffold-db.sh`，並刪除過期的 `Persistence/Models/CharacterChampion.cs`。以 `cd backend && dotnet test` 驗證，並確認 `EndlessBattleDbContext.cs` 與 `Models/Character.cs` 沒有 `CharacterChampion`。 [after: 1.1, 4.1]
+- [x] 5.1 依「用 DROP TABLE 刪除 character_champions」與「不留防回歸測試」，使用者已同意這次使用 `DROP TABLE`。把 `DatabaseSchemaTests` 的冠軍斷言拿掉，先用暫時的 Testcontainers 測試 `CharacterChampions_TableIsGone` 確認資料表還在時會失敗，再新增 `backend/db/ddl/V000000017__drop_character_champions.sql`，`docker compose up -d` 後跑 `./scripts/scaffold-db.sh`，並刪除過期的 `Persistence/Models/CharacterChampion.cs`。測試轉綠後刪除這條暫時測試，不 commit 它。以 `cd backend && dotnet test` 驗證，並確認 `EndlessBattleDbContext.cs` 與 `Models/Character.cs` 沒有 `CharacterChampion`。 [after: 1.1, 4.1]
 
 ## 6. 匯入與文件
 
 - [x] 6.1 依 Requirement「Custom content without an original counterpart is kept」，先改 `WogImportTests`：拿掉 `champion.json` 必須在保留清單的斷言，改成失敗斷言 `gaps.md` 不提到 `champion.json`、`backend/content` 沒有這個檔案。再改 `scripts/import-wog45.py` 的 `KEPT_CONTENT_FILES`，執行 `python3 -I scripts/import-wog45.py` 重新產生 `gaps.md`，測試轉綠後 commit；再跑一次腳本，以 `git diff --exit-code backend/content docs/research/wog45/gaps.md` exit code 0 確認沒有變動。 [after: 4.1]
-- [ ] 6.2 依「舊文件保留原樣」，只拿掉 `README.md` 的冠軍列，`docs/superpowers`、`docs/research` 不動。以 `git grep -i -E 'champion|冠軍' -- backend frontend/src admin/src scripts CLAUDE.md README.md ':!backend/db/ddl'` 沒有輸出確認；有輸出就回頭處理。 [after: 2.1, 5.1, 6.1]
+- [ ] 6.2 依「不留防回歸測試」與「舊文件保留原樣」，刪除 `backend/EndlessBattle.Tests/Api/RemovedRoutesTests.cs`、`AdventureScreen_HasNoChampionButton`、`Load_WithoutChampionFile_Succeeds` 與 `WogImportTests` 裡提到 `champion.json` 的兩條斷言，並拿掉 `README.md` 的冠軍列，`docs/superpowers`、`docs/research` 不動。以 `git grep -i -E 'champion|冠軍' -- backend frontend/src admin/src scripts CLAUDE.md README.md ':!backend/db/ddl'` 沒有輸出確認；有輸出就回頭處理。 [after: 2.1, 5.1, 6.1]
 
 ## 7. 收尾
 
 - [ ] 7.1 實際打開遊戲確認：冒險頁沒有冠軍按鈕、版面沒有留下空位、一般戰鬥正常。以 `pnpm dev` 搭配 Development API，在 375×667 手動確認。 [after: 2.1, 5.1]
 - [ ] 7.2 執行 `./scripts/check.sh`，確認 exit code 0。 [after: 6.2, 7.1]
+
+## 變更紀錄
+
+使用者決定不留防回歸測試。任務 2.1、3.1、4.1、6.1 寫下的測試仍依原文完成，由任務 6.2 刪除；任務 5.1 的測試只在實作時暫時使用。
