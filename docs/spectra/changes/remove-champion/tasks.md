@@ -12,7 +12,7 @@
 
 ## 4. 規則與內容
 
-- [ ] 4.1 依 Requirement「Custom content without an original counterpart is kept」，讓遊戲不需要 `champion.json`。先寫失敗測試 `Load_WithoutChampionFile_Succeeds`，再移除 `IGameContent.SeedChampion`、`JsonGameContent` 的讀取與驗證、`Domain/Champion` 全部，刪除 `backend/content/champion.json`、`TestContent/champion.json`、`Domain/Champion` 的測試、`CompanionTableTests.Champion_SeedMatchesTable` 與 `JsonGameContentTests` 的冠軍案例與輔助內容。以 `cd backend && dotnet test` 驗證，其他測試的數值斷言一律不動。 [after: 3.1]
+- [x] 4.1 依 Requirement「Custom content without an original counterpart is kept」，讓遊戲不需要 `champion.json`。先寫失敗測試 `Load_WithoutChampionFile_Succeeds`，再移除 `IGameContent.SeedChampion`、`JsonGameContent` 的讀取與驗證、`Domain/Champion` 全部，刪除 `backend/content/champion.json`、`TestContent/champion.json`、`Domain/Champion` 的測試、`CompanionTableTests.Champion_SeedMatchesTable` 與 `JsonGameContentTests` 的冠軍案例與輔助內容。以 `cd backend && dotnet test` 驗證，其他測試的數值斷言一律不動。 [after: 3.1]
 
 ## 5. 資料表
 

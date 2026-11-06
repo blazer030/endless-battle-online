@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using EndlessBattle.Application.Content;
-using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
@@ -40,7 +39,6 @@ public sealed class JsonGameContent : IGameContent
     private const int MaximumMercenaryNameLength = 8;
     private const int MaximumPercent = 100;
     private const int MaximumExchangeQuantity = 99;
-    private const int MaximumChampionNameLength = 12;
     private const int MinimumKeySeconds = 60;
     private const int MaximumKeySeconds = 604_800;
     private const double MinimumElixirMultiplier = 1.01;
@@ -78,7 +76,6 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<MercenaryDefinition> allMercenaries,
         IReadOnlyList<HonourExchange> honourShop,
         InnDefinition inn,
-        ChampionSeat seedChampion,
         HashSet<(string JobId, string SkillId)> jobSkills)
     {
         this.jobSkills = jobSkills;
@@ -86,7 +83,6 @@ public sealed class JsonGameContent : IGameContent
         AllMercenaries = allMercenaries;
         mercenaries = allMercenaries.ToDictionary(mercenary => mercenary.Id);
         HonourShop = honourShop;
-        SeedChampion = seedChampion;
         AllItems = allItems;
         this.items = items;
         AllRecipes = allRecipes;
@@ -132,7 +128,6 @@ public sealed class JsonGameContent : IGameContent
 
     public InnDefinition Inn { get; }
 
-    public ChampionSeat SeedChampion { get; }
 
     public static JsonGameContent Load(string directory)
     {
@@ -146,7 +141,6 @@ public sealed class JsonGameContent : IGameContent
         var mercenaryFile = Read<MercenaryFile>(Path.Combine(directory, "mercenaries.json"));
         var honourShopFile = Read<HonourShopFile>(Path.Combine(directory, "honour-shop.json"));
         var innFile = Read<InnFile>(Path.Combine(directory, "inn.json"));
-        var championFile = Read<ChampionFile>(Path.Combine(directory, "champion.json"));
 
         var (allAreas, allPlaces, places) = BuildWorld(worldFile);
 
@@ -297,12 +291,10 @@ public sealed class JsonGameContent : IGameContent
 
         var inn = ToInn(innFile);
 
-        var seedChampion = ToSeedChampion(championFile.Champion ?? throw new GameContentException("冠軍種子不可為空（champion.json 的 champion）"));
-
         return new JsonGameContent(
             allMonsters, allJobs, allSkills, monsters, jobs, skills,
             worldFile, allAreas, allPlaces, places, allItems, items, allRecipes, allMissions,
-            allMercenaries, honourShop, inn, seedChampion, jobSkills);
+            allMercenaries, honourShop, inn, jobSkills);
     }
 
     public PlaceDefinition GetPlace(int placeId) =>
@@ -1178,34 +1170,6 @@ public sealed class JsonGameContent : IGameContent
         Require(exchange.Cost.Select(cost => cost.ItemId).Distinct().Count() == exchange.Cost.Count, "的 cost 道具重複");
     }
 
-    private static ChampionSeat ToSeedChampion(ChampionEntry entry)
-    {
-        var name = entry.Name ?? "";
-
-        void Require([DoesNotReturnIf(false)] bool condition, string message)
-        {
-            if (!condition)
-            {
-                throw new GameContentException($"冠軍 {name} {message}");
-            }
-        }
-
-        Require(!string.IsNullOrWhiteSpace(name) && name.Length <= MaximumChampionNameLength,
-            $"的 name 必須是 1～{MaximumChampionNameLength} 字");
-        Require(!string.IsNullOrWhiteSpace(entry.SpecialAttackName), "的 specialAttackName 不可為空");
-        Require(entry.Level >= 1, "的 level 必須至少 1");
-        Require(entry.Element is >= MinimumElement and <= MaximumElement, $"的 element 必須在 {MinimumElement}～{MaximumElement}");
-        Require(entry.Hp >= 1, "的 hp 必須至少 1");
-        Require(entry.Sp >= 0, "的 sp 不可為負");
-        Require(new[] { entry.At, entry.Mat, entry.Df, entry.Mdf, entry.Agi, entry.Au }.All(value => value >= 0),
-            "的能力 at、mat、df、mdf、agi、au 不可為負");
-
-        return new ChampionSeat(
-            name, entry.Level, entry.Element, entry.SpecialAttackName,
-            Hp: entry.Hp, HpMax: entry.Hp, Sp: entry.Sp, SpMax: entry.Sp,
-            At: entry.At, Mat: entry.Mat, Df: entry.Df, Mdf: entry.Mdf, Agi: entry.Agi, Au: entry.Au);
-    }
-
     private static MercenaryDefinition ToMercenaryDefinition(MercenaryEntry entry) =>
         new(entry.Id ?? "", entry.Name ?? "", entry.Price, entry.Fights, entry.MoneyPercent, entry.DropPercent, entry.ExpPercent,
             entry.DeathCost);
@@ -1599,9 +1563,4 @@ public sealed class JsonGameContent : IGameContent
     private sealed record InnFile(int Seconds, int PricePerLevel, IReadOnlyList<InnRoomEntry>? Rooms);
 
     private sealed record InnRoomEntry(string? Id, string? Name, string? Kind, double Multiplier, int PriceRate);
-
-    private sealed record ChampionFile(ChampionEntry? Champion);
-
-    private sealed record ChampionEntry(
-        string? Name, int Level, int Element, string? SpecialAttackName, int Hp, int Sp, int At, int Mat, int Df, int Mdf, int Agi, int Au);
 }

@@ -1,4 +1,3 @@
-using EndlessBattle.Domain.Champion;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
@@ -7,7 +6,7 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Content;
 
-// 釘住 backend/content 的勳章、捕捉道具、傭兵、勳章所與冠軍種子：plan 9 Task 1（docs/research/companion-table.md）
+// 釘住 backend/content 的勳章、捕捉道具、傭兵與勳章所：plan 9 Task 1（docs/research/companion-table.md）
 public class CompanionTableTests
 {
     private const string Continent = "item-1304", Kingdom = "item-1305", Rainforest = "item-1306", RoyalCity = "item-1307", Silver = "item-2222";
@@ -116,16 +115,5 @@ public class CompanionTableTests
         {
             Assert.Equal(row.Cost, exchange.Cost);
         }
-    }
-
-    // 戰士 Lv30 期望值＋商店 4 級裝備估算
-    [Fact]
-    public void Champion_SeedMatchesTable()
-    {
-        Assert.Equivalent(
-            new ChampionSeat("王都冠軍 格雷德", Level: 30, Element: 1, SpecialAttackName: "王者之劍", Hp: 1400, HpMax: 1400, Sp: 175, SpMax: 175,
-                At: 180, Mat: 25, Df: 150, Mdf: 40, Agi: 30, Au: 25),
-            Content.SeedChampion,
-            strict: true);
     }
 }
