@@ -26,7 +26,7 @@ public static class RoundResolver
     public static bool PlayerStrikesFirst(int playerAgi, int monsterAgi, IRandomSource random) =>
         PhpRandom.Between(random, 1, 100) <= (playerAgi > monsterAgi ? 70 : 30);
 
-    // rag、暴擊率加成（這次攻擊方式的）、附加傷害、暴擊倍率上限加成來自技能（BattleModifiers）；怪物出手時只有 rag（玩家的迴避）
+    // rag、暴擊率加成（這次攻擊方式的）、附加傷害、暴擊倍率上限加成來自技能（BattleModifiers）
     public static AttackResult Strike(
         CombatantState attacker,
         CombatantState defender,

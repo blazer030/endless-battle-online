@@ -54,8 +54,9 @@ public static class WogBattle
         // 玩家的攻擊方式整場只決定一次（WOG 在開戰時擲 m_type）；怪物每次出手前重擲
         var playerKind = playerPreferred ?? RoundResolver.ChooseKind(player.At, player.Mat, random);
 
-        // 本回合套用技能修正後的雙方能力值；每回合開頭都會重新指定，這裡的初值只是讓區域函式能捕捉
-        var modifiers = caster.Current;
+        // 本回合雙方的技能修正與套用後的能力值；每回合開頭都會重新指定，這裡的初值只是讓區域函式能捕捉
+        var playerModifiers = caster.Current;
+        var monsterModifiers = monsterCaster.Current;
         var fighter = player;
         var opponent = monster;
 
@@ -89,9 +90,10 @@ public static class WogBattle
                 return Outcome(CombatSide.Monster, round);
             }
 
-            modifiers = caster.Current;
-            fighter = modifiers.ApplyToCaster(player);
-            opponent = modifiers.ApplyToOpponent(monster);
+            playerModifiers = caster.Current;
+            monsterModifiers = monsterCaster.Current;
+            fighter = monsterModifiers.ApplyToOpponent(playerModifiers.ApplyToCaster(player));
+            opponent = playerModifiers.ApplyToOpponent(monsterModifiers.ApplyToCaster(monster));
             var firstAttacker = RoundResolver.PlayerStrikesFirst(fighter.Agi, opponent.Agi, random) ? CombatSide.Player : CombatSide.Monster;
 
             // 先攻者擊倒對手時，後攻者不再出手
@@ -120,22 +122,23 @@ public static class WogBattle
         // 連打每下各自擲命中／暴擊／傷害，擊倒就停；各下平均分在攻方的半回合內，最後一下早於對手出手
         bool PlayerStrike(double atSeconds)
         {
-            var hits = playerKind == AttackKind.Physical ? modifiers.PhysicalHits : modifiers.MagicHits;
+            var hits = playerKind == AttackKind.Physical ? playerModifiers.PhysicalHits : playerModifiers.MagicHits;
             var intervalSeconds = SecondStrikeOffsetSeconds / hits;
             for (var hit = 0; hit < hits; hit++)
             {
                 var hitSeconds = atSeconds + hit * intervalSeconds;
-                var result = RoundResolver.Strike(modifiers.AttackingAs(fighter), opponent, playerKind, random, modifiers.Rag,
-                    modifiers.CriticalChanceFor(playerKind), modifiers.BonusDamageFor(playerKind), modifiers.CriticalCapFor(playerKind),
-                    modifiers.ElementAdvantagePercent);
-                monsterHp = Math.Max(0, monsterHp - result.Damage);
-                damageDealt += result.Damage;
-                events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, result.Damage,
+                var result = RoundResolver.Strike(playerModifiers.AttackingAs(fighter), monsterModifiers.DefendingAs(opponent), playerKind, random,
+                    playerModifiers.Rag + monsterModifiers.EnemyRag, playerModifiers.CriticalChanceFor(playerKind), playerModifiers.BonusDamageFor(playerKind),
+                    playerModifiers.CriticalCapFor(playerKind), playerModifiers.ElementAdvantagePercent);
+                var damage = monsterModifiers.DamageTaken(playerKind, result.Damage);
+                monsterHp = Math.Max(0, monsterHp - damage);
+                damageDealt += damage;
+                events.Add(new AttackEvent(hitSeconds, CombatSide.Player, playerKind, result.Hit, result.Critical, damage,
                     result.ElementMultiplier, monsterHp));
 
                 if (playerKind == AttackKind.Physical && result.Hit)
                 {
-                    RecordPlayer(caster.CastAfterPhysicalHit(result.Damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
+                    RecordPlayer(caster.CastAfterPhysicalHit(damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
                 }
 
                 if (monsterHp == 0)
@@ -149,7 +152,7 @@ public static class WogBattle
 
         bool MonsterStrike(double atSeconds)
         {
-            if (modifiers.StunChance > 0 && PhpRandom.Between(random, 1, 100) <= modifiers.StunChance)
+            if (playerModifiers.StunChance > 0 && PhpRandom.Between(random, 1, 100) <= playerModifiers.StunChance)
             {
                 events.Add(new AttackEvent(atSeconds, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0,
                     ElementMultiplier: 1.0, playerHp, Stunned: true));
@@ -157,8 +160,10 @@ public static class WogBattle
             }
 
             var monsterKind = RoundResolver.ChooseKind(opponent.At, opponent.Mat, random);
-            var result = RoundResolver.Strike(opponent, modifiers.DefendingAs(fighter), monsterKind, random, rag: modifiers.EnemyRag);
-            var damage = modifiers.DamageTaken(monsterKind, result.Damage);
+            var result = RoundResolver.Strike(monsterModifiers.AttackingAs(opponent), playerModifiers.DefendingAs(fighter), monsterKind, random,
+                playerModifiers.EnemyRag + monsterModifiers.Rag, monsterModifiers.CriticalChanceFor(monsterKind), monsterModifiers.BonusDamageFor(monsterKind),
+                monsterModifiers.CriticalCapFor(monsterKind), monsterModifiers.ElementAdvantagePercent);
+            var damage = playerModifiers.DamageTaken(monsterKind, result.Damage);
 
             // 只有命中的那一下才擲代擋；代擋成功時整下由寵物承受
             if (result.Hit && pet is not null && guard > 0 && PetBattle.Activates(pet, random))
@@ -183,9 +188,10 @@ public static class WogBattle
             }
 
             var result = PetBattle.Strike(pet, fighter, opponent, random);
-            monsterHp = Math.Max(0, monsterHp - result.Damage);
-            damageDealt += result.Damage;
-            events.Add(new PetAttackEvent(atSeconds, pet.Name, result.Kind, result.Hit, result.Critical, result.Damage, monsterHp));
+            var damage = monsterModifiers.DamageTaken(result.Kind, result.Damage);
+            monsterHp = Math.Max(0, monsterHp - damage);
+            damageDealt += damage;
+            events.Add(new PetAttackEvent(atSeconds, pet.Name, result.Kind, result.Hit, result.Critical, damage, monsterHp));
             return monsterHp == 0;
         }
 
