@@ -6,6 +6,7 @@
     {"id": "test-refine-stone", "name": "測試精鍊石 Lv1", "category": "RefineStone", "price": 100, "shopLevel": 1, "shopSellable": false, "refine": {"level": 1, "kind": 1, "at": [1, 2], "df": [1, 2]}},
     {"id": "test-stone", "name": "測試攻擊魔石", "category": "Stone", "price": 2000, "shopLevel": 1, "shopSellable": false, "stone": {"random": false, "fixed": {"at": 5}, "boxClass": 1}},
     {"id": "test-ore", "name": "測試礦石", "category": "Material", "price": 10, "shopLevel": 1, "shopSellable": false},
+    {"id": "test-burst-blade", "name": "測試爆氣刃", "category": "Weapon", "bonus": {"at": 8}, "holes": 0, "refineMax": 0, "price": 200, "shopLevel": 1, "shopSellable": false, "weaponSkill": {"skillId": "burst", "level": 2, "rate": 100}},
     {"id": "test-axe", "name": "測試戰斧", "category": "Weapon", "bonus": {"at": 12}, "requires": {"str": 10}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false},
     {"id": "test-heavy-sword", "name": "測試巨劍", "category": "Weapon", "bonus": {"at": 28}, "requires": {"str": 60}, "holes": 0, "refineMax": 5, "price": 1600, "shopLevel": 2, "shopSellable": false},
     {"id": "test-power-ring", "name": "測試怪力戒指", "category": "Accessory", "bonus": {"str": 50}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false},

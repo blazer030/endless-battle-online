@@ -47,6 +47,12 @@ public sealed record SkillDefinition(
         ],
     };
 
+    // 武器附帶的技能不耗 SP，其他消耗照舊
+    public SkillDefinition WithoutSkillPointCosts() => this with
+    {
+        Levels = [.. Levels.Select(level => level with { Costs = [.. level.Costs.Where(cost => cost.Kind != SkillCostKind.SkillPoints)] })],
+    };
+
     public SkillLevel LevelAt(int level) =>
         level >= 1 && level <= MaxLevel
             ? Levels[level - 1]

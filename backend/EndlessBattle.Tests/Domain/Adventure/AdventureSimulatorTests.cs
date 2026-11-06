@@ -279,6 +279,16 @@ public class AdventureSimulatorTests
         Assert.IsType<EncounterEvent>(Run(hero, seconds: 1, skills: [ironSkin]).Events[0]);
     }
 
+    // SP 13 低於門檻，但唯一的主動技能是武器附帶、不耗 SP，所以不因 SP 住宿
+    [Fact]
+    public void Run_WeaponSkillOnly_IgnoresSpRestThreshold()
+    {
+        var hero = Hero() with { Hp = 350, Sp = 13 };
+        var weapon = new EquippedSkill(TestSkills.Create("burst", SkillType.Active), Level: 1, SkillLoadout.WeaponSlot);
+
+        Assert.IsType<EncounterEvent>(Run(hero, seconds: 1, skills: [weapon]).Events[0]);
+    }
+
     // 英雄在子地區 2：怪物 first 只在子地區 1、second 只在子地區 2，擲骰 0 時只有 second 入選
     [Fact]
     public void Adventure_PicksBySubPlace()

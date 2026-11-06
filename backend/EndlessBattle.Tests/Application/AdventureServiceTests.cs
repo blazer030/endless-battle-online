@@ -1029,4 +1029,33 @@ public class AdventureServiceTests
             return new ScriptedRandom(0.0);
         }
     }
+
+    private Task<long> AddToBagAsync(Character character, string itemId) =>
+        inventory.AddAsync(character.Id, TestItems.Entry(0, itemId), CancellationToken);
+
+    // 測試爆氣刃附帶爆氣第 2 級、發動率 100；角色 SP 0、沒學過、也沒有裝在技能欄
+    [Fact]
+    public async Task Advance_EquippedWeaponWithSkill_CastsItWithoutSp()
+    {
+        var character = await AddCharacterAsync(hero => hero with { Sp = 0 });
+        await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, await AddToBagAsync(character, "test-burst-blade"), null, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(3));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var cast = result.Events.OfType<SkillEvent>().First();
+        Assert.Equal(("爆氣", 2, 0), (cast.SkillName, cast.Level, cast.SpCost));
+    }
+
+    [Fact]
+    public async Task Advance_WeaponSkillInBag_DoesNotCast()
+    {
+        var character = await AddCharacterAsync();
+        await AddToBagAsync(character, "test-burst-blade");
+        clock.Advance(TimeSpan.FromSeconds(3));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Empty(result.Events.OfType<SkillEvent>());
+    }
 }

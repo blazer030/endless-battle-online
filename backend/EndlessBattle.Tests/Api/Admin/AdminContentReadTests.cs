@@ -10,7 +10,7 @@ public class AdminContentReadTests(MySqlDatabaseFixture database)
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
     [Theory]
-    [InlineData("items", 31, "test-sword")]
+    [InlineData("items", 32, "test-sword")]
     [InlineData("monsters", 6, "test-sprite")]
     [InlineData("jobs", 7, "warrior")]
     [InlineData("skills", 8, "burst")]

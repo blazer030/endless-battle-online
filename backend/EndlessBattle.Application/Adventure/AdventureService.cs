@@ -80,7 +80,7 @@ public sealed class AdventureService(
         var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);
         var contract = await mercenaries.FindAsync(character.Id, cancellationToken);
         var job = content.GetJob(character.JobId);
-        var skills = await EquippedSkills.LoadAsync(loadout, skillBook, content, character, cancellationToken);
+        var skills = await EquippedSkills.LoadAsync(loadout, skillBook, content, character, equipped, cancellationToken);
         var characterBuffs = await buffs.ListAsync(character.Id, cancellationToken);
         var lodging = Inn.ToBuff(await lodgings.FindAsync(character.Id, cancellationToken), content.Inn);
         var random = randomFactory.Create();

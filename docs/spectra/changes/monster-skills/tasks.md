@@ -18,7 +18,7 @@
 ## 4. 內容：武器附帶技能
 
 - [x] 4.1 `ItemDefinition.WeaponSkill` 從 `items.json` 載入並拒絕無效宣告。先寫失敗測試 `Load_WeaponSkill_IsOnItem`、`Load_InvalidWeaponSkill_Throws`（規格拒絕清單的每一種）。驗證：這些測試通過。（規格：Weapons can carry a skill） [after: 3.1]
-- [ ] 4.2 裝備中的武器以 `SkillLoadout.WeaponSlot` 加入戰鬥技能：用武器的發動率、不扣 SP、不用學過；同一技能已在欄位 1～5 時不生效；SP 住宿門檻不把它算成主動技能。`AdventureService` 把裝備中的武器傳給 `EquippedSkills.LoadAsync`。先寫失敗測試 `Load_EquippedWeaponSkill_IsAddedInWeaponSlot`、`Load_UnequippedWeapon_AddsNoSkill`、`Load_SameSkillInSlot_TakesPriority`、`Run_WeaponSkill_ActivatesWithoutSp`、`Run_WeaponSkillOnly_IgnoresSpRestThreshold`。驗證：這些測試通過。（規格：An equipped weapon's skill works without SP；設計：武器附帶技能是第 6 欄，不耗 SP） [after: 4.1]
+- [x] 4.2 裝備中的武器以 `SkillLoadout.WeaponSlot` 加入戰鬥技能：用武器的發動率、不扣 SP、不用學過；同一技能已在欄位 1～5 時不生效；SP 住宿門檻不把它算成主動技能。`AdventureService` 把裝備中的武器傳給 `EquippedSkills.LoadAsync`。先寫失敗測試 `Load_EquippedWeaponSkill_IsAddedInWeaponSlot`、`Load_UnequippedWeapon_AddsNoSkill`、`Load_SameSkillInSlot_TakesPriority`、`Run_WeaponSkill_ActivatesWithoutSp`、`Run_WeaponSkillOnly_IgnoresSpRestThreshold`。驗證：這些測試通過。（規格：An equipped weapon's skill works without SP；設計：武器附帶技能是第 6 欄，不耗 SP） [after: 4.1]
 - [ ] 4.3 `InventoryItemResponse` 回傳 `weaponSkill`（`name`、`level`、`rate`，沒有時為 null），`pnpm generate:api` 重新產生 `frontend/src/api/schema.ts`；背包武器明細顯示 `附帶技能 爆氣 Lv2（發動率 12%）`。先寫失敗測試：API 測試 `Inventory_WeaponWithSkill_ReturnsWeaponSkill`，前端測試 `ItemDetail_WeaponWithSkill_ShowsSkillLine`、`ItemDetail_WeaponWithoutSkill_ShowsNoSkillLine`。驗證：這些測試通過。（規格：The bag shows a weapon's skill） [after: 4.2]
 
 ## 5. 匯入

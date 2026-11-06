@@ -773,7 +773,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-sword", "test-helm", "test-supply", "test-refine-stone", "test-stone", "test-ore",
-                "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion",
+                "test-burst-blade", "test-axe", "test-heavy-sword", "test-power-ring", "test-str-potion",
                 "test-bag-expansion", "test-depot-expansion", "test-life-amulet", "test-bound-sword",
                 "test-refine-stone-2", "item-1378", "item-3361", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",

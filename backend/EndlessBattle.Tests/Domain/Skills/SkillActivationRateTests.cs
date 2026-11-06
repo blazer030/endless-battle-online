@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
@@ -75,5 +76,57 @@ public class SkillActivationRateTests
 
         Assert.Single(outcome.Events.OfType<SkillEvent>().Take(1));
         Assert.False(outcome.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player).Stunned);
+    }
+
+    private static readonly SkillDefinition Burst = new("burst", "爆氣", SkillType.Active, SkillTiming.BeforeAttack, "",
+    [
+        new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 40)], [new SkillCost(SkillCostKind.SkillPoints, 2)], [Effect]),
+        new SkillLevel(2, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 50)],
+            [new SkillCost(SkillCostKind.SkillPoints, 4), new SkillCost(SkillCostKind.HitPoints, 10)], [Effect]),
+    ]);
+
+    private static SkillDefinition? FindSkill(string id) => id == Burst.Id ? Burst : null;
+
+    [Fact]
+    public void Load_EquippedWeaponSkill_IsAddedInWeaponSlot()
+    {
+        var other = new EquippedSkill(Skill([new SkillCondition(SkillConditionKind.Chance, 40)], Effect), 1, 1);
+
+        var skills = SkillLoadout.WithWeaponSkill([other], new WeaponSkillSpec("burst", 2, 12), FindSkill);
+
+        Assert.Equal(2, skills.Count);
+        var weapon = skills[1];
+        Assert.Equal((SkillLoadout.WeaponSlot, 2), (weapon.Slot, weapon.Level));
+        Assert.Equal(6, SkillLoadout.WeaponSlot);
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 12)], weapon.Skill.LevelAt(2).Conditions);
+        // SP 不扣，其他消耗照舊
+        Assert.Equal([new SkillCost(SkillCostKind.HitPoints, 10)], weapon.Skill.LevelAt(2).Costs);
+    }
+
+    [Fact]
+    public void Load_UnequippedWeapon_AddsNoSkill()
+    {
+        var other = new EquippedSkill(Burst, 1, 1);
+
+        Assert.Equal([other], SkillLoadout.WithWeaponSkill([other], null, FindSkill));
+    }
+
+    [Fact]
+    public void Load_SameSkillInSlot_TakesPriority()
+    {
+        var inSlot = new EquippedSkill(Burst, 2, 1);
+
+        Assert.Equal([inSlot], SkillLoadout.WithWeaponSkill([inSlot], new WeaponSkillSpec("burst", 1, 12), FindSkill));
+    }
+
+    [Fact]
+    public void Run_WeaponSkill_ActivatesWithoutSp()
+    {
+        // 爆氣第 2 級，武器發動率 12，SP 0、沒學過：擲 12 發動，消耗 SP 0
+        var skills = SkillLoadout.WithWeaponSkill([], new WeaponSkillSpec("burst", 2, 12), FindSkill);
+
+        var cast = Assert.Single(new SkillCaster(Combatant(), skills).CastBeforeAttack(1000, 0, new ScriptedRandom(0.11)));
+
+        Assert.Equal((2, 0, 0), (cast.Equipped.Level, cast.SpCost, cast.SpAfter));
     }
 }

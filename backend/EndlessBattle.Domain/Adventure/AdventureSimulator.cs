@@ -59,8 +59,9 @@ public static class AdventureSimulator
             // 事件以整場為單位取捨；窗口外的場次照樣結算，只是不輸出事件
             var keepEvents = cursor >= windowStart;
 
-            // 死亡、HP 低於門檻，或（有主動技能時）SP 低於門檻，先住宿再開打；被動不耗 SP，不看 SP 門檻
-            if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), skills.Any(skill => skill.Skill.Type == SkillType.Active)))
+            // 死亡、HP 低於門檻，或（有主動技能時）SP 低於門檻，先住宿再開打；被動與武器附帶的技能不耗 SP，不看 SP 門檻
+            var usesSkillPoints = skills.Any(skill => skill.Skill.Type == SkillType.Active && skill.Slot != SkillLoadout.WeaponSlot);
+            if (RestRules.ShouldRest(character, DerivedStats.From(character.Base, bonus), usesSkillPoints))
             {
                 var rest = Hotel.Rest(character, bonus);
                 character = rest.Character;

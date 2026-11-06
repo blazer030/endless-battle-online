@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Domain.Skills;
 
@@ -6,6 +7,9 @@ namespace EndlessBattle.Domain.Skills;
 public static class SkillLoadout
 {
     public const int ActiveSlots = 3, PassiveSlots = 2;
+
+    // 武器附帶的技能排在五個欄位之後
+    public const int WeaponSlot = 6;
 
     public static bool IsActiveSlot(int slot) => slot is >= 1 and <= ActiveSlots;
 
@@ -56,6 +60,18 @@ public static class SkillLoadout
         }
 
         return reasons.Distinct().ToList();
+    }
+
+    // 武器附帶的技能：發動率取代 Chance、不扣 SP、不用學過；同一技能已在欄位裡時不生效，避免疊加
+    public static IReadOnlyList<EquippedSkill> WithWeaponSkill(
+        IReadOnlyList<EquippedSkill> equipped, WeaponSkillSpec? weaponSkill, Func<string, SkillDefinition?> skills)
+    {
+        if (weaponSkill is null || equipped.Any(skill => skill.Skill.Id == weaponSkill.SkillId) || skills(weaponSkill.SkillId) is not { } definition)
+        {
+            return equipped;
+        }
+
+        return [.. equipped, new EquippedSkill(definition.WithActivationRate(weaponSkill.Rate).WithoutSkillPointCosts(), weaponSkill.Level, WeaponSlot)];
     }
 
     // 戰鬥實際生效的欄位，依欄位 1→5：略過技能書沒有、內容已移除（skills 回傳 null）的技能。
