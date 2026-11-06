@@ -2,7 +2,7 @@
 
 - [x] 1.1 依「暴擊只靠傷害數字呈現」與 Requirement「Critical hits are shown by the damage number」，讓暴擊不再產生字牌。先寫失敗測試 `stageEffectsFor_PlayerCritical_ShowsNoPlate`、`stageEffectsFor_MonsterCritical_ShowsNoPlate`（取代 `stageEffectsFor_PlayerCritical_ShowsSpecialAttackPlate` 與備用字測試），再從 `frontend/src/game/stageModel.ts` 移除字牌與 `CriticalPlateText`。以 `cd frontend && pnpm check` 驗證。
 - [x] 1.2 依「文字戰報統一寫暴擊」與 Requirement「The battle log calls every critical hit 暴擊」，先改 `frontend/src/game/battleLog.test.ts` 的表格案例（玩家物理、玩家魔法、怪物，文字照 spec 的 Example），確認失敗後改 `describeAttack`，不再讀 `specialAttackName`、不再寫「重擊」；寵物的「會心一擊」案例維持通過。以 `cd frontend && pnpm check` 驗證。
-- [ ] 1.3 依「普通傷害改成白色」，改 `playDamageNumber` 的顏色與暴擊放大動作，新增 `CriticalNumberPopSeconds` 到 `frontend/src/motion/timings.ts`，並從 `StageRenderer` 的字型預載拿掉 `CRITICAL`、更新提到玩家自訂名稱的註解。這是樣式，不寫測試；以 `pnpm dev` 在 375×667 的實際戰鬥確認普通白色、暴擊紅色金邊有放大彈回，7 位數傷害不超出舞台。 [after: 1.1]
+- [x] 1.3 依「普通傷害改成白色」，改 `playDamageNumber` 的顏色與暴擊放大動作，新增 `CriticalNumberPopSeconds` 到 `frontend/src/motion/timings.ts`，並從 `StageRenderer` 的字型預載拿掉 `CRITICAL`、更新提到玩家自訂名稱的註解。這是樣式，不寫測試；以 `pnpm dev` 在 375×667 的實際戰鬥確認普通白色、暴擊紅色金邊有放大彈回，7 位數傷害不超出舞台。 [after: 1.1]
 
 ## 2. 戰鬥資料
 

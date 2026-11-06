@@ -3,6 +3,7 @@ import { BlurFilter, Color, Container, FillGradient, Graphics, Text, TextStyle }
 import type { TextStyleOptions } from "pixi.js"
 import {
   BeamSeconds,
+  CriticalNumberPopSeconds,
   DamageNumberSeconds,
   DropFloatSeconds,
   DropFloatStaggerSeconds,
@@ -18,10 +19,10 @@ import {
 import { formatNumber } from "../game/format"
 import { Palette } from "./palette"
 
-// 介面與數字用無襯線，怪物名牌用中文襯線，CRITICAL 用 Cinzel
+// 介面與數字用無襯線，怪物名牌用中文襯線，LEVEL UP 用 Cinzel
 export const Fonts = { ui: "Noto Sans TC", title: "Noto Serif TC", latin: "Cinzel" } as const
 
-// 名牌文字可能是英文（LEVEL UP）或玩家取的中文必殺技名，拉丁字用 Cinzel、中文退到襯線
+// 名牌文字可能是英文（LEVEL UP）或中文技能名，拉丁字用 Cinzel、中文退到襯線
 const PlateFontFamily = [Fonts.latin, Fonts.title]
 
 const degrees = (value: number) => (value * Math.PI) / 180
@@ -83,13 +84,17 @@ export const playDamageNumber = (
   const text = createStageText(formatNumber(value), {
     fontSize: critical ? 34 : 22,
     fontWeight: "700",
-    fill: Palette.crimson,
+    fill: critical ? Palette.crimson : Palette.white,
     ...(critical ? { stroke: { color: Palette.gold, width: 3 } } : {}),
   })
   text.anchor.set(0.5)
   text.position.set(x, y + 8)
   text.alpha = 0
   layer.addChild(text)
+  if (critical) {
+    text.scale.set(1.5)
+    gsap.to(text.scale, { x: 1, y: 1, duration: CriticalNumberPopSeconds, ease: "back.out" })
+  }
   gsap.to(text, {
     keyframes: [
       { alpha: 1, y, duration: DamageNumberSeconds * 0.1 },
@@ -176,7 +181,7 @@ export const playPlate = (
   const plate = createPlate(text, 16, 6, color)
   const plateGroup = new Container()
   plateGroup.addChild(plate, text)
-  // 玩家取的必殺技名可能很長，縮到舞台寬度內
+  // 技能名可能很長，縮到舞台寬度內
   const restingScale = Math.min(1, maxWidth / plateGroup.width)
   plateGroup.position.set(x, y)
   plateGroup.rotation = degrees(-6)

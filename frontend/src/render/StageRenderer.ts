@@ -112,7 +112,7 @@ export class StageRenderer {
         resolution: window.devicePixelRatio,
         autoDensity: true,
       }),
-      fontReady(`${PlayerLabel}CRITICALLEVELUPMISS膠著0123456789,`),
+      fontReady(`${PlayerLabel}LEVELUPMISS膠著0123456789,`),
     ])
     container.appendChild(app.canvas)
     return new StageRenderer(app)
@@ -188,7 +188,7 @@ export class StageRenderer {
           playMiss(this.effects, damageX[effect.side], 70)
           break
         case "plate":
-          // 必殺技名是玩家自訂的中文，字形要等載入後才畫，否則會先用備用字型
+          // 技能名是不在預載範圍的中文，字形要等載入後才畫，否則會先用備用字型
           void fontReady(effect.text).then(() => {
             if (this.destroyed) return
             const stageWidth = this.app.screen.width

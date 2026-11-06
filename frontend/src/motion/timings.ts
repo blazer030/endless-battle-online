@@ -4,6 +4,7 @@ export const RestAfterBatchSeconds = 1
 export const HitShakeSeconds = 0.25
 export const SlashSeconds = 0.3
 export const DamageNumberSeconds = 0.9
+export const CriticalNumberPopSeconds = 0.18
 export const PlateSeconds = 1.2
 export const ImpactBurstSeconds = 0.8
 export const BreathingCycleSeconds = 3
