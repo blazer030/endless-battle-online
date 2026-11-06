@@ -15,21 +15,24 @@ public sealed record SkillCast(
 // 常駐與仍生效的技能（快照＋重套），而持續中的技能不會再施放，所以同一技能不會疊加
 public sealed class SkillCaster
 {
+    // 裝備的技能每一筆都是不同的物件；比較參考，不用每次把整個技能定義算雜湊
+    private static readonly IEqualityComparer<EquippedSkill> ByReference = ReferenceEqualityComparer.Instance;
+
     private readonly CombatantState caster;
 
     // 對手的基本能力，給「能力比對手高」的條件比較；沒有對手時都當 0
     private readonly CombatantState? opponentStats;
     private readonly IReadOnlyList<EquippedSkill> skills;
-    private readonly Dictionary<EquippedSkill, int> remainingRounds = [];
+    private readonly Dictionary<EquippedSkill, int> remainingRounds = new(ByReference);
 
     // 冷卻中的技能：值是還要經過幾個回合開頭才能再發動。每場戰鬥建立新的 SkillCaster，冷卻自然歸零
-    private readonly Dictionary<EquippedSkill, int> cooldowns = [];
+    private readonly Dictionary<EquippedSkill, int> cooldowns = new(ByReference);
 
     // 持續中的技能已經過幾個回合開頭（發動回合為 0）；每個效果在 age < max(1, rounds) 時生效
-    private readonly Dictionary<EquippedSkill, int> ages = [];
+    private readonly Dictionary<EquippedSkill, int> ages = new(ByReference);
 
     // 發動時自己的機率沒擲中的效果（第幾個效果），這次持續期間不生效
-    private readonly Dictionary<EquippedSkill, HashSet<int>> missedEffects = [];
+    private readonly Dictionary<EquippedSkill, HashSet<int>> missedEffects = new(ByReference);
 
     // 被對手封鎖技能的剩餘回合（含目前回合）；期間不發動、不判斷條件
     private int silencedRounds;
@@ -50,7 +53,7 @@ public sealed class SkillCaster
     public long? Money { get; private set; }
 
     // 發動當下（扣消耗前）的 SP，給以 SP 為基準的效果用
-    private readonly Dictionary<EquippedSkill, int> castSkillPoints = [];
+    private readonly Dictionary<EquippedSkill, int> castSkillPoints = new(ByReference);
 
     // 持續 n 回合含施放回合：第 n + 1 回合開頭失效。每回合出手一次，所以冷卻也在回合開頭倒數
     public void ExpireAtRoundStart()
