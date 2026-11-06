@@ -192,6 +192,40 @@ public class MercenarySimulatorTests
         TrackedMissions.AssertSame([hunt.WithProgress(3), daily.WithProgress(2)], run.Missions);
     }
 
+    private static readonly MonsterDefinition Herald = new(
+        "herald", "信使", Level: 0, Hp: 0, Sp: 0, At: 0, Mat: 0, Df: 0, Mdf: 0, Agi: 0, Au: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+    {
+        MissionId = "visit",
+        Npc = true,
+    };
+
+    private static ActiveMission Visit(DateTimeOffset acceptedAt) =>
+        TrackedMissions.Single("visit", "拜訪", "herald", Required: 2, Progress: 0, AcceptedAt: acceptedAt, ExpiresAt: null);
+
+    // 兩個回合都遇到 NPC：任務 +2，次數不變
+    [Fact]
+    public void Mercenary_NpcAdvancesMissionWithoutUsingCount()
+    {
+        var start = Now.AddSeconds(-100);
+
+        var run = Run(Hero(), Contract(5, start), monsters: [Herald], missions: [Visit(start)]);
+
+        TrackedMissions.AssertSame([Visit(start).WithProgress(2)], run.Missions);
+        Assert.Equal(Contract(5, start.AddSeconds(200)), run.Contract);
+    }
+
+    [Fact]
+    public void Mercenary_NpcNotInReport()
+    {
+        var start = Now.AddSeconds(-100);
+        var hero = Hero();
+
+        var run = Run(hero, Contract(5, start), monsters: [Herald], missions: [Visit(start)]);
+
+        Assert.Empty(run.Fights);
+        Assert.Equal(hero, run.Character);
+    }
+
     // 寶物 30% → 分母 ⌊10 × 0.9 × 1.7⌋ = 15。掉落是該場最後一骰（NextExp 很大、不升級），先數出全 0.0 時一場用掉幾骰，
     // 再把最後一骰換成 0.067：分母 15 → ⌊1.005⌋ + 1 = 2 落空；寶物 100%（分母 9）→ ⌊0.603⌋ + 1 = 1 掉落
     [Fact]

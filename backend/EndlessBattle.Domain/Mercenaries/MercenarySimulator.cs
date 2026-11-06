@@ -75,6 +75,14 @@ public static class MercenarySimulator
         {
             var spawnable = KillCounter.SpawnableMissionIds(missions, fightAt);
             var monster = MonsterPool.Pick(ownMonsters, placeId, subPlace: null, random, spawnable);
+
+            // NPC 不戰鬥、不扣次數、不列入場次，只推進任務（WOG 只在打完才扣次數）
+            if (monster.Npc)
+            {
+                missions = KillCounter.Apply(missions, monster.Id, fightAt).Missions;
+                continue;
+            }
+
             var derived = DerivedStats.From(character.Base, equipment);
             var player = CombatBridge.ToCombatant(character with { Hp = derived.HpMax, Sp = derived.SpMax }, equipment);
             var opponent = CombatantState.From(monster);
