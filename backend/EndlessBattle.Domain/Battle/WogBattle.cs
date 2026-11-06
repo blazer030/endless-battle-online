@@ -79,8 +79,8 @@ public static class WogBattle
             }
 
             modifiers = caster.Current;
-            fighter = modifiers.ApplyToPlayer(player);
-            opponent = modifiers.ApplyToMonster(monster);
+            fighter = modifiers.ApplyToCaster(player);
+            opponent = modifiers.ApplyToOpponent(monster);
             var firstAttacker = RoundResolver.PlayerStrikesFirst(fighter.Agi, opponent.Agi, random) ? CombatSide.Player : CombatSide.Monster;
 
             // 先攻者擊倒對手時，後攻者不再出手

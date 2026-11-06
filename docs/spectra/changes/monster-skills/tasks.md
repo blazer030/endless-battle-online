@@ -1,6 +1,6 @@
 ## 1. 結構整理
 
-- [ ] 1.1 把 `SkillCaster` 內的 `player` 改名 `caster`，`BattleModifiers.ApplyToPlayer`／`ApplyToMonster` 改名 `ApplyToCaster`／`ApplyToOpponent`，行為不變。驗證：改名前後後端測試都綠，單獨以結構性變更 commit（`♻️ refactor`）。
+- [x] 1.1 把 `SkillCaster` 內的 `player` 改名 `caster`，`BattleModifiers.ApplyToPlayer`／`ApplyToMonster` 改名 `ApplyToCaster`／`ApplyToOpponent`，行為不變。驗證：改名前後後端測試都綠，單獨以結構性變更 commit（`♻️ refactor`）。
 
 ## 2. 戰鬥：怪物施放
 

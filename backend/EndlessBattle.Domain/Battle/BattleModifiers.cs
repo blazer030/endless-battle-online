@@ -52,44 +52,44 @@ public sealed record BattleModifiers(
     int SilenceChance = 0)
 {
     // 能力倍率最低 0.9，正值四捨五入後仍至少 1，所以不另設下限；倍率為 1 時數值完全不變
-    public CombatantState ApplyToPlayer(CombatantState player) => player with
+    public CombatantState ApplyToCaster(CombatantState caster) => caster with
     {
-        At = Math.Max(0, Scale(player.At, this.At) + FlatAt),
-        Mat = Math.Max(0, Scale(player.Mat, this.Mat) + FlatMat),
-        Df = Math.Max(0, Scale(player.Df, this.Df) + FlatDf),
-        Mdf = Math.Max(0, Scale(player.Mdf, this.Mdf) + FlatMdf),
-        Agi = Math.Max(1, Scale(player.Agi, this.Agi) + FlatAgi),
-        Au = Math.Max(1, Scale(player.Au, this.Au) + FlatAu),
+        At = Math.Max(0, Scale(caster.At, this.At) + FlatAt),
+        Mat = Math.Max(0, Scale(caster.Mat, this.Mat) + FlatMat),
+        Df = Math.Max(0, Scale(caster.Df, this.Df) + FlatDf),
+        Mdf = Math.Max(0, Scale(caster.Mdf, this.Mdf) + FlatMdf),
+        Agi = Math.Max(1, Scale(caster.Agi, this.Agi) + FlatAgi),
+        Au = Math.Max(1, Scale(caster.Au, this.Au) + FlatAu),
     };
 
-    public CombatantState ApplyToMonster(CombatantState monster) => monster with
+    public CombatantState ApplyToOpponent(CombatantState opponent) => opponent with
     {
-        At = Math.Max(0, Scale(monster.At, EnemyAt) + EnemyFlatAt),
-        Mat = Math.Max(0, Scale(monster.Mat, EnemyMat) + EnemyFlatMat),
-        Df = Math.Max(0, Scale(monster.Df, EnemyDf) + EnemyFlatDf),
-        Mdf = Math.Max(0, Scale(monster.Mdf, EnemyMdf) + EnemyFlatMdf),
-        Agi = Math.Max(1, Scale(monster.Agi, EnemyAgi) + EnemyFlatAgi),
-        Au = Math.Max(1, Scale(monster.Au, EnemyAu) + EnemyFlatAu),
+        At = Math.Max(0, Scale(opponent.At, EnemyAt) + EnemyFlatAt),
+        Mat = Math.Max(0, Scale(opponent.Mat, EnemyMat) + EnemyFlatMat),
+        Df = Math.Max(0, Scale(opponent.Df, EnemyDf) + EnemyFlatDf),
+        Mdf = Math.Max(0, Scale(opponent.Mdf, EnemyMdf) + EnemyFlatMdf),
+        Agi = Math.Max(1, Scale(opponent.Agi, EnemyAgi) + EnemyFlatAgi),
+        Au = Math.Max(1, Scale(opponent.Au, EnemyAu) + EnemyFlatAu),
     };
 
-    // 玩家受到的物理傷害；原本有傷害時減免後至少 1
+    // 施放者受到的物理傷害；原本有傷害時減免後至少 1
     public int PhysicalDamageTaken(int damage) => DamageTaken(AttackKind.Physical, damage);
 
-    // 玩家受到的傷害，依攻擊方式套用減傷；原本有傷害時減免後至少 1
+    // 施放者受到的傷害，依攻擊方式套用減傷；原本有傷害時減免後至少 1
     public int DamageTaken(AttackKind kind, int damage) =>
         damage > 0 ? Math.Max(1, Round(damage * (kind == AttackKind.Physical ? PhysicalTaken : MagicTaken))) : damage;
 
-    // 玩家出手時的攻擊屬性、被攻擊時的防禦屬性（魔劍、魔盾）；沒有轉換時用角色屬性
-    public CombatantState AttackingAs(CombatantState player) => AttackElement is { } element ? player with { Element = element } : player;
+    // 施放者出手時的攻擊屬性、被攻擊時的防禦屬性（魔劍、魔盾）；沒有轉換時用本身的屬性
+    public CombatantState AttackingAs(CombatantState caster) => AttackElement is { } element ? caster with { Element = element } : caster;
 
-    public CombatantState DefendingAs(CombatantState player) => DefenseElement is { } element ? player with { Element = element } : player;
+    public CombatantState DefendingAs(CombatantState caster) => DefenseElement is { } element ? caster with { Element = element } : caster;
 
-    // 玩家這一下的暴擊率加成（百分點）與暴擊倍率上限加成（百分比），依攻擊方式
+    // 施放者這一下的暴擊率加成（百分點）與暴擊倍率上限加成（百分比），依攻擊方式
     public double CriticalChanceFor(AttackKind kind) => kind == AttackKind.Physical ? CritChanceBonus : MagicCritChanceBonus;
 
     public double CriticalCapFor(AttackKind kind) => kind == AttackKind.Physical ? PhysicalCritCapBonus : MagicCritCapBonus;
 
-    // 玩家這一下的附加傷害：不分攻擊方式的加上該方式專屬的
+    // 施放者這一下的附加傷害：不分攻擊方式的加上該方式專屬的
     public int BonusDamageFor(AttackKind kind) => BonusDamage + (kind == AttackKind.Physical ? PhysicalBonusDamage : MagicBonusDamage);
 
     internal static int Round(double value) => (int)Math.Round(value, MidpointRounding.AwayFromZero);

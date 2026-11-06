@@ -24,7 +24,7 @@ public class SkillEffectTests
     private static StatChangeEffect AttackPercent(double percent, int rounds = 3) =>
         new(SkillTarget.Caster, SkillStat.Attack, percent, Amount: null, Scaling: null, rounds);
 
-    private static int AttackAfter(SkillCaster caster, CombatantState player) => caster.Current.ApplyToPlayer(player).At;
+    private static int AttackAfter(SkillCaster caster, CombatantState player) => caster.Current.ApplyToCaster(player).At;
 
     [Fact]
     public void StatChange_RaisesAttackByLevelPercent()
@@ -94,7 +94,7 @@ public class SkillEffectTests
         Assert.Empty(caster.CastBeforeAttack(1000, 100, random));
         caster.ExpireAtRoundStart();
 
-        Assert.Equal((55, 0), (caster.Current.ApplyToPlayer(Player()).Df, random.Consumed));
+        Assert.Equal((55, 0), (caster.Current.ApplyToCaster(Player()).Df, random.Consumed));
     }
 
     [Fact]
@@ -271,8 +271,8 @@ public class SkillEffectTests
     {
         var monster = Monster() with { Agi = 250, Au = 100 };
 
-        var lowered = AlwaysOn(Player(), Change(SkillStat.Agility, amount: -200, target: SkillTarget.Opponent)).Current.ApplyToMonster(monster);
-        var floored = AlwaysOn(Player(), Change(SkillStat.Charisma, amount: -4900, target: SkillTarget.Opponent)).Current.ApplyToMonster(monster);
+        var lowered = AlwaysOn(Player(), Change(SkillStat.Agility, amount: -200, target: SkillTarget.Opponent)).Current.ApplyToOpponent(monster);
+        var floored = AlwaysOn(Player(), Change(SkillStat.Charisma, amount: -4900, target: SkillTarget.Opponent)).Current.ApplyToOpponent(monster);
 
         Assert.Equal((50, 1), (lowered.Agi, floored.Au));
     }
@@ -284,7 +284,7 @@ public class SkillEffectTests
         var player = Player(at: 200) with { Au = 100 };
         var caster = AlwaysOn(player, Change(SkillStat.Attack, scaling: [new SkillScaling(SkillScalingBasis.Charisma, 0.05)]));
 
-        Assert.Equal(205, caster.Current.ApplyToPlayer(player).At);
+        Assert.Equal(205, caster.Current.ApplyToCaster(player).At);
     }
 
     [Fact]
@@ -296,7 +296,7 @@ public class SkillEffectTests
             new SkillScaling(SkillScalingBasis.Vitality, 0.5), new SkillScaling(SkillScalingBasis.Faith, 1), new SkillScaling(SkillScalingBasis.Level, 2),
         ]));
 
-        Assert.Equal(260, caster.Current.ApplyToPlayer(player).At);
+        Assert.Equal(260, caster.Current.ApplyToCaster(player).At);
     }
 
     [Fact]
@@ -549,7 +549,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(caster.CastBeforeAttack(1000, 300, new ScriptedRandom(0.0)));
 
-        Assert.Equal((130, 0, 300), (caster.Current.ApplyToPlayer(player).Mat, cast.SpAfter, cast.SpCost));
+        Assert.Equal((130, 0, 300), (caster.Current.ApplyToCaster(player).Mat, cast.SpAfter, cast.SpCost));
     }
 
     [Fact]
