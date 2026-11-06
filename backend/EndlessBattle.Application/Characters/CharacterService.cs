@@ -82,7 +82,7 @@ public sealed class CharacterService(
         long accountId, AdventureSettings settings, CancellationToken cancellationToken)
     {
         await FindCharacterAsync(accountId, cancellationToken);
-        var reasons = settings.Validate().ToList();
+        var reasons = settings.Validate();
         if (reasons.Count > 0)
         {
             throw new InputValidationException("設定無效", reasons);

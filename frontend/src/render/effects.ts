@@ -160,7 +160,7 @@ const plateColors: Record<PlateTone, number> = {
   cyan: Palette.cyan,
 }
 
-// 名牌：黑底描邊的橫排字，放大落下、停留、淡出；暴擊、升級用金色，技能用青色，膠著、暈眩用淡色
+// 名牌：黑底描邊的橫排字，放大落下、停留、淡出；升級、任務達成、捕捉成功用金色，技能用青色，膠著、暈眩用淡色
 export const playPlate = (
   layer: Container,
   x: number,
