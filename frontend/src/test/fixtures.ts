@@ -284,6 +284,7 @@ export const makeMission = (overrides: Partial<MissionView> = {}): MissionView =
     prerequisiteTitle: null,
   },
   rewards: { exp: 190, money: 50, items: [], skill: null, pet: null },
+  requiredSkill: null,
   ready: false,
   expiresAt: null,
   deliverPet: null,

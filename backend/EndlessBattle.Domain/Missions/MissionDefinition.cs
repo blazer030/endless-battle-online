@@ -10,6 +10,8 @@ public sealed record MissionRequirements(
 
 public sealed record SkillReward(string SkillId, int Level);
 
+public sealed record RequiredSkill(string SkillId, int Level);
+
 // Level 是能力倍率（WOG g_pet_lv）：新寵物同捕捉的初始值，Attack、Magic、Defense 各 rand(1,10) × Level
 public sealed record PetReward(string MonsterId, int Level);
 
@@ -37,6 +39,9 @@ public sealed record MissionDefinition(
 
     // 一般任務要交出的寵物物種（攜帶中的那隻）；每日任務從 DailyPets 擲出
     public string? DeliverPet { get; init; }
+
+    // 回報時要達到的技能等級；不擋接取
+    public RequiredSkill? RequiredSkill { get; init; }
 
     // WOG wog_mission_tool.php：經驗 = m_lv × 190
     public const long ExpPerLevel = 190;

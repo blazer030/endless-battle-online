@@ -12,7 +12,7 @@
 
 ## 3. 技能條件
 
-- [ ] 3.1 [after: 1.3] 實作 Requirement "A mission can require a skill level"：`requiredSkill` 不擋接取；看板的 Ready 與回報都要檢查已學等級，回報時未達回 `skillTooLow`；`MissionResponse.RequiredSkill` 帶 `Met`；任務頁列出條件，`missionErrorMessage` 有對應文字。先寫失敗測試：`Accept_WithoutRequiredSkill_Succeeds`、`Complete_SkillBelowRequired_ReturnsSkillTooLow`（API 層級，等級 0、1 失敗，2、3 成功）、`Board_NotReadyWithoutRequiredSkill`、`Mission_RejectsRequiredSkillAboveMaxLevel`，以及前端 `objectiveLines` 的技能條件。
+- [x] 3.1 [after: 1.3] 實作 Requirement "A mission can require a skill level"：`requiredSkill` 不擋接取；看板的 Ready 與回報都要檢查已學等級，回報時未達回 `skillTooLow`；`MissionResponse.RequiredSkill` 帶 `Met`；任務頁列出條件，`missionErrorMessage` 有對應文字。先寫失敗測試：`Accept_WithoutRequiredSkill_Succeeds`、`Complete_SkillBelowRequired_ReturnsSkillTooLow`（API 層級，等級 0、1 失敗，2、3 成功）、`Board_NotReadyWithoutRequiredSkill`、`Mission_RejectsRequiredSkillAboveMaxLevel`，以及前端 `objectiveLines` 的技能條件。
 
 ## 4. 遭遇規則
 

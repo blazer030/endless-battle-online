@@ -1098,6 +1098,7 @@ public sealed class JsonGameContent : IGameContent
         {
             Require(mission.PlaceId is null, "是每日任務，placeId 必須為 null");
             Require(mission.Kills.Count == 0 && mission.Deliver.Count == 0 && mission.DeliverPet is null, "是每日任務，不能有 kills、deliver 或 deliverPet");
+            Require(mission.RequiredSkill is null, "是每日任務，不能有 requiredSkill");
             Require(requirements.PrerequisiteId is null && requirements.ConflictsWith is null,
                 "是每日任務，不能有 prerequisiteId 或 conflictsWith");
             Require(mission.Rewards is { Money: 0, Items.Count: 0, Skill: null, Pet: null },
@@ -1147,6 +1148,13 @@ public sealed class JsonGameContent : IGameContent
         {
             Require(monsters.TryGetValue(deliverPet, out var species), $"的 deliverPet 引用了不存在的怪物：{deliverPet}");
             Require(species.MissionId is null || species.MissionId == id, $"的 deliverPet {deliverPet} 是任務 {species.MissionId} 的任務怪");
+        }
+
+        if (mission.RequiredSkill is { } requiredSkill)
+        {
+            Require(skills.TryGetValue(requiredSkill.SkillId, out var skill), $"的 requiredSkill 引用了不存在的技能：{requiredSkill.SkillId}");
+            Require(requiredSkill.Level >= 1 && requiredSkill.Level <= skill.MaxLevel,
+                $"的 requiredSkill {requiredSkill.SkillId} 的 level 必須在 1～{skill.MaxLevel}");
         }
 
         RequireQuantities("deliver", mission.Deliver);
@@ -1392,7 +1400,7 @@ public sealed class JsonGameContent : IGameContent
             ToReward(entry.Rewards, "rewards"),
             entry.DailyKills ?? [],
             (entry.DailyRewards ?? []).Select(reward => ToReward(reward, "dailyRewards")).ToList(),
-            entry.DailyPets ?? []) { DeliverPet = entry.DeliverPet };
+            entry.DailyPets ?? []) { DeliverPet = entry.DeliverPet, RequiredSkill = entry.RequiredSkill };
     }
 
     private static SkillDefinition ToSkillDefinition(SkillEntry entry)
@@ -1646,7 +1654,8 @@ public sealed class JsonGameContent : IGameContent
         IReadOnlyList<KillTarget>? DailyKills,
         IReadOnlyList<RewardEntry>? DailyRewards,
         IReadOnlyList<string>? DailyPets,
-        string? DeliverPet);
+        string? DeliverPet,
+        RequiredSkill? RequiredSkill);
 
     private sealed record RewardEntry(long Money, IReadOnlyList<ItemQuantity>? Items, SkillReward? Skill, PetReward? Pet);
 

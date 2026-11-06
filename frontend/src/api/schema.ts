@@ -2918,6 +2918,13 @@ export interface components {
         MissionRequest: {
             missionId: null | string;
         };
+        MissionRequiredSkillResponse: {
+            skillId: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
+            met: boolean;
+        };
         MissionRequirementsResponse: {
             jobId: null | string;
             /** Format: int32 */
@@ -2946,6 +2953,7 @@ export interface components {
             /** Format: date-time */
             expiresAt: null | string;
             deliverPet: null | components["schemas"]["MissionPetResponse"];
+            requiredSkill: null | components["schemas"]["MissionRequiredSkillResponse"];
         };
         MissionRewardItemResponse: {
             itemId: string;

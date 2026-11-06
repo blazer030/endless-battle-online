@@ -68,7 +68,7 @@ public sealed class MissionService(
             return await BoardAsync(character, now, cancellationToken);
         }, cancellationToken);
 
-    // 驗證依序 missionNotActive、objectiveIncomplete、itemsMissing、petMissing、獎勵（bagFull、petsFull），全部通過才寫入；
+    // 驗證依序 missionNotActive、objectiveIncomplete、itemsMissing、petMissing、skillTooLow、獎勵（bagFull、petsFull），全部通過才寫入；
     // 寫入順序：角色（版本鎖＋獎勵）→ 過期與種類不符的紀錄 → 交付 → 獎勵道具 → 技能 → 交出的寵物 → 獎勵寵物 → 任務
     public Task<MissionCompletion> CompleteAsync(long accountId, string missionId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
@@ -103,6 +103,11 @@ public sealed class MissionService(
             }
 
             var learned = await skillBook.ListAsync(character.Id, cancellationToken);
+            if (!MissionRules.HasRequiredSkill(mission, learned))
+            {
+                throw new InputValidationException("無法完成任務", ["skillTooLow"]);
+            }
+
             var outcome = MissionRewards.Apply(
                 character, content.GetJob(character.JobId), objective, Delivery.After(state.Bag, delivery), content.GetItem, content.GetMonster, learned,
                 owned.Count - (deliveredPet is null ? 0 : 1), now, randomFactory.Create());
@@ -179,7 +184,8 @@ public sealed class MissionService(
         var records = await missions.ListAsync(character.Id, cancellationToken);
         var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
         var carried = (await pets.ListAsync(character.Id, cancellationToken)).FirstOrDefault(pet => pet.Carried);
-        return MissionBoard.Build(character, content.AllMissions, records, Delivery.Owned(state.Bag), now, carried?.MonsterId);
+        var learned = await skillBook.ListAsync(character.Id, cancellationToken);
+        return MissionBoard.Build(character, content.AllMissions, records, Delivery.Owned(state.Bag), now, carried?.MonsterId, learned);
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>

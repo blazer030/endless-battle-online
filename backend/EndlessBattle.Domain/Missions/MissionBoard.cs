@@ -1,30 +1,37 @@
 using System.Diagnostics.CodeAnalysis;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Domain.Missions;
 
 public sealed record MissionEntry(MissionDefinition Definition, MissionObjective Objective, MissionRecord? Record, bool Ready, DateTimeOffset? ExpiresAt);
 
-// Owned：建看板時的背包道具總數、CarriedPetMonsterId：攜帶中寵物的物種，回應交付進度用
+// Owned：建看板時的背包道具總數、CarriedPetMonsterId：攜帶中寵物的物種、Learned：已學的技能，回應交付進度與技能條件用
 public sealed record MissionBoardView(
     IReadOnlyList<MissionEntry> Available,
     IReadOnlyList<MissionEntry> Active,
     IReadOnlyList<MissionEntry> Completed,
     DateTimeOffset NextDailyReset,
     IReadOnlyDictionary<string, int> Owned,
-    string? CarriedPetMonsterId = null);
+    string? CarriedPetMonsterId = null,
+    IReadOnlyList<LearnedSkill>? Learned = null)
+{
+    public IReadOnlyList<LearnedSkill> Learned { get; init; } = Learned ?? [];
+}
 
 public static class MissionBoard
 {
-    // owned：背包中各道具的總數、carriedPetMonsterId：攜帶中寵物的物種（算 Ready 用）；records 為原始紀錄，這裡負責去掉過期與未知
+    // owned：背包中各道具的總數、carriedPetMonsterId：攜帶中寵物的物種、learned：已學的技能（算 Ready 用）；records 為原始紀錄，這裡負責去掉過期與未知
     public static MissionBoardView Build(
         Character character,
         IReadOnlyList<MissionDefinition> missions,
         IReadOnlyList<MissionRecord> records,
         IReadOnlyDictionary<string, int> owned,
         DateTimeOffset now,
-        string? carriedPetMonsterId = null)
+        string? carriedPetMonsterId = null,
+        IReadOnlyList<LearnedSkill>? learned = null)
     {
+        learned ??= [];
         var current = Current(records, missions, now);
         var byId = missions.ToDictionary(mission => mission.Id);
         var period = DailyMissions.PeriodOf(now);
@@ -41,16 +48,16 @@ public static class MissionBoard
         var active = current
             .Where(record => record.State == MissionState.Active)
             .OrderBy(record => record.AcceptedAt)
-            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId))
+            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId, learned))
             .ToList();
 
         var completed = current
             .Where(record => record.State == MissionState.Completed)
             .OrderByDescending(record => record.CompletedAt)
-            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId))
+            .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId, learned))
             .ToList();
 
-        return new MissionBoardView(available, active, completed, nextReset, owned, carriedPetMonsterId);
+        return new MissionBoardView(available, active, completed, nextReset, owned, carriedPetMonsterId, learned);
     }
 
     // 未知任務、過期每日紀錄，以及與定義種類不符（每日卻無週期、一般卻有週期）的紀錄一律忽略
@@ -84,13 +91,15 @@ public static class MissionBoard
         definition is not null && definition.Daily == record.DailyPeriod.HasValue;
 
     private static MissionEntry Entry(
-        Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId)
+        Character character, MissionDefinition mission, MissionRecord record, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId,
+        IReadOnlyList<LearnedSkill> learned)
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
         var ready = record.State == MissionState.Active
             && Ready(objective, record)
             && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity)
-            && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId);
+            && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId)
+            && MissionRules.HasRequiredSkill(mission, learned);
         var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
         return new MissionEntry(mission, objective, record, ready, expiresAt);
     }

@@ -57,13 +57,14 @@ public static class MissionEndpoints
     public static MissionBoardResponse ToResponse(MissionBoardView board, IGameContent content)
     {
         List<MissionResponse> Map(IReadOnlyList<MissionEntry> entries) =>
-            entries.Select(entry => ToResponse(entry, board.Owned, board.CarriedPetMonsterId, content)).ToList();
+            entries.Select(entry => ToResponse(entry, board, content)).ToList();
         return new MissionBoardResponse(Map(board.Available), Map(board.Active), Map(board.Completed), MissionRules.MaxActive, board.NextDailyReset);
     }
 
-    private static MissionResponse ToResponse(
-        MissionEntry entry, IReadOnlyDictionary<string, int> owned, string? carriedPetMonsterId, IGameContent content)
+    private static MissionResponse ToResponse(MissionEntry entry, MissionBoardView board, IGameContent content)
     {
+        var owned = board.Owned;
+        var carriedPetMonsterId = board.CarriedPetMonsterId;
         var mission = entry.Definition;
         var objective = entry.Objective;
         var requirements = mission.Requirements;
@@ -97,6 +98,9 @@ public static class MissionEndpoints
             entry.ExpiresAt,
             objective.DeliverPet is { } species
                 ? new MissionPetResponse(species, content.GetMonster(species).Name, species == carriedPetMonsterId)
+                : null,
+            mission.RequiredSkill is { } required
+                ? new MissionRequiredSkillResponse(required.SkillId, content.GetSkill(required.SkillId).Name, required.Level, MissionRules.HasRequiredSkill(mission, board.Learned))
                 : null);
     }
 

@@ -337,7 +337,11 @@ public sealed record MissionResponse(
     MissionRewardResponse Rewards,
     bool Ready,
     DateTimeOffset? ExpiresAt,
-    MissionPetResponse? DeliverPet);
+    MissionPetResponse? DeliverPet,
+    MissionRequiredSkillResponse? RequiredSkill);
+
+// 回報時要達到的技能等級；Met：已學等級達到要求
+public sealed record MissionRequiredSkillResponse(string SkillId, string Name, int Level, bool Met);
 
 // 要交出的寵物物種；Carried：攜帶中的寵物是這個物種
 public sealed record MissionPetResponse(string MonsterId, string Name, bool Carried);

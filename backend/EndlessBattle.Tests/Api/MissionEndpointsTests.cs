@@ -1,9 +1,11 @@
-using System.Net;
 using System.Net.Http.Json;
+using System.Net;
 using System.Text.Json;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Application.Pets;
+using EndlessBattle.Application.Skills;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -117,6 +119,62 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(["tooMany"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    private static async Task LearnAsync(EndlessBattleApiFactory factory, HttpClient client, string skillId, int level)
+    {
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+            .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+        await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+            .UpsertAsync(character!.Id, new LearnedSkill(skillId, level), CancellationToken);
+    }
+
+    [Fact]
+    public async Task Accept_WithoutRequiredSkill_Succeeds()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+
+        var board = await ReadAsync(await PostAsync(client, "accept", "test-skill-gate"));
+
+        var requiredSkill = Mission(board, "active", "test-skill-gate").GetProperty("requiredSkill");
+        Assert.Equal(("burst", 2, false), (
+            requiredSkill.GetProperty("skillId").GetString(), requiredSkill.GetProperty("level").GetInt32(), requiredSkill.GetProperty("met").GetBoolean()));
+        Assert.False(string.IsNullOrEmpty(requiredSkill.GetProperty("name").GetString()));
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(2, true)]
+    [InlineData(3, true)]
+    public async Task Complete_SkillBelowRequired_ReturnsSkillTooLow(int learned, bool completes)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        if (learned > 0)
+        {
+            await LearnAsync(factory, client, "burst", learned);
+        }
+
+        (await PostAsync(client, "accept", "test-skill-gate")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-skill-gate", 1);
+
+        var response = await PostAsync(client, "complete", "test-skill-gate");
+
+        var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
+        if (completes)
+        {
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(["test-skill-gate"], Ids(board, "completed"));
+            return;
+        }
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("skillTooLow", await response.Content.ReadAsStringAsync(CancellationToken));
+        Assert.Equal(["test-skill-gate"], Ids(board, "active"));
     }
 
     [Fact]

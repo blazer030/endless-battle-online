@@ -1,5 +1,6 @@
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Missions;
@@ -112,6 +113,21 @@ public class MissionBoardTests
         Assert.Equal([true, false], shortOfOre.Active.Select(entry => entry.Ready));
         Assert.Equal([true, true], enough.Active.Select(entry => entry.Ready));
         Assert.False(unfinished.Active.Single().Ready);
+    }
+
+    [Fact]
+    public void Board_NotReadyWithoutRequiredSkill()
+    {
+        var mission = General("gate", deliver: []) with { Kills = [], RequiredSkill = new RequiredSkill("burst", 2) };
+        IReadOnlyList<MissionRecord> records = [Active("gate")];
+
+        var unlearned = MissionBoard.Build(Hero, [mission], records, NothingOwned, Now);
+        var low = MissionBoard.Build(Hero, [mission], records, NothingOwned, Now, learned: [new LearnedSkill("burst", 1)]);
+        var enough = MissionBoard.Build(Hero, [mission], records, NothingOwned, Now, learned: [new LearnedSkill("burst", 2)]);
+
+        Assert.False(unlearned.Active.Single().Ready);
+        Assert.False(low.Active.Single().Ready);
+        Assert.True(enough.Active.Single().Ready);
     }
 
     [Theory]

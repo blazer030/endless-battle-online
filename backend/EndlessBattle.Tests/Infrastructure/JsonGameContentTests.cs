@@ -1038,7 +1038,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
-                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-stone-reward",
+                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-skill-gate", "test-stone-reward",
             ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(
@@ -1222,6 +1222,27 @@ public class JsonGameContentTests
         var mission = WithMissionContent(missions, MissionMonsters, directory => JsonGameContent.Load(directory).GetMission("chief-hunt"));
 
         Assert.Equal("chief", mission.DeliverPet);
+    }
+
+    [Theory]
+    [InlineData("guard", 99, "level")]
+    [InlineData("guard", 0, "level")]
+    [InlineData("nothing", 1, "nothing")]
+    public void Mission_RejectsInvalidRequiredSkill(string skillId, int level, string expected)
+    {
+        var message = MissionFieldRejection(
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }]",
+            $"\"kills\": [{{ \"monsterId\": \"sprite\", \"count\": 3 }}], \"requiredSkill\": {{ \"skillId\": \"{skillId}\", \"level\": {level} }}");
+
+        Assert.Contains(expected, message);
+    }
+
+    [Fact]
+    public void Mission_RejectsDailyWithRequiredSkill()
+    {
+        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"requiredSkill\": { \"skillId\": \"guard\", \"level\": 1 },");
+
+        Assert.Contains("requiredSkill", message);
     }
 
     [Fact]

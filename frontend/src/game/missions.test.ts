@@ -126,6 +126,28 @@ describe("objectiveLines", () => {
     ])
   })
 
+  it("shows a skill condition that is met", () => {
+    expect(
+      objectiveLines(
+        makeMission({
+          kills: [],
+          requiredSkill: { skillId: "skill-414", name: "斯巴達", level: 2, met: true },
+        }),
+      ),
+    ).toEqual(["技能 斯巴達 Lv2"])
+  })
+
+  it("flags a skill condition that is not met", () => {
+    expect(
+      objectiveLines(
+        makeMission({
+          kills: [],
+          requiredSkill: { skillId: "skill-414", name: "斯巴達", level: 2, met: false },
+        }),
+      ),
+    ).toEqual(["技能 斯巴達 Lv2（等級不足）"])
+  })
+
   it("describes each delivery with what the bag holds", () => {
     expect(objectiveLines(delivery)).toEqual(["交付 藥草 7/5", "交付 狼牙 1/3"])
   })
@@ -276,6 +298,7 @@ describe("missionErrorMessage", () => {
     ["itemsMissing", "交付的物品不足"],
     ["bagFull", "背包已滿"],
     ["petMissing", "需要攜帶指定的寵物"],
+    ["skillTooLow", "技能等級不足"],
     ["petsFull", "牧場已滿，最多只能擁有3隻寵物"],
   ])("translates %s", (code, text) => {
     expect(missionErrorMessage([code], "無法接取任務")).toBe(text)

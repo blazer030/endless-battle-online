@@ -25,6 +25,11 @@ export const objectiveLines = (mission: MissionView): string[] => [
   ),
   ...mission.deliver.map((item) => `交付 ${item.name} ${item.owned}/${item.quantity}`),
   ...(mission.deliverPet === null ? [] : [`交付寵物 ${mission.deliverPet.name}（需攜帶）`]),
+  ...(mission.requiredSkill === null
+    ? []
+    : [
+        `技能 ${mission.requiredSkill.name} Lv${mission.requiredSkill.level}${mission.requiredSkill.met ? "" : "（等級不足）"}`,
+      ]),
 ]
 
 export const rewardLines = (rewards: MissionRewardView): string[] => [
@@ -81,6 +86,7 @@ const reasonTexts: Record<string, string> = {
   itemsMissing: "交付的物品不足",
   bagFull: "背包已滿",
   petMissing: "需要攜帶指定的寵物",
+  skillTooLow: "技能等級不足",
   petsFull: "牧場已滿，最多只能擁有3隻寵物",
 }
 
