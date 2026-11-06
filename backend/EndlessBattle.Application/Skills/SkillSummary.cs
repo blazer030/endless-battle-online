@@ -61,7 +61,7 @@ public static class SkillSummary
             MultiHitEffect multiHit => $"{AttackKindName(multiHit.AttackKind)}連擊 {multiHit.Hits} 次",
             DamageReductionEffect reduction => $"受到的{AttackKindName(reduction.AttackKind)}傷害 -{Number(reduction.Percent)}%",
             RestoreEffect restore => $"回復 {(restore.Resource == SkillResource.HitPoints ? "HP" : "SP")} {RestoreAmount(restore)}",
-            StunEffect stun => $"對手無法行動 機率 {stun.Chance}%",
+            StunEffect stun => $"對手無法行動 機率 {stun.Chance}%{ChanceByStatText(stun.ChanceByStat)}",
             _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, "未知的效果"),
         };
         return effect.Rounds > 0 ? $"{text}，{effect.Rounds} 回合" : text;
@@ -71,6 +71,10 @@ public static class SkillSummary
         restore.Scaling is { } scaling ? Scaling(scaling)
         : restore.PercentOfMaximum is { } maximum ? $"最大值×{Number(maximum)}%"
         : $"傷害×{Number(restore.PercentOfDamage!.Value)}%";
+
+    private static string ChanceByStatText(SkillChanceAdjustment? adjustment) => adjustment is { } value
+        ? $"（{BasisName(value.Stat)}比對手高 +{value.Percent}%，否則 -{value.Percent}%）"
+        : "";
 
     private static string ChanceText(int? chance) => chance is { } percent ? $"（機率 {percent}%）" : "";
 

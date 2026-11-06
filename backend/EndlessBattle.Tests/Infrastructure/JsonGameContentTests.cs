@@ -451,6 +451,26 @@ public class JsonGameContentTests
         AssertSkillsRejected(ComposedSkillJson("odd-stat", 1, ComposedLevel(1, ChanceForty, effects)), "odd-stat 第 1 級");
 
     [Fact]
+    public void Load_ChanceByStat_IsOnStunEffect()
+    {
+        const string effects = """[{ "kind": "Stun", "chance": 2, "chanceByStat": { "stat": "intelligence", "percent": 5 }, "rounds": 1 }]""";
+
+        var level = LoadSkills(ComposedSkillJson("apparent-death", 1, ComposedLevel(1, ChanceForty, effects))).GetSkill("apparent-death").LevelAt(1);
+
+        Assert.Equal(new SkillChanceAdjustment(SkillScalingBasis.Intelligence, 5), Assert.IsType<StunEffect>(level.Effects[0]).ChanceByStat);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(101)]
+    public void Load_InvalidChanceByStat_Throws(int percent)
+    {
+        var effects = $$"""[{ "kind": "Stun", "chance": 2, "chanceByStat": { "stat": "intelligence", "percent": {{percent}} }, "rounds": 1 }]""";
+
+        AssertSkillsRejected(ComposedSkillJson("apparent-death", 1, ComposedLevel(1, ChanceForty, effects)), "apparent-death");
+    }
+
+    [Fact]
     public void Skill_DamageControlAndElementEffectsLoad()
     {
         const string effects = """

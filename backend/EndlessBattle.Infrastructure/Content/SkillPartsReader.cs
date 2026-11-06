@@ -43,6 +43,17 @@ internal sealed class SkillPartsReader(string skillId, int level)
         return new SkillCost(kind, amount ?? 0) { Percent = percent, All = all };
     }
 
+    private SkillChanceAdjustment? ChanceByStat(JsonElement element)
+    {
+        if (!element.TryGetProperty("chanceByStat", out var adjustment))
+        {
+            return null;
+        }
+
+        Allow(adjustment, "chanceByStat", "stat", "percent");
+        return new SkillChanceAdjustment(Enum<SkillScalingBasis>(adjustment, "stat", "能力"), Int(adjustment, "percent"));
+    }
+
     public SkillEffect Effect(JsonElement element)
     {
         var kind = String(element, "kind", "效果");
@@ -94,8 +105,8 @@ internal sealed class SkillPartsReader(string skillId, int level)
                     PercentOfMaximum = percentOfMaximum,
                 };
             case "Stun":
-                Allow(element, kind, "kind", "rounds", "chance");
-                return new StunEffect(Int(element, "chance"), rounds);
+                Allow(element, kind, "kind", "rounds", "chance", "chanceByStat");
+                return new StunEffect(Int(element, "chance"), rounds) { ChanceByStat = ChanceByStat(element) };
             case "Silence":
                 Allow(element, kind, "kind", "rounds", "chance");
                 return new SilenceEffect(Int(element, "chance"), rounds);

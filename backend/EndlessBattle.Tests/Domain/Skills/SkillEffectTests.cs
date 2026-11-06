@@ -448,6 +448,24 @@ public class SkillEffectTests
         Assert.Equal(20, cast.OpponentSpLoss);
     }
 
+    // 假死：比基礎能力，高就加、其餘（含相等）就減，不大於 0 不會暈眩（spec skill-effects）
+    [Theory]
+    [InlineData(2, 100, 50, 7)]
+    [InlineData(2, 50, 50, 0)]
+    [InlineData(2, 50, 100, 0)]
+    [InlineData(14, 100, 50, 19)]
+    [InlineData(14, 50, 100, 9)]
+    public void Stun_ChanceByStat_FollowsComparison(int chance, int casterSmart, int opponentSmart, int expected)
+    {
+        var stun = new StunEffect(chance, Rounds: 1) { ChanceByStat = new SkillChanceAdjustment(SkillScalingBasis.Intelligence, 5) };
+        var skill = new EquippedSkill(Skill(SkillType.Active, Level(1, [Chance(100)], [stun])), 1, 1);
+        var caster = new SkillCaster(Player() with { Smart = casterSmart }, [skill], Player() with { Smart = opponentSmart });
+
+        caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
+
+        Assert.Equal(expected, caster.Current.StunChance);
+    }
+
     [Fact]
     public void Silence_BlocksOpponentSkills()
     {

@@ -86,8 +86,14 @@ public sealed record RestoreEffect(
     public double? PercentOfMaximum { get; init; }
 }
 
-// 持續期間，對手每次出手前擲 Chance，擲中就無法行動
-public sealed record StunEffect(int Chance, int Rounds) : SkillEffect(Rounds);
+// 自己的基礎能力 Stat 比對手高時機率 +Percent，否則（含相等）−Percent
+public sealed record SkillChanceAdjustment(SkillScalingBasis Stat, int Percent);
+
+// 持續期間，對手每次出手前擲 Chance，擲中就無法行動；調整後不大於 0 就不會暈眩
+public sealed record StunEffect(int Chance, int Rounds) : SkillEffect(Rounds)
+{
+    public SkillChanceAdjustment? ChanceByStat { get; init; }
+}
 
 // 發動後擲 Chance，擲中時接下來 Rounds 回合（含目前回合，至少 1 回合）對手的技能不發動、不判斷條件；已經生效的技能不受影響
 public sealed record SilenceEffect(int Chance, int Rounds) : SkillEffect(Rounds);

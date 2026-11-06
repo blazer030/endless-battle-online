@@ -684,7 +684,8 @@ public sealed class JsonGameContent : IGameContent
                         or SkillStat.Defense or SkillStat.MagicDefense or SkillStat.Agility or SkillStat.Charisma or SkillStat.HitRate,
                     MultiHitEffect multiHit => multiHit.Hits >= 2,
                     DamageReductionEffect reduction => reduction.Percent is > 0 and < 100,
-                    StunEffect stun => stun.Chance is >= 1 and <= 100,
+                    StunEffect stun => stun.Chance is >= 1 and <= 100
+                        && stun.ChanceByStat is null or { Percent: >= 1 and <= 100, Stat: not SkillScalingBasis.SkillPoints },
                     SilenceEffect silence => silence.Chance is >= 1 and <= 100,
                     PercentDamageEffect damage => damage.Percent is > 0 and <= 100,
                     ReduceSkillPointsEffect loss => loss.Amount is null or >= 1 && loss.PercentOfMaximum is null or > 0 and <= 100,

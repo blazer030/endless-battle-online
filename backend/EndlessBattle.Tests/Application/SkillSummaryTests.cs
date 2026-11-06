@@ -21,6 +21,17 @@ public class SkillSummaryTests
     }
 
     [Fact]
+    public void Summary_StunWithChanceByStat_ShowsAdjustment()
+    {
+        var level = Level(
+            [new SkillCondition(SkillConditionKind.Chance, 40)],
+            [],
+            [new StunEffect(2, Rounds: 0) { ChanceByStat = new SkillChanceAdjustment(SkillScalingBasis.Intelligence, 5) }]);
+
+        Assert.Equal("機率 40%｜對手無法行動 機率 2%（智力比對手高 +5%，否則 -5%）", SkillSummary.Of(level));
+    }
+
+    [Fact]
     public void Summary_DescribesChanceDamageAndElementEffects()
     {
         var level = Level(

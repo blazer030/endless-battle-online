@@ -274,6 +274,10 @@ public sealed class SkillCaster
             ? castSkillPoints.GetValueOrDefault(equipped, caster.Sp)
             : StatOf(term.Basis, caster))));
 
+    private int StunChanceOf(StunEffect stun) => stun.ChanceByStat is not { } adjustment
+        ? stun.Chance
+        : stun.Chance + (StatOf(adjustment.Stat, caster) > StatOf(adjustment.Stat, opponentStats) ? adjustment.Percent : -adjustment.Percent);
+
     // 沒有對手資料時一律當 0
     private static int StatOf(SkillScalingBasis basis, CombatantState? state) => state is null ? 0 : basis switch
     {
@@ -359,7 +363,7 @@ public sealed class SkillCaster
                     magicReduction += reduction.AttackKind == SkillAttackKind.Physical ? 0 : reduction.Percent;
                     break;
                 case StunEffect stun:
-                    modifiers = modifiers with { StunChance = Math.Max(modifiers.StunChance, stun.Chance) };
+                    modifiers = modifiers with { StunChance = Math.Max(modifiers.StunChance, StunChanceOf(stun)) };
                     break;
                 case AttackElementEffect element:
                     modifiers = modifiers with { AttackElement = element.Element };
