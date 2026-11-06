@@ -407,12 +407,17 @@ tests:
 ---
 ### Requirement: Custom content without an original counterpart is kept
 
-Custom content for which the original data has nothing comparable SHALL be kept with its existing id, and every kept record SHALL appear in the "kept custom content" section of `gaps.md` with its reason. This SHALL cover `inn.json`, `champion.json`, and the areas, recommended levels and starting place in `world.json`. Custom items, monsters and mercenaries SHALL be kept only when a current feature needs them and no original record fills the same role. All other custom content SHALL be removed.
+Custom content for which the original data has nothing comparable SHALL be kept with its existing id, and every kept record SHALL appear in the "kept custom content" section of `gaps.md` with its reason. This SHALL cover `inn.json`, and the areas, recommended levels and starting place in `world.json`. Custom items, monsters and mercenaries SHALL be kept only when a current feature needs them and no original record fills the same role. All other custom content SHALL be removed. The official content SHALL NOT include a `champion.json`, and the game SHALL load without one.
 
-#### Scenario: Inn and champion stay unchanged
+#### Scenario: Inn stays unchanged
 
 - **WHEN** the import runs
-- **THEN** `inn.json` and `champion.json` are byte-identical to before the import, and `gaps.md` lists both as kept custom content
+- **THEN** `inn.json` is byte-identical to before the import, and `gaps.md` lists it as kept custom content
+
+#### Scenario: Champion content is gone
+
+- **WHEN** the import runs and `JsonGameContent.Load` reads `backend/content`
+- **THEN** no `champion.json` exists in `backend/content`, `gaps.md` does not mention `champion.json`, and loading succeeds without a `GameContentException`
 
 #### Scenario: Custom content with an original counterpart is removed
 
@@ -421,104 +426,57 @@ Custom content for which the original data has nothing comparable SHALL be kept 
 - **THEN** `wandering-puff` is absent from `monsters.json`
 
 <!-- @trace
-source: wog45-content-import
+source: remove-champion
 updated: 2026-11-06
 code:
-  - docs/research/README.md
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Api/Endpoints/SkillEndpoints.cs
-  - backend/content/monsters.json
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillLearningTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/ContentFileFormatterTests.cs
-  - docs/research/mission-table.md
-  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
-  - backend/EndlessBattle.Domain/Forge/ForgeTools.cs
-  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
-  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
-  - docs/research/companion-table.md
-  - backend/EndlessBattle.Domain/Battle/BattleOutcome.cs
-  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
-  - frontend/src/game/stageModel.ts
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - backend/EndlessBattle.Application/Content/IGameContent.cs
-  - docs/research/wog45/export.py
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
-  - docs/research/wog45/gaps.md
-  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
-  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
-  - docs/research/monster-roster.md
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Domain/Skills/SkillLearning.cs
-  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
-  - docs/research/item-table.md
-  - backend/content/items.json
-  - backend/EndlessBattle.Tests/Application/SkillServiceTests.cs
-  - backend/EndlessBattle.Tests/Support/SkillPreset.cs
-  - frontend/src/game/battleLog.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - backend/EndlessBattle.Tests/Content/MonsterRosterTests.cs
-  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
-  - frontend/src/game/skills.ts
-  - frontend/src/ui/SkillsScreen.tsx
-  - scripts/import-wog45.py
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - backend/EndlessBattle.Tests/TestContent/job-skills.json
-  - docs/research/wog45/README.md
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Tests/Support/CustomContent.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/content/honour-shop.json
-  - backend/content/job-skills.json
-  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillDefinitionTests.cs
-  - frontend/src/game/inventory.ts
-  - backend/EndlessBattle.Tests/Support/TestSkills.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - backend/EndlessBattle.Application/Skills/SkillOverview.cs
-  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
-  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
-  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
-  - backend/content/jobs.json
-  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
-  - backend/content/missions.json
-  - backend/content/skills.json
-  - backend/EndlessBattle.Application/Skills/SkillService.cs
-  - backend/db/ddl/V000000016__default_job_id.sql
-  - backend/EndlessBattle.Tests/Api/SkillEndpointsTests.cs
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - docs/research/job-growth-expectation.md
-  - frontend/src/api/schema.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/content/mercenaries.json
-  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
-  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
-  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
-  - backend/EndlessBattle.Tests/TestContent/items.json
-  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentUpdateTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillLoadoutTests.cs
-  - backend/content/recipes.json
-  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
-  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Tests/Content/ItemTableTests.cs
-  - backend/EndlessBattle.Tests/TestContent/skills.json
+  - backend/EndlessBattle.Domain/Champion/ChampionDuel.cs
+  - backend/EndlessBattle.Application/Champion/ChampionService.cs
+  - backend/EndlessBattle.Tests/Application/ChampionServiceTests.cs
   - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
+  - backend/EndlessBattle.Tests/Api/ChampionEndpointsTests.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Infrastructure/CompanionRepositoryTests.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/Models/CharacterChampion.cs
+  - backend/EndlessBattle.Application/Content/IGameContent.cs
+  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
+  - docs/research/wog45/gaps.md
+  - frontend/src/api/client.ts
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Tests/Support/InMemoryChampionRepository.cs
+  - frontend/src/game/types.ts
+  - frontend/src/ui/AdventureScreen.css
+  - frontend/src/ui/AdventureScreen.tsx
+  - frontend/src/ui/ChampionPanel.tsx
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - backend/EndlessBattle.Api/Endpoints/ChampionEndpoints.cs
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Infrastructure/DependencyInjection.cs
+  - backend/EndlessBattle.Application/DependencyInjection.cs
+  - README.md
+  - backend/EndlessBattle.Tests/Domain/Champion/ChampionRulesTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Tests/TestContent/champion.json
+  - backend/EndlessBattle.Domain/Champion/ChampionRules.cs
+  - backend/db/ddl/V000000017__drop_character_champions.sql
+  - backend/EndlessBattle.Domain/Champion/ChampionSeat.cs
+  - frontend/src/api/schema.ts
+  - frontend/src/game/champion.ts
+  - backend/EndlessBattle.Application/Champion/IChampionRepository.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/ChampionRepository.cs
+  - backend/EndlessBattle.Api/Program.cs
+  - backend/content/champion.json
+  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
+  - backend/EndlessBattle.Tests/Domain/Champion/ChampionSeatTests.cs
+  - frontend/src/ui/ChampionPanel.css
+  - backend/EndlessBattle.Infrastructure/Persistence/Models/Character.cs
+  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
 tests:
-  - frontend/src/game/inventory.test.ts
-  - frontend/src/game/battleLog.test.ts
-  - frontend/src/game/skills.test.ts
-  - frontend/src/ui/SkillsScreen.test.tsx
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/game/stageModel.test.ts
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
+  - frontend/src/test/fixtures.ts
+  - frontend/src/api/client.test.ts
+  - frontend/src/ui/useAdventureLoop.test.tsx
+  - frontend/src/ui/AdventureScreen.test.tsx
+  - frontend/src/ui/App.test.tsx
+  - frontend/src/game/champion.test.ts
+  - frontend/src/ui/ChampionPanel.test.tsx
 -->
