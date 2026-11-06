@@ -324,7 +324,7 @@ public class JsonGameContentTests
     {
         var content = LoadWithWeaponSkill("test-sword", """{ "skillId": "burst", "level": 2, "rate": 12 }""");
 
-        Assert.Equal(new WeaponSkillSpec("burst", 2, 12), content.GetItem("test-sword").WeaponSkill);
+        Assert.Equal(new WeaponSkillSpec("burst", 2, 12) { SkillName = "爆氣" }, content.GetItem("test-sword").WeaponSkill);
         Assert.Null(content.GetItem("test-axe").WeaponSkill);
     }
 

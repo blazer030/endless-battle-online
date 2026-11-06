@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react"
 import { useState } from "react"
 import { expect, test } from "vitest"
+import { makeItem } from "../test/fixtures"
 import { user } from "../test/user"
-import { TabPanel, Tabs } from "./bagWidgets"
+import { ItemDetail, TabPanel, Tabs } from "./bagWidgets"
 
 const options = [
   { id: "a", label: "甲" },
@@ -60,4 +61,16 @@ test("Tabs_ArrowKeysHomeAndEndMoveSelectionAndFocus", async () => {
   await user.keyboard("{Home}")
   expect(screen.getByRole("tab", { name: "甲" })).toHaveFocus()
   expect(screen.getByRole("tab", { name: "甲" })).toHaveAttribute("aria-selected", "true")
+})
+
+test("ItemDetail_WeaponWithSkill_ShowsSkillLine", () => {
+  render(<ItemDetail item={makeItem({ weaponSkill: { name: "爆氣", level: 2, rate: 12 } })} />)
+
+  expect(screen.getByText("附帶技能 爆氣 Lv2（發動率 12%）")).toBeInTheDocument()
+})
+
+test("ItemDetail_WeaponWithoutSkill_ShowsNoSkillLine", () => {
+  render(<ItemDetail item={makeItem()} />)
+
+  expect(screen.queryByText(/附帶技能/)).not.toBeInTheDocument()
 })

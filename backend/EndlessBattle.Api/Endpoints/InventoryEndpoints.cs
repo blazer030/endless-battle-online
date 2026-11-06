@@ -71,5 +71,6 @@ public static class InventoryEndpoints
         item.Item.Price,
         item.Item.Bound,
         item.Item.Refine?.Level,
-        item.Entry.IsEnhanced(item.Item));
+        item.Entry.IsEnhanced(item.Item),
+        item.Item.WeaponSkill is { } skill ? new WeaponSkillResponse(skill.SkillName, skill.Level, skill.Rate) : null);
 }

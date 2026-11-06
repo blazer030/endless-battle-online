@@ -209,6 +209,13 @@ public sealed class JsonGameContent : IGameContent
             ValidateWeaponSkill(item, skills);
         }
 
+        foreach (var item in allItems.Where(item => item.WeaponSkill is not null).ToList())
+        {
+            var named = item with { WeaponSkill = item.WeaponSkill! with { SkillName = skills[item.WeaponSkill!.SkillId].Name } };
+            allItems[allItems.IndexOf(item)] = named;
+            items[item.Id] = named;
+        }
+
         ValidateKeys(allItems, allPlaces);
         ValidateBoxes(allItems);
 

@@ -35,6 +35,22 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         return await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
     }
 
+    [Fact]
+    public async Task Inventory_WeaponWithSkill_ReturnsWeaponSkill()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-burst-blade");
+        await GiveAsync(characterId, "test-sword");
+
+        var inventory = await ReadAsync(await client.GetAsync("/api/inventory", CancellationToken));
+
+        var items = Category(inventory, "Weapon").GetProperty("items").EnumerateArray().ToList();
+        var skill = items.Single(item => item.GetProperty("itemId").GetString() == "test-burst-blade").GetProperty("weaponSkill");
+        Assert.Equal(("爆氣", 2, 100), (skill.GetProperty("name").GetString(), skill.GetProperty("level").GetInt32(), skill.GetProperty("rate").GetInt32()));
+        Assert.Equal(JsonValueKind.Null, items.Single(item => item.GetProperty("itemId").GetString() == "test-sword").GetProperty("weaponSkill").ValueKind);
+    }
+
     private static JsonElement Category(JsonElement inventory, string category) =>
         inventory.GetProperty("bag").EnumerateArray().Single(bag => bag.GetProperty("category").GetString() == category);
 

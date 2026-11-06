@@ -236,7 +236,10 @@ public sealed record InventoryItemResponse(
     long Price,
     bool Bound,
     int? RefineStoneLevel, // 只有精鍊石有值
-    bool Enhanced); // 精鍊過、有鑲嵌或比原本多打了孔
+    bool Enhanced, // 精鍊過、有鑲嵌或比原本多打了孔
+    WeaponSkillResponse? WeaponSkill); // 只有附帶技能的武器有值
+
+public sealed record WeaponSkillResponse(string Name, int Level, int Rate);
 
 public sealed record SocketResponse(int Hole, string StoneId, string StoneName, StatBonus Rolled);
 

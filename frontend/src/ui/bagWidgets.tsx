@@ -125,7 +125,15 @@ export function ItemName({ item }: { item: InventoryItem }) {
 
 export function ItemDetail({ item }: { item: InventoryItem }): ReactNode {
   const text = item.consumable === "Supply" ? supplyText(item) : bonusText(item.bonus)
-  return text === "" ? null : <p className="bag__detail">{text}</p>
+  const skill = item.weaponSkill
+  return (
+    <>
+      {text !== "" && <p className="bag__detail">{text}</p>}
+      {skill && (
+        <p className="bag__detail">{`附帶技能 ${skill.name} Lv${skill.level}（發動率 ${skill.rate}%）`}</p>
+      )}
+    </>
+  )
 }
 
 export function Requirements({ rows }: { rows: Requirement[] }) {

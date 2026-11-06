@@ -210,6 +210,7 @@ export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem 
   bound: false,
   refineStoneLevel: null,
   enhanced: false,
+  weaponSkill: null,
   ...overrides,
 })
 

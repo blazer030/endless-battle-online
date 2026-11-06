@@ -61,8 +61,11 @@ public sealed record StoneSpec(bool Random, StatBonus Fixed, StatBonus? Min, Sta
 // 禁區鑰匙：進入 PlaceId 後可停留 Seconds 秒
 public sealed record AreaKeySpec(int PlaceId, int Seconds);
 
-// 武器附帶的技能：Rate 是發動率，取代技能的 Chance 條件
-public sealed record WeaponSkillSpec(string SkillId, int Level, int Rate);
+// 武器附帶的技能：Rate 是發動率，取代技能的 Chance 條件；SkillName 在內容載入時填入
+public sealed record WeaponSkillSpec(string SkillId, int Level, int Rate)
+{
+    public string SkillName { get; init; } = "";
+}
 
 public sealed record ItemDefinition(
     string Id,

@@ -2708,6 +2708,7 @@ export interface components {
             /** Format: int32 */
             refineStoneLevel: null | number;
             enhanced: boolean;
+            weaponSkill: null | components["schemas"]["WeaponSkillResponse"];
         };
         InventoryResponse: {
             bag: components["schemas"]["BagCategoryResponse"][];
@@ -3299,6 +3300,13 @@ export interface components {
             /** Format: int32 */
             levelsGained: number;
             buff: null | components["schemas"]["BuffResponse"];
+        };
+        WeaponSkillResponse: {
+            name: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            rate: number;
         };
         WorldAreaResponse: {
             id: string;
