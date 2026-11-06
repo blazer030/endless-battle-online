@@ -885,5 +885,4 @@
 - `honour-refine-box`：兌換保留的自訂道具 `refine-box`
 - `honour-pet-egg`：兌換保留的自訂道具 `pet-egg`
 - `inn.json`：旅館房型與價格，原版沒有對應的資料表
-- `champion.json`：冠軍的初始種子，原版冠軍是玩家
 - `world.json` 的 `areas`、`recommended`、`startingPlaceId`、`startingSubPlace`：`wog_area_lv` 與地點 id 不同，只當參考

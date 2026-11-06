@@ -228,7 +228,8 @@ public class WogImportTests
         Assert.NotEmpty(customIds);
         Assert.All(customIds, id => Assert.Contains($"`{id}`", kept));
         Assert.Contains("`inn.json`", kept);
-        Assert.Contains("`champion.json`", kept);
+        Assert.DoesNotContain("champion.json", Gaps);
+        Assert.False(File.Exists(Path.Combine(ContentDirectory, "champion.json")));
     }
 
     // 每種內容匯入的筆數 = 原版筆數 − gaps.md 該節「沒有匯入的紀錄」的列數（技能以名稱分組，一個技能多列）

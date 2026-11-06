@@ -59,7 +59,6 @@ CUSTOM_MEDALS = {"continent-medal": "item-1304", "kingdom-medal": "item-1305", "
 KEPT_TITLE = "保留的自訂內容"
 KEPT_CONTENT_FILES = [
     "`inn.json`：旅館房型與價格，原版沒有對應的資料表",
-    "`champion.json`：冠軍的初始種子，原版冠軍是玩家",
     "`world.json` 的 `areas`、`recommended`、`startingPlaceId`、`startingSubPlace`：`wog_area_lv` 與地點 id 不同，只當參考",
 ]
 
