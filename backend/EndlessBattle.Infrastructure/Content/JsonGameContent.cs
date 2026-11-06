@@ -206,6 +206,7 @@ public sealed class JsonGameContent : IGameContent
             }
 
             ValidateItem(item, jobs);
+            ValidateWeaponSkill(item, skills);
         }
 
         ValidateKeys(allItems, allPlaces);
@@ -694,6 +695,34 @@ public sealed class JsonGameContent : IGameContent
                 };
                 Require(valid, $"的效果 {effect.GetType().Name.Replace("Effect", "")} 的數值不在支援的範圍");
             }
+        }
+    }
+
+    private static void ValidateWeaponSkill(ItemDefinition item, Dictionary<string, SkillDefinition> skills)
+    {
+        if (item.WeaponSkill is not { } weaponSkill)
+        {
+            return;
+        }
+
+        if (item.Category != ItemCategory.Weapon)
+        {
+            throw new GameContentException($"道具 {item.Id} 不是武器，不能附帶技能");
+        }
+
+        if (!skills.TryGetValue(weaponSkill.SkillId, out var skill))
+        {
+            throw new GameContentException($"道具 {item.Id} 的附帶技能 {weaponSkill.SkillId} 不存在");
+        }
+
+        if (weaponSkill.Level < 1 || weaponSkill.Level > skill.MaxLevel)
+        {
+            throw new GameContentException($"道具 {item.Id} 的附帶技能等級 {weaponSkill.Level} 必須在 1～{skill.MaxLevel}");
+        }
+
+        if (weaponSkill.Rate is < 1 or > 100)
+        {
+            throw new GameContentException($"道具 {item.Id} 的附帶技能發動率 {weaponSkill.Rate} 必須在 1～100");
         }
     }
 
@@ -1459,7 +1488,7 @@ public sealed class JsonGameContent : IGameContent
             entry.Key,
             entry.Elixir is { } elixir
                 ? new ElixirSpec(ParseEnum<BuffKind>(elixir.Kind, "elixir.kind"), elixir.Multiplier, elixir.Seconds)
-                : null);
+                : null) { WeaponSkill = entry.WeaponSkill };
     }
 
     private static Recipe ToRecipe(RecipeEntry entry) =>
@@ -1554,7 +1583,8 @@ public sealed class JsonGameContent : IGameContent
         RefineEntry? Refine,
         StoneEntry? Stone,
         AreaKeySpec? Key,
-        ElixirEntry? Elixir);
+        ElixirEntry? Elixir,
+        WeaponSkillSpec? WeaponSkill);
 
     private sealed record ElixirEntry(string Kind, double Multiplier, int Seconds);
 

@@ -297,6 +297,51 @@ public class JsonGameContentTests
                 costs: """[{ "kind": "SkillPoints", "amount": 3 }]""")),
             "burst 第 1 級");
 
+    // 以 TestContent 為底，在指定道具加上附帶技能
+    private static JsonGameContent LoadWithWeaponSkill(string itemId, string weaponSkill)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            foreach (var file in Directory.GetFiles(TestContentDirectory))
+            {
+                File.Copy(file, Path.Combine(directory.FullName, Path.GetFileName(file)));
+            }
+
+            var path = Path.Combine(directory.FullName, "items.json");
+            var marker = $$"""{"id": "{{itemId}}", """;
+            File.WriteAllText(path, File.ReadAllText(path).Replace(marker, $$"""{{marker}}"weaponSkill": {{weaponSkill}}, """));
+            return JsonGameContent.Load(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Load_WeaponSkill_IsOnItem()
+    {
+        var content = LoadWithWeaponSkill("test-sword", """{ "skillId": "burst", "level": 2, "rate": 12 }""");
+
+        Assert.Equal(new WeaponSkillSpec("burst", 2, 12), content.GetItem("test-sword").WeaponSkill);
+        Assert.Null(content.GetItem("test-axe").WeaponSkill);
+    }
+
+    [Theory]
+    [InlineData("test-helm", """{ "skillId": "burst", "level": 1, "rate": 12 }""")]
+    [InlineData("test-sword", """{ "skillId": "skill-x", "level": 1, "rate": 12 }""")]
+    [InlineData("test-sword", """{ "skillId": "burst", "level": 0, "rate": 12 }""")]
+    [InlineData("test-sword", """{ "skillId": "burst", "level": 99, "rate": 12 }""")]
+    [InlineData("test-sword", """{ "skillId": "burst", "level": 1, "rate": 0 }""")]
+    [InlineData("test-sword", """{ "skillId": "burst", "level": 1, "rate": 101 }""")]
+    public void Load_InvalidWeaponSkill_Throws(string itemId, string weaponSkill)
+    {
+        var exception = Assert.Throws<GameContentException>(() => LoadWithWeaponSkill(itemId, weaponSkill));
+
+        Assert.Contains(itemId, exception.Message);
+    }
+
     private static JsonGameContent LoadWithMonsterSkills(string? rows)
     {
         var directory = Directory.CreateTempSubdirectory("ebo-content-");
