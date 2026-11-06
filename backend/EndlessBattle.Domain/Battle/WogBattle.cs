@@ -45,7 +45,7 @@ public static class WogBattle
         var monsterHp = monster.Hp;
         var monsterSp = monster.Sp;
         var damageDealt = 0;
-        var caster = new SkillCaster(player, skills, monster, money);
+        var playerCaster = new SkillCaster(player, skills, monster, money);
         var monsterCaster = new SkillCaster(monster, monsterSkills ?? [], player);
         var potionsUsed = 0;
         // 代擋量 ≤ 0 表示寵物不在場（退出這一場），不再代擋也不再出手
@@ -55,7 +55,7 @@ public static class WogBattle
         var playerKind = playerPreferred ?? RoundResolver.ChooseKind(player.At, player.Mat, random);
 
         // 本回合雙方的技能修正與套用後的能力值；每回合開頭都會重新指定，這裡的初值只是讓區域函式能捕捉
-        var playerModifiers = caster.Current;
+        var playerModifiers = playerCaster.Current;
         var monsterModifiers = monsterCaster.Current;
         var fighter = player;
         var opponent = monster;
@@ -63,19 +63,19 @@ public static class WogBattle
         for (var round = 1; round <= MaxRounds; round++)
         {
             var roundStart = (round - 1) * BattleTiming.SecondsPerRound;
-            caster.ExpireAtRoundStart();
+            playerCaster.ExpireAtRoundStart();
             monsterCaster.ExpireAtRoundStart();
             events.Add(new RoundEvent(roundStart, round));
             DrinkPotion(roundStart);
 
             // 第 2 回合起，喝完補給後 HP 仍低於門檻才擲逃跑；逃跑率加成看回合開頭失效後的修正
-            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random, caster.Current.EscapeBonus))
+            if (round > 1 && EscapeRules.ShouldTry(playerHp, player.HpMax, escapeHpPercent) && EscapeRules.Succeeds(random, playerCaster.Current.EscapeBonus))
             {
                 events.Add(new EscapeEvent(roundStart));
                 return Outcome(null, round) with { Escaped = true };
             }
 
-            RecordPlayer(caster.CastBeforeAttack(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), roundStart);
+            RecordPlayer(playerCaster.CastBeforeAttack(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), roundStart);
             if (monsterHp == 0)
             {
                 events.Add(new DefeatEvent(roundStart, CombatSide.Monster));
@@ -90,7 +90,7 @@ public static class WogBattle
                 return Outcome(CombatSide.Monster, round);
             }
 
-            playerModifiers = caster.Current;
+            playerModifiers = playerCaster.Current;
             monsterModifiers = monsterCaster.Current;
             fighter = monsterModifiers.ApplyToOpponent(playerModifiers.ApplyToCaster(player));
             opponent = playerModifiers.ApplyToOpponent(monsterModifiers.ApplyToCaster(monster));
@@ -146,7 +146,7 @@ public static class WogBattle
 
                 if (playerKind == AttackKind.Physical && result.Hit)
                 {
-                    RecordPlayer(caster.CastAfterPhysicalHit(damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
+                    RecordPlayer(playerCaster.CastAfterPhysicalHit(damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
                 }
 
                 if (monsterHp == 0)
@@ -259,7 +259,7 @@ public static class WogBattle
                 monsterSp = cast.SpAfter;
                 playerHp = Math.Max(0, playerHp - cast.OpponentDamage);
                 playerSp = Math.Max(0, playerSp - cast.OpponentSpLoss);
-                caster.Silence(cast.SilenceRounds);
+                playerCaster.Silence(cast.SilenceRounds);
                 events.Add(SkillEventOf(cast, CombatSide.Monster, playerHp, atSeconds));
             }
         }
@@ -267,7 +267,7 @@ public static class WogBattle
         // 回合結束時機的技能，玩家先、怪物後；回傳是否有人倒下
         bool RoundEndSkills(double atSeconds)
         {
-            RecordPlayer(caster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
+            RecordPlayer(playerCaster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
             if (monsterHp == 0)
             {
                 return true;
@@ -280,7 +280,7 @@ public static class WogBattle
         // 回合結束時持續傷害生效，玩家的先、怪物的後；回傳是否有人倒下
         bool DamageOverTime(double atSeconds)
         {
-            foreach (var (equipped, damage) in caster.DamageOverTimeBySkill())
+            foreach (var (equipped, damage) in playerCaster.DamageOverTimeBySkill())
             {
                 monsterHp = Math.Max(0, monsterHp - damage);
                 damageDealt += damage;
@@ -308,7 +308,7 @@ public static class WogBattle
 
         BattleOutcome Outcome(CombatSide? winner, int rounds) =>
             new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp, Sp = monsterSp }, supply,
-                MoneySpent: money - caster.Money ?? 0);
+                MoneySpent: money - playerCaster.Money ?? 0);
     }
 
     private static SkillEvent SkillEventOf(SkillCast cast, CombatSide side, int opponentHp, double atSeconds) =>
