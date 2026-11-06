@@ -25,8 +25,8 @@
 
 ## 7. 收尾
 
-- [ ] 7.1 實際打開遊戲確認：冒險頁沒有冠軍按鈕、版面沒有留下空位、一般戰鬥正常。以 `pnpm dev` 搭配 Development API，在 375×667 手動確認。 [after: 2.1, 5.1]
-- [ ] 7.2 執行 `./scripts/check.sh`，確認 exit code 0。 [after: 6.2, 7.1]
+- [x] 7.1 實際打開遊戲確認：冒險頁沒有冠軍按鈕、版面沒有留下空位、一般戰鬥正常。以 `pnpm dev` 搭配 Development API，在 375×667 手動確認。 [after: 2.1, 5.1]
+- [x] 7.2 執行 `./scripts/check.sh`，確認 exit code 0。 [after: 6.2, 7.1]
 
 ## 變更紀錄
 
