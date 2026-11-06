@@ -1097,7 +1097,7 @@ public sealed class JsonGameContent : IGameContent
         if (mission.Daily)
         {
             Require(mission.PlaceId is null, "是每日任務，placeId 必須為 null");
-            Require(mission.Kills.Count == 0 && mission.Deliver.Count == 0, "是每日任務，不能有 kills 或 deliver");
+            Require(mission.Kills.Count == 0 && mission.Deliver.Count == 0 && mission.DeliverPet is null, "是每日任務，不能有 kills、deliver 或 deliverPet");
             Require(requirements.PrerequisiteId is null && requirements.ConflictsWith is null,
                 "是每日任務，不能有 prerequisiteId 或 conflictsWith");
             Require(mission.Rewards is { Money: 0, Items.Count: 0, Skill: null, Pet: null },
@@ -1130,7 +1130,7 @@ public sealed class JsonGameContent : IGameContent
         }
 
         Require(!place.Restricted, $"的地區 {place.Id} 是禁區");
-        Require(mission.Kills.Count > 0 || mission.Deliver.Count > 0, "至少要有擊殺目標（kills）或交付道具（deliver）");
+        Require(mission.Kills.Count > 0 || mission.Deliver.Count > 0 || mission.DeliverPet is not null, "至少要有擊殺目標（kills）、交付道具（deliver）或交付寵物（deliverPet）");
         Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
         Require(mission.DailyPets.Count == 0, "不是每日任務，不能有 dailyPets");
         Require(mission.DailyRewards.Count == 0, "不是每日任務，不能有 dailyRewards");
@@ -1141,6 +1141,12 @@ public sealed class JsonGameContent : IGameContent
             Require(monster.PlaceId == place.Id, $"的擊殺目標 {fixedKill.MonsterId} 不在地區 {place.Id}");
             Require(monster.MissionId is null || monster.MissionId == id,
                 $"的擊殺目標 {fixedKill.MonsterId} 是任務 {monster.MissionId} 的任務怪");
+        }
+
+        if (mission.DeliverPet is { } deliverPet)
+        {
+            Require(monsters.TryGetValue(deliverPet, out var species), $"的 deliverPet 引用了不存在的怪物：{deliverPet}");
+            Require(species.MissionId is null || species.MissionId == id, $"的 deliverPet {deliverPet} 是任務 {species.MissionId} 的任務怪");
         }
 
         RequireQuantities("deliver", mission.Deliver);
@@ -1386,7 +1392,7 @@ public sealed class JsonGameContent : IGameContent
             ToReward(entry.Rewards, "rewards"),
             entry.DailyKills ?? [],
             (entry.DailyRewards ?? []).Select(reward => ToReward(reward, "dailyRewards")).ToList(),
-            entry.DailyPets ?? []);
+            entry.DailyPets ?? []) { DeliverPet = entry.DeliverPet };
     }
 
     private static SkillDefinition ToSkillDefinition(SkillEntry entry)
@@ -1639,7 +1645,8 @@ public sealed class JsonGameContent : IGameContent
         RewardEntry? Rewards,
         IReadOnlyList<KillTarget>? DailyKills,
         IReadOnlyList<RewardEntry>? DailyRewards,
-        IReadOnlyList<string>? DailyPets);
+        IReadOnlyList<string>? DailyPets,
+        string? DeliverPet);
 
     private sealed record RewardEntry(long Money, IReadOnlyList<ItemQuantity>? Items, SkillReward? Skill, PetReward? Pet);
 

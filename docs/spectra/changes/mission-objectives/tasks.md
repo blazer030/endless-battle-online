@@ -7,7 +7,7 @@
 
 ## 2. 交寵物與任務怪
 
-- [ ] 2.1 [after: 1.3] 實作 Requirement "A regular mission can ask for a pet"：一般任務的 `deliverPet` 走既有的交寵物流程；內容驗證要求至少有一項目標、拒絕 NPC 與其他任務的任務怪。先寫失敗測試：`Complete_RegularPetMission_RemovesCarriedPet`（API 層級）、`Complete_RegularPetMission_StabledPetFails`、`Mission_AcceptsDeliverPetOnly`、`Mission_RejectsPetOfAnotherMission`。
+- [x] 2.1 [after: 1.3] 實作 Requirement "A regular mission can ask for a pet"：一般任務的 `deliverPet` 走既有的交寵物流程；內容驗證要求至少有一項目標、拒絕 NPC 與其他任務的任務怪。先寫失敗測試：`Complete_RegularPetMission_RemovesCarriedPet`（API 層級）、`Complete_RegularPetMission_StabledPetFails`、`Mission_AcceptsDeliverPetOnly`、`Mission_RejectsPetOfAnotherMission`。
 - [ ] 2.2 [after: 2.1] 實作 Requirement "A mission's monsters appear while it is open"，依 design 的「任務怪以任務為單位出現」：`KillCounter.Track` 納入只交寵物的任務；任務還有未滿的目標，或沒有擊殺目標但要交寵物時都算開放；任務怪不必是擊殺目標。先寫失敗測試：`Track_IncludesPetOnlyMission`、`Spawnable_PetMissionOpenUntilFinished`、`Spawnable_FullTargetStillAppearsWhileOtherOpen`、`Spawnable_ClosedWhenAllTargetsFullWithItemsLeft`、`KillCounter_NonTargetMissionMonsterDoesNotCount`、`MissionMonster_MayNotBeKillTarget`。
 
 ## 3. 技能條件

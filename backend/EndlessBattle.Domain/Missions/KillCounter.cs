@@ -52,7 +52,7 @@ public static class KillCounter
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
             var targets = objective.Kills.Select((kill, index) => new MissionTarget(kill.MonsterId, kill.Count, record.ProgressOf(index))).ToList();
             tracked.Add(new ActiveMission(mission.Id, mission.Title, targets, record.AcceptedAt, expiresAt,
-                RequiresDelivery: objective.Deliver.Count > 0));
+                RequiresDelivery: objective.Deliver.Count > 0 || objective.DeliverPet is not null));
         }
 
         return tracked;

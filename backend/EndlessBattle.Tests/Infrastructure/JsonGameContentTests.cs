@@ -1038,7 +1038,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
-                "test-pet-reward", "test-double-hunt", "test-stone-reward",
+                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-stone-reward",
             ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(
@@ -1198,6 +1198,50 @@ public class JsonGameContentTests
             "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }, { \"monsterId\": \"puff\", \"count\": 1 }]");
 
         Assert.Contains("puff", message);
+    }
+
+    [Fact]
+    public void Mission_AcceptsDeliverPetOnly()
+    {
+        const string petOnly = """{ "id": "pet-only", "giver": "獸欄", "title": "尋寵", "level": 1, "placeId": 1, "deliverPet": "sprite" }""";
+
+        var mission = WithMissionContent($"{ValidMissionList}, {petOnly}", MissionMonsters, directory =>
+            JsonGameContent.Load(directory).GetMission("pet-only"));
+
+        Assert.Equal("sprite", mission.DeliverPet);
+        Assert.Equal("sprite", DailyMissions.Resolve(mission, 7, null).DeliverPet);
+    }
+
+    [Fact]
+    public void Mission_RejectsPetOfAnotherMission()
+    {
+        const string wrongPet = """{ "id": "wrong-pet", "giver": "獸欄", "title": "尋寵", "level": 1, "placeId": 1, "deliverPet": "chief" }""";
+
+        Assert.Contains("chief", MissionRejection($"{ValidMissionList}, {wrongPet}"));
+    }
+
+    [Fact]
+    public void Mission_RejectsUnknownPet()
+    {
+        const string unknownPet = """{ "id": "unknown-pet", "giver": "獸欄", "title": "尋寵", "level": 1, "placeId": 1, "deliverPet": "nobody" }""";
+
+        Assert.Contains("nobody", MissionRejection($"{ValidMissionList}, {unknownPet}"));
+    }
+
+    [Fact]
+    public void Mission_RejectsDailyWithDeliverPet()
+    {
+        var message = MissionFieldRejection("\"daily\": true,", "\"daily\": true, \"deliverPet\": \"sprite\",");
+
+        Assert.Contains("deliverPet", message);
+    }
+
+    [Fact]
+    public void Mission_RejectsNoObjective()
+    {
+        const string empty = """{ "id": "empty", "giver": "獸欄", "title": "尋寵", "level": 1, "placeId": 1 }""";
+
+        Assert.Contains("deliverPet", MissionRejection($"{ValidMissionList}, {empty}"));
     }
 
     [Fact]

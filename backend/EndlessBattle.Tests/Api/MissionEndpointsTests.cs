@@ -120,6 +120,39 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Complete_RegularPetMission_RemovesCarriedPet()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        await GivePetAsync(factory, client, "test-wolf", carried: true);
+        (await PostAsync(client, "accept", "test-pet-delivery")).EnsureSuccessStatusCode();
+
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-pet-delivery"));
+
+        Assert.Equal(["test-pet-delivery"], Ids(completion.GetProperty("board"), "completed"));
+        var pets = await client.GetFromJsonAsync<JsonElement>("/api/pets", CancellationToken);
+        Assert.Empty(pets.GetProperty("pets").EnumerateArray());
+    }
+
+    [Fact]
+    public async Task Complete_RegularPetMission_StabledPetFails()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        await GivePetAsync(factory, client, "test-wolf", carried: false);
+        (await PostAsync(client, "accept", "test-pet-delivery")).EnsureSuccessStatusCode();
+
+        var response = await PostAsync(client, "complete", "test-pet-delivery");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("petMissing", await response.Content.ReadAsStringAsync(CancellationToken));
+        var pets = await client.GetFromJsonAsync<JsonElement>("/api/pets", CancellationToken);
+        Assert.Single(pets.GetProperty("pets").EnumerateArray());
+        var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
+        Assert.Equal(["test-pet-delivery"], Ids(board, "active"));
+    }
+
+    [Fact]
     public async Task Complete_MultiKillMission_RequiresEveryTarget()
     {
         await using var factory = new EndlessBattleApiFactory(database);

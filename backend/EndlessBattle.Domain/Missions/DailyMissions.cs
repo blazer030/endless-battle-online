@@ -47,7 +47,7 @@ public static class DailyMissions
     {
         if (!mission.Daily)
         {
-            return new MissionObjective(mission.Id, mission.Kills, mission.Deliver, mission.Rewards, mission.Exp);
+            return new MissionObjective(mission.Id, mission.Kills, mission.Deliver, mission.Rewards, mission.Exp, mission.DeliverPet);
         }
 
         if (period is not { } day)

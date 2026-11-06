@@ -122,7 +122,7 @@ const describeMission = (event: MissionProgressEvent, monster: string): LogEntry
   if (event.completed)
     lines.push({
       text: event.requiresDelivery
-        ? `任務「${event.title}」的擊殺目標已達成，交付道具後回任務頁回報。`
+        ? `任務「${event.title}」的擊殺目標已達成，交付後回任務頁回報。`
         : `任務「${event.title}」的目標已達成，回任務頁回報。`,
       kind: "trigger",
     })

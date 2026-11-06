@@ -147,6 +147,16 @@ public class KillCounterTests
         Assert.Empty(tracked);
     }
 
+    [Fact]
+    public void KillCounter_PetObjectiveRequiresDelivery()
+    {
+        var mission = FakesDefinition with { DeliverPet = "monster-1" };
+
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [], null, Now, null)], [mission], characterId: 7);
+
+        Assert.True(tracked.Single().RequiresDelivery);
+    }
+
     // 擊殺加交付的混合任務帶上 RequiresDelivery，戰報才知道擊殺滿了還不能回報
     [Fact]
     public void KillCounter_TracksWhetherDeliveryIsRequired()

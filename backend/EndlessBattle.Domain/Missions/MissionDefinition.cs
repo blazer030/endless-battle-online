@@ -15,7 +15,7 @@ public sealed record PetReward(string MonsterId, int Level);
 
 public sealed record MissionReward(long Money, IReadOnlyList<ItemQuantity> Items, SkillReward? Skill = null, PetReward? Pet = null);
 
-// 一般任務：Kills 與 Deliver 至少一項；每日任務：Rewards 為空，目標從 DailyKills 或 DailyPets（恰好一個非空）擲出、報酬從 DailyRewards 擲出
+// 一般任務：Kills、Deliver、DeliverPet 至少一項；每日任務：Rewards 為空，目標從 DailyKills 或 DailyPets（恰好一個非空）擲出、報酬從 DailyRewards 擲出
 public sealed record MissionDefinition(
     string Id,
     string Giver,
@@ -34,6 +34,9 @@ public sealed record MissionDefinition(
     IReadOnlyList<string>? DailyPets = null)
 {
     public IReadOnlyList<string> DailyPets { get; init; } = DailyPets ?? [];
+
+    // 一般任務要交出的寵物物種（攜帶中的那隻）；每日任務從 DailyPets 擲出
+    public string? DeliverPet { get; init; }
 
     // WOG wog_mission_tool.php：經驗 = m_lv × 190
     public const long ExpPerLevel = 190;
