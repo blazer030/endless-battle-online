@@ -32,9 +32,7 @@ public class ImportScriptTests
         var root = Directory.CreateTempSubdirectory("ebo-import-").FullName;
         try
         {
-            CopyDirectory(Path.Combine(RepositoryDirectory, "scripts"), Path.Combine(root, "scripts"));
-            CopyDirectory(Path.Combine(RepositoryDirectory, "docs/research/wog45/data"), Path.Combine(root, "docs/research/wog45/data"));
-            CopyDirectory(Path.Combine(RepositoryDirectory, "backend/content"), Path.Combine(root, "backend/content"));
+            CopyImportInputs(root);
             ChangeRecords(Path.Combine(root, "docs/research/wog45/data", file), change);
             var contentBefore = Snapshot(Path.Combine(root, "backend/content"));
 
@@ -50,6 +48,13 @@ public class ImportScriptTests
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    private static void CopyImportInputs(string root)
+    {
+        CopyDirectory(Path.Combine(RepositoryDirectory, "scripts"), Path.Combine(root, "scripts"));
+        CopyDirectory(Path.Combine(RepositoryDirectory, "docs/research/wog45/data"), Path.Combine(root, "docs/research/wog45/data"));
+        CopyDirectory(Path.Combine(RepositoryDirectory, "backend/content"), Path.Combine(root, "backend/content"));
     }
 
     private static void ChangeRecords(string path, Action<JsonArray> change)
