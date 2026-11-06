@@ -34,6 +34,11 @@ public sealed record MonsterDefinition(
 
     public IReadOnlyList<DropEntry> Drops { get; init; } = Drops ?? [];
 
+    // NPC（WOG m_npc）：遇到時不戰鬥，只推進任務；等級、HP、敏捷可以是 0。NpcMessage 是遭遇時顯示的原版訊息，可以沒有
+    public bool Npc { get; init; }
+
+    public string? NpcMessage { get; init; }
+
     // 技能與發動率來自 monster-skills.json，載入時解析好；沒有技能時為空
     public IReadOnlyList<EquippedSkill> Skills { get; init; } = [];
 }

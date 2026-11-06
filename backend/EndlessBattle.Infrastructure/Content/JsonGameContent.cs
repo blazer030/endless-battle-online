@@ -546,13 +546,13 @@ public sealed class JsonGameContent : IGameContent
 
     private static void ValidateMonster(MonsterDefinition monster, Dictionary<int, PlaceDefinition> places)
     {
-        // agi 是命中公式的分母
-        if (monster.Hp <= 0 || monster.Agi <= 0)
+        // agi 是命中公式的分母；NPC 不會進入戰鬥
+        if (!monster.Npc && (monster.Hp <= 0 || monster.Agi <= 0))
         {
             throw new GameContentException($"怪物 {monster.Id} 的 hp 與 agi 必須大於 0");
         }
 
-        if (monster.Level < 1)
+        if (!monster.Npc && monster.Level < 1)
         {
             throw new GameContentException($"怪物 {monster.Id} 的 level 必須至少 1");
         }
@@ -1147,6 +1147,7 @@ public sealed class JsonGameContent : IGameContent
         {
             Require(monsters.TryGetValue(deliverPet, out var species), $"的 deliverPet 引用了不存在的怪物：{deliverPet}");
             Require(species.MissionId is null || species.MissionId == id, $"的 deliverPet {deliverPet} 是任務 {species.MissionId} 的任務怪");
+            Require(!species.Npc, $"的 deliverPet {deliverPet} 是 NPC");
         }
 
         if (mission.RequiredSkill is { } requiredSkill)
@@ -1180,6 +1181,11 @@ public sealed class JsonGameContent : IGameContent
 
     private static void ValidateMissionMonster(MonsterDefinition monster, Dictionary<string, MissionDefinition> missions)
     {
+        if (monster.Npc && (monster.MissionId is null || monster.Drops.Count > 0 || monster.Skills.Count > 0))
+        {
+            throw new GameContentException($"NPC {monster.Id} 必須有 missionId，且不能有掉落與技能");
+        }
+
         if (monster.MissionId is not { } missionId)
         {
             return;
@@ -1193,6 +1199,11 @@ public sealed class JsonGameContent : IGameContent
         if (!missions.TryGetValue(missionId, out var mission) || mission.Daily)
         {
             throw new GameContentException($"怪物 {monster.Id} 的 missionId {missionId} 必須指向一般任務");
+        }
+
+        if (monster.Npc && mission.Kills.All(kill => kill.MonsterId != monster.Id))
+        {
+            throw new GameContentException($"NPC {monster.Id} 必須是任務 {missionId} 的擊殺目標");
         }
     }
 

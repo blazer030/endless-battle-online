@@ -1252,6 +1252,82 @@ public class JsonGameContentTests
         Assert.Empty(sprite.SubPlaces);
     }
 
+    // chief-hunt 以 chief 為擊殺目標；把 chief 改成數值全 0 的 NPC
+    private static string ChiefAsNpc(string extra = "") =>
+        Regex.Replace(MissionMonsters, "\"id\": \"chief\",.*?\"meet\"", $"\"id\": \"chief\", \"name\": \"首領\", \"level\": 0, \"hp\": 0, \"sp\": 0, \"at\": 0, \"mat\": 0, \"df\": 0, \"mdf\": 0, \"agi\": 0, \"au\": 0, \"element\": 0, \"jobExp\": 0, \"npc\": true, {extra}\"meet\"");
+
+    [Fact]
+    public void Npc_LoadsWithZeroStats()
+    {
+        var npc = WithMissionContent(
+            ValidMissionList, ChiefAsNpc("\"npcMessage\": \"你好\", "), directory => JsonGameContent.Load(directory).GetMonster("chief"));
+
+        Assert.Equal((true, "你好", 0, 0), (npc.Npc, npc.NpcMessage, npc.Level, npc.Hp));
+    }
+
+    [Fact]
+    public void Npc_LoadsWithoutMessage()
+    {
+        var npc = WithMissionContent(ValidMissionList, ChiefAsNpc(), directory => JsonGameContent.Load(directory).GetMonster("chief"));
+
+        Assert.Null(npc.NpcMessage);
+    }
+
+    [Fact]
+    public void Npc_RejectsWithoutMission()
+    {
+        var monsters = ChiefAsNpc().Replace(", \"missionId\": \"chief-hunt\"", "");
+        var missions = ReplaceOnce(ValidMissionList, "\"monsterId\": \"chief\"", "\"monsterId\": \"sprite\"");
+
+        Assert.Contains("chief", MissionRejection(missions, monsters));
+    }
+
+    [Fact]
+    public void Npc_RejectsNonTarget()
+    {
+        var missions = ReplaceOnce(ValidMissionList, "\"monsterId\": \"chief\"", "\"monsterId\": \"sprite\"");
+
+        Assert.Contains("chief", MissionRejection(missions, ChiefAsNpc()));
+    }
+
+    [Fact]
+    public void Npc_RejectsDrops()
+    {
+        var monsters = ChiefAsNpc("\"drops\": [{ \"itemId\": \"herb\", \"topr\": 5 }], ");
+
+        Assert.Contains("chief", MissionRejection(ValidMissionList, monsters));
+    }
+
+    [Fact]
+    public void Npc_RejectsSkills()
+    {
+        var exception = WithMissionContent(ValidMissionList, ChiefAsNpc(), directory =>
+        {
+            File.WriteAllText(
+                Path.Combine(directory, "monster-skills.json"),
+                """{ "monsterSkills": [{ "monsterId": "chief", "skillId": "guard", "level": 1, "rate": 10 }] }""");
+            return Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory));
+        });
+
+        Assert.Contains("chief", exception.Message);
+    }
+
+    [Fact]
+    public void Monster_RejectsZeroStatsWithoutNpc()
+    {
+        var monsters = ChiefAsNpc().Replace("\"npc\": true, ", "");
+
+        Assert.Contains("chief", MissionRejection(ValidMissionList, monsters));
+    }
+
+    [Fact]
+    public void Mission_RejectsNpcAsDeliverPet()
+    {
+        var missions = ReplaceOnce(ValidMissionList, "\"id\": \"chief-hunt\",", "\"id\": \"chief-hunt\", \"deliverPet\": \"chief\",");
+
+        Assert.Contains("deliverPet", MissionRejection(missions, ChiefAsNpc()));
+    }
+
     [Fact]
     public void Mission_AcceptsDeliverPetOnly()
     {
