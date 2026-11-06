@@ -31,6 +31,7 @@ export const createMonsterNameResolver = (content: ContentNames): MonsterNameRes
 const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
   const damage = formatNumber(event.damage)
   if (event.attacker === "Player") {
+    if (event.stunned) return { text: "你暈眩中，無法行動。", kind: "muted" }
     if (!event.hit) return { text: "你的攻擊落空了。", kind: "muted" }
     if (event.critical) {
       return event.kind === "Magic"
@@ -48,10 +49,31 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
     : { text: `${monster}攻擊，你受到 ${damage} 點傷害。`, kind: "normal" }
 }
 
-// 怪物還沒有技能，只敘述玩家的施放：回復、對怪物造成的傷害（削減 HP）與削減的 SP；
+// 怪物的施放：回復與對玩家造成的傷害、削減的 SP，不寫消耗
+const describeMonsterSkill = (event: SkillEvent, monster: string): LogEntry[] => {
+  if (event.lasting)
+    return [
+      {
+        text: `${event.skillName}持續作用，你受到 ${formatNumber(event.damage)} 點傷害。`,
+        kind: "normal",
+      },
+    ]
+  const lines: LogEntry[] = [{ text: `${monster}施展了${event.skillName}！`, kind: "trigger" }]
+  if (event.heal > 0)
+    lines.push({ text: `${monster}回復了 ${formatNumber(event.heal)} 點 HP。`, kind: "normal" })
+  if (event.spGain > 0)
+    lines.push({ text: `${monster}回復了 ${formatNumber(event.spGain)} 點 SP。`, kind: "normal" })
+  if (event.damage > 0)
+    lines.push({ text: `你受到 ${formatNumber(event.damage)} 點傷害。`, kind: "normal" })
+  if (event.opponentSpLoss > 0)
+    lines.push({ text: `你失去 ${formatNumber(event.opponentSpLoss)} 點 SP。`, kind: "normal" })
+  return lines
+}
+
+// 玩家的施放：回復、對怪物造成的傷害（削減 HP）與削減的 SP；
 // 已發動技能每回合的持續傷害只寫結果，不算再施展一次
 const describeSkill = (event: SkillEvent, monster: string): LogEntry[] => {
-  if (event.caster !== "Player") return []
+  if (event.caster !== "Player") return describeMonsterSkill(event, monster)
   if (event.lasting)
     return [
       {

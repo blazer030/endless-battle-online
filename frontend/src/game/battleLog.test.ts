@@ -189,7 +189,64 @@ const cases: [string, PlaybackItem, Line[]][] = [
       ["回復了 10 點 SP。", "normal"],
     ],
   ],
-  ["monster skill is not narrated", skill({ caster: "Monster" }), []],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines cast with no amounts",
+    skill({ caster: "Monster" }),
+    [["史萊姆施展了爆氣！", "trigger"]],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines heal",
+    skill({ caster: "Monster", skillName: "治癒術", heal: 50 }),
+    [
+      ["史萊姆施展了治癒術！", "trigger"],
+      ["史萊姆回復了 50 點 HP。", "normal"],
+    ],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines sp gain",
+    skill({ caster: "Monster", skillName: "魔力吸收", spGain: 30 }),
+    [
+      ["史萊姆施展了魔力吸收！", "trigger"],
+      ["史萊姆回復了 30 點 SP。", "normal"],
+    ],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines damage",
+    skill({ caster: "Monster", skillName: "星芒", damage: 120, opponentHpAfter: 700 }),
+    [
+      ["史萊姆施展了星芒！", "trigger"],
+      ["你受到 120 點傷害。", "normal"],
+    ],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines opponent sp loss",
+    skill({ caster: "Monster", skillName: "燃燒魔力", opponentSpLoss: 40 }),
+    [
+      ["史萊姆施展了燃燒魔力！", "trigger"],
+      ["你失去 40 點 SP。", "normal"],
+    ],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines lasting",
+    skill({
+      caster: "Monster",
+      skillName: "施毒",
+      lasting: true,
+      damage: 25,
+      opponentHpAfter: 700,
+    }),
+    [["施毒持續作用，你受到 25 點傷害。", "normal"]],
+  ],
+  [
+    "describeSkill_MonsterCaster_WritesExpectedLines costs are not written",
+    skill({ caster: "Monster", spCost: 4, hpCost: 10 }),
+    [["史萊姆施展了爆氣！", "trigger"]],
+  ],
+  [
+    "describeAttack_StunnedPlayer_WritesMutedLine",
+    attack({ hit: false, damage: 0, stunned: true }),
+    [["你暈眩中，無法行動。", "muted"]],
+  ],
   [
     "monster stunned",
     attack({ attacker: "Monster", hit: false, damage: 0, stunned: true }),

@@ -29,7 +29,7 @@
 ## 6. 前端呈現
 
 - [x] 6.1 `frontend/src/game/stageModel.ts`：`skill` 事件依施放者更新雙方 HP；怪物施放是名牌 `over: "monster"`、不閃光；玩家被暈眩是淡色名牌 `over: "player"`。先寫失敗測試 `applyToStage_MonsterSkill_UpdatesBothSides`（規格的 HP 表）、`stageEffectsFor_MonsterSkill_ShowsPlateOverMonster`、`stageEffectsFor_StunnedPlayer_ShowsPlateOverPlayer`。驗證：這些測試通過，玩家施放的現有測試不改動也通過。（規格：The stage and log show monster skills） [after: 2.4]
-- [ ] 6.2 `frontend/src/game/battleLog.ts`：怪物施放與玩家被暈眩的戰報文字。先寫失敗測試 `describeSkill_MonsterCaster_WritesExpectedLines`（規格的戰報表，含不寫消耗）、`describeAttack_StunnedPlayer_WritesMutedLine`。驗證：這些測試通過。（規格：The stage and log show monster skills） [after: 6.1]
+- [x] 6.2 `frontend/src/game/battleLog.ts`：怪物施放與玩家被暈眩的戰報文字。先寫失敗測試 `describeSkill_MonsterCaster_WritesExpectedLines`（規格的戰報表，含不寫消耗）、`describeAttack_StunnedPlayer_WritesMutedLine`。驗證：這些測試通過。（規格：The stage and log show monster skills） [after: 6.1]
 
 ## 7. 量測與收尾
 
