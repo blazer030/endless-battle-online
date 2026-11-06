@@ -16,7 +16,7 @@ public static class WogBattle
     public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IRandomSource random) =>
         Run(player, monster, playerPreferred, [], random);
 
-    // skills 已由呼叫端整理好（被動欄只放當前職業的技能）；怪物沒有技能
+    // skills 已由呼叫端整理好（被動欄只放當前職業的技能）
     public static BattleOutcome Run(CombatantState player, CombatantState monster, AttackKind? playerPreferred, IReadOnlyList<EquippedSkill> skills, IRandomSource random) =>
         Run(player, monster, playerPreferred, skills, supply: null, random);
 
@@ -26,7 +26,7 @@ public static class WogBattle
         Run(player, monster, playerPreferred, skills, supply, random, pet: null);
 
     // pet 為攜帶中的寵物，null 表示沒有（不擲任何寵物的骰）；escapeHpPercent 為 0 表示不逃（不擲逃跑的骰）；
-    // money 是玩家身上的錢，給金錢消耗的技能用，null 表示不限（不扣）
+    // money 是玩家身上的錢，給金錢消耗的技能用，null 表示不限（不扣）；monsterSkills 是怪物的技能，沒有技能時不擲任何骰
     public static BattleOutcome Run(
         CombatantState player,
         CombatantState monster,
@@ -36,7 +36,8 @@ public static class WogBattle
         IRandomSource random,
         PetCombatant? pet,
         int escapeHpPercent = 0,
-        long? money = null)
+        long? money = null,
+        IReadOnlyList<EquippedSkill>? monsterSkills = null)
     {
         var events = new List<BattleEvent>();
         var playerHp = player.Hp;
@@ -45,6 +46,7 @@ public static class WogBattle
         var monsterSp = monster.Sp;
         var damageDealt = 0;
         var caster = new SkillCaster(player, skills, monster, money);
+        var monsterCaster = new SkillCaster(monster, monsterSkills ?? [], player);
         var potionsUsed = 0;
         // 代擋量 ≤ 0 表示寵物不在場（退出這一場），不再代擋也不再出手
         var guard = pet?.Guard ?? 0;
@@ -61,6 +63,7 @@ public static class WogBattle
         {
             var roundStart = (round - 1) * BattleTiming.SecondsPerRound;
             caster.ExpireAtRoundStart();
+            monsterCaster.ExpireAtRoundStart();
             events.Add(new RoundEvent(roundStart, round));
             DrinkPotion(roundStart);
 
@@ -71,11 +74,19 @@ public static class WogBattle
                 return Outcome(null, round) with { Escaped = true };
             }
 
-            Record(caster.CastBeforeAttack(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), roundStart);
+            RecordPlayer(caster.CastBeforeAttack(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), roundStart);
             if (monsterHp == 0)
             {
                 events.Add(new DefeatEvent(roundStart, CombatSide.Monster));
                 return Outcome(CombatSide.Player, round);
+            }
+
+            // 怪物接在玩家之後施放，雙方的敏捷增減都影響這一回合的先攻
+            RecordMonster(monsterCaster.CastBeforeAttack(monsterHp, monsterSp, random, playerHp, playerSp, player.SpMax), roundStart);
+            if (playerHp == 0)
+            {
+                events.Add(new DefeatEvent(roundStart, CombatSide.Player));
+                return Outcome(CombatSide.Monster, round);
             }
 
             modifiers = caster.Current;
@@ -124,7 +135,7 @@ public static class WogBattle
 
                 if (playerKind == AttackKind.Physical && result.Hit)
                 {
-                    Record(caster.CastAfterPhysicalHit(result.Damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
+                    RecordPlayer(caster.CastAfterPhysicalHit(result.Damage, playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), hitSeconds);
                 }
 
                 if (monsterHp == 0)
@@ -195,7 +206,7 @@ public static class WogBattle
             events.Add(new PotionEvent(atSeconds, supply.ItemId, supply.Name, hpGained, spGained, supply.Quantity));
         }
 
-        void Record(IReadOnlyList<SkillCast> casts, double atSeconds)
+        void RecordPlayer(IReadOnlyList<SkillCast> casts, double atSeconds)
         {
             foreach (var cast in casts)
             {
@@ -204,16 +215,26 @@ public static class WogBattle
                 monsterHp = Math.Max(0, monsterHp - cast.OpponentDamage);
                 damageDealt += cast.OpponentDamage;
                 monsterSp = Math.Max(0, monsterSp - cast.OpponentSpLoss);
-                events.Add(new SkillEvent(atSeconds, CombatSide.Player, cast.Equipped.Skill.Id, cast.Equipped.Skill.Name, cast.Equipped.Level,
-                    cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? monsterHp : null, cast.HpCost, cast.SpCost, cast.MoneyCost,
-                    cast.OpponentSpLoss, cast.SpGain));
+                events.Add(SkillEventOf(cast, CombatSide.Player, monsterHp, atSeconds));
+            }
+        }
+
+        void RecordMonster(IReadOnlyList<SkillCast> casts, double atSeconds)
+        {
+            foreach (var cast in casts)
+            {
+                monsterHp = cast.HpAfter;
+                monsterSp = cast.SpAfter;
+                playerHp = Math.Max(0, playerHp - cast.OpponentDamage);
+                playerSp = Math.Max(0, playerSp - cast.OpponentSpLoss);
+                events.Add(SkillEventOf(cast, CombatSide.Monster, playerHp, atSeconds));
             }
         }
 
         // 回合結束時機的技能；回傳怪物是否倒下
         bool RoundEndSkills(double atSeconds)
         {
-            Record(caster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
+            RecordPlayer(caster.CastAtRoundEnd(playerHp, playerSp, random, monsterHp, monsterSp, monster.SpMax), atSeconds);
             return monsterHp == 0;
         }
 
@@ -239,6 +260,11 @@ public static class WogBattle
             new(events, winner, rounds, damageDealt, player with { Hp = playerHp, Sp = playerSp }, monster with { Hp = monsterHp, Sp = monsterSp }, supply,
                 MoneySpent: money - caster.Money ?? 0);
     }
+
+    private static SkillEvent SkillEventOf(SkillCast cast, CombatSide side, int opponentHp, double atSeconds) =>
+        new(atSeconds, side, cast.Equipped.Skill.Id, cast.Equipped.Skill.Name, cast.Equipped.Level,
+            cast.SpAfter, cast.Heal, cast.OpponentDamage, cast.OpponentDamage > 0 ? opponentHp : null, cast.HpCost, cast.SpCost, cast.MoneyCost,
+            cast.OpponentSpLoss, cast.SpGain);
 
     private static CombatSide Opponent(CombatSide side) => side == CombatSide.Player ? CombatSide.Monster : CombatSide.Player;
 }
