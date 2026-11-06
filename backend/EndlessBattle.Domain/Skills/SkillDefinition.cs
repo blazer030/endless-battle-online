@@ -35,6 +35,18 @@ public sealed record SkillDefinition(
     // 沒有發動條件就常駐；每一級的種類相同（載入時驗證），看第 1 級即可
     public bool IsAlwaysOn => Levels[0].Conditions is [];
 
+    // 怪物與武器的技能：用自己的發動率取代每一級的 Chance 條件，其他條件不動；沒有條件的技能也要擲發動率
+    public SkillDefinition WithActivationRate(int rate) => this with
+    {
+        Levels =
+        [
+            .. Levels.Select(level => level with
+            {
+                Conditions = [.. level.Conditions.Where(condition => condition.Kind != SkillConditionKind.Chance), new SkillCondition(SkillConditionKind.Chance, rate)],
+            }),
+        ],
+    };
+
     public SkillLevel LevelAt(int level) =>
         level >= 1 && level <= MaxLevel
             ? Levels[level - 1]
