@@ -2,7 +2,7 @@
 
 冠軍在計畫 9 加入，是原版 PVP 冠軍（`wog_cp`）的單機版：每個角色一個席位，挑戰 NPC 或自己的舊快照。`wog45-content-import` 的審查發現 `ChampionSeat.ToCombatant` 沒帶力量、智力、體質、等級，`StatAbove` 條件打冠軍時一定成立；使用者決定不修，整個移除，因為它本來就是為 PVP 而設。
 
-已確認沒有其他功能依賴冠軍：遊戲規則與 API 只有 `Domain/Champion`、`ChampionService`、`ChampionEndpoints` 使用；前端只有冒險頁的按鈕開啟 `ChampionPanel`；admin 與主規格（除了 `wog-content-import`）都沒有引用。
+已確認沒有其他功能依賴冠軍：遊戲規則與 API 只有 `Domain/Champion`、`ChampionService`、`ChampionEndpoints` 使用；前端只有冒險頁的按鈕開啟 `ChampionPanel`；admin 與主規格（除了 `wog-content-import`）的內容都沒有引用；`skill-effects`、`wog-content-import` 主規格的 `@trace` 註解還指向 `ChampionDuelTests.cs`，這次一併刪除。
 
 ## Goals / Non-Goals
 

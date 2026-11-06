@@ -71,7 +71,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -198,7 +197,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -368,7 +366,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -496,7 +493,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -612,7 +608,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -733,7 +728,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -865,7 +859,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -981,7 +974,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -1101,7 +1093,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
@@ -1246,7 +1237,6 @@ code:
   - backend/EndlessBattle.Tests/Content/WogImportTests.cs
   - backend/EndlessBattle.Tests/Support/CustomContent.cs
   - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Domain/Champion/ChampionDuelTests.cs
   - backend/content/honour-shop.json
   - backend/content/job-skills.json
   - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs

@@ -34,4 +34,4 @@
 - content：`backend/content/champion.json`
 - db：`backend/db/ddl` 新增一個 migration
 - frontend：`frontend/src/ui`、`frontend/src/game`、`frontend/src/api`（`schema.ts` 重新產生）、`frontend/src/test/fixtures.ts`
-- 工具與文件：`scripts/check-sql.sh`、`scripts/import-wog45.py`、`docs/research/wog45/gaps.md`、`CLAUDE.md`、`docs/spectra/config.yaml`、`README.md`
+- 工具與文件：`scripts/check-sql.sh`、`scripts/import-wog45.py`、`docs/research/wog45/gaps.md`、`CLAUDE.md`、`docs/spectra/config.yaml`、`README.md`、`docs/spectra/specs/skill-effects/spec.md`（只刪失效的 `@trace`）

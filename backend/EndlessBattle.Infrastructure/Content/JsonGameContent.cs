@@ -128,7 +128,6 @@ public sealed class JsonGameContent : IGameContent
 
     public InnDefinition Inn { get; }
 
-
     public static JsonGameContent Load(string directory)
     {
         var monsterFile = Read<MonsterFile>(Path.Combine(directory, "monsters.json"));
