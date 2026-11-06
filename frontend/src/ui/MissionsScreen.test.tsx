@@ -66,6 +66,37 @@ test("MissionsScreen_ShowsThreeSubPages", async () => {
   expect(within(done).getByText("Lv 3")).toBeInTheDocument()
 })
 
+test("MissionsScreen_ListsEveryKillTarget", async () => {
+  const fakes = makeMission({
+    title: "冒牌傳說",
+    kills: [
+      {
+        monsterId: "monster-111",
+        monsterName: "冒牌英雄",
+        placeId: 7,
+        placeName: "王者之路",
+        count: 3,
+        progress: 3,
+      },
+      {
+        monsterId: "monster-112",
+        monsterName: "冒牌召喚師",
+        placeId: 7,
+        placeName: "王者之路",
+        count: 3,
+        progress: 1,
+      },
+    ],
+  })
+  renderMissions(boardWith({ active: [fakes] }))
+
+  await openSubPage("進行中")
+
+  const active = card("冒牌傳說")
+  expect(within(active).getByText("擊敗 冒牌英雄（王者之路） 3/3")).toBeInTheDocument()
+  expect(within(active).getByText("擊敗 冒牌召喚師（王者之路） 1/3")).toBeInTheDocument()
+})
+
 test("MissionsScreen_EmptyCompletedPage", async () => {
   renderMissions()
 

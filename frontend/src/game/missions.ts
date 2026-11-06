@@ -20,9 +20,9 @@ export const requirementLines = (mission: MissionView, content: ContentNames): s
 }
 
 export const objectiveLines = (mission: MissionView): string[] => [
-  ...mission.kills
-    .slice(0, 1)
-    .map((kill) => `擊敗 ${kill.monsterName}（${kill.placeName}） ${kill.progress}/${kill.count}`),
+  ...mission.kills.map(
+    (kill) => `擊敗 ${kill.monsterName}（${kill.placeName}） ${kill.progress}/${kill.count}`,
+  ),
   ...mission.deliver.map((item) => `交付 ${item.name} ${item.owned}/${item.quantity}`),
   ...(mission.deliverPet === null ? [] : [`交付寵物 ${mission.deliverPet.name}（需攜帶）`]),
 ]
@@ -40,12 +40,14 @@ const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
 export const progressRatio = (mission: MissionView): number => {
   const required = mission.deliver.reduce((sum, item) => sum + item.quantity, 0)
   const held = mission.deliver.reduce((sum, item) => sum + Math.min(item.owned, item.quantity), 0)
-  const kill = mission.kills[0]
-  if (kill !== undefined) {
-    const { count, progress } = kill
-    if (required === 0) return count > 0 ? clampRatio(progress / count) : 1
-    // 擊殺與交付合計，兩邊都滿才到 1（同後端的 Ready）
-    return clampRatio((Math.min(progress, count) + held) / (count + required))
+  if (mission.kills.length > 0) {
+    const count = mission.kills.reduce((sum, kill) => sum + kill.count, 0)
+    const progress = mission.kills.reduce(
+      (sum, kill) => sum + Math.min(kill.progress, kill.count),
+      0,
+    )
+    // 擊殺與交付合計，全部都滿才到 1（同後端的 Ready）
+    return count + required > 0 ? clampRatio((progress + held) / (count + required)) : 1
   }
   if (required === 0) return mission.ready ? 1 : 0
   return clampRatio(held / required)

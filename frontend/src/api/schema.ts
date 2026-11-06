@@ -2367,6 +2367,7 @@ export interface components {
             /** Format: int32 */
             required: number;
             requiresDelivery: boolean;
+            completed: boolean;
             /** Format: double */
             atSeconds: number;
         };

@@ -93,9 +93,37 @@ describe("requirementLines", () => {
   })
 })
 
+const fakes = makeMission({
+  kills: [
+    {
+      monsterId: "monster-111",
+      monsterName: "冒牌英雄",
+      placeId: 7,
+      placeName: "王者之路",
+      count: 3,
+      progress: 3,
+    },
+    {
+      monsterId: "monster-112",
+      monsterName: "冒牌召喚師",
+      placeId: 7,
+      placeName: "王者之路",
+      count: 5,
+      progress: 1,
+    },
+  ],
+})
+
 describe("objectiveLines", () => {
   it("describes a kill target with its place and progress", () => {
     expect(objectiveLines(makeMission())).toEqual(["擊敗 草原史萊姆（中央平原） 3/8"])
+  })
+
+  it("lists every kill target", () => {
+    expect(objectiveLines(fakes)).toEqual([
+      "擊敗 冒牌英雄（王者之路） 3/3",
+      "擊敗 冒牌召喚師（王者之路） 1/5",
+    ])
   })
 
   it("describes each delivery with what the bag holds", () => {
@@ -157,6 +185,20 @@ describe("progressRatio", () => {
         kills: mission.kills.map((kill) => ({ ...kill, progress: 12 })),
       }),
     ).toBe(1)
+  })
+
+  it("adds up every kill target", () => {
+    // (3 + 1) / (3 + 5)
+    expect(progressRatio(fakes)).toBe(4 / 8)
+  })
+
+  it("caps each kill target before adding them up", () => {
+    const overshoot = {
+      ...fakes,
+      kills: fakes.kills.map((kill, index) => (index === 0 ? { ...kill, progress: 9 } : kill)),
+    }
+    // (min(9,3) + 1) / (3 + 5)
+    expect(progressRatio(overshoot)).toBe(4 / 8)
   })
 
   it("counts delivered items without overshooting each line", () => {

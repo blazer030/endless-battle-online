@@ -78,6 +78,7 @@ describe("refreshSignalsFor", () => {
       progress: 1,
       required: 3,
       requiresDelivery: false,
+      completed: false,
     })
     const levelUp = event({
       type: "levelUp",

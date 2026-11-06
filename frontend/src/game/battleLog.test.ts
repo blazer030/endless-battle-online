@@ -371,6 +371,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       progress: 2,
       required: 3,
       requiresDelivery: false,
+      completed: false,
     }),
     [["任務進度：史萊姆 2/3", "drop"]],
   ],
@@ -384,11 +385,26 @@ const cases: [string, PlaybackItem, Line[]][] = [
       progress: 3,
       required: 3,
       requiresDelivery: false,
+      completed: true,
     }),
     [
       ["任務進度：史萊姆 3/3", "drop"],
       ["任務「清除雪精」的目標已達成，回任務頁回報。", "trigger"],
     ],
+  ],
+  [
+    "adds no completion line while another target is not full",
+    event({
+      type: "mission",
+      missionId: "m3",
+      title: "冒牌傳說",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+      requiresDelivery: false,
+      completed: false,
+    }),
+    [["任務進度：史萊姆 3/3", "drop"]],
   ],
   [
     "tells a mixed mission to deliver before reporting",
@@ -400,6 +416,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       progress: 3,
       required: 3,
       requiresDelivery: true,
+      completed: true,
     }),
     [
       ["任務進度：史萊姆 3/3", "drop"],

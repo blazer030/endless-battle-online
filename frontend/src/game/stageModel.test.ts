@@ -413,11 +413,27 @@ describe("stageModel", () => {
       progress: 3,
       required: 3,
       requiresDelivery: false,
+      completed: true,
       atSeconds: 2,
     }
     expect(stageEffectsFor(mission)).toEqual([{ type: "plate", text: "任務達成", tone: "gold" }])
-    expect(stageEffectsFor({ ...mission, progress: 2 })).toEqual([])
+    expect(stageEffectsFor({ ...mission, progress: 2, completed: false })).toEqual([])
     expect(applyToStage(midFight, mission)).toBe(midFight)
+  })
+
+  it("stageEffectsFor_OneTargetFullOfSeveral_ShowsNoPlate", () => {
+    const mission: BattleEvent = {
+      type: "mission",
+      missionId: "m3",
+      title: "冒牌傳說",
+      monsterId: "slime",
+      progress: 3,
+      required: 3,
+      requiresDelivery: false,
+      completed: false,
+      atSeconds: 2,
+    }
+    expect(stageEffectsFor(mission)).toEqual([])
   })
 
   it("stageEffectsFor_MixedMissionKillsMet_ShowsNoPlate", () => {
@@ -429,6 +445,7 @@ describe("stageModel", () => {
       progress: 3,
       required: 3,
       requiresDelivery: true,
+      completed: true,
       atSeconds: 2,
     }
     expect(stageEffectsFor(mission)).toEqual([])
