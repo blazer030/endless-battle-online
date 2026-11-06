@@ -28,7 +28,7 @@ public static class KillCounter
         return new KillResult(updated, advanced);
     }
 
-    // 進行中、有擊殺目標且尚未達成的任務；內容中不存在或種類不符（每日卻無週期、一般卻有週期）的紀錄略過。
+    // 進行中且開放（還有未滿的擊殺目標，或沒有擊殺目標但要交寵物）的任務；只交道具的任務不會遇到任務怪，不追蹤。內容中不存在或種類不符（每日卻無週期、一般卻有週期）的紀錄略過。
     // 不以現在時間過濾每日任務：跨過重置的離線結算中，重置前打完的場次仍要計入，交給 ExpiresAt 判斷
     public static IReadOnlyList<ActiveMission> Track(
         IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, long characterId)
@@ -44,7 +44,7 @@ public static class KillCounter
             }
 
             var objective = DailyMissions.Resolve(mission, characterId, record.DailyPeriod);
-            if (objective.Kills.Count == 0 || MissionBoard.Ready(objective, record))
+            if (objective.Kills.Count == 0 ? objective.DeliverPet is null : MissionBoard.Ready(objective, record))
             {
                 continue;
             }
@@ -58,13 +58,13 @@ public static class KillCounter
         return tracked;
     }
 
-    // 任務怪只在其任務已接取、尚未達成且未過期時出現
+    // 任務怪只在其任務已接取、開放且未過期時出現；任務還開放時，目標已滿的任務怪也會出現，只是不再計數
     public static IReadOnlySet<string> SpawnableMissionIds(IReadOnlyList<ActiveMission> missions, DateTimeOffset at) =>
         missions.Where(mission => IsOpen(mission, at)).Select(mission => mission.MissionId).ToHashSet();
 
     // 接取當下（含）起、嚴格早於 ExpiresAt 為止
     private static bool IsOpen(ActiveMission mission, DateTimeOffset at) =>
-        !mission.TargetsFull
+        (mission.Targets.Count == 0 || !mission.TargetsFull)
         && mission.AcceptedAt <= at
         && (mission.ExpiresAt is not { } expiresAt || at < expiresAt);
 }

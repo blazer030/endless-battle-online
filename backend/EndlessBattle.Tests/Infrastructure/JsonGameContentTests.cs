@@ -1200,6 +1200,30 @@ public class JsonGameContentTests
         Assert.Contains("puff", message);
     }
 
+    // chief-hunt 改打 sprite，chief 不是任何任務的擊殺目標，但仍可以屬於一般任務
+    [Theory]
+    [InlineData("hunt")]
+    [InlineData("chief-hunt")]
+    public void MissionMonster_MayNotBeKillTarget(string missionId)
+    {
+        var monsters = MissionMonsters.Replace("\"missionId\": \"chief-hunt\"", $"\"missionId\": \"{missionId}\"");
+        var missions = ReplaceOnce(ValidMissionList, "\"monsterId\": \"chief\"", "\"monsterId\": \"sprite\"");
+
+        var chief = WithMissionContent(missions, monsters, directory => JsonGameContent.Load(directory).GetMonster("chief"));
+
+        Assert.Equal(missionId, chief.MissionId);
+    }
+
+    [Fact]
+    public void Mission_AcceptsDeliverPetOfItsOwnMissionMonster()
+    {
+        var missions = ReplaceOnce(ValidMissionList, "\"kills\": [{ \"monsterId\": \"chief\", \"count\": 1 }]", "\"deliverPet\": \"chief\"");
+
+        var mission = WithMissionContent(missions, MissionMonsters, directory => JsonGameContent.Load(directory).GetMission("chief-hunt"));
+
+        Assert.Equal("chief", mission.DeliverPet);
+    }
+
     [Fact]
     public void Mission_AcceptsDeliverPetOnly()
     {
@@ -1400,12 +1424,10 @@ public class JsonGameContentTests
         Assert.Contains("循環", message);
     }
 
-    // 任務怪的 missionId 必須指向以牠為擊殺目標的一般任務；chief-hunt 改打 sprite，沒有任務以 chief 為目標
+    // 任務怪的 missionId 必須指向一般任務
     [Theory]
     [InlineData("ghost-mission")]
-    [InlineData("hunt")]
     [InlineData("daily")]
-    [InlineData("chief-hunt")]
     public void Monsters_RejectMissionIdWithoutMatchingMission(string missionId)
     {
         var monsters = MissionMonsters.Replace("\"missionId\": \"chief-hunt\"", $"\"missionId\": \"{missionId}\"");

@@ -1183,9 +1183,9 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"怪物 {monster.Id} 是全域怪，不能是任務怪（missionId {missionId}）");
         }
 
-        if (!missions.TryGetValue(missionId, out var mission) || mission.Daily || mission.Kills.All(kill => kill.MonsterId != monster.Id))
+        if (!missions.TryGetValue(missionId, out var mission) || mission.Daily)
         {
-            throw new GameContentException($"怪物 {monster.Id} 的 missionId {missionId} 必須指向以牠為擊殺目標的一般任務");
+            throw new GameContentException($"怪物 {monster.Id} 的 missionId {missionId} 必須指向一般任務");
         }
     }
 

@@ -147,6 +147,64 @@ public class KillCounterTests
         Assert.Empty(tracked);
     }
 
+    private static readonly MissionDefinition PetMission = new(
+        "mission-268", "公會", "捕捉行動", "說明", "謝謝", 1, 1, false, [], [], new MissionRequirements(), new MissionReward(0, []), [], [])
+    {
+        DeliverPet = "monster-435",
+    };
+
+    [Fact]
+    public void Track_IncludesPetOnlyMission()
+    {
+        var tracked = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7);
+
+        var mission = Assert.Single(tracked);
+        Assert.Equal("mission-268", mission.MissionId);
+        Assert.Empty(mission.Targets);
+    }
+
+    [Fact]
+    public void Spawnable_PetMissionOpenUntilFinished()
+    {
+        var active = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7);
+        var completed = KillCounter.Track([new MissionRecord("mission-268", MissionState.Completed, [], null, Now, Now)], [PetMission], characterId: 7);
+
+        Assert.Contains("mission-268", KillCounter.SpawnableMissionIds(active, Now));
+        Assert.Empty(KillCounter.SpawnableMissionIds(completed, Now));
+    }
+
+    [Fact]
+    public void Spawnable_FullTargetStillAppearsWhileOtherOpen()
+    {
+        ActiveMission mission = new(
+            "mission-307", "初探血之魔域",
+            [new MissionTarget("monster-486", 5, 5), new MissionTarget("monster-487", 5, 0)],
+            Accepted, ExpiresAt: null);
+
+        Assert.Contains("mission-307", KillCounter.SpawnableMissionIds([mission], Now));
+    }
+
+    [Fact]
+    public void Spawnable_ClosedWhenAllTargetsFullWithItemsLeft()
+    {
+        var mission = FakesDefinition with { Deliver = [new ItemQuantity("test-ore", 1)] };
+
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7);
+
+        Assert.Empty(KillCounter.SpawnableMissionIds(tracked, Now));
+    }
+
+    [Fact]
+    public void KillCounter_NonTargetMissionMonsterDoesNotCount()
+    {
+        var mission = TrackedMissions.Single("mission-267", "消逝的天眼", "monster-438", Required: 8, Progress: 0, AcceptedAt: Accepted, ExpiresAt: null);
+
+        var result = KillCounter.Apply([mission], "monster-434", Now);
+
+        TrackedMissions.AssertSame([mission], result.Missions);
+        Assert.Empty(result.Advanced);
+    }
+
     [Fact]
     public void KillCounter_PetObjectiveRequiresDelivery()
     {
