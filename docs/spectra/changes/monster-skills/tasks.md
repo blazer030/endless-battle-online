@@ -24,7 +24,7 @@
 ## 5. 匯入
 
 - [x] 5.1 `scripts/import-wog45.py` 匯入假死（第 1 級 `Chance` 40、SP 9、`Stun` 機率 2、`chanceByStat` intelligence 5、1 回合），從排除清單移出，刺客的 `job-skills` 加上它。先在 `WogImportTests` 寫失敗測試 `Import_ApparentDeath_MatchesOriginal`，並確認會讓前置條件恢復的 `gaps.md` 列跟著消失。驗證：匯入後測試通過。（規格：Monster and weapon skills are imported） [after: 3.3]
-- [ ] 5.2 匯入腳本產出 `monster-skills.json` 與武器的 `weaponSkill`：等級依技能名稱的列數算、重複技能留高等級、`Chance` 不是預設值就換算發動率、沒有發動率的不寫、戰意驅使繼續列在 `gaps.md`。先在 `WogImportTests` 寫失敗測試 `Import_MonsterSkills_MatchOriginal`（史萊姆、魔盾-水 Lv1、盜墓者、列數 568）、`Import_WeaponSkills_MatchOriginal`（爆氣火斧、神經系毒氣的發動率 2、翼龍獸矛沒有附帶技能）、`Gaps_ListsOnlySkillsNotMoved`。跑兩次匯入。驗證：測試通過，第二次 `git diff --exit-code backend/content docs/research/wog45/gaps.md` 回 0。（規格：Monster and weapon skills are imported、Data the rules cannot use is listed；設計：鋒針陷阱的武器發動率在匯入時換算、同一隻怪重複的技能只留等級較高的） [after: 3.2, 4.1, 5.1]
+- [x] 5.2 匯入腳本產出 `monster-skills.json` 與武器的 `weaponSkill`：等級依技能名稱的列數算、重複技能留高等級、`Chance` 不是預設值就換算發動率、沒有發動率的不寫、戰意驅使繼續列在 `gaps.md`。先在 `WogImportTests` 寫失敗測試 `Import_MonsterSkills_MatchOriginal`（史萊姆、魔盾-水 Lv1、盜墓者、列數 568）、`Import_WeaponSkills_MatchOriginal`（爆氣火斧、神經系毒氣的發動率 2、翼龍獸矛沒有附帶技能）、`Gaps_ListsOnlySkillsNotMoved`。跑兩次匯入。驗證：測試通過，第二次 `git diff --exit-code backend/content docs/research/wog45/gaps.md` 回 0。（規格：Monster and weapon skills are imported、Data the rules cannot use is listed；設計：鋒針陷阱的武器發動率在匯入時換算、同一隻怪重複的技能只留等級較高的） [after: 3.2, 4.1, 5.1]
 
 ## 6. 前端呈現
 

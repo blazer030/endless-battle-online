@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Missions;
@@ -22,7 +23,6 @@ public class WogImportTests
     public void Gaps_DoesNotListMonsterSpecialAttacks()
     {
         Assert.DoesNotContain("猛烈一擊", Gaps);
-        Assert.Contains("爆氣 Lv2 rate 10", Gaps);
         Assert.DoesNotContain("| 13 | 白蛇龍 |", Gaps);
         Assert.Contains("- 必殺技名稱只是暴擊時顯示的文字，決定不搬；原始資料留在 `docs/research/wog45/data/monsters.json`。", Gaps);
     }
@@ -92,10 +92,41 @@ public class WogImportTests
         });
     }
 
+    private static (string SkillId, int Level, int Rate) Row(EquippedSkill skill) =>
+        (skill.Skill.Id, skill.Level, skill.Skill.LevelAt(skill.Level).Conditions.Single(condition => condition.Kind == SkillConditionKind.Chance).Percent);
+
+    // 已匯入的怪物原版共 576 格，8 格是同一隻怪重複的技能
     [Fact]
-    public void Monsters_ListUnsupportedSkillsInGaps()
+    public void Import_MonsterSkills_MatchOriginal()
     {
-        Assert.Matches(@"\| 1 \| 史萊姆 \| [^\n]*爆氣 Lv2 rate 10", Gaps);
+        Assert.Equal(("skill-1", 2, 10), Row(Assert.Single(Content.GetMonster("monster-1").Skills)));
+        // 魔盾-水 原版寫 Lv2，本作只有 1 級
+        Assert.Equal(("skill-198", 1, 10), Row(Assert.Single(Content.GetMonster("monster-88").Skills)));
+        Assert.Equal(("skill-235", 1, 6), Row(Assert.Single(Content.GetMonster("monster-95").Skills)));
+        Assert.Equal(("skill-31", 2, 16), Row(Assert.Single(Content.GetMonster("monster-139").Skills, skill => skill.Skill.Name == "急影")));
+        Assert.Contains("急影 Lv1 rate 19", Gaps);
+        Assert.Equal(568, Content.AllMonsters.Sum(monster => monster.Skills.Count));
+    }
+
+    [Fact]
+    public void Import_WeaponSkills_MatchOriginal()
+    {
+        Assert.Equal(new WeaponSkillSpec("skill-1", 2, 12) { SkillName = "爆氣" }, Content.GetItem("item-1823").WeaponSkill);
+        // 鋒針陷阱第 2 級的 Chance 18 來自說明：12 × 18% = 2.16 → 2
+        Assert.Equal(new WeaponSkillSpec("skill-314", 2, 2) { SkillName = "鋒針陷阱" }, Content.GetItem("item-1828").WeaponSkill);
+        Assert.Matches(@"\| 1828 \| 神經系毒氣 \| [^\n]*發動率 12 × Chance 18 換算成 2", Gaps);
+        Assert.Null(Content.GetItem("item-1834").WeaponSkill);
+        Assert.Equal(33, Content.AllItems.Count(item => item.WeaponSkill is not null));
+    }
+
+    [Fact]
+    public void Gaps_ListsOnlySkillsNotMoved()
+    {
+        Assert.DoesNotMatch(@"\| 1 \| 史萊姆 \|", Gaps);
+        Assert.DoesNotMatch(@"\| 1823 \| 爆氣火斧 \|", Gaps);
+        Assert.DoesNotContain("爆氣 Lv2 rate 10", Gaps);
+        Assert.Matches(@"\| 1834 \| 翼龍獸矛 \| 附帶技能 skillId 323、發動率 10", Gaps);
+        Assert.Matches(@"\| 426 \| 魔王史萊姆 \| 掉落 2277", Gaps);
     }
 
     [Fact]

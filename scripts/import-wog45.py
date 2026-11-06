@@ -193,7 +193,29 @@ def parse_range(value, source, record_id):
     return [int(parts[0]), int(parts[1])]
 
 
-def import_items(gaps):
+def skill_grants(skills):
+    """把原版技能列（怪物的技能、武器的附帶技能）轉成本作的技能、等級與發動率。
+
+    回傳的函式：技能沒有匯入時回傳 None；否則回傳 (技能 id, 等級, 發動率, 換算前的 Chance)。
+    Chance 不是預設值代表它來自說明，原版是發動率再乘上它，發動率取代 Chance 後要先換算；預設值時換算前的 Chance 是 None。
+    """
+    owners = skill_owners()
+    by_id = {skill["id"]: skill for skill in skills}
+
+    def resolve(source_id, rate):
+        skill_id, level = owners.get(source_id, (None, None))
+        if skill_id not in by_id:
+            return None
+        chances = [condition["percent"] for condition in by_id[skill_id]["levels"][level - 1]["conditions"] if condition["kind"] == "Chance"]
+        default = min(MAXIMUM_CHANCE, DEFAULT_CHANCE_BASE + DEFAULT_CHANCE_STEP * level)
+        if chances and chances != [default]:
+            return skill_id, level, max(1, round(rate * chances[0] / 100)), chances[0]
+        return skill_id, level, rate, None
+
+    return resolve
+
+
+def import_items(gaps, resolve_skill):
     title = "道具"
     items = load("items.json")
     stones = {stone["id"]: stone for stone in load("magic-stones.json")}
@@ -222,7 +244,14 @@ def import_items(gaps):
             record["holes"] = require(item, "holes", "items.json")
             record["refineMax"] = require(item, "refineMax", "items.json")
             if item.get("skillId") is not None:
-                gaps.field(title, item_id, name, f"附帶技能 skillId {item['skillId']}、發動率 {item.get('skillRate')}")
+                grant = resolve_skill(item["skillId"], item.get("skillRate"))
+                if grant is None or record["category"] != "Weapon":
+                    gaps.field(title, item_id, name, f"附帶技能 skillId {item['skillId']}、發動率 {item.get('skillRate')}")
+                else:
+                    skill_id, level, rate, chance = grant
+                    record["weaponSkill"] = {"skillId": skill_id, "level": level, "rate": rate}
+                    if chance is not None:
+                        gaps.field(title, item_id, name, f"附帶技能的發動率 {item['skillRate']} × Chance {chance} 換算成 {rate}：Chance 來自說明，原版是兩段機率")
             if item.get("recoverHp") or item.get("recoverSp"):
                 gaps.field(title, item_id, name, f"裝備回復 HP {item.get('recoverHp')}、SP {item.get('recoverSp')}")
         elif type_name == "道具":
@@ -310,15 +339,43 @@ def monster_exclusion(monster, places):
     return reason
 
 
-def import_monsters(gaps, item_ids, mission_monsters):
+def monster_skill_rows(monster, resolve_skill):
+    """回傳 (monster-skills.json 的列, 沒有搬的欄位)；同一技能只留等級較高的一筆。"""
+    rows, unsupported = {}, []
+    for skill in monster.get("skills", []):
+        label = f"技能 {skill['name']} rate {skill['rate']}"
+        if skill["rate"] is None:
+            unsupported.append(f"{label}（原版沒有發動率，不會發動）")
+            continue
+        grant = resolve_skill(skill["id"], skill["rate"])
+        if grant is None:
+            unsupported.append(f"{label}（技能沒有匯入）")
+            continue
+        skill_id, level, rate, chance = grant
+        if chance is not None:
+            unsupported.append(f"{label}：發動率 × Chance {chance} 換算成 {rate}")
+        row = {"monsterId": f"monster-{monster['id']}", "skillId": skill_id, "level": level, "rate": rate}
+        kept = rows.get(skill_id)
+        if kept is None:
+            rows[skill_id] = (row, label)
+        elif level > kept[0]["level"]:
+            unsupported.append(f"{kept[1]}（同一技能只留等級較高的一筆）")
+            rows[skill_id] = (row, label)
+        else:
+            unsupported.append(f"{label}（同一技能只留等級較高的一筆）")
+    return [row for row, _ in rows.values()], unsupported
+
+
+def import_monsters(gaps, item_ids, mission_monsters, resolve_skill):
     """mission_monsters：任務怪的原版 id → 匯入的任務 id；只有任務成功匯入、且以牠為擊殺目標的任務怪才匯入。"""
     title = "怪物"
     gaps.note(title, "屬性的地水火木風毒轉成 1～6；子地區名稱轉成該地點的子地區編號 1～4。")
     gaps.note(title, "`str`、`smart`、`vit`、`be` 給技能的「能力比對手高」條件比較；`life`、`image`、`npcMessage` 沒有搬：現有戰鬥規則用不到。")
     gaps.note(title, "任務怪（`missionId` 有值）跟著任務匯入：任務沒有匯入的，任務怪也不匯入。")
+    gaps.note(title, "技能寫進 `monster-skills.json`：等級依技能名稱的列數算，發動率取代技能的 `Chance` 條件。")
     gaps.note(title, "必殺技名稱只是暴擊時顯示的文字，決定不搬；原始資料留在 `docs/research/wog45/data/monsters.json`。")
     places = {place["id"]: place for place in load("places.json")}
-    records = []
+    records, monster_skills = [], []
     for monster in sorted(load("monsters.json"), key=lambda row: require(row, "id", "monsters.json")):
         monster_id, name = monster["id"], require(monster, "name", "monsters.json")
         for field in ("level", "hp", "sp", "at", "mat", "df", "mdf", "agi", "au", "jobExp", "meet", "placeId", "subPlaces", "drops"):
@@ -330,7 +387,8 @@ def import_monsters(gaps, item_ids, mission_monsters):
             gaps.exclude(title, monster_id, name, reason)
             continue
 
-        unsupported = [f"技能 {skill['name']} rate {skill['rate']}" for skill in monster.get("skills", [])]
+        rows, unsupported = monster_skill_rows(monster, resolve_skill)
+        monster_skills += rows
         drops = []
         for drop in monster["drops"]:
             item_id = f"item-{drop['itemId']}"
@@ -353,7 +411,7 @@ def import_monsters(gaps, item_ids, mission_monsters):
         if monster_id in mission_monsters:
             record["missionId"] = mission_monsters[monster_id]
         records.append(record)
-    return records
+    return records, monster_skills
 
 
 def stone_spec(stone):
@@ -986,7 +1044,7 @@ def import_skills(gaps):
 
 
 ITEM_FIELD_ORDER = ["id", "name", "category", "consumable", "bonus", "supplyHp", "supplySp", "amount", "requires", "jobId",
-                    "element", "holes", "refineMax", "price", "shopLevel", "shopSellable", "bound", "refine", "stone", "key", "elixir"]
+                    "element", "holes", "refineMax", "price", "shopLevel", "shopSellable", "bound", "refine", "stone", "key", "elixir", "weaponSkill"]
 
 
 def order_item(record):
@@ -1021,18 +1079,21 @@ def main():
     for title in ("道具", "職業", "怪物", "技能", "任務", "配方", "傭兵", "勳章所", KEPT_TITLE):
         gaps.section(title)
     try:
-        items = import_items(gaps)
+        skills, job_skills = import_skills(gaps)
+        resolve_skill = skill_grants(skills)
+        items = import_items(gaps, resolve_skill)
         item_ids = {item["id"] for item in items}
         mercenaries = import_mercenaries(gaps)
-        skills, job_skills = import_skills(gaps)
         missions, mission_monsters = import_missions(
             gaps, item_ids, {skill["id"] for skill in skills}, {(row["jobId"], row["skillId"]) for row in job_skills})
         kept = gaps.section(KEPT_TITLE)
         kept["notes"] += [f"`{item['id']}` {KEPT_CUSTOM_ITEMS[item['id']]}" for item in items if item["id"] in KEPT_CUSTOM_ITEMS]
+        monsters, monster_skills = import_monsters(gaps, item_ids, mission_monsters, resolve_skill)
         outputs = {
             "items.json": {"items": items},
             "jobs.json": {"jobs": import_jobs(gaps)},
-            "monsters.json": {"monsters": import_monsters(gaps, item_ids, mission_monsters)},
+            "monsters.json": {"monsters": monsters},
+            "monster-skills.json": {"monsterSkills": monster_skills},
             "recipes.json": {"recipes": import_recipes(gaps, item_ids)},
             "mercenaries.json": {"mercenaries": mercenaries},
             "honour-shop.json": {"exchanges": import_honour_shop(gaps, item_ids, {row["id"] for row in mercenaries})},
