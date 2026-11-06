@@ -11,7 +11,7 @@ public class AdminContentReadTests(MySqlDatabaseFixture database)
 
     [Theory]
     [InlineData("items", 32, "test-sword")]
-    [InlineData("monsters", 6, "test-sprite")]
+    [InlineData("monsters", 7, "test-sprite")]
     [InlineData("jobs", 7, "warrior")]
     [InlineData("skills", 8, "burst")]
     [InlineData("areas", 2, "central")]

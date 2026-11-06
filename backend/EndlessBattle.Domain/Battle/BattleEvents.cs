@@ -16,6 +16,7 @@ namespace EndlessBattle.Domain.Battle;
 [JsonDerivedType(typeof(LevelUpEvent), "levelUp")]
 [JsonDerivedType(typeof(RestEvent), "rest")]
 [JsonDerivedType(typeof(MissionProgressEvent), "mission")]
+[JsonDerivedType(typeof(NpcEncounterEvent), "npc")]
 [JsonDerivedType(typeof(PetGuardEvent), "petGuard")]
 [JsonDerivedType(typeof(PetAttackEvent), "petAttack")]
 [JsonDerivedType(typeof(CaptureEvent), "capture")]
@@ -87,6 +88,9 @@ public sealed record DropResult(string ItemId, string Name, int Quantity, bool D
 public sealed record LevelUpEvent(double AtSeconds, int NewLevel, BaseStats Growth) : BattleEvent(AtSeconds);
 
 public sealed record RestEvent(double AtSeconds, long Cost, bool ExpPenalty, double WaitSeconds) : BattleEvent(AtSeconds);
+
+// 遇到 NPC：不戰鬥、沒有報酬；任務目標未滿時，後面緊接 MissionProgressEvent。Message 是原版訊息，可以沒有
+public sealed record NpcEncounterEvent(double AtSeconds, string MonsterId, string Name, string? Message) : BattleEvent(AtSeconds);
 
 // 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付才能回報；Completed：所有擊殺目標都滿了
 public sealed record MissionProgressEvent(

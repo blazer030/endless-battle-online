@@ -78,6 +78,23 @@ public static class AdventureSimulator
             var fightStartsAt = from.AddSeconds(cursor);
             var spawnable = KillCounter.SpawnableMissionIds(missions, fightStartsAt);
             var definition = MonsterPool.Pick(placeMonsters, character.PlaceId, character.SubPlace, random, spawnable);
+
+            // NPC 不戰鬥、沒有報酬、不算場次，也不再擲骰；目標未滿才計入任務
+            if (definition.Npc)
+            {
+                var met = KillCounter.Apply(missions, definition.Id, fightStartsAt);
+                missions = met.Missions;
+                missionKills += met.Advanced.Count;
+                if (keepEvents)
+                {
+                    events.Add(new NpcEncounterEvent(cursor, definition.Id, definition.Name, definition.NpcMessage));
+                    events.AddRange(ProgressEvents(met, definition.Id, cursor));
+                }
+
+                cursor += BattleTiming.FightIntervalSeconds;
+                continue;
+            }
+
             var player = Buffs.ApplyTo(CombatBridge.ToCombatant(character, bonus), buffs, fightStartsAt, lodging);
             var monster = CombatantState.From(definition);
             // 寵物每場重新建立，代擋量不帶到下一場
@@ -184,12 +201,7 @@ public static class AdventureSimulator
                     missionKills += kill.Advanced.Count;
                     if (keepEvents)
                     {
-                        events.AddRange(kill.Advanced.Select(mission =>
-                        {
-                            var target = mission.Targets.First(candidate => candidate.MonsterId == definition.Id);
-                            return new MissionProgressEvent(
-                                fightEnd, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull);
-                        }));
+                        events.AddRange(ProgressEvents(kill, definition.Id, fightEnd));
                     }
                 }
 
@@ -214,4 +226,12 @@ public static class AdventureSimulator
         return new AdventureRun(
             events, summary, character, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
     }
+
+    private static IEnumerable<MissionProgressEvent> ProgressEvents(KillResult result, string monsterId, double atSeconds) =>
+        result.Advanced.Select(mission =>
+        {
+            var target = mission.Targets.First(candidate => candidate.MonsterId == monsterId);
+            return new MissionProgressEvent(
+                atSeconds, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull);
+        });
 }

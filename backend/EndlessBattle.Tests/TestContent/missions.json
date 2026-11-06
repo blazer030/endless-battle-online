@@ -11,6 +11,7 @@
     { "id": "test-double-hunt", "giver": "測試村長", "title": "測試雙目標", "description": "擊敗測試雪精與測試寒狼。", "completionMessage": "都解決了。", "level": 1, "placeId": 1, "daily": false, "kills": [{ "monsterId": "test-sprite", "count": 2 }, { "monsterId": "test-wolf", "count": 1 }], "rewards": { "money": 50 } },
     { "id": "test-pet-delivery", "giver": "測試獸欄", "title": "測試尋寵", "description": "帶測試寒狼來。", "completionMessage": "找到了。", "level": 1, "placeId": 1, "daily": false, "deliverPet": "test-wolf", "rewards": { "money": 50 } },
     { "id": "test-skill-gate", "giver": "測試老兵", "title": "測試考核", "description": "學會爆氣再來。", "completionMessage": "合格。", "level": 1, "placeId": 1, "daily": false, "kills": [{ "monsterId": "test-sprite", "count": 1 }], "requiredSkill": { "skillId": "burst", "level": 2 }, "rewards": { "money": 50 } },
+    { "id": "test-npc-visit", "giver": "測試村長", "title": "測試拜訪", "description": "找到測試信使。", "completionMessage": "見到了。", "level": 1, "placeId": 1, "daily": false, "kills": [{ "monsterId": "test-herald", "count": 1 }], "rewards": { "money": 50 } },
     { "id": "test-stone-reward", "giver": "測試鐵匠", "title": "測試魔石獎勵", "description": "擊敗一隻測試雪精。", "completionMessage": "這顆魔石給你。", "level": 1, "placeId": 1, "daily": false, "kills": [{ "monsterId": "test-sprite", "count": 1 }], "rewards": { "money": 50, "items": [{ "itemId": "test-stone", "quantity": 1 }] } }
   ]
 }

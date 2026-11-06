@@ -106,9 +106,9 @@ public class JsonGameContentTests
     {
         var content = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent"));
         Assert.Equal(
-            ["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith", "test-sprite-chief"],
+            ["test-sprite", "test-wolf", "test-bat", "test-guardian", "test-wraith", "test-herald", "test-sprite-chief"],
             content.AllMonsters.Select(monster => monster.Id));
-        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], content.MonstersOf(1).Select(monster => monster.Id));
+        Assert.Equal(["test-sprite", "test-wolf", "test-herald", "test-sprite-chief"], content.MonstersOf(1).Select(monster => monster.Id));
         Assert.Equal("test-chief-hunt", content.GetMonster("test-sprite-chief").MissionId);
         Assert.Null(content.GetMonster("test-sprite").MissionId);
         // SubPlaces、Drops 是清單，record 的 Equals 只比參考，改用結構比對
@@ -1035,7 +1035,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
-                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-skill-gate", "test-stone-reward",
+                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-skill-gate", "test-npc-visit", "test-stone-reward",
             ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(

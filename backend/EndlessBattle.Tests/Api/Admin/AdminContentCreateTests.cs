@@ -23,7 +23,7 @@ public class AdminContentCreateTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var monsters = await client.GetFromJsonAsync<JsonArray>("/admin/content/monsters", CancellationToken);
-        Assert.Equal(7, monsters!.Count);
+        Assert.Equal(8, monsters!.Count);
         Assert.Equal("test-new-monster", monsters[^1]!["id"]!.GetValue<string>());
         Assert.Equal("test-sprite", monsters[0]!["id"]!.GetValue<string>());
     }

@@ -543,6 +543,79 @@ public class AdventureSimulatorTests
         Assert.Equal(3, run.Summary.MissionKills);
     }
 
+    private static MonsterDefinition Npc(string id = "npc", string? message = "我是信使") => new(
+        id, "信使", Level: 0, Hp: 0, Sp: 0, At: 0, Mat: 0, Df: 0, Mdf: 0, Agi: 0, Au: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+    {
+        MissionId = "visit",
+        Npc = true,
+        NpcMessage = message,
+    };
+
+    private static ActiveMission Visit(int required = 1) =>
+        TrackedMissions.Single("visit", "拜訪", "npc", Required: required, Progress: 0, AcceptedAt: From, ExpiresAt: null);
+
+    [Fact]
+    public void Adventure_NpcAdvancesMissionWithoutFight()
+    {
+        var hero = Hero();
+
+        var run = RunWithMissions(hero, seconds: 1, [Visit()], monsters: Npc());
+
+        Assert.Collection(
+            run.Events,
+            first => Assert.Equal(new NpcEncounterEvent(0, "npc", "信使", "我是信使"), first),
+            second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", 1, 1, false, true), second));
+        Assert.Equal((0, 0, 0, 0L, 0L, 1), (run.Summary.Fights, run.Summary.Wins, run.Summary.Losses, run.Summary.Exp, run.Summary.Money, run.Summary.MissionKills));
+        Assert.Equal(hero, run.Character);
+        TrackedMissions.AssertSame([Visit().WithProgress(1)], run.Missions);
+    }
+
+    [Fact]
+    public void Adventure_NpcTakesOneFightInterval()
+    {
+        var run = RunWithMissions(Hero(), seconds: 5, [Visit(required: 9)], monsters: Npc());
+
+        Assert.Equal([0.0, 2.0, 4.0], run.Events.OfType<NpcEncounterEvent>().Select(npc => npc.AtSeconds));
+        Assert.Equal(6.0, run.ConsumedSeconds);
+    }
+
+    [Fact]
+    public void Adventure_NpcWithFullTargetAddsNothing()
+    {
+        ActiveMission mission = new(
+            "visit", "拜訪", [new MissionTarget("npc", 5, 5), new MissionTarget("other-npc", 5, 0)], From, ExpiresAt: null);
+
+        var run = RunWithMissions(Hero(), seconds: 1, [mission], monsters: Npc());
+
+        Assert.IsType<NpcEncounterEvent>(Assert.Single(run.Events));
+        Assert.Equal(0, run.Summary.MissionKills);
+    }
+
+    // 只有遇敵的兩擲（rand(0,100)、候選索引），NPC 本身不擲
+    [Fact]
+    public void Adventure_NpcUsesOnlyEncounterRolls()
+    {
+        var random = new ScriptedRandom(0.0);
+
+        RunWithMissions(Hero(), seconds: 1, [Visit()], random: random, monsters: Npc());
+
+        Assert.Equal(2, random.Consumed);
+    }
+
+    // 地區有 NPC、但任務沒接：NPC 不在候選裡，擲骰序列與沒有 NPC 時完全相同
+    [Fact]
+    public void Adventure_NoNpcKeepsRollSequence()
+    {
+        var with = new ScriptedRandom(0.0);
+        var without = new ScriptedRandom(0.0);
+
+        var withNpc = RunWithMissions(Hero(), seconds: 10, [], random: with, monsters: [Sprite, Npc()]);
+        var withoutNpc = RunWithMissions(Hero(), seconds: 10, [], random: without, monsters: [Sprite]);
+
+        Assert.Equal(without.Consumed, with.Consumed);
+        Assert.Equal(withoutNpc.Summary, withNpc.Summary);
+    }
+
     // 8 場全打 test-sprite：另一個目標還沒滿，所以填滿這個目標時任務仍未完成
     [Fact]
     public void Adventure_MissionEventCompletedOnlyWhenAllTargetsFull()

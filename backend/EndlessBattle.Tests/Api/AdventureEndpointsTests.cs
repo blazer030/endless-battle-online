@@ -215,6 +215,44 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Advance_NpcEncounter_SavesProgress()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        (await client.PostAsJsonAsync("/api/missions/accept", new { missionId = "test-npc-visit" }, CancellationToken)).EnsureSuccessStatusCode();
+        factory.Clock.Advance(TimeSpan.FromMinutes(10));
+
+        var body = await AdvanceAsync(client);
+
+        Assert.Equal(1, body.GetProperty("summary").GetProperty("missionKills").GetInt32());
+        var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
+        var mission = board.GetProperty("active").EnumerateArray().Single(entry => entry.GetProperty("id").GetString() == "test-npc-visit");
+        Assert.Equal(1, mission.GetProperty("kills").EnumerateArray().Single().GetProperty("progress").GetInt32());
+        Assert.True(mission.GetProperty("ready").GetBoolean());
+    }
+
+    // 剛接取就遇到 NPC 的那批事件：npc 以 "npc" 為 discriminator 序列化，帶名稱與訊息
+    [Fact]
+    public async Task Advance_SerializesNpcEncounter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        (await client.PostAsJsonAsync("/api/missions/accept", new { missionId = "test-npc-visit" }, CancellationToken)).EnsureSuccessStatusCode();
+        JsonElement? npc = null;
+        for (var attempt = 0; attempt < 60 && npc is null; attempt++)
+        {
+            factory.Clock.Advance(TimeSpan.FromSeconds(10));
+            var found = EventsOfType(await AdvanceAsync(client), "npc");
+            npc = found.Count > 0 ? found[0] : null;
+        }
+
+        Assert.NotNull(npc);
+        Assert.Equal(
+            ("test-herald", "測試信使", "信送到了。"),
+            (npc.Value.GetProperty("monsterId").GetString(), npc.Value.GetProperty("name").GetString(), npc.Value.GetProperty("message").GetString()));
+    }
+
+    [Fact]
     public async Task Advance_Returns404_WhenNoCharacter()
     {
         await using var factory = new EndlessBattleApiFactory(database);
