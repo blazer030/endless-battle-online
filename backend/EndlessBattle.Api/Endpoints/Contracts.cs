@@ -107,8 +107,7 @@ public sealed record AdventureSettingsRequest(
     int? PotionSpPercent,
     int? RestHpPercent,
     int? RestSpPercent,
-    int? EscapeHpPercent,
-    string? SpecialAttackName);
+    int? EscapeHpPercent);
 
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 

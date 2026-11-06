@@ -15,14 +15,12 @@ const form = (overrides: Partial<SettingsForm> = {}): SettingsForm => ({
   restHpPercent: "15",
   restSpPercent: "15",
   escapeHpPercent: "0",
-  specialAttackName: "測試斬",
   ...overrides,
 })
 
 describe("settingsForm", () => {
   test("settingsForm_ConvertsCharacterSettingsToStrings", () => {
     const character = makeCharacter({
-      specialAttackName: "破軍",
       settings: {
         attack: "Magic",
         potionHpPercent: 30,
@@ -40,7 +38,6 @@ describe("settingsForm", () => {
       restHpPercent: "20",
       restSpPercent: "-1",
       escapeHpPercent: "10",
-      specialAttackName: "破軍",
     })
   })
 
@@ -62,7 +59,6 @@ describe("parseSettings", () => {
         restHpPercent: 15,
         restSpPercent: 15,
         escapeHpPercent: 100,
-        specialAttackName: "測試斬",
       },
     })
   })
@@ -92,7 +88,6 @@ describe("parseSettings", () => {
 describe("settingsErrorMessage", () => {
   test("settingsErrorMessage_TranslatesKnownReasons", () => {
     expect(settingsErrorMessage(["invalidPercent"], "fallback")).toBe(InvalidPercentMessage)
-    expect(settingsErrorMessage(["nameInvalid"], "fallback")).toBe("必殺技名稱必須是 1～8 個字")
     expect(settingsErrorMessage(["unknown"], "fallback")).toBe("fallback")
   })
 })

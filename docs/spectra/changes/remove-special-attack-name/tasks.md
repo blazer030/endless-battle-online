@@ -10,7 +10,7 @@
 
 ## 3. 設定
 
-- [ ] 3.1 依 Requirement「Nobody has a special attack name」，讓設定不再收名稱。先寫失敗的 API 測試 `UpdateSettings_WithoutSpecialAttackName_SavesSettings`（門檻無效仍回 `invalidPercent`），再改 `AdventureSettingsRequest`、`CharacterEndpoints`、`CharacterService.UpdateSettingsAsync`，移除 `nameInvalid`。前端移除 `SettingsPanel` 的欄位、`game/settings.ts` 的表單欄位與錯誤文字，並重新產生 `schema.ts`，對應的 `SettingsPanel`、`AdventureScreen`、`settings` 測試一起更新。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 2.1]
+- [x] 3.1 依 Requirement「Nobody has a special attack name」，讓設定不再收名稱。先寫失敗的 API 測試 `UpdateSettings_WithoutSpecialAttackName_SavesSettings`（門檻無效仍回 `invalidPercent`），再改 `AdventureSettingsRequest`、`CharacterEndpoints`、`CharacterService.UpdateSettingsAsync`，移除 `nameInvalid`。前端移除 `SettingsPanel` 的欄位、`game/settings.ts` 的表單欄位與錯誤文字，並重新產生 `schema.ts`，對應的 `SettingsPanel`、`AdventureScreen`、`settings` 測試一起更新。以 `cd backend && dotnet test` 與 `cd frontend && pnpm check` 驗證。 [after: 2.1]
 
 ## 4. 角色
 

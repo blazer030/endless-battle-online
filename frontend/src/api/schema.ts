@@ -2225,7 +2225,6 @@ export interface components {
             restSpPercent: null | number;
             /** Format: int32 */
             escapeHpPercent: null | number;
-            specialAttackName: null | string;
         };
         AdventureSettingsResponse: {
             attack: null | components["schemas"]["AttackKind"];

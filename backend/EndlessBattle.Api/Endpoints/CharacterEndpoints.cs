@@ -38,14 +38,14 @@ public static class CharacterEndpoints
             if (request is not
                 {
                     PotionHpPercent: { } potionHp, PotionSpPercent: { } potionSp, RestHpPercent: { } restHp, RestSpPercent: { } restSp,
-                    EscapeHpPercent: { } escapeHp, SpecialAttackName: { } specialAttackName,
+                    EscapeHpPercent: { } escapeHp,
                 })
             {
                 throw new InputValidationException("設定資料不完整");
             }
 
             var settings = new AdventureSettings(request.Attack, potionHp, potionSp, restHp, restSp, escapeHp);
-            var profile = await service.UpdateSettingsAsync(user.GetAccountId(), settings, specialAttackName, cancellationToken);
+            var profile = await service.UpdateSettingsAsync(user.GetAccountId(), settings, cancellationToken);
             return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
 

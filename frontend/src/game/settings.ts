@@ -11,7 +11,6 @@ export type SettingsForm = {
   restHpPercent: string
   restSpPercent: string
   escapeHpPercent: string
-  specialAttackName: string
 }
 
 export type ParsedSettings =
@@ -28,7 +27,6 @@ export const InvalidPercentMessage = "門檻必須是 -1～100 的整數（逃�
 
 const reasonTexts: Record<string, string> = {
   invalidPercent: InvalidPercentMessage,
-  nameInvalid: "必殺技名稱必須是 1～8 個字",
 }
 
 export const settingsErrorMessage = (reasons: string[], fallback: string) =>
@@ -43,7 +41,6 @@ export const settingsForm = (character: CharacterView): SettingsForm => {
     restHpPercent: String(settings.restHpPercent),
     restSpPercent: String(settings.restSpPercent),
     escapeHpPercent: String(settings.escapeHpPercent),
-    specialAttackName: character.specialAttackName,
   }
 }
 
@@ -78,7 +75,6 @@ export const parseSettings = (form: SettingsForm): ParsedSettings => {
       restHpPercent,
       restSpPercent,
       escapeHpPercent,
-      specialAttackName: form.specialAttackName,
     },
   }
 }

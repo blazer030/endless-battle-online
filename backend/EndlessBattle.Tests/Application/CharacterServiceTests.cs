@@ -84,10 +84,9 @@ public class CharacterServiceTests
         await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, supply, 20, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(60));
 
-        var profile = await service.UpdateSettingsAsync(AccountId, Thirsty, " 新必殺 ", CancellationToken);
+        var profile = await service.UpdateSettingsAsync(AccountId, Thirsty, CancellationToken);
 
         Assert.Equal(Thirsty, profile.Character.Settings);
-        Assert.Equal("新必殺", profile.Character.SpecialAttackName);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(Thirsty, stored!.Settings);
         Assert.True(stored.LastSettledAt >= Now.AddSeconds(60));
@@ -112,31 +111,10 @@ public class CharacterServiceTests
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
-            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHpPercent = potionHpPercent }, "必殺", CancellationToken));
+            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHpPercent = potionHpPercent }, CancellationToken));
 
         Assert.Equal(["invalidPercent"], exception.Reasons);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal((0, Now, AdventureSettings.Default), (stored!.Version, stored.LastSettledAt, stored.Settings));
-    }
-
-    // 沿用創角規則：1～8 個字
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData("一二三四五六七八九")]
-    public async Task UpdateSettings_RejectsInvalidSpecialAttackName(string name)
-    {
-        var repository = new InMemoryCharacterRepository();
-        var clock = new FakeClock(Now);
-        var service = Service(repository, NoEquipment(), clock);
-        await repository.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, Now), CancellationToken);
-        clock.Advance(TimeSpan.FromSeconds(20));
-
-        var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
-            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default, name, CancellationToken));
-
-        Assert.Equal(["nameInvalid"], exception.Reasons);
-        var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal((0, Now, "必殺"), (stored!.Version, stored.LastSettledAt, stored.SpecialAttackName));
     }
 }

@@ -436,9 +436,7 @@ test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
   fireEvent.click(button)
 
   const dialog = screen.getByRole("dialog", { name: "冒險設定" })
-  expect(within(dialog).getByRole("textbox", { name: "必殺技名稱" })).toHaveValue(
-    character.specialAttackName,
-  )
+  expect(within(dialog).getByRole("combobox", { name: "攻擊方式" })).toBeInTheDocument()
   fireEvent.click(within(dialog).getByRole("button", { name: "關閉" }))
   expect(screen.queryByRole("dialog", { name: "冒險設定" })).not.toBeInTheDocument()
 })

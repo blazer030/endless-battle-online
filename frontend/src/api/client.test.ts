@@ -192,7 +192,6 @@ test("updateSettings_PutsTheCommand", async () => {
     restHpPercent: 20,
     restSpPercent: -1,
     escapeHpPercent: 10,
-    specialAttackName: "破軍",
   }
 
   await client.updateSettings(command)

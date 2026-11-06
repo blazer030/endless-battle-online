@@ -5,7 +5,7 @@ import { ApiError } from "../api/client"
 import { makeCharacter } from "../test/fixtures"
 import { SettingsPanel, type SettingsApi } from "./SettingsPanel"
 
-const character = makeCharacter({ name: "青衣", specialAttackName: "烈焰斬" })
+const character = makeCharacter({ name: "青衣" })
 
 const renderPanel = (
   api: SettingsApi = { updateSettings: vi.fn().mockResolvedValue(character) },
@@ -37,7 +37,7 @@ test("SettingsPanel_ShowsCurrentValues", () => {
   expect(within(dialog).getByRole("textbox", { name: "住宿 HP 門檻" })).toHaveValue("15")
   expect(within(dialog).getByRole("textbox", { name: "住宿 SP 門檻" })).toHaveValue("15")
   expect(within(dialog).getByRole("textbox", { name: "逃跑 HP 門檻" })).toHaveValue("0")
-  expect(within(dialog).getByRole("textbox", { name: "必殺技名稱" })).toHaveValue("烈焰斬")
+  expect(within(dialog).queryByRole("textbox", { name: "必殺技名稱" })).not.toBeInTheDocument()
   expect(dialog).toHaveTextContent("自動住宿(-1表示略過條件)")
   expect(dialog).toHaveTextContent(
     "恢復道具的 -1 也表示略過條件；SP 預設 100% 時，SP 全滿不會使用恢復道具。",
@@ -45,7 +45,7 @@ test("SettingsPanel_ShowsCurrentValues", () => {
 })
 
 test("SettingsPanel_SavesAndReportsTheCharacter", async () => {
-  const saved = makeCharacter({ name: "青衣", specialAttackName: "烈焰斬" })
+  const saved = makeCharacter({ name: "青衣" })
   const { api, dialog, onCharacterChanged, onClose } = renderPanel({
     updateSettings: vi.fn().mockResolvedValue(saved),
   })
@@ -63,7 +63,6 @@ test("SettingsPanel_SavesAndReportsTheCharacter", async () => {
     restHpPercent: 15,
     restSpPercent: 15,
     escapeHpPercent: 0,
-    specialAttackName: "烈焰斬",
   })
   expect(onCharacterChanged).toHaveBeenCalledWith(saved)
   expect(onClose).toHaveBeenCalled()

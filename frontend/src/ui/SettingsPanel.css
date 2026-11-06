@@ -63,7 +63,6 @@ label.settings__row {
 }
 
 .settings__percent,
-.settings__name,
 .settings__select {
   padding: 4px 6px;
   border: 1px solid var(--border);
@@ -81,13 +80,7 @@ label.settings__row {
   text-align: center;
 }
 
-.settings__name {
-  flex: 1;
-  min-width: 0;
-}
-
 .settings__percent:focus-visible,
-.settings__name:focus-visible,
 .settings__select:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 1px;

@@ -33,7 +33,7 @@ const describeError = (error: unknown) => {
 const attackChoiceOf = (value: string): AttackChoice =>
   attackChoices.find((choice) => choice.value === value)?.value ?? "auto"
 
-type PercentField = Exclude<keyof SettingsForm, "attack" | "specialAttackName">
+type PercentField = Exclude<keyof SettingsForm, "attack">
 
 // 文案照 WOG js/wog_fight.js 的戰鬥設定
 export function SettingsPanel({ api, character, onCharacterChanged, onClose }: Props) {
@@ -107,15 +107,6 @@ export function SettingsPanel({ api, character, onCharacterChanged, onClose }: P
         <p className="settings__row">
           HP低於 {percent("escapeHpPercent", "逃跑 HP 門檻")} %逃離戰鬥
         </p>
-        <label className="settings__row">
-          必殺技名稱
-          <input
-            className="settings__name"
-            type="text"
-            value={form.specialAttackName}
-            onChange={(event) => setForm({ ...form, specialAttackName: event.target.value })}
-          />
-        </label>
         <p className="settings__note">
           恢復道具的 -1 也表示略過條件；SP 預設 100% 時，SP 全滿不會使用恢復道具。
         </p>

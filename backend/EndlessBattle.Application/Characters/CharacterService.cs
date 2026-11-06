@@ -79,38 +79,19 @@ public sealed class CharacterService(
 
     // 先以舊設定把經過的時間結算到現在（新設定不回溯），再以結算後的版本寫入新設定；推進或寫入撞版本都丟 ConflictException
     public async Task<CharacterProfile> UpdateSettingsAsync(
-        long accountId, AdventureSettings settings, string specialAttackName, CancellationToken cancellationToken)
+        long accountId, AdventureSettings settings, CancellationToken cancellationToken)
     {
         await FindCharacterAsync(accountId, cancellationToken);
         var reasons = settings.Validate().ToList();
-        var trimmedName = TrimmedSpecialAttackName(specialAttackName);
-        if (trimmedName is null)
-        {
-            reasons.Add("nameInvalid");
-        }
-
-        if (trimmedName is null || reasons.Count > 0)
+        if (reasons.Count > 0)
         {
             throw new InputValidationException("設定無效", reasons);
         }
 
         var settled = await adventure.AdvanceAsync(accountId, cancellationToken);
         var updated = await characters.UpdateAsync(
-            settled.Character with { Settings = settings, SpecialAttackName = trimmedName }, cancellationToken);
+            settled.Character with { Settings = settings }, cancellationToken);
         return new CharacterProfile(updated, settled.JobProficiency, settled.Equipment);
-    }
-
-    // 沿用創角規則；不符時回 null
-    private static string? TrimmedSpecialAttackName(string name)
-    {
-        try
-        {
-            return CharacterFactory.ValidateSpecialAttackName(name);
-        }
-        catch (CharacterCreationException)
-        {
-            return null;
-        }
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>

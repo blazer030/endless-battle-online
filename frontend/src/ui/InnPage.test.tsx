@@ -133,7 +133,6 @@ test("InnPage_SavesRestThresholdsWithTheFullSettings", async () => {
   const api = createFakeApi()
   const character = makeCharacter({
     money: 1300,
-    specialAttackName: "星落",
     settings: {
       attack: "Magic",
       potionHpPercent: 20,
@@ -157,7 +156,6 @@ test("InnPage_SavesRestThresholdsWithTheFullSettings", async () => {
     restHpPercent: 40,
     restSpPercent: 15,
     escapeHpPercent: 5,
-    specialAttackName: "星落",
   })
   expect(onCharacterChanged).toHaveBeenCalled()
 })

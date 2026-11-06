@@ -275,8 +275,8 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(name, body.GetProperty("name").GetString());
     }
 
-    private static object SettingsBody(string? attack = "Magic", int potionHp = 30, int potionSp = -1, int restHp = 20, int restSp = -1, int escapeHp = 10, string specialAttackName = "破軍") =>
-        new { attack, potionHpPercent = potionHp, potionSpPercent = potionSp, restHpPercent = restHp, restSpPercent = restSp, escapeHpPercent = escapeHp, specialAttackName };
+    private static object SettingsBody(string? attack = "Magic", int potionHp = 30, int potionSp = -1, int restHp = 20, int restSp = -1, int escapeHp = 10) =>
+        new { attack, potionHpPercent = potionHp, potionSpPercent = potionSp, restHpPercent = restHp, restSpPercent = restSp, escapeHpPercent = escapeHp };
 
     [Fact]
     public async Task Settings_UpdateAndReadBack()
@@ -298,7 +298,42 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             """{"attack":"Magic","potionHpPercent":30,"potionSpPercent":-1,"restHpPercent":20,"restSpPercent":-1,"escapeHpPercent":10}""",
             me.GetProperty("settings").GetRawText());
         Assert.Equal(body.GetProperty("settings").GetRawText(), me.GetProperty("settings").GetRawText());
-        Assert.Equal("破軍", me.GetProperty("specialAttackName").GetString());
+    }
+
+    [Fact]
+    public async Task UpdateSettings_WithoutSpecialAttackName_SavesSettings()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
+
+        var saved = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(potionHp: 42), CancellationToken);
+        var refused = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(potionHp: 101), CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var body = await saved.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(42, body.GetProperty("settings").GetProperty("potionHpPercent").GetInt32());
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
+        var problem = await refused.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("invalidPercent", problem.GetProperty("reasons")[0].GetString());
+    }
+
+    // 舊客戶端還會送這個欄位：直接忽略，不回錯誤
+    [Fact]
+    public async Task UpdateSettings_WithOldSpecialAttackNameField_IgnoresIt()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
+        var oldClientBody = new
+        {
+            attack = "Magic", potionHpPercent = 42, potionSpPercent = -1, restHpPercent = 20, restSpPercent = -1, escapeHpPercent = 10,
+            specialAttackName = "破軍",
+        };
+
+        var response = await client.PutAsJsonAsync("/api/characters/me/settings", oldClientBody, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
