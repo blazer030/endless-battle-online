@@ -11,11 +11,17 @@ public static class Synthesis
 {
     public const long CostPerAttempt = 1000;
 
-    // 原因代碼依序為 invalidQuantity、missingMaterials、notEnoughMoney、bagFull，只回第一個。
+    // 原因代碼依序為 missionIncomplete、invalidQuantity、missingMaterials、notEnoughMoney、bagFull，只回第一個。
     // bag 是整個背包（不含已裝備的列）。金錢與背包都以全部成功估算，避免擲完才發現付不出或放不下
     public static IReadOnlyList<string> Check(
-        Recipe recipe, int attempts, IReadOnlyList<InventoryEntry> bag, long money, int bagBonus, Func<string, ItemDefinition> getItem)
+        Recipe recipe, int attempts, IReadOnlyList<InventoryEntry> bag, long money, int bagBonus, Func<string, ItemDefinition> getItem,
+        IReadOnlySet<string>? completedMissionIds = null)
     {
+        if (recipe.RequiredMissionId is { } missionId && completedMissionIds?.Contains(missionId) != true)
+        {
+            return ["missionIncomplete"];
+        }
+
         var materials = CheckMaterials(recipe, attempts, bag);
         if (materials.Count > 0)
         {

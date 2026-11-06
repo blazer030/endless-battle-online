@@ -804,8 +804,11 @@ public class JsonGameContentTests
         Assert.Equal(1, stone.BoxClass);
         Assert.Equal((ConsumableKind.StoneBox, 1), (content.GetItem("test-stone-box").Consumable, content.GetItem("test-stone-box").Amount));
 
-        var recipe = Assert.Single(content.AllRecipes);
+        Assert.Equal(["test-forge-sword", "test-forge-locked"], content.AllRecipes.Select(entry => entry.Id));
+        var recipe = content.AllRecipes[0];
         Assert.Same(recipe, content.GetRecipe("test-forge-sword"));
+        Assert.Null(recipe.RequiredMissionId);
+        Assert.Equal("test-hunt", content.GetRecipe("test-forge-locked").RequiredMissionId);
         Assert.Equal(("test-sword", 1, 70), (recipe.ResultItemId, recipe.ResultQuantity, recipe.SuccessRate));
         Assert.Equal([("test-ore", 3)], recipe.Materials);
     }
@@ -1326,6 +1329,33 @@ public class JsonGameContentTests
         var missions = ReplaceOnce(ValidMissionList, "\"id\": \"chief-hunt\",", "\"id\": \"chief-hunt\", \"deliverPet\": \"chief\",");
 
         Assert.Contains("deliverPet", MissionRejection(missions, ChiefAsNpc()));
+    }
+
+    private const string HerbRecipe =
+        """{ "id": "brew", "resultItemId": "herb", "resultQuantity": 1, "materials": [{ "itemId": "herb", "quantity": 1 }], "successRate": 100, "requiredMissionId": "{0}" }""";
+
+    private static string RecipeRejection(string missionId) => WithMissionContent(ValidMissionList, MissionMonsters, directory =>
+    {
+        File.WriteAllText(Path.Combine(directory, "recipes.json"), $$"""{ "recipes": [{{HerbRecipe.Replace("{0}", missionId)}}] }""");
+        return Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory)).Message;
+    });
+
+    [Fact]
+    public void Recipe_RejectsDailyPrerequisite() => Assert.Contains("daily", RecipeRejection("daily"));
+
+    [Fact]
+    public void Recipe_RejectsUnknownPrerequisite() => Assert.Contains("ghost", RecipeRejection("ghost"));
+
+    [Fact]
+    public void Recipe_LoadsItsPrerequisite()
+    {
+        var recipe = WithMissionContent(ValidMissionList, MissionMonsters, directory =>
+        {
+            File.WriteAllText(Path.Combine(directory, "recipes.json"), $$"""{ "recipes": [{{HerbRecipe.Replace("{0}", "hunt")}}] }""");
+            return JsonGameContent.Load(directory).GetRecipe("brew");
+        });
+
+        Assert.Equal("hunt", recipe.RequiredMissionId);
     }
 
     [Fact]

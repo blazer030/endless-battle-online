@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Domain.Missions;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
 using Microsoft.EntityFrameworkCore;
@@ -104,7 +105,8 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
 
         var recipes = (await client.GetFromJsonAsync<JsonElement>("/api/forge/recipes", CancellationToken)).EnumerateArray().ToList();
 
-        var recipe = Assert.Single(recipes);
+        Assert.Equal(["test-forge-sword", "test-forge-locked"], recipes.Select(entry => entry.GetProperty("id").GetString()));
+        var recipe = recipes[0];
         Assert.Equal("test-forge-sword", recipe.GetProperty("id").GetString());
         Assert.Equal("測試鐵劍", recipe.GetProperty("resultName").GetString());
         Assert.Equal(1, recipe.GetProperty("resultQuantity").GetInt32());
@@ -112,6 +114,62 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(1000, recipe.GetProperty("costPerAttempt").GetInt64());
         var material = Assert.Single(recipe.GetProperty("materials").EnumerateArray());
         Assert.Equal(("test-ore", "測試礦石", 3), (material.GetProperty("itemId").GetString(), material.GetProperty("name").GetString(), material.GetProperty("quantity").GetInt32()));
+    }
+
+    private async Task SeedMissionAsync(long characterId, MissionState state)
+    {
+        await using var context = database.CreateDbContext();
+        var now = DateTimeOffset.UtcNow;
+        await new MissionRepository(context).AddAsync(
+            characterId,
+            new MissionRecord("test-hunt", state, [3], null, now, state == MissionState.Completed ? now : null),
+            CancellationToken);
+    }
+
+    private async Task AssertLockedAsync(HttpClient client)
+    {
+        Assert.Equal(
+            ["missionIncomplete"],
+            await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "test-forge-locked", attempts = 1 }, CancellationToken)));
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(2000, me.GetProperty("money").GetInt64());
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+        Assert.Equal(1, Items(inventory, "Material").EnumerateArray().Single().GetProperty("quantity").GetInt32());
+    }
+
+    [Fact]
+    public async Task Synthesize_RequiredMissionNotAccepted_Fails()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-ore");
+
+        await AssertLockedAsync(client);
+    }
+
+    [Fact]
+    public async Task Synthesize_RequiredMissionActive_Fails()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-ore");
+        await SeedMissionAsync(characterId, MissionState.Active);
+
+        await AssertLockedAsync(client);
+    }
+
+    [Fact]
+    public async Task Synthesize_RequiredMissionCompleted_Runs()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-ore");
+        await SeedMissionAsync(characterId, MissionState.Completed);
+
+        var result = await ReadAsync(await client.PostAsJsonAsync(
+            "/api/forge/synthesize", new { recipeId = "test-forge-locked", attempts = 1 }, CancellationToken));
+
+        Assert.Equal(1, result.GetProperty("successes").GetInt32());
     }
 
     // 新角色 2000 金錢：合成 2 次，材料全扣、成功幾次就多幾把劍、扣幾個 1000

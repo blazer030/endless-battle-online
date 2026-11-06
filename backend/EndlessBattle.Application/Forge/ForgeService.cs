@@ -2,9 +2,11 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Missions;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Forge;
 using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Missions;
 
 namespace EndlessBattle.Application.Forge;
 
@@ -22,6 +24,7 @@ public sealed class ForgeService(
     ICharacterRepository characters,
     IInventoryRepository inventory,
     IEquipmentRepository equipment,
+    IMissionRepository missions,
     IGameContent content,
     IRandomSourceFactory randomFactory,
     InventoryService inventoryService,
@@ -184,6 +187,12 @@ public sealed class ForgeService(
             return await inventoryService.GetAsync(accountId, cancellationToken);
         }, cancellationToken);
 
+    private async Task<IReadOnlySet<string>> CompletedMissionIdsAsync(long characterId, CancellationToken cancellationToken) =>
+        (await missions.ListAsync(characterId, cancellationToken))
+            .Where(record => record.State == MissionState.Completed)
+            .Select(record => record.MissionId)
+            .ToHashSet();
+
     // 合成（規則見 Synthesis）：金錢與背包先以全部成功檢查。花費取決於擲骰結果，所以先擲（不寫入），
     // 再以版本鎖扣錢（只算成功的次數），然後扣材料、放成品；衝突時什麼都不寫
     public Task<SynthesisResult> SynthesizeAsync(long accountId, string recipeId, int attempts, CancellationToken cancellationToken) =>
@@ -192,7 +201,8 @@ public sealed class ForgeService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方");
             var state = await LoadAsync(character.Id, cancellationToken);
-            Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem), "無法合成");
+            var completed = await CompletedMissionIdsAsync(character.Id, cancellationToken);
+            Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem, completed), "無法合成");
 
             var outcome = Synthesis.Attempt(recipe, attempts, state.Bag, randomFactory.Create());
             await characters.UpdateAsync(character with { Money = character.Money - outcome.Cost }, cancellationToken);

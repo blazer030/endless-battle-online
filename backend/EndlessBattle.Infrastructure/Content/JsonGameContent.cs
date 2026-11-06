@@ -272,6 +272,16 @@ public sealed class JsonGameContent : IGameContent
             ValidateMissionMonster(monster, missions);
         }
 
+        // 每日紀錄會過期，不能當前置
+        foreach (var recipe in allRecipes)
+        {
+            if (recipe.RequiredMissionId is { } requiredMissionId
+                && (!missions.TryGetValue(requiredMissionId, out var requiredMission) || requiredMission.Daily))
+            {
+                throw new GameContentException($"配方 {recipe.Id} 的 requiredMissionId 必須是存在的一般任務：{requiredMissionId}");
+            }
+        }
+
         var allMercenaries = mercenaryFile.Mercenaries.Select(ToMercenaryDefinition).ToList();
         var mercenaries = new Dictionary<string, MercenaryDefinition>();
         foreach (var mercenary in allMercenaries)
@@ -1529,7 +1539,7 @@ public sealed class JsonGameContent : IGameContent
             entry.ResultItemId,
             entry.ResultQuantity,
             entry.Materials.Select(material => (material.ItemId, material.Quantity)).ToList(),
-            entry.SuccessRate);
+            entry.SuccessRate) { RequiredMissionId = entry.RequiredMissionId };
 
     private static T Read<T>(string path) =>
         JsonSerializer.Deserialize<T>(File.ReadAllText(path), SerializerOptions)
@@ -1641,7 +1651,7 @@ public sealed class JsonGameContent : IGameContent
     private sealed record RecipeFile(IReadOnlyList<RecipeEntry> Recipes);
 
     private sealed record RecipeEntry(
-        string Id, string ResultItemId, int ResultQuantity, IReadOnlyList<MaterialEntry> Materials, int SuccessRate);
+        string Id, string ResultItemId, int ResultQuantity, IReadOnlyList<MaterialEntry> Materials, int SuccessRate, string? RequiredMissionId);
 
     private sealed record MaterialEntry(string ItemId, int Quantity);
 

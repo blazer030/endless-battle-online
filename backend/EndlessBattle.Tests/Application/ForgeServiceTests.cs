@@ -33,7 +33,7 @@ public class ForgeServiceTests
         unitOfWork = new InMemoryUnitOfWork(characters, inventory);
         var inventoryService = TestInventoryServices.Create(
             characters, inventory, equipment, Content, new FakeClock(DateTimeOffset.UnixEpoch), random, unitOfWork);
-        service = new ForgeService(characters, inventory, equipment, Content, random, inventoryService, unitOfWork);
+        service = new ForgeService(characters, inventory, equipment, new InMemoryMissionRepository(), Content, random, inventoryService, unitOfWork);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;

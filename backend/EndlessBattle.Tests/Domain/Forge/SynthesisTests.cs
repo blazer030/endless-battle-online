@@ -92,6 +92,27 @@ public class SynthesisTests
         Assert.Equal([TestItems.Entry(1, "ore", 0), TestItems.Entry(3, "ore", 5), TestItems.Entry(2, "dust", 4)], changed);
     }
 
+    [Fact]
+    public void Synthesis_RequiredMissionNotCompleted_ReportsFirst()
+    {
+        var locked = new Recipe("locked", "sword", 1, [("ore", 1)], 100) { RequiredMissionId = "mission-317" };
+
+        // 材料也不夠：前置任務的原因排在最前面
+        var reasons = Synthesis.Check(locked, 1, [], 100_000, bagBonus: 0, GetItem, completedMissionIds: new HashSet<string>());
+
+        Assert.Equal(["missionIncomplete"], reasons);
+    }
+
+    [Fact]
+    public void Synthesis_RequiredMissionCompleted_ChecksTheRest()
+    {
+        var locked = new Recipe("locked", "sword", 1, [("ore", 1)], 100) { RequiredMissionId = "mission-317" };
+
+        var reasons = Synthesis.Check(locked, 1, [], 100_000, bagBonus: 0, GetItem, completedMissionIds: new HashSet<string> { "mission-317" });
+
+        Assert.Equal(["missingMaterials"], reasons);
+    }
+
     private static IReadOnlyList<string> Check(Recipe recipe, int attempts, IReadOnlyList<InventoryEntry> bag, long money = 100_000) =>
         Synthesis.Check(recipe, attempts, bag, money, bagBonus: 0, GetItem);
 
