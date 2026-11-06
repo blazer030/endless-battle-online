@@ -444,14 +444,6 @@ test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
   expect(screen.queryByRole("dialog", { name: "冒險設定" })).not.toBeInTheDocument()
 })
 
-test("AdventureScreen_HasNoChampionButton", async () => {
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
-  await advanceTime(0)
-
-  expect(screen.getByRole("button", { name: "設定" })).toBeVisible()
-  expect(screen.queryByRole("button", { name: "冠軍" })).not.toBeInTheDocument()
-})
-
 test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
   const api = createFakeApi({
     ...response,

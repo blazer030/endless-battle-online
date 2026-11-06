@@ -21,7 +21,7 @@
 ## 6. 匯入與文件
 
 - [x] 6.1 依 Requirement「Custom content without an original counterpart is kept」，先改 `WogImportTests`：拿掉 `champion.json` 必須在保留清單的斷言，改成失敗斷言 `gaps.md` 不提到 `champion.json`、`backend/content` 沒有這個檔案。再改 `scripts/import-wog45.py` 的 `KEPT_CONTENT_FILES`，執行 `python3 -I scripts/import-wog45.py` 重新產生 `gaps.md`，測試轉綠後 commit；再跑一次腳本，以 `git diff --exit-code backend/content docs/research/wog45/gaps.md` exit code 0 確認沒有變動。 [after: 4.1]
-- [ ] 6.2 依「不留防回歸測試」與「舊文件保留原樣」，刪除 `backend/EndlessBattle.Tests/Api/RemovedRoutesTests.cs`、`AdventureScreen_HasNoChampionButton`、`Load_WithoutChampionFile_Succeeds` 與 `WogImportTests` 裡提到 `champion.json` 的兩條斷言，並拿掉 `README.md` 的冠軍列，`docs/superpowers`、`docs/research` 不動。以 `git grep -i -E 'champion|冠軍' -- backend frontend/src admin/src scripts CLAUDE.md README.md ':!backend/db/ddl'` 沒有輸出確認；有輸出就回頭處理。 [after: 2.1, 5.1, 6.1]
+- [x] 6.2 依「不留防回歸測試」與「舊文件保留原樣」，刪除 `backend/EndlessBattle.Tests/Api/RemovedRoutesTests.cs`、`AdventureScreen_HasNoChampionButton`、`Load_WithoutChampionFile_Succeeds` 與 `WogImportTests` 裡提到 `champion.json` 的兩條斷言，並拿掉 `README.md` 的冠軍列，`docs/superpowers`、`docs/research` 不動。以 `git grep -i -E 'champion|冠軍' -- backend frontend/src admin/src scripts CLAUDE.md README.md ':!backend/db/ddl'` 沒有輸出確認；有輸出就回頭處理。 [after: 2.1, 5.1, 6.1]
 
 ## 7. 收尾
 

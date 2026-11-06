@@ -1447,18 +1447,6 @@ public class JsonGameContentTests
             Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory)).Message);
 
     [Fact]
-    public void Load_WithoutChampionFile_Succeeds()
-    {
-        var content = WithCompanionContent(ValidMercenaryList, ValidExchangeList, directory =>
-        {
-            Assert.False(File.Exists(Path.Combine(directory, "champion.json")));
-            return JsonGameContent.Load(directory);
-        });
-
-        Assert.Equal(["hireling", "veteran"], content.AllMercenaries.Select(mercenary => mercenary.Id));
-    }
-
-    [Fact]
     public void Companions_AcceptValidSample()
     {
         var content = WithCompanionContent(ValidMercenaryList, ValidExchangeList, JsonGameContent.Load);

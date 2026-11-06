@@ -17,7 +17,6 @@
 | 道具與經濟 | 背包、商店、販售、倉庫、銀行、補給品、精鍊／鑲嵌／合成（含異類精鍊石合成）；魔石寶箱、精鍊寶盒、寵物蛋、心得書、經驗膠囊、密藥 | [背包](docs/superpowers/screenshots/plan-7-bag.png)、[消耗品](docs/superpowers/screenshots/plan-10-consumables.png) |
 | 任務 | 一般任務、每日任務（台北時間 09:00 重置）、殺怪計數與交付 | [任務](docs/superpowers/screenshots/plan-8-missions.png) |
 | 同伴 | 捕捉、餵食寵物並帶著參戰；傭兵在背景打自己的時間軸；勳章所兌換道具與傭兵 | [寵物](docs/superpowers/screenshots/plan-9-pets.png)、[舞台上的寵物](docs/superpowers/screenshots/plan-9-stage-pet.png)、[傭兵](docs/superpowers/screenshots/plan-9-mercenary.png) |
-| 冠軍 | 每個角色一個冠軍席位，挑戰 NPC 冠軍或自己過去的快照，勝者鎖 7 天 | [冠軍](docs/superpowers/screenshots/plan-9-champion.png) |
 | 冒險設定 | WOG 戰鬥設定面板：攻擊方式、補給／住宿／逃跑門檻、必殺技名稱 | [設定](docs/superpowers/screenshots/plan-10-settings.png) |
 
 一鍵啟動後的畫面見 [plan-10-compose.png](docs/superpowers/screenshots/plan-10-compose.png)；較早的截圖（[計畫 2 冒險頁](docs/superpowers/screenshots/plan-2-adventure.png)、[計畫 3 冒險頁](docs/superpowers/screenshots/plan-3-adventure.png)、[計畫 3 主題](docs/superpowers/screenshots/plan-3-theme.png)）都在 `docs/superpowers/screenshots/`。
