@@ -29,6 +29,7 @@ export type StageEffect =
   | { type: "dropFloat"; text: string }
   | { type: "petRetire" }
   | { type: "monsterFade" }
+  | { type: "clearMonster" }
   | { type: "fade"; seconds: number }
 
 export const initialStageState: StageState = {
@@ -88,10 +89,11 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "reward":
     case "levelUp":
     case "mission":
-    case "npc":
     case "capture":
     case "escape":
       return state
+    case "npc":
+      return { ...state, monsterId: null, monsterHp: 0, monsterHpMax: 0 }
   }
 }
 
@@ -162,7 +164,7 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
     case "npc":
-      return [{ type: "plate", text: event.name, tone: "cyan" }]
+      return [{ type: "clearMonster" }, { type: "plate", text: event.name, tone: "cyan" }]
     case "petGuard":
       return petGuardEffects(event)
     case "petAttack":

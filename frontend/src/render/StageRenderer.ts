@@ -248,6 +248,12 @@ export class StageRenderer {
         case "monsterFade":
           gsap.to(this.monster.slot, { alpha: 0, duration: MonsterFadeSeconds, ease: "power1.in" })
           break
+        case "clearMonster":
+          // 讓還在等字型的 showEncounter 不會再把名稱寫回去
+          this.monsterToken++
+          this.monsterBar.label.text = ""
+          gsap.to(this.monster.slot, { alpha: 0, duration: MonsterFadeSeconds, ease: "power1.in" })
+          break
         case "fade":
           playFade(this.app.stage, effect.seconds)
           break

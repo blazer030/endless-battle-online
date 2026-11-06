@@ -429,8 +429,17 @@ describe("stageModel", () => {
       message: "我是倫魯",
       atSeconds: 2,
     }
-    expect(stageEffectsFor(npc)).toEqual([{ type: "plate", text: "倫魯", tone: "cyan" }])
-    expect(applyToStage(midFight, npc)).toBe(midFight)
+    expect(stageEffectsFor(npc)).toEqual([
+      { type: "clearMonster" },
+      { type: "plate", text: "倫魯", tone: "cyan" },
+    ])
+    // 上一隻怪物不留在舞台上，NPC 也沒有血條
+    expect(applyToStage(midFight, npc)).toEqual({
+      ...midFight,
+      monsterId: null,
+      monsterHp: 0,
+      monsterHpMax: 0,
+    })
   })
 
   it("stageEffectsFor_OneTargetFullOfSeveral_ShowsNoPlate", () => {
