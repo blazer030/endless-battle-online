@@ -500,3 +500,6 @@ docs/spectra/.vector-search.db*
 
 # admin 的內容草稿（發布後刪除）
 backend/content-draft/
+
+# codegraph 的本機程式碼索引
+.codegraph/
