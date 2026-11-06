@@ -42,9 +42,6 @@ export const initialStageState: StageState = {
   petActive: false,
 }
 
-// 必殺技名缺漏時的備用字
-const CriticalPlateText = "CRITICAL"
-
 export const applyToStage = (state: StageState, event: BattleEvent): StageState => {
   switch (event.type) {
     case "encounter":
@@ -105,19 +102,11 @@ const attackEffects = (event: AttackEvent): StageEffect[] => {
   }
   const stroke: StageEffect = event.kind === "Magic" ? { type: "beam" } : { type: "slash" }
   if (!event.hit) return [stroke, { type: "miss", side: "monster" }]
-  const effects: StageEffect[] = [
+  return [
     stroke,
     { type: "damageNumber", side: "monster", value: event.damage, critical: event.critical },
     { type: "hitShake", side: "monster" },
   ]
-  if (event.critical) {
-    effects.push({
-      type: "plate",
-      text: event.specialAttackName ?? CriticalPlateText,
-      tone: "gold",
-    })
-  }
-  return effects
 }
 
 const petGuardEffects = (event: PetGuardEvent): StageEffect[] => {

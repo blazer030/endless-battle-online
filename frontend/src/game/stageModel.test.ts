@@ -316,21 +316,19 @@ describe("stageModel", () => {
     ])
   })
 
-  it("stageEffectsFor_PlayerCritical_ShowsSpecialAttackPlate", () => {
-    expect(stageEffectsFor(attack({ critical: true, specialAttackName: "星落" }))).toEqual([
+  it("stageEffectsFor_PlayerCritical_ShowsNoPlate", () => {
+    expect(stageEffectsFor(attack({ critical: true, damage: 500 }))).toEqual([
       { type: "slash" },
-      { type: "damageNumber", side: "monster", value: 30, critical: true },
+      { type: "damageNumber", side: "monster", value: 500, critical: true },
       { type: "hitShake", side: "monster" },
-      { type: "plate", text: "星落", tone: "gold" },
     ])
   })
 
-  it("stageEffectsFor_PlayerCriticalWithoutName_FallsBackToCriticalPlate", () => {
-    expect(stageEffectsFor(attack({ critical: true, specialAttackName: null }))).toContainEqual({
-      type: "plate",
-      text: "CRITICAL",
-      tone: "gold",
-    })
+  it("stageEffectsFor_MonsterCritical_ShowsNoPlate", () => {
+    expect(stageEffectsFor(attack({ attacker: "Monster", critical: true, damage: 45 }))).toEqual([
+      { type: "damageNumber", side: "player", value: 45, critical: true },
+      { type: "hitShake", side: "player" },
+    ])
   })
 
   it("stageEffectsFor_PlayerMiss_ShowsMissOverMonster", () => {
