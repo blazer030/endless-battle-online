@@ -13,7 +13,6 @@ import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BagScreen } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
-import { ChampionPanel } from "./ChampionPanel"
 import { CharacterScreen } from "./CharacterScreen"
 import { CompanionsScreen } from "./CompanionsScreen"
 import { formatNumber } from "../game/format"
@@ -66,7 +65,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
   const [lines, setLines] = useState<LogLine[]>([])
   const [tab, setTab] = useState<Tab>("adventure")
   const [worldOpen, setWorldOpen] = useState(false)
-  const [championOpen, setChampionOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
   const [levelUpHint, setLevelUpHint] = useState<number | null>(null)
@@ -241,15 +239,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
             >
               設定
             </button>
-            <button
-              type="button"
-              className="adventure__champion"
-              aria-haspopup="dialog"
-              aria-expanded={championOpen}
-              onClick={() => setChampionOpen(true)}
-            >
-              冠軍
-            </button>
           </h1>
           {areaPassText !== null && <p className="adventure__pass">{areaPassText}</p>}
           <StageErrorBoundary>
@@ -273,14 +262,6 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
               character={character}
               onCharacterChanged={handleCharacterChange}
               onClose={() => setSettingsOpen(false)}
-            />
-          )}
-          {/* 每次打開才載入，冠軍的血量與衛冕次數都是最新的 */}
-          {championOpen && (
-            <ChampionPanel
-              api={api}
-              onCharacterChanged={handleCharacterChange}
-              onClose={() => setChampionOpen(false)}
             />
           )}
         </div>

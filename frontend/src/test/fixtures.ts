@@ -1,7 +1,6 @@
 import type {
   AdvanceSummary,
   CharacterView,
-  ChampionView,
   ContentNames,
   HonourShop,
   InventoryItem,
@@ -396,29 +395,5 @@ export const makeHonourShop = (overrides: Partial<HonourShop> = {}): HonourShop 
       affordable: true,
     },
   ],
-  ...overrides,
-})
-
-// 種子冠軍：王都冠軍 格雷德
-export const makeChampion = (overrides: Partial<ChampionView> = {}): ChampionView => ({
-  name: "王都冠軍 格雷德",
-  level: 30,
-  element: 1,
-  hp: 1400,
-  hpMax: 1400,
-  sp: 175,
-  spMax: 175,
-  at: 180,
-  mat: 25,
-  df: 150,
-  mdf: 40,
-  agi: 30,
-  au: 25,
-  isPlayer: false,
-  defenses: 0,
-  crownedAt: null,
-  lockedUntil: null,
-  fee: 500,
-  reasons: [],
   ...overrides,
 })

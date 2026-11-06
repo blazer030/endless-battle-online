@@ -4,7 +4,7 @@
 
 ## 2. 前端
 
-- [ ] 2.1 依「依相依順序由外往內移除」，讓冒險頁沒有冠軍。先把 `AdventureScreen_ChampionButtonOpensTheChampionDialog` 換成失敗測試 `AdventureScreen_HasNoChampionButton`，再移除按鈕與 `ChampionPanel`（含 CSS、測試）、`game/champion.ts`（含測試）、`api/client.ts` 的兩個呼叫、`game/types.ts` 的型別、`frontend/src/test/fixtures.ts` 的 `makeChampion`，以及 `App.test.tsx`、`useAdventureLoop.test.tsx`、`AdventureScreen.test.tsx` 的替身。以 `cd frontend && pnpm check` 驗證。
+- [x] 2.1 依「依相依順序由外往內移除」，讓冒險頁沒有冠軍。先把 `AdventureScreen_ChampionButtonOpensTheChampionDialog` 換成失敗測試 `AdventureScreen_HasNoChampionButton`，再移除按鈕與 `ChampionPanel`（含 CSS、測試）、`game/champion.ts`（含測試）、`api/client.ts` 的兩個呼叫、`game/types.ts` 的型別、`frontend/src/test/fixtures.ts` 的 `makeChampion`，以及 `App.test.tsx`、`useAdventureLoop.test.tsx`、`AdventureScreen.test.tsx` 的替身。以 `cd frontend && pnpm check` 驗證。
 
 ## 3. API 與服務
 

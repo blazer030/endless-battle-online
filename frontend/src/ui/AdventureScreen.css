@@ -142,8 +142,7 @@
   cursor: pointer;
 }
 
-.adventure__settings,
-.adventure__champion {
+.adventure__settings {
   margin-left: 4px;
   padding: 1px 8px;
   border: 1px solid var(--gold);
@@ -159,7 +158,6 @@
 }
 
 .adventure__settings:focus-visible,
-.adventure__champion:focus-visible,
 .adventure__location:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 1px;

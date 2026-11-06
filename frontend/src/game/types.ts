@@ -56,8 +56,6 @@ export type MercenaryReport = Schemas["MercenaryReportResponse"]
 export type HonourShop = Schemas["HonourShopResponse"]
 export type HonourExchange = Schemas["HonourExchangeResponse"]
 export type HonourCost = Schemas["HonourCostResponse"]
-export type ChampionView = Schemas["ChampionResponse"]
-export type ChampionChallenge = Schemas["ChampionChallengeResponse"]
 
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }

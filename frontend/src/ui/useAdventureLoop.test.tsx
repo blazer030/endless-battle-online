@@ -71,8 +71,6 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   dismissMercenary: vi.fn(),
   getHonourShop: vi.fn(),
   exchangeHonour: vi.fn(),
-  getChampion: vi.fn(),
-  challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
   getBuffs: vi.fn(),
   getInn: vi.fn(),

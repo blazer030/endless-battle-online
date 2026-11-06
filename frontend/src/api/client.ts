@@ -4,8 +4,6 @@ import type {
   BuffView,
   InnBookResult,
   InnView,
-  ChampionChallenge,
-  ChampionView,
   CharacterView,
   ContentNames,
   CreateCharacterCommand,
@@ -114,8 +112,6 @@ export type ApiClient = {
   dismissMercenary: () => Promise<MercenaryOverview>
   getHonourShop: () => Promise<HonourShop>
   exchangeHonour: (exchangeId: string) => Promise<HonourShop>
-  getChampion: () => Promise<ChampionView>
-  challengeChampion: () => Promise<ChampionChallenge>
   updateSettings: (command: AdventureSettingsCommand) => Promise<CharacterView>
   // 只含還沒到期的密藥
   getBuffs: () => Promise<BuffView[]>
@@ -281,11 +277,9 @@ export const createApiClient = (options: {
     getHonourShop: () => requestJson<HonourShop>("/api/honour", "GET"),
     exchangeHonour: (exchangeId) =>
       requestJson<HonourShop>("/api/honour/exchange", "POST", { exchangeId }),
-    getChampion: () => requestJson<ChampionView>("/api/champion", "GET"),
     getBuffs: () => requestJson<BuffView[]>("/api/characters/me/buffs", "GET"),
     getInn: () => requestJson<InnView>("/api/inn", "GET"),
     bookInn: (roomId) => requestJson<InnBookResult>("/api/inn/book", "POST", { roomId }),
-    challengeChampion: () => requestJson<ChampionChallenge>("/api/champion/challenge", "POST"),
     updateSettings: (command) =>
       requestJson<CharacterView>("/api/characters/me/settings", "PUT", command),
   }

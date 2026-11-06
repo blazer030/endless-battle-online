@@ -319,8 +319,6 @@ test("companionCalls_UseTheirEndpoints", async () => {
   await client.dismissMercenary()
   await client.getHonourShop()
   await client.exchangeHonour("honour-attack-stone")
-  await client.getChampion()
-  await client.challengeChampion()
 
   const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
     init.method,
@@ -342,8 +340,6 @@ test("companionCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/mercenaries/dismiss", undefined],
     ["GET", "/api/honour", undefined],
     ["POST", "/api/honour/exchange", { exchangeId: "honour-attack-stone" }],
-    ["GET", "/api/champion", undefined],
-    ["POST", "/api/champion/challenge", undefined],
   ])
 })
 

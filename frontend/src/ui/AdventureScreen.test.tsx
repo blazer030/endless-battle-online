@@ -12,7 +12,6 @@ import type {
 import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
 import {
-  makeChampion,
   makeCharacter,
   makeContent,
   makeHonourShop,
@@ -176,8 +175,6 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   dismissMercenary: vi.fn(),
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
   exchangeHonour: vi.fn(),
-  getChampion: vi.fn().mockResolvedValue(makeChampion()),
-  challengeChampion: vi.fn(),
   updateSettings: vi.fn(),
   getBuffs: vi.fn().mockResolvedValue([]),
   getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
@@ -447,22 +444,12 @@ test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
   expect(screen.queryByRole("dialog", { name: "冒險設定" })).not.toBeInTheDocument()
 })
 
-test("AdventureScreen_ChampionButtonOpensTheChampionDialog", async () => {
-  const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} />)
-  await advanceTime(0)
-  expect(api.getChampion).not.toHaveBeenCalled()
-
-  const button = screen.getByRole("button", { name: "冠軍" })
-  expect(button).toHaveAttribute("aria-expanded", "false")
-  fireEvent.click(button)
+test("AdventureScreen_HasNoChampionButton", async () => {
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   await advanceTime(0)
 
-  expect(api.getChampion).toHaveBeenCalledTimes(1)
-  const dialog = screen.getByRole("dialog", { name: "冠軍" })
-  expect(within(dialog).getByRole("article", { name: "王都冠軍 格雷德 Lv 30" })).toBeVisible()
-  fireEvent.click(within(dialog).getByRole("button", { name: "關閉" }))
-  expect(screen.queryByRole("dialog", { name: "冠軍" })).not.toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "設定" })).toBeVisible()
+  expect(screen.queryByRole("button", { name: "冠軍" })).not.toBeInTheDocument()
 })
 
 test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
