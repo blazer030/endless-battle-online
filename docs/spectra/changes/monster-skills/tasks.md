@@ -35,8 +35,15 @@
 
 - [x] 7.1 用正式內容量測 6 小時補算的時間，比較這次變更前後（基準 commit 是提案開始前的 `develop`），也跑 `Advance_SixHours_ReturnsSummaryQuickly`。數字寫進 `tasks.md` 的變更紀錄；增加超過 20% 就先回報使用者。驗證：變更紀錄有前後數字，測試的 2000 ms 上限沒有被放寬。 [after: 5.2]
 - [x] 7.2 跑 `BalanceTests` 與平衡報告，把怪物技能造成的變化記進變更紀錄，不改內容數值。測試失敗時只調整測試並寫明原因。`README.md` 的戰鬥列補上怪物技能與武器附帶技能。驗證：`BalanceTests` 通過，`git diff` 裡內容數值只有這次新增的欄位。 [after: 7.1]
-- [x] 7.3 手動驗證：在 375×667 用真實內容打帶技能的怪，確認戰報寫怪物施展技能、怪物上方有名牌、血量與回復正確、被暈眩時有提示；裝備有附帶技能的武器，確認背包顯示與戰鬥觸發不扣 SP。確認沒有水平捲動與主控台錯誤。驗證：截圖與結果寫進變更紀錄；若用攔截或測試資料強制觸發，要明白寫出。 [after: 4.3, 6.2, 7.2]
+- [x] 7.3 手動驗證：在 375×667 用真實內容打帶技能的怪，確認戰報寫怪物施展技能、怪物上方有名牌、血量與回復正確、被暈眩時有提示；裝備有附帶技能的武器，確認背包顯示與戰鬥觸發不扣 SP。確認沒有水平捲動與主控台錯誤。驗證：結果寫進變更紀錄（截圖只是當下的驗證畫面，不進 repo）；若用攔截或測試資料強制觸發，要明白寫出。 [after: 4.3, 6.2, 7.2]
 - [x] 7.4 `./scripts/check.sh` exit code 0。 [after: 7.3]
+
+## 8. 驗證後的修正
+
+- [x] 8.1 裝備頁點開欄位的面板顯示裝備中道具的明細，武器裝上後也看得到附帶技能（規格：The bag shows a weapon's skill）。先寫失敗測試 `BagScreen_EquippedWeaponPanelShowsItsSkill`。驗證：測試通過，375×667 畫面確認。 [after: 7.4]
+- [x] 8.2 匯入時沒有發動率的怪物技能不寫入並列在 `gaps.md`，文字不再出現 `rate None`（規格：Monster and weapon skills are imported）。先寫失敗測試 `Import_MonsterSkillWithoutRate_IsListedNotWritten`。驗證：測試通過，第二次匯入 `git diff --exit-code backend/content docs/research/wog45/gaps.md` 回 0。 [after: 7.4]
+- [x] 8.3 補強既有行為的測試：`Run_MonsterSkillDamage_SkipsPetGuard` 改用會讓代擋成立的擲骰，新增 `Run_WeaponSkillApplies_InMercenaryFight`，`Load_InvalidMonsterSkill_Throws` 的重複列檢查名稱。驗證：測試通過，前兩條在故意改壞程式時會失敗。 [after: 7.4]
+- [x] 8.4 `./scripts/check.sh` exit code 0。 [after: 8.1, 8.2, 8.3]
 
 ## 變更紀錄
 
@@ -81,7 +88,8 @@
 
 - 「SP 0 也能發動」沒有在瀏覽器驗到：測試角色先去住宿回滿了 SP，這條由 `Run_WeaponSkill_ActivatesWithoutSp` 涵蓋；瀏覽器只驗到 SP 消耗是 0。
 - 怪物回復與被暈眩是強制的，只驗呈現；實際觸發由後端測試涵蓋。
-- 「裝備」頁的欄位只顯示道具名稱（能力加成也沒有），所以裝備中的武器看不到附帶技能，要在背包清單或候選清單看。這是現有版面，這次沒有改。
+- 「裝備」頁的欄位列表只顯示道具名稱，是現有版面，這次沒有改；裝備中道具的明細改放在點開欄位的面板（8.1）。
 - 第 ① 段看到起始地區的飛兔（monster-9）對 Lv1 角色一下 100、暴擊 344，是已知的原版數值問題，不是這次變更造成的。
-- 測試用了 4 個一次性 `check...` 帳號，留在本機開發資料庫。Docker 的 `web`、`api` 容器（8080 埠）還是舊版，沒有重建。
+- 驗證後補了裝備頁的面板（8.1）：同樣改本機資料庫給測試角色武器，375×667 點開武器欄位，顯示能力加成與 `附帶技能 爆氣 Lv2（發動率 12%）`，沒有水平捲動。
+- 測試用了 5 個一次性 `check...` 帳號，留在本機開發資料庫。Docker 的 `web`、`api` 容器（8080 埠）還是舊版，沒有重建。
 
