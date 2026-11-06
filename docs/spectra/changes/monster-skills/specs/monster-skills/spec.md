@@ -26,7 +26,7 @@ The content file `monster-skills.json` SHALL list each monster's skills as rows 
 | level above the skill's maximum level | level too high |
 | rate 0 | rate below 1 |
 | rate 101 | rate above 100 |
-| two rows for `monster-1` and `skill-1` | duplicate skill |
+| two rows for `test-sprite` and `burst` | duplicate skill |
 
 - **WHEN** the content loads with one of these rows
 - **THEN** loading throws a `GameContentException` that names the monster or skill

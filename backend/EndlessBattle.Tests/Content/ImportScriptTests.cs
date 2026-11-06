@@ -50,6 +50,29 @@ public class ImportScriptTests
         }
     }
 
+    // 原版第 4、5 格沒有發動率，不會發動：不寫進 monster-skills.json，列在 gaps.md
+    [Fact]
+    public async Task Import_MonsterSkillWithoutRate_IsListedNotWritten()
+    {
+        var root = Directory.CreateTempSubdirectory("ebo-import-").FullName;
+        try
+        {
+            CopyImportInputs(root);
+            ChangeRecords(Path.Combine(root, "docs/research/wog45/data/monsters.json"), records =>
+                records.Single(record => record!["id"]!.GetValue<int>() == 1)!["skills"]![0]!["rate"] = null);
+
+            var (exitCode, error) = await RunAsync(Path.Combine(root, "scripts/import-wog45.py"));
+
+            Assert.True(exitCode == 0, error);
+            Assert.DoesNotContain("\"monster-1\"", File.ReadAllText(Path.Combine(root, "backend/content/monster-skills.json")));
+            Assert.Contains("| 1 | 史萊姆 | 技能 爆氣 Lv2（原版沒有發動率，不會發動） |", File.ReadAllText(Path.Combine(root, "docs/research/wog45/gaps.md")));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static async Task AssertImportStopsAsync(string file, Action<JsonArray> change, string message)
     {
         var root = Directory.CreateTempSubdirectory("ebo-import-").FullName;

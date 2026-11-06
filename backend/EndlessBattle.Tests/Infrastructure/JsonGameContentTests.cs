@@ -393,7 +393,7 @@ public class JsonGameContentTests
     [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 99, "rate": 10 }""", "test-sprite")]
     [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 0 }""", "test-sprite")]
     [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 101 }""", "test-sprite")]
-    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 10 }, { "monsterId": "test-sprite", "skillId": "burst", "level": 2, "rate": 20 }""", "重複")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 10 }, { "monsterId": "test-sprite", "skillId": "burst", "level": 2, "rate": 20 }""", "test-sprite＋burst 重複")]
     public void Load_InvalidMonsterSkill_Throws(string rows, string offendingText)
     {
         var exception = Assert.Throws<GameContentException>(() => LoadWithMonsterSkills(rows));

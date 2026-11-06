@@ -306,10 +306,11 @@ public class WogBattleMonsterSkillTests
         var starlight = Skill("星芒", [], new PercentDamageEffect(10, 0));
         var pet = new PetCombatant("小雪", Attack: 0, Magic: 0, Guard: 500, Activation: 35);
 
-        var outcome = WogBattle.Run(Player(), Monster(), null, [], null, new ScriptedRandom(LastRoll), pet, monsterSkills: [starlight]);
+        // 全部擲 1：代擋（1 < 35）隨時都能成立，技能傷害仍然直接打在玩家身上
+        var outcome = WogBattle.Run(Player(), Monster(), null, [], null, new ScriptedRandom(FirstRoll), pet, monsterSkills: [starlight]);
 
         Assert.Equal(900, outcome.Events.OfType<SkillEvent>().First().OpponentHpAfter);
-        Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
+        Assert.Empty(outcome.Events.TakeWhile(battleEvent => battleEvent is not AttackEvent).OfType<PetGuardEvent>());
     }
 
     [Fact]

@@ -343,10 +343,10 @@ def monster_skill_rows(monster, resolve_skill):
     """回傳 (monster-skills.json 的列, 沒有搬的欄位)；同一技能只留等級較高的一筆。"""
     rows, unsupported = {}, []
     for skill in monster.get("skills", []):
-        label = f"技能 {skill['name']} rate {skill['rate']}"
         if skill["rate"] is None:
-            unsupported.append(f"{label}（原版沒有發動率，不會發動）")
+            unsupported.append(f"技能 {skill['name']}（原版沒有發動率，不會發動）")
             continue
+        label = f"技能 {skill['name']} rate {skill['rate']}"
         grant = resolve_skill(skill["id"], skill["rate"])
         if grant is None:
             unsupported.append(f"{label}（技能沒有匯入）")

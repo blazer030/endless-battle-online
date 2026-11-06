@@ -22,6 +22,12 @@ The import SHALL write each imported monster's original skills to `monster-skill
 - **WHEN** the import runs
 - **THEN** `monster-skills.json` has 急影 once for `monster-139`, at level 2 with rate 16, and `gaps.md` lists 急影 Lv1 rate 19 under monster 139
 
+#### Scenario: A monster skill with no rate is listed, not written
+
+- **GIVEN** the original monster 1 史萊姆 whose skill 爆氣 Lv2 has no rate
+- **WHEN** the import runs
+- **THEN** `monster-skills.json` has no row for `monster-1`, and `gaps.md` lists 爆氣 Lv2 under monster 1 with the reason that it has no rate
+
 #### Scenario: A weapon's skill is imported
 
 - **GIVEN** the original item 1823 爆氣火斧 with skill 2, which is 爆氣 Lv2, at rate 12

@@ -2,6 +2,7 @@ using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
+using EndlessBattle.Domain.Items;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
@@ -41,9 +42,10 @@ public class MercenarySimulatorTests
         IReadOnlyList<MonsterDefinition>? monsters = null,
         Pet? pet = null,
         IReadOnlyList<ActiveMission>? missions = null,
-        IRandomSource? random = null) =>
+        IRandomSource? random = null,
+        IReadOnlyList<EquippedSkill>? skills = null) =>
         MercenarySimulator.Run(
-            character, Warrior, contract, definition ?? Full, monsters ?? [Dummy], skills: [], EquipmentBonus.Zero, pet, missions ?? [], Now,
+            character, Warrior, contract, definition ?? Full, monsters ?? [Dummy], skills ?? [], EquipmentBonus.Zero, pet, missions ?? [], Now,
             random ?? new ScriptedRandom(0.0));
 
     [Fact]
@@ -248,5 +250,21 @@ public class MercenarySimulatorTests
         var run = Run(Hero(), Contract(10, Now), monsters: [monster]);
 
         Assert.Equal(MercenaryFightResult.Lost, run.Fights.Single().Result);
+    }
+
+    [Fact]
+    public void Run_WeaponSkillApplies_InMercenaryFight()
+    {
+        // 武器附帶的技能回合開頭削掉怪物全部 HP：傭兵本來打不贏血量這麼高的怪
+        var finisher = new SkillDefinition("星芒", "星芒", SkillType.Active, SkillTiming.BeforeAttack, "",
+            [new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 40)], [new SkillCost(SkillCostKind.SkillPoints, 9)], [new PercentDamageEffect(100, 0)])]);
+        var skills = SkillLoadout.WithWeaponSkill([], new WeaponSkillSpec("星芒", 1, 100), _ => finisher);
+        var tough = Monster("tough", hp: 10_000_000);
+
+        var without = Run(Hero(), Contract(10, Now), monsters: [tough]);
+        var with = Run(Hero(), Contract(10, Now), monsters: [tough], skills: skills);
+
+        Assert.NotEqual(MercenaryFightResult.Won, without.Fights.Single().Result);
+        Assert.Equal(MercenaryFightResult.Won, with.Fights.Single().Result);
     }
 }
