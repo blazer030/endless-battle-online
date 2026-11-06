@@ -184,9 +184,12 @@ public static class AdventureSimulator
                     missionKills += kill.Advanced.Count;
                     if (keepEvents)
                     {
-                        events.AddRange(kill.Advanced.Select(mission => new MissionProgressEvent(
-                            fightEnd, mission.MissionId, mission.Title, mission.Targets[0].MonsterId, mission.Targets[0].Progress, mission.Targets[0].Required,
-                            mission.RequiresDelivery)));
+                        events.AddRange(kill.Advanced.Select(mission =>
+                        {
+                            var target = mission.Targets.First(candidate => candidate.MonsterId == definition.Id);
+                            return new MissionProgressEvent(
+                                fightEnd, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull);
+                        }));
                     }
                 }
 

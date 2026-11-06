@@ -88,6 +88,6 @@ public sealed record LevelUpEvent(double AtSeconds, int NewLevel, BaseStats Grow
 
 public sealed record RestEvent(double AtSeconds, long Cost, bool ExpPenalty, double WaitSeconds) : BattleEvent(AtSeconds);
 
-// 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付道具才能回報
+// 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付才能回報；Completed：所有擊殺目標都滿了
 public sealed record MissionProgressEvent(
-    double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required, bool RequiresDelivery) : BattleEvent(AtSeconds);
+    double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required, bool RequiresDelivery, bool Completed) : BattleEvent(AtSeconds);

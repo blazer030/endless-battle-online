@@ -1134,6 +1134,7 @@ public sealed class JsonGameContent : IGameContent
         Require(mission.DailyKills.Count == 0, "不是每日任務，不能有 dailyKills");
         Require(mission.DailyPets.Count == 0, "不是每日任務，不能有 dailyPets");
         Require(mission.DailyRewards.Count == 0, "不是每日任務，不能有 dailyRewards");
+        Require(mission.Kills.Select(kill => kill.MonsterId).Distinct().Count() == mission.Kills.Count, "的 kills 怪物重複");
         foreach (var fixedKill in mission.Kills)
         {
             var monster = RequireKill(fixedKill);

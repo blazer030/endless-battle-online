@@ -114,6 +114,27 @@ public class MissionBoardTests
         Assert.False(unfinished.Active.Single().Ready);
     }
 
+    [Theory]
+    [InlineData(3, 2, false)]
+    [InlineData(2, 3, false)]
+    [InlineData(3, 3, true)]
+    public void Ready_NeedsEveryTarget(int heroes, int summoners, bool ready)
+    {
+        var mission = General("mission-29") with { Kills = [new KillTarget("monster-111", 3), new KillTarget("monster-112", 3)] };
+        var objective = DailyMissions.Resolve(mission, Hero.Id, null);
+
+        Assert.Equal(ready, MissionBoard.Ready(objective, Active("mission-29") with { Progress = [heroes, summoners] }));
+    }
+
+    [Fact]
+    public void Ready_MissingProgressCountsAsZero()
+    {
+        var mission = General("mission-29") with { Kills = [new KillTarget("monster-111", 3), new KillTarget("monster-112", 3)] };
+        var objective = DailyMissions.Resolve(mission, Hero.Id, null);
+
+        Assert.False(MissionBoard.Ready(objective, Active("mission-29") with { Progress = [3] }));
+    }
+
     [Fact]
     public void Board_ReadyIsFalseForAvailableAndCompleted()
     {

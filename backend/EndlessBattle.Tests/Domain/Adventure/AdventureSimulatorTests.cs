@@ -543,6 +543,22 @@ public class AdventureSimulatorTests
         Assert.Equal(3, run.Summary.MissionKills);
     }
 
+    // 8 場全打 test-sprite：另一個目標還沒滿，所以填滿這個目標時任務仍未完成
+    [Fact]
+    public void Adventure_MissionEventCompletedOnlyWhenAllTargetsFull()
+    {
+        ActiveMission Double(int wolves) => new(
+            "test-double", "雙目標",
+            [new MissionTarget("test-sprite", Required: 1, Progress: 0), new MissionTarget("test-wolf", Required: 1, wolves)],
+            From, ExpiresAt: null);
+
+        var unfinished = Assert.Single(RunWithMissions(Hero(), seconds: 20, [Double(wolves: 0)]).Events.OfType<MissionProgressEvent>());
+        var finished = Assert.Single(RunWithMissions(Hero(), seconds: 20, [Double(wolves: 1)]).Events.OfType<MissionProgressEvent>());
+
+        Assert.Equal(("test-sprite", 1, 1, false), (unfinished.MonsterId, unfinished.Progress, unfinished.Required, unfinished.Completed));
+        Assert.Equal(("test-sprite", 1, 1, true), (finished.MonsterId, finished.Progress, finished.Required, finished.Completed));
+    }
+
     // 同上 8 場（開打即打完於 0、2.8、…、19.6 秒），任務在第 19 秒才接取：只有 19.6 秒那場計入
     [Fact]
     public void Adventure_CountsOnlyFightsAfterAcceptance()

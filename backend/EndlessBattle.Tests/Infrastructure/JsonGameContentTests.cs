@@ -1038,7 +1038,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
-                "test-pet-reward", "test-stone-reward",
+                "test-pet-reward", "test-double-hunt", "test-stone-reward",
             ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(
@@ -1178,6 +1178,26 @@ public class JsonGameContentTests
         var message = MissionFieldRejection(validField, invalidField);
         Assert.Contains(missionId, message);
         Assert.Contains(field, message);
+    }
+
+    [Fact]
+    public void Mission_RejectsRepeatedKillTarget()
+    {
+        var message = MissionFieldRejection(
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }]",
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }, { \"monsterId\": \"sprite\", \"count\": 1 }]");
+
+        Assert.Contains("重複", message);
+    }
+
+    [Fact]
+    public void Mission_RejectsKillTargetOutsidePlace()
+    {
+        var message = MissionFieldRejection(
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }]",
+            "\"kills\": [{ \"monsterId\": \"sprite\", \"count\": 3 }, { \"monsterId\": \"puff\", \"count\": 1 }]");
+
+        Assert.Contains("puff", message);
     }
 
     [Fact]

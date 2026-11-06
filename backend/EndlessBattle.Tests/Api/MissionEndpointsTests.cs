@@ -31,14 +31,14 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         client.PostAsJsonAsync($"/api/missions/{action}", new { missionId }, CancellationToken);
 
     // 直接寫入擊殺進度：計數要靠冒險推進，這裡跳過
-    private static async Task SetProgressAsync(EndlessBattleApiFactory factory, HttpClient client, string missionId, int progress)
+    private static async Task SetProgressAsync(EndlessBattleApiFactory factory, HttpClient client, string missionId, params int[] progress)
     {
         var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
         using var scope = factory.Services.CreateScope();
         var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
             .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
         await scope.ServiceProvider.GetRequiredService<IMissionRepository>()
-            .UpdateProgressAsync(character!.Id, missionId, [progress], CancellationToken);
+            .UpdateProgressAsync(character!.Id, missionId, progress, CancellationToken);
     }
 
     // 直接寫入寵物：取得寵物要靠捕捉，這裡跳過
@@ -117,6 +117,30 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(["tooMany"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    [Fact]
+    public async Task Complete_MultiKillMission_RequiresEveryTarget()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        (await PostAsync(client, "accept", "test-double-hunt")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-double-hunt", 2, 0);
+
+        var unfinished = await PostAsync(client, "complete", "test-double-hunt");
+        Assert.Equal(HttpStatusCode.BadRequest, unfinished.StatusCode);
+        Assert.Contains("objectiveIncomplete", await unfinished.Content.ReadAsStringAsync(CancellationToken));
+        var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
+        var active = board.GetProperty("active").EnumerateArray().Single(mission => mission.GetProperty("id").GetString() == "test-double-hunt");
+        Assert.Equal(
+            [("test-sprite", 2, 2), ("test-wolf", 1, 0)],
+            active.GetProperty("kills").EnumerateArray().Select(kill => (
+                kill.GetProperty("monsterId").GetString(), kill.GetProperty("count").GetInt32(), kill.GetProperty("progress").GetInt32())));
+
+        await SetProgressAsync(factory, client, "test-double-hunt", 2, 1);
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-double-hunt"));
+
+        Assert.Equal(["test-double-hunt"], Ids(completion.GetProperty("board"), "completed"));
     }
 
     [Fact]

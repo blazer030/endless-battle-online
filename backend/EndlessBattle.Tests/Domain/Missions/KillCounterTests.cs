@@ -91,6 +91,62 @@ public class KillCounterTests
         Assert.Empty(mismatched);
     }
 
+    private static readonly MissionDefinition FakesDefinition = new(
+        "mission-29", "公會", "冒牌傳說", "說明", "謝謝", 1, 1, false, [new KillTarget("monster-111", 3), new KillTarget("monster-112", 3)], [],
+        new MissionRequirements(), new MissionReward(0, []), [], []);
+
+    private static ActiveMission Fakes(int heroes, int summoners) => new(
+        "mission-29", "冒牌傳說",
+        [new MissionTarget("monster-111", Required: 3, heroes), new MissionTarget("monster-112", Required: 3, summoners)],
+        Accepted, ExpiresAt: null);
+
+    [Fact]
+    public void KillCounter_CountsTargetsSeparately()
+    {
+        var result = KillCounter.Apply([Fakes(heroes: 2, summoners: 1)], "monster-112", Now);
+
+        Assert.Equal([2, 2], result.Missions.Single().Targets.Select(target => target.Progress));
+        Assert.Equal([2, 2], result.Advanced.Single().Targets.Select(target => target.Progress));
+    }
+
+    [Fact]
+    public void KillCounter_FullTargetDoesNotCount()
+    {
+        var result = KillCounter.Apply([Fakes(heroes: 3, summoners: 1)], "monster-111", Now);
+
+        Assert.Equal([3, 1], result.Missions.Single().Targets.Select(target => target.Progress));
+        Assert.Empty(result.Advanced);
+    }
+
+    [Fact]
+    public void KillCounter_MissionStaysOpenUntilEveryTargetIsFull()
+    {
+        Assert.Contains("mission-29", KillCounter.SpawnableMissionIds([Fakes(heroes: 3, summoners: 2)], Now));
+        Assert.Empty(KillCounter.SpawnableMissionIds([Fakes(heroes: 3, summoners: 3)], Now));
+    }
+
+    [Fact]
+    public void KillCounter_TracksEveryTargetWithItsOwnProgress()
+    {
+        var mission = FakesDefinition;
+
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 1], null, Now, null)], [mission], characterId: 7);
+
+        Assert.Equal(
+            [new MissionTarget("monster-111", 3, 3), new MissionTarget("monster-112", 3, 1)],
+            tracked.Single().Targets);
+    }
+
+    [Fact]
+    public void KillCounter_DoesNotTrackMissionWithEveryTargetFull()
+    {
+        var mission = FakesDefinition;
+
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7);
+
+        Assert.Empty(tracked);
+    }
+
     // 擊殺加交付的混合任務帶上 RequiresDelivery，戰報才知道擊殺滿了還不能回報
     [Fact]
     public void KillCounter_TracksWhetherDeliveryIsRequired()

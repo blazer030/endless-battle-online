@@ -5,19 +5,22 @@ public sealed record KillResult(IReadOnlyList<ActiveMission> Missions, IReadOnly
 
 public static class KillCounter
 {
-    // 以這隻怪為目標、已接取、尚未達成且未過期的任務各 +1（WOG 同一隻怪只算到其中一個任務，裁定全部都算）
+    // 以這隻怪為目標、該目標未滿、已接取且未過期的任務各 +1（WOG 同一隻怪只算到其中一個任務，裁定全部都算）
     public static KillResult Apply(IReadOnlyList<ActiveMission> missions, string monsterId, DateTimeOffset killedAt)
     {
         var advanced = new List<ActiveMission>();
         var updated = missions.Select(mission =>
         {
-            var target = mission.Targets[0];
-            if (target.MonsterId != monsterId || !IsOpen(mission, killedAt))
+            var target = mission.Targets.FirstOrDefault(candidate => candidate.MonsterId == monsterId);
+            if (target is null || target.Full || !IsOpen(mission, killedAt))
             {
                 return mission;
             }
 
-            var next = mission with { Targets = [target with { Progress = target.Progress + 1 }] };
+            var next = mission with
+            {
+                Targets = mission.Targets.Select(candidate => candidate == target ? candidate with { Progress = candidate.Progress + 1 } : candidate).ToList(),
+            };
             advanced.Add(next);
             return next;
         }).ToList();
@@ -61,7 +64,7 @@ public static class KillCounter
 
     // 接取當下（含）起、嚴格早於 ExpiresAt 為止
     private static bool IsOpen(ActiveMission mission, DateTimeOffset at) =>
-        mission.Targets[0].Progress < mission.Targets[0].Required
+        !mission.TargetsFull
         && mission.AcceptedAt <= at
         && (mission.ExpiresAt is not { } expiresAt || at < expiresAt);
 }
