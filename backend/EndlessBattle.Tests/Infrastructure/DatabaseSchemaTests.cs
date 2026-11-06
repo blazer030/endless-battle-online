@@ -48,6 +48,20 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Empty(columns);
     }
 
+    [Fact]
+    public async Task Characters_HasNoSpecialAttackNameColumn()
+    {
+        await using var context = database.CreateDbContext();
+
+        var columns = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT COLUMN_NAME AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'characters' AND COLUMN_NAME = 'special_attack_name'
+            """).ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Empty(columns);
+    }
+
     // 同伴相關的時間欄位都是 DATETIME(6)
     [Fact]
     public async Task CompanionTables_HaveExpectedColumnTypes()

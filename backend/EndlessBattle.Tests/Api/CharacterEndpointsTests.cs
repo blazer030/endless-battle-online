@@ -37,6 +37,28 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
     // 戰士、配點 4/2/3/1 → Base (14,12,13,10,11,10,10)
     [Fact]
+    public async Task Create_WithoutSpecialAttackName_CreatesCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new
+        {
+            name = UniqueName("無名"),
+            sex = 1,
+            element = 3,
+            birth = 1,
+            jobId = "warrior",
+            allocation = new { str = 2, smart = 2, life = 2, agi = 2 },
+        };
+
+        var created = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var character = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.False(character.TryGetProperty("specialAttackName", out _));
+    }
+
+    [Fact]
     public async Task Create_ReturnsFullCharacter()
     {
         await using var factory = new EndlessBattleApiFactory(database);
@@ -50,7 +72,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(2000, body.GetProperty("money").GetInt64());
         Assert.Equal("warrior", body.GetProperty("jobId").GetString());
         Assert.Equal("測試戰士", body.GetProperty("jobName").GetString());
-        Assert.Equal("烈焰斬", body.GetProperty("specialAttackName").GetString());
         Assert.Equal(3, body.GetProperty("element").GetInt32());
         var stats = body.GetProperty("stats");
         Assert.Equal(14, stats.GetProperty("at").GetInt32());
@@ -116,7 +137,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             birth = 1,
             jobId = "warrior",
             allocation,
-            specialAttackName = "烈焰斬",
         };
 
         var response = await client.CreateCharacterAsync(body);
@@ -130,7 +150,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     [InlineData("element")]
     [InlineData("birth")]
     [InlineData("jobId")]
-    [InlineData("specialAttackName")]
     [InlineData("allocation")]
     public async Task Create_Returns400_WhenAnyFieldIsMissing(string missingField)
     {
@@ -144,7 +163,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             ["birth"] = 1,
             ["jobId"] = "warrior",
             ["allocation"] = new { str = 2, smart = 2, life = 2, agi = 2 },
-            ["specialAttackName"] = "烈焰斬",
         };
         body.Remove(missingField);
 
@@ -195,7 +213,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             birth,
             jobId,
             allocation = new { str = 2, smart = 2, life = 2, agi = 2 },
-            specialAttackName = "烈焰斬",
         };
 
         var response = await client.CreateCharacterAsync(body);

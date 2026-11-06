@@ -8,5 +8,4 @@ public sealed record CreateCharacterCommand(
     int Element,
     int Birth,
     string JobId,
-    StatAllocation Allocation,
-    string SpecialAttackName);
+    StatAllocation Allocation);

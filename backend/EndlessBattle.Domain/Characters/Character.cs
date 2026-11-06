@@ -13,7 +13,6 @@ public sealed record Character(
     int Element,
     int Birth,
     string JobId,
-    string SpecialAttackName,
     BaseStats Base,
     int Hp,
     int Sp,

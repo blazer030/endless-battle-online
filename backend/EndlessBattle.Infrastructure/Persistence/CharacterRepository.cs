@@ -72,7 +72,6 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.Element = (sbyte)character.Element;
         row.Birth = (sbyte)character.Birth;
         row.JobId = character.JobId;
-        row.SpecialAttackName = character.SpecialAttackName;
         row.BaseStr = character.Base.Str;
         row.BaseSmart = character.Base.Smart;
         row.BaseLife = character.Base.Life;
@@ -109,7 +108,6 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         Element: row.Element,
         Birth: row.Birth,
         JobId: row.JobId,
-        SpecialAttackName: row.SpecialAttackName,
         Base: new BaseStats(row.BaseStr, row.BaseSmart, row.BaseLife, row.BaseVit, row.BaseAgi, row.BaseAu, row.BaseBe),
         Hp: row.Hp,
         Sp: row.Sp,

@@ -47,8 +47,7 @@ public sealed record CreateCharacterRequest(
     int? Element,
     int? Birth,
     string? JobId,
-    StatAllocationRequest? Allocation,
-    string? SpecialAttackName);
+    StatAllocationRequest? Allocation);
 
 public sealed record StatAllocationRequest(int? Str, int? Smart, int? Life, int? Agi);
 
@@ -85,7 +84,6 @@ public sealed record CharacterResponse(
     int Birth,
     string JobId,
     string JobName,
-    string SpecialAttackName,
     StatsResponse Stats,
     BaseStatsResponse BaseStats,
     int PlaceId,

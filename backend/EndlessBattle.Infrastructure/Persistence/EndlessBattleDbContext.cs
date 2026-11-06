@@ -155,10 +155,6 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.Sp)
                 .HasDefaultValueSql("'25'")
                 .HasColumnName("sp");
-            entity.Property(e => e.SpecialAttackName)
-                .HasMaxLength(16)
-                .HasDefaultValueSql("'必殺'")
-                .HasColumnName("special_attack_name");
             entity.Property(e => e.Version).HasColumnName("version");
 
             entity.HasOne(d => d.Account).WithOne(p => p.Character)

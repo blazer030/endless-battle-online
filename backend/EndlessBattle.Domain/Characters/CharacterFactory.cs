@@ -1,4 +1,3 @@
-using System.Globalization;
 using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Domain.Characters;
@@ -14,10 +13,6 @@ public static class CharacterFactory
     public const int StartingLevel = 1;
     public const long StartingNextExp = 1000;
     public const int StartingJobTier = 1;
-    public const int MaximumSpecialAttackNameLength = 8;
-
-    // 資料庫欄位 VARCHAR(16) 以 code point 計算
-    private const int MaximumSpecialAttackNameCodePoints = 16;
 
     private const int SexCount = 2;
     private const int ElementCount = 6;
@@ -42,8 +37,6 @@ public static class CharacterFactory
             throw new CharacterCreationException("只能選擇初階職業");
         }
 
-        var specialAttackName = ValidateSpecialAttackName(command.SpecialAttackName);
-
         return new Character(
             Id: 0,
             AccountId: accountId,
@@ -56,7 +49,6 @@ public static class CharacterFactory
             Element: command.Element,
             Birth: command.Birth,
             JobId: job.Id,
-            SpecialAttackName: specialAttackName,
             Base: new BaseStats(
                 Str: allocation.Str + StartingBonus,
                 Smart: allocation.Smart + StartingBonus,
@@ -98,25 +90,5 @@ public static class CharacterFactory
         {
             throw new CharacterCreationException($"{label}選項無效");
         }
-    }
-
-    // 回傳去掉前後空白的名稱；不合規則時丟 CharacterCreationException
-    public static string ValidateSpecialAttackName(string name)
-    {
-        var trimmed = name.Trim();
-
-        // 以「文字單位」計算長度，組合字元與 emoji 都算一個字
-        var length = new StringInfo(trimmed).LengthInTextElements;
-        if (length < 1 || length > MaximumSpecialAttackNameLength)
-        {
-            throw new CharacterCreationException($"必殺技名稱必須是 1～{MaximumSpecialAttackNameLength} 個字");
-        }
-
-        if (trimmed.EnumerateRunes().Count() > MaximumSpecialAttackNameCodePoints)
-        {
-            throw new CharacterCreationException("必殺技名稱含有過多組合字元，請改用較簡單的字");
-        }
-
-        return trimmed;
     }
 }

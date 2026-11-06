@@ -35,8 +35,6 @@ public partial class Character
 
     public string JobId { get; set; } = null!;
 
-    public string SpecialAttackName { get; set; } = null!;
-
     public int BaseStr { get; set; }
 
     public int BaseSmart { get; set; }

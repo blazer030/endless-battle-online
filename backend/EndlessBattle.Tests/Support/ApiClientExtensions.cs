@@ -37,7 +37,6 @@ public static class ApiClientExtensions
             birth = 1,
             jobId,
             allocation = new { str, smart, life, agi },
-            specialAttackName = "烈焰斬",
         };
 
     public static async Task<HttpResponseMessage> CreateCharacterAsync(this HttpClient client, object body) =>

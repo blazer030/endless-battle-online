@@ -45,7 +45,7 @@ public class CharacterServiceTests
         var service = Service(new InMemoryCharacterRepository(), NoEquipment(), new FakeClock(Now));
 
         var character = await service.CreateAsync(
-            AccountId, new CreateCharacterCommand("墨客", 1, 1, 1, "warrior", new StatAllocation(4, 2, 3, 1), "烈焰斬"), CancellationToken);
+            AccountId, new CreateCharacterCommand("墨客", 1, 1, 1, "warrior", new StatAllocation(4, 2, 3, 1)), CancellationToken);
 
         Assert.Equal((Content.StartingPlaceId, Content.StartingSubPlace), (character.PlaceId, character.SubPlace));
     }

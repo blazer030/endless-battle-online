@@ -202,7 +202,7 @@ public sealed class BalanceReportService
 
     private static Character Create(IGameContent content, JobDefinition job) => CharacterFactory.Create(
         accountId: 1,
-        new CreateCharacterCommand("基準", Sex: 1, Element: 1, Birth: 1, job.Id, Allocation, "必殺"),
+        new CreateCharacterCommand("基準", Sex: 1, Element: 1, Birth: 1, job.Id, Allocation),
         job,
         content.StartingPlaceId,
         content.StartingSubPlace,

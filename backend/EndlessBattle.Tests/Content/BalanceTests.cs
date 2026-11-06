@@ -23,7 +23,7 @@ public class BalanceTests
         var job = Content.AllJobs.First(candidate => candidate.Tier == CharacterFactory.StartingJobTier);
         var character = CharacterFactory.Create(
             1,
-            new CreateCharacterCommand("基準", Sex: 1, element, Birth: 1, job.Id, allocation, "必殺"),
+            new CreateCharacterCommand("基準", Sex: 1, element, Birth: 1, job.Id, allocation),
             job,
             Content.StartingPlaceId,
             Content.StartingSubPlace,

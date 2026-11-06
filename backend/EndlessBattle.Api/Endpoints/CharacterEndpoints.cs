@@ -61,14 +61,13 @@ public static class CharacterEndpoints
             || request.Element is not { } element
             || request.Birth is not { } birth
             || request.JobId is null
-            || allocation is not { Str: { } str, Smart: { } smart, Life: { } life, Agi: { } agi }
-            || request.SpecialAttackName is null)
+            || allocation is not { Str: { } str, Smart: { } smart, Life: { } life, Agi: { } agi })
         {
             throw new InputValidationException("創角資料不完整");
         }
 
         return new CreateCharacterCommand(
-            request.Name, sex, element, birth, request.JobId, new StatAllocation(str, smart, life, agi), request.SpecialAttackName);
+            request.Name, sex, element, birth, request.JobId, new StatAllocation(str, smart, life, agi));
     }
 
     // Stats 是有效值（裸點 + 裝備），BaseStats 是裸點
@@ -94,7 +93,6 @@ public static class CharacterEndpoints
             character.Birth,
             character.JobId,
             content.GetJob(character.JobId).Name,
-            character.SpecialAttackName,
             new StatsResponse(
                 total.Str, total.Smart, total.Life, total.Vit, total.Agi, total.Au, total.Be,
                 derived.At, derived.Mat, derived.Df, derived.Mdf, derived.HpMax, derived.SpMax),

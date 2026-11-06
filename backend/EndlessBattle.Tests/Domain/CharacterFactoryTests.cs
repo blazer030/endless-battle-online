@@ -23,9 +23,8 @@ public class CharacterFactoryTests
         StatAllocation? allocation = null,
         int sex = 2,
         int element = 3,
-        int birth = 4,
-        string specialAttackName = "烈焰斬") =>
-        new("墨客", sex, element, birth, "warrior", allocation ?? new StatAllocation(4, 2, 3, 1), specialAttackName);
+        int birth = 4) =>
+        new("墨客", sex, element, birth, "warrior", allocation ?? new StatAllocation(4, 2, 3, 1));
 
     private static Character Create(CreateCharacterCommand command, JobDefinition? job = null) =>
         CharacterFactory.Create(AccountId, command, job ?? Warrior, StartingPlaceId, StartingSubPlace, Now);
@@ -46,7 +45,6 @@ public class CharacterFactoryTests
         Assert.Equal(2, character.Sex);
         Assert.Equal(3, character.Element);
         Assert.Equal(4, character.Birth);
-        Assert.Equal("烈焰斬", character.SpecialAttackName);
         Assert.Equal(AccountId, character.AccountId);
         Assert.Equal("墨客", character.Name);
         Assert.Equal(Now, character.LastSettledAt);
@@ -120,26 +118,6 @@ public class CharacterFactoryTests
     public void Create_RejectsNonStartingJob()
     {
         Assert.Throws<CharacterCreationException>(() => Create(Command() with { JobId = "berserker" }, Berserker));
-    }
-
-    [Theory]
-    [InlineData("  烈焰斬  ", "烈焰斬")]
-    [InlineData("斬", "斬")]
-    [InlineData("一二三四五六七八", "一二三四五六七八")]
-    public void Create_TrimsAndValidatesSpecialAttackName(string input, string expected)
-    {
-        Assert.Equal(expected, Create(Command(specialAttackName: input)).SpecialAttackName);
-    }
-
-    // 最後一筆：4 個組合 emoji 只算 4 字，但佔 20 個 code point，超過資料庫 VARCHAR(16)
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData("一二三四五六七八九")]
-    [InlineData("👨‍👩‍👧👨‍👩‍👧👨‍👩‍👧👨‍👩‍👧")]
-    public void Create_RejectsInvalidSpecialAttackName(string input)
-    {
-        Assert.Throws<CharacterCreationException>(() => Create(Command(specialAttackName: input)));
     }
 
     // TestCharacters.Default：Base (12,12,12,10,12,10,10) → At 12、Mat 12、Df 10、Mdf 10、
