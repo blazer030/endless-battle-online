@@ -32,10 +32,11 @@
 ## Impact
 
 - Domain：`backend/EndlessBattle.Domain/Battle`、`backend/EndlessBattle.Domain/Characters`
-- Application：`backend/EndlessBattle.Application/Characters/CharacterService.cs`
+- Application：`backend/EndlessBattle.Application/Characters/CharacterService.cs`、`backend/EndlessBattle.Application/Balance/BalanceReportService.cs`
 - Infrastructure：`backend/EndlessBattle.Infrastructure/Persistence`（重新 scaffold）
 - Api：`backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs`、`backend/EndlessBattle.Api/Endpoints/Contracts.cs`
 - Tests：`backend/EndlessBattle.Tests`
 - db：`backend/db/ddl` 新增一個 migration
 - frontend：`frontend/src/game`、`frontend/src/render`、`frontend/src/motion/timings.ts`、`frontend/src/ui`、`frontend/src/api/schema.ts`（重新產生）
 - 匯入：`scripts/import-wog45.py`、`docs/research/wog45/gaps.md`（重新產生）
+- 文件：`README.md` 的冒險設定列

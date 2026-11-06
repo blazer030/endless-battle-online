@@ -23,5 +23,13 @@
 
 ## 6. 收尾
 
-- [ ] 6.1 實際跑一次遊戲確認資料流：建立新角色（畫面沒有必殺技欄位）、開設定（沒有名稱欄位，門檻能存）、看角色資料頁（沒有必殺技列）、打一場戰鬥（文字戰報寫暴擊）。以 `pnpm dev` 搭配 Development API 手動確認。 [after: 1.3, 4.2]
-- [ ] 6.2 執行 `./scripts/check.sh`，確認 exit code 0。 [after: 5.1, 6.1]
+- [x] 6.1 實際跑一次遊戲確認資料流：建立新角色（畫面沒有必殺技欄位）、開設定（沒有名稱欄位，門檻能存）、看角色資料頁（沒有必殺技列）、打一場戰鬥（文字戰報寫暴擊）。以 `pnpm dev` 搭配 Development API 手動確認。 [after: 1.3, 4.2]
+- [x] 6.2 執行 `./scripts/check.sh`，確認 exit code 0。 [after: 5.1, 6.1]
+
+## 變更紀錄
+
+實作時多碰到任務沒有列出、但同樣用到名稱的地方：`BalanceReportService` 建立基準角色、`BalanceTests`、`InnPage.test.tsx`、`BattleLog.test.tsx` 的範例文字、`SettingsPanel.css` 的 `.settings__name`，以及 `README.md` 的冒險設定列。
+
+任務 3.1 另外新增 `UpdateSettings_WithOldSpecialAttackNameField_IgnoresIt`，釘住設計寫的「舊客戶端多送欄位時直接忽略」。
+
+設計估計的 7 位數傷害寬度已實際量過：靜止約 158 px，放大 1.5 倍約 237 px，在 375 寬不超出舞台，不用調低放大倍率。
