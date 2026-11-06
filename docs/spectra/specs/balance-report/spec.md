@@ -90,7 +90,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/layout/AdminSider.test.tsx
   - admin/src/content/ContentPages.test.tsx
   - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
@@ -182,7 +181,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/layout/AdminSider.test.tsx
   - admin/src/content/ContentPages.test.tsx
   - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
@@ -274,7 +272,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/layout/AdminSider.test.tsx
   - admin/src/content/ContentPages.test.tsx
   - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
@@ -365,7 +362,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/layout/AdminSider.test.tsx
   - admin/src/content/ContentPages.test.tsx
   - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
