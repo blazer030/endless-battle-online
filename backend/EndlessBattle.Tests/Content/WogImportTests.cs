@@ -146,6 +146,23 @@ public class WogImportTests
         Assert.Equal(new StatChangeEffect(SkillTarget.Caster, SkillStat.Evasion, null, -80, null, 1), hiddenWeapon.Effects[2]);
     }
 
+    // 假死 7 級：預設 Chance 30 + 10·lv，Stun 機率 2·lv，智力比對手高 +5、否則 −5，持續 1 回合；由刺客（job-14）學
+    [Fact]
+    public void Import_ApparentDeath_MatchesOriginal()
+    {
+        var skill = Content.GetSkill("skill-235");
+
+        Assert.Equal(("假死", 7), (skill.Name, skill.MaxLevel));
+        var first = skill.LevelAt(1);
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 40)], first.Conditions);
+        Assert.Equal([new SkillCost(SkillCostKind.SkillPoints, 9)], first.Costs);
+        Assert.Equal(new StunEffect(2, 1) { ChanceByStat = new SkillChanceAdjustment(SkillScalingBasis.Intelligence, 5) }, Assert.Single(first.Effects));
+        Assert.Equal(14, Assert.IsType<StunEffect>(Assert.Single(skill.LevelAt(7).Effects)).Chance);
+        Assert.True(Content.Teaches("job-14", "skill-235"));
+        // 只剩「沒有搬的欄位」裡的說明，不在「沒有匯入的紀錄」
+        Assert.DoesNotContain("智力比較會改變機率", Gaps);
+    }
+
     [Fact]
     public void Skills_PetSkillsAreListed()
     {

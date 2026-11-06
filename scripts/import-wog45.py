@@ -741,8 +741,11 @@ def restore(resource, **value):
     return {"kind": "Restore", "resource": resource, **value}
 
 
-def stun(chance):
-    return {"kind": "Stun", "chance": chance}
+def stun(chance, chance_by_stat=None):
+    effect = {"kind": "Stun", "chance": chance}
+    if chance_by_stat is not None:
+        effect["chanceByStat"] = chance_by_stat
+    return effect
 
 
 def silence(chance):
@@ -793,6 +796,8 @@ SKILL_TEMPLATES = {
     "滅世": (r"物攻提高#%，hp減少#%，命中提高#%",
              lambda attack, hp, hit: parts([stat("attack", percent=attack), stat("hitRate", amount=hit)], costs=[hp_cost(hp)])),
     "暈擊": (r"#%機率使敵人無法動作", lambda n: parts([stun(n)])),
+    "假死": (r"#%機率暫停敵人攻擊1回合，智力比敵人高會提高#%機率，智力比敵人低下降#%機率",
+             lambda n, higher, lower: parts([stun(n, {"stat": "intelligence", "percent": higher})])),
     "重擊": (r"#%物防轉換成物攻傷害值", lambda n: parts([bonus("Physical", scale(("defense", ratio(n))))])),
     "反擊": (r"減少物攻傷害#%，物攻上升#%", lambda damage, attack: parts([reduction("Physical", damage), stat("attack", percent=attack)])),
     # 原版是 SP 增加目前 SP 的 n%，HP 扣最大 HP 的 m%
@@ -882,7 +887,6 @@ TEAM_SKILLS = {"神頌曲", "地獄禮讚", "詐騙", "友情之舞"}
 EXCLUDED_SKILLS = {
     **{name: "寵物技能：等寵物系統的調整確定後再做" for name in PET_SKILLS},
     **{name: "組隊技能：本作沒有隊友" for name in TEAM_SKILLS},
-    "假死": "智力比較會改變機率：目錄沒有「條件改變機率」",
 }
 SKILL_NOTES = {
     "連擊": "「連續攻擊 n 次」是額外的次數，連擊總數 n + 1（與研究文件 at_count = lv + 1 一致）",
@@ -892,6 +896,7 @@ SKILL_NOTES = {
     "滅世": "原版是目前 HP 降為 (0.5 + 0.05·lv) 倍，本作是消耗最大 HP 的 n%（HP 不夠就不發動）",
     "星芒": "研究文件寫 (0.9 − 0.01·lv) 倍；原始碼與說明都是第 1 級 10%、每級 +1%，以說明為準",
     "鋒針陷阱": "說明的機率涵蓋全部效果，轉成 Chance 條件，暫停行動寫成 Stun 機率 100",
+    "假死": "原始碼是智力比對手高 +5，否則（含相等）−5；說明寫的「比敵人低」與程式不完全相同，以程式為準",
     "暴雪": "「固定攻擊傷害加成」沒寫物攻或魔攻，寫成 Any",
     "劍雨": "「固定攻擊傷害加成」沒寫物攻或魔攻，寫成 Any",
 }
