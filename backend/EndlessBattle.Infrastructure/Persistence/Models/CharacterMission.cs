@@ -13,7 +13,7 @@ public partial class CharacterMission
 
     public string State { get; set; } = null!;
 
-    public int Progress { get; set; }
+    public string KillProgress { get; set; } = null!;
 
     public DateTime? DailyPeriod { get; set; }
 

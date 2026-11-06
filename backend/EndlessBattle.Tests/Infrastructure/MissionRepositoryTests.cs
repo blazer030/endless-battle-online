@@ -21,7 +21,7 @@ public class MissionRepositoryTests(MySqlDatabaseFixture database)
     }
 
     private static MissionRecord Active(string missionId, DateOnly? dailyPeriod = null) =>
-        new(missionId, MissionState.Active, 0, dailyPeriod, new DateTimeOffset(2026, 10, 22, 1, 2, 3, TimeSpan.Zero).AddTicks(1230), null);
+        new(missionId, MissionState.Active, [], dailyPeriod, new DateTimeOffset(2026, 10, 22, 1, 2, 3, TimeSpan.Zero).AddTicks(1230), null);
 
     private async Task AddAsync(long characterId, MissionRecord record)
     {
@@ -44,8 +44,23 @@ public class MissionRepositoryTests(MySqlDatabaseFixture database)
         await AddAsync(characterId, record);
 
         var stored = Assert.Single(await ListAsync(characterId));
-        Assert.Equal(record, stored);
+        Assert.Equal(
+            (record.MissionId, record.State, record.DailyPeriod, record.AcceptedAt, record.CompletedAt),
+            (stored.MissionId, stored.State, stored.DailyPeriod, stored.AcceptedAt, stored.CompletedAt));
+        Assert.Empty(stored.Progress);
         Assert.Equal(TimeSpan.Zero, stored.AcceptedAt.Offset);
+    }
+
+    [Fact]
+    public async Task MissionRepository_RoundTripsKillProgress()
+    {
+        var characterId = await CreateCharacterAsync();
+        await AddAsync(characterId, Active("m1") with { Progress = [3, 1] });
+
+        var stored = Assert.Single(await ListAsync(characterId));
+
+        Assert.Equal([3, 1], stored.Progress);
+        Assert.Equal(0, stored.ProgressOf(2));
     }
 
     [Fact]
@@ -70,15 +85,15 @@ public class MissionRepositoryTests(MySqlDatabaseFixture database)
         await using (var context = database.CreateDbContext())
         {
             var repository = new MissionRepository(context);
-            await repository.UpdateProgressAsync(characterId, "m1", 7, CancellationToken);
+            await repository.UpdateProgressAsync(characterId, "m1", [7, 2], CancellationToken);
             await repository.CompleteAsync(characterId, "m1", completedAt, CancellationToken);
-            await repository.UpdateProgressAsync(characterId, "missing", 1, CancellationToken);
+            await repository.UpdateProgressAsync(characterId, "missing", [1], CancellationToken);
         }
 
         var changed = Assert.Single(await ListAsync(characterId));
-        Assert.Equal((MissionState.Completed, 7, completedAt), (changed.State, changed.Progress, changed.CompletedAt));
+        Assert.Equal((MissionState.Completed, 7, 2, completedAt), (changed.State, changed.ProgressOf(0), changed.ProgressOf(1), changed.CompletedAt));
         var untouched = Assert.Single(await ListAsync(otherId));
-        Assert.Equal((MissionState.Active, 0, (DateTimeOffset?)null), (untouched.State, untouched.Progress, untouched.CompletedAt));
+        Assert.Equal((MissionState.Active, 0, (DateTimeOffset?)null), (untouched.State, untouched.ProgressOf(0), untouched.CompletedAt));
     }
 
     [Fact]

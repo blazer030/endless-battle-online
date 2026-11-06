@@ -1,3 +1,4 @@
+using System.Text.Json;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Missions;
 using EndlessBattle.Domain.Missions;
@@ -15,7 +16,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
             .OrderBy(row => row.Id)
             .ToListAsync(cancellationToken);
         return rows.Select(row => new MissionRecord(
-            row.MissionId, Enum.Parse<MissionState>(row.State), row.Progress,
+            row.MissionId, Enum.Parse<MissionState>(row.State), JsonSerializer.Deserialize<int[]>(row.KillProgress) ?? [],
             row.DailyPeriod is { } period ? DateOnly.FromDateTime(period) : null,
             ToUtc(row.AcceptedAt), row.CompletedAt is { } completedAt ? ToUtc(completedAt) : null)).ToList();
     }
@@ -27,7 +28,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
             CharacterId = characterId,
             MissionId = record.MissionId,
             State = record.State.ToString(),
-            Progress = record.Progress,
+            KillProgress = JsonSerializer.Serialize(record.Progress),
             DailyPeriod = record.DailyPeriod?.ToDateTime(TimeOnly.MinValue),
             AcceptedAt = record.AcceptedAt.UtcDateTime,
             CompletedAt = record.CompletedAt?.UtcDateTime,
@@ -42,7 +43,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
         }
     }
 
-    public async Task UpdateProgressAsync(long characterId, string missionId, int progress, CancellationToken cancellationToken)
+    public async Task UpdateProgressAsync(long characterId, string missionId, IReadOnlyList<int> progress, CancellationToken cancellationToken)
     {
         var row = await FindAsync(characterId, missionId, cancellationToken);
         if (row is null)
@@ -50,7 +51,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
             return;
         }
 
-        row.Progress = progress;
+        row.KillProgress = JsonSerializer.Serialize(progress);
         await context.SaveChangesAsync(cancellationToken);
     }
 

@@ -87,7 +87,7 @@ public static class MissionBoard
     {
         var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
         var ready = record.State == MissionState.Active
-            && Ready(objective, record.Progress)
+            && Ready(objective, record.ProgressOf(0))
             && objective.Deliver.All(item => owned.GetValueOrDefault(item.ItemId) >= item.Quantity)
             && (objective.DeliverPet is null || objective.DeliverPet == carriedPetMonsterId);
         var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;

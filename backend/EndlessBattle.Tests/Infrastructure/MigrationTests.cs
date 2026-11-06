@@ -7,6 +7,7 @@ namespace EndlessBattle.Tests.Infrastructure;
 public class MigrationTests(MySqlDatabaseFixture database)
 {
     private const long VersionBeforePlace = 5;
+    private const long VersionBeforeKillProgress = 18;
 
     private static string DatabaseDirectory => Path.Combine(BackendPaths.BackendDirectory, "db");
 
@@ -32,6 +33,26 @@ public class MigrationTests(MySqlDatabaseFixture database)
         Assert.Equal(1, reader.GetInt32(0));
         Assert.Equal(1, reader.GetInt32(1));
         Assert.Equal("frost-peak-1", reader.GetString(2));
+    }
+
+    [Fact]
+    public async Task Migration_KeepsExistingProgress()
+    {
+        var connectionString = await CreateEmptySchemaAsync();
+        await MigrationRunner.ApplyUpToAsync(connectionString, DatabaseDirectory, VersionBeforeKillProgress);
+        await ExecuteAsync(connectionString, """
+            SET FOREIGN_KEY_CHECKS = 0;
+            INSERT INTO character_missions (character_id, mission_id, state, progress, accepted_at)
+            VALUES (1, 'mission-1', 'Active', 2, UTC_TIMESTAMP(6));
+            SET FOREIGN_KEY_CHECKS = 1;
+            """);
+
+        await MigrationRunner.ApplyAfterAsync(connectionString, DatabaseDirectory, VersionBeforeKillProgress);
+
+        await using var connection = new MySqlConnection(connectionString);
+        await connection.OpenAsync(TestContext.Current.CancellationToken);
+        await using var command = new MySqlCommand("SELECT kill_progress FROM character_missions WHERE mission_id = 'mission-1'", connection);
+        Assert.Equal("[2]", await command.ExecuteScalarAsync(TestContext.Current.CancellationToken));
     }
 
     // Testcontainers 的 root 密碼與一般使用者相同；一般使用者沒有建立 schema 的權限

@@ -29,7 +29,7 @@ public sealed class InMemoryMissionRepository(List<string>? log = null) : IMissi
         return Task.CompletedTask;
     }
 
-    public Task UpdateProgressAsync(long characterId, string missionId, int progress, CancellationToken cancellationToken)
+    public Task UpdateProgressAsync(long characterId, string missionId, IReadOnlyList<int> progress, CancellationToken cancellationToken)
     {
         if (rows.TryGetValue((characterId, missionId), out var record))
         {

@@ -20,10 +20,10 @@ public class MissionBoardTests
         [new KillTarget("test-sprite", 2), new KillTarget("test-wolf", 2)], [new MissionReward(100, [])]);
 
     private static MissionRecord Active(string id, int progress = 0, DateOnly? period = null, int acceptedHour = 2) =>
-        new(id, MissionState.Active, progress, period, new DateTimeOffset(2026, 10, 22, acceptedHour, 0, 0, TimeSpan.Zero), null);
+        new(id, MissionState.Active, [progress], period, new DateTimeOffset(2026, 10, 22, acceptedHour, 0, 0, TimeSpan.Zero), null);
 
     private static MissionRecord Completed(string id, int completedHour, DateOnly? period = null) =>
-        new(id, MissionState.Completed, 3, period, Now.AddHours(-5), new DateTimeOffset(2026, 10, 22, completedHour, 0, 0, TimeSpan.Zero));
+        new(id, MissionState.Completed, [3], period, Now.AddHours(-5), new DateTimeOffset(2026, 10, 22, completedHour, 0, 0, TimeSpan.Zero));
 
     private static readonly Dictionary<string, int> NothingOwned = [];
 

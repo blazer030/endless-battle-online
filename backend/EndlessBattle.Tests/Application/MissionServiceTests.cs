@@ -63,7 +63,7 @@ public class MissionServiceTests
         log.Clear();
     }
 
-    private static MissionRecord Active(string id, int progress = 0) => new(id, MissionState.Active, progress, null, Now.AddHours(-1), null);
+    private static MissionRecord Active(string id, int progress = 0) => new(id, MissionState.Active, [progress], null, Now.AddHours(-1), null);
 
     private Task<IReadOnlyList<MissionRecord>> RecordsAsync(Character character) => missions.ListAsync(character.Id, CancellationToken);
 
@@ -96,7 +96,7 @@ public class MissionServiceTests
 
         Assert.Equal(["update", "mission:add:test-hunt"], log);
         var record = Assert.Single(await RecordsAsync(character));
-        Assert.Equal(new MissionRecord("test-hunt", MissionState.Active, 0, null, Now, null), record);
+        Assert.Equal(("test-hunt", MissionState.Active, 0, (DateOnly?)null, Now, (DateTimeOffset?)null), (record.MissionId, record.State, record.ProgressOf(0), record.DailyPeriod, record.AcceptedAt, record.CompletedAt));
         Assert.Equal("test-hunt", Assert.Single(board.Active).Definition.Id);
         Assert.DoesNotContain(board.Available, entry => entry.Definition.Id == "test-hunt");
     }
@@ -132,7 +132,7 @@ public class MissionServiceTests
     {
         var character = await AddCharacterAsync();
         var yesterday = Today.AddDays(-1);
-        await SeedAsync(character, new MissionRecord("test-daily", MissionState.Completed, 2, yesterday, Now.AddDays(-1), Now.AddDays(-1)));
+        await SeedAsync(character, new MissionRecord("test-daily", MissionState.Completed, [2], yesterday, Now.AddDays(-1), Now.AddDays(-1)));
 
         var before = await service.GetBoardAsync(AccountId, CancellationToken);
         Assert.Empty(log);
@@ -142,7 +142,7 @@ public class MissionServiceTests
 
         Assert.Equal(["update", "mission:remove:test-daily", "mission:add:test-daily"], log);
         var record = Assert.Single(await RecordsAsync(character));
-        Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.Progress, record.DailyPeriod));
+        Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.ProgressOf(0), record.DailyPeriod));
     }
 
     // 定義從一般改成每日後，留下的無週期紀錄看板看不到；接取時比照過期紀錄先刪掉，不會撞唯一鍵而 409
@@ -150,13 +150,13 @@ public class MissionServiceTests
     public async Task Accept_ReplacesKindChangedRecord()
     {
         var character = await AddCharacterAsync();
-        await SeedAsync(character, new MissionRecord("test-daily", MissionState.Active, 1, DailyPeriod: null, Now.AddDays(-3), null));
+        await SeedAsync(character, new MissionRecord("test-daily", MissionState.Active, [1], DailyPeriod: null, Now.AddDays(-3), null));
 
         await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
 
         Assert.Equal(["update", "mission:remove:test-daily", "mission:add:test-daily"], log);
         var record = Assert.Single(await RecordsAsync(character));
-        Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.Progress, record.DailyPeriod));
+        Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.ProgressOf(0), record.DailyPeriod));
     }
 
     [Fact]
@@ -173,14 +173,14 @@ public class MissionServiceTests
 
         await service.AcceptAsync(AccountId, "test-hunt", CancellationToken);
 
-        Assert.Equal(0, Assert.Single(await RecordsAsync(character)).Progress);
+        Assert.Equal(0, Assert.Single(await RecordsAsync(character)).ProgressOf(0));
     }
 
     [Fact]
     public async Task Abandon_RejectsCompleted()
     {
         var character = await AddCharacterAsync();
-        await SeedAsync(character, new MissionRecord("test-hunt", MissionState.Completed, 3, null, Now.AddHours(-2), Now.AddHours(-1)));
+        await SeedAsync(character, new MissionRecord("test-hunt", MissionState.Completed, [3], null, Now.AddHours(-2), Now.AddHours(-1)));
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.AbandonAsync(AccountId, "test-hunt", CancellationToken));
@@ -379,7 +379,7 @@ public class MissionServiceTests
         var character = await AddCharacterAsync();
         var accepted = await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
         var required = Assert.Single(accepted.Active).Objective.Kill!.Count;
-        await missions.UpdateProgressAsync(character.Id, "test-daily", required, CancellationToken);
+        await missions.UpdateProgressAsync(character.Id, "test-daily", [required], CancellationToken);
 
         await service.CompleteAsync(AccountId, "test-daily", CancellationToken);
         var sameDay = await Assert.ThrowsAsync<InputValidationException>(() => service.AcceptAsync(AccountId, "test-daily", CancellationToken));
@@ -390,7 +390,7 @@ public class MissionServiceTests
         await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
 
         var record = Assert.Single(await RecordsAsync(character));
-        Assert.Equal((MissionState.Active, 0, (DateOnly?)new DateOnly(2026, 10, 23)), (record.State, record.Progress, record.DailyPeriod));
+        Assert.Equal((MissionState.Active, 0, (DateOnly?)new DateOnly(2026, 10, 23)), (record.State, record.ProgressOf(0), record.DailyPeriod));
     }
 
     // 角色（版本鎖）最先寫，之後才刪過期每日紀錄、交付、放獎勵、完成任務
@@ -401,7 +401,7 @@ public class MissionServiceTests
         var ore = await GiveAsync(character, "test-ore", 3);
         var yesterday = Today.AddDays(-1);
         await SeedAsync(character,
-            new MissionRecord("test-daily", MissionState.Completed, 2, yesterday, Now.AddDays(-1), Now.AddDays(-1)),
+            new MissionRecord("test-daily", MissionState.Completed, [2], yesterday, Now.AddDays(-1), Now.AddDays(-1)),
             Active("test-delivery"));
 
         await service.CompleteAsync(AccountId, "test-delivery", CancellationToken);

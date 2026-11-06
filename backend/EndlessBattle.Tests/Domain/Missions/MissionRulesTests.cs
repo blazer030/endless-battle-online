@@ -14,9 +14,9 @@ public class MissionRulesTests
         id, "村長", "標題", "說明", "謝謝", level, 1, false, new KillTarget("test-sprite", 3), [],
         requirements ?? new MissionRequirements(), new MissionReward(50, []), [], []);
 
-    private static MissionRecord Active(string id) => new(id, MissionState.Active, 0, null, Now, null);
+    private static MissionRecord Active(string id) => new(id, MissionState.Active, [0], null, Now, null);
 
-    private static MissionRecord Completed(string id) => new(id, MissionState.Completed, 3, null, Now, Now);
+    private static MissionRecord Completed(string id) => new(id, MissionState.Completed, [3], null, Now, Now);
 
     [Fact]
     public void CanAccept_AllowsWhenEveryRequirementMet()

@@ -11,7 +11,7 @@ public interface IMissionRepository
     // 同角色同任務已有一列 → ConflictException
     Task AddAsync(long characterId, MissionRecord record, CancellationToken cancellationToken);
 
-    Task UpdateProgressAsync(long characterId, string missionId, int progress, CancellationToken cancellationToken);
+    Task UpdateProgressAsync(long characterId, string missionId, IReadOnlyList<int> progress, CancellationToken cancellationToken);
 
     Task CompleteAsync(long characterId, string missionId, DateTimeOffset completedAt, CancellationToken cancellationToken);
 

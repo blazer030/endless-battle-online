@@ -62,6 +62,20 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Empty(columns);
     }
 
+    [Fact]
+    public async Task CharacterMissions_StoreKillProgressAsJson()
+    {
+        await using var context = database.CreateDbContext();
+
+        var columns = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT(COLUMN_NAME, ' ', COLUMN_TYPE) AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'character_missions' AND COLUMN_NAME IN ('progress', 'kill_progress')
+            """).ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal("kill_progress json", Assert.Single(columns));
+    }
+
     // 同伴相關的時間欄位都是 DATETIME(6)
     [Fact]
     public async Task CompanionTables_HaveExpectedColumnTypes()
@@ -165,15 +179,15 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await using var context = database.CreateDbContext();
         context.CharacterMissions.Add(new CharacterMission
         {
-            CharacterId = characterId, MissionId = "m1", State = "Active", DailyPeriod = new DateTime(2026, 10, 22), AcceptedAt = DateTime.UtcNow,
+            CharacterId = characterId, MissionId = "m1", State = "Active", KillProgress = "[]", DailyPeriod = new DateTime(2026, 10, 22), AcceptedAt = DateTime.UtcNow,
         });
         await context.SaveChangesAsync(cancellationToken);
 
         await using var reader = database.CreateDbContext();
         var stored = await reader.CharacterMissions.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
-        Assert.Equal((0, new DateTime(2026, 10, 22), (DateTime?)null), (stored.Progress, stored.DailyPeriod, stored.CompletedAt));
+        Assert.Equal(("[]", new DateTime(2026, 10, 22), (DateTime?)null), (stored.KillProgress, stored.DailyPeriod, stored.CompletedAt));
 
-        reader.CharacterMissions.Add(new CharacterMission { CharacterId = characterId, MissionId = "m1", State = "Active", AcceptedAt = DateTime.UtcNow });
+        reader.CharacterMissions.Add(new CharacterMission { CharacterId = characterId, MissionId = "m1", State = "Active", KillProgress = "[]", AcceptedAt = DateTime.UtcNow });
         var exception = await Assert.ThrowsAsync<DbUpdateException>(() => reader.SaveChangesAsync(cancellationToken));
         Assert.Contains("ux_character_missions_character_mission", exception.InnerException?.Message);
     }

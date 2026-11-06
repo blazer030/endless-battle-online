@@ -40,13 +40,13 @@ public static class KillCounter
             }
 
             var objective = DailyMissions.Resolve(mission, characterId, record.DailyPeriod);
-            if (objective.Kill is not { } kill || MissionBoard.Ready(objective, record.Progress))
+            if (objective.Kill is not { } kill || MissionBoard.Ready(objective, record.ProgressOf(0)))
             {
                 continue;
             }
 
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
-            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.Progress, record.AcceptedAt, expiresAt,
+            tracked.Add(new ActiveMission(mission.Id, mission.Title, kill.MonsterId, kill.Count, record.ProgressOf(0), record.AcceptedAt, expiresAt,
                 RequiresDelivery: objective.Deliver.Count > 0));
         }
 

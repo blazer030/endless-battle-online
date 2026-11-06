@@ -77,7 +77,7 @@ public static class MissionEndpoints
             mission.PlaceId,
             mission.PlaceId is { } placeId ? content.GetPlace(placeId).Name : null,
             mission.Daily,
-            objective.Kill is { } kill ? ToResponse(kill, entry.Record?.Progress ?? 0, content) : null,
+            objective.Kill is { } kill ? ToResponse(kill, entry.Record?.ProgressOf(0) ?? 0, content) : null,
             objective.Deliver
                 .Select(item => new MissionDeliverResponse(item.ItemId, content.GetItem(item.ItemId).Name, item.Quantity, owned.GetValueOrDefault(item.ItemId)))
                 .ToList(),

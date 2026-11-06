@@ -38,7 +38,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
             .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
         await scope.ServiceProvider.GetRequiredService<IMissionRepository>()
-            .UpdateProgressAsync(character!.Id, missionId, progress, CancellationToken);
+            .UpdateProgressAsync(character!.Id, missionId, [progress], CancellationToken);
     }
 
     // 直接寫入寵物：取得寵物要靠捕捉，這裡跳過

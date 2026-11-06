@@ -22,7 +22,7 @@ public class DailyMissionsTests
         new(2026, 10, day, hour, minute, second, TimeSpan.Zero);
 
     private static MissionRecord Record(DateOnly? period) =>
-        new("test-daily", MissionState.Active, 0, period, Utc(21, 2), null);
+        new("test-daily", MissionState.Active, [0], period, Utc(21, 2), null);
 
     [Fact]
     public void Period_SwitchesAtNineTaipei()

@@ -382,10 +382,12 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.DailyPeriod)
                 .HasColumnType("date")
                 .HasColumnName("daily_period");
+            entity.Property(e => e.KillProgress)
+                .HasColumnType("json")
+                .HasColumnName("kill_progress");
             entity.Property(e => e.MissionId)
                 .HasMaxLength(32)
                 .HasColumnName("mission_id");
-            entity.Property(e => e.Progress).HasColumnName("progress");
             entity.Property(e => e.State)
                 .HasMaxLength(16)
                 .HasColumnName("state");

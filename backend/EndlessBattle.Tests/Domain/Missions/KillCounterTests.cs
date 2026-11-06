@@ -74,8 +74,8 @@ public class KillCounterTests
         var kill = DailyMissions.Resolve(daily, characterId: 7, yesterday).Kill!;
         MissionRecord[] records =
         [
-            new("test-daily", MissionState.Active, 1, yesterday, Now.AddDays(-1), null),
-            new("test-hunt", MissionState.Active, 2, null, Now, null),
+            new("test-daily", MissionState.Active, [1], yesterday, Now.AddDays(-1), null),
+            new("test-hunt", MissionState.Active, [2], null, Now, null),
         ];
 
         var tracked = KillCounter.Track(records, missions, characterId: 7);
@@ -98,7 +98,7 @@ public class KillCounterTests
             id, "村長", "標題", "說明", "謝謝", 1, 1, false, new KillTarget("test-sprite", 3), deliver,
             new MissionRequirements(), new MissionReward(50, []), [], []);
         MissionRecord[] records =
-            [new("mixed", MissionState.Active, 0, null, Now, null), new("kill-only", MissionState.Active, 0, null, Now, null)];
+            [new("mixed", MissionState.Active, [0], null, Now, null), new("kill-only", MissionState.Active, [0], null, Now, null)];
 
         var tracked = KillCounter.Track(records, [Mission("mixed", [new ItemQuantity("test-ore", 2)]), Mission("kill-only", [])], characterId: 7);
 

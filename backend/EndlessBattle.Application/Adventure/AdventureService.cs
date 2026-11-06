@@ -200,7 +200,7 @@ public sealed class AdventureService(
         var progressBefore = before.ToDictionary(mission => mission.MissionId, mission => mission.Progress);
         foreach (var mission in after.Where(mission => mission.Progress != progressBefore[mission.MissionId]))
         {
-            await missions.UpdateProgressAsync(characterId, mission.MissionId, mission.Progress, cancellationToken);
+            await missions.UpdateProgressAsync(characterId, mission.MissionId, [mission.Progress], cancellationToken);
         }
     }
 

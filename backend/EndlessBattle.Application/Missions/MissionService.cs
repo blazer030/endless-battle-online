@@ -46,7 +46,7 @@ public sealed class MissionService(
 
             await LockAndRemoveStaleAsync(character, records, now, cancellationToken);
             var period = mission.Daily ? DailyMissions.PeriodOf(now) : (DateOnly?)null;
-            await missions.AddAsync(character.Id, new MissionRecord(mission.Id, MissionState.Active, 0, period, now, null), cancellationToken);
+            await missions.AddAsync(character.Id, new MissionRecord(mission.Id, MissionState.Active, [], period, now, null), cancellationToken);
             return await BoardAsync(character, now, cancellationToken);
         }, cancellationToken);
 
@@ -81,7 +81,7 @@ public sealed class MissionService(
                 ?? throw new InputValidationException("無法完成任務", ["missionNotActive"]);
             var mission = content.GetMission(missionId);
             var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
-            if (!MissionBoard.Ready(objective, record.Progress))
+            if (!MissionBoard.Ready(objective, record.ProgressOf(0)))
             {
                 throw new InputValidationException("無法完成任務", ["objectiveIncomplete"]);
             }

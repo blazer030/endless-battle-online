@@ -575,7 +575,7 @@ public class AdventureServiceTests
     }
 
     private static MissionRecord ActiveRecord(string missionId, int progress = 0) =>
-        new(missionId, MissionState.Active, progress, DailyPeriod: null, AcceptedAt: Start, CompletedAt: null);
+        new(missionId, MissionState.Active, [progress], DailyPeriod: null, AcceptedAt: Start, CompletedAt: null);
 
     private async Task AddMissionAsync(Character character, MissionRecord record)
     {
@@ -593,7 +593,7 @@ public class AdventureServiceTests
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().Progress);
+        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().ProgressOf(0));
         Assert.Equal(["update", "proficiency:warrior", "mission:progress:test-hunt"], log);
         Assert.Equal(3, result.Summary.MissionKills);
         Assert.Equal([1, 2, 3], result.Events.OfType<MissionProgressEvent>().Select(mission => mission.Progress));
@@ -622,7 +622,7 @@ public class AdventureServiceTests
 
         var records = await missions.ListAsync(character.Id, CancellationToken);
         Assert.DoesNotContain(records, record => record.MissionId == "test-hunt");
-        Assert.Equal(0, records.Single(record => record.MissionId == "test-sprite-bounty").Progress);
+        Assert.Equal(0, records.Single(record => record.MissionId == "test-sprite-bounty").ProgressOf(0));
         Assert.DoesNotContain(log, entry => entry.StartsWith("mission:", StringComparison.Ordinal));
     }
 
@@ -861,7 +861,7 @@ public class AdventureServiceTests
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(174 + 928, stored!.Exp);
         Assert.Equal([new JobProficiency("warrior", 36 + 96, 36 + 96)], result.JobProficiency);
-        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().Progress);
+        Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().ProgressOf(0));
         Assert.Equal(11, (await inventory.ListAsync(character.Id, CancellationToken)).Where(entry => entry.ItemId == "test-supply").Sum(entry => entry.Quantity));
         Assert.Equal(contract with { Remaining = 7, NextFightAt = now.AddSeconds(100) }, await mercenaries.FindAsync(character.Id, CancellationToken));
         Assert.Equal(["update", "proficiency:warrior", "mission:progress:test-hunt", "mercenary:update"], log);
