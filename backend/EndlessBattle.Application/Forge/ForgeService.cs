@@ -187,7 +187,14 @@ public sealed class ForgeService(
             return await inventoryService.GetAsync(accountId, cancellationToken);
         }, cancellationToken);
 
-    private async Task<IReadOnlySet<string>> CompletedMissionIdsAsync(long characterId, CancellationToken cancellationToken) =>
+    // 配方清單用：這個帳號的角色已完成的任務
+    public async Task<IReadOnlySet<string>> CompletedMissionIdsAsync(long accountId, CancellationToken cancellationToken)
+    {
+        var character = await FindCharacterAsync(accountId, cancellationToken);
+        return await CompletedByCharacterAsync(character.Id, cancellationToken);
+    }
+
+    private async Task<IReadOnlySet<string>> CompletedByCharacterAsync(long characterId, CancellationToken cancellationToken) =>
         (await missions.ListAsync(characterId, cancellationToken))
             .Where(record => record.State == MissionState.Completed)
             .Select(record => record.MissionId)
@@ -201,7 +208,7 @@ public sealed class ForgeService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方");
             var state = await LoadAsync(character.Id, cancellationToken);
-            var completed = await CompletedMissionIdsAsync(character.Id, cancellationToken);
+            var completed = await CompletedByCharacterAsync(character.Id, cancellationToken);
             Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem, completed), "無法合成");
 
             var outcome = Synthesis.Attempt(recipe, attempts, state.Bag, randomFactory.Create());

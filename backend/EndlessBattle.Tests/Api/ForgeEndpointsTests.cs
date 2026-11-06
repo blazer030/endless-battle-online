@@ -116,6 +116,36 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(("test-ore", "測試礦石", 3), (material.GetProperty("itemId").GetString(), material.GetProperty("name").GetString(), material.GetProperty("quantity").GetInt32()));
     }
 
+    [Fact]
+    public async Task Recipes_ReportRequiredMissionState()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+
+        async Task<JsonElement> ListAsync()
+        {
+            var recipes = await client.GetFromJsonAsync<JsonElement>("/api/forge/recipes", CancellationToken);
+            return recipes.EnumerateArray().Single(recipe => recipe.GetProperty("id").GetString() == "test-forge-locked").GetProperty("requiredMission");
+        }
+
+        var locked = await ListAsync();
+        Assert.Equal(("test-hunt", "測試討伐", false), (
+            locked.GetProperty("id").GetString(), locked.GetProperty("title").GetString(), locked.GetProperty("completed").GetBoolean()));
+
+        await SeedMissionAsync(characterId, MissionState.Active);
+        Assert.False((await ListAsync()).GetProperty("completed").GetBoolean());
+
+        await using (var context = database.CreateDbContext())
+        {
+            await new MissionRepository(context).CompleteAsync(characterId, "test-hunt", DateTimeOffset.UtcNow, CancellationToken);
+        }
+
+        Assert.True((await ListAsync()).GetProperty("completed").GetBoolean());
+        var open = (await client.GetFromJsonAsync<JsonElement>("/api/forge/recipes", CancellationToken)).EnumerateArray()
+            .Single(recipe => recipe.GetProperty("id").GetString() == "test-forge-sword");
+        Assert.Equal(JsonValueKind.Null, open.GetProperty("requiredMission").ValueKind);
+    }
+
     private async Task SeedMissionAsync(long characterId, MissionState state)
     {
         await using var context = database.CreateDbContext();

@@ -51,6 +51,7 @@ const guardStone = makeItem({
 })
 
 const recipe: Recipe = {
+  requiredMission: null,
   id: "iron-ingot",
   resultItemId: "iron-ingot",
   resultName: "鐵錠",

@@ -25,7 +25,7 @@
 ## 5. 配方前置
 
 - [x] 5.1 實作 Requirement "A recipe can require a completed mission"：`Recipe.RequiredMissionId`；`Synthesis.Check` 依已完成任務判斷，未完成回 `missionIncomplete`，不扣材料與金錢；進行中不算完成；內容驗證拒絕不存在或每日的任務。先寫失敗測試：`Synthesize_RequiredMissionNotAccepted_Fails`、`Synthesize_RequiredMissionActive_Fails`（API 層級，確認材料與金錢不變）、`Synthesize_RequiredMissionCompleted_Runs`、`Recipe_RejectsDailyPrerequisite`、`Recipe_RejectsUnknownPrerequisite`。
-- [ ] 5.2 [after: 5.1] 實作 Requirement "The recipe list shows the prerequisite"：`GET /api/forge/recipes` 依角色回傳 `RequiredMission`（`Id`、`Title`、`Completed`），鎖住的配方也列出；`pnpm generate:api` 後，`ForgePage` 停用鎖住的配方並顯示任務標題。先寫失敗測試：`Recipes_ReportRequiredMissionState`（API 層級）、`ForgePage` 鎖住與解鎖兩種狀態。
+- [x] 5.2 [after: 5.1] 實作 Requirement "The recipe list shows the prerequisite"：`GET /api/forge/recipes` 依角色回傳 `RequiredMission`（`Id`、`Title`、`Completed`），鎖住的配方也列出；`pnpm generate:api` 後，`ForgePage` 停用鎖住的配方並顯示任務標題。先寫失敗測試：`Recipes_ReportRequiredMissionState`（API 層級）、`ForgePage` 鎖住與解鎖兩種狀態。
 
 ## 6. 匯入與收尾
 

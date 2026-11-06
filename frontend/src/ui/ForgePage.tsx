@@ -574,12 +574,16 @@ function SynthesisSection({ api, inventory, busy, run, money }: SectionProps & {
   return (
     <ul className="bag__list">
       {recipes.map((recipe) => {
-        const max = maxSynthesisAttempts(recipe, inventory)
+        const lockedBy = recipe.requiredMission?.completed === false ? recipe.requiredMission : null
+        const max = lockedBy === null ? maxSynthesisAttempts(recipe, inventory) : 0
         const count = Math.min(attempts[recipe.id] ?? 1, Math.max(1, max))
         const allowed = max > 0 && canAfford(money, recipe.costPerAttempt, count)
         return (
           <li key={recipe.id} className="bag__item">
             <span className="bag__item-name">{recipeText(recipe)}</span>
+            {lockedBy !== null && (
+              <span className="bag__item-lock">{`需完成「${lockedBy.title}」`}</span>
+            )}
             <div className="bag__buy">
               <QuantityStepper
                 value={count}

@@ -226,6 +226,7 @@ const fixedReasonTexts: Record<string, string> = {
   holeOutOfRange: "沒有這個孔位",
   maxHoles: "孔數已達上限",
   missingMaterials: "材料不足",
+  missionIncomplete: "需先完成前置任務",
   notRefineStone: "這不是精鍊石",
   notStone: "這不是魔石",
   wrongStoneLevel: "精鍊石等級不符",

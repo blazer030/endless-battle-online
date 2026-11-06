@@ -261,6 +261,7 @@ describe("reasonText", () => {
     ["missingTool:mystery-tool", "缺少需要的道具"],
     ["cannotMerge", "這種精鍊石無法再合成"],
     ["missingMaterials", "材料不足"],
+    ["missionIncomplete", "需先完成前置任務"],
   ])("translates %s", (code, text) => {
     expect(reasonText(code)).toBe(text)
   })

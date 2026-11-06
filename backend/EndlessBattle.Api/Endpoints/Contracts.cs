@@ -299,7 +299,11 @@ public sealed record RecipeResponse(
     int ResultQuantity,
     IReadOnlyList<RecipeMaterialResponse> Materials,
     int SuccessRate,
-    long CostPerAttempt);
+    long CostPerAttempt,
+    RecipeRequiredMissionResponse? RequiredMission);
+
+// 要先完成的任務；Completed：這個角色已經完成
+public sealed record RecipeRequiredMissionResponse(string Id, string Title, bool Completed);
 
 public sealed record RecipeMaterialResponse(string ItemId, string Name, int Quantity);
 

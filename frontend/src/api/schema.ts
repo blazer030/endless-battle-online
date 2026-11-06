@@ -3063,6 +3063,11 @@ export interface components {
             /** Format: int32 */
             quantity: number;
         };
+        RecipeRequiredMissionResponse: {
+            id: string;
+            title: string;
+            completed: boolean;
+        };
         RecipeResponse: {
             id: string;
             resultItemId: string;
@@ -3074,6 +3079,7 @@ export interface components {
             successRate: number;
             /** Format: int64 */
             costPerAttempt: number;
+            requiredMission: null | components["schemas"]["RecipeRequiredMissionResponse"];
         };
         /** @enum {unknown} */
         Recommendation: "Recommended" | "TooHard" | "TooEasy" | "None";

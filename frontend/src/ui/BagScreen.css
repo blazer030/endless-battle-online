@@ -164,6 +164,11 @@
   overflow-wrap: anywhere;
 }
 
+.bag__item-lock {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .bag__item-name {
   font-size: 15px;
   font-weight: 700;

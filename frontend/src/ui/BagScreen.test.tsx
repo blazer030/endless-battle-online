@@ -547,6 +547,7 @@ const ingot: Recipe = {
   ],
   successRate: 60,
   costPerAttempt: 1000,
+  requiredMission: null,
 }
 const crystal: Recipe = {
   ...ingot,
@@ -688,6 +689,32 @@ test("BagScreen_ForgeDrillDisabledAtFourHoles", async () => {
   await user.click(screen.getByRole("tab", { name: "鑲嵌" }))
 
   expect(screen.getByRole("button", { name: "打洞（需要鑽孔器，8%）" })).toBeDisabled()
+})
+
+const lockedRecipeLine = async (completed: boolean) => {
+  const locked: Recipe = {
+    ...ingot,
+    id: "recipe-174",
+    resultName: "剛龍巨斧．極",
+    requiredMission: { id: "mission-317", title: "玉鋼之力", completed },
+  }
+  await renderForge({ getRecipes: vi.fn().mockResolvedValue([locked]) })
+  await user.click(screen.getByRole("tab", { name: "合成" }))
+  return (await screen.findByText(/剛龍巨斧．極/)).closest("li") as HTMLElement
+}
+
+test("BagScreen_LockedRecipeIsListedAndDisabled", async () => {
+  const line = await lockedRecipeLine(false)
+
+  expect(within(line).getByText("需完成「玉鋼之力」")).toBeInTheDocument()
+  expect(within(line).getByRole("button", { name: /合成/ })).toBeDisabled()
+})
+
+test("BagScreen_UnlockedRecipeCanBeUsed", async () => {
+  const line = await lockedRecipeLine(true)
+
+  expect(within(line).queryByText("需完成「玉鋼之力」")).not.toBeInTheDocument()
+  expect(within(line).getByRole("button", { name: /合成/ })).toBeEnabled()
 })
 
 test("BagScreen_ForgeSynthesizeSendsRecipeAndAttempts", async () => {

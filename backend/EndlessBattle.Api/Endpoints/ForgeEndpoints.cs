@@ -60,7 +60,11 @@ public static class ForgeEndpoints
             return TypedResults.Ok(new ForgeResponse(true, InventoryEndpoints.ToResponse(inventory)));
         });
 
-        forge.MapGet("/recipes", (IGameContent content) => TypedResults.Ok(content.AllRecipes.Select(recipe => ToResponse(recipe, content)).ToList()));
+        forge.MapGet("/recipes", async (ClaimsPrincipal user, ForgeService service, IGameContent content, CancellationToken cancellationToken) =>
+        {
+            var completed = await service.CompletedMissionIdsAsync(user.GetAccountId(), cancellationToken);
+            return TypedResults.Ok(content.AllRecipes.Select(recipe => ToResponse(recipe, completed, content)).ToList());
+        });
 
         forge.MapPost("/synthesize", async (SynthesizeRequest request, ClaimsPrincipal user, ForgeService service, CancellationToken cancellationToken) =>
         {
@@ -73,14 +77,17 @@ public static class ForgeEndpoints
         return app;
     }
 
-    private static RecipeResponse ToResponse(Recipe recipe, IGameContent content) => new(
+    private static RecipeResponse ToResponse(Recipe recipe, IReadOnlySet<string> completedMissionIds, IGameContent content) => new(
         recipe.Id,
         recipe.ResultItemId,
         content.GetItem(recipe.ResultItemId).Name,
         recipe.ResultQuantity,
         recipe.Materials.Select(material => new RecipeMaterialResponse(material.ItemId, content.GetItem(material.ItemId).Name, material.Quantity)).ToList(),
         recipe.SuccessRate,
-        Synthesis.CostPerAttempt);
+        Synthesis.CostPerAttempt,
+        recipe.RequiredMissionId is { } missionId
+            ? new RecipeRequiredMissionResponse(missionId, content.GetMission(missionId).Title, completedMissionIds.Contains(missionId))
+            : null);
 
     private static ForgeResponse ToResponse(ForgeResult result) => new(result.Success, InventoryEndpoints.ToResponse(result.Inventory));
 }
