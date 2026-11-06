@@ -1,3 +1,5 @@
+using EndlessBattle.Domain.Battle;
+
 namespace EndlessBattle.Domain.Content;
 
 // 欄位對應 WOG 怪物資料：Element 0 為無屬性、1～6 對應六屬性；Meet 為遇敵率（0～100）
@@ -31,6 +33,9 @@ public sealed record MonsterDefinition(
     public IReadOnlyList<int> SubPlaces { get; init; } = SubPlaces ?? [];
 
     public IReadOnlyList<DropEntry> Drops { get; init; } = Drops ?? [];
+
+    // 技能與發動率來自 monster-skills.json，載入時解析好；沒有技能時為空
+    public IReadOnlyList<EquippedSkill> Skills { get; init; } = [];
 }
 
 // Topr 對應 WOG 的掉落分母基數：實際分母為 ⌊Topr × 0.9⌋，越大越難掉

@@ -7,6 +7,7 @@ using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.Pets;
 using EndlessBattle.Domain.Progression;
 using EndlessBattle.Domain.Randomness;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Domain.Mercenaries;
@@ -234,5 +235,18 @@ public class MercenarySimulatorTests
 
         Assert.Equal(MercenaryFightResult.Won, Assert.Single(with.Fights).Result);
         Assert.NotEqual(MercenaryFightResult.Won, Assert.Single(without.Fights).Result);
+    }
+
+    [Fact]
+    public void Run_MonsterSkillsApply_InMercenaryFight()
+    {
+        // 怪物回合開頭削掉傭兵全部 HP：傭兵還沒出手就輸了
+        var finisher = new SkillDefinition("星芒", "星芒", SkillType.Active, SkillTiming.BeforeAttack, "",
+            [new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 100)], [], [new PercentDamageEffect(100, 0)])]);
+        var monster = Dummy with { Skills = [new EquippedSkill(finisher, 1, 1)] };
+
+        var run = Run(Hero(), Contract(10, Now), monsters: [monster]);
+
+        Assert.Equal(MercenaryFightResult.Lost, run.Fights.Single().Result);
     }
 }

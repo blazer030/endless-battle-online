@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
@@ -193,6 +194,7 @@ public sealed class JsonGameContent : IGameContent
 
         ValidatePrerequisites(allSkills, skills);
         var jobSkills = ReadJobSkills(directory, jobs, skills);
+        AttachMonsterSkills(directory, allMonsters, monsters, skills);
 
         var allItems = itemFile.Items.Select(ToItemDefinition).ToList();
         var items = new Dictionary<string, ItemDefinition>();
@@ -336,6 +338,54 @@ public sealed class JsonGameContent : IGameContent
         AllSkills.Where(skill => Teaches(jobId, skill.Id)).ToList();
 
     public bool Teaches(string jobId, string skillId) => jobSkills.Contains((jobId, skillId));
+
+    // 怪物與技能的關聯表：一列是一隻怪的一個技能，發動率取代技能的 Chance 條件；欄位順序就是檔案順序
+    private static void AttachMonsterSkills(
+        string directory, List<MonsterDefinition> allMonsters, Dictionary<string, MonsterDefinition> monsters, Dictionary<string, SkillDefinition> skills)
+    {
+        var path = Path.Combine(directory, "monster-skills.json");
+        if (!File.Exists(path))
+        {
+            throw new GameContentException($"缺少內容檔 monster-skills.json：{path}");
+        }
+
+        var skillsByMonster = new Dictionary<string, List<EquippedSkill>>();
+        foreach (var row in Read<MonsterSkillFile>(path).MonsterSkills)
+        {
+            var name = $"{row.MonsterId}＋{row.SkillId}";
+            if (!monsters.ContainsKey(row.MonsterId) || !skills.TryGetValue(row.SkillId, out var skill))
+            {
+                throw new GameContentException($"怪物技能 {name} 引用了不存在的怪物或技能");
+            }
+
+            if (row.Level < 1 || row.Level > skill.MaxLevel)
+            {
+                throw new GameContentException($"怪物技能 {name} 的等級 {row.Level} 必須在 1～{skill.MaxLevel}");
+            }
+
+            if (row.Rate is < 1 or > 100)
+            {
+                throw new GameContentException($"怪物技能 {name} 的發動率 {row.Rate} 必須在 1～100");
+            }
+
+            var own = skillsByMonster.TryGetValue(row.MonsterId, out var existing) ? existing : skillsByMonster[row.MonsterId] = [];
+            if (own.Any(equipped => equipped.Skill.Id == row.SkillId))
+            {
+                throw new GameContentException($"怪物技能 {name} 重複");
+            }
+
+            own.Add(new EquippedSkill(skill.WithActivationRate(row.Rate), row.Level, own.Count + 1));
+        }
+
+        for (var index = 0; index < allMonsters.Count; index++)
+        {
+            if (skillsByMonster.TryGetValue(allMonsters[index].Id, out var own))
+            {
+                allMonsters[index] = allMonsters[index] with { Skills = own };
+                monsters[allMonsters[index].Id] = allMonsters[index];
+            }
+        }
+    }
 
     // 職業與技能的關聯表：一列是「這個職業能學這個技能」
     private static HashSet<(string JobId, string SkillId)> ReadJobSkills(
@@ -1461,6 +1511,10 @@ public sealed class JsonGameContent : IGameContent
     private sealed record JobSkillFile(IReadOnlyList<JobSkillEntry> JobSkills);
 
     private sealed record JobSkillEntry(string JobId, string SkillId);
+
+    private sealed record MonsterSkillFile(IReadOnlyList<MonsterSkillEntry> MonsterSkills);
+
+    private sealed record MonsterSkillEntry(string MonsterId, string SkillId, int Level, int Rate);
 
     private sealed record JobFile(IReadOnlyList<JobEntry> Jobs);
 

@@ -79,7 +79,7 @@ public static class MercenarySimulator
             var player = CombatBridge.ToCombatant(character with { Hp = derived.HpMax, Sp = derived.SpMax }, equipment);
             var opponent = CombatantState.From(monster);
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, opponent);
-            var outcome = WogBattle.Run(player, opponent, playerPreferred: null, skills, supply: null, random, pet);
+            var outcome = WogBattle.Run(player, opponent, playerPreferred: null, skills, supply: null, random, pet, monsterSkills: monster.Skills);
 
             long exp = 0, money = 0;
             IReadOnlyList<string> dropped = [];

@@ -1041,4 +1041,18 @@ public class AdventureSimulatorTests
             buffed.Events.OfType<TimeoutEvent>().Single().DamageDealt > plain.Events.OfType<TimeoutEvent>().Single().DamageDealt);
         Assert.Equal(plain.Events, after.Events);
     }
+
+    [Fact]
+    public void Run_MonsterSkillsApply_InAdventure()
+    {
+        var skill = new SkillDefinition("爆氣", "爆氣", SkillType.Active, SkillTiming.BeforeAttack, "",
+            [new SkillLevel(1, 0, 0, 0, [new SkillCondition(SkillConditionKind.Chance, 100)], [],
+                [new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, 5, null, null, Rounds: 0)])]);
+        var monster = Dummy with { Skills = [new EquippedSkill(skill, 1, 1)] };
+
+        var run = Run(Hero(), seconds: 30, random: null, monster);
+
+        Assert.Contains(run.Events.OfType<SkillEvent>(), cast => cast.Caster == CombatSide.Monster && cast.SkillName == "爆氣");
+        Assert.Equal(0, run.Summary.SkillsCast);
+    }
 }

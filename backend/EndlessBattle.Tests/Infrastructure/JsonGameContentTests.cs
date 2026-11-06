@@ -297,6 +297,73 @@ public class JsonGameContentTests
                 costs: """[{ "kind": "SkillPoints", "amount": 3 }]""")),
             "burst 第 1 級");
 
+    private static JsonGameContent LoadWithMonsterSkills(string? rows)
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            foreach (var file in Directory.GetFiles(TestContentDirectory))
+            {
+                File.Copy(file, Path.Combine(directory.FullName, Path.GetFileName(file)));
+            }
+
+            var path = Path.Combine(directory.FullName, "monster-skills.json");
+            if (rows is null)
+            {
+                File.Delete(path);
+            }
+            else
+            {
+                File.WriteAllText(path, $$"""{ "monsterSkills": [{{rows}}] }""");
+            }
+
+            return JsonGameContent.Load(directory.FullName);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Load_MonsterSkillRow_IsOnItsMonster()
+    {
+        var content = LoadWithMonsterSkills("""
+            { "monsterId": "test-sprite", "skillId": "burst", "level": 2, "rate": 10 },
+            { "monsterId": "test-sprite", "skillId": "combo", "level": 1, "rate": 20 }
+            """);
+
+        var skills = content.GetMonster("test-sprite").Skills;
+
+        Assert.Equal([("burst", 2, 1), ("combo", 1, 2)], skills.Select(skill => (skill.Skill.Id, skill.Level, skill.Slot)));
+        Assert.Equal([new SkillCondition(SkillConditionKind.Chance, 10)],
+            skills[0].Skill.LevelAt(2).Conditions.Where(condition => condition.Kind == SkillConditionKind.Chance));
+        Assert.Empty(content.GetMonster("test-wolf").Skills);
+    }
+
+    [Theory]
+    [InlineData("""{ "monsterId": "monster-x", "skillId": "burst", "level": 1, "rate": 10 }""", "monster-x")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "skill-x", "level": 1, "rate": 10 }""", "skill-x")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 0, "rate": 10 }""", "test-sprite")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 99, "rate": 10 }""", "test-sprite")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 0 }""", "test-sprite")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 101 }""", "test-sprite")]
+    [InlineData("""{ "monsterId": "test-sprite", "skillId": "burst", "level": 1, "rate": 10 }, { "monsterId": "test-sprite", "skillId": "burst", "level": 2, "rate": 20 }""", "重複")]
+    public void Load_InvalidMonsterSkill_Throws(string rows, string offendingText)
+    {
+        var exception = Assert.Throws<GameContentException>(() => LoadWithMonsterSkills(rows));
+
+        Assert.Contains(offendingText, exception.Message);
+    }
+
+    [Fact]
+    public void Load_WithoutMonsterSkillsFile_Throws()
+    {
+        var exception = Assert.Throws<GameContentException>(() => LoadWithMonsterSkills(null));
+
+        Assert.Contains("monster-skills.json", exception.Message);
+    }
+
     // 以 TestContent 為底，換掉職業與技能的關聯表
     private static void AssertJobSkillsRejected(string jobSkills, string offendingText)
     {
@@ -1679,6 +1746,7 @@ public class JsonGameContentTests
         string inn = ValidInn, string jobSkills = NoJobSkills)
     {
         File.WriteAllText(Path.Combine(directory, "job-skills.json"), jobSkills);
+        File.WriteAllText(Path.Combine(directory, "monster-skills.json"), """{ "monsterSkills": [] }""");
         File.WriteAllText(Path.Combine(directory, "inn.json"), inn);
         File.WriteAllText(Path.Combine(directory, "mercenaries.json"), mercenaries);
         File.WriteAllText(Path.Combine(directory, "honour-shop.json"), honourShop);
