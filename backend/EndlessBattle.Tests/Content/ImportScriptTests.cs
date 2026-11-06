@@ -4,7 +4,7 @@ using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Content;
 
-// scripts/import-wog45.py 在原版資料缺欄位或參照不存在時：以非 0 結束、印出檔名與紀錄 id，而且不寫任何檔
+// scripts/import-wog45.py 在原版資料缺欄位或參照不存在時：以非 0 結束、印出檔名與紀錄 id，而且不寫任何檔；成功時不動保留的內容
 public class ImportScriptTests
 {
     private static readonly string RepositoryDirectory = Path.GetFullPath(Path.Combine(BackendPaths.BackendDirectory, ".."));
@@ -26,6 +26,29 @@ public class ImportScriptTests
                 record["requiresSkillId"] = 999999;
             }
         }, "的 requiresSkillId 999999 不存在");
+
+    // 原版沒有旅館資料：匯入成功也不能動到 inn.json。尾端多加空行，重新產生這個檔案就會被發現
+    [Fact]
+    public async Task Import_LeavesInnFileByteIdentical()
+    {
+        var root = Directory.CreateTempSubdirectory("ebo-import-").FullName;
+        try
+        {
+            CopyImportInputs(root);
+            var innPath = Path.Combine(root, "backend/content/inn.json");
+            File.AppendAllText(innPath, "\n\n");
+            var innBefore = File.ReadAllBytes(innPath);
+
+            var (exitCode, error) = await RunAsync(Path.Combine(root, "scripts/import-wog45.py"));
+
+            Assert.True(exitCode == 0, error);
+            Assert.Equal(innBefore, File.ReadAllBytes(innPath));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
 
     private static async Task AssertImportStopsAsync(string file, Action<JsonArray> change, string message)
     {

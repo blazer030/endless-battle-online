@@ -31,3 +31,5 @@
 ## 變更紀錄
 
 使用者決定不留防回歸測試。任務 2.1、3.1、4.1、6.1 寫下的測試仍依原文完成，由任務 6.2 刪除；任務 5.1 的測試只在實作時暫時使用。
+
+`/spectra-verify` 之後補做：刪除主規格失效的 `@trace`、刪除 `JsonGameContent.cs` 多的空白行，並在 `ImportScriptTests` 新增 `Import_LeavesInnFileByteIdentical`。
