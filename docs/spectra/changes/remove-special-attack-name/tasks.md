@@ -15,7 +15,7 @@
 ## 4. 角色
 
 - [x] 4.1 依「用 migration 刪除角色的名稱欄位」與 Requirement「Nobody has a special attack name」，讓建立角色不再收名稱、角色回應不再帶。先寫失敗的 API 測試 `Create_WithoutSpecialAttackName_CreatesCharacter`（回應沒有 `specialAttackName`），再改 `CreateCharacterRequest`、`CreateCharacterCommand`、`CharacterFactory`（移除 `ValidateSpecialAttackName`）、`Character`、`CharacterResponse`、`CharacterRepository`。新增 `backend/db/ddl/V000000018__remove_character_special_attack_name.sql`，`docker compose up -d` 後跑 `./scripts/scaffold-db.sh`，並以 Testcontainers 測試 `Characters_HasNoSpecialAttackNameColumn` 確認欄位已刪。前端在 4.2 才移除欄位，這段期間多送的欄位會被 API 忽略。以 `cd backend && dotnet test` 驗證。 [after: 3.1]
-- [ ] 4.2 依 Requirement「Nobody has a special attack name」，讓前端不再顯示名稱。先改 `CreateCharacterScreen.test.tsx`、`CharacterScreen.test.tsx`，斷言建立角色的請求與畫面、角色資料頁都沒有必殺技，確認失敗後改 `CreateCharacterScreen`、`CharacterScreen`，移除 `names.ts` 的 `SpecialAttackNameMaxLength` 與超長測試，重新產生 `schema.ts`、清掉 `frontend/src/test/fixtures.ts` 等測試資料。以 `cd frontend && pnpm check` 驗證。 [after: 4.1]
+- [x] 4.2 依 Requirement「Nobody has a special attack name」，讓前端不再顯示名稱。先改 `CreateCharacterScreen.test.tsx`、`CharacterScreen.test.tsx`，斷言建立角色的請求與畫面、角色資料頁都沒有必殺技，確認失敗後改 `CreateCharacterScreen`、`CharacterScreen`，移除 `names.ts` 的 `SpecialAttackNameMaxLength` 與超長測試，重新產生 `schema.ts`、清掉 `frontend/src/test/fixtures.ts` 等測試資料。以 `cd frontend && pnpm check` 驗證。 [after: 4.1]
 
 ## 5. 匯入清單
 

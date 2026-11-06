@@ -21,7 +21,6 @@ const command: CreateCharacterCommand = {
   birth: 4,
   jobId: "sorcerer",
   allocation: { str: 1, smart: 5, life: 3, agi: 1 },
-  specialAttackName: "流星火雨",
 }
 
 beforeEach(() => localStorage.clear())

@@ -3,7 +3,6 @@ export const nameLength = (name: string) => [...name.trim()].length
 
 // 與後端的上限一致；下限交給伺服器回報
 export const CharacterNameMaxLength = 12
-export const SpecialAttackNameMaxLength = 8
 export const PetNameMaxLength = 12
 export const MercenaryNameMaxLength = 8
 

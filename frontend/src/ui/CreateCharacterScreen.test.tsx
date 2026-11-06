@@ -60,6 +60,12 @@ const renderScreen = (createCharacter: ApiClient["createCharacter"] = vi.fn()) =
 
 const group = (name: string) => screen.getByRole("group", { name })
 
+test("CreateCharacterScreen_HasNoSpecialAttackNameField", () => {
+  renderScreen()
+
+  expect(screen.queryByLabelText("必殺技名稱")).not.toBeInTheDocument()
+})
+
 test("CreateCharacterScreen_StartsWithSixPointsLeft", () => {
   renderScreen()
 
@@ -110,7 +116,6 @@ test("CreateCharacterScreen_SubmitsTheSelections", async () => {
   const { onCreated } = renderScreen(createCharacter)
 
   await user.type(screen.getByLabelText("名稱"), "青衣")
-  await user.type(screen.getByLabelText("必殺技名稱"), "流星火雨")
   await user.click(within(group("性別")).getByRole("button", { name: "女" }))
   await user.click(within(group("屬性")).getByRole("button", { name: "火" }))
   await user.click(within(group("出生地")).getByRole("button", { name: "末日王城" }))
@@ -131,7 +136,6 @@ test("CreateCharacterScreen_SubmitsTheSelections", async () => {
     birth: 4,
     jobId: "job-7",
     allocation: { str: 1, smart: 5, life: 2, agi: 1 },
-    specialAttackName: "流星火雨",
   })
 })
 
@@ -162,13 +166,13 @@ test("CreateCharacterScreen_MapsEachStepperToItsOwnStat", async () => {
 test("CreateCharacterScreen_ShowsValidationDetail", async () => {
   const createCharacter = vi
     .fn<ApiClient["createCharacter"]>()
-    .mockRejectedValue(new ApiError(400, "必殺技名稱必須是 1～8 個字"))
+    .mockRejectedValue(new ApiError(400, "能力點數總和不得超過 10"))
   const { onCreated } = renderScreen(createCharacter)
 
   await user.type(screen.getByLabelText("名稱"), "青衣")
   await user.click(screen.getByRole("button", { name: "踏上旅途" }))
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("必殺技名稱必須是 1～8 個字")
+  expect(await screen.findByRole("alert")).toHaveTextContent("能力點數總和不得超過 10")
   expect(onCreated).not.toHaveBeenCalled()
   expect(screen.getByRole("button", { name: "踏上旅途" })).toBeEnabled()
 })
@@ -186,18 +190,5 @@ test("CreateCharacterScreen_CountsNameLengthInCharacters", async () => {
   await user.type(name, "甲")
   expect(name).toHaveAttribute("aria-invalid", "true")
   expect(submit).toBeDisabled()
-  expect(screen.getByText("名稱長度不符")).toBeInTheDocument()
-})
-
-test("CreateCharacterScreen_RejectsASpecialAttackNameOverEight", async () => {
-  renderScreen()
-  const special = screen.getByLabelText("必殺技名稱")
-
-  await user.type(special, "一二三四五六七八")
-  expect(screen.getByRole("button", { name: "踏上旅途" })).toBeEnabled()
-
-  await user.type(special, "九")
-  expect(special).toHaveAttribute("aria-invalid", "true")
-  expect(screen.getByRole("button", { name: "踏上旅途" })).toBeDisabled()
   expect(screen.getByText("名稱長度不符")).toBeInTheDocument()
 })

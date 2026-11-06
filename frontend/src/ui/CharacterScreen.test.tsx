@@ -16,7 +16,6 @@ const character: CharacterView = makeCharacter({
   birth: 4,
   jobId: "sorcerer",
   jobName: "術士",
-  specialAttackName: "星落",
   jobProficiency: [
     { jobId: "warrior", proficiency: 9000, skillPoints: 9000 },
     { jobId: "sorcerer", proficiency: 1234, skillPoints: 300 },
@@ -74,7 +73,7 @@ test("CharacterScreen_ShowsProfile", () => {
   expect(valueOf("性別")).toHaveTextContent("女")
   expect(valueOf("屬性")).toHaveTextContent("火")
   expect(valueOf("出生地")).toHaveTextContent("末日王城")
-  expect(valueOf("必殺技")).toHaveTextContent("星落")
+  expect(screen.queryByText("必殺技")).not.toBeInTheDocument()
   expect(valueOf("職業熟練度")).toHaveTextContent(/^35%（1,234）$/)
 })
 

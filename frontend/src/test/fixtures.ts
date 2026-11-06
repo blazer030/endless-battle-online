@@ -32,7 +32,6 @@ export const makeCharacter = (overrides: Partial<CharacterView> = {}): Character
   birth: 1,
   jobId: "test-warrior",
   jobName: "測試戰士",
-  specialAttackName: "測試斬",
   stats: {
     str: 11,
     smart: 11,

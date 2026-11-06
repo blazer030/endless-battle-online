@@ -89,7 +89,6 @@ export function CharacterScreen({ api, character, content }: Props) {
     { label: "性別", value: nameOf(content.sexes, character.sex) },
     { label: "屬性", value: nameOf(content.elements, character.element) },
     { label: "出生地", value: nameOf(content.births, character.birth) },
-    { label: "必殺技", value: character.specialAttackName },
     { label: "職業熟練度", value: describeProficiency(currentJobProficiency(character)) },
   ]
   const bars = [

@@ -2542,7 +2542,6 @@ export interface components {
             birth: number;
             jobId: string;
             jobName: string;
-            specialAttackName: string;
             stats: components["schemas"]["StatsResponse"];
             baseStats: components["schemas"]["BaseStatsResponse"];
             /** Format: int32 */
@@ -2576,7 +2575,6 @@ export interface components {
             birth: null | number;
             jobId: null | string;
             allocation: null | components["schemas"]["StatAllocationRequest"];
-            specialAttackName: null | string;
         };
         CredentialsRequest: {
             username: null | string;

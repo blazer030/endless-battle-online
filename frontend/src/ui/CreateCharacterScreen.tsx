@@ -7,12 +7,7 @@ import {
   describeTopGrowth,
   MinimumAllocation,
 } from "../game/stats"
-import {
-  CharacterNameMaxLength,
-  isNameTooLong,
-  NameLengthError,
-  SpecialAttackNameMaxLength,
-} from "../game/names"
+import { CharacterNameMaxLength, isNameTooLong, NameLengthError } from "../game/names"
 import type { CharacterView, ContentNames, StatAllocation } from "../game/types"
 import "./CreateCharacterScreen.css"
 
@@ -97,7 +92,6 @@ const JobCard = ({ job }: { job: JobContent }) => {
 export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
   const startingJobs = content.jobs.filter((job) => job.tier === 1)
   const [name, setName] = useState("")
-  const [specialAttackName, setSpecialAttackName] = useState("")
   const [sex, setSex] = useState(() => firstNumericId(content.sexes))
   const [element, setElement] = useState(() => firstNumericId(content.elements))
   const [birth, setBirth] = useState(() => firstNumericId(content.births))
@@ -107,9 +101,7 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
   const [isBusy, setIsBusy] = useState(false)
 
   const nameErrorId = useId()
-  const specialAttackErrorId = useId()
   const nameTooLong = isNameTooLong(name, CharacterNameMaxLength)
-  const specialAttackTooLong = isNameTooLong(specialAttackName, SpecialAttackNameMaxLength)
 
   const remaining = AllocationTotalPoints - totalOf(allocation)
   const preview = deriveStats(baseStatsFromAllocation(allocation))
@@ -124,7 +116,7 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (nameTooLong || specialAttackTooLong) return
+    if (nameTooLong) return
     setIsBusy(true)
     setErrorDetail(null)
     try {
@@ -136,7 +128,6 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
           birth,
           jobId,
           allocation,
-          specialAttackName,
         }),
       )
     } catch (error) {
@@ -163,21 +154,6 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
         </label>
         {nameTooLong && (
           <p id={nameErrorId} className="error">
-            {NameLengthError}
-          </p>
-        )}
-        <label>
-          必殺技名稱
-          <input
-            value={specialAttackName}
-            onChange={(event) => setSpecialAttackName(event.target.value)}
-            aria-invalid={specialAttackTooLong || undefined}
-            aria-describedby={specialAttackTooLong ? specialAttackErrorId : undefined}
-            placeholder="1～8 字"
-          />
-        </label>
-        {specialAttackTooLong && (
-          <p id={specialAttackErrorId} className="error">
             {NameLengthError}
           </p>
         )}
@@ -252,7 +228,7 @@ export const CreateCharacterScreen = ({ api, content, onCreated }: Props) => {
         </fieldset>
 
         <div className="actions">
-          <button type="submit" disabled={isBusy || nameTooLong || specialAttackTooLong}>
+          <button type="submit" disabled={isBusy || nameTooLong}>
             踏上旅途
           </button>
         </div>
