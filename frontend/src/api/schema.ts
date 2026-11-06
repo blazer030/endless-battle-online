@@ -2283,7 +2283,7 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"] | components["schemas"]["BattleEventEscapeEvent"];
+        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventNpcEncounterEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"] | components["schemas"]["BattleEventEscapeEvent"];
         BattleEventAttackEvent: {
             /** @enum {string} */
             type?: "attack";
@@ -2368,6 +2368,15 @@ export interface components {
             required: number;
             requiresDelivery: boolean;
             completed: boolean;
+            /** Format: double */
+            atSeconds: number;
+        };
+        BattleEventNpcEncounterEvent: {
+            /** @enum {string} */
+            type?: "npc";
+            monsterId: string;
+            name: string;
+            message: null | string;
             /** Format: double */
             atSeconds: number;
         };

@@ -88,6 +88,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "reward":
     case "levelUp":
     case "mission":
+    case "npc":
     case "capture":
     case "escape":
       return state
@@ -160,6 +161,8 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
       return event.completed && !event.requiresDelivery
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
+    case "npc":
+      return [{ type: "plate", text: event.name, tone: "cyan" }]
     case "petGuard":
       return petGuardEffects(event)
     case "petAttack":

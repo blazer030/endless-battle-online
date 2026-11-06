@@ -421,6 +421,18 @@ describe("stageModel", () => {
     expect(applyToStage(midFight, mission)).toBe(midFight)
   })
 
+  it("stageEffectsFor_Npc_ShowsNamePlate", () => {
+    const npc: BattleEvent = {
+      type: "npc",
+      monsterId: "monster-265",
+      name: "倫魯",
+      message: "我是倫魯",
+      atSeconds: 2,
+    }
+    expect(stageEffectsFor(npc)).toEqual([{ type: "plate", text: "倫魯", tone: "cyan" }])
+    expect(applyToStage(midFight, npc)).toBe(midFight)
+  })
+
   it("stageEffectsFor_OneTargetFullOfSeveral_ShowsNoPlate", () => {
     const mission: BattleEvent = {
       type: "mission",

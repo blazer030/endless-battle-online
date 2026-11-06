@@ -91,6 +91,7 @@ export type RewardEvent = Required<Schemas["BattleEventRewardEvent"]>
 export type DropResult = Schemas["DropResult"]
 export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
 export type MissionProgressEvent = Required<Schemas["BattleEventMissionProgressEvent"]>
+export type NpcEncounterEvent = Required<Schemas["BattleEventNpcEncounterEvent"]>
 export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
 export type PetGuardEvent = Required<Schemas["BattleEventPetGuardEvent"]>
 export type PetAttackEvent = Required<Schemas["BattleEventPetAttackEvent"]>
@@ -107,6 +108,7 @@ export type BattleEvent =
   | RewardEvent
   | LevelUpEvent
   | MissionProgressEvent
+  | NpcEncounterEvent
   | RestEvent
   | PetGuardEvent
   | PetAttackEvent

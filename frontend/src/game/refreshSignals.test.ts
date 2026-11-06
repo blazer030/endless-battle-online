@@ -68,6 +68,14 @@ describe("refreshSignalsFor", () => {
     expect(refreshSignalsFor([mercenary])).toEqual({ ...none, bag: true })
   })
 
+  it("遇到 NPC 不重載任何東西，任務進度有自己的事件", () => {
+    expect(
+      refreshSignalsFor([
+        event({ type: "npc", atSeconds: 0, monsterId: "monster-265", name: "倫魯", message: null }),
+      ]),
+    ).toEqual(none)
+  })
+
   it("任務進度重載任務，升級重載技能", () => {
     const mission = event({
       type: "mission",

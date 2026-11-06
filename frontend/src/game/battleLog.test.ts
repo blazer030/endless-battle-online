@@ -393,6 +393,16 @@ const cases: [string, PlaybackItem, Line[]][] = [
     ],
   ],
   [
+    "shows an NPC with its message",
+    event({ type: "npc", monsterId: "monster-265", name: "倫魯", message: "我是倫魯" }),
+    [["遇到 倫魯：「我是倫魯」", "normal"]],
+  ],
+  [
+    "shows an NPC without a message",
+    event({ type: "npc", monsterId: "monster-275", name: "探險者", message: null }),
+    [["遇到 探險者", "normal"]],
+  ],
+  [
     "adds no completion line while another target is not full",
     event({
       type: "mission",

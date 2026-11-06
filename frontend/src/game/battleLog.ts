@@ -247,6 +247,16 @@ export const describePlaybackItem = (
       return describeReward(event)
     case "mission":
       return describeMission(event, monsterName(event.monsterId))
+    case "npc":
+      return [
+        {
+          text:
+            event.message === null
+              ? `遇到 ${event.name}`
+              : `遇到 ${event.name}：「${event.message}」`,
+          kind: "normal",
+        },
+      ]
     case "levelUp": {
       const growth = describeGrowth(event.growth)
       const level = `升級！Lv ${event.newLevel}`
