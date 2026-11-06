@@ -382,6 +382,24 @@ test("BagScreen_EquipCandidatesShowRequirementsAndCrimsonForUnmet", async () => 
   expect(api.equip).toHaveBeenCalledWith(1)
 })
 
+test("BagScreen_EquippedWeaponPanelShowsItsSkill", async () => {
+  const worn = { ...sword, inventoryId: 9, weaponSkill: { name: "爆氣", level: 2, rate: 12 } }
+  renderBag(
+    createFakeApi({
+      getInventory: vi
+        .fn()
+        .mockResolvedValue(
+          makeInventory([], { equipment: [{ slot: "Weapon", quantity: 1, item: worn }] }),
+        ),
+    }),
+  )
+  await openSubPage("裝備")
+
+  await user.click(screen.getByRole("button", { name: /^武器/ }))
+
+  expect(screen.getByText("附帶技能 爆氣 Lv2（發動率 12%）")).toBeInTheDocument()
+})
+
 test("BagScreen_EquipmentSlotsShowRefineAndHoles", async () => {
   const { api } = renderBag()
   await openSubPage("裝備")

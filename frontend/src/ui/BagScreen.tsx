@@ -476,19 +476,22 @@ function EquipmentPage({
         <div id={panelId} className="bag__panel">
           <h3 className="bag__panel-title">{selected.label}</h3>
           {current !== null && (
-            <div className="bag__current">
-              <ItemName item={{ ...current.item, quantity: current.quantity }} />
-              <button
-                type="button"
-                className="bag__action"
-                disabled={busy}
-                onClick={() =>
-                  void act(async () => ({ inventory: await api.unequip(selected.id) }))
-                }
-              >
-                卸下
-              </button>
-            </div>
+            <>
+              <div className="bag__current">
+                <ItemName item={{ ...current.item, quantity: current.quantity }} />
+                <button
+                  type="button"
+                  className="bag__action"
+                  disabled={busy}
+                  onClick={() =>
+                    void act(async () => ({ inventory: await api.unequip(selected.id) }))
+                  }
+                >
+                  卸下
+                </button>
+              </div>
+              <ItemDetail item={current.item} />
+            </>
           )}
           {candidatesFor(inventory, selected.id).length === 0 ? (
             <p className="bag__empty">背包裡沒有可裝備的道具</p>

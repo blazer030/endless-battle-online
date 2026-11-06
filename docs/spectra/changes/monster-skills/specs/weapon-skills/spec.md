@@ -60,12 +60,18 @@ While a weapon with a skill is equipped, the skill SHALL be tried after the char
 
 ### Requirement: The bag shows a weapon's skill
 
-The inventory API SHALL return a weapon's skill name, level and rate, and null when it has none. The bag's item detail SHALL show them.
+The inventory API SHALL return a weapon's skill name, level and rate, and null when it has none. The bag's item detail SHALL show them, and the panel of an equipment slot SHALL show the detail of the item equipped there.
 
 #### Scenario: The bag shows the skill
 
 - **GIVEN** a weapon with 爆氣 level 2 at rate 12
 - **WHEN** its detail is shown in the bag
+- **THEN** the text `附帶技能 爆氣 Lv2（發動率 12%）` is shown
+
+#### Scenario: The panel of the weapon slot shows the equipped weapon's skill
+
+- **GIVEN** an equipped weapon with 爆氣 level 2 at rate 12
+- **WHEN** the weapon slot is opened on the equipment page
 - **THEN** the text `附帶技能 爆氣 Lv2（發動率 12%）` is shown
 
 #### Scenario: A weapon without a skill shows no line
