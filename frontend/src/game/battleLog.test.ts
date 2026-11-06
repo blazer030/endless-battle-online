@@ -115,13 +115,13 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "player critical",
-    attack({ critical: true, damage: 31207, specialAttackName: "星落" }),
-    [["星落！史萊姆受到 31,207 點傷害！", "trigger"]],
+    attack({ critical: true, damage: 120 }),
+    [["暴擊！你攻擊史萊姆，造成 120 點傷害！", "trigger"]],
   ],
   [
-    "player critical without special attack name",
-    attack({ critical: true, damage: 500, specialAttackName: null }),
-    [["暴擊！史萊姆受到 500 點傷害！", "trigger"]],
+    "player magic critical",
+    attack({ kind: "Magic", critical: true, damage: 88 }),
+    [["暴擊！你施放魔法，史萊姆受到 88 點傷害！", "trigger"]],
   ],
   ["player miss", attack({ hit: false, damage: 0 }), [["你的攻擊落空了。", "muted"]]],
   [
@@ -131,8 +131,13 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "monster critical",
-    attack({ attacker: "Monster", critical: true, damage: 1900 }),
-    [["史萊姆重擊！你受到 1,900 點傷害！", "normal"]],
+    attack({ attacker: "Monster", critical: true, damage: 45 }),
+    [["史萊姆暴擊！你受到 45 點傷害！", "normal"]],
+  ],
+  [
+    "monster magic critical",
+    attack({ attacker: "Monster", kind: "Magic", critical: true, damage: 1900 }),
+    [["史萊姆暴擊！你受到 1,900 點傷害！", "normal"]],
   ],
   [
     "monster miss",

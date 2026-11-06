@@ -33,8 +33,9 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
   if (event.attacker === "Player") {
     if (!event.hit) return { text: "你的攻擊落空了。", kind: "muted" }
     if (event.critical) {
-      const name = event.specialAttackName ?? "暴擊"
-      return { text: `${name}！${monster}受到 ${damage} 點傷害！`, kind: "trigger" }
+      return event.kind === "Magic"
+        ? { text: `暴擊！你施放魔法，${monster}受到 ${damage} 點傷害！`, kind: "trigger" }
+        : { text: `暴擊！你攻擊${monster}，造成 ${damage} 點傷害！`, kind: "trigger" }
     }
     return event.kind === "Magic"
       ? { text: `你施放魔法，${monster}受到 ${damage} 點傷害。`, kind: "normal" }
@@ -43,7 +44,7 @@ const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
   if (event.stunned) return { text: `${monster}暈眩中，無法行動。`, kind: "muted" }
   if (!event.hit) return { text: `${monster}的攻擊落空了。`, kind: "normal" }
   return event.critical
-    ? { text: `${monster}重擊！你受到 ${damage} 點傷害！`, kind: "normal" }
+    ? { text: `${monster}暴擊！你受到 ${damage} 點傷害！`, kind: "normal" }
     : { text: `${monster}攻擊，你受到 ${damage} 點傷害。`, kind: "normal" }
 }
 
