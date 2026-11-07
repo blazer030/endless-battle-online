@@ -1,5 +1,5 @@
 {
   "monsterSkills": [
-    { "monsterId": "test-wraith", "skillId": "burst", "level": 1, "rate": 10 }
+    {"monsterId": "test-wraith", "skillId": "burst", "level": 1, "rate": 10}
   ]
 }
