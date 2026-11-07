@@ -34,6 +34,13 @@
 - [x] 6.3 [after: 1.4, 3.1, 4.4, 4.5, 5.2, 6.1] 手動確認 375×667 的實際畫面，沒有水平捲動：任務頁的多目標、交寵物與技能條件，遇到 NPC 時的舞台與戰報，鐵舖鎖住與解鎖的配方。看不到的狀態可以用本機測試帳號直接改本機資料庫，做法寫進變更紀錄。
 - [x] 6.4 [after: 6.2, 6.3] `./scripts/check.sh` exit code 0。
 
+## 7. 驗證後修正
+
+- [x] 7.1 實作 Requirement "A mission can require a skill level" 新增的 `SkillTooLow`：`KillCounter.Track` 帶入已學技能，算出 `ActiveMission.SkillTooLow`，`MissionProgressEvent` 帶出去。先寫失敗測試：`Advance_MissionEvent_ReportsSkillTooLow`（API 層級，已學 Lv0 為 true、Lv2 為 false）、`KillCounter_TracksSkillTooLow`。
+- [x] 7.2 [after: 7.1] 前端依 `skillTooLow` 判斷：舞台不顯示達成名牌、戰報說明還需要技能等級；`progressRatio` 把寵物與技能條件各算一格，滿格等於可以回報。`pnpm generate:api` 後，先寫失敗測試：`stageEffectsFor`、`battleLog` 的技能不足與同時要交付，以及 `progressRatio` 依 spec 的範例表。
+- [x] 7.3 補測試：`Recipes_Returns404_WhenNoCharacter`（還沒建角色查配方回 404）、`Complete_ReportsUnmetConditionsInOrder`（依序回 `petMissing`、`skillTooLow`、`bagFull`）。這兩條測的是已有的行為，用故意改壞確認它們會失敗。
+- [x] 7.4 [after: 7.1, 7.2, 7.3] `./scripts/check.sh` exit code 0，並在 375×667 看一次技能不足的任務：擊殺滿了沒有達成名牌，戰報說明正確，任務頁進度沒有滿格。
+
 ## 變更紀錄
 
 **量測（6.2，2026-11-07）**：用平衡報告比較匯入前後（第 3 組，每地區、每初階職業）。
@@ -57,5 +64,6 @@
 - 空的血條外框不符合 spec 的 "without an HP bar"。`StageRenderer.updateHealth` 改成 `monsterHpMax` 為 0 時隱藏怪物血條。依專案慣例不寫樣式測試，在 375×667 實際遇到 `倫魯` 確認：遇到時血條與名稱消失，下一場戰鬥恢復，沒有水平捲動。
 - 補測試：`KillCounter_Mission29NotReadyWhileATargetIsShort`（spec 的任務 29 範例）；`Complete_RegularPetMission_RemovesCarriedPet` 驗證 50 元獎勵；`Spawnable_PetMissionOpenUntilFinished` 加上放棄任務。前兩項都故意改壞程式或資料確認過會失敗；放棄只是刪除紀錄，這條斷言由 `Missions_AcceptThenAbandon` 確認紀錄被刪，兩條合起來才完整。
 - 驗證報告說「擊殺目標不能是別的任務的任務怪」沒有測試，查證後是誤判：`Missions_RejectInvalidFields` 的 `InvalidMissionFields` 有這一列（`rival` 改打 `chief`），拿掉檢查時它會失敗，所以沒有新增測試。
+- 第二次驗證的建議：技能不足的任務擊殺滿了會顯示達成。依 7.1、7.2 修正，並更新 spec。手動確認用真實內容的 `mission-331`（`skill-348` Lv1，角色沒學），把進度放到 27/28 後實際打滿：舞台沒有達成名牌，戰報說明還需要技能等級，任務頁進度 28/29、「完成」按鈕停用，沒有水平捲動。同一個建議裡的「血條判斷補自動測試」不做，依專案慣例不寫樣式測試。
 - 與上方已完成任務的文字不同的地方：3.1 的 `Mission_RejectsRequiredSkillAboveMaxLevel` 實際叫 `Mission_RejectsInvalidRequiredSkill`；4.5 的「`applyToStage` 遇到 `npc` 狀態不變」改成清除怪物，原因見上方手動驗證。
 
