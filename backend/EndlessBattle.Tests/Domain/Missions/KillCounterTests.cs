@@ -118,6 +118,19 @@ public class KillCounterTests
         Assert.Empty(result.Advanced);
     }
 
+    // spec 的任務 29 範例：進度 3、1，先打已滿的目標再打未滿的，變 3、2，還不能回報
+    [Fact]
+    public void KillCounter_Mission29NotReadyWhileATargetIsShort()
+    {
+        var afterFullTarget = KillCounter.Apply([Fakes(heroes: 3, summoners: 1)], "monster-111", Now);
+        var afterOpenTarget = KillCounter.Apply(afterFullTarget.Missions, "monster-112", Now);
+
+        IReadOnlyList<int> progress = [.. afterOpenTarget.Missions.Single().Targets.Select(target => target.Progress)];
+        Assert.Equal([3, 2], progress);
+        var record = new MissionRecord("mission-29", MissionState.Active, progress, null, Accepted, null);
+        Assert.False(MissionBoard.Ready(DailyMissions.Resolve(FakesDefinition, characterId: 7, period: null), record));
+    }
+
     [Fact]
     public void KillCounter_MissionStaysOpenUntilEveryTargetIsFull()
     {
@@ -168,9 +181,12 @@ public class KillCounterTests
     {
         var active = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7);
         var completed = KillCounter.Track([new MissionRecord("mission-268", MissionState.Completed, [], null, Now, Now)], [PetMission], characterId: 7);
+        // 放棄會刪除紀錄
+        var abandoned = KillCounter.Track([], [PetMission], characterId: 7);
 
         Assert.Contains("mission-268", KillCounter.SpawnableMissionIds(active, Now));
         Assert.Empty(KillCounter.SpawnableMissionIds(completed, Now));
+        Assert.Empty(KillCounter.SpawnableMissionIds(abandoned, Now));
     }
 
     [Fact]

@@ -184,10 +184,13 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         var client = await CreateCharacterAsync(factory);
         await GivePetAsync(factory, client, "test-wolf", carried: true);
         (await PostAsync(client, "accept", "test-pet-delivery")).EnsureSuccessStatusCode();
+        var before = await ReadAsync(await client.GetAsync("/api/characters/me", CancellationToken));
 
         var completion = await ReadAsync(await PostAsync(client, "complete", "test-pet-delivery"));
 
         Assert.Equal(["test-pet-delivery"], Ids(completion.GetProperty("board"), "completed"));
+        var character = await ReadAsync(await client.GetAsync("/api/characters/me", CancellationToken));
+        Assert.Equal(before.GetProperty("money").GetInt64() + 50, character.GetProperty("money").GetInt64());
         var pets = await client.GetFromJsonAsync<JsonElement>("/api/pets", CancellationToken);
         Assert.Empty(pets.GetProperty("pets").EnumerateArray());
     }
