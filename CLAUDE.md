@@ -102,7 +102,8 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、後端 build（警告視為錯誤）與測試、前端與 admin 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、API 文件與型別是否最新、後端 build（警告視為錯誤）與測試、前端與 admin 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `./scripts/check-api-types-test.sh` — 測試 API 文件與型別的檢查本身；會重複建置，`check.sh` 只在那兩支腳本有改動時才跑。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
 - `./scripts/smoke-compose.sh` — 用獨立專案名與埠起完整 stack，經 nginx 打 `/api/health`、`/`、`/api/content`，結束一律拆掉；不在 `check.sh` 裡，改 Dockerfile、nginx 或 compose 時手動跑。

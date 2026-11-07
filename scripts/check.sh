@@ -28,7 +28,10 @@ if compose_config /dev/null --quiet > /dev/null 2>&1; then
 fi
 
 "$repository_root/scripts/check-api-types.sh"
-"$repository_root/scripts/check-api-types-test.sh"
+# 自我測試要重複建置好幾次，只有這兩支腳本有改動時才跑
+if [[ -n "$(git -C "$repository_root" status --porcelain -- scripts/check-api-types.sh scripts/check-api-types-test.sh)" ]]; then
+    "$repository_root/scripts/check-api-types-test.sh"
+fi
 
 cd "$repository_root/backend"
 dotnet test
