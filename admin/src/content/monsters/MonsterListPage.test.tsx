@@ -89,7 +89,8 @@ describe("MonsterListPage", () => {
       ),
     )
 
-    expect(await screen.findByRole("row", { name: /page-50/ })).toBeInTheDocument()
-    expect(screen.queryByRole("row", { name: /page-51/ })).not.toBeInTheDocument()
+    // 查 50 列的 role 很慢，全部測試一起跑時會逾時；這裡只需要文字
+    expect(await screen.findByText("page-50")).toBeInTheDocument()
+    expect(screen.queryByText("page-51")).not.toBeInTheDocument()
   })
 })

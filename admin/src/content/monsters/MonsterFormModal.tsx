@@ -4,7 +4,7 @@ import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
 import { elementLabels } from "../shared/elementLabels"
 import { NumberField } from "../shared/fields"
-import { requiredText } from "../shared/rules"
+import { requiredText, skillLevelRule } from "../shared/rules"
 import {
   useItemOptions,
   useMissionOptions,
@@ -119,16 +119,7 @@ function SkillRow({
         style={{ marginBottom: 0 }}
         rules={[
           { required: true, message: "請填寫等級" },
-          {
-            validator: async (_, level: number | null) => {
-              const skill = skills.find(
-                (option) => option.id === form.getFieldValue(["skills", rowName, "skillId"]),
-              )
-              if (skill && level !== null && level > skill.maxLevel) {
-                throw new Error(`${skill.name}的等級上限是 ${skill.maxLevel}`)
-              }
-            },
-          },
+          skillLevelRule(skills, () => form.getFieldValue(["skills", rowName, "skillId"])),
         ]}
       >
         <InputNumber

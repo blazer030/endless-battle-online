@@ -22,7 +22,7 @@
 ## 4. 道具
 
 - [x] 4.1 道具後端：紀錄（含加成、需求、`element` 列舉、`bound`、`shopSellable`、`weaponSkill`、`supplyHitPoints`／`supplySkillPoints`、`amount`、`elixir`、`refine` 各能力範圍、`stone` 固定值與最小／最大與寶箱等級、`key`）、codec、有型別路由。先寫失敗測試：`ItemCodec_RoundTripsContentFiles`（3127 筆道具逐字相同）、`Items_UseCompleteFieldNames`（`item-1823` 的加成 `attack` 650、需求 `strength` 590、`weaponSkill` 的 `activationRate` 12）、`Items_RejectUnknownCategory`。量測 `GET /admin/content/items` 的回應大小與時間，寫進 design.md；超過 1 秒就依「搜尋與篩選」改成只有 id 與名稱的選項路由。驗證：`cd backend && dotnet test` 全綠。[after: 3.6]
-- [ ] 4.2 道具前端（裝備與消耗品）：`ItemVo`／`ItemConverter`、列表（每頁 50 筆、搜尋、依分類與商店等級篩選）、彈窗中裝備的加成／需求／孔數／精鍊上限／綁定（武器另有屬性與武器技能，飾品沒有孔數與精鍊上限），與消耗品依種類顯示補給回復、能力藥水加成、密藥、其他種類的數值；`toDto` 只輸出所選分類與種類的欄位。先寫失敗測試：「分類篩選加搜尋」「從 item-2 複製並填 item-9001，送出的新道具帶 item-2 的其他欄位」「消耗品種類選補給只顯示回復 HP／SP」「身體防具沒有屬性與武器技能欄位」「武器選爆氣、等級 2、發動率 12，送出 weaponSkill」。驗證：`cd admin && pnpm check` 通過。[after: 4.1]
+- [x] 4.2 道具前端（裝備與消耗品）：`ItemVo`／`ItemConverter`、列表（每頁 50 筆、搜尋、依分類與商店等級篩選）、彈窗中裝備的加成／需求／孔數／精鍊上限／綁定（武器另有屬性與武器技能，飾品沒有孔數與精鍊上限），與消耗品依種類顯示補給回復、能力藥水加成、密藥、其他種類的數值；`toDto` 只輸出所選分類與種類的欄位。先寫失敗測試：「分類篩選加搜尋」「從 item-2 複製並填 item-9001，送出的新道具帶 item-2 的其他欄位」「消耗品種類選補給只顯示回復 HP／SP」「身體防具沒有屬性與武器技能欄位」「武器選爆氣、等級 2、發動率 12，送出 weaponSkill」。驗證：`cd admin && pnpm check` 通過。[after: 4.1]
 - [ ] 4.3 道具前端（魔石、精鍊石、鑰匙、素材、勳章）：魔石的隨機切換、固定值或最小／最大與寶箱等級，精鍊石的等級、系列與各能力範圍，鑰匙的地區下拉與秒數，素材與勳章只有共同欄位與綁定。先寫失敗測試：「新道具分類從武器改成鑰匙並選地區，表單只剩鑰匙欄位，送出有 key、沒有 bonus 與 requires」「隨機魔石送出 minimum 與 maximum、不送 fixed」，以及 `ItemConverter` 對 `backend/content/items.json` 全部 3127 筆來回相等的測試。驗證：`cd admin && pnpm check` 通過。[after: 4.2]
 
 ## 5. 收尾
