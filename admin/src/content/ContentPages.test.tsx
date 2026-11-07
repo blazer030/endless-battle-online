@@ -5,13 +5,12 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { App } from "../App"
 import { mockFetch } from "../test/fetchMock"
 
-const sprite = {
-  id: "test-sprite",
-  name: "測試雪精",
-  level: 1,
-  placeId: 1,
-  subPlaces: [1, 2],
-  drops: [{ itemId: "small-supply", topr: 3 }],
+const sword = {
+  id: "test-sword",
+  name: "測試劍",
+  price: 1,
+  shopLevel: 1,
+  category: "Weapon",
 }
 
 afterEach(() => {
@@ -21,48 +20,48 @@ afterEach(() => {
 describe("ContentEdit", () => {
   it("sends the whole record with only the edited field changed", async () => {
     const calls = mockFetch({
-      "GET /admin/content/monsters/test-sprite": sprite,
-      "PUT /admin/content/monsters/test-sprite": { exists: true, valid: true, error: null },
+      "GET /admin/content/items/test-sword": sword,
+      "PUT /admin/content/items/test-sword": { exists: true, valid: true, error: null },
     })
     render(
-      <MemoryRouter initialEntries={["/monsters/edit/test-sprite"]}>
+      <MemoryRouter initialEntries={["/items/edit/test-sword"]}>
         <App />
       </MemoryRouter>,
     )
-    const level = await screen.findByLabelText("level")
+    const price = await screen.findByLabelText("price")
 
-    await userEvent.clear(level)
-    await userEvent.type(level, "9")
+    await userEvent.clear(price)
+    await userEvent.type(price, "9")
     await userEvent.click(screen.getByRole("button", { name: "儲存" }))
 
     await waitFor(() => expect(calls.some((call) => call.method === "PUT")).toBe(true))
-    expect(calls.find((call) => call.method === "PUT")?.body).toEqual({ ...sprite, level: 9 })
+    expect(calls.find((call) => call.method === "PUT")?.body).toEqual({ ...sword, price: 9 })
   })
 
-  it("shows the new level in the list after saving", async () => {
-    let saved = sprite
+  it("shows the new price in the list after saving", async () => {
+    let saved = sword
     mockFetch({
-      "GET /admin/content/monsters/test-sprite": () => saved,
-      "PUT /admin/content/monsters/test-sprite": (body: typeof sprite) => {
+      "GET /admin/content/items/test-sword": () => saved,
+      "PUT /admin/content/items/test-sword": (body: typeof sword) => {
         saved = body
         return { exists: true, valid: true, error: null }
       },
-      "GET /admin/content/monsters": () => [saved],
+      "GET /admin/content/items": () => [saved],
     })
     render(
-      <MemoryRouter initialEntries={["/monsters", "/monsters/edit/test-sprite"]} initialIndex={1}>
+      <MemoryRouter initialEntries={["/items", "/items/edit/test-sword"]} initialIndex={1}>
         <App />
       </MemoryRouter>,
     )
-    const level = await screen.findByLabelText("level")
+    const price = await screen.findByLabelText("price")
 
-    await userEvent.clear(level)
-    await userEvent.type(level, "9")
+    await userEvent.clear(price)
+    await userEvent.type(price, "9")
     await userEvent.click(screen.getByRole("button", { name: "儲存" }))
-    await waitFor(() => expect(saved.level).toBe(9))
-    await userEvent.click(screen.getByRole("link", { name: /怪物/ }))
+    await waitFor(() => expect(saved.price).toBe(9))
+    await userEvent.click(screen.getByRole("link", { name: /道具/ }))
 
-    const row = await screen.findByRole("row", { name: /test-sprite/ })
+    const row = await screen.findByRole("row", { name: /test-sword/ })
     expect(row).toHaveTextContent("9")
   })
 })

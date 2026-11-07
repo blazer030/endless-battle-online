@@ -3,10 +3,12 @@ import { Refine } from "@refinedev/core"
 import routerProvider, { NavigateToResource } from "@refinedev/react-router"
 import { BarChartOutlined } from "@ant-design/icons"
 import { App as AntdApp, ConfigProvider } from "antd"
+import type { ComponentType } from "react"
 import zhTW from "antd/locale/zh_TW"
 import { Outlet, Route, Routes } from "react-router"
 import { dataProvider } from "./api/dataProvider"
 import { ContentCreate, ContentEdit, ContentList } from "./content/ContentPages"
+import { MonsterListPage } from "./content/monsters/MonsterListPage"
 import { contentResources } from "./content/resources"
 import { DraftError } from "./draft/DraftBar"
 import { AdminHeader } from "./layout/AdminHeader"
@@ -14,6 +16,9 @@ import { ReportPage } from "./report/ReportPage"
 import "@refinedev/antd/dist/reset.css"
 
 export const AppTitle = "EBO 內容後台"
+
+// 已改成彈窗編輯的內容種類；其他種類還在舊的表單頁
+const typedPages: Partial<Record<string, ComponentType>> = { monsters: MonsterListPage }
 
 export function App() {
   return (
@@ -28,8 +33,10 @@ export function App() {
             ...contentResources.map((resource) => ({
               name: resource.name,
               list: `/${resource.name}`,
-              create: `/${resource.name}/create`,
-              edit: `/${resource.name}/edit/:id`,
+              ...(typedPages[resource.name] === undefined && {
+                create: `/${resource.name}/create`,
+                edit: `/${resource.name}/edit/:id`,
+              }),
               meta: { label: resource.label, icon: <resource.icon /> },
             })),
             {
@@ -54,13 +61,18 @@ export function App() {
             >
               <Route index element={<NavigateToResource resource={contentResources[0].name} />} />
               <Route path="reports" element={<ReportPage />} />
-              {contentResources.map((resource) => (
-                <Route key={resource.name} path={resource.name}>
-                  <Route index element={<ContentList resource={resource} />} />
-                  <Route path="create" element={<ContentCreate resource={resource} />} />
-                  <Route path="edit/:id" element={<ContentEdit resource={resource} />} />
-                </Route>
-              ))}
+              {contentResources.map((resource) => {
+                const TypedPage = typedPages[resource.name]
+                return TypedPage ? (
+                  <Route key={resource.name} path={resource.name} element={<TypedPage />} />
+                ) : (
+                  <Route key={resource.name} path={resource.name}>
+                    <Route index element={<ContentList resource={resource} />} />
+                    <Route path="create" element={<ContentCreate resource={resource} />} />
+                    <Route path="edit/:id" element={<ContentEdit resource={resource} />} />
+                  </Route>
+                )
+              })}
             </Route>
           </Routes>
         </Refine>
