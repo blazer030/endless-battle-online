@@ -53,9 +53,11 @@ public class AdminMissionTests(MySqlDatabaseFixture database)
         var body = new JsonObject { ["id"] = "test-kill", ["title"] = "改寫", ["daily"] = false };
 
         var put = await client.PutAsJsonAsync("/admin/content/missions/test-kill", body, CancellationToken);
+        var putToList = await client.PutAsJsonAsync("/admin/content/missions", body, CancellationToken);
         var post = await client.PostAsJsonAsync("/admin/content/missions", body, CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, put.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, putToList.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, post.StatusCode);
         Assert.False(Directory.Exists(directories.Draft));
     }

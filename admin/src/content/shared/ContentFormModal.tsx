@@ -52,7 +52,9 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
     },
   })
 
-  const copyFrom = (id: string | number) => {
+  // 先回到空白表單：能力值是巢狀物件，直接設值會和上一筆合併，留下新紀錄沒有的數值
+  const copyFrom = (id: string | number | undefined) => {
+    form.resetFields()
     const source = records.find((record) => record.id === id)
     if (source) {
       form.setFieldsValue({
@@ -95,11 +97,7 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
               ...choice,
               label: `${choice.value} ${records.find((record) => record.id === choice.value)?.name ?? ""}`,
             }))}
-            onChange={(id: string | number | undefined) => {
-              if (id !== undefined) {
-                copyFrom(id)
-              }
-            }}
+            onChange={copyFrom}
           />
         </Form.Item>
       )}

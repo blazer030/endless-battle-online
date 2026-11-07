@@ -138,7 +138,7 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 - DTO：`admin/src/api/schema.ts` 產生的型別，只在 `admin/src/content/<kind>/<Kind>Converter.ts` 與 repository 使用。
 - VO：`admin/src/content/<kind>/<Kind>Vo.ts`，class、private constructor、`static create(params)`，欄位是畫面好用的形狀（例如成長是七列的陣列、子地區是名稱與是否勾選）。畫面元件只 import VO，不 import `schema.ts`。
 - Converter：`toVo(dto)` 檢查每個必填欄位存在且型別正確，缺少時丟出 `ContentParseError`，訊息含路徑（例如 `monsters[3].level`）；不認識的欄位直接忽略。`toDto(vo)` 產生完整的 DTO。共用的檢查函式放 `admin/src/content/shared/parse.ts`。
-- 資料存取：每種內容一個 repository（`list`、`get`、`update`、`create`，回傳 VO），用 `@tanstack/react-query`。Refine 只保留版面、側欄與路由，不再用它的 dataProvider 處理內容（dataProvider 沒有型別，會繞過 Converter）。
+- 資料存取：每種內容一個 repository（`list`、`update`、`create`，回傳 VO；列表已經有每筆完整的資料，彈窗不用再讀一次，所以沒有 `get`），用 `@tanstack/react-query`。Refine 只保留版面、側欄與路由，不再用它的 dataProvider 處理內容（dataProvider 沒有型別，會繞過 Converter）。
 - 列表遇到 `ContentParseError` 時顯示錯誤訊息，不顯示部分資料。
 
 ### 彈窗編輯與新增
@@ -168,7 +168,7 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 
 ### 結構化欄位逐項輸入
 
-- 能力值表（共用元件）：成長用七列×（最小、最大）；加成、需求、魔石固定值與範圍、精鍊範圍用同一個元件，只列該欄位支援的能力，空白代表 0 或沒有。
+- 能力值表（共用元件，`admin/src/content/shared/StatFields.tsx`）：加成、需求、魔石固定值與範圍用 `StatNumberGrid`，空白代表 0；成長與精鍊範圍用 `StatRangeGrid`，每項最小、最大，精鍊留白代表不加。每格都有自己的標籤，只列該欄位支援的能力。職業的能力需求不是這張表，而是可增減的「能力＋最低值」列表。
 - 技能等級（使用者定的形狀：先設等級上限，再逐級填）：改 `maxLevel` 時在最後增減等級，新增的一級複製前一級的內容，省下重填；每一級有學習費用、所需熟練度、冷卻，以及條件、消耗、效果三個列表。等級欄自動依順序，`levels` 筆數等於 `maxLevel`（已量測：76 個技能都成立）。
 - 條件、消耗、效果：每列先選種類，再依「技能的條件、消耗、效果」的表只顯示該種類的欄位；三擇一的欄位用切換選擇。都可以新增、刪除；條件清空代表常駐。
 - 掉落：列表，每列是道具下拉加掉落難度，可新增、刪除。怪物的技能同樣是列表：技能下拉、等級、發動率。
@@ -189,7 +189,7 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 | 鑰匙 | 鑰匙（地區、秒數）、綁定 |
 | 素材、勳章 | 綁定 |
 
-切換分類時，不屬於新分類的欄位在存檔時不送出（toDto 依分類輸出）。
+切換分類時，不屬於新分類的欄位在存檔時不送出（toDto 依分類輸出）。魔石與精鍊石沒有綁定欄位，一律送 `false`。
 
 ### 搜尋與篩選
 

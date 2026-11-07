@@ -22,11 +22,11 @@ public class AdminContentUpdateTests(MySqlDatabaseFixture database)
         var host = directories.Configure(factory);
         var client = host.CreateClient();
         var officialItems = await File.ReadAllTextAsync(Path.Combine(directories.Official, "items.json"), CancellationToken);
-        var cloth = await client.GetFromJsonAsync<JsonObject>("/admin/content/items/item-1", CancellationToken);
-        Assert.Equal(6, cloth!["price"]!.GetValue<int>());
-        cloth["price"] = 9;
+        var sword = await client.GetFromJsonAsync<JsonObject>("/admin/content/items/item-2", CancellationToken);
+        Assert.Equal(6, sword!["price"]!.GetValue<int>());
+        sword["price"] = 8;
 
-        var response = await client.PutAsJsonAsync("/admin/content/items/item-1", cloth, CancellationToken);
+        var response = await client.PutAsJsonAsync("/admin/content/items/item-2", sword, CancellationToken);
 
         Assert.True(response.IsSuccessStatusCode, $"{response.StatusCode}");
         Assert.Equal(
@@ -35,11 +35,11 @@ public class AdminContentUpdateTests(MySqlDatabaseFixture database)
         Assert.Equal(officialItems, await File.ReadAllTextAsync(Path.Combine(directories.Official, "items.json"), CancellationToken));
         var changed = DifferentLines(officialItems, await File.ReadAllTextAsync(Path.Combine(directories.Draft, "items.json"), CancellationToken));
         var line = Assert.Single(changed);
-        Assert.Contains("\"id\": \"item-1\"", line);
-        Assert.Contains("\"price\": 9", line);
-        Assert.Equal(6, host.Services.GetRequiredService<IGameContent>().GetItem("item-1").Price);
-        var reread = await client.GetFromJsonAsync<JsonObject>("/admin/content/items/item-1", CancellationToken);
-        Assert.Equal(9, reread!["price"]!.GetValue<int>());
+        Assert.Contains("\"id\": \"item-2\"", line);
+        Assert.Contains("\"price\": 8", line);
+        Assert.Equal(6, host.Services.GetRequiredService<IGameContent>().GetItem("item-2").Price);
+        var reread = await client.GetFromJsonAsync<JsonObject>("/admin/content/items/item-2", CancellationToken);
+        Assert.Equal(8, reread!["price"]!.GetValue<int>());
     }
 
     [Fact]

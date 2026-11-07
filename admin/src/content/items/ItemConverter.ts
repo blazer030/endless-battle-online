@@ -100,6 +100,10 @@ const hasBonus = (category: ItemCategory, kind: ConsumableKind | null) =>
 export const usesAmount = (kind: ConsumableKind | null) =>
   kind !== null && kind !== "Supply" && kind !== "StatPotion" && kind !== "Elixir"
 
+// 魔石與精鍊石不會綁定
+export const canBeBound = (category: ItemCategory) =>
+  category !== "Stone" && category !== "RefineStone"
+
 export const ItemConverter = {
   toVo(dto: ItemDto, path = "item"): ItemVo {
     const raw = dto as unknown as Record<string, unknown>
@@ -164,7 +168,7 @@ export const ItemConverter = {
       price: vo.price,
       shopLevel: vo.shopLevel,
       shopSellable: vo.shopSellable,
-      bound: vo.bound,
+      bound: canBeBound(category) && vo.bound,
     }
     if (kind !== null) {
       dto.consumableKind = kind

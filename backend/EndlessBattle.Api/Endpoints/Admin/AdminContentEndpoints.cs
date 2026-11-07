@@ -22,6 +22,7 @@ public static class AdminContentEndpoints
 
         // 任務不開放編輯；沒有這條，只有 GET 的路徑會回 405 而不是 404
         content.MapPost("/missions", () => TypedResults.NotFound()).ExcludeFromDescription();
+        content.MapPut("/missions", () => TypedResults.NotFound()).ExcludeFromDescription();
 
         return admin;
     }

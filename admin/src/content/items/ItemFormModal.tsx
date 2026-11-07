@@ -7,7 +7,7 @@ import { useSkillOptions } from "../shared/namedOptions"
 import { usePlaceOptions } from "../shared/placeOptions"
 import { requiredNumber, requiredText, skillLevelRule } from "../shared/rules"
 import { StatNumberGrid, StatRangeGrid } from "../shared/StatFields"
-import { usesAmount } from "./ItemConverter"
+import { canBeBound, usesAmount } from "./ItemConverter"
 import {
   blankItemValues,
   itemFromValues,
@@ -34,8 +34,6 @@ import {
   type ItemStatKey,
   type ItemVo,
 } from "./ItemVo"
-
-const equipmentStatKeys = itemStatKeys.filter((key) => key !== "maxHitPoints")
 
 const isEquipment = (category: ItemCategory | undefined) =>
   category === "Weapon" ||
@@ -107,7 +105,7 @@ function WeaponFields() {
 function EquipmentFields({ category }: { category: ItemCategory }) {
   return (
     <>
-      <StatNumberGrid group="加成" rows={statRows(["bonus"], equipmentStatKeys)} />
+      <StatNumberGrid group="加成" rows={statRows(["bonus"], itemStatKeys)} />
       <StatNumberGrid group="需求" rows={statRows(["requires"], itemRequirementKeys)} min={0} />
       {isEquipment(category) && (
         <Row gutter={16}>
@@ -152,7 +150,7 @@ function ConsumableFields({ kind }: { kind: ConsumableKind | undefined }) {
         </Row>
       )}
       {kind === "StatPotion" && (
-        <StatNumberGrid group="加成" rows={statRows(["bonus"], equipmentStatKeys)} />
+        <StatNumberGrid group="加成" rows={statRows(["bonus"], itemStatKeys)} />
       )}
       {kind === "Elixir" && (
         <Row gutter={16}>
@@ -317,11 +315,13 @@ function ItemFields({ mode }: { mode: "edit" | "create" }) {
             <Checkbox>商店販售</Checkbox>
           </Form.Item>
         </Col>
-        <Col span={6}>
-          <Form.Item name="bound" valuePropName="checked" style={{ marginTop: 30 }}>
-            <Checkbox>綁定</Checkbox>
-          </Form.Item>
-        </Col>
+        {category && canBeBound(category) && (
+          <Col span={6}>
+            <Form.Item name="bound" valuePropName="checked" style={{ marginTop: 30 }}>
+              <Checkbox>綁定</Checkbox>
+            </Form.Item>
+          </Col>
+        )}
       </Row>
       {category && (isEquipment(category) || category === "Accessory") && (
         <EquipmentFields category={category} />

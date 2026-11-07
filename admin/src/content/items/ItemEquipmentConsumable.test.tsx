@@ -165,6 +165,49 @@ describe("ItemFormModal equipment", () => {
   })
 })
 
+describe("ItemFormModal copying", () => {
+  const shield = itemDto({ id: "item-4", name: "木盾", bonus: stats({ defense: 2 }), holes: 1 })
+
+  it("does not keep values of the first record after copying a second one", async () => {
+    const calls = renderItemPage([...items, shield])
+    const dialog = await openItemCreate()
+    const copyFrom = within(dialog).getByRole("combobox", { name: "複製自" })
+
+    await chooseOption(copyFrom, "item-2 木刀")
+    await chooseOption(copyFrom, "item-4 木盾")
+    await userEvent.type(within(dialog).getByLabelText("id"), "item-9001")
+    await saveItem(dialog, calls, "POST")
+
+    expect(lastItemBody(calls, "POST")).toEqual({ ...shield, id: "item-9001" })
+  })
+
+  it("goes back to a blank form when the copy is cleared", async () => {
+    renderItemPage()
+    const dialog = await openItemCreate()
+    const copyFrom = within(dialog).getByRole("combobox", { name: "複製自" })
+    await chooseOption(copyFrom, "item-2 木刀")
+    expect(within(dialog).getByLabelText("名稱")).toHaveValue("木刀")
+
+    const clear = copyFrom.closest(".ant-select")?.querySelector(".ant-select-clear")
+    await userEvent.click(clear as Element)
+
+    expect(within(dialog).getByLabelText("名稱")).toHaveValue("")
+    expect(within(dialog).getByLabelText("加成 攻擊")).toHaveValue("")
+  })
+})
+
+describe("ItemFormModal bonus", () => {
+  it("edits the maximum HP bonus of equipment", async () => {
+    const calls = renderItemPage()
+    const dialog = await openItemEdit()
+
+    await setNumber(dialog, "加成 HP 上限", "100")
+    await saveItem(dialog, calls, "PUT")
+
+    expect(lastItemBody(calls, "PUT").bonus).toEqual(stats({ attack: 15, maxHitPoints: 100 }))
+  })
+})
+
 describe("ItemFormModal consumables", () => {
   it("shows only restored HP and SP for a supply", async () => {
     const calls = renderItemPage()

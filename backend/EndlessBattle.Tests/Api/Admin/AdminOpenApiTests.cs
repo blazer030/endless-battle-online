@@ -26,6 +26,21 @@ public class AdminOpenApiTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task AdminDocument_DescribesEveryContentRecord()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = factory.WithWebHostBuilder(builder => builder.UseSetting("Admin:Enabled", "true")).CreateClient();
+
+        var document = await client.GetFromJsonAsync<JsonElement>("/openapi/admin.json", CancellationToken);
+
+        var schemas = document.GetProperty("components").GetProperty("schemas").EnumerateObject().Select(schema => schema.Name).ToList();
+        foreach (var record in new[] { "ItemRecord", "MonsterRecord", "JobRecord", "SkillRecord", "AreaRecord", "PlaceRecord", "MissionSummaryRecord" })
+        {
+            Assert.Contains(record, schemas);
+        }
+    }
+
+    [Fact]
     public async Task AdminDocument_HasOnlyAdminPaths()
     {
         var paths = await PathsOf("admin");

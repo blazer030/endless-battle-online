@@ -71,6 +71,12 @@ describe("MonsterFormModal", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
     expect(lastBody(calls, "PUT")).toEqual({ ...monsterDto(), level: 9 })
+    // 打開頁面讀一次，存檔後要再讀一次草稿狀態
+    await waitFor(() =>
+      expect(
+        calls.filter((call) => call.method === "GET" && call.url === "/admin/draft").length,
+      ).toBeGreaterThan(1),
+    )
     const row = await screen.findByRole("row", { name: /monster-1/ })
     expect(within(row).getByText("9")).toBeInTheDocument()
   })
@@ -155,6 +161,7 @@ describe("MonsterFormModal", () => {
     expect(within(dialog).getByLabelText("名稱")).toBeInTheDocument()
     expect(within(dialog).getByRole("combobox", { name: "地區" })).toBeInTheDocument()
     expect(within(dialog).getByRole("combobox", { name: "限定任務" })).toBeInTheDocument()
+    expect(within(dialog).getByRole("checkbox", { name: "綠風草地" })).toBeInTheDocument()
     expect(within(dialog).getByLabelText("遇敵率")).toBeInTheDocument()
     await userEvent.type(within(dialog).getByLabelText("遭遇訊息"), "你好")
     await save(dialog)

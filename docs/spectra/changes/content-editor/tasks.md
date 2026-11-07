@@ -37,3 +37,5 @@
 - 原 3.2（技能）拆成 3.2～3.5，因為技能改成由條件、消耗、效果組成；原 3.3（世界）改編號為 3.6。
 - 新增 2.5（怪物的技能列表），依使用者決定：編輯怪物時選它能用的技能，後端檢查技能還存在。
 - 範例改用目前的內容（`monster-1`、`item-2`、`item-1823`、`skill-1`）；`wandering-puff`、`iron-sword`、`small-supply` 已不存在。
+
+**2026-11-08 驗證後修正**（`/spectra-verify` 的 Warning，不是新任務）：連續複製紀錄會殘留上一筆的能力值；`PUT /admin/content/missions` 回 405；魔石與精鍊石多了綁定欄位；裝備與能力藥水的加成不能編輯 `maxHitPoints`。規格改寫了職業能力需求的形式與 API 型別的比對對象；`design.md` 更新 repository 與共用能力值表。型別檢查抽成 `scripts/check-api-types.sh`，由 `scripts/check-api-types-test.sh` 測試。

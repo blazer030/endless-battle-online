@@ -103,6 +103,28 @@ describe("ItemFormModal stones", () => {
   })
 })
 
+describe("ItemFormModal bound", () => {
+  it.each(["魔石", "精鍊石"])("%s has no bound field", async (categoryLabel) => {
+    renderItemPage()
+    const dialog = await openItemEdit()
+    expect(within(dialog).getByRole("checkbox", { name: "綁定" })).toBeInTheDocument()
+
+    await chooseOption(within(dialog).getByRole("combobox", { name: "分類" }), categoryLabel)
+
+    expect(within(dialog).queryByRole("checkbox", { name: "綁定" })).not.toBeInTheDocument()
+  })
+
+  it("is sent as not bound after a bound weapon becomes a stone", async () => {
+    const calls = renderItemPage([itemDto({ bound: true }), ...items.slice(1)])
+    const dialog = await openItemEdit()
+
+    await chooseOption(within(dialog).getByRole("combobox", { name: "分類" }), "魔石")
+    await saveItem(dialog, calls, "PUT")
+
+    expect(lastItemBody(calls, "PUT").bound).toBe(false)
+  })
+})
+
 describe("ItemFormModal refine stones", () => {
   const refineStone = itemDto({
     id: "item-1863",

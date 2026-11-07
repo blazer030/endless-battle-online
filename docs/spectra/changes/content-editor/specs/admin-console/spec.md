@@ -82,7 +82,7 @@ Fields that refer to other content SHALL be chosen from a list showing the relat
 
 ### Requirement: Structured fields are edited item by item
 
-Grouped values SHALL be edited as individual labelled inputs rather than as text: job growth as a minimum and maximum for each of the seven stats, and stat bonuses and stat requirements as one input per stat. A skill's form SHALL set the maximum level first and then edit each level's learning cost, required proficiency, cooldown, conditions, costs, and effects; each condition, cost, and effect SHALL choose a kind and show only that kind's fields. An item's form SHALL show only the fields that belong to its category and consumable kind, and saving SHALL send only those fields. A monster marked as an NPC SHALL show only the fields an NPC uses.
+Grouped values SHALL be edited as individual labelled inputs rather than as text: job growth as a minimum and maximum for each of the seven stats, an item's stat bonuses and stat requirements as one input per stat, and a job's stat requirements as a list of rows that each choose a stat and its minimum. A skill's form SHALL set the maximum level first and then edit each level's learning cost, required proficiency, cooldown, conditions, costs, and effects; each condition, cost, and effect SHALL choose a kind and show only that kind's fields. An item's form SHALL show only the fields that belong to its category and consumable kind, and saving SHALL send only those fields. A monster marked as an NPC SHALL show only the fields an NPC uses.
 
 #### Scenario: Edit job growth
 

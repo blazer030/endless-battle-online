@@ -24,7 +24,7 @@ Building `EndlessBattle.Api` SHALL write the `v1` and `admin` OpenAPI documents 
 
 ### Requirement: Stale API types fail the check
 
-`scripts/check.sh` SHALL regenerate the document files and both `schema.ts` files and SHALL exit with a non-zero code when any of them differs from the committed version.
+`scripts/check.sh` SHALL regenerate the document files and both `schema.ts` files and SHALL exit with a non-zero code and name the file when regenerating changes any of them or when any of them differs from what is staged in git.
 
 #### Scenario: Backend changed without regenerating types
 
