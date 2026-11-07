@@ -1,9 +1,8 @@
-import { useQuery } from "@tanstack/react-query"
+import { useContentList } from "./repository"
 import { placeRepository } from "../world/worldRepository"
 import type { PlaceVo } from "../world/WorldVo"
 
-export const usePlaceOptions = () =>
-  useQuery({ queryKey: placeRepository.queryKey, queryFn: placeRepository.list, retry: false })
+export const usePlaceOptions = () => useContentList(placeRepository)
 
 export const globalPlaceId = 0
 

@@ -2,7 +2,7 @@ import { waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { chooseOption, findOption, visibleOptions } from "../../test/antd"
-import { lastSkillPut, openSkillEdit, renderSkillPage, saveSkill } from "./skillTestPage"
+import { lastSkillPut, openSkillEdit, renderSkillPage, saveSkill } from "../../test/skillTestPage"
 import { skillDto, skillLevel } from "./testData"
 
 afterEach(() => {

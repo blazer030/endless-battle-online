@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Content;
 
@@ -13,15 +12,6 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
     public const string BaseFileName = ".base.json";
 
     private const string TemporarySuffix = ".writing";
-
-    public async Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken)
-    {
-        var directory = Directory.Exists(draftDirectory) ? draftDirectory : officialDirectory;
-        var root = await ReadRootAsync(Path.Combine(directory, kind.FileName), cancellationToken);
-        var records = root[kind.ArrayProperty] as JsonArray
-            ?? throw new GameContentException($"{kind.FileName} 沒有 {kind.ArrayProperty} 陣列");
-        return records.Select(record => record?["id"]?.ToString()).OfType<string>().ToHashSet();
-    }
 
     // 檔名 → 檔案內容；有草稿時讀草稿，否則讀正式內容
     public async Task<IReadOnlyDictionary<string, string>> ReadFilesAsync(IEnumerable<string> fileNames, CancellationToken cancellationToken)
@@ -151,8 +141,4 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
 
         await File.WriteAllTextAsync(Path.Combine(draftDirectory, BaseFileName), JsonSerializer.Serialize(fingerprints), cancellationToken);
     }
-
-    private static async Task<JsonObject> ReadRootAsync(string path, CancellationToken cancellationToken) =>
-        JsonNode.Parse(await File.ReadAllTextAsync(path, cancellationToken)) as JsonObject
-            ?? throw new GameContentException($"內容檔的最外層必須是物件：{path}");
 }

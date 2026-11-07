@@ -5,12 +5,11 @@ import { ContentFormModal, type ContentEditorState } from "../shared/ContentForm
 import { contentElements, elementLabels } from "../shared/elements"
 import { NumberField } from "../shared/fields"
 import { requiredText, skillLevelRule } from "../shared/rules"
-import {
-  useItemOptions,
-  useMissionOptions,
-  useSkillOptions,
-  type SkillOption,
-} from "../shared/namedOptions"
+import { itemRepository } from "../items/itemRepository"
+import { missionRepository } from "../missions/missionRepository"
+import { skillRepository } from "../skills/skillRepository"
+import type { SkillVo } from "../skills/SkillVo"
+import { useContentList } from "../shared/repository"
 import { globalPlaceId, globalPlaceName, usePlaceOptions } from "../shared/placeOptions"
 import {
   blankMonsterValues,
@@ -39,7 +38,7 @@ const combatFields: readonly (readonly [keyof MonsterFormValues, string])[] = [
 ]
 
 function DropList() {
-  const items = useItemOptions()
+  const items = useContentList(itemRepository)
   const choices = namedChoices(items.data ?? [])
   return (
     <Form.List name="drops">
@@ -94,7 +93,7 @@ function SkillRow({
 }: {
   rowName: number
   index: number
-  skills: readonly SkillOption[]
+  skills: readonly SkillVo[]
   onRemove: () => void
 }) {
   const form = Form.useFormInstance<MonsterFormValues>()
@@ -148,7 +147,7 @@ function SkillRow({
 }
 
 function SkillList() {
-  const skills = useSkillOptions().data ?? []
+  const skills = useContentList(skillRepository).data ?? []
   return (
     <Form.List name="skills">
       {(rows, { add, remove }) => (
@@ -174,7 +173,7 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
   const placeId = Form.useWatch("placeId", form)
   const isNpc = Form.useWatch("isNpc", form)
   const places = usePlaceOptions().data ?? []
-  const missions = useMissionOptions().data ?? []
+  const missions = useContentList(missionRepository).data ?? []
   const subPlaceNames = places.find((place) => place.id === placeId)?.subPlaceNames ?? []
 
   return (
@@ -217,7 +216,11 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
               filterOption={filterChoice}
               options={[
                 { value: "", label: "無", searchText: "無" },
-                ...namedChoices(missions.filter((mission) => !mission.daily)),
+                ...namedChoices(
+                  missions
+                    .filter((mission) => !mission.daily)
+                    .map((mission) => ({ id: mission.id, name: mission.title })),
+                ),
               ]}
             />
           </Form.Item>
@@ -273,9 +276,9 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
 }
 
 function useMonsterOptionError() {
-  const items = useItemOptions()
-  const skills = useSkillOptions()
-  const missions = useMissionOptions()
+  const items = useContentList(itemRepository)
+  const skills = useContentList(skillRepository)
+  const missions = useContentList(missionRepository)
   const places = usePlaceOptions()
   return items.error ?? skills.error ?? missions.error ?? places.error
 }

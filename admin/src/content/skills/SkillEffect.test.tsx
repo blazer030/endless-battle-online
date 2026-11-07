@@ -5,7 +5,7 @@ import { chooseOption } from "../../test/antd"
 import { readOfficialContent } from "../../test/officialContent"
 import { SkillConverter, type SkillDto } from "./SkillConverter"
 import { skillFromValues, skillToValues } from "./skillFormValues"
-import { lastSkillPut, openSkillEdit, renderSkillPage, saveSkill } from "./skillTestPage"
+import { lastSkillPut, openSkillEdit, renderSkillPage, saveSkill } from "../../test/skillTestPage"
 import { skillDto, skillLevel } from "./testData"
 
 afterEach(() => {

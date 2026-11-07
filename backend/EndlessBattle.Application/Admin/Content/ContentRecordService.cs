@@ -1,5 +1,16 @@
 namespace EndlessBattle.Application.Admin.Content;
 
+public enum ContentWriteOutcome
+{
+    Saved,
+    NotFound,
+    DuplicateId,
+    Rejected,
+}
+
+// Draft 只在 Saved 時有值：寫入後的草稿檢查結果；Error 指出被拒絕的欄位
+public sealed record ContentWriteResult(ContentWriteOutcome Outcome, DraftStatus? Draft = null, ContentFieldError? Error = null);
+
 // 內容紀錄的讀寫；有草稿時讀草稿，否則讀正式內容。寫入只寫草稿，沒有草稿時先建立
 public interface IContentRecordStore<TRecord>
 {

@@ -31,6 +31,14 @@ export const consumableKinds = [
 ] as const
 export type ConsumableKind = (typeof consumableKinds)[number]
 
+// 其他種類的消耗品共用 amount，意義依種類不同
+export const usesAmount = (kind: ConsumableKind | null) =>
+  kind !== null && kind !== "Supply" && kind !== "StatPotion" && kind !== "Elixir"
+
+// 魔石與精鍊石不會綁定
+export const canBeBound = (category: ItemCategory) =>
+  category !== "Stone" && category !== "RefineStone"
+
 export const elixirKinds = ["Exp", "JobExp", "Attack", "Magic", "Defense", "MagicDefense"] as const
 export type ElixirKind = (typeof elixirKinds)[number]
 

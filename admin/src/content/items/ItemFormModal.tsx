@@ -3,11 +3,11 @@ import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
 import { contentElements, elementLabels } from "../shared/elements"
 import { NumberField } from "../shared/fields"
-import { useSkillOptions } from "../shared/namedOptions"
+import { useContentList } from "../shared/repository"
+import { skillRepository } from "../skills/skillRepository"
 import { usePlaceOptions } from "../shared/placeOptions"
 import { requiredNumber, requiredText, skillLevelRule } from "../shared/rules"
 import { StatNumberGrid, StatRangeGrid } from "../shared/StatFields"
-import { canBeBound, usesAmount } from "./ItemConverter"
 import {
   blankItemValues,
   itemFromValues,
@@ -23,12 +23,14 @@ import {
 } from "./itemLabels"
 import { itemRepository } from "./itemRepository"
 import {
+  canBeBound,
   consumableKinds,
   elixirKinds,
   itemCategories,
   itemRefineKeys,
   itemRequirementKeys,
   itemStatKeys,
+  usesAmount,
   type ConsumableKind,
   type ItemCategory,
   type ItemStatKey,
@@ -48,7 +50,7 @@ const statRows = (prefix: (string | number)[], keys: readonly ItemStatKey[]) =>
 function WeaponFields() {
   const form = Form.useFormInstance<ItemFormValues>()
   const skillId = Form.useWatch("weaponSkillId", form)
-  const skills = useSkillOptions().data ?? []
+  const skills = useContentList(skillRepository).data ?? []
   return (
     <Row gutter={16}>
       <Col span={6}>
@@ -335,7 +337,7 @@ function ItemFields({ mode }: { mode: "edit" | "create" }) {
 }
 
 function useItemOptionError() {
-  const skills = useSkillOptions()
+  const skills = useContentList(skillRepository)
   const places = usePlaceOptions()
   return skills.error ?? places.error
 }

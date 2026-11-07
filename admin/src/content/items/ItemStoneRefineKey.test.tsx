@@ -11,7 +11,7 @@ import {
   openItemEdit,
   renderItemPage,
   saveItem,
-} from "./itemTestPage"
+} from "../../test/itemTestPage"
 import { itemDto, items, stats } from "./testData"
 
 afterEach(() => {

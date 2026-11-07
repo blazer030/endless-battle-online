@@ -10,7 +10,7 @@ import {
   openItemEdit,
   renderItemPage,
   saveItem,
-} from "./itemTestPage"
+} from "../../test/itemTestPage"
 import { itemDto, items, stats } from "./testData"
 
 afterEach(() => {
@@ -170,7 +170,7 @@ describe("ItemFormModal choices", () => {
     renderItemPage(items, { "GET /admin/content/skills": [{ id: "skill-1" }] })
     const dialog = await openItemEdit()
 
-    expect(await within(dialog).findByText(/skills\[0\]\.name/)).toBeInTheDocument()
+    expect(await within(dialog).findByText(/skills\[0\]/)).toBeInTheDocument()
     expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
   })
 

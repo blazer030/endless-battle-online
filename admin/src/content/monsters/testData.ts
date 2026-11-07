@@ -1,3 +1,5 @@
+import { itemDto } from "../items/testData"
+import { skillDto } from "../skills/testData"
 import { placeDto } from "../world/testData"
 import type { MonsterDto } from "./MonsterConverter"
 
@@ -39,17 +41,16 @@ export const placeRecords = [
   placeDto({ id: 2, name: "灼熱荒漠", subPlaceNames: ["黃沙古道", "枯骨谷"] }),
 ]
 
-// 選單只讀道具的 id 與名稱
 export const itemRecords = [
-  { id: "item-204", name: "錢包" },
-  { id: "item-660", name: "黏液" },
-  { id: "item-1", name: "布衣" },
-  { id: "item-2", name: "布衣" },
+  itemDto({ id: "item-204", name: "錢包" }),
+  itemDto({ id: "item-660", name: "黏液" }),
+  itemDto({ id: "item-1", name: "布衣" }),
+  itemDto({ id: "item-2", name: "布衣" }),
 ]
 
 export const skillRecords = [
-  { id: "skill-1", name: "爆氣", maxLevel: 5 },
-  { id: "skill-66", name: "水彈", maxLevel: 3 },
+  skillDto({ id: "skill-1", name: "爆氣", maxLevel: 5 }),
+  skillDto({ id: "skill-66", name: "水彈", maxLevel: 3 }),
 ]
 
 export const missionRecords = [

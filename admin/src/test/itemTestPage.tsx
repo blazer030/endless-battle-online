@@ -2,12 +2,12 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { expect } from "vitest"
-import { App } from "../../App"
-import { mockFetch, respond, type FetchCall } from "../../test/fetchMock"
-import { skillRecords } from "../monsters/testData"
-import { places } from "../world/testData"
-import type { ItemDto } from "./ItemConverter"
-import { items } from "./testData"
+import { App } from "../App"
+import { mockFetch, respond, type FetchCall } from "./fetchMock"
+import { skillRecords } from "../content/monsters/testData"
+import { places } from "../content/world/testData"
+import type { ItemDto } from "../content/items/ItemConverter"
+import { items } from "../content/items/testData"
 
 const savedStatus = { exists: true, valid: true, error: null }
 

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { request } from "../../api/request"
 import { parseArray } from "./parse"
 
@@ -36,3 +37,7 @@ export function createContentRepository<TDto, TVo>(
     },
   }
 }
+
+// 列表與選單共用：同一種內容只讀一次，都經過 Converter 檢查
+export const useContentList = <TVo>(repository: ContentRepository<TVo>) =>
+  useQuery({ queryKey: repository.queryKey, queryFn: repository.list, retry: false })

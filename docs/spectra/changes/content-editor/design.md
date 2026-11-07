@@ -45,7 +45,7 @@ admin：XxxConverter.toVo(dto) / toDto(vo)
 admin：XxxVo class → 畫面
 ```
 
-- 內容紀錄放在 `backend/EndlessBattle.Application/Admin/Content/`，是純 C# record，不含檔案格式的知識；`ContentAdminService` 與 endpoint 只看見紀錄，`JsonObject` 不離開 Infrastructure。
+- 內容紀錄放在 `backend/EndlessBattle.Application/Admin/Content/`，是純 C# record，不含檔案格式的知識；`ContentRecordService<TRecord>` 與 endpoint 只看見紀錄，`ContentAdminService` 只處理草稿狀態、發布與捨棄，`JsonObject` 與內容檔檔名不離開 Infrastructure。
 - codec 放在 `backend/EndlessBattle.Infrastructure/Content/`，負責欄位名稱對應、省略規則（數值為 0 的加成不寫、沒有的巢狀物件不寫、`parentId` 為 null 時照寫 `null`）與欄位順序，寫出仍經過 `ContentFileFormatter`。
 - 紀錄就是 admin API 的 response／request 格式（API DTO）。儲存載體與 response 之間的邊界在 Infrastructure：現在從 JSON 檔轉成紀錄，之後改成資料庫時只換 Infrastructure 的讀寫，紀錄的形狀不變，前端也不受影響。紀錄放在 Application，Infrastructure 才能直接產生它（依賴方向 Infrastructure → Application）。
 - 替代方案：維持 `JsonObject`，只在前端加 Converter。否決，因為前端「忽略不認識的欄位」後存檔會把那些欄位丟掉，必須由後端提供完整而確定的形狀。
@@ -138,7 +138,7 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 - DTO：`admin/src/api/schema.ts` 產生的型別，只在 `admin/src/content/<kind>/<Kind>Converter.ts` 與 repository 使用。
 - VO：`admin/src/content/<kind>/<Kind>Vo.ts`，class、private constructor、`static create(params)`，欄位是畫面好用的形狀（例如成長是七列的陣列、子地區是名稱與是否勾選）。畫面元件只 import VO，不 import `schema.ts`。
 - Converter：`toVo(dto)` 檢查每個必填欄位存在且型別正確，缺少時丟出 `ContentParseError`，訊息含路徑（例如 `monsters[3].level`）；不認識的欄位直接忽略。`toDto(vo)` 產生完整的 DTO。共用的檢查函式放 `admin/src/content/shared/parse.ts`。
-- 資料存取：每種內容一個 repository（`list`、`update`、`create`，回傳 VO；列表已經有每筆完整的資料，彈窗不用再讀一次，所以沒有 `get`），用 `@tanstack/react-query`。Refine 只保留版面、側欄與路由，不再用它的 dataProvider 處理內容（dataProvider 沒有型別，會繞過 Converter）。
+- 資料存取：每種內容一個 repository（`list`、`update`、`create`，回傳 VO；選單也從這裡讀；列表已經有每筆完整的資料，彈窗不用再讀一次，所以沒有 `get`），用 `@tanstack/react-query`。Refine 只保留版面、側欄與路由，不再用它的 dataProvider 處理內容（dataProvider 沒有型別，會繞過 Converter）。
 - 列表遇到 `ContentParseError` 時顯示錯誤訊息，不顯示部分資料。
 - 彈窗的選單（道具、技能、任務、地區）讀取失敗或回應有問題時，彈窗顯示錯誤並停用「儲存」：空的選單看起來像沒有資料，技能等級上限的檢查也會少了依據。
 

@@ -9,6 +9,7 @@ import {
   parseString,
 } from "../shared/parse"
 import {
+  canBeBound,
   consumableKinds,
   elixirKinds,
   itemCategories,
@@ -16,6 +17,7 @@ import {
   itemRequirementKeys,
   itemStatKeys,
   ItemVo,
+  usesAmount,
   type ConsumableKind,
   type ItemCategory,
   type ItemRefineVo,
@@ -95,14 +97,6 @@ const equipmentCategories: readonly ItemCategory[] = ["Weapon", "Head", "Body", 
 
 const hasBonus = (category: ItemCategory, kind: ConsumableKind | null) =>
   equipmentCategories.includes(category) || category === "Accessory" || kind === "StatPotion"
-
-// 其他種類的消耗品共用 amount，意義依種類不同
-export const usesAmount = (kind: ConsumableKind | null) =>
-  kind !== null && kind !== "Supply" && kind !== "StatPotion" && kind !== "Elixir"
-
-// 魔石與精鍊石不會綁定
-export const canBeBound = (category: ItemCategory) =>
-  category !== "Stone" && category !== "RefineStone"
 
 export const ItemConverter = {
   toVo(dto: ItemDto, path = "item"): ItemVo {

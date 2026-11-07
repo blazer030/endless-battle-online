@@ -368,10 +368,10 @@ describe("MonsterFormModal", () => {
   })
 
   it("blocks saving when the skill choices have a problem, because the level cannot be checked", async () => {
-    renderMonsters({ "GET /admin/content/skills": [{ id: "skill-1", name: "爆氣" }] })
+    renderMonsters({ "GET /admin/content/skills": [{ id: "skill-1" }] })
     const dialog = await openEdit()
 
-    expect(await within(dialog).findByText(/skills\[0\]\.maxLevel/)).toBeInTheDocument()
+    expect(await within(dialog).findByText(/skills\[0\]/)).toBeInTheDocument()
     expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
   })
 })

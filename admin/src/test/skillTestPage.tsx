@@ -2,10 +2,10 @@ import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { MemoryRouter } from "react-router"
 import { expect } from "vitest"
-import { App } from "../../App"
-import { mockFetch, type FetchCall } from "../../test/fetchMock"
-import { jobs } from "../jobs/testData"
-import type { SkillDto } from "./SkillConverter"
+import { App } from "../App"
+import { mockFetch, type FetchCall } from "./fetchMock"
+import { jobs } from "../content/jobs/testData"
+import type { SkillDto } from "../content/skills/SkillConverter"
 
 const savedStatus = { exists: true, valid: true, error: null }
 
