@@ -156,6 +156,157 @@
         }
       }
     },
+    "/admin/content/jobs": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Content"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/content/jobs/{id}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/admin/content/missions": {
       "get": {
         "tags": [
@@ -667,6 +818,34 @@
           }
         }
       },
+      "ContentRange": {
+        "required": [
+          "minimum",
+          "maximum"
+        ],
+        "type": "object",
+        "properties": {
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maximum": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ContentStat": {
+        "enum": [
+          "Strength",
+          "Intelligence",
+          "Life",
+          "Vitality",
+          "Agility",
+          "Charisma",
+          "Faith"
+        ]
+      },
       "DraftStatus": {
         "required": [
           "exists",
@@ -686,6 +865,105 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "JobGrowthRecord": {
+        "required": [
+          "strength",
+          "intelligence",
+          "life",
+          "vitality",
+          "agility",
+          "charisma",
+          "faith"
+        ],
+        "type": "object",
+        "properties": {
+          "strength": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "intelligence": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "life": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "vitality": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "agility": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "charisma": {
+            "$ref": "#/components/schemas/ContentRange"
+          },
+          "faith": {
+            "$ref": "#/components/schemas/ContentRange"
+          }
+        }
+      },
+      "JobRecord": {
+        "required": [
+          "id",
+          "name",
+          "tier",
+          "parentJobId",
+          "unlockLevel",
+          "proficiencyRequired",
+          "statRequirements",
+          "growth"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentJobId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unlockLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "proficiencyRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statRequirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobStatRequirementRecord"
+            }
+          },
+          "growth": {
+            "$ref": "#/components/schemas/JobGrowthRecord"
+          }
+        }
+      },
+      "JobStatRequirementRecord": {
+        "required": [
+          "stat",
+          "minimum"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "$ref": "#/components/schemas/ContentStat"
+          },
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

@@ -2,6 +2,8 @@ import { DeleteOutlined } from "@ant-design/icons"
 import { Button, Checkbox, Col, Form, Input, InputNumber, Row, Select, Space } from "antd"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
+import { NumberField } from "../shared/fields"
+import { requiredText } from "../shared/rules"
 import {
   useItemOptions,
   useMissionOptions,
@@ -44,20 +46,6 @@ const combatFields: readonly (readonly [keyof MonsterFormValues, string])[] = [
   ["faith", "信仰"],
   ["jobExperience", "職業經驗"],
 ]
-
-const requiredRule = (label: string) => ({
-  required: true,
-  whitespace: true,
-  message: `請填寫${label}`,
-})
-
-function NumberField({ name, label }: { name: keyof MonsterFormValues; label: string }) {
-  return (
-    <Form.Item name={name} label={label} rules={[{ required: true, message: `請填寫${label}` }]}>
-      <InputNumber precision={0} style={{ width: "100%" }} />
-    </Form.Item>
-  )
-}
 
 function DropList() {
   const items = useItemOptions()
@@ -211,12 +199,12 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
     <>
       <Row gutter={16}>
         <Col span={8}>
-          <Form.Item name="id" label="id" rules={[requiredRule("id")]}>
+          <Form.Item name="id" label="id" rules={[requiredText("id")]}>
             <Input disabled={mode === "edit"} />
           </Form.Item>
         </Col>
         <Col span={10}>
-          <Form.Item name="name" label="名稱" rules={[requiredRule("名稱")]}>
+          <Form.Item name="name" label="名稱" rules={[requiredText("名稱")]}>
             <Input />
           </Form.Item>
         </Col>

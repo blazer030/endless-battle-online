@@ -165,6 +165,167 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/content/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JobRecord"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["JobRecord"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/content/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JobRecord"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["JobRecord"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/content/missions": {
         parameters: {
             query?: never;
@@ -604,10 +765,45 @@ export interface components {
             field: string;
             message: string;
         };
+        ContentRange: {
+            /** Format: int32 */
+            minimum: number;
+            /** Format: int32 */
+            maximum: number;
+        };
+        /** @enum {unknown} */
+        ContentStat: "Strength" | "Intelligence" | "Life" | "Vitality" | "Agility" | "Charisma" | "Faith";
         DraftStatus: {
             exists: boolean;
             valid: boolean;
             error: null | string;
+        };
+        JobGrowthRecord: {
+            strength: components["schemas"]["ContentRange"];
+            intelligence: components["schemas"]["ContentRange"];
+            life: components["schemas"]["ContentRange"];
+            vitality: components["schemas"]["ContentRange"];
+            agility: components["schemas"]["ContentRange"];
+            charisma: components["schemas"]["ContentRange"];
+            faith: components["schemas"]["ContentRange"];
+        };
+        JobRecord: {
+            id: string;
+            name: string;
+            /** Format: int32 */
+            tier: number;
+            parentJobId: null | string;
+            /** Format: int32 */
+            unlockLevel: number;
+            /** Format: int32 */
+            proficiencyRequired: number;
+            statRequirements: components["schemas"]["JobStatRequirementRecord"][];
+            growth: components["schemas"]["JobGrowthRecord"];
+        };
+        JobStatRequirementRecord: {
+            stat: components["schemas"]["ContentStat"];
+            /** Format: int32 */
+            minimum: number;
         };
         JsonObject: Record<string, never>;
         MissionSummaryRecord: {

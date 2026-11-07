@@ -43,6 +43,7 @@ public static class DependencyInjection
             Path.GetFullPath(Path.Combine(contentRootPath, draftDirectory)));
         services.AddSingleton<IContentDraftStore>(draftStore);
         services.AddSingleton<IContentRecordStore<MonsterRecord>>(new CodecContentRecordStore<MonsterRecord>(draftStore, new MonsterCodec()));
+        services.AddSingleton<IContentRecordStore<JobRecord>>(new CodecContentRecordStore<JobRecord>(draftStore, new JobCodec()));
         services.AddSingleton<IContentRecordStore<MissionSummaryRecord>>(new CodecContentRecordStore<MissionSummaryRecord>(draftStore, new MissionSummaryCodec()));
 
         services.AddScoped<IAccountRepository, AccountRepository>();

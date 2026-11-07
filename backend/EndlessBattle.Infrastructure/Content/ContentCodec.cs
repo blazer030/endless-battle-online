@@ -70,6 +70,32 @@ public static class ContentFileJson
     public static JsonArray ToNode<TEntry>(IEnumerable<TEntry> entries) =>
         JsonSerializer.SerializeToNode(entries.ToList(), Options)!.AsArray();
 
+    private static readonly Dictionary<string, ContentStat> StatsByFileName = new()
+    {
+        ["str"] = ContentStat.Strength,
+        ["smart"] = ContentStat.Intelligence,
+        ["life"] = ContentStat.Life,
+        ["vit"] = ContentStat.Vitality,
+        ["agi"] = ContentStat.Agility,
+        ["au"] = ContentStat.Charisma,
+        ["be"] = ContentStat.Faith,
+    };
+
+    public static ContentStat ToStat(string fileName, string owner) =>
+        StatsByFileName.TryGetValue(fileName, out var stat)
+            ? stat
+            : throw new GameContentException($"{owner} 引用了不存在的能力值：{fileName}");
+
+    public static string FromStat(ContentStat stat) => StatsByFileName.First(pair => pair.Value == stat).Key;
+
+    // 內容檔的範圍寫成 [最小, 最大]
+    public static ContentRange ToRange(int[] range, string owner) =>
+        range.Length == 2
+            ? new ContentRange { Minimum = range[0], Maximum = range[1] }
+            : throw new GameContentException($"{owner} 的範圍必須是 [最小, 最大]");
+
+    public static int[] FromRange(ContentRange range) => [range.Minimum, range.Maximum];
+
     public static ContentElement ToElement(int value, string owner) =>
         Enum.IsDefined((ContentElement)value)
             ? (ContentElement)value

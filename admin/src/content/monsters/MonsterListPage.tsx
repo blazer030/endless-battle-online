@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
-import { EditOutlined } from "@ant-design/icons"
 import { Button, Select, Table, Tag } from "antd"
 import { useState } from "react"
 import type { ContentEditorState } from "../shared/ContentFormModal"
 import { ContentListLayout, contentPageSize } from "../shared/ContentListLayout"
+import { RowEditButton } from "../shared/fields"
 import {
   globalPlaceId,
   globalPlaceName,
@@ -91,12 +91,7 @@ export function MonsterListPage() {
             title: "",
             width: 56,
             render: (_, monster) => (
-              <Button
-                size="small"
-                aria-label="編輯"
-                icon={<EditOutlined />}
-                onClick={() => setEditor({ mode: "edit", record: monster })}
-              />
+              <RowEditButton onClick={() => setEditor({ mode: "edit", record: monster })} />
             ),
           },
         ]}

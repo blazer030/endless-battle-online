@@ -8,6 +8,7 @@ import zhTW from "antd/locale/zh_TW"
 import { Outlet, Route, Routes } from "react-router"
 import { dataProvider } from "./api/dataProvider"
 import { ContentCreate, ContentEdit, ContentList } from "./content/ContentPages"
+import { JobListPage } from "./content/jobs/JobListPage"
 import { MonsterListPage } from "./content/monsters/MonsterListPage"
 import { contentResources } from "./content/resources"
 import { DraftError } from "./draft/DraftBar"
@@ -18,7 +19,10 @@ import "@refinedev/antd/dist/reset.css"
 export const AppTitle = "EBO 內容後台"
 
 // 已改成彈窗編輯的內容種類；其他種類還在舊的表單頁
-const typedPages: Partial<Record<string, ComponentType>> = { monsters: MonsterListPage }
+const typedPages: Partial<Record<string, ComponentType>> = {
+  monsters: MonsterListPage,
+  jobs: JobListPage,
+}
 
 export function App() {
   return (

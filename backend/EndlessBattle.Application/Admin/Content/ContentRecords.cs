@@ -24,3 +24,22 @@ public enum ContentElement
 
 // 400、409 的回應本體：Field 是出問題的欄位路徑，例如 skills[0].skillId
 public sealed record ContentFieldError(string Field, string Message);
+
+// 七項能力；列舉值與內容檔的縮寫對照在 Infrastructure 的 ContentFileJson
+public enum ContentStat
+{
+    Strength,
+    Intelligence,
+    Life,
+    Vitality,
+    Agility,
+    Charisma,
+    Faith,
+}
+
+public sealed record ContentRange
+{
+    public required int Minimum { get; init; }
+
+    public required int Maximum { get; init; }
+}
