@@ -128,9 +128,9 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 **Supersedes**: content-admin / admin 前端：Refine + Ant Design（其中「API 型別用 openapi-typescript 從 `/openapi/admin.json` 產生」的來源）
 
 - `EndlessBattle.Api` 加上 `Microsoft.Extensions.ApiDescription.Server`，`dotnet build` 時把 `v1` 與 `admin` 兩份文件寫到 `backend/openapi/`（`EndlessBattle.Api.json` 與 `EndlessBattle.Api_admin.json`，或以設定改成 `v1.json`、`admin.json`），檔案進 git。
-- 產生文件時 admin 路由必須存在：產生文件的程序以 `Admin:Enabled=true` 執行（文件產生工具以 `--environment Development` 或環境變數提供），JWT 金鑰檢查也要能通過（Development 設定已有金鑰）。
+- 產生文件時 admin 路由必須存在：工具不接受 `--environment`，所以 `Program.cs` 判斷進入組件是 `GetDocument.Insider` 時以 Development 設定啟動（已驗證可行，不需要替代方案）；admin 路由、連線字串、JWT 金鑰都來自 `appsettings.Development.json`。Release 建置不產生文件（`OpenApiGenerateDocuments` 為 false），Docker 映像不受影響。檔名採預設的 `EndlessBattle.Api.json`（v1）與 `EndlessBattle.Api_admin.json`（admin）。
 - `frontend` 與 `admin` 的 `pnpm generate:api` 改成讀 `../backend/openapi/` 的檔案，不必啟動 API。
-- `scripts/check.sh` 在後端 build 之後，對兩個前端各跑一次 `pnpm generate:api`，再以 `git diff --exit-code` 檢查 `backend/openapi/`、`frontend/src/api/schema.ts`、`admin/src/api/schema.ts`；有差異就失敗並提示重新產生後提交。
+- `scripts/check.sh` 在後端 build 之後，對兩個前端各跑一次 `pnpm generate:api`，檢查 `backend/openapi/`、`frontend/src/api/schema.ts`、`admin/src/api/schema.ts`：重新產生前後內容不同（忘了產生或手改過）就失敗並列出檔案；與 git 暫存區不同或尚未加入 git（產生了但沒 `git add`）也失敗。只比 git 不夠，因為重新產生會蓋掉尚未暫存的手改。
 - 替代方案（第 1 項任務驗證不可行時採用）：在 `EndlessBattle.Tests` 加一條測試，用 `EndlessBattleApiFactory` 取得兩份文件並與 `backend/openapi/` 的檔案比對，不同就失敗；設定環境變數 `EBO_UPDATE_OPENAPI=1` 時改成寫入檔案。其餘流程相同。
 
 ### admin 前端的 DTO、Converter、VO

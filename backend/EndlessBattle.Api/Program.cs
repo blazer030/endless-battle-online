@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using EndlessBattle.Api.Auth;
 using EndlessBattle.Api.Endpoints;
@@ -8,7 +9,14 @@ using EndlessBattle.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+// dotnet build 產生 OpenAPI 文件時會啟動這支程式（只建立服務，不會開始接收請求）；
+// 用 Development 設定，admin 路由才會註冊，連線字串與 JWT 金鑰也才有值
+var generatingOpenApiDocuments = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    EnvironmentName = generatingOpenApiDocuments ? Environments.Development : null,
+});
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.ContentRootPath);

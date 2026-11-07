@@ -1,6 +1,6 @@
 ## 1. API 文件檔
 
-- [ ] 1.1 依「OpenAPI 文件在建置時產生」讓 `dotnet build` 寫出 `backend/openapi/` 的 `v1` 與 `admin` 兩份文件（OpenAPI documents are written at build time），`admin` 文件含 admin 路由、`v1` 不含 `/admin/` 路徑（Admin has its own OpenAPI document）；先驗證建置時產生是否可行（啟動流程的內容載入、JWT 金鑰檢查、`Admin:Enabled`），不可行時改用設計裡的測試比對替代方案並在 design.md 記下採用哪一種。`frontend` 與 `admin` 的 `generate:api` 改讀這兩份檔案（Clients generate types from the document files），`scripts/check.sh` 重新產生後以 `git diff --exit-code` 檢查文件與兩份 `schema.ts`（Stale API types fail the check），CLAUDE.md「指令」段落改寫 `generate:api` 的說明。驗證：在 API 未執行時跑兩個 `pnpm generate:api` 成功且 `schema.ts` 沒有差異；手動在 admin 的 `schema.ts` 加一行後 `./scripts/check.sh` 以非 0 結束，還原後 exit code 0。
+- [x] 1.1 依「OpenAPI 文件在建置時產生」讓 `dotnet build` 寫出 `backend/openapi/` 的 `v1` 與 `admin` 兩份文件（OpenAPI documents are written at build time），`admin` 文件含 admin 路由、`v1` 不含 `/admin/` 路徑（Admin has its own OpenAPI document）；先驗證建置時產生是否可行（啟動流程的內容載入、JWT 金鑰檢查、`Admin:Enabled`），不可行時改用設計裡的測試比對替代方案並在 design.md 記下採用哪一種。`frontend` 與 `admin` 的 `generate:api` 改讀這兩份檔案（Clients generate types from the document files），`scripts/check.sh` 重新產生後以 `git diff --exit-code` 檢查文件與兩份 `schema.ts`（Stale API types fail the check），CLAUDE.md「指令」段落改寫 `generate:api` 的說明。驗證：在 API 未執行時跑兩個 `pnpm generate:api` 成功且 `schema.ts` 沒有差異；手動在 admin 的 `schema.ts` 加一行後 `./scripts/check.sh` 以非 0 結束，還原後 exit code 0。
 
 ## 2. 怪物
 

@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "eslint . && prettier --check . && tsc -b && vitest run",
-    "generate:api": "openapi-typescript http://localhost:5062/openapi/v1.json -o src/api/schema.ts"
+    "generate:api": "openapi-typescript ../backend/openapi/EndlessBattle.Api.json -o src/api/schema.ts"
   },
   "dependencies": {
     "gsap": "^3.15.0",

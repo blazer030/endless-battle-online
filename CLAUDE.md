@@ -52,6 +52,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `backend/db/ddl`、`backend/db/dml` — Flyway migration。
 - `backend/content` — 遊戲內容 JSON。
 - `backend/content-draft` — admin 的內容草稿（git 忽略；發布後刪除）。
+- `backend/openapi` — `dotnet build` 產生的 OpenAPI 文件（進 git；`check.sh` 會擋下過期的文件與 `schema.ts`）。
 - `backend/Dockerfile`、`frontend/Dockerfile`、`frontend/nginx.conf` — `docker compose --profile app` 用的映像。
 - `frontend` — Vite + React 19 + TypeScript + PixiJS 8 + GSAP 3，pnpm 管理。
   - `src/api` — API client；`schema.ts` 由 `pnpm generate:api` 產生。
@@ -113,10 +114,10 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。
 - `cd frontend && pnpm check` — eslint、prettier 檢查、`tsc -b`、vitest。
-- `cd frontend && pnpm generate:api` — API 執行中時，從 `/openapi/v1.json` 重新產生 `src/api/schema.ts`。
+- `cd frontend && pnpm generate:api` — 從 `backend/openapi/EndlessBattle.Api.json`（`dotnet build` 時產生）重新產生 `src/api/schema.ts`，不用啟動 API。
 - `cd admin && pnpm dev` — 啟動內容後台（`http://localhost:5174`；`/admin`、`/openapi` proxy 到 `http://localhost:5062`，API 要以 Development 執行才有 admin 路由）。
 - `cd admin && pnpm check` — admin 的 eslint、prettier 檢查、`tsc -b`、vitest。
-- `cd admin && pnpm generate:api` — API 執行中時，從 `/openapi/admin.json` 重新產生 `admin/src/api/schema.ts`。
+- `cd admin && pnpm generate:api` — 從 `backend/openapi/EndlessBattle.Api_admin.json` 重新產生 `admin/src/api/schema.ts`，不用啟動 API。
 
 需要資料庫的測試依賴 Docker 執行中；卡在 MySQL 啟動時先跑 `scripts/clean-test-containers.sh`。
 

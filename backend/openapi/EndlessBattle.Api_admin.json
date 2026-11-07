@@ -1,0 +1,665 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "EndlessBattle.Api | admin",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/admin/content/{kind}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JsonObject"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonObject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/admin/content/{kind}/{id}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonObject"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonObject"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/admin/draft": {
+      "get": {
+        "tags": [
+          "Admin Draft"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin Draft"
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/draft/publish": {
+      "post": {
+        "tags": [
+          "Admin Draft"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishRefusal"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reports": {
+      "post": {
+        "tags": [
+          "Admin Reports"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceReport"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportRefusal"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdventureResult": {
+        "required": [
+          "fights",
+          "wins",
+          "winRate",
+          "losses",
+          "timeouts",
+          "expPerHour",
+          "grossMoneyPerHour",
+          "netMoneyPerHour",
+          "levelsGained",
+          "nextTierHours",
+          "nextTierUnaffordable"
+        ],
+        "type": "object",
+        "properties": {
+          "fights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "winRate": {
+            "type": "number",
+            "format": "double"
+          },
+          "losses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeouts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expPerHour": {
+            "type": "number",
+            "format": "double"
+          },
+          "grossMoneyPerHour": {
+            "type": "number",
+            "format": "double"
+          },
+          "netMoneyPerHour": {
+            "type": "number",
+            "format": "double"
+          },
+          "levelsGained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextTierHours": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "nextTierUnaffordable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AdventureRow": {
+        "required": [
+          "placeId",
+          "placeName",
+          "restricted",
+          "level",
+          "jobId",
+          "jobName",
+          "equipmentShopLevels",
+          "withoutSkills",
+          "withSkills"
+        ],
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeName": {
+            "type": "string"
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "jobName": {
+            "type": "string"
+          },
+          "equipmentShopLevels": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "withoutSkills": {
+            "$ref": "#/components/schemas/AdventureResult"
+          },
+          "withSkills": {
+            "$ref": "#/components/schemas/AdventureResult"
+          }
+        }
+      },
+      "BalanceAssumptions": {
+        "required": [
+          "allocation",
+          "seed",
+          "simulatedHours",
+          "maxReportedLevel",
+          "skillLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "allocation": {
+            "$ref": "#/components/schemas/StatAllocation"
+          },
+          "seed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "simulatedHours": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxReportedLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillLevel": {
+            "$ref": "#/components/schemas/BalanceSkillLevel"
+          }
+        }
+      },
+      "BalanceReport": {
+        "required": [
+          "assumptions",
+          "shopLevels",
+          "wearLevels",
+          "adventures"
+        ],
+        "type": "object",
+        "properties": {
+          "assumptions": {
+            "$ref": "#/components/schemas/BalanceAssumptions"
+          },
+          "shopLevels": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "wearLevels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WearLevelRow"
+            }
+          },
+          "adventures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdventureRow"
+            }
+          }
+        }
+      },
+      "BalanceSkillLevel": {
+        "enum": [
+          "First",
+          "Max"
+        ]
+      },
+      "DraftStatus": {
+        "required": [
+          "exists",
+          "valid",
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "exists": {
+            "type": "boolean"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "JsonObject": {
+        "type": "object"
+      },
+      "PublishRefusal": {
+        "required": [
+          "reason",
+          "error",
+          "changedFiles"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "changedFiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PublishResponse": {
+        "required": [
+          "restartRequired"
+        ],
+        "type": "object",
+        "properties": {
+          "restartRequired": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReportRefusal": {
+        "required": [
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "ReportRequest": {
+        "required": [
+          "source",
+          "skillLevel"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/ReportSource"
+          },
+          "skillLevel": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BalanceSkillLevel"
+              }
+            ]
+          }
+        }
+      },
+      "ReportSource": {
+        "enum": [
+          "Official",
+          "Draft"
+        ]
+      },
+      "StatAllocation": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "agi"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WearLevelCell": {
+        "required": [
+          "shopLevel",
+          "required",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "shopLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "required": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "level": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "WearLevelRow": {
+        "required": [
+          "jobId",
+          "jobName",
+          "stat",
+          "cells"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "jobName": {
+            "type": "string"
+          },
+          "stat": {
+            "type": "string"
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WearLevelCell"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Admin Content"
+    },
+    {
+      "name": "Admin Draft"
+    },
+    {
+      "name": "Admin Reports"
+    }
+  ]
+}
