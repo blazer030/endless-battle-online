@@ -65,5 +65,6 @@
 - 補測試：`KillCounter_Mission29NotReadyWhileATargetIsShort`（spec 的任務 29 範例）；`Complete_RegularPetMission_RemovesCarriedPet` 驗證 50 元獎勵；`Spawnable_PetMissionOpenUntilFinished` 加上放棄任務。前兩項都故意改壞程式或資料確認過會失敗；放棄只是刪除紀錄，這條斷言由 `Missions_AcceptThenAbandon` 確認紀錄被刪，兩條合起來才完整。
 - 驗證報告說「擊殺目標不能是別的任務的任務怪」沒有測試，查證後是誤判：`Missions_RejectInvalidFields` 的 `InvalidMissionFields` 有這一列（`rival` 改打 `chief`），拿掉檢查時它會失敗，所以沒有新增測試。
 - 第二次驗證的建議：技能不足的任務擊殺滿了會顯示達成。依 7.1、7.2 修正，並更新 spec。手動確認用真實內容的 `mission-331`（`skill-348` Lv1，角色沒學），把進度放到 27/28 後實際打滿：舞台沒有達成名牌，戰報說明還需要技能等級，任務頁進度 28/29、「完成」按鈕停用，沒有水平捲動。同一個建議裡的「血條判斷補自動測試」不做，依專案慣例不寫樣式測試。
+- `/spectra-review` 的建議：NPC 拜訪補滿目標時，NPC 名牌與「任務達成」疊在舞台中央。NPC 名牌改放在怪物站的高度（`standing`）。先試過只放到怪物頭頂，手動確認時長名字的名牌仍壓到「成」字，所以再往下移。用 `mission-175` 的 `洛斯喀斯蜂巢據點` 在 375×667 確認兩個名牌分開，沒有水平捲動。同一份報告的另一項（輪詢超過 30 秒時，被捨棄的 NPC 拜訪不會出現在戰報）不修：很少發生，重開任務頁就正確。
 - 與上方已完成任務的文字不同的地方：3.1 的 `Mission_RejectsRequiredSkillAboveMaxLevel` 實際叫 `Mission_RejectsInvalidRequiredSkill`；4.5 的「`applyToStage` 遇到 `npc` 狀態不變」改成清除怪物，原因見上方手動驗證。
 
