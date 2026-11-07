@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using EndlessBattle.Application.Admin.Content;
 
 namespace EndlessBattle.Application.Admin;
 
@@ -9,10 +10,11 @@ public enum ContentWriteOutcome
     IdMismatch,
     MissingId,
     DuplicateId,
+    Rejected,
 }
 
-// Draft 只在 Saved 時有值：寫入後的草稿檢查結果
-public sealed record ContentWriteResult(ContentWriteOutcome Outcome, DraftStatus? Draft = null);
+// Draft 只在 Saved 時有值：寫入後的草稿檢查結果；Error 只在有型別的路由使用，指出出問題的欄位
+public sealed record ContentWriteResult(ContentWriteOutcome Outcome, DraftStatus? Draft = null, ContentFieldError? Error = null);
 
 public sealed class ContentAdminService(IContentDraftStore store)
 {

@@ -4,6 +4,167 @@
  */
 
 export interface paths {
+    "/admin/content/monsters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MonsterRecord"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MonsterRecord"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/content/monsters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MonsterRecord"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MonsterRecord"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/content/{kind}": {
         parameters: {
             query?: never;
@@ -402,12 +563,73 @@ export interface components {
         };
         /** @enum {unknown} */
         BalanceSkillLevel: "First" | "Max";
+        /** @enum {unknown} */
+        ContentElement: "None" | "Earth" | "Water" | "Fire" | "Wood" | "Wind" | "Poison";
+        ContentFieldError: {
+            field: string;
+            message: string;
+        };
         DraftStatus: {
             exists: boolean;
             valid: boolean;
             error: null | string;
         };
         JsonObject: Record<string, never>;
+        MonsterDropRecord: {
+            itemId: string;
+            /** Format: int32 */
+            dropRarity: number;
+        };
+        MonsterRecord: {
+            id: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            hitPoints: number;
+            /** Format: int32 */
+            skillPoints: number;
+            /** Format: int32 */
+            attack: number;
+            /** Format: int32 */
+            magicAttack: number;
+            /** Format: int32 */
+            defense: number;
+            /** Format: int32 */
+            magicDefense: number;
+            /** Format: int32 */
+            strength: number;
+            /** Format: int32 */
+            intelligence: number;
+            /** Format: int32 */
+            vitality: number;
+            /** Format: int32 */
+            agility: number;
+            /** Format: int32 */
+            charisma: number;
+            /** Format: int32 */
+            faith: number;
+            element: components["schemas"]["ContentElement"];
+            /** Format: int64 */
+            jobExperience: number;
+            /** Format: int32 */
+            encounterRate: number;
+            /** Format: int32 */
+            placeId: number;
+            subPlaceIndexes: number[];
+            drops: components["schemas"]["MonsterDropRecord"][];
+            skills: components["schemas"]["MonsterSkillRecord"][];
+            exclusiveMissionId: null | string;
+            isNpc: boolean;
+            npcMessage: null | string;
+        };
+        MonsterSkillRecord: {
+            skillId: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            activationRate: number;
+        };
         PublishRefusal: {
             reason: string;
             error: null | string;

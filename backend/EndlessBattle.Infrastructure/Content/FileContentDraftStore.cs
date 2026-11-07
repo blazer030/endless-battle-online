@@ -12,6 +12,8 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
 {
     public const string BaseFileName = ".base.json";
 
+    private const string TemporarySuffix = ".writing";
+
     public async Task<IReadOnlyList<JsonObject>> ReadRecordsAsync(ContentKind kind, CancellationToken cancellationToken)
     {
         var directory = Directory.Exists(draftDirectory) ? draftDirectory : officialDirectory;
@@ -28,6 +30,53 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
         // 紀錄可能還掛在讀取時的陣列上，先複製再放進新陣列
         root[kind.ArrayProperty] = new JsonArray(records.Select(record => (JsonNode)record.DeepClone().AsObject()).ToArray());
         await File.WriteAllTextAsync(path, ContentFileFormatter.Format(root), cancellationToken);
+    }
+
+    public async Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken) =>
+        (await ReadRecordsAsync(kind, cancellationToken))
+            .Select(ContentAdminService.IdOf)
+            .OfType<string>()
+            .ToHashSet();
+
+    // 檔名 → 檔案內容；有草稿時讀草稿，否則讀正式內容
+    public async Task<IReadOnlyDictionary<string, string>> ReadFilesAsync(IEnumerable<string> fileNames, CancellationToken cancellationToken)
+    {
+        var directory = Directory.Exists(draftDirectory) ? draftDirectory : officialDirectory;
+        var files = new Dictionary<string, string>();
+        foreach (var name in fileNames)
+        {
+            files[name] = await File.ReadAllTextAsync(Path.Combine(directory, name), cancellationToken);
+        }
+
+        return files;
+    }
+
+    // 先全部寫到暫存檔再一起換上：任何一個暫存檔寫不出來時，草稿的內容檔都不變
+    public async Task WriteFilesAsync(IReadOnlyDictionary<string, string> files, CancellationToken cancellationToken)
+    {
+        await EnsureDraftAsync(cancellationToken);
+        var temporaryFiles = files.Keys.ToDictionary(name => name, name => Path.Combine(draftDirectory, name + TemporarySuffix));
+        try
+        {
+            foreach (var (name, text) in files)
+            {
+                await File.WriteAllTextAsync(temporaryFiles[name], text, cancellationToken);
+            }
+        }
+        catch
+        {
+            foreach (var temporaryFile in temporaryFiles.Values.Where(File.Exists))
+            {
+                File.Delete(temporaryFile);
+            }
+
+            throw;
+        }
+
+        foreach (var (name, temporaryFile) in temporaryFiles)
+        {
+            File.Move(temporaryFile, Path.Combine(draftDirectory, name), overwrite: true);
+        }
     }
 
     public Task<DraftStatus> CheckAsync(CancellationToken cancellationToken)

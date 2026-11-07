@@ -62,7 +62,10 @@ public class AdminContentUpdateTests(MySqlDatabaseFixture database)
         await using var factory = new EndlessBattleApiFactory(database);
         var client = directories.CreateClient(factory);
 
-        var response = await client.PutAsJsonAsync("/admin/content/monsters/no-such", new JsonObject { ["id"] = "no-such" }, CancellationToken);
+        var monster = await client.GetFromJsonAsync<JsonObject>("/admin/content/monsters/test-sprite", CancellationToken);
+        monster!["id"] = "no-such";
+
+        var response = await client.PutAsJsonAsync("/admin/content/monsters/no-such", monster, CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.False(Directory.Exists(directories.Draft));

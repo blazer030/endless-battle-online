@@ -5,6 +5,157 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/admin/content/monsters": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MonsterRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Content"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonsterRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/content/monsters/{id}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonsterRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonsterRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/admin/content/{kind}": {
       "get": {
         "tags": [
@@ -468,6 +619,32 @@
           "Max"
         ]
       },
+      "ContentElement": {
+        "enum": [
+          "None",
+          "Earth",
+          "Water",
+          "Fire",
+          "Wood",
+          "Wind",
+          "Poison"
+        ]
+      },
+      "ContentFieldError": {
+        "required": [
+          "field",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "DraftStatus": {
         "required": [
           "exists",
@@ -492,6 +669,182 @@
       },
       "JsonObject": {
         "type": "object"
+      },
+      "MonsterDropRecord": {
+        "required": [
+          "itemId",
+          "dropRarity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "dropRarity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MonsterRecord": {
+        "required": [
+          "id",
+          "name",
+          "level",
+          "hitPoints",
+          "skillPoints",
+          "attack",
+          "magicAttack",
+          "defense",
+          "magicDefense",
+          "strength",
+          "intelligence",
+          "vitality",
+          "agility",
+          "charisma",
+          "faith",
+          "element",
+          "jobExperience",
+          "encounterRate",
+          "placeId",
+          "subPlaceIndexes",
+          "drops",
+          "skills",
+          "exclusiveMissionId",
+          "isNpc",
+          "npcMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hitPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attack": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "magicAttack": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defense": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "magicDefense": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "strength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "intelligence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vitality": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agility": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "charisma": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "faith": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "element": {
+            "$ref": "#/components/schemas/ContentElement"
+          },
+          "jobExperience": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "encounterRate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subPlaceIndexes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "drops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonsterDropRecord"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonsterSkillRecord"
+            }
+          },
+          "exclusiveMissionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isNpc": {
+            "type": "boolean"
+          },
+          "npcMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MonsterSkillRecord": {
+        "required": [
+          "skillId",
+          "level",
+          "activationRate"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activationRate": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "PublishRefusal": {
         "required": [

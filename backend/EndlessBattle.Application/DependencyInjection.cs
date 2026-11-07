@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Admin.Content;
 using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Balance;
@@ -24,6 +25,8 @@ public static class DependencyInjection
     {
         services.AddScoped<AccountService>();
         services.AddScoped<ContentAdminService>();
+        services.AddScoped<ContentRecordService<MonsterRecord>>();
+        services.AddScoped<IContentRecordCheck<MonsterRecord>, MonsterSkillCheck>();
         services.AddSingleton<BalanceReportService>();
         services.AddScoped<ContentReportService>();
         services.AddScoped<CharacterService>();

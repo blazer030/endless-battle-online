@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Admin.Content;
 using EndlessBattle.Application.Accounts;
 using EndlessBattle.Application.Admin;
 using EndlessBattle.Application.Characters;
@@ -37,9 +38,11 @@ public static class DependencyInjection
 
         var draftDirectory = configuration["Admin:DraftDirectory"]
             ?? throw new InvalidOperationException("缺少設定 Admin:DraftDirectory");
-        services.AddSingleton<IContentDraftStore>(new FileContentDraftStore(
+        var draftStore = new FileContentDraftStore(
             Path.GetFullPath(Path.Combine(contentRootPath, contentDirectory)),
-            Path.GetFullPath(Path.Combine(contentRootPath, draftDirectory))));
+            Path.GetFullPath(Path.Combine(contentRootPath, draftDirectory)));
+        services.AddSingleton<IContentDraftStore>(draftStore);
+        services.AddSingleton<IContentRecordStore<MonsterRecord>>(new CodecContentRecordStore<MonsterRecord>(draftStore, new MonsterCodec()));
 
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICharacterRepository, CharacterRepository>();

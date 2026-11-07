@@ -10,6 +10,9 @@ public interface IContentDraftStore
 
     Task WriteRecordsAsync(ContentKind kind, IReadOnlyList<JsonObject> records, CancellationToken cancellationToken);
 
+    // 某種內容現有的 id（有草稿讀草稿）；地區的數字 id 轉成文字
+    Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken);
+
     // 用遊戲啟動時的同一套載入程式檢查草稿
     Task<DraftStatus> CheckAsync(CancellationToken cancellationToken);
 
