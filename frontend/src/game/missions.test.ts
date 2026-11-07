@@ -244,6 +244,30 @@ describe("progressRatio", () => {
     expect(progressRatio(mixed)).toBe(8 / 16)
   })
 
+  describe("counts a pet and a skill condition as one step each", () => {
+    const fullKills = makeMission().kills.map((kill) => ({ ...kill, count: 3, progress: 3 }))
+    const pet = { monsterId: "grass-slime", name: "草原史萊姆" }
+    const skill = { skillId: "skill-414", name: "無我", level: 2 }
+
+    it.each([
+      ["skill not met", null, { ...skill, met: false }, 3 / 4],
+      ["pet not carried", { ...pet, carried: false }, null, 3 / 4],
+      ["pet carried and skill met", { ...pet, carried: true }, { ...skill, met: true }, 1],
+    ])("%s", (_name, deliverPet, requiredSkill, expected) => {
+      expect(progressRatio(makeMission({ kills: fullKills, deliverPet, requiredSkill }))).toBe(
+        expected,
+      )
+    })
+
+    it("counts a carried pet without kills", () => {
+      const carried = { ...pet, carried: true }
+      expect(progressRatio(makeMission({ kills: [], deliverPet: carried }))).toBe(1)
+      expect(
+        progressRatio(makeMission({ kills: [], deliverPet: { ...carried, carried: false } })),
+      ).toBe(0)
+    })
+  })
+
   it("is full for a ready mission without objectives", () => {
     expect(progressRatio(makeMission({ kills: [], ready: true }))).toBe(1)
     expect(progressRatio(makeMission({ kills: [] }))).toBe(0)

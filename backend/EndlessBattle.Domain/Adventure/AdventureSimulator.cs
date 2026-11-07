@@ -232,6 +232,6 @@ public static class AdventureSimulator
         {
             var target = mission.Targets.First(candidate => candidate.MonsterId == monsterId);
             return new MissionProgressEvent(
-                atSeconds, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull);
+                atSeconds, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull, mission.SkillTooLow);
         });
 }

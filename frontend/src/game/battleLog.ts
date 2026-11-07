@@ -119,13 +119,19 @@ const describeMission = (event: MissionProgressEvent, monster: string): LogEntry
   const lines: LogEntry[] = [
     { text: `任務進度：${monster} ${event.progress}/${event.required}`, kind: "drop" },
   ]
-  if (event.completed)
+  if (event.completed) {
+    const remaining = [
+      ...(event.requiresDelivery ? ["交付"] : []),
+      ...(event.skillTooLow ? ["技能等級達到要求"] : []),
+    ]
     lines.push({
-      text: event.requiresDelivery
-        ? `任務「${event.title}」的擊殺目標已達成，交付後回任務頁回報。`
-        : `任務「${event.title}」的目標已達成，回任務頁回報。`,
+      text:
+        remaining.length > 0
+          ? `任務「${event.title}」的擊殺目標已達成，${remaining.join("且")}後回任務頁回報。`
+          : `任務「${event.title}」的目標已達成，回任務頁回報。`,
       kind: "trigger",
     })
+  }
   return lines
 }
 

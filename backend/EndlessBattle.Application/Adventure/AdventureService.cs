@@ -74,7 +74,8 @@ public sealed class AdventureService(
             : character.LastSettledAt;
         // 禁區只模擬到通行證到期為止；到期（或沒有通行證）後的時間捨棄，不自動再扣鑰匙
         var until = AreaKeys.SimulateUntil(place, pass, now);
-        var tracked = KillCounter.Track(await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id);
+        var tracked = KillCounter.Track(
+            await missions.ListAsync(character.Id, cancellationToken), content.AllMissions, character.Id, await skillBook.ListAsync(character.Id, cancellationToken));
         var ownedPets = await pets.ListAsync(character.Id, cancellationToken);
         var supplySlot = SupplySlotOf(equipped, character.Settings);
         var carriedPet = ownedPets.FirstOrDefault(pet => pet.Carried);

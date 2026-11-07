@@ -413,11 +413,13 @@ describe("stageModel", () => {
       progress: 3,
       required: 3,
       requiresDelivery: false,
+      skillTooLow: false,
       completed: true,
       atSeconds: 2,
     }
     expect(stageEffectsFor(mission)).toEqual([{ type: "plate", text: "任務達成", tone: "gold" }])
     expect(stageEffectsFor({ ...mission, progress: 2, completed: false })).toEqual([])
+    expect(stageEffectsFor({ ...mission, skillTooLow: true })).toEqual([])
     expect(applyToStage(midFight, mission)).toBe(midFight)
   })
 
@@ -451,6 +453,7 @@ describe("stageModel", () => {
       progress: 3,
       required: 3,
       requiresDelivery: false,
+      skillTooLow: false,
       completed: false,
       atSeconds: 2,
     }
@@ -466,6 +469,7 @@ describe("stageModel", () => {
       progress: 3,
       required: 3,
       requiresDelivery: true,
+      skillTooLow: false,
       completed: true,
       atSeconds: 2,
     }

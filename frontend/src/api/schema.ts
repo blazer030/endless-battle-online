@@ -2368,6 +2368,7 @@ export interface components {
             required: number;
             requiresDelivery: boolean;
             completed: boolean;
+            skillTooLow: boolean;
             /** Format: double */
             atSeconds: number;
         };

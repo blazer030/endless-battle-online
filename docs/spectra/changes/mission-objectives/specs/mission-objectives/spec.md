@@ -65,6 +65,8 @@ A regular mission SHALL have at least one of `kills`, `deliver` or `deliverPet`.
 
 A mission SHALL be able to name a skill and level in `requiredSkill`. This SHALL NOT block accepting the mission. Completing it SHALL require the learned level of that skill to be at least the required level; otherwise completion SHALL fail with `skillTooLow` and nothing SHALL change. The mission board SHALL report whether the condition is met, and a mission that does not meet it SHALL NOT be ready.
 
+A mission progress event SHALL report `SkillTooLow` when the learned level is below the required level at the time of the fight. With `SkillTooLow` true, the battle log SHALL say the skill level is still needed and the stage SHALL NOT show the mission-achieved plate. The mission page's progress SHALL count a pet and a skill condition as one step each, so it reaches full only when the mission is ready.
+
 #### Scenario: Accepting without the skill
 
 - **GIVEN** `mission-318` requires `skill-414` Lv2, and the player meets its other conditions but has not learned the skill
@@ -84,6 +86,31 @@ A mission SHALL be able to name a skill and level in `requiredSkill`. This SHALL
 | 1 | fails with `skillTooLow` |
 | 2 | completes |
 | 3 | completes |
+
+#### Scenario: Filling the kills with the skill too low
+
+- **GIVEN** a mission that requires `skill-414` Lv2, and the player has learned Lv1
+- **WHEN** a win fills the last kill target
+- **THEN** the progress event has `Completed` true and `SkillTooLow` true, the stage shows no mission-achieved plate, and the battle log says the skill level is still needed
+
+#### Scenario: Filling the kills with the skill met
+
+- **GIVEN** a mission that requires `skill-414` Lv2, and the player has learned Lv2
+- **WHEN** a win fills the last kill target
+- **THEN** the progress event has `Completed` true and `SkillTooLow` false, and the stage shows the mission-achieved plate
+
+#### Scenario: Progress counts every condition
+
+- **GIVEN** a mission on the mission page
+- **WHEN** its progress is shown
+
+##### Example: Progress with three kills required
+
+| Kills | Pet | Skill | Progress |
+| ----- | --- | ----- | -------- |
+| 3/3 | none | not met | 3/4 |
+| 3/3 | not carried | none | 3/4 |
+| 3/3 | carried | met | full |
 
 ### Requirement: A mission's monsters appear while it is open
 

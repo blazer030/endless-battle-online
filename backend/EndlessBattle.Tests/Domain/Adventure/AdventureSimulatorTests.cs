@@ -564,7 +564,7 @@ public class AdventureSimulatorTests
         Assert.Collection(
             run.Events,
             first => Assert.Equal(new NpcEncounterEvent(0, "npc", "信使", "我是信使"), first),
-            second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", 1, 1, false, true), second));
+            second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", 1, 1, false, true, false), second));
         Assert.Equal((0, 0, 0, 0L, 0L, 1), (run.Summary.Fights, run.Summary.Wins, run.Summary.Losses, run.Summary.Exp, run.Summary.Money, run.Summary.MissionKills));
         Assert.Equal(hero, run.Character);
         TrackedMissions.AssertSame([Visit().WithProgress(1)], run.Missions);
@@ -630,6 +630,16 @@ public class AdventureSimulatorTests
 
         Assert.Equal(("test-sprite", 1, 1, false), (unfinished.MonsterId, unfinished.Progress, unfinished.Required, unfinished.Completed));
         Assert.Equal(("test-sprite", 1, 1, true), (finished.MonsterId, finished.Progress, finished.Required, finished.Completed));
+    }
+
+    [Fact]
+    public void Adventure_MissionEventCarriesSkillTooLow()
+    {
+        var low = RunWithMissions(Hero(), seconds: 20, [Hunt() with { SkillTooLow = true }]).Events.OfType<MissionProgressEvent>().First();
+        var met = RunWithMissions(Hero(), seconds: 20, [Hunt()]).Events.OfType<MissionProgressEvent>().First();
+
+        Assert.True(low.SkillTooLow);
+        Assert.False(met.SkillTooLow);
     }
 
     // 同上 8 場（開打即打完於 0、2.8、…、19.6 秒），任務在第 19 秒才接取：只有 19.6 秒那場計入

@@ -92,6 +92,6 @@ public sealed record RestEvent(double AtSeconds, long Cost, bool ExpPenalty, dou
 // 遇到 NPC：不戰鬥、沒有報酬；任務目標未滿時，後面緊接 MissionProgressEvent。Message 是原版訊息，可以沒有
 public sealed record NpcEncounterEvent(double AtSeconds, string MonsterId, string Name, string? Message) : BattleEvent(AtSeconds);
 
-// 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付才能回報；Completed：所有擊殺目標都滿了
+// 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付才能回報；Completed：所有擊殺目標都滿了；SkillTooLow：擊殺滿了也要技能等級夠才能回報
 public sealed record MissionProgressEvent(
-    double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required, bool RequiresDelivery, bool Completed) : BattleEvent(AtSeconds);
+    double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required, bool RequiresDelivery, bool Completed, bool SkillTooLow) : BattleEvent(AtSeconds);

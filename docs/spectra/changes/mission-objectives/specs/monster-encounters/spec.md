@@ -68,7 +68,7 @@ A monster with `npc` true SHALL have a `missionId`, SHALL be a kill target of th
 
 ### Requirement: The battle screen shows NPC encounters
 
-The stage SHALL show the NPC's name as a plate without an HP bar, and the battle log SHALL show the NPC's name, with its message when it has one. The mission-achieved plate SHALL appear only when a progress event has `Completed` true and no delivery is required.
+The stage SHALL show the NPC's name as a plate without an HP bar, and the battle log SHALL show the NPC's name, with its message when it has one. The mission-achieved plate SHALL appear only when a progress event has `Completed` true, no delivery is required and `SkillTooLow` is false.
 
 #### Scenario: An NPC with a message
 

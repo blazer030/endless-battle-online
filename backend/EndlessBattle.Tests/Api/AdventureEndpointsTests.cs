@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Skills;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -229,6 +231,38 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         var mission = board.GetProperty("active").EnumerateArray().Single(entry => entry.GetProperty("id").GetString() == "test-npc-visit");
         Assert.Equal(1, mission.GetProperty("kills").EnumerateArray().Single().GetProperty("progress").GetInt32());
         Assert.True(mission.GetProperty("ready").GetBoolean());
+    }
+
+    // 技能不足時擊殺滿了也不能回報，戰報要知道；Lv2 剛好達標
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(2, false)]
+    public async Task Advance_MissionEvent_ReportsSkillTooLow(int learned, bool tooLow)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        if (learned > 0)
+        {
+            var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+            using var scope = factory.Services.CreateScope();
+            var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+                .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(character!.Id, new LearnedSkill("burst", learned), CancellationToken);
+        }
+
+        (await client.PostAsJsonAsync("/api/missions/accept", new { missionId = "test-skill-gate" }, CancellationToken)).EnsureSuccessStatusCode();
+        JsonElement? progress = null;
+        for (var attempt = 0; attempt < 60 && progress is null; attempt++)
+        {
+            factory.Clock.Advance(TimeSpan.FromSeconds(10));
+            var found = EventsOfType(await AdvanceAsync(client), "mission");
+            progress = found.Count > 0 ? found[0] : null;
+        }
+
+        Assert.NotNull(progress);
+        Assert.True(progress.Value.GetProperty("completed").GetBoolean());
+        Assert.Equal(tooLow, progress.Value.GetProperty("skillTooLow").GetBoolean());
     }
 
     // 剛接取就遇到 NPC 的那批事件：npc 以 "npc" 為 discriminator 序列化，帶名稱與訊息

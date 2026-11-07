@@ -1,4 +1,5 @@
 using EndlessBattle.Domain.Missions;
+using EndlessBattle.Domain.Skills;
 using EndlessBattle.Infrastructure.Content;
 using EndlessBattle.Tests.Support;
 
@@ -79,8 +80,8 @@ public class KillCounterTests
             new("test-hunt", MissionState.Active, [2], null, Now, null),
         ];
 
-        var tracked = KillCounter.Track(records, missions, characterId: 7);
-        var mismatched = KillCounter.Track([records[0] with { DailyPeriod = null }], missions, characterId: 7);
+        var tracked = KillCounter.Track(records, missions, characterId: 7, learned: []);
+        var mismatched = KillCounter.Track([records[0] with { DailyPeriod = null }], missions, characterId: 7, learned: []);
 
         TrackedMissions.AssertSame(
             [
@@ -143,7 +144,7 @@ public class KillCounterTests
     {
         var mission = FakesDefinition;
 
-        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 1], null, Now, null)], [mission], characterId: 7);
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 1], null, Now, null)], [mission], characterId: 7, learned: []);
 
         Assert.Equal(
             [new MissionTarget("monster-111", 3, 3), new MissionTarget("monster-112", 3, 1)],
@@ -155,9 +156,32 @@ public class KillCounterTests
     {
         var mission = FakesDefinition;
 
-        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7);
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7, learned: []);
 
         Assert.Empty(tracked);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(2, false)]
+    [InlineData(3, false)]
+    public void KillCounter_TracksSkillTooLow(int level, bool tooLow)
+    {
+        var mission = FakesDefinition with { RequiredSkill = new RequiredSkill("burst", 2) };
+        IReadOnlyList<LearnedSkill> learned = level == 0 ? [new LearnedSkill("other", 9)] : [new LearnedSkill("burst", level)];
+
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [0, 0], null, Now, null)], [mission], characterId: 7, learned);
+
+        Assert.Equal(tooLow, tracked.Single().SkillTooLow);
+    }
+
+    [Fact]
+    public void KillCounter_NoRequiredSkillIsNeverTooLow()
+    {
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [0, 0], null, Now, null)], [FakesDefinition], characterId: 7, learned: []);
+
+        Assert.False(tracked.Single().SkillTooLow);
     }
 
     private static readonly MissionDefinition PetMission = new(
@@ -169,7 +193,7 @@ public class KillCounterTests
     [Fact]
     public void Track_IncludesPetOnlyMission()
     {
-        var tracked = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7);
+        var tracked = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7, learned: []);
 
         var mission = Assert.Single(tracked);
         Assert.Equal("mission-268", mission.MissionId);
@@ -179,10 +203,10 @@ public class KillCounterTests
     [Fact]
     public void Spawnable_PetMissionOpenUntilFinished()
     {
-        var active = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7);
-        var completed = KillCounter.Track([new MissionRecord("mission-268", MissionState.Completed, [], null, Now, Now)], [PetMission], characterId: 7);
+        var active = KillCounter.Track([new MissionRecord("mission-268", MissionState.Active, [], null, Now, null)], [PetMission], characterId: 7, learned: []);
+        var completed = KillCounter.Track([new MissionRecord("mission-268", MissionState.Completed, [], null, Now, Now)], [PetMission], characterId: 7, learned: []);
         // 放棄會刪除紀錄
-        var abandoned = KillCounter.Track([], [PetMission], characterId: 7);
+        var abandoned = KillCounter.Track([], [PetMission], characterId: 7, learned: []);
 
         Assert.Contains("mission-268", KillCounter.SpawnableMissionIds(active, Now));
         Assert.Empty(KillCounter.SpawnableMissionIds(completed, Now));
@@ -205,7 +229,7 @@ public class KillCounterTests
     {
         var mission = FakesDefinition with { Deliver = [new ItemQuantity("test-ore", 1)] };
 
-        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7);
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [3, 3], null, Now, null)], [mission], characterId: 7, learned: []);
 
         Assert.Empty(KillCounter.SpawnableMissionIds(tracked, Now));
     }
@@ -226,7 +250,7 @@ public class KillCounterTests
     {
         var mission = FakesDefinition with { DeliverPet = "monster-1" };
 
-        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [], null, Now, null)], [mission], characterId: 7);
+        var tracked = KillCounter.Track([new MissionRecord("mission-29", MissionState.Active, [], null, Now, null)], [mission], characterId: 7, learned: []);
 
         Assert.True(tracked.Single().RequiresDelivery);
     }
@@ -241,7 +265,7 @@ public class KillCounterTests
         MissionRecord[] records =
             [new("mixed", MissionState.Active, [0], null, Now, null), new("kill-only", MissionState.Active, [0], null, Now, null)];
 
-        var tracked = KillCounter.Track(records, [Mission("mixed", [new ItemQuantity("test-ore", 2)]), Mission("kill-only", [])], characterId: 7);
+        var tracked = KillCounter.Track(records, [Mission("mixed", [new ItemQuantity("test-ore", 2)]), Mission("kill-only", [])], characterId: 7, learned: []);
 
         Assert.Equal([("mixed", true), ("kill-only", false)], tracked.Select(mission => (mission.MissionId, mission.RequiresDelivery)));
     }

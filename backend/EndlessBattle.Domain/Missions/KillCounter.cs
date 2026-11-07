@@ -1,3 +1,5 @@
+using EndlessBattle.Domain.Skills;
+
 namespace EndlessBattle.Domain.Missions;
 
 // Advanced 是這次 +1 的任務（新狀態），依 Missions 的順序
@@ -31,7 +33,7 @@ public static class KillCounter
     // 進行中且開放（還有未滿的擊殺目標，或沒有擊殺目標但要交寵物）的任務；只交道具的任務不會遇到任務怪，不追蹤。內容中不存在或種類不符（每日卻無週期、一般卻有週期）的紀錄略過。
     // 不以現在時間過濾每日任務：跨過重置的離線結算中，重置前打完的場次仍要計入，交給 ExpiresAt 判斷
     public static IReadOnlyList<ActiveMission> Track(
-        IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, long characterId)
+        IReadOnlyList<MissionRecord> records, IReadOnlyList<MissionDefinition> missions, long characterId, IReadOnlyList<LearnedSkill> learned)
     {
         var byId = missions.ToDictionary(mission => mission.Id);
         var tracked = new List<ActiveMission>();
@@ -52,7 +54,8 @@ public static class KillCounter
             var expiresAt = record.DailyPeriod is { } period ? DailyMissions.PeriodStart(period.AddDays(1)) : (DateTimeOffset?)null;
             var targets = objective.Kills.Select((kill, index) => new MissionTarget(kill.MonsterId, kill.Count, record.ProgressOf(index))).ToList();
             tracked.Add(new ActiveMission(mission.Id, mission.Title, targets, record.AcceptedAt, expiresAt,
-                RequiresDelivery: objective.Deliver.Count > 0 || objective.DeliverPet is not null));
+                RequiresDelivery: objective.Deliver.Count > 0 || objective.DeliverPet is not null,
+                SkillTooLow: !MissionRules.HasRequiredSkill(mission, learned)));
         }
 
         return tracked;

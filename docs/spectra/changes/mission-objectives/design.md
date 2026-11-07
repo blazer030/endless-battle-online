@@ -72,6 +72,8 @@
 
 `MissionProgressEvent` 新增 `Completed`，表示所有擊殺目標都滿了。前端原本用 `progress === required` 判斷達成，多目標時會誤判。`RequiresDelivery` 擴充為「要交道具或寵物」。
 
+驗證後補上 `SkillTooLow`：戰鬥當下已學等級低於 `requiredSkill` 時為 true。沒有它的話，技能不足的任務擊殺滿了會顯示「任務達成」，回報時卻得到 `skillTooLow`。判斷放在 `KillCounter.Track`，和 `RequiresDelivery` 一起算好放進 `ActiveMission`，模擬器不用知道技能。任務頁的進度也把寵物與技能條件各算一格，滿格才等於可以回報。
+
 ### 配方前置要完成任務
 
 `requiredMissionId` 指向的任務必須是已完成狀態才能合成，未完成回 `missionIncomplete`。

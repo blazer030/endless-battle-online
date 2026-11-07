@@ -43,19 +43,21 @@ export const rewardLines = (rewards: MissionRewardView): string[] => [
 const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
 
 export const progressRatio = (mission: MissionView): number => {
-  const required = mission.deliver.reduce((sum, item) => sum + item.quantity, 0)
-  const held = mission.deliver.reduce((sum, item) => sum + Math.min(item.owned, item.quantity), 0)
-  if (mission.kills.length > 0) {
-    const count = mission.kills.reduce((sum, kill) => sum + kill.count, 0)
-    const progress = mission.kills.reduce(
-      (sum, kill) => sum + Math.min(kill.progress, kill.count),
-      0,
-    )
-    // 擊殺與交付合計，全部都滿才到 1（同後端的 Ready）
-    return count + required > 0 ? clampRatio((progress + held) / (count + required)) : 1
-  }
-  if (required === 0) return mission.ready ? 1 : 0
-  return clampRatio(held / required)
+  const conditions = [
+    ...(mission.deliverPet === null ? [] : [mission.deliverPet.carried]),
+    ...(mission.requiredSkill === null ? [] : [mission.requiredSkill.met]),
+  ]
+  // 擊殺、交付、寵物與技能合計，全部都滿才到 1（同後端的 Ready）
+  const total =
+    mission.kills.reduce((sum, kill) => sum + kill.count, 0) +
+    mission.deliver.reduce((sum, item) => sum + item.quantity, 0) +
+    conditions.length
+  if (total === 0) return mission.ready ? 1 : 0
+  const done =
+    mission.kills.reduce((sum, kill) => sum + Math.min(kill.progress, kill.count), 0) +
+    mission.deliver.reduce((sum, item) => sum + Math.min(item.owned, item.quantity), 0) +
+    conditions.filter(Boolean).length
+  return clampRatio(done / total)
 }
 
 export const actionLabel = (mission: MissionView): "交付" | "完成" =>

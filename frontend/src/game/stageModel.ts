@@ -159,8 +159,8 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         .filter((drop) => !drop.discarded)
         .map((drop) => ({ type: "dropFloat", text: drop.name }))
     case "mission":
-      // 還有其他目標，或還要交付的任務，這個目標滿了不算達成
-      return event.completed && !event.requiresDelivery
+      // 還有其他目標、要交付或技能等級不足的任務，這個目標滿了不算達成
+      return event.completed && !event.requiresDelivery && !event.skillTooLow
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
     case "npc":
