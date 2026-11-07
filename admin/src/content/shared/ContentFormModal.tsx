@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Alert, Form, Modal, Select, type FormInstance } from "antd"
-import type { ReactNode } from "react"
-import { filterChoice, namedChoices } from "./choices"
+import { useMemo, type ReactNode } from "react"
+import { filterChoice } from "./choices"
 import type { ContentRepository } from "./repository"
 import { saveErrorMessage } from "./saveError"
 
@@ -49,6 +49,15 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
 }: Props<TVo, TValues> & { state: NonNullable<ContentEditorState<TVo>> }) {
   const [form] = Form.useForm<TValues>()
   const optionError = useOptionError()
+  // 道具有 3127 筆，不要每次重繪都重建
+  const copyChoices = useMemo(
+    () =>
+      records.map((record) => {
+        const label = `${record.id} ${record.name}`
+        return { value: record.id, label, searchText: label }
+      }),
+    [records],
+  )
   const queryClient = useQueryClient()
   const save = useMutation({
     mutationFn: (vo: TVo) =>
@@ -106,10 +115,7 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
             allowClear
             placeholder="從空白開始"
             filterOption={filterChoice}
-            options={namedChoices(records).map((choice) => ({
-              ...choice,
-              label: `${choice.value} ${records.find((record) => record.id === choice.value)?.name ?? ""}`,
-            }))}
+            options={copyChoices}
             onChange={copyFrom}
           />
         </Form.Item>

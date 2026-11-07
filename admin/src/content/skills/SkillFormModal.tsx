@@ -44,7 +44,8 @@ type ActiveLevelProps = { activeLevel: number; onActiveLevelChange: (level: numb
 
 function LevelTabs({ activeLevel, onActiveLevelChange }: ActiveLevelProps) {
   const form = Form.useFormInstance<SkillFormValues>()
-  const levelCount = Form.useWatch("levels", { form, preserve: true })?.length ?? 0
+  // 只看筆數：監看整個 levels 的話，打一個字就會重繪每一級
+  const levelCount = Form.useWatch((values) => values.levels?.length ?? 0, { form, preserve: true })
   const current = Math.min(activeLevel, Math.max(levelCount - 1, 0))
   // 等級可能很多，用會換行的按鈕列。每一級都要掛載，存檔時才驗證得到；沒有選到的只是隱藏
   return (
