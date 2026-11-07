@@ -1,48 +1,21 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { MemoryRouter } from "react-router"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { App } from "../../App"
 import { chooseOption, visibleOptions } from "../../test/antd"
-import { mockFetch, type FetchCall } from "../../test/fetchMock"
-import { jobs } from "../jobs/testData"
-import type { SkillDto } from "./SkillConverter"
+import { lastSkillPut, openSkillEdit, renderSkillPage, saveSkill } from "./skillTestPage"
 import { skillDto, skillLevel, skills } from "./testData"
 
 afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const savedStatus = { exists: true, valid: true, error: null }
+const renderSkills = (list: unknown = skills) => renderSkillPage(list)
 
-function renderSkills(list: unknown = skills): FetchCall[] {
-  const calls = mockFetch({
-    "GET /admin/content/skills": list,
-    "GET /admin/content/jobs": jobs,
-    "GET /admin/draft": { exists: false, valid: true, error: null },
-    "PUT /admin/content/skills/skill-1": savedStatus,
-  })
-  render(
-    <MemoryRouter initialEntries={["/skills"]}>
-      <App />
-    </MemoryRouter>,
-  )
-  return calls
-}
+const openEdit = openSkillEdit
 
-async function openEdit(id = "skill-1") {
-  const row = await screen.findByRole("row", { name: new RegExp(`${id}\\b`) })
-  await userEvent.click(within(row).getByRole("button", { name: "編輯" }))
-  return screen.findByRole("dialog")
-}
+const lastPut = lastSkillPut
 
-const lastPut = (calls: FetchCall[]) =>
-  calls.filter((call) => call.method === "PUT").at(-1)?.body as SkillDto
-
-const saveAndWait = async (dialog: HTMLElement, calls: FetchCall[]) => {
-  await userEvent.click(within(dialog).getByRole("button", { name: "儲存" }))
-  await waitFor(() => expect(lastPut(calls)).toBeDefined())
-}
+const saveAndWait = saveSkill
 
 describe("SkillListPage", () => {
   it("shows job names and filters by job and slot type", async () => {

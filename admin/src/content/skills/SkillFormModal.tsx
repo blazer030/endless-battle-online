@@ -6,6 +6,7 @@ import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
 import { NumberField } from "../shared/fields"
 import { requiredNumber, requiredText } from "../shared/rules"
+import { ConditionList, CostList } from "./SkillConditionCostFields"
 import { skillSlotLabels, skillTimingLabels } from "./skillLabels"
 import {
   blankSkillValues,
@@ -19,17 +20,21 @@ import { skillSlotTypes, skillTimings, type SkillVo } from "./SkillVo"
 
 function LevelFields({ index }: { index: number }) {
   return (
-    <Row gutter={16}>
-      <Col span={8}>
-        <NumberField name={["levels", index, "learningCost"]} label="學習費用" min={0} />
-      </Col>
-      <Col span={8}>
-        <NumberField name={["levels", index, "proficiencyRequired"]} label="所需熟練度" min={0} />
-      </Col>
-      <Col span={8}>
-        <NumberField name={["levels", index, "cooldown"]} label="冷卻" min={0} />
-      </Col>
-    </Row>
+    <>
+      <Row gutter={16}>
+        <Col span={8}>
+          <NumberField name={["levels", index, "learningCost"]} label="學習費用" min={0} />
+        </Col>
+        <Col span={8}>
+          <NumberField name={["levels", index, "proficiencyRequired"]} label="所需熟練度" min={0} />
+        </Col>
+        <Col span={8}>
+          <NumberField name={["levels", index, "cooldown"]} label="冷卻" min={0} />
+        </Col>
+      </Row>
+      <ConditionList levelIndex={index} />
+      <CostList levelIndex={index} />
+    </>
   )
 }
 
