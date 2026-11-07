@@ -1,4 +1,5 @@
 import type { components } from "../../api/schema"
+import { contentElements } from "../shared/elements"
 import {
   parseArray,
   parseBoolean,
@@ -8,7 +9,7 @@ import {
   parseOneOf,
   parseString,
 } from "../shared/parse"
-import { contentElements, MonsterVo } from "./MonsterVo"
+import { MonsterVo } from "./MonsterVo"
 
 export type MonsterDto = components["schemas"]["MonsterRecord"]
 

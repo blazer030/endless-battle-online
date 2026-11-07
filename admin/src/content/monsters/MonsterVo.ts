@@ -1,6 +1,4 @@
-export const contentElements = ["None", "Earth", "Water", "Fire", "Wood", "Wind", "Poison"] as const
-
-export type ContentElement = (typeof contentElements)[number]
+import type { ContentElement } from "../shared/elements"
 
 export type MonsterDropVo = { readonly itemId: string; readonly dropRarity: number }
 

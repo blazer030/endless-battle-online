@@ -1,5 +1,5 @@
 import type { components } from "../../api/schema"
-import { contentElements } from "../monsters/MonsterVo"
+import { contentElements } from "../shared/elements"
 import {
   ContentParseError,
   parseArray,

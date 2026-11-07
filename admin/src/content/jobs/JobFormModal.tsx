@@ -1,9 +1,10 @@
 import { DeleteOutlined } from "@ant-design/icons"
-import { Button, Col, Form, Input, InputNumber, Row, Select, Space, Typography } from "antd"
+import { Button, Col, Form, Input, InputNumber, Row, Select, Space } from "antd"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
 import { NumberField } from "../shared/fields"
 import { requiredNumber, requiredText } from "../shared/rules"
+import { StatRangeGrid } from "../shared/StatFields"
 import {
   contentStatChoices,
   contentStats,
@@ -96,34 +97,17 @@ function StatRequirementList() {
 
 function GrowthTable() {
   return (
-    <Form.Item label="升級成長（最小～最大）">
-      <Row gutter={[16, 8]}>
-        {contentStats.map(({ key, label }, index) => (
-          <Col key={key} span={12}>
-            <Space align="baseline">
-              <Typography.Text style={{ display: "inline-block", width: 40 }}>
-                {label}
-              </Typography.Text>
-              <Form.Item
-                name={["growth", index, "minimum"]}
-                noStyle
-                rules={[requiredNumber(`${label}最小`)]}
-              >
-                <InputNumber aria-label={`${label}最小`} precision={0} min={0} />
-              </Form.Item>
-              ～
-              <Form.Item
-                name={["growth", index, "maximum"]}
-                noStyle
-                rules={[requiredNumber(`${label}最大`)]}
-              >
-                <InputNumber aria-label={`${label}最大`} precision={0} min={0} />
-              </Form.Item>
-            </Space>
-          </Col>
-        ))}
-      </Row>
-    </Form.Item>
+    <StatRangeGrid
+      title="升級成長（最小～最大）"
+      required
+      rows={contentStats.map(({ key, label }, index) => ({
+        key,
+        label,
+        ariaLabel: label,
+        minimumName: ["growth", index, "minimum"],
+        maximumName: ["growth", index, "maximum"],
+      }))}
+    />
   )
 }
 

@@ -1,4 +1,4 @@
-import type { ContentElement } from "../monsters/MonsterVo"
+import type { ContentElement } from "../shared/elements"
 
 export const itemCategories = [
   "Weapon",

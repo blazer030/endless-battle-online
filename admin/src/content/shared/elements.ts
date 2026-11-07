@@ -1,4 +1,6 @@
-import type { ContentElement } from "../monsters/MonsterVo"
+export const contentElements = ["None", "Earth", "Water", "Fire", "Wood", "Wind", "Poison"] as const
+
+export type ContentElement = (typeof contentElements)[number]
 
 export const elementLabels: Record<ContentElement, string> = {
   None: "無",

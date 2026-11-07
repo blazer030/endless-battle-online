@@ -8,7 +8,7 @@ public static class AdminEndpoints
 
     public const string OpenApiDocument = "admin";
 
-    // ApiDescription.RelativePath 不含開頭的斜線，例如 admin/content/{kind}
+    // ApiDescription.RelativePath 不含開頭的斜線，例如 admin/content/monsters
     public static bool IsAdminPath(string? relativePath) =>
         relativePath is not null && (relativePath == "admin" || relativePath.StartsWith("admin/", StringComparison.Ordinal));
 

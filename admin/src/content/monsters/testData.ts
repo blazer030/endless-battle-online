@@ -39,7 +39,7 @@ export const placeRecords = [
   placeDto({ id: 2, name: "灼熱荒漠", subPlaceNames: ["黃沙古道", "枯骨谷"] }),
 ]
 
-// 舊路由的道具紀錄，只讀 id 與名稱
+// 選單只讀道具的 id 與名稱
 export const itemRecords = [
   { id: "item-204", name: "錢包" },
   { id: "item-660", name: "黏液" },

@@ -2,7 +2,7 @@ import { DeleteOutlined } from "@ant-design/icons"
 import { Button, Checkbox, Col, Form, Input, InputNumber, Row, Select, Space } from "antd"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
-import { elementLabels } from "../shared/elementLabels"
+import { contentElements, elementLabels } from "../shared/elements"
 import { NumberField } from "../shared/fields"
 import { requiredText, skillLevelRule } from "../shared/rules"
 import {
@@ -19,7 +19,7 @@ import {
   type MonsterFormValues,
 } from "./monsterFormValues"
 import { monsterRepository } from "./monsterRepository"
-import { contentElements, type MonsterVo } from "./MonsterVo"
+import type { MonsterVo } from "./MonsterVo"
 
 const combatFields: readonly (readonly [keyof MonsterFormValues, string])[] = [
   ["level", "等級"],

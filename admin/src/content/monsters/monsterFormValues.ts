@@ -1,4 +1,5 @@
-import { MonsterVo, type ContentElement } from "./MonsterVo"
+import type { ContentElement } from "../shared/elements"
+import { MonsterVo } from "./MonsterVo"
 
 export type MonsterFormValues = {
   id: string

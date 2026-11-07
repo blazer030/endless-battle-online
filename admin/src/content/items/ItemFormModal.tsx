@@ -1,12 +1,12 @@
-import { Checkbox, Col, Form, Input, InputNumber, Row, Select, Space, Typography } from "antd"
-import { contentElements } from "../monsters/MonsterVo"
+import { Checkbox, Col, Form, Input, InputNumber, Row, Select } from "antd"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
-import { elementLabels } from "../shared/elementLabels"
+import { contentElements, elementLabels } from "../shared/elements"
 import { NumberField } from "../shared/fields"
 import { useSkillOptions } from "../shared/namedOptions"
 import { usePlaceOptions } from "../shared/placeOptions"
 import { requiredNumber, requiredText, skillLevelRule } from "../shared/rules"
+import { StatNumberGrid, StatRangeGrid } from "../shared/StatFields"
 import { usesAmount } from "./ItemConverter"
 import {
   blankItemValues,
@@ -44,56 +44,8 @@ const isEquipment = (category: ItemCategory | undefined) =>
   category === "Hand" ||
   category === "Foot"
 
-// 留白代表 0；數字填進去後 placeholder 就看不到了，所以每格都要有自己的標籤
-function LabelledNumber({
-  name,
-  group,
-  label,
-  min,
-}: {
-  name: (string | number)[]
-  group: string
-  label: string
-  min?: number
-}) {
-  return (
-    <>
-      <Typography.Text type="secondary" style={{ display: "block", fontSize: 12, marginBottom: 2 }}>
-        {label}
-      </Typography.Text>
-      <Form.Item name={name} noStyle>
-        <InputNumber
-          aria-label={`${group} ${label}`}
-          precision={0}
-          min={min}
-          style={{ width: "100%" }}
-        />
-      </Form.Item>
-    </>
-  )
-}
-
-function StatInputs({
-  group,
-  name,
-  keys,
-}: {
-  group: string
-  name: (string | number)[]
-  keys: readonly ItemStatKey[]
-}) {
-  return (
-    <Form.Item label={group}>
-      <Row gutter={[12, 8]}>
-        {keys.map((key) => (
-          <Col key={key} span={6}>
-            <LabelledNumber name={[...name, key]} group={group} label={itemStatLabels[key]} />
-          </Col>
-        ))}
-      </Row>
-    </Form.Item>
-  )
-}
+const statRows = (prefix: (string | number)[], keys: readonly ItemStatKey[]) =>
+  keys.map((key) => ({ key, label: itemStatLabels[key], name: [...prefix, key] }))
 
 function WeaponFields() {
   const form = Form.useFormInstance<ItemFormValues>()
@@ -155,21 +107,8 @@ function WeaponFields() {
 function EquipmentFields({ category }: { category: ItemCategory }) {
   return (
     <>
-      <StatInputs group="加成" name={["bonus"]} keys={equipmentStatKeys} />
-      <Form.Item label="需求">
-        <Row gutter={12}>
-          {itemRequirementKeys.map((key) => (
-            <Col key={key} span={6}>
-              <LabelledNumber
-                name={["requires", key]}
-                group="需求"
-                label={itemStatLabels[key]}
-                min={0}
-              />
-            </Col>
-          ))}
-        </Row>
-      </Form.Item>
+      <StatNumberGrid group="加成" rows={statRows(["bonus"], equipmentStatKeys)} />
+      <StatNumberGrid group="需求" rows={statRows(["requires"], itemRequirementKeys)} min={0} />
       {isEquipment(category) && (
         <Row gutter={16}>
           <Col span={6}>
@@ -213,7 +152,7 @@ function ConsumableFields({ kind }: { kind: ConsumableKind | undefined }) {
         </Row>
       )}
       {kind === "StatPotion" && (
-        <StatInputs group="加成" name={["bonus"]} keys={equipmentStatKeys} />
+        <StatNumberGrid group="加成" rows={statRows(["bonus"], equipmentStatKeys)} />
       )}
       {kind === "Elixir" && (
         <Row gutter={16}>
@@ -275,11 +214,11 @@ function StoneFields() {
       </Row>
       {random ? (
         <>
-          <StatInputs group="最小" name={["stone", "minimum"]} keys={itemStatKeys} />
-          <StatInputs group="最大" name={["stone", "maximum"]} keys={itemStatKeys} />
+          <StatNumberGrid group="最小" rows={statRows(["stone", "minimum"], itemStatKeys)} />
+          <StatNumberGrid group="最大" rows={statRows(["stone", "maximum"], itemStatKeys)} />
         </>
       ) : (
-        <StatInputs group="固定值" name={["stone", "fixed"]} keys={itemStatKeys} />
+        <StatNumberGrid group="固定值" rows={statRows(["stone", "fixed"], itemStatKeys)} />
       )}
     </>
   )
@@ -305,34 +244,17 @@ function RefineStoneFields() {
           </Form.Item>
         </Col>
       </Row>
-      <Form.Item label="精鍊範圍（留白代表不加）">
-        <Row gutter={[16, 8]}>
-          {itemRefineKeys.map((key) => (
-            <Col key={key} span={12}>
-              <Space align="baseline">
-                <Typography.Text style={{ display: "inline-block", width: 40 }}>
-                  {itemStatLabels[key]}
-                </Typography.Text>
-                <Form.Item name={["refine", "ranges", key, "minimum"]} noStyle>
-                  <InputNumber
-                    aria-label={`精鍊 ${itemStatLabels[key]}最小`}
-                    precision={0}
-                    min={0}
-                  />
-                </Form.Item>
-                ～
-                <Form.Item name={["refine", "ranges", key, "maximum"]} noStyle>
-                  <InputNumber
-                    aria-label={`精鍊 ${itemStatLabels[key]}最大`}
-                    precision={0}
-                    min={0}
-                  />
-                </Form.Item>
-              </Space>
-            </Col>
-          ))}
-        </Row>
-      </Form.Item>
+      <StatRangeGrid
+        title="精鍊範圍（留白代表不加）"
+        required={false}
+        rows={itemRefineKeys.map((key) => ({
+          key,
+          label: itemStatLabels[key],
+          ariaLabel: `精鍊 ${itemStatLabels[key]}`,
+          minimumName: ["refine", "ranges", key, "minimum"],
+          maximumName: ["refine", "ranges", key, "maximum"],
+        }))}
+      />
     </>
   )
 }
