@@ -27,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<ContentAdminService>();
         services.AddScoped<ContentRecordService<MonsterRecord>>();
         services.AddScoped<ContentRecordService<JobRecord>>();
+        services.AddScoped<ContentRecordService<AreaRecord>>();
+        services.AddScoped<ContentRecordService<PlaceRecord>>();
         services.AddScoped<ContentRecordService<SkillRecord>>();
         services.AddScoped<IContentRecordCheck<SkillRecord>, SkillJobCheck>();
         services.AddScoped<ContentRecordService<MissionSummaryRecord>>();

@@ -12,6 +12,8 @@ import { JobListPage } from "./content/jobs/JobListPage"
 import { MonsterListPage } from "./content/monsters/MonsterListPage"
 import { contentResources } from "./content/resources"
 import { SkillListPage } from "./content/skills/SkillListPage"
+import { AreaListPage } from "./content/world/AreaListPage"
+import { PlaceListPage } from "./content/world/PlaceListPage"
 import { DraftError } from "./draft/DraftBar"
 import { AdminHeader } from "./layout/AdminHeader"
 import { ReportPage } from "./report/ReportPage"
@@ -24,6 +26,8 @@ const typedPages: Partial<Record<string, ComponentType>> = {
   monsters: MonsterListPage,
   jobs: JobListPage,
   skills: SkillListPage,
+  areas: AreaListPage,
+  places: PlaceListPage,
 }
 
 export function App() {

@@ -15,6 +15,8 @@ public static class AdminContentEndpoints
         MapRecords<MonsterRecord>(content, "monsters");
         MapRecords<JobRecord>(content, "jobs");
         MapRecords<SkillRecord>(content, "skills");
+        MapRecords<AreaRecord>(content, "areas");
+        MapRecords<PlaceRecord>(content, "places");
         content.MapGet("/missions", async Task<Ok<IReadOnlyList<MissionSummaryRecord>>> (
                 ContentRecordService<MissionSummaryRecord> service, CancellationToken cancellationToken) =>
             TypedResults.Ok(await service.ListAsync(cancellationToken)));

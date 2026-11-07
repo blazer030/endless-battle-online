@@ -45,6 +45,8 @@ public static class DependencyInjection
         services.AddSingleton<IContentRecordStore<MonsterRecord>>(new CodecContentRecordStore<MonsterRecord>(draftStore, new MonsterCodec()));
         services.AddSingleton<IContentRecordStore<JobRecord>>(new CodecContentRecordStore<JobRecord>(draftStore, new JobCodec()));
         services.AddSingleton<IContentRecordStore<SkillRecord>>(new CodecContentRecordStore<SkillRecord>(draftStore, new SkillCodec()));
+        services.AddSingleton<IContentRecordStore<AreaRecord>>(new CodecContentRecordStore<AreaRecord>(draftStore, new AreaCodec()));
+        services.AddSingleton<IContentRecordStore<PlaceRecord>>(new CodecContentRecordStore<PlaceRecord>(draftStore, new PlaceCodec()));
         services.AddSingleton<IContentRecordStore<MissionSummaryRecord>>(new CodecContentRecordStore<MissionSummaryRecord>(draftStore, new MissionSummaryCodec()));
 
         services.AddScoped<IAccountRepository, AccountRepository>();

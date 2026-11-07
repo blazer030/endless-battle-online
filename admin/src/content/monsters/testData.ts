@@ -1,3 +1,4 @@
+import { placeDto } from "../world/testData"
 import type { MonsterDto } from "./MonsterConverter"
 
 export const monsterDto = (overrides: Partial<MonsterDto> = {}): MonsterDto => ({
@@ -29,12 +30,16 @@ export const monsterDto = (overrides: Partial<MonsterDto> = {}): MonsterDto => (
   ...overrides,
 })
 
-// 舊路由的地區與道具、技能紀錄，只讀 id 與名稱等選單需要的欄位
 export const placeRecords = [
-  { id: 1, name: "中央平原", subPlaces: ["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"] },
-  { id: 2, name: "灼熱荒漠", subPlaces: ["黃沙古道", "枯骨谷"] },
+  placeDto({
+    id: 1,
+    name: "中央平原",
+    subPlaceNames: ["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"],
+  }),
+  placeDto({ id: 2, name: "灼熱荒漠", subPlaceNames: ["黃沙古道", "枯骨谷"] }),
 ]
 
+// 舊路由的道具紀錄，只讀 id 與名稱
 export const itemRecords = [
   { id: "item-204", name: "錢包" },
   { id: "item-660", name: "黏液" },

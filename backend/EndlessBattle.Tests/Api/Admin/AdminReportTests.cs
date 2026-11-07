@@ -22,7 +22,7 @@ public class AdminReportTests(MySqlDatabaseFixture database)
         await using var factory = new EndlessBattleApiFactory(database);
         var client = directories.CreateClient(factory);
         var cave = await client.GetFromJsonAsync<JsonObject>("/admin/content/places/2", CancellationToken);
-        cave!["recommended"] = new JsonArray(7, 15);
+        cave!["recommendedLevel"] = new JsonObject { ["minimum"] = 7, ["maximum"] = 15 };
         (await client.PutAsJsonAsync("/admin/content/places/2", cave, CancellationToken)).EnsureSuccessStatusCode();
 
         var official = await client.PostAsJsonAsync("/admin/reports", new { source = "official" }, CancellationToken);
