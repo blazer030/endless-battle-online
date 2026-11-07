@@ -11,7 +11,10 @@ import { items } from "./testData"
 
 const savedStatus = { exists: true, valid: true, error: null }
 
-export function renderItemPage(list: unknown = items): FetchCall[] {
+export function renderItemPage(
+  list: unknown = items,
+  routes: Record<string, unknown> = {},
+): FetchCall[] {
   const calls = mockFetch({
     "GET /admin/content/items": list,
     "GET /admin/content/skills": skillRecords,
@@ -23,6 +26,7 @@ export function renderItemPage(list: unknown = items): FetchCall[] {
     "PUT /admin/content/items/item-223": savedStatus,
     "PUT /admin/content/items/item-568": savedStatus,
     "PUT /admin/content/items/item-1863": savedStatus,
+    ...routes,
   })
   render(
     <MemoryRouter initialEntries={["/items"]}>

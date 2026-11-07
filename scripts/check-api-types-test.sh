@@ -5,11 +5,19 @@ set -euo pipefail
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 schema="admin/src/api/schema.ts"
 stray_document="backend/openapi/stray-test-document.json"
+document="backend/openapi/EndlessBattle.Api_admin.json"
 
 restore() {
-    rm -f "$repository_root/$stray_document"
+    rm -f "$repository_root/$stray_document" "$repository_root/$document.bak"
     (cd "$repository_root/admin" && pnpm generate:api) > /dev/null 2>&1
+    # 文件可能在中途被手改：重新產生後放回暫存區
+    if [[ "$document_touched" == true ]]; then
+        rm -f "$repository_root/backend/EndlessBattle.Api/obj/EndlessBattle.Api.OpenApiFiles.cache"
+        (cd "$repository_root/backend" && dotnet build EndlessBattle.Api) > /dev/null 2>&1
+        git -C "$repository_root" add -- "$document"
+    fi
 }
+document_touched=false
 trap restore EXIT
 
 fail() {
@@ -39,5 +47,15 @@ git -C "$repository_root" diff --quiet -- "$schema" || fail "the check did not r
 # 產生了但還沒加入 git 的文件
 echo "{}" > "$repository_root/$stray_document"
 expect_failure_naming "$stray_document"
+rm -f "$repository_root/$stray_document"
+
+# 手改文件又 git add：程式沒變時建置不會重新產生，要靠檢查強制產生才抓得到
+document_touched=true
+sed -i.bak 's/"openapi"/"openapi" /' "$repository_root/$document"
+rm -f "$repository_root/$document.bak"
+git -C "$repository_root" add -- "$document"
+expect_failure_naming "$document"
+git -C "$repository_root" add -- "$document"
+"$repository_root/scripts/check-api-types.sh" > /dev/null 2>&1 || fail "the check still failed after regenerating $document"
 
 echo "check-api-types test passed"

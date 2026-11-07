@@ -357,4 +357,21 @@ describe("MonsterFormModal", () => {
 
     expect(within(dialog).queryByRole("button", { name: "新增技能" })).not.toBeInTheDocument()
   })
+
+  it("shows the path and blocks saving when the item choices have a problem", async () => {
+    const calls = renderMonsters({ "GET /admin/content/items": [{ id: "item-204" }] })
+    const dialog = await openEdit()
+
+    expect(await within(dialog).findByText(/items\[0\]\.name/)).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
+    expect(calls.some((call) => call.method === "PUT")).toBe(false)
+  })
+
+  it("blocks saving when the skill choices have a problem, because the level cannot be checked", async () => {
+    renderMonsters({ "GET /admin/content/skills": [{ id: "skill-1", name: "爆氣" }] })
+    const dialog = await openEdit()
+
+    expect(await within(dialog).findByText(/skills\[0\]\.maxLevel/)).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
+  })
 })

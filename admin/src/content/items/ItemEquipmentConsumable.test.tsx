@@ -165,6 +165,24 @@ describe("ItemFormModal equipment", () => {
   })
 })
 
+describe("ItemFormModal choices", () => {
+  it("shows the path and blocks saving when the skill choices have a problem", async () => {
+    renderItemPage(items, { "GET /admin/content/skills": [{ id: "skill-1" }] })
+    const dialog = await openItemEdit()
+
+    expect(await within(dialog).findByText(/skills\[0\]\.name/)).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
+  })
+
+  it("shows the path and blocks saving when the place choices have a problem", async () => {
+    renderItemPage(items, { "GET /admin/content/places": [{ id: 1 }] })
+    const dialog = await openItemEdit()
+
+    expect(await within(dialog).findByText(/places\[0\]/)).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "儲存" })).toBeDisabled()
+  })
+})
+
 describe("ItemFormModal copying", () => {
   const shield = itemDto({ id: "item-4", name: "木盾", bonus: stats({ defense: 2 }), holes: 1 })
 

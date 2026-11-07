@@ -34,6 +34,11 @@ public static partial class ContentRecordBody
         {
             return new(null, new ContentFieldError(FieldOf(exception), exception.Message));
         }
+        catch (NotSupportedException exception)
+        {
+            // 條件、消耗、效果少了 kind 時，序列化器不知道要建立哪一種，丟的不是 JsonException
+            return new(null, new ContentFieldError(PathInMessage().Match(exception.Message).Groups["path"].Value, "缺少 kind"));
+        }
     }
 
     // exception.Path 像 $.drops[0]；缺必填欄位時欄位名稱只在訊息裡
@@ -50,6 +55,9 @@ public static partial class ContentRecordBody
         var alreadyInPath = path == field || path.EndsWith($".{field}", StringComparison.Ordinal);
         return path.Length == 0 ? field : alreadyInPath ? path : $"{path}.{field}";
     }
+
+    [GeneratedRegex(@"Path: \$\.?(?<path>\S*)")]
+    private static partial Regex PathInMessage();
 
     [GeneratedRegex("(?:required properties including: |JSON property )'(?<field>[^']+)'")]
     private static partial Regex NamedInMessage();

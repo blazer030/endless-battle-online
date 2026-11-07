@@ -334,6 +334,12 @@ function ItemFields({ mode }: { mode: "edit" | "create" }) {
   )
 }
 
+function useItemOptionError() {
+  const skills = useSkillOptions()
+  const places = usePlaceOptions()
+  return skills.error ?? places.error
+}
+
 type Props = {
   state: ContentEditorState<ItemVo>
   items: readonly ItemVo[]
@@ -351,6 +357,7 @@ export function ItemFormModal({ state, items, onClose }: Props) {
       blankValues={blankItemValues}
       toValues={itemToValues}
       toVo={itemFromValues}
+      useOptionError={useItemOptionError}
     >
       {(_form, mode) => <ItemFields mode={mode} />}
     </ContentFormModal>

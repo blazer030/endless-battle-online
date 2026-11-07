@@ -13,6 +13,8 @@ api_type_hashes() {
 }
 api_types_before="$(api_type_hashes)"
 
+# 這個快取比 DLL 新時，build 不會重新產生文件，手改又 git add 的文件就抓不到
+rm -f "$repository_root/backend/EndlessBattle.Api/obj/EndlessBattle.Api.OpenApiFiles.cache"
 (cd "$repository_root/backend" && dotnet build -warnaserror)
 (cd "$repository_root/frontend" && pnpm install --frozen-lockfile && pnpm generate:api)
 (cd "$repository_root/admin" && pnpm install --frozen-lockfile && pnpm generate:api)

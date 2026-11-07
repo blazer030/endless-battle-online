@@ -39,3 +39,5 @@
 - 範例改用目前的內容（`monster-1`、`item-2`、`item-1823`、`skill-1`）；`wandering-puff`、`iron-sword`、`small-supply` 已不存在。
 
 **2026-11-08 驗證後修正**（`/spectra-verify` 的 Warning，不是新任務）：連續複製紀錄會殘留上一筆的能力值；`PUT /admin/content/missions` 回 405；魔石與精鍊石多了綁定欄位；裝備與能力藥水的加成不能編輯 `maxHitPoints`。規格改寫了職業能力需求的形式與 API 型別的比對對象；`design.md` 更新 repository 與共用能力值表。型別檢查抽成 `scripts/check-api-types.sh`，由 `scripts/check-api-types-test.sh` 測試。
+
+**2026-11-08 第二次驗證後修正**：彈窗的選單資料有問題時顯示錯誤並停用「儲存」；條件、消耗、效果少了 `kind` 回 400 而不是 500；`check-api-types.sh` 先刪文件產生的快取，手改又 `git add` 的文件才抓得到。

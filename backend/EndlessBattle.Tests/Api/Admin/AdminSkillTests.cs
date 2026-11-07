@@ -78,6 +78,26 @@ public class AdminSkillTests(MySqlDatabaseFixture database)
         Assert.False(Directory.Exists(directories.Draft));
     }
 
+    [Theory]
+    [InlineData("effects")]
+    [InlineData("conditions")]
+    [InlineData("costs")]
+    public async Task Skills_RejectPartWithoutKind(string part)
+    {
+        using var directories = new AdminContentDirectories();
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = directories.CreateClient(factory);
+        var skill = await client.GetFromJsonAsync<JsonObject>("/admin/content/skills/burst", CancellationToken);
+        skill!["levels"]![0]![part] = new JsonArray(new JsonObject { ["percent"] = 10 });
+
+        var response = await client.PutAsJsonAsync("/admin/content/skills/burst", skill, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal($"levels[0].{part}[0]", error.GetProperty("field").GetString());
+        Assert.False(Directory.Exists(directories.Draft));
+    }
+
     [Fact]
     public async Task Skills_RejectMissingJob()
     {

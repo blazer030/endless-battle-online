@@ -272,6 +272,14 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
   )
 }
 
+function useMonsterOptionError() {
+  const items = useItemOptions()
+  const skills = useSkillOptions()
+  const missions = useMissionOptions()
+  const places = usePlaceOptions()
+  return items.error ?? skills.error ?? missions.error ?? places.error
+}
+
 type Props = {
   state: ContentEditorState<MonsterVo>
   monsters: readonly MonsterVo[]
@@ -289,6 +297,7 @@ export function MonsterFormModal({ state, monsters, onClose }: Props) {
       blankValues={blankMonsterValues}
       toValues={monsterToValues}
       toVo={monsterFromValues}
+      useOptionError={useMonsterOptionError}
     >
       {(_form, mode) => <MonsterFields mode={mode} />}
     </ContentFormModal>

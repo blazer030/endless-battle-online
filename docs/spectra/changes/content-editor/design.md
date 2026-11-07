@@ -39,7 +39,7 @@
 backend/content/*.json（縮寫欄位，儲存格式）
       ↕  Infrastructure：每種內容一個 codec（檔案 JSON ↔ 紀錄）
 Application 的內容紀錄（完整欄位名稱）＝ admin API 的請求與回應本體
-      ↓  建置時產生 backend/openapi/admin.json → admin/src/api/schema.ts（DTO 型別）
+      ↓  建置時產生 backend/openapi/EndlessBattle.Api_admin.json → admin/src/api/schema.ts（DTO 型別）
 admin：XxxConverter.toVo(dto) / toDto(vo)
       ↕
 admin：XxxVo class → 畫面
@@ -140,6 +140,7 @@ OpenAPI 要描述每種內容的本體，所以路由改成每種內容各自註
 - Converter：`toVo(dto)` 檢查每個必填欄位存在且型別正確，缺少時丟出 `ContentParseError`，訊息含路徑（例如 `monsters[3].level`）；不認識的欄位直接忽略。`toDto(vo)` 產生完整的 DTO。共用的檢查函式放 `admin/src/content/shared/parse.ts`。
 - 資料存取：每種內容一個 repository（`list`、`update`、`create`，回傳 VO；列表已經有每筆完整的資料，彈窗不用再讀一次，所以沒有 `get`），用 `@tanstack/react-query`。Refine 只保留版面、側欄與路由，不再用它的 dataProvider 處理內容（dataProvider 沒有型別，會繞過 Converter）。
 - 列表遇到 `ContentParseError` 時顯示錯誤訊息，不顯示部分資料。
+- 彈窗的選單（道具、技能、任務、地區）讀取失敗或回應有問題時，彈窗顯示錯誤並停用「儲存」：空的選單看起來像沒有資料，技能等級上限的檢查也會少了依據。
 
 ### 彈窗編輯與新增
 

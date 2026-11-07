@@ -19,7 +19,11 @@ type Props<TVo extends ContentVo, TValues extends object> = {
   toValues: (vo: TVo) => TValues
   toVo: (values: TValues) => TVo
   children: (form: FormInstance<TValues>, mode: "edit" | "create") => ReactNode
+  // 表單選單的讀取錯誤；選單有問題時不能存檔，例如等級上限檢查會少了依據
+  useOptionError?: () => Error | null
 }
+
+const noOptionError = () => null
 
 // 編輯與新增共用的彈窗：成功才關閉並更新列表與草稿狀態，失敗時留著並顯示錯誤
 export function ContentFormModal<TVo extends ContentVo, TValues extends object>(
@@ -38,8 +42,10 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
   toValues,
   toVo,
   children,
+  useOptionError = noOptionError,
 }: Props<TVo, TValues> & { state: NonNullable<ContentEditorState<TVo>> }) {
   const [form] = Form.useForm<TValues>()
+  const optionError = useOptionError()
   const queryClient = useQueryClient()
   const save = useMutation({
     mutationFn: (vo: TVo) =>
@@ -74,9 +80,13 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
       okText="儲存"
       cancelText="取消"
       confirmLoading={save.isPending}
+      okButtonProps={{ disabled: optionError !== null }}
       onOk={() => form.submit()}
       onCancel={onClose}
     >
+      {optionError && (
+        <Alert type="error" showIcon style={{ marginBottom: 16 }} message={optionError.message} />
+      )}
       {save.error && (
         <Alert
           type="error"
