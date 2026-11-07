@@ -24,6 +24,18 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         return (client, characterId);
     }
 
+    [Fact]
+    public async Task Recipes_Returns404_WhenNoCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/forge/recipes", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
     private async Task<long> GiveAsync(long characterId, string itemId, int quantity = 1, int holes = 0)
     {
         await using var context = database.CreateDbContext();

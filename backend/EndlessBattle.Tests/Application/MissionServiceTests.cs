@@ -322,6 +322,29 @@ public class MissionServiceTests
         Assert.Empty(log);
     }
 
+    // 回報的錯誤順序：同時缺寵物、技能、背包空間時先報寵物，補上一項才輪到下一項
+    [Fact]
+    public async Task Complete_ReportsUnmetConditionsInOrder()
+    {
+        var character = await AddCharacterAsync();
+        for (var slot = 0; slot < InventoryRules.SlotsPerCategory; slot++)
+        {
+            await GiveAsync(character, "test-stone", InventoryRules.StackLimit);
+        }
+
+        await SeedAsync(character, Active("test-order-gate"));
+        Task<IReadOnlyList<string>> ReasonsAsync() => CompleteReasonsAsync("test-order-gate");
+
+        Assert.Equal(["petMissing"], await ReasonsAsync());
+        await GivePetAsync(character, "test-wolf", carried: true);
+        Assert.Equal(["skillTooLow"], await ReasonsAsync());
+        await skillBook.UpsertAsync(character.Id, new LearnedSkill("burst", 2), CancellationToken);
+        Assert.Equal(["bagFull"], await ReasonsAsync());
+    }
+
+    private async Task<IReadOnlyList<string>> CompleteReasonsAsync(string missionId) =>
+        (await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, missionId, CancellationToken))).Reasons;
+
     // 獎勵是魔石：魔石分類 15 格都滿疊、道具分類還空著 → 400 bagFull，什麼都不寫
     [Fact]
     public async Task Complete_RejectsWhenRewardCategoryFull()

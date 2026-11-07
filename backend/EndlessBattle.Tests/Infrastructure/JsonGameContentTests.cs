@@ -1038,7 +1038,7 @@ public class JsonGameContentTests
         Assert.Equal(
             [
                 "test-hunt", "test-sprite-bounty", "test-delivery", "test-chief-hunt", "test-skill-reward", "test-daily", "test-daily-pet",
-                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-skill-gate", "test-npc-visit", "test-stone-reward",
+                "test-pet-reward", "test-double-hunt", "test-pet-delivery", "test-skill-gate", "test-npc-visit", "test-stone-reward", "test-order-gate",
             ],
             content.AllMissions.Select(mission => mission.Id));
         Assert.Equivalent(
