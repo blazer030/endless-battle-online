@@ -105,6 +105,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
 - `./scripts/smoke-compose.sh` — 用獨立專案名與埠起完整 stack，經 nginx 打 `/api/health`、`/`、`/api/content`，結束一律拆掉；不在 `check.sh` 裡，改 Dockerfile、nginx 或 compose 時手動跑。
+- `./scripts/deploy-nas.sh` — 把目前的 commit 部署到 NAS（`blazer@192.168.2.216:/volume1/docker/ebo`，`http://192.168.2.216:8080`）；第一次會在 NAS 上產生 `.env`，存檔不受重新部署影響；要在自己的終端機執行，中途會問 NAS 的 sudo 密碼。只上傳、改用 Container Manager 重新建置專案 `ebo`（路徑 `/docker/ebo/app`）時，執行時加 `< /dev/null`，上傳完會停下並以 exit 1 結束。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
 - `./scripts/clean-test-containers.sh` — 刪除測試殘留的 MySQL 容器（只刪 label `ebo.tests=true` 的）。
 - `./scripts/import-art.sh <來源圖> <id>` — 把生成的圖裁切、補成規格畫布並轉成 `frontend/src/assets/art/<id>.webp`（需要 ImageMagick 7 的 `magick`；`id` 是 `player` 或怪物 id），流程見 `docs/art/README.md`。
