@@ -156,6 +156,157 @@
         }
       }
     },
+    "/admin/content/items": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ItemRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Content"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/content/items/{id}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/admin/content/jobs": {
       "get": {
         "tags": [
@@ -1268,6 +1419,23 @@
           "Max"
         ]
       },
+      "ConsumableKind": {
+        "enum": [
+          "None",
+          "Supply",
+          "StatPotion",
+          "BagExpansion",
+          "DepotExpansion",
+          "Capture",
+          "StoneBox",
+          "RefineBox",
+          "PetEgg",
+          "ProficiencyBook",
+          "ExperienceCapsule",
+          "Elixir",
+          null
+        ]
+      },
       "ContentElement": {
         "enum": [
           "None",
@@ -1277,6 +1445,16 @@
           "Wood",
           "Wind",
           "Poison"
+        ]
+      },
+      "ContentElixirKind": {
+        "enum": [
+          "Exp",
+          "JobExp",
+          "Attack",
+          "Magic",
+          "Defense",
+          "MagicDefense"
         ]
       },
       "ContentFieldError": {
@@ -1347,6 +1525,512 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ItemCategory": {
+        "enum": [
+          "Weapon",
+          "Head",
+          "Body",
+          "Hand",
+          "Foot",
+          "Accessory",
+          "Consumable",
+          "Stone",
+          "RefineStone",
+          "Material",
+          "Medal",
+          "Key"
+        ]
+      },
+      "ItemElixirRecord": {
+        "required": [
+          "kind",
+          "multiplier",
+          "seconds"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ContentElixirKind"
+          },
+          "multiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ItemKeyRecord": {
+        "required": [
+          "placeId",
+          "seconds"
+        ],
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ItemRecord": {
+        "required": [
+          "id",
+          "name",
+          "category",
+          "price",
+          "shopLevel",
+          "shopSellable",
+          "bound"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
+          },
+          "consumableKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ConsumableKind"
+              }
+            ]
+          },
+          "bonus": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemStatsRecord"
+              }
+            ]
+          },
+          "supplyHitPoints": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "supplySkillPoints": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "requires": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemRequirementRecord"
+              }
+            ]
+          },
+          "element": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentElement"
+              }
+            ]
+          },
+          "holes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "refineMax": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "shopLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shopSellable": {
+            "type": "boolean"
+          },
+          "bound": {
+            "type": "boolean"
+          },
+          "refine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemRefineRecord"
+              }
+            ]
+          },
+          "stone": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemStoneRecord"
+              }
+            ]
+          },
+          "key": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemKeyRecord"
+              }
+            ]
+          },
+          "elixir": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemElixirRecord"
+              }
+            ]
+          },
+          "weaponSkill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemWeaponSkillRecord"
+              }
+            ]
+          }
+        }
+      },
+      "ItemRefineRecord": {
+        "required": [
+          "level",
+          "kind"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "kind": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attack": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "magicAttack": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "defense": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "magicDefense": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "strength": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "intelligence": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "life": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "vitality": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "agility": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "charisma": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          },
+          "faith": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ContentRange"
+              }
+            ]
+          }
+        }
+      },
+      "ItemRequirementRecord": {
+        "required": [
+          "strength",
+          "intelligence",
+          "agility",
+          "charisma"
+        ],
+        "type": "object",
+        "properties": {
+          "strength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "intelligence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agility": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "charisma": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ItemStatsRecord": {
+        "required": [
+          "strength",
+          "intelligence",
+          "life",
+          "vitality",
+          "agility",
+          "charisma",
+          "faith",
+          "attack",
+          "magicAttack",
+          "defense",
+          "magicDefense",
+          "maxHitPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "strength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "intelligence": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vitality": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agility": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "charisma": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "faith": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attack": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "magicAttack": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defense": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "magicDefense": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxHitPoints": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ItemStoneRecord": {
+        "required": [
+          "random"
+        ],
+        "type": "object",
+        "properties": {
+          "random": {
+            "type": "boolean"
+          },
+          "fixed": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemStatsRecord"
+              }
+            ]
+          },
+          "minimum": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemStatsRecord"
+              }
+            ]
+          },
+          "maximum": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ItemStatsRecord"
+              }
+            ]
+          },
+          "boxClass": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ItemWeaponSkillRecord": {
+        "required": [
+          "skillId",
+          "level",
+          "activationRate"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activationRate": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

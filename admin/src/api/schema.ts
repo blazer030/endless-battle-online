@@ -165,6 +165,167 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/content/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemRecord"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ItemRecord"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/content/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemRecord"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ItemRecord"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/content/jobs": {
         parameters: {
             query?: never;
@@ -1248,7 +1409,11 @@ export interface components {
         /** @enum {unknown} */
         BalanceSkillLevel: "First" | "Max";
         /** @enum {unknown} */
+        ConsumableKind: "None" | "Supply" | "StatPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule" | "Elixir" | null;
+        /** @enum {unknown} */
         ContentElement: "None" | "Earth" | "Water" | "Fire" | "Wood" | "Wind" | "Poison";
+        /** @enum {unknown} */
+        ContentElixirKind: "Exp" | "JobExp" | "Attack" | "Magic" | "Defense" | "MagicDefense";
         ContentFieldError: {
             field: string;
             message: string;
@@ -1267,6 +1432,119 @@ export interface components {
             exists: boolean;
             valid: boolean;
             error: null | string;
+        };
+        /** @enum {unknown} */
+        ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal" | "Key";
+        ItemElixirRecord: {
+            kind: components["schemas"]["ContentElixirKind"];
+            /** Format: double */
+            multiplier: number;
+            /** Format: int32 */
+            seconds: number;
+        };
+        ItemKeyRecord: {
+            /** Format: int32 */
+            placeId: number;
+            /** Format: int32 */
+            seconds: number;
+        };
+        ItemRecord: {
+            id: string;
+            name: string;
+            category: components["schemas"]["ItemCategory"];
+            consumableKind?: null | components["schemas"]["ConsumableKind"];
+            bonus?: null | components["schemas"]["ItemStatsRecord"];
+            /** Format: int32 */
+            supplyHitPoints?: null | number;
+            /** Format: int32 */
+            supplySkillPoints?: null | number;
+            /** Format: int32 */
+            amount?: null | number;
+            requires?: null | components["schemas"]["ItemRequirementRecord"];
+            element?: null | components["schemas"]["ContentElement"];
+            /** Format: int32 */
+            holes?: null | number;
+            /** Format: int32 */
+            refineMax?: null | number;
+            /** Format: int64 */
+            price: number;
+            /** Format: int32 */
+            shopLevel: number;
+            shopSellable: boolean;
+            bound: boolean;
+            refine?: null | components["schemas"]["ItemRefineRecord"];
+            stone?: null | components["schemas"]["ItemStoneRecord"];
+            key?: null | components["schemas"]["ItemKeyRecord"];
+            elixir?: null | components["schemas"]["ItemElixirRecord"];
+            weaponSkill?: null | components["schemas"]["ItemWeaponSkillRecord"];
+        };
+        ItemRefineRecord: {
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            kind: number;
+            attack?: null | components["schemas"]["ContentRange"];
+            magicAttack?: null | components["schemas"]["ContentRange"];
+            defense?: null | components["schemas"]["ContentRange"];
+            magicDefense?: null | components["schemas"]["ContentRange"];
+            strength?: null | components["schemas"]["ContentRange"];
+            intelligence?: null | components["schemas"]["ContentRange"];
+            life?: null | components["schemas"]["ContentRange"];
+            vitality?: null | components["schemas"]["ContentRange"];
+            agility?: null | components["schemas"]["ContentRange"];
+            charisma?: null | components["schemas"]["ContentRange"];
+            faith?: null | components["schemas"]["ContentRange"];
+        };
+        ItemRequirementRecord: {
+            /** Format: int32 */
+            strength: number;
+            /** Format: int32 */
+            intelligence: number;
+            /** Format: int32 */
+            agility: number;
+            /** Format: int32 */
+            charisma: number;
+        };
+        ItemStatsRecord: {
+            /** Format: int32 */
+            strength: number;
+            /** Format: int32 */
+            intelligence: number;
+            /** Format: int32 */
+            life: number;
+            /** Format: int32 */
+            vitality: number;
+            /** Format: int32 */
+            agility: number;
+            /** Format: int32 */
+            charisma: number;
+            /** Format: int32 */
+            faith: number;
+            /** Format: int32 */
+            attack: number;
+            /** Format: int32 */
+            magicAttack: number;
+            /** Format: int32 */
+            defense: number;
+            /** Format: int32 */
+            magicDefense: number;
+            /** Format: int32 */
+            maxHitPoints: number;
+        };
+        ItemStoneRecord: {
+            random: boolean;
+            fixed?: null | components["schemas"]["ItemStatsRecord"];
+            minimum?: null | components["schemas"]["ItemStatsRecord"];
+            maximum?: null | components["schemas"]["ItemStatsRecord"];
+            /** Format: int32 */
+            boxClass?: null | number;
+        };
+        ItemWeaponSkillRecord: {
+            skillId: string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            activationRate: number;
         };
         JobGrowthRecord: {
             strength: components["schemas"]["ContentRange"];
