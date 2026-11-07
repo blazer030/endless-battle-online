@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
-import { Select, Table, Tag } from "antd"
+import { EditOutlined } from "@ant-design/icons"
+import { Button, Select, Table, Tag } from "antd"
 import { useState } from "react"
+import type { ContentEditorState } from "../shared/ContentFormModal"
 import { ContentListLayout, contentPageSize } from "../shared/ContentListLayout"
 import {
   globalPlaceId,
@@ -9,6 +11,7 @@ import {
   usePlaceOptions,
 } from "../shared/placeOptions"
 import { matchesSearch } from "../shared/search"
+import { MonsterFormModal } from "./MonsterFormModal"
 import { monsterRepository } from "./monsterRepository"
 import type { MonsterVo } from "./MonsterVo"
 
@@ -21,6 +24,7 @@ export function MonsterListPage() {
   const places = usePlaceOptions()
   const [search, setSearch] = useState("")
   const [placeFilter, setPlaceFilter] = useState<number>()
+  const [editor, setEditor] = useState<ContentEditorState<MonsterVo>>(null)
 
   const placeList = places.data ?? []
   const rows = (monsters.data ?? []).filter(
@@ -35,6 +39,11 @@ export function MonsterListPage() {
       search={search}
       onSearch={setSearch}
       error={monsters.error ?? places.error}
+      headerButtons={
+        <Button type="primary" onClick={() => setEditor({ mode: "create" })}>
+          新增
+        </Button>
+      }
       filters={
         <Select
           allowClear
@@ -77,7 +86,25 @@ export function MonsterListPage() {
             title: "地區",
             render: (_, monster) => placeNameOf(placeList, monster.placeId),
           },
+          {
+            key: "actions",
+            title: "",
+            width: 56,
+            render: (_, monster) => (
+              <Button
+                size="small"
+                aria-label="編輯"
+                icon={<EditOutlined />}
+                onClick={() => setEditor({ mode: "edit", record: monster })}
+              />
+            ),
+          },
         ]}
+      />
+      <MonsterFormModal
+        state={editor}
+        monsters={monsters.data ?? []}
+        onClose={() => setEditor(null)}
       />
     </ContentListLayout>
   )

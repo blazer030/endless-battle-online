@@ -34,3 +34,20 @@ export const placeRecords = [
   { id: 1, name: "中央平原", subPlaces: ["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"] },
   { id: 2, name: "灼熱荒漠", subPlaces: ["黃沙古道", "枯骨谷"] },
 ]
+
+export const itemRecords = [
+  { id: "item-204", name: "錢包" },
+  { id: "item-660", name: "黏液" },
+  { id: "item-1", name: "布衣" },
+  { id: "item-2", name: "布衣" },
+]
+
+export const skillRecords = [
+  { id: "skill-1", name: "爆氣", maxLevel: 5 },
+  { id: "skill-66", name: "水彈", maxLevel: 3 },
+]
+
+export const missionRecords = [
+  { id: "mission-2", title: "打敗米列", daily: false },
+  { id: "mission-222", title: "[每日]治安維持任務", daily: true },
+]
