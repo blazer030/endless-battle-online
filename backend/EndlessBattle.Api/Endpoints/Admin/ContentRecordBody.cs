@@ -25,7 +25,13 @@ public static partial class ContentRecordBody
     {
         try
         {
-            var record = await JsonSerializer.DeserializeAsync<TRecord>(request.Body, Options, cancellationToken);
+            using var document = await JsonDocument.ParseAsync(request.Body, cancellationToken: cancellationToken);
+            if (FindNullInList(document.RootElement, "") is { } nullEntry)
+            {
+                return new(null, new ContentFieldError(nullEntry, "列表裡不能有 null"));
+            }
+
+            var record = document.Deserialize<TRecord>(Options);
             return record is null
                 ? new(null, new ContentFieldError("", "本體不可為 null"))
                 : new(record, null);
@@ -38,6 +44,45 @@ public static partial class ContentRecordBody
         {
             // 條件、消耗、效果少了 kind 時，序列化器不知道要建立哪一種，丟的不是 JsonException
             return new(null, new ContentFieldError(PathInMessage().Match(exception.Message).Groups["path"].Value, "缺少 kind"));
+        }
+    }
+
+    // RespectNullableAnnotations 不檢查列表的元素，而紀錄的列表都不允許 null
+    private static string? FindNullInList(JsonElement element, string path)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    var found = FindNullInList(property.Value, path.Length == 0 ? property.Name : $"{path}.{property.Name}");
+                    if (found is not null)
+                    {
+                        return found;
+                    }
+                }
+
+                return null;
+            case JsonValueKind.Array:
+                var index = 0;
+                foreach (var item in element.EnumerateArray())
+                {
+                    var itemPath = $"{path}[{index++}]";
+                    if (item.ValueKind == JsonValueKind.Null)
+                    {
+                        return itemPath;
+                    }
+
+                    var found = FindNullInList(item, itemPath);
+                    if (found is not null)
+                    {
+                        return found;
+                    }
+                }
+
+                return null;
+            default:
+                return null;
         }
     }
 

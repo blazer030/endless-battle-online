@@ -71,6 +71,23 @@ public class AdminWorldTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Places_RejectNullSubPlaceName()
+    {
+        using var directories = new AdminContentDirectories();
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = directories.CreateClient(factory);
+        var place = await client.GetFromJsonAsync<JsonObject>("/admin/content/places/1", CancellationToken);
+        place!["subPlaceNames"] = new JsonArray("甲地", null, "丙地", "丁地");
+
+        var response = await client.PutAsJsonAsync("/admin/content/places/1", place, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("subPlaceNames[1]", error.GetProperty("field").GetString());
+        Assert.False(Directory.Exists(directories.Draft));
+    }
+
+    [Fact]
     public async Task Areas_RejectStringPlaceId()
     {
         using var directories = new AdminContentDirectories();

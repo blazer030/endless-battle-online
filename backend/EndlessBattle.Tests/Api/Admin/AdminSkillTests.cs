@@ -99,6 +99,23 @@ public class AdminSkillTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
+    public async Task Skills_RejectNullNestedInALevel()
+    {
+        using var directories = new AdminContentDirectories();
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = directories.CreateClient(factory);
+        var skill = await client.GetFromJsonAsync<JsonObject>("/admin/content/skills/burst", CancellationToken);
+        skill!["levels"]![0]!["effects"] = new JsonArray((JsonNode?)null);
+
+        var response = await client.PutAsJsonAsync("/admin/content/skills/burst", skill, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("levels[0].effects[0]", error.GetProperty("field").GetString());
+        Assert.False(Directory.Exists(directories.Draft));
+    }
+
+    [Fact]
     public async Task Skills_RejectMissingJob()
     {
         using var directories = new AdminContentDirectories();

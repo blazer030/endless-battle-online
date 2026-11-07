@@ -109,6 +109,25 @@ public class AdminMonsterTests(MySqlDatabaseFixture database)
         Assert.Equal("drops[0].dropRarity", error.GetProperty("field").GetString());
     }
 
+    [Theory]
+    [InlineData("skills")]
+    [InlineData("drops")]
+    public async Task Monsters_RejectNullListEntry(string list)
+    {
+        using var directories = new AdminContentDirectories();
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = directories.CreateClient(factory);
+        var monster = await GetMonsterAsync(client, "test-sprite");
+        monster[list] = new JsonArray((JsonNode?)null);
+
+        var response = await client.PutAsJsonAsync("/admin/content/monsters/test-sprite", monster, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var error = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal($"{list}[0]", error.GetProperty("field").GetString());
+        Assert.False(Directory.Exists(directories.Draft));
+    }
+
     [Fact]
     public async Task Monsters_RejectMissingSkill()
     {
