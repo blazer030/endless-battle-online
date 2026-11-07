@@ -62,3 +62,7 @@ export function parseOneOf<T extends string>(
   }
   return value as T
 }
+
+export function parseOptionalNumber(value: unknown, path: string): number | undefined {
+  return value === undefined || value === null ? undefined : parseNumber(value, path)
+}

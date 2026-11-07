@@ -11,6 +11,7 @@ import { ContentCreate, ContentEdit, ContentList } from "./content/ContentPages"
 import { JobListPage } from "./content/jobs/JobListPage"
 import { MonsterListPage } from "./content/monsters/MonsterListPage"
 import { contentResources } from "./content/resources"
+import { SkillListPage } from "./content/skills/SkillListPage"
 import { DraftError } from "./draft/DraftBar"
 import { AdminHeader } from "./layout/AdminHeader"
 import { ReportPage } from "./report/ReportPage"
@@ -22,6 +23,7 @@ export const AppTitle = "EBO 內容後台"
 const typedPages: Partial<Record<string, ComponentType>> = {
   monsters: MonsterListPage,
   jobs: JobListPage,
+  skills: SkillListPage,
 }
 
 export function App() {
