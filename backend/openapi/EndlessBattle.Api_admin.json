@@ -156,6 +156,28 @@
         }
       }
     },
+    "/admin/content/missions": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MissionSummaryRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/content/{kind}": {
       "get": {
         "tags": [
@@ -669,6 +691,25 @@
       },
       "JsonObject": {
         "type": "object"
+      },
+      "MissionSummaryRecord": {
+        "required": [
+          "id",
+          "title",
+          "daily"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "daily": {
+            "type": "boolean"
+          }
+        }
       },
       "MonsterDropRecord": {
         "required": [

@@ -13,6 +13,9 @@ public static class AdminContentEndpoints
 
         // 字面路徑優先於下面的 /{kind}；還沒遷移的種類繼續走舊路由
         MapRecords<MonsterRecord>(content, "monsters");
+        content.MapGet("/missions", async Task<Ok<IReadOnlyList<MissionSummaryRecord>>> (
+                ContentRecordService<MissionSummaryRecord> service, CancellationToken cancellationToken) =>
+            TypedResults.Ok(await service.ListAsync(cancellationToken)));
 
         content.MapGet("/{kind}", async Task<Results<Ok<IReadOnlyList<JsonObject>>, NotFound>> (
                 string kind, ContentAdminService service, CancellationToken cancellationToken) =>

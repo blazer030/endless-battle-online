@@ -165,6 +165,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/content/missions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MissionSummaryRecord"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/content/{kind}": {
         parameters: {
             query?: never;
@@ -575,6 +610,11 @@ export interface components {
             error: null | string;
         };
         JsonObject: Record<string, never>;
+        MissionSummaryRecord: {
+            id: string;
+            title: string;
+            daily: boolean;
+        };
         MonsterDropRecord: {
             itemId: string;
             /** Format: int32 */

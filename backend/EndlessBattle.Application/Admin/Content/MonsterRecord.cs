@@ -76,3 +76,16 @@ public sealed record MonsterSkillRecord
 
     public required int ActivationRate { get; init; }
 }
+
+// 唯讀：只給怪物的「限定任務」選單用，任務本身不開放編輯
+public sealed record MissionSummaryRecord : IContentRecord
+{
+    public required string Id { get; init; }
+
+    public required string Title { get; init; }
+
+    public required bool Daily { get; init; }
+
+    [JsonIgnore]
+    public string RecordId => Id;
+}
