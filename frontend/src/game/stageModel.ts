@@ -18,8 +18,14 @@ export type StageEffect =
   | { type: "beam" }
   | { type: "damageNumber"; side: StageSide; value: number; critical: boolean }
   | { type: "miss"; side: StageSide }
-  // over 省略時名牌落在舞台中央
-  | { type: "plate"; text: string; tone: "gold" | "muted" | "cyan"; over?: StageSide }
+  // over 省略時名牌落在舞台中央；指定時落在該方頭頂，standing 時落在怪物站的高度
+  | {
+      type: "plate"
+      text: string
+      tone: "gold" | "muted" | "cyan"
+      over?: StageSide
+      standing?: boolean
+    }
   | { type: "hitShake"; side: StageSide }
   | { type: "impactBurst" }
   | { type: "standOff" }
@@ -164,7 +170,10 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
         ? [{ type: "plate", text: "任務達成", tone: "gold" }]
         : []
     case "npc":
-      return [{ type: "clearMonster" }, { type: "plate", text: event.name, tone: "cyan" }]
+      return [
+        { type: "clearMonster" },
+        { type: "plate", text: event.name, tone: "cyan", over: "monster", standing: true },
+      ]
     case "petGuard":
       return petGuardEffects(event)
     case "petAttack":

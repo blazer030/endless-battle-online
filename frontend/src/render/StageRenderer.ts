@@ -204,7 +204,7 @@ export class StageRenderer {
                       Gutter + SidePlateMaxWidth / 2,
                       stageWidth - Gutter - SidePlateMaxWidth / 2,
                     ),
-                    y: SidePlateY,
+                    y: effect.standing === true ? MonsterPlateCenterY : SidePlateY,
                     maxWidth: SidePlateMaxWidth,
                   }
             playPlate(this.effects, anchor.x, anchor.y, effect.text, effect.tone, anchor.maxWidth)

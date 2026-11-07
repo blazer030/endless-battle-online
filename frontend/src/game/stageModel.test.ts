@@ -433,7 +433,8 @@ describe("stageModel", () => {
     }
     expect(stageEffectsFor(npc)).toEqual([
       { type: "clearMonster" },
-      { type: "plate", text: "倫魯", tone: "cyan" },
+      // 拜訪補滿目標時「任務達成」落在舞台中央，名字放在怪物站的位置才不會疊在一起
+      { type: "plate", text: "倫魯", tone: "cyan", over: "monster", standing: true },
     ])
     // 上一隻怪物不留在舞台上，NPC 也沒有血條
     expect(applyToStage(midFight, npc)).toEqual({
