@@ -1,9 +1,9 @@
+import { effectFromRow, effectToRow, type EffectRow } from "./skillEffectRows"
 import {
   SkillVo,
   type SkillBasis,
   type SkillConditionVo,
   type SkillCostVo,
-  type SkillEffectVo,
   type SkillLevelVo,
   type SkillSlotType,
   type SkillTiming,
@@ -31,7 +31,7 @@ export type LevelRow = {
   cooldown: number
   conditions: ConditionRow[]
   costs: CostRow[]
-  effects: SkillEffectVo[]
+  effects: EffectRow[]
 }
 
 export type SkillFormValues = {
@@ -132,7 +132,7 @@ const levelToRow = (level: SkillLevelVo): LevelRow => ({
   cooldown: level.cooldown,
   conditions: level.conditions.map(conditionToRow),
   costs: level.costs.map(costToRow),
-  effects: structuredClone([...level.effects]),
+  effects: level.effects.map(effectToRow),
 })
 
 const levelFromRow = (row: LevelRow, index: number): SkillLevelVo => ({
@@ -142,7 +142,7 @@ const levelFromRow = (row: LevelRow, index: number): SkillLevelVo => ({
   cooldown: row.cooldown,
   conditions: row.conditions.map(conditionFromRow),
   costs: row.costs.map(costFromRow),
-  effects: row.effects,
+  effects: row.effects.map(effectFromRow),
 })
 
 export const skillToValues = (skill: SkillVo): SkillFormValues => ({

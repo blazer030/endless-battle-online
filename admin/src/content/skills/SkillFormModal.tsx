@@ -7,6 +7,7 @@ import { ContentFormModal, type ContentEditorState } from "../shared/ContentForm
 import { NumberField } from "../shared/fields"
 import { requiredNumber, requiredText } from "../shared/rules"
 import { ConditionList, CostList } from "./SkillConditionCostFields"
+import { EffectList } from "./SkillEffectFields"
 import { skillSlotLabels, skillTimingLabels } from "./skillLabels"
 import {
   blankSkillValues,
@@ -34,6 +35,7 @@ function LevelFields({ index }: { index: number }) {
       </Row>
       <ConditionList levelIndex={index} />
       <CostList levelIndex={index} />
+      <EffectList levelIndex={index} />
     </>
   )
 }
