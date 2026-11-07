@@ -160,6 +160,8 @@ export class StageRenderer {
     this.state = state
     drawMeter(this.playerBar, state.playerHp, state.playerHpMax)
     drawMeter(this.monsterBar, state.monsterHp, state.monsterHpMax)
+    // NPC 沒有血條
+    this.monsterBar.root.visible = state.monsterHpMax > 0
   }
 
   play(effects: StageEffect[]): void {
@@ -251,7 +253,6 @@ export class StageRenderer {
         case "clearMonster":
           // 讓還在等字型的 showEncounter 不會再把名稱寫回去
           this.monsterToken++
-          this.monsterBar.label.text = ""
           gsap.to(this.monster.slot, { alpha: 0, duration: MonsterFadeSeconds, ease: "power1.in" })
           break
         case "fade":
