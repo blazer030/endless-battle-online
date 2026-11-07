@@ -40,12 +40,13 @@ function LevelFields({ index }: { index: number }) {
   )
 }
 
-function LevelTabs() {
+type ActiveLevelProps = { activeLevel: number; onActiveLevelChange: (level: number) => void }
+
+function LevelTabs({ activeLevel, onActiveLevelChange }: ActiveLevelProps) {
   const form = Form.useFormInstance<SkillFormValues>()
   const levelCount = Form.useWatch("levels", { form, preserve: true })?.length ?? 0
-  const [activeLevel, setActiveLevel] = useState(0)
   const current = Math.min(activeLevel, Math.max(levelCount - 1, 0))
-  // 等級可能很多，用會換行的按鈕列；只顯示目前這一級的欄位
+  // 等級可能很多，用會換行的按鈕列。每一級都要掛載，存檔時才驗證得到；沒有選到的只是隱藏
   return (
     <>
       <Radio.Group
@@ -54,18 +55,31 @@ function LevelTabs() {
         size="small"
         style={{ marginBottom: 16 }}
         value={current}
-        onChange={(event) => setActiveLevel(event.target.value as number)}
+        onChange={(event) => onActiveLevelChange(event.target.value as number)}
         options={Array.from({ length: levelCount }, (_, index) => ({
           value: index,
           label: `第 ${index + 1} 級`,
         }))}
       />
-      {levelCount > 0 && <LevelFields key={current} index={current} />}
+      {Array.from({ length: levelCount }, (_, index) => (
+        <div
+          key={index}
+          hidden={index !== current}
+          data-testid={index === current ? "active-level" : undefined}
+        >
+          <LevelFields index={index} />
+        </div>
+      ))}
     </>
   )
 }
 
-function SkillFields({ skills, mode }: { skills: readonly SkillVo[]; mode: "edit" | "create" }) {
+function SkillFields({
+  skills,
+  mode,
+  activeLevel,
+  onActiveLevelChange,
+}: { skills: readonly SkillVo[]; mode: "edit" | "create" } & ActiveLevelProps) {
   const form = Form.useFormInstance<SkillFormValues>()
   const id = Form.useWatch("id", form)
   const prerequisiteSkillId = Form.useWatch("prerequisiteSkillId", form)
@@ -159,7 +173,7 @@ function SkillFields({ skills, mode }: { skills: readonly SkillVo[]; mode: "edit
       <Form.Item name="maxLevel" label="等級上限" rules={[requiredNumber("等級上限")]}>
         <InputNumber precision={0} min={1} onBlur={applyMaxLevel} onPressEnter={applyMaxLevel} />
       </Form.Item>
-      <LevelTabs />
+      <LevelTabs activeLevel={activeLevel} onActiveLevelChange={onActiveLevelChange} />
     </>
   )
 }
@@ -171,18 +185,36 @@ type Props = {
 }
 
 export function SkillFormModal({ state, skills, onClose }: Props) {
+  const [activeLevel, setActiveLevel] = useState(0)
   return (
     <ContentFormModal
       label="技能"
       state={state}
-      onClose={onClose}
+      onClose={() => {
+        setActiveLevel(0)
+        onClose()
+      }}
       repository={skillRepository}
       records={skills}
       blankValues={blankSkillValues}
       toValues={skillToValues}
       toVo={skillFromValues}
+      onValidationFailed={(fieldNames) => {
+        // 有問題的欄位可能在沒有顯示的那一級，要切過去才看得到錯誤
+        const levelField = fieldNames.find((name) => name[0] === "levels")
+        if (typeof levelField?.[1] === "number") {
+          setActiveLevel(levelField[1])
+        }
+      }}
     >
-      {(_form, mode) => <SkillFields skills={skills} mode={mode} />}
+      {(_form, mode) => (
+        <SkillFields
+          skills={skills}
+          mode={mode}
+          activeLevel={activeLevel}
+          onActiveLevelChange={setActiveLevel}
+        />
+      )}
     </ContentFormModal>
   )
 }

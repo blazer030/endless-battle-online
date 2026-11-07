@@ -9,6 +9,9 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+// 每一級都掛載著，只顯示目前這一級；查欄位時要限定範圍
+const activeLevel = (dialog: HTMLElement) => within(dialog).getByTestId("active-level")
+
 const renderSkills = (list: unknown = skills) => renderSkillPage(list)
 
 const openEdit = openSkillEdit
@@ -46,7 +49,7 @@ describe("SkillFormModal basics", () => {
     await userEvent.tab()
     await userEvent.click(within(dialog).getByText("第 11 級"))
 
-    expect(within(dialog).getByLabelText("學習費用")).toHaveValue("1000")
+    expect(within(activeLevel(dialog)).getByLabelText("學習費用")).toHaveValue("1000")
     await saveAndWait(dialog, calls)
     const body = lastPut(calls)
     expect(body.maxLevel).toBe(11)
@@ -72,10 +75,10 @@ describe("SkillFormModal basics", () => {
     const dialog = await openEdit()
 
     await userEvent.click(within(dialog).getByText("第 2 級"))
-    const cost = within(dialog).getByLabelText("學習費用")
+    const cost = within(activeLevel(dialog)).getByLabelText("學習費用")
     await userEvent.clear(cost)
     await userEvent.type(cost, "999")
-    const cooldown = within(dialog).getByLabelText("冷卻")
+    const cooldown = within(activeLevel(dialog)).getByLabelText("冷卻")
     await userEvent.clear(cooldown)
     await userEvent.type(cooldown, "4")
     await saveAndWait(dialog, calls)
@@ -120,5 +123,52 @@ describe("SkillFormModal basics", () => {
     await saveAndWait(dialog, calls)
 
     expect(lastPut(calls)).toMatchObject({ name: "狂氣", slotType: "Passive", timing: "AfterHit" })
+  })
+})
+
+describe("SkillFormModal validation across levels", () => {
+  it("does not save a blank effect value of another level as zero", async () => {
+    const calls = renderSkills()
+    const dialog = await openEdit()
+    await userEvent.clear(within(activeLevel(dialog)).getByLabelText("效果 1 百分比"))
+
+    await userEvent.click(within(dialog).getByText("第 2 級"))
+    await userEvent.click(within(dialog).getByRole("button", { name: "儲存" }))
+
+    await waitFor(() =>
+      expect(within(dialog).getByRole("radio", { name: "第 1 級" })).toBeChecked(),
+    )
+    expect(await within(activeLevel(dialog)).findByText("請填寫百分比")).toBeInTheDocument()
+    expect(calls.some((call) => call.method === "PUT")).toBe(false)
+  })
+
+  it("does not save a blank learning cost of another level", async () => {
+    const calls = renderSkills()
+    const dialog = await openEdit()
+    await userEvent.click(within(dialog).getByText("第 2 級"))
+    await userEvent.clear(within(activeLevel(dialog)).getByLabelText("學習費用"))
+
+    await userEvent.click(within(dialog).getByText("第 1 級"))
+    await userEvent.click(within(dialog).getByRole("button", { name: "儲存" }))
+
+    await waitFor(() =>
+      expect(within(dialog).getByRole("radio", { name: "第 2 級" })).toBeChecked(),
+    )
+    expect(calls.some((call) => call.method === "PUT")).toBe(false)
+  })
+
+  it("keeps the values of the other levels when saving", async () => {
+    const calls = renderSkills()
+    const dialog = await openEdit()
+    await userEvent.click(within(dialog).getByText("第 2 級"))
+    await chooseOption(
+      within(activeLevel(dialog)).getByRole("combobox", { name: "效果 1 種類" }),
+      "封鎖",
+    )
+
+    await saveAndWait(dialog, calls)
+
+    expect(lastPut(calls).levels[0]).toEqual(skillLevel(1))
+    expect(lastPut(calls).levels[1].effects).toEqual([{ kind: "Silence", chance: 100, rounds: 3 }])
   })
 })

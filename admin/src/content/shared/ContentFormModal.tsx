@@ -21,6 +21,8 @@ type Props<TVo extends ContentVo, TValues extends object> = {
   children: (form: FormInstance<TValues>, mode: "edit" | "create") => ReactNode
   // 表單選單的讀取錯誤；選單有問題時不能存檔，例如等級上限檢查會少了依據
   useOptionError?: () => Error | null
+  // 驗證沒過時收到有問題的欄位路徑，例如要切到那個欄位所在的分頁
+  onValidationFailed?: (fieldNames: readonly (readonly (string | number)[])[]) => void
 }
 
 const noOptionError = () => null
@@ -43,6 +45,7 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
   toVo,
   children,
   useOptionError = noOptionError,
+  onValidationFailed,
 }: Props<TVo, TValues> & { state: NonNullable<ContentEditorState<TVo>> }) {
   const [form] = Form.useForm<TValues>()
   const optionError = useOptionError()
@@ -116,6 +119,9 @@ function OpenFormModal<TVo extends ContentVo, TValues extends object>({
         layout="vertical"
         initialValues={state.mode === "edit" ? toValues(state.record) : blankValues}
         onFinish={() => save.mutate(toVo(form.getFieldsValue(true)))}
+        onFinishFailed={({ errorFields }) =>
+          onValidationFailed?.(errorFields.map((field) => field.name))
+        }
       >
         {children(form, state.mode)}
       </Form>

@@ -143,7 +143,7 @@ describe("skill level effects", () => {
     await userEvent.type(maxLevel, "2")
     await userEvent.tab()
     await userEvent.click(within(dialog).getByText("第 2 級"))
-    await setNumber(dialog, "效果 1 回合", "9")
+    await setNumber(within(dialog).getByTestId("active-level"), "效果 1 回合", "9")
     await saveSkill(dialog, calls)
 
     expect(lastSkillPut(calls).levels[0].effects).toEqual([statChange])
