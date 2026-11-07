@@ -38,7 +38,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
   - admin/src/main.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminDraftEndpoints.cs
-  - admin/src/content/ContentPages.tsx
   - admin/tsconfig.node.json
   - backend/EndlessBattle.Tests/Api/Admin/AdminDraftPublishTests.cs
   - admin/src/report/compare.ts
@@ -48,7 +47,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReport.cs
   - admin/.prettierignore
   - admin/index.html
-  - admin/src/content/recordFields.ts
   - admin/src/content/resources.ts
   - admin/src/layout/AdminHeader.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminReportEndpoints.cs
@@ -72,16 +70,13 @@ code:
   - CLAUDE.md
   - backend/content/monsters.json
   - admin/tsconfig.app.json
-  - backend/EndlessBattle.Application/Admin/ContentKind.cs
   - backend/EndlessBattle.Application/Admin/DraftStatus.cs
   - backend/EndlessBattle.Application/Admin/ContentReportService.cs
-  - admin/src/api/dataProvider.ts
   - backend/EndlessBattle.Tests/Support/HostConfigurationSetup.cs
   - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
   - backend/EndlessBattle.Application/Admin/PublishResult.cs
   - backend/content/world.json
   - scripts/check.sh
-  - admin/src/content/RecordForm.tsx
   - backend/EndlessBattle.Infrastructure/Content/ContentFileFormatter.cs
   - backend/content/jobs.json
   - .spectra.yaml
@@ -90,8 +85,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/content/ContentPages.test.tsx
-  - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
   - admin/src/App.test.tsx
   - admin/src/draft/DraftBar.test.tsx
@@ -129,7 +122,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
   - admin/src/main.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminDraftEndpoints.cs
-  - admin/src/content/ContentPages.tsx
   - admin/tsconfig.node.json
   - backend/EndlessBattle.Tests/Api/Admin/AdminDraftPublishTests.cs
   - admin/src/report/compare.ts
@@ -139,7 +131,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReport.cs
   - admin/.prettierignore
   - admin/index.html
-  - admin/src/content/recordFields.ts
   - admin/src/content/resources.ts
   - admin/src/layout/AdminHeader.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminReportEndpoints.cs
@@ -163,16 +154,13 @@ code:
   - CLAUDE.md
   - backend/content/monsters.json
   - admin/tsconfig.app.json
-  - backend/EndlessBattle.Application/Admin/ContentKind.cs
   - backend/EndlessBattle.Application/Admin/DraftStatus.cs
   - backend/EndlessBattle.Application/Admin/ContentReportService.cs
-  - admin/src/api/dataProvider.ts
   - backend/EndlessBattle.Tests/Support/HostConfigurationSetup.cs
   - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
   - backend/EndlessBattle.Application/Admin/PublishResult.cs
   - backend/content/world.json
   - scripts/check.sh
-  - admin/src/content/RecordForm.tsx
   - backend/EndlessBattle.Infrastructure/Content/ContentFileFormatter.cs
   - backend/content/jobs.json
   - .spectra.yaml
@@ -181,8 +169,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/content/ContentPages.test.tsx
-  - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
   - admin/src/App.test.tsx
   - admin/src/draft/DraftBar.test.tsx
@@ -220,7 +206,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
   - admin/src/main.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminDraftEndpoints.cs
-  - admin/src/content/ContentPages.tsx
   - admin/tsconfig.node.json
   - backend/EndlessBattle.Tests/Api/Admin/AdminDraftPublishTests.cs
   - admin/src/report/compare.ts
@@ -230,7 +215,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReport.cs
   - admin/.prettierignore
   - admin/index.html
-  - admin/src/content/recordFields.ts
   - admin/src/content/resources.ts
   - admin/src/layout/AdminHeader.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminReportEndpoints.cs
@@ -254,16 +238,13 @@ code:
   - CLAUDE.md
   - backend/content/monsters.json
   - admin/tsconfig.app.json
-  - backend/EndlessBattle.Application/Admin/ContentKind.cs
   - backend/EndlessBattle.Application/Admin/DraftStatus.cs
   - backend/EndlessBattle.Application/Admin/ContentReportService.cs
-  - admin/src/api/dataProvider.ts
   - backend/EndlessBattle.Tests/Support/HostConfigurationSetup.cs
   - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
   - backend/EndlessBattle.Application/Admin/PublishResult.cs
   - backend/content/world.json
   - scripts/check.sh
-  - admin/src/content/RecordForm.tsx
   - backend/EndlessBattle.Infrastructure/Content/ContentFileFormatter.cs
   - backend/content/jobs.json
   - .spectra.yaml
@@ -272,8 +253,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/content/ContentPages.test.tsx
-  - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
   - admin/src/App.test.tsx
   - admin/src/draft/DraftBar.test.tsx
@@ -310,7 +289,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
   - admin/src/main.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminDraftEndpoints.cs
-  - admin/src/content/ContentPages.tsx
   - admin/tsconfig.node.json
   - backend/EndlessBattle.Tests/Api/Admin/AdminDraftPublishTests.cs
   - admin/src/report/compare.ts
@@ -320,7 +298,6 @@ code:
   - backend/EndlessBattle.Application/Balance/BalanceReport.cs
   - admin/.prettierignore
   - admin/index.html
-  - admin/src/content/recordFields.ts
   - admin/src/content/resources.ts
   - admin/src/layout/AdminHeader.tsx
   - backend/EndlessBattle.Api/Endpoints/Admin/AdminReportEndpoints.cs
@@ -344,16 +321,13 @@ code:
   - CLAUDE.md
   - backend/content/monsters.json
   - admin/tsconfig.app.json
-  - backend/EndlessBattle.Application/Admin/ContentKind.cs
   - backend/EndlessBattle.Application/Admin/DraftStatus.cs
   - backend/EndlessBattle.Application/Admin/ContentReportService.cs
-  - admin/src/api/dataProvider.ts
   - backend/EndlessBattle.Tests/Support/HostConfigurationSetup.cs
   - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
   - backend/EndlessBattle.Application/Admin/PublishResult.cs
   - backend/content/world.json
   - scripts/check.sh
-  - admin/src/content/RecordForm.tsx
   - backend/EndlessBattle.Infrastructure/Content/ContentFileFormatter.cs
   - backend/content/jobs.json
   - .spectra.yaml
@@ -362,8 +336,6 @@ code:
   - admin/src/api/schema.ts
   - admin/package.json
 tests:
-  - admin/src/content/ContentPages.test.tsx
-  - admin/src/content/recordFields.test.ts
   - admin/src/report/compare.test.ts
   - admin/src/App.test.tsx
   - admin/src/draft/DraftBar.test.tsx
