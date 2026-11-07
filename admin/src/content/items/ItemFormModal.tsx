@@ -1,10 +1,11 @@
-import { Checkbox, Col, Form, Input, InputNumber, Row, Select } from "antd"
+import { Checkbox, Col, Form, Input, InputNumber, Row, Select, Space, Typography } from "antd"
 import { contentElements } from "../monsters/MonsterVo"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
 import { elementLabels } from "../shared/elementLabels"
 import { NumberField } from "../shared/fields"
 import { useSkillOptions } from "../shared/namedOptions"
+import { usePlaceOptions } from "../shared/placeOptions"
 import { requiredNumber, requiredText, skillLevelRule } from "../shared/rules"
 import { usesAmount } from "./ItemConverter"
 import {
@@ -25,6 +26,7 @@ import {
   consumableKinds,
   elixirKinds,
   itemCategories,
+  itemRefineKeys,
   itemRequirementKeys,
   itemStatKeys,
   type ConsumableKind,
@@ -42,7 +44,7 @@ const isEquipment = (category: ItemCategory | undefined) =>
   category === "Hand" ||
   category === "Foot"
 
-export function StatInputs({
+function StatInputs({
   group,
   name,
   keys,
@@ -235,6 +237,109 @@ function ConsumableFields({ kind }: { kind: ConsumableKind | undefined }) {
   )
 }
 
+function StoneFields() {
+  const form = Form.useFormInstance<ItemFormValues>()
+  const random = Form.useWatch(["stone", "random"], form)
+  return (
+    <>
+      <Row gutter={16}>
+        <Col span={6}>
+          <Form.Item name={["stone", "random"]} valuePropName="checked" style={{ marginTop: 30 }}>
+            <Checkbox>隨機</Checkbox>
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          <Form.Item name={["stone", "boxClass"]} label="寶箱等級">
+            <InputNumber precision={0} min={0} style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      {random ? (
+        <>
+          <StatInputs group="最小" name={["stone", "minimum"]} keys={itemStatKeys} />
+          <StatInputs group="最大" name={["stone", "maximum"]} keys={itemStatKeys} />
+        </>
+      ) : (
+        <StatInputs group="固定值" name={["stone", "fixed"]} keys={itemStatKeys} />
+      )}
+    </>
+  )
+}
+
+function RefineStoneFields() {
+  return (
+    <>
+      <Row gutter={16}>
+        <Col span={6}>
+          <Form.Item
+            name={["refine", "level"]}
+            label="精鍊等級"
+            rules={[requiredNumber("精鍊等級")]}
+          >
+            <InputNumber precision={0} min={1} style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+        <Col span={6}>
+          {/* 內容裡是 1～18，意義尚未確認，先用數字輸入 */}
+          <Form.Item name={["refine", "kind"]} label="系列" rules={[requiredNumber("系列")]}>
+            <InputNumber precision={0} min={0} style={{ width: "100%" }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Form.Item label="精鍊範圍（留白代表不加）">
+        <Row gutter={[16, 8]}>
+          {itemRefineKeys.map((key) => (
+            <Col key={key} span={12}>
+              <Space align="baseline">
+                <Typography.Text style={{ display: "inline-block", width: 40 }}>
+                  {itemStatLabels[key]}
+                </Typography.Text>
+                <Form.Item name={["refine", "ranges", key, "minimum"]} noStyle>
+                  <InputNumber
+                    aria-label={`精鍊 ${itemStatLabels[key]}最小`}
+                    precision={0}
+                    min={0}
+                  />
+                </Form.Item>
+                ～
+                <Form.Item name={["refine", "ranges", key, "maximum"]} noStyle>
+                  <InputNumber
+                    aria-label={`精鍊 ${itemStatLabels[key]}最大`}
+                    precision={0}
+                    min={0}
+                  />
+                </Form.Item>
+              </Space>
+            </Col>
+          ))}
+        </Row>
+      </Form.Item>
+    </>
+  )
+}
+
+function KeyFields() {
+  const places = usePlaceOptions().data ?? []
+  return (
+    <Row gutter={16}>
+      <Col span={12}>
+        <Form.Item
+          name={["key", "placeId"]}
+          label="鑰匙地區"
+          rules={[{ required: true, message: "請選擇地區" }]}
+        >
+          <Select showSearch filterOption={filterChoice} options={namedChoices(places)} />
+        </Form.Item>
+      </Col>
+      <Col span={6}>
+        <Form.Item name={["key", "seconds"]} label="鑰匙秒數" rules={[requiredNumber("秒數")]}>
+          <InputNumber precision={0} min={0} style={{ width: "100%" }} />
+        </Form.Item>
+      </Col>
+    </Row>
+  )
+}
+
 function ItemFields({ mode }: { mode: "edit" | "create" }) {
   const form = Form.useFormInstance<ItemFormValues>()
   const category = Form.useWatch("category", form)
@@ -281,6 +386,9 @@ function ItemFields({ mode }: { mode: "edit" | "create" }) {
         <EquipmentFields category={category} />
       )}
       {category === "Consumable" && <ConsumableFields kind={consumableKind} />}
+      {category === "Stone" && <StoneFields />}
+      {category === "RefineStone" && <RefineStoneFields />}
+      {category === "Key" && <KeyFields />}
     </>
   )
 }
