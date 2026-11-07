@@ -1,5 +1,5 @@
 import type { components } from "./schema"
-import { AdminApiError, request } from "./dataProvider"
+import { AdminApiError, request } from "./request"
 
 export type DraftStatus = components["schemas"]["DraftStatus"]
 export type PublishRefusal = components["schemas"]["PublishRefusal"]

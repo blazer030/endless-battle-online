@@ -30,7 +30,12 @@ public class AdminOpenApiTests(MySqlDatabaseFixture database)
     {
         var paths = await PathsOf("admin");
 
-        Assert.Contains("/admin/content/{kind}", paths);
+        foreach (var kind in new[] { "items", "monsters", "jobs", "skills", "areas", "places", "missions" })
+        {
+            Assert.Contains($"/admin/content/{kind}", paths);
+        }
+
+        Assert.DoesNotContain("/admin/content/{kind}", paths);
         Assert.Contains("/admin/draft", paths);
         Assert.Contains("/admin/reports", paths);
         Assert.All(paths, path => Assert.StartsWith("/admin/", path, StringComparison.Ordinal));

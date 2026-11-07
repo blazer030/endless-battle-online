@@ -1,4 +1,4 @@
-import { request } from "../../api/dataProvider"
+import { request } from "../../api/request"
 import { parseArray } from "./parse"
 
 export type ContentConverter<TDto, TVo> = {

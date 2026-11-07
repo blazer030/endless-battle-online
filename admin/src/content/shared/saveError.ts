@@ -1,4 +1,4 @@
-import { AdminApiError } from "../../api/dataProvider"
+import { AdminApiError } from "../../api/request"
 import { parseObject, parseString } from "./parse"
 
 // API 拒絕時的訊息：有指出欄位就帶上欄位路徑

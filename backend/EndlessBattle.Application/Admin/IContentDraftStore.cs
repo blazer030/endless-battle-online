@@ -1,15 +1,10 @@
-using System.Text.Json.Nodes;
 using EndlessBattle.Application.Content;
 
 namespace EndlessBattle.Application.Admin;
 
-// 內容紀錄的讀寫；有草稿時讀草稿，否則讀正式內容。寫入只寫草稿，沒有草稿時先建立
+// 草稿的狀態與發布；有草稿時讀草稿，否則讀正式內容。紀錄的讀寫在 IContentRecordStore
 public interface IContentDraftStore
 {
-    Task<IReadOnlyList<JsonObject>> ReadRecordsAsync(ContentKind kind, CancellationToken cancellationToken);
-
-    Task WriteRecordsAsync(ContentKind kind, IReadOnlyList<JsonObject> records, CancellationToken cancellationToken);
-
     // 某種內容現有的 id（有草稿讀草稿）；地區的數字 id 轉成文字
     Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken);
 

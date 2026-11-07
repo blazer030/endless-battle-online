@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { request } from "../../api/dataProvider"
+import { request } from "../../api/request"
 import { parseArray, parseBoolean, parseNumber, parseObject, parseString } from "./parse"
 
 export type NamedOption = { readonly id: string; readonly name: string }

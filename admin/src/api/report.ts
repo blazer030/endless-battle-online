@@ -1,5 +1,5 @@
 import type { components } from "./schema"
-import { AdminApiError, request } from "./dataProvider"
+import { AdminApiError, request } from "./request"
 
 export type BalanceReport = components["schemas"]["BalanceReport"]
 export type BalanceSkillLevel = components["schemas"]["BalanceSkillLevel"]

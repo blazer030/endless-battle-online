@@ -14,29 +14,14 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
 
     private const string TemporarySuffix = ".writing";
 
-    public async Task<IReadOnlyList<JsonObject>> ReadRecordsAsync(ContentKind kind, CancellationToken cancellationToken)
+    public async Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken)
     {
         var directory = Directory.Exists(draftDirectory) ? draftDirectory : officialDirectory;
         var root = await ReadRootAsync(Path.Combine(directory, kind.FileName), cancellationToken);
-        return RecordsOf(root, kind).Select(record => record!.AsObject()).ToList();
+        var records = root[kind.ArrayProperty] as JsonArray
+            ?? throw new GameContentException($"{kind.FileName} 沒有 {kind.ArrayProperty} 陣列");
+        return records.Select(record => record?["id"]?.ToString()).OfType<string>().ToHashSet();
     }
-
-    public async Task WriteRecordsAsync(ContentKind kind, IReadOnlyList<JsonObject> records, CancellationToken cancellationToken)
-    {
-        await EnsureDraftAsync(cancellationToken);
-        var path = Path.Combine(draftDirectory, kind.FileName);
-        var root = await ReadRootAsync(path, cancellationToken);
-        RecordsOf(root, kind);
-        // 紀錄可能還掛在讀取時的陣列上，先複製再放進新陣列
-        root[kind.ArrayProperty] = new JsonArray(records.Select(record => (JsonNode)record.DeepClone().AsObject()).ToArray());
-        await File.WriteAllTextAsync(path, ContentFileFormatter.Format(root), cancellationToken);
-    }
-
-    public async Task<IReadOnlySet<string>> ReadIdsAsync(ContentKind kind, CancellationToken cancellationToken) =>
-        (await ReadRecordsAsync(kind, cancellationToken))
-            .Select(ContentAdminService.IdOf)
-            .OfType<string>()
-            .ToHashSet();
 
     // 檔名 → 檔案內容；有草稿時讀草稿，否則讀正式內容
     public async Task<IReadOnlyDictionary<string, string>> ReadFilesAsync(IEnumerable<string> fileNames, CancellationToken cancellationToken)
@@ -170,8 +155,4 @@ public sealed class FileContentDraftStore(string officialDirectory, string draft
     private static async Task<JsonObject> ReadRootAsync(string path, CancellationToken cancellationToken) =>
         JsonNode.Parse(await File.ReadAllTextAsync(path, cancellationToken)) as JsonObject
             ?? throw new GameContentException($"內容檔的最外層必須是物件：{path}");
-
-    private static JsonArray RecordsOf(JsonObject root, ContentKind kind) =>
-        root[kind.ArrayProperty] as JsonArray
-            ?? throw new GameContentException($"{kind.FileName} 沒有 {kind.ArrayProperty} 陣列");
 }
