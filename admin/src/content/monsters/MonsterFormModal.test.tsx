@@ -271,4 +271,83 @@ describe("MonsterFormModal", () => {
     expect(await within(dialog).findByText("請填寫名稱")).toBeInTheDocument()
     expect(calls.some((call) => call.method === "PUT")).toBe(false)
   })
+
+  it("adds a skill by name with its level and activation rate", async () => {
+    const calls = renderMonsters({}, [monsterDto({ skills: [] })])
+    const dialog = await openEdit()
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "新增技能" }))
+    await chooseOption(within(dialog).getByRole("combobox", { name: "技能 1" }), "爆氣")
+    await setNumber(dialog, "技能等級 1", "2")
+    await setNumber(dialog, "發動率 1", "10")
+    await save(dialog)
+
+    await waitFor(() =>
+      expect(lastBody(calls, "PUT")?.skills).toEqual([
+        { skillId: "skill-1", level: 2, activationRate: 10 },
+      ]),
+    )
+  })
+
+  it("shows the saved skills by name and can remove them", async () => {
+    const calls = renderMonsters()
+    const dialog = await openEdit()
+    expect(within(dialog).getByTitle("爆氣")).toBeInTheDocument()
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "刪除技能 1" }))
+    await save(dialog)
+
+    await waitFor(() => expect(lastBody(calls, "PUT")?.skills).toEqual([]))
+  })
+
+  it("does not let a skill level go above the chosen skill's maximum", async () => {
+    const calls = renderMonsters({}, [monsterDto({ skills: [] })])
+    const dialog = await openEdit()
+    await userEvent.click(within(dialog).getByRole("button", { name: "新增技能" }))
+    await chooseOption(within(dialog).getByRole("combobox", { name: "技能 1" }), "水彈")
+    await setNumber(dialog, "技能等級 1", "4")
+    await setNumber(dialog, "發動率 1", "10")
+
+    await save(dialog)
+
+    expect(await within(dialog).findByText("水彈的等級上限是 3")).toBeInTheDocument()
+    expect(calls.some((call) => call.method === "PUT")).toBe(false)
+  })
+
+  it("checks the level again when the skill changes to one with a lower maximum", async () => {
+    const calls = renderMonsters({}, [
+      monsterDto({ skills: [{ skillId: "skill-1", level: 5, activationRate: 10 }] }),
+    ])
+    const dialog = await openEdit()
+
+    await chooseOption(within(dialog).getByRole("combobox", { name: "技能 1" }), "水彈")
+    await save(dialog)
+
+    expect(await within(dialog).findByText("水彈的等級上限是 3")).toBeInTheDocument()
+    expect(calls.some((call) => call.method === "PUT")).toBe(false)
+  })
+
+  it("keeps the dialog open and names the field when the skill no longer exists", async () => {
+    renderMonsters({
+      "PUT /admin/content/monsters/monster-1": respond(400, {
+        field: "skills[0].skillId",
+        message: "技能 skill-1 不存在",
+      }),
+    })
+    const dialog = await openEdit()
+
+    await save(dialog)
+
+    expect(await within(dialog).findByText(/skills\[0\]\.skillId/)).toBeInTheDocument()
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+  })
+
+  it("hides the skills of an NPC", async () => {
+    renderMonsters()
+    const dialog = await openEdit()
+
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: "NPC" }))
+
+    expect(within(dialog).queryByRole("button", { name: "新增技能" })).not.toBeInTheDocument()
+  })
 })

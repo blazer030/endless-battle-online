@@ -2,7 +2,12 @@ import { DeleteOutlined } from "@ant-design/icons"
 import { Button, Checkbox, Col, Form, Input, InputNumber, Row, Select, Space } from "antd"
 import { filterChoice, namedChoices } from "../shared/choices"
 import { ContentFormModal, type ContentEditorState } from "../shared/ContentFormModal"
-import { useItemOptions, useMissionOptions } from "../shared/namedOptions"
+import {
+  useItemOptions,
+  useMissionOptions,
+  useSkillOptions,
+  type SkillOption,
+} from "../shared/namedOptions"
 import { globalPlaceId, globalPlaceName, usePlaceOptions } from "../shared/placeOptions"
 import {
   blankMonsterValues,
@@ -96,6 +101,98 @@ function DropList() {
             </Space>
           ))}
           <Button onClick={() => add({ dropRarity: 100 })}>新增掉落</Button>
+        </Form.Item>
+      )}
+    </Form.List>
+  )
+}
+
+function SkillRow({
+  rowName,
+  index,
+  skills,
+  onRemove,
+}: {
+  rowName: number
+  index: number
+  skills: readonly SkillOption[]
+  onRemove: () => void
+}) {
+  const form = Form.useFormInstance<MonsterFormValues>()
+  return (
+    <Space align="start" style={{ display: "flex", marginBottom: 8 }}>
+      <Form.Item
+        name={[rowName, "skillId"]}
+        noStyle
+        rules={[{ required: true, message: "請選擇技能" }]}
+      >
+        <Select
+          aria-label={`技能 ${index + 1}`}
+          showSearch
+          filterOption={filterChoice}
+          options={namedChoices(skills)}
+          style={{ width: 240 }}
+        />
+      </Form.Item>
+      <Form.Item
+        name={[rowName, "level"]}
+        dependencies={[["skills", rowName, "skillId"]]}
+        style={{ marginBottom: 0 }}
+        rules={[
+          { required: true, message: "請填寫等級" },
+          {
+            validator: async (_, level: number | null) => {
+              const skill = skills.find(
+                (option) => option.id === form.getFieldValue(["skills", rowName, "skillId"]),
+              )
+              if (skill && level !== null && level > skill.maxLevel) {
+                throw new Error(`${skill.name}的等級上限是 ${skill.maxLevel}`)
+              }
+            },
+          },
+        ]}
+      >
+        <InputNumber
+          aria-label={`技能等級 ${index + 1}`}
+          precision={0}
+          min={1}
+          placeholder="等級"
+        />
+      </Form.Item>
+      <Form.Item
+        name={[rowName, "activationRate"]}
+        noStyle
+        rules={[{ required: true, message: "請填寫發動率" }]}
+      >
+        <InputNumber
+          aria-label={`發動率 ${index + 1}`}
+          precision={0}
+          min={1}
+          max={100}
+          placeholder="發動率"
+        />
+      </Form.Item>
+      <Button aria-label={`刪除技能 ${index + 1}`} icon={<DeleteOutlined />} onClick={onRemove} />
+    </Space>
+  )
+}
+
+function SkillList() {
+  const skills = useSkillOptions().data ?? []
+  return (
+    <Form.List name="skills">
+      {(rows, { add, remove }) => (
+        <Form.Item label="技能（技能、等級、發動率）">
+          {rows.map((row, index) => (
+            <SkillRow
+              key={row.key}
+              rowName={row.name}
+              index={index}
+              skills={skills}
+              onRemove={() => remove(row.name)}
+            />
+          ))}
+          <Button onClick={() => add({ level: 1, activationRate: 10 })}>新增技能</Button>
         </Form.Item>
       )}
     </Form.List>
@@ -198,6 +295,7 @@ function MonsterFields({ mode }: { mode: "edit" | "create" }) {
             ))}
           </Row>
           <DropList />
+          <SkillList />
         </>
       )}
     </>
