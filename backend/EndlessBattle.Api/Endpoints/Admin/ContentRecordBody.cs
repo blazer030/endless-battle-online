@@ -15,6 +15,8 @@ public static partial class ContentRecordBody
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
         RespectNullableAnnotations = true,
         NumberHandling = JsonNumberHandling.Strict,
+        // 表單送出時 kind 不一定在第一個欄位
+        AllowOutOfOrderMetadataProperties = true,
         Converters = { new JsonStringEnumConverter(allowIntegerValues: false) },
     };
 

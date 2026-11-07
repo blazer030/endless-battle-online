@@ -326,6 +326,167 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/content/skills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SkillRecord"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SkillRecord"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/content/skills/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SkillRecord"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SkillRecord"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DraftStatus"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContentFieldError"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/content/missions": {
         parameters: {
             query?: never;
@@ -772,6 +933,8 @@ export interface components {
             maximum: number;
         };
         /** @enum {unknown} */
+        ContentSkillSlotType: "Active" | "Passive";
+        /** @enum {unknown} */
         ContentStat: "Strength" | "Intelligence" | "Life" | "Vitality" | "Agility" | "Charisma" | "Faith";
         DraftStatus: {
             exists: boolean;
@@ -883,6 +1046,224 @@ export interface components {
         };
         /** @enum {unknown} */
         ReportSource: "Official" | "Draft";
+        /** @enum {unknown} */
+        SkillAttackKind: "Physical" | "Magic" | "Any";
+        SkillChanceByStatRecord: {
+            stat: components["schemas"]["SkillScalingBasis"];
+            /** Format: int32 */
+            percent: number;
+        };
+        SkillConditionRecord: components["schemas"]["SkillConditionRecordChanceConditionRecord"] | components["schemas"]["SkillConditionRecordHitPointsBelowConditionRecord"] | components["schemas"]["SkillConditionRecordHitPointsBelowOpponentConditionRecord"] | components["schemas"]["SkillConditionRecordStatAboveConditionRecord"];
+        SkillConditionRecordChanceConditionRecord: {
+            /** @enum {string} */
+            kind?: "Chance";
+            /** Format: int32 */
+            percent: number;
+        };
+        SkillConditionRecordHitPointsBelowConditionRecord: {
+            /** @enum {string} */
+            kind?: "HitPointsBelow";
+            /** Format: int32 */
+            percent: number;
+        };
+        SkillConditionRecordHitPointsBelowOpponentConditionRecord: {
+            /** @enum {string} */
+            kind?: "HitPointsBelowOpponent";
+        };
+        SkillConditionRecordStatAboveConditionRecord: {
+            /** @enum {string} */
+            kind?: "StatAbove";
+            stat: components["schemas"]["SkillScalingBasis"];
+        };
+        SkillCostRecord: components["schemas"]["SkillCostRecordHitPointsCostRecord"] | components["schemas"]["SkillCostRecordSkillPointsCostRecord"] | components["schemas"]["SkillCostRecordMoneyCostRecord"];
+        SkillCostRecordHitPointsCostRecord: {
+            /** @enum {string} */
+            kind?: "HitPoints";
+            /** Format: int32 */
+            amount?: null | number;
+            /** Format: double */
+            percent?: null | number;
+        };
+        SkillCostRecordMoneyCostRecord: {
+            /** @enum {string} */
+            kind?: "Money";
+            /** Format: int32 */
+            amount: number;
+        };
+        SkillCostRecordSkillPointsCostRecord: {
+            /** @enum {string} */
+            kind?: "SkillPoints";
+            /** Format: int32 */
+            amount?: null | number;
+            /** Format: double */
+            percent?: null | number;
+            all?: null | boolean;
+        };
+        SkillEffectRecord: components["schemas"]["SkillEffectRecordStatChangeEffectRecord"] | components["schemas"]["SkillEffectRecordBonusDamageEffectRecord"] | components["schemas"]["SkillEffectRecordMultiHitEffectRecord"] | components["schemas"]["SkillEffectRecordDamageReductionEffectRecord"] | components["schemas"]["SkillEffectRecordRestoreEffectRecord"] | components["schemas"]["SkillEffectRecordStunEffectRecord"] | components["schemas"]["SkillEffectRecordSilenceEffectRecord"] | components["schemas"]["SkillEffectRecordPercentDamageEffectRecord"] | components["schemas"]["SkillEffectRecordElementAdvantageEffectRecord"] | components["schemas"]["SkillEffectRecordDamageOverTimeEffectRecord"] | components["schemas"]["SkillEffectRecordReduceSkillPointsEffectRecord"] | components["schemas"]["SkillEffectRecordAttackElementEffectRecord"] | components["schemas"]["SkillEffectRecordDefenseElementEffectRecord"];
+        SkillEffectRecordAttackElementEffectRecord: {
+            /** @enum {string} */
+            kind?: "AttackElement";
+            element: components["schemas"]["ContentElement"];
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordBonusDamageEffectRecord: {
+            /** @enum {string} */
+            kind?: "BonusDamage";
+            attackKind: components["schemas"]["SkillAttackKind"];
+            scaling: components["schemas"]["SkillScalingRecord"][];
+            /** Format: int32 */
+            chance?: null | number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordDamageOverTimeEffectRecord: {
+            /** @enum {string} */
+            kind?: "DamageOverTime";
+            scaling: components["schemas"]["SkillScalingRecord"][];
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordDamageReductionEffectRecord: {
+            /** @enum {string} */
+            kind?: "DamageReduction";
+            attackKind: components["schemas"]["SkillAttackKind"];
+            /** Format: double */
+            percent: number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordDefenseElementEffectRecord: {
+            /** @enum {string} */
+            kind?: "DefenseElement";
+            element: components["schemas"]["ContentElement"];
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordElementAdvantageEffectRecord: {
+            /** @enum {string} */
+            kind?: "ElementAdvantage";
+            /** Format: double */
+            percent: number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordMultiHitEffectRecord: {
+            /** @enum {string} */
+            kind?: "MultiHit";
+            attackKind: components["schemas"]["SkillAttackKind"];
+            /** Format: int32 */
+            hits: number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordPercentDamageEffectRecord: {
+            /** @enum {string} */
+            kind?: "PercentDamage";
+            /** Format: double */
+            percent: number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordReduceSkillPointsEffectRecord: {
+            /** @enum {string} */
+            kind?: "ReduceSkillPoints";
+            /** Format: int32 */
+            amount?: null | number;
+            /** Format: double */
+            percentOfMaximum?: null | number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordRestoreEffectRecord: {
+            /** @enum {string} */
+            kind?: "Restore";
+            resource: components["schemas"]["SkillResource"];
+            scaling?: null | components["schemas"]["SkillScalingRecord"][];
+            /** Format: double */
+            percentOfDamage?: null | number;
+            /** Format: double */
+            percentOfMaximum?: null | number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordSilenceEffectRecord: {
+            /** @enum {string} */
+            kind?: "Silence";
+            /** Format: int32 */
+            chance: number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordStatChangeEffectRecord: {
+            /** @enum {string} */
+            kind?: "StatChange";
+            target: components["schemas"]["SkillTarget"];
+            stat: components["schemas"]["SkillStat"];
+            /** Format: double */
+            percent?: null | number;
+            /** Format: double */
+            amount?: null | number;
+            scaling?: null | components["schemas"]["SkillScalingRecord"][];
+            /** Format: int32 */
+            chance?: null | number;
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillEffectRecordStunEffectRecord: {
+            /** @enum {string} */
+            kind?: "Stun";
+            /** Format: int32 */
+            chance: number;
+            chanceByStat?: null | components["schemas"]["SkillChanceByStatRecord"];
+            /** Format: int32 */
+            rounds: number;
+        };
+        SkillLevelRecord: {
+            /** Format: int32 */
+            level: number;
+            /** Format: int64 */
+            learningCost: number;
+            /** Format: int32 */
+            proficiencyRequired: number;
+            /** Format: int32 */
+            cooldown: number;
+            conditions: components["schemas"]["SkillConditionRecord"][];
+            costs: components["schemas"]["SkillCostRecord"][];
+            effects: components["schemas"]["SkillEffectRecord"][];
+        };
+        SkillPrerequisiteRecord: {
+            skillId: string;
+            /** Format: int32 */
+            level: number;
+        };
+        SkillRecord: {
+            id: string;
+            name: string;
+            slotType: components["schemas"]["ContentSkillSlotType"];
+            timing: components["schemas"]["SkillTiming"];
+            description: string;
+            /** Format: int32 */
+            maxLevel: number;
+            prerequisite: null | components["schemas"]["SkillPrerequisiteRecord"];
+            jobIds: string[];
+            levels: components["schemas"]["SkillLevelRecord"][];
+        };
+        /** @enum {unknown} */
+        SkillResource: "HitPoints" | "SkillPoints";
+        /** @enum {unknown} */
+        SkillScalingBasis: "Strength" | "Intelligence" | "Vitality" | "Agility" | "Charisma" | "Faith" | "Level" | "Attack" | "MagicAttack" | "Defense" | "SkillPoints";
+        SkillScalingRecord: {
+            basis: components["schemas"]["SkillScalingBasis"];
+            /** Format: double */
+            ratio: number;
+        };
+        /** @enum {unknown} */
+        SkillStat: "Attack" | "MagicAttack" | "Defense" | "MagicDefense" | "Agility" | "Charisma" | "HitRate" | "Evasion" | "PhysicalCriticalChance" | "MagicCriticalChance" | "PhysicalCriticalCap" | "MagicCriticalCap" | "EscapeRate";
+        /** @enum {unknown} */
+        SkillTarget: "Caster" | "Opponent";
+        /** @enum {unknown} */
+        SkillTiming: "BeforeAttack" | "AfterHit" | "RoundEnd";
         StatAllocation: {
             /** Format: int32 */
             str: number;

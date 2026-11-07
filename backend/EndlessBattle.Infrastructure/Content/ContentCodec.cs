@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using EndlessBattle.Application.Admin.Content;
+using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Infrastructure.Content;
 
@@ -36,6 +37,13 @@ public static class ContentFileJson
         RespectNullableAnnotations = true,
         // 寫出後由 ContentFileFormatter 保留原文，中文不能變成 \uXXXX
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        // 技能的能力在內容檔是小寫開頭，其他列舉與 API 相同
+        Converters =
+        {
+            new JsonStringEnumConverter<SkillStat>(JsonNamingPolicy.CamelCase, allowIntegerValues: false),
+            new JsonStringEnumConverter<SkillScalingBasis>(JsonNamingPolicy.CamelCase, allowIntegerValues: false),
+            new JsonStringEnumConverter(allowIntegerValues: false),
+        },
     };
 
     public static IReadOnlyList<TEntry> ReadArray<TEntry>(string fileText, string fileName, string arrayProperty)

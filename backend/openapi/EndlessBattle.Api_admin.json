@@ -307,6 +307,157 @@
         }
       }
     },
+    "/admin/content/skills": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SkillRecord"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin Content"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/content/skills/{id}": {
+      "get": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin Content"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillRecord"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentFieldError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/admin/content/missions": {
       "get": {
         "tags": [
@@ -835,6 +986,12 @@
           }
         }
       },
+      "ContentSkillSlotType": {
+        "enum": [
+          "Active",
+          "Passive"
+        ]
+      },
       "ContentStat": {
         "enum": [
           "Strength",
@@ -1238,6 +1395,848 @@
         "enum": [
           "Official",
           "Draft"
+        ]
+      },
+      "SkillAttackKind": {
+        "enum": [
+          "Physical",
+          "Magic",
+          "Any"
+        ]
+      },
+      "SkillChanceByStatRecord": {
+        "required": [
+          "stat",
+          "percent"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "$ref": "#/components/schemas/SkillScalingBasis"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillConditionRecord": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/SkillConditionRecordChanceConditionRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillConditionRecordHitPointsBelowConditionRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillConditionRecordHitPointsBelowOpponentConditionRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillConditionRecordStatAboveConditionRecord"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "Chance": "#/components/schemas/SkillConditionRecordChanceConditionRecord",
+            "HitPointsBelow": "#/components/schemas/SkillConditionRecordHitPointsBelowConditionRecord",
+            "HitPointsBelowOpponent": "#/components/schemas/SkillConditionRecordHitPointsBelowOpponentConditionRecord",
+            "StatAbove": "#/components/schemas/SkillConditionRecordStatAboveConditionRecord"
+          }
+        }
+      },
+      "SkillConditionRecordChanceConditionRecord": {
+        "required": [
+          "percent"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "Chance"
+            ],
+            "type": "string"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillConditionRecordHitPointsBelowConditionRecord": {
+        "required": [
+          "percent"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "HitPointsBelow"
+            ],
+            "type": "string"
+          },
+          "percent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillConditionRecordHitPointsBelowOpponentConditionRecord": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "HitPointsBelowOpponent"
+            ],
+            "type": "string"
+          }
+        }
+      },
+      "SkillConditionRecordStatAboveConditionRecord": {
+        "required": [
+          "stat"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "StatAbove"
+            ],
+            "type": "string"
+          },
+          "stat": {
+            "$ref": "#/components/schemas/SkillScalingBasis"
+          }
+        }
+      },
+      "SkillCostRecord": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/SkillCostRecordHitPointsCostRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillCostRecordSkillPointsCostRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillCostRecordMoneyCostRecord"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "HitPoints": "#/components/schemas/SkillCostRecordHitPointsCostRecord",
+            "SkillPoints": "#/components/schemas/SkillCostRecordSkillPointsCostRecord",
+            "Money": "#/components/schemas/SkillCostRecordMoneyCostRecord"
+          }
+        }
+      },
+      "SkillCostRecordHitPointsCostRecord": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "HitPoints"
+            ],
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "SkillCostRecordMoneyCostRecord": {
+        "required": [
+          "amount"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "Money"
+            ],
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillCostRecordSkillPointsCostRecord": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "SkillPoints"
+            ],
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "all": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "SkillEffectRecord": {
+        "required": [
+          "kind"
+        ],
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordStatChangeEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordBonusDamageEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordMultiHitEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordDamageReductionEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordRestoreEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordStunEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordSilenceEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordPercentDamageEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordElementAdvantageEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordDamageOverTimeEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordReduceSkillPointsEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordAttackElementEffectRecord"
+          },
+          {
+            "$ref": "#/components/schemas/SkillEffectRecordDefenseElementEffectRecord"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "StatChange": "#/components/schemas/SkillEffectRecordStatChangeEffectRecord",
+            "BonusDamage": "#/components/schemas/SkillEffectRecordBonusDamageEffectRecord",
+            "MultiHit": "#/components/schemas/SkillEffectRecordMultiHitEffectRecord",
+            "DamageReduction": "#/components/schemas/SkillEffectRecordDamageReductionEffectRecord",
+            "Restore": "#/components/schemas/SkillEffectRecordRestoreEffectRecord",
+            "Stun": "#/components/schemas/SkillEffectRecordStunEffectRecord",
+            "Silence": "#/components/schemas/SkillEffectRecordSilenceEffectRecord",
+            "PercentDamage": "#/components/schemas/SkillEffectRecordPercentDamageEffectRecord",
+            "ElementAdvantage": "#/components/schemas/SkillEffectRecordElementAdvantageEffectRecord",
+            "DamageOverTime": "#/components/schemas/SkillEffectRecordDamageOverTimeEffectRecord",
+            "ReduceSkillPoints": "#/components/schemas/SkillEffectRecordReduceSkillPointsEffectRecord",
+            "AttackElement": "#/components/schemas/SkillEffectRecordAttackElementEffectRecord",
+            "DefenseElement": "#/components/schemas/SkillEffectRecordDefenseElementEffectRecord"
+          }
+        }
+      },
+      "SkillEffectRecordAttackElementEffectRecord": {
+        "required": [
+          "element",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "AttackElement"
+            ],
+            "type": "string"
+          },
+          "element": {
+            "$ref": "#/components/schemas/ContentElement"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordBonusDamageEffectRecord": {
+        "required": [
+          "attackKind",
+          "scaling",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "BonusDamage"
+            ],
+            "type": "string"
+          },
+          "attackKind": {
+            "$ref": "#/components/schemas/SkillAttackKind"
+          },
+          "scaling": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillScalingRecord"
+            }
+          },
+          "chance": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordDamageOverTimeEffectRecord": {
+        "required": [
+          "scaling",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "DamageOverTime"
+            ],
+            "type": "string"
+          },
+          "scaling": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillScalingRecord"
+            }
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordDamageReductionEffectRecord": {
+        "required": [
+          "attackKind",
+          "percent",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "DamageReduction"
+            ],
+            "type": "string"
+          },
+          "attackKind": {
+            "$ref": "#/components/schemas/SkillAttackKind"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordDefenseElementEffectRecord": {
+        "required": [
+          "element",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "DefenseElement"
+            ],
+            "type": "string"
+          },
+          "element": {
+            "$ref": "#/components/schemas/ContentElement"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordElementAdvantageEffectRecord": {
+        "required": [
+          "percent",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "ElementAdvantage"
+            ],
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordMultiHitEffectRecord": {
+        "required": [
+          "attackKind",
+          "hits",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "MultiHit"
+            ],
+            "type": "string"
+          },
+          "attackKind": {
+            "$ref": "#/components/schemas/SkillAttackKind"
+          },
+          "hits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordPercentDamageEffectRecord": {
+        "required": [
+          "percent",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "PercentDamage"
+            ],
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "format": "double"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordReduceSkillPointsEffectRecord": {
+        "required": [
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "ReduceSkillPoints"
+            ],
+            "type": "string"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "percentOfMaximum": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordRestoreEffectRecord": {
+        "required": [
+          "resource",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "Restore"
+            ],
+            "type": "string"
+          },
+          "resource": {
+            "$ref": "#/components/schemas/SkillResource"
+          },
+          "scaling": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillScalingRecord"
+            }
+          },
+          "percentOfDamage": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "percentOfMaximum": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordSilenceEffectRecord": {
+        "required": [
+          "chance",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "Silence"
+            ],
+            "type": "string"
+          },
+          "chance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordStatChangeEffectRecord": {
+        "required": [
+          "target",
+          "stat",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "StatChange"
+            ],
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/SkillTarget"
+          },
+          "stat": {
+            "$ref": "#/components/schemas/SkillStat"
+          },
+          "percent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "scaling": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillScalingRecord"
+            }
+          },
+          "chance": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillEffectRecordStunEffectRecord": {
+        "required": [
+          "chance",
+          "rounds"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "Stun"
+            ],
+            "type": "string"
+          },
+          "chance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chanceByStat": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillChanceByStatRecord"
+              }
+            ]
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillLevelRecord": {
+        "required": [
+          "level",
+          "learningCost",
+          "proficiencyRequired",
+          "cooldown",
+          "conditions",
+          "costs",
+          "effects"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "learningCost": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "proficiencyRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cooldown": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillConditionRecord"
+            }
+          },
+          "costs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillCostRecord"
+            }
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillEffectRecord"
+            }
+          }
+        }
+      },
+      "SkillPrerequisiteRecord": {
+        "required": [
+          "skillId",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillRecord": {
+        "required": [
+          "id",
+          "name",
+          "slotType",
+          "timing",
+          "description",
+          "maxLevel",
+          "prerequisite",
+          "jobIds",
+          "levels"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slotType": {
+            "$ref": "#/components/schemas/ContentSkillSlotType"
+          },
+          "timing": {
+            "$ref": "#/components/schemas/SkillTiming"
+          },
+          "description": {
+            "type": "string"
+          },
+          "maxLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prerequisite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillPrerequisiteRecord"
+              }
+            ]
+          },
+          "jobIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillLevelRecord"
+            }
+          }
+        }
+      },
+      "SkillResource": {
+        "enum": [
+          "HitPoints",
+          "SkillPoints"
+        ]
+      },
+      "SkillScalingBasis": {
+        "enum": [
+          "Strength",
+          "Intelligence",
+          "Vitality",
+          "Agility",
+          "Charisma",
+          "Faith",
+          "Level",
+          "Attack",
+          "MagicAttack",
+          "Defense",
+          "SkillPoints"
+        ]
+      },
+      "SkillScalingRecord": {
+        "required": [
+          "basis",
+          "ratio"
+        ],
+        "type": "object",
+        "properties": {
+          "basis": {
+            "$ref": "#/components/schemas/SkillScalingBasis"
+          },
+          "ratio": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SkillStat": {
+        "enum": [
+          "Attack",
+          "MagicAttack",
+          "Defense",
+          "MagicDefense",
+          "Agility",
+          "Charisma",
+          "HitRate",
+          "Evasion",
+          "PhysicalCriticalChance",
+          "MagicCriticalChance",
+          "PhysicalCriticalCap",
+          "MagicCriticalCap",
+          "EscapeRate"
+        ]
+      },
+      "SkillTarget": {
+        "enum": [
+          "Caster",
+          "Opponent"
+        ]
+      },
+      "SkillTiming": {
+        "enum": [
+          "BeforeAttack",
+          "AfterHit",
+          "RoundEnd"
         ]
       },
       "StatAllocation": {

@@ -14,6 +14,7 @@ public static class AdminContentEndpoints
         // 字面路徑優先於下面的 /{kind}；還沒遷移的種類繼續走舊路由
         MapRecords<MonsterRecord>(content, "monsters");
         MapRecords<JobRecord>(content, "jobs");
+        MapRecords<SkillRecord>(content, "skills");
         content.MapGet("/missions", async Task<Ok<IReadOnlyList<MissionSummaryRecord>>> (
                 ContentRecordService<MissionSummaryRecord> service, CancellationToken cancellationToken) =>
             TypedResults.Ok(await service.ListAsync(cancellationToken)));
