@@ -32,11 +32,11 @@ WOG 4.5 有 345 個任務，目前只匯入 248 個（一般任務 240、每日 
 ## Impact
 
 - Domain：`Missions/`、`World/MonsterPool.cs`、`Content/MonsterDefinition.cs`、`Items/Recipe.cs`、`Forge/Synthesis.cs`、`Adventure/AdventureSimulator.cs`、`Mercenaries/MercenarySimulator.cs`、`Battle/BattleEvents.cs`
-- Application：`Missions/MissionService.cs`、`Adventure/AdventureService.cs`、`Forge/ForgeService.cs`
+- Application：`Missions/MissionService.cs`、`Missions/IMissionRepository.cs`、`Adventure/AdventureService.cs`、`Forge/ForgeService.cs`
 - Infrastructure：`Content/JsonGameContent.cs`、`Persistence/MissionRepository.cs`、scaffold 產生的 model
 - Api：`Endpoints/MissionEndpoints.cs`、`Endpoints/ForgeEndpoints.cs`、`Endpoints/Contracts.cs`
 - Tests：任務、怪物池、合成、匯入與內容驗證的測試，以及 `TestContent/`
-- content：`backend/content/missions.json`、`monsters.json`、`recipes.json`
+- content：`backend/content/missions.json`、`monsters.json`、`monster-skills.json`、`recipes.json`
 - db：`backend/db/ddl/V000000019__mission_kill_progress.sql`
-- frontend：`src/api/schema.ts`（產生檔）、`src/game/missions.ts`、`src/game/stageModel.ts`、`src/game/battleLog.ts`、`src/ui/MissionsScreen.tsx`、`src/ui/ForgePage.tsx`
+- frontend：`src/api/schema.ts`（產生檔）、`src/game/missions.ts`、`src/game/stageModel.ts`、`src/game/battleLog.ts`、`src/game/types.ts`、`src/game/inventory.ts`、`src/render/StageRenderer.ts`、`src/ui/ForgePage.tsx`、`src/ui/BagScreen.css`
 - scripts 與文件：`scripts/import-wog45.py`、`docs/research/wog45/gaps.md`

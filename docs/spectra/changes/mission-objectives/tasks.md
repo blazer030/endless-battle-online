@@ -48,7 +48,14 @@
 
 - 任務頁：直接寫入 `character_missions` 造出進行中的 `mission-29`、`mission-16`、`mission-318`，確認多目標、交寵物、技能條件（等級不足）都有顯示，未達成時回報按鈕停用。
 - NPC：角色數值拉高、放到灼熱荒漠的海市蜃樓、接 `mission-133`，把 `last_settled_at` 往前調 30 秒後真實遇到 `倫魯`（沒有竄改回應）。確認舞台名牌、戰報訊息、任務進度與達成提示。
-- 這次檢查抓到一個缺陷：遇到 NPC 時舞台還留著上一隻怪的名稱與名牌。已修正並補上測試（`stageEffectsFor_Npc_ShowsNamePlate`），新增 `clearMonster` 效果，也清掉舞台狀態裡的怪物。空的血條外框是舞台本來就有的，仍然留著。
+- 這次檢查抓到一個缺陷：遇到 NPC 時舞台還留著上一隻怪的名稱與名牌。已修正並補上測試（`stageEffectsFor_Npc_ShowsNamePlate`），新增 `clearMonster` 效果，也清掉舞台狀態裡的怪物。當時空的血條外框還留著，後來在驗證後移除，見下方。
 - 鐵舖：`recipe-174` 未完成 `mission-317` 時列出、顯示任務標題、按鈕停用，直接呼叫 API 回 400 `missionIncomplete`；寫入完成紀錄後標題消失。解鎖後按鈕仍停用是因為沒有材料，真的能合成由 `Synthesize_RequiredMissionCompleted_Runs` 涵蓋。
 - 沒有在畫面上實際做的：交出寵物與回報任務的完整操作，由 API 測試涵蓋。
+
+**驗證後修正（2026-11-07）**：`/spectra-verify` 的結果。
+
+- 空的血條外框不符合 spec 的 "without an HP bar"。`StageRenderer.updateHealth` 改成 `monsterHpMax` 為 0 時隱藏怪物血條。依專案慣例不寫樣式測試，在 375×667 實際遇到 `倫魯` 確認：遇到時血條與名稱消失，下一場戰鬥恢復，沒有水平捲動。
+- 補測試：`KillCounter_Mission29NotReadyWhileATargetIsShort`（spec 的任務 29 範例）；`Complete_RegularPetMission_RemovesCarriedPet` 驗證 50 元獎勵；`Spawnable_PetMissionOpenUntilFinished` 加上放棄任務。前兩項都故意改壞程式或資料確認過會失敗；放棄只是刪除紀錄，這條斷言由 `Missions_AcceptThenAbandon` 確認紀錄被刪，兩條合起來才完整。
+- 驗證報告說「擊殺目標不能是別的任務的任務怪」沒有測試，查證後是誤判：`Missions_RejectInvalidFields` 的 `InvalidMissionFields` 有這一列（`rival` 改打 `chief`），拿掉檢查時它會失敗，所以沒有新增測試。
+- 與上方已完成任務的文字不同的地方：3.1 的 `Mission_RejectsRequiredSkillAboveMaxLevel` 實際叫 `Mission_RejectsInvalidRequiredSkill`；4.5 的「`applyToStage` 遇到 `npc` 狀態不變」改成清除怪物，原因見上方手動驗證。
 
