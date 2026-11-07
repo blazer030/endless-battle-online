@@ -81,16 +81,20 @@ export const blankItemValues: ItemFormValues = {
   stone: { random: false, fixed: {}, minimum: {}, maximum: {}, boxClass: null },
 }
 
+// 0 在表單裡顯示成留白，只留下有數值的能力
+const withoutZeros = (values: Readonly<Record<string, number>> | null): StatValues =>
+  Object.fromEntries(Object.entries(values ?? {}).filter(([, value]) => value !== 0))
+
 export const itemToValues = (item: ItemVo): ItemFormValues => ({
   id: item.id,
   name: item.name,
   category: item.category,
   consumableKind: item.consumableKind ?? "Supply",
-  bonus: { ...item.bonus },
+  bonus: withoutZeros(item.bonus),
   supplyHitPoints: item.supplyHitPoints,
   supplySkillPoints: item.supplySkillPoints,
   amount: item.amount,
-  requires: { ...item.requires },
+  requires: withoutZeros(item.requires),
   element: item.element ?? "",
   holes: item.holes,
   refineMax: item.refineMax,
@@ -109,9 +113,9 @@ export const itemToValues = (item: ItemVo): ItemFormValues => ({
   stone: item.stone
     ? {
         random: item.stone.random,
-        fixed: { ...item.stone.fixed },
-        minimum: { ...item.stone.minimum },
-        maximum: { ...item.stone.maximum },
+        fixed: withoutZeros(item.stone.fixed),
+        minimum: withoutZeros(item.stone.minimum),
+        maximum: withoutZeros(item.stone.maximum),
         boxClass: item.stone.boxClass,
       }
     : blankItemValues.stone,

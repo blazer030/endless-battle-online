@@ -44,6 +44,35 @@ const isEquipment = (category: ItemCategory | undefined) =>
   category === "Hand" ||
   category === "Foot"
 
+// 留白代表 0；數字填進去後 placeholder 就看不到了，所以每格都要有自己的標籤
+function LabelledNumber({
+  name,
+  group,
+  label,
+  min,
+}: {
+  name: (string | number)[]
+  group: string
+  label: string
+  min?: number
+}) {
+  return (
+    <>
+      <Typography.Text type="secondary" style={{ display: "block", fontSize: 12, marginBottom: 2 }}>
+        {label}
+      </Typography.Text>
+      <Form.Item name={name} noStyle>
+        <InputNumber
+          aria-label={`${group} ${label}`}
+          precision={0}
+          min={min}
+          style={{ width: "100%" }}
+        />
+      </Form.Item>
+    </>
+  )
+}
+
 function StatInputs({
   group,
   name,
@@ -58,14 +87,7 @@ function StatInputs({
       <Row gutter={[12, 8]}>
         {keys.map((key) => (
           <Col key={key} span={6}>
-            <Form.Item name={[...name, key]} noStyle>
-              <InputNumber
-                aria-label={`${group} ${itemStatLabels[key]}`}
-                precision={0}
-                placeholder={itemStatLabels[key]}
-                style={{ width: "100%" }}
-              />
-            </Form.Item>
+            <LabelledNumber name={[...name, key]} group={group} label={itemStatLabels[key]} />
           </Col>
         ))}
       </Row>
@@ -138,15 +160,12 @@ function EquipmentFields({ category }: { category: ItemCategory }) {
         <Row gutter={12}>
           {itemRequirementKeys.map((key) => (
             <Col key={key} span={6}>
-              <Form.Item name={["requires", key]} noStyle>
-                <InputNumber
-                  aria-label={`需求 ${itemStatLabels[key]}`}
-                  precision={0}
-                  min={0}
-                  placeholder={itemStatLabels[key]}
-                  style={{ width: "100%" }}
-                />
-              </Form.Item>
+              <LabelledNumber
+                name={["requires", key]}
+                group="需求"
+                label={itemStatLabels[key]}
+                min={0}
+              />
             </Col>
           ))}
         </Row>

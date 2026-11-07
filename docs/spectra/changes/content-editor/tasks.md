@@ -28,7 +28,7 @@
 ## 5. 收尾
 
 - [x] 5.1 移除舊做法：刪除 `/admin/content/{kind}` 的 JsonObject 路由與 `ContentAdminService` 的 JsonObject 介面、admin 的 `recordFields.ts`、`RecordForm.tsx`、`ContentPages.tsx`、`/<kind>/edit/:id` 與 `/<kind>/create` 路由，以及 `dataProvider.ts` 的內容用途；選單改從有型別的路由讀 `id` 與 `name`；確認不支援的種類（例如 `recipes`）仍回 404。驗證：`AdminContentReadTests.List_UnsupportedKindReturnsNotFound`（recipes 回 404）仍通過；`cd backend && dotnet test`、`cd admin && pnpm check` 全綠；搜尋 `JsonObject` 只出現在 Infrastructure。[after: 4.3]
-- [ ] 5.2 最終檢查：`./scripts/check.sh` exit code 0；逐條對照 design.md「硬規則」（內容檔格式與數值不變、`schema.ts` 只由產生得來、admin 路由都在 `/admin` 群組）；以 `pnpm dev` 打開 admin，人工確認六種內容的彈窗、下拉與搜尋篩選都能用，道具列表與選單在 3127 筆下不卡，並把一筆怪物技能的修改存進草稿後捨棄。[after: 5.1]
+- [x] 5.2 最終檢查：`./scripts/check.sh` exit code 0；逐條對照 design.md「硬規則」（內容檔格式與數值不變、`schema.ts` 只由產生得來、admin 路由都在 `/admin` 群組）；以 `pnpm dev` 打開 admin，人工確認六種內容的彈窗、下拉與搜尋篩選都能用，道具列表與選單在 3127 筆下不卡，並把一筆怪物技能的修改存進草稿後捨棄。[after: 5.1]
 
 ## 變更紀錄
 
