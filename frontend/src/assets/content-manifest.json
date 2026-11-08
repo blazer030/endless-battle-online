@@ -1,4 +1,121 @@
 {
   "baseUrl": "https://ebo-assets.blazer030.dev",
-  "assets": {}
+  "assets": {
+    "battlefields/1": {
+      "file": "battlefields/1.2fa509185dbb.webp",
+      "original": "battlefields/1.8047e846b53b.jpg"
+    },
+    "battlefields/10": {
+      "file": "battlefields/10.e3420a61ad69.webp",
+      "original": "battlefields/10.44d5cf011ba3.jpg"
+    },
+    "battlefields/11": {
+      "file": "battlefields/11.a8332a0616bc.webp",
+      "original": "battlefields/11.09b03b7b283c.jpg"
+    },
+    "battlefields/12": {
+      "file": "battlefields/12.86350ff5fb3d.webp",
+      "original": "battlefields/12.6857531e4392.jpg"
+    },
+    "battlefields/13": {
+      "file": "battlefields/13.f77d35e69057.webp",
+      "original": "battlefields/13.49bc28264b81.jpg"
+    },
+    "battlefields/14": {
+      "file": "battlefields/14.ba6b57ca04a8.webp",
+      "original": "battlefields/14.5bff5a20410c.jpg"
+    },
+    "battlefields/15": {
+      "file": "battlefields/15.6dcc64c3577c.webp",
+      "original": "battlefields/15.dc114f78bfa7.jpg"
+    },
+    "battlefields/16": {
+      "file": "battlefields/16.2d564ea7d927.webp",
+      "original": "battlefields/16.34e4b79e97ef.jpg"
+    },
+    "battlefields/17": {
+      "file": "battlefields/17.668e3ce94406.webp",
+      "original": "battlefields/17.05a1f0a7ee78.jpg"
+    },
+    "battlefields/18": {
+      "file": "battlefields/18.b4b6a7532b8f.webp",
+      "original": "battlefields/18.a6cac792ac0c.jpg"
+    },
+    "battlefields/19": {
+      "file": "battlefields/19.6af71b5ca969.webp",
+      "original": "battlefields/19.32f0958220c1.jpg"
+    },
+    "battlefields/2": {
+      "file": "battlefields/2.3a64dbcbdd59.webp",
+      "original": "battlefields/2.b30d243003ff.jpg"
+    },
+    "battlefields/20": {
+      "file": "battlefields/20.c0c01fe6934f.webp",
+      "original": "battlefields/20.66397cc85ae3.jpg"
+    },
+    "battlefields/21": {
+      "file": "battlefields/21.2660b71bdbe9.webp",
+      "original": "battlefields/21.cfe03884747c.jpg"
+    },
+    "battlefields/3": {
+      "file": "battlefields/3.8241293370e6.webp",
+      "original": "battlefields/3.73617854093a.jpg"
+    },
+    "battlefields/4": {
+      "file": "battlefields/4.7c41ff4a7b37.webp",
+      "original": "battlefields/4.c884e5080bee.jpg"
+    },
+    "battlefields/5": {
+      "file": "battlefields/5.e9cedc2ffaa3.webp",
+      "original": "battlefields/5.ceee98a60406.jpg"
+    },
+    "battlefields/6": {
+      "file": "battlefields/6.799fd0c9377a.webp",
+      "original": "battlefields/6.f0e02b3c809e.jpg"
+    },
+    "battlefields/7": {
+      "file": "battlefields/7.f0208848c25a.webp",
+      "original": "battlefields/7.3c4db22ffbb4.jpg"
+    },
+    "battlefields/8": {
+      "file": "battlefields/8.fd9e7022078e.webp",
+      "original": "battlefields/8.24ca43d081bb.jpg"
+    },
+    "battlefields/9": {
+      "file": "battlefields/9.b574400e913a.webp",
+      "original": "battlefields/9.8aeb4bfb827b.jpg"
+    },
+    "portraits/job-6-female": {
+      "file": "portraits/job-6-female.e5679f6c8667.webp",
+      "original": "portraits/job-6-female.63cde845da3d.png"
+    },
+    "portraits/job-6-male": {
+      "file": "portraits/job-6-male.b56cf1c87f6b.webp",
+      "original": "portraits/job-6-male.5322f279b5fe.png"
+    },
+    "portraits/job-7-female": {
+      "file": "portraits/job-7-female.0a5aa5f50295.webp",
+      "original": "portraits/job-7-female.1ad64ce245fd.png"
+    },
+    "portraits/job-7-male": {
+      "file": "portraits/job-7-male.1abb4d9c0d19.webp",
+      "original": "portraits/job-7-male.488a42c6ca7d.png"
+    },
+    "portraits/job-8-female": {
+      "file": "portraits/job-8-female.a5e34832370a.webp",
+      "original": "portraits/job-8-female.b8ec288c9b17.png"
+    },
+    "portraits/job-8-male": {
+      "file": "portraits/job-8-male.d71fdcd4c541.webp",
+      "original": "portraits/job-8-male.8ee1b95c6e60.png"
+    },
+    "portraits/job-9-female": {
+      "file": "portraits/job-9-female.01e02577e6f3.webp",
+      "original": "portraits/job-9-female.4bbdd9d9435b.png"
+    },
+    "portraits/job-9-male": {
+      "file": "portraits/job-9-male.326c8c8ed4e9.webp",
+      "original": "portraits/job-9-male.62ee4999f38b.png"
+    }
+  }
 }
