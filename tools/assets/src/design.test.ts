@@ -27,6 +27,23 @@ const output = (group: string, name: string) =>
   join(root, "frontend/src/assets", group, `${name}.webp`)
 
 describe("design", () => {
+  it("--max-width 0 時非零結束並說明要 1 以上", async () => {
+    await writeFile(
+      join(root, "strip.png"),
+      await syntheticImage(100, 50, [{ left: 0, top: 0, width: 100, height: 50 }]),
+    )
+    const lines: string[] = []
+
+    const exitCode = await runCli(
+      ["design", "ui", "paper-strip", "strip.png", "--max-width", "0"],
+      { log: (line) => lines.push(line), error: (line) => lines.push(line) },
+      environment,
+    )
+
+    expect(exitCode).not.toBe(0)
+    expect(lines.join("\n")).toContain("--max-width 要是 1 以上的整數")
+  })
+
   it("1200 寬的來源加 --max-width 600 輸出 600 寬", async () => {
     await writeFile(
       join(root, "strip.png"),

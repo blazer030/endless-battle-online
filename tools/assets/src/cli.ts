@@ -155,6 +155,7 @@ const runDesign = async (
   validateKey(group)
   validateKey(name)
   const maxWidth = parseNonNegativeInteger("--max-width", parsed.options.get("--max-width"))
+  if (maxWidth === 0) throw new AssetError("--max-width 要是 1 以上的整數：0")
   const source = await readSource(environment, sourcePath)
   const webp = await convertDesignAsset(source.bytes, maxWidth)
   const target = join(environment.repositoryRoot, "frontend/src/assets", group, `${name}.webp`)
