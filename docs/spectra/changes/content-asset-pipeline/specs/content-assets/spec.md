@@ -118,7 +118,7 @@ The game frontend SHALL obtain every content image through a single lookup that 
 #### Scenario: Battle stage without monster art
 
 - **WHEN** the stage shows a monster or pet whose image is not in the manifest
-- **THEN** the stage displays the monsters placeholder in the creature's slot and the creature's name in its health bar
+- **THEN** the stage displays the monsters placeholder in the creature's slot; a monster's name stays in its health bar and a pet, which has no health bar, keeps its name plate
 
 ### Requirement: Missing image report
 

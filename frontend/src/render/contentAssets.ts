@@ -34,6 +34,10 @@ export const createContentAssets =
       : { url: `${manifest.baseUrl}/${entry.file}`, placeholder: false }
   }
 
+// 依序嘗試載入的網址：R2 的圖載入失敗時退回佔位圖
+export const artCandidates = (asset: ContentAsset, placeholder: string): string[] =>
+  asset.placeholder ? [asset.url] : [asset.url, placeholder]
+
 const isCategory = (text: string): text is ContentCategory =>
   (ContentCategories as readonly string[]).includes(text)
 
@@ -60,3 +64,6 @@ const placeholders: Record<ContentCategory, string> = {
 }
 
 export const contentAsset = createContentAssets(manifestJson as ContentManifest, placeholders)
+
+export const contentArtCandidates = (category: ContentCategory, key: string): string[] =>
+  artCandidates(contentAsset(category, key), placeholders[category])

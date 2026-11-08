@@ -22,7 +22,7 @@
 ## 5. 遊戲前端
 
 - [x] 5.1 [after: 3.1] Frontend content image lookup（依「清單內含網址前綴」「佔位圖是前端內建的設計素材」）：新增 `frontend/src/assets/content-manifest.json`（`baseUrl` 為 `https://ebo-assets.blazer030.dev`、`assets` 為空物件）、六張灰階剪影佔位圖 `frontend/src/assets/placeholders/<類別>.svg`、`frontend/src/render/contentAssets.ts` 的 `contentAsset(category, key)`。驗證：先寫失敗測試 `contentAssets.test.ts`「清單有 monsters/monster-1 時回傳完整網址且不是佔位圖」「沒有 items/item-9999 時回傳道具佔位圖並標記為佔位圖」，以及清單格式檢查「類別不合法、file 跟鍵對不上、baseUrl 不是 https 時失敗」（用測試資料驗證檢查本身，再對正式清單跑一次），再實作。
-- [ ] 5.2 [after: 5.1] 舞台改用 Frontend content image lookup：怪物與寵物用 `monsters/<怪物 id>`，缺圖或載入失敗時顯示 monsters 佔位圖，名字照舊顯示在血條；玩家不再找 `player` 圖、維持剪影。驗證：先寫失敗測試（把「依怪物 id 決定要載入的網址、失敗時改用佔位圖」抽成可測的純函式並測兩種情況），再接到 `StageRenderer`；手動在 `pnpm dev`（5175）開冒險頁，確認怪物位置顯示佔位圖、血條有名字、console 沒有錯誤。
+- [x] 5.2 [after: 5.1] 舞台改用 Frontend content image lookup：怪物與寵物用 `monsters/<怪物 id>`，缺圖或載入失敗時顯示 monsters 佔位圖，怪物的名字照舊顯示在血條、寵物（沒有血條）保留名牌；玩家不再找 `player` 圖、維持剪影。驗證：先寫失敗測試（把「依怪物 id 決定要載入的網址、失敗時改用佔位圖」抽成可測的純函式並測兩種情況），再接到 `StageRenderer`；手動在 `pnpm dev`（5175）開冒險頁，確認怪物位置顯示佔位圖、血條有名字、console 沒有錯誤。
 - [ ] 5.3 [after: 5.2] 移除舊管線（依「內容圖放 R2、設計素材放 git」）：刪除 `frontend/src/render/artIndex.ts`、`artIndex.test.ts`、`artAssets.test.ts`、`frontend/src/test/artRules.ts`、`frontend/src/assets/art/`、`scripts/import-art.sh`；行為不變（舊管線沒有圖），單獨以結構性變更 commit。驗證：刪除前後 `cd frontend && pnpm check` 都 exit 0；`git grep -n "resolveArt\|artRules\|import-art"` 只剩 docs/superpowers 與封存資料夾。
 
 ## 6. 文件與規則

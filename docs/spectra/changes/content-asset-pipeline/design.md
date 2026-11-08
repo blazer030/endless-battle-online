@@ -97,7 +97,7 @@ KB＝1024 bytes。試轉實測（q 為上表品質）：立繪 68～123 KB、道
 }
 ```
 
-**前端查找**（`frontend/src/render/contentAssets.ts`）：`contentAsset(category, key)` 回傳 `{ url: string; placeholder: boolean }`；清單有就回 `baseUrl + "/" + file`、`placeholder: false`，沒有就回該類佔位圖、`placeholder: true`。類別型別是六個類別的字串聯集。舞台：怪物與寵物用 `monsters/<怪物 id>`，缺圖時顯示佔位圖（名字照舊在血條上）；玩家不再找 `player` 圖，維持現有的剪影繪製。圖載入失敗時退回佔位圖。
+**前端查找**（`frontend/src/render/contentAssets.ts`）：`contentAsset(category, key)` 回傳 `{ url: string; placeholder: boolean }`；清單有就回 `baseUrl + "/" + file`、`placeholder: false`，沒有就回該類佔位圖、`placeholder: true`。類別型別是六個類別的字串聯集。舞台：怪物與寵物用 `monsters/<怪物 id>`，缺圖時顯示佔位圖（怪物的名字照舊在血條上；寵物沒有血條，名牌保留）；玩家不再找 `player` 圖，維持現有的剪影繪製。圖載入失敗時退回佔位圖。
 
 **驗收**：
 

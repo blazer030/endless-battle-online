@@ -4,7 +4,7 @@ import type { Text, Texture } from "pixi.js"
 import { initialStageState } from "../game/stageModel"
 import type { StageEffect, StageState } from "../game/stageModel"
 import { BreathingCycleSeconds } from "../motion/timings"
-import { resolveArt } from "./artIndex"
+import { contentArtCandidates } from "./contentAssets"
 import {
   createPlate,
   createStageText,
@@ -96,9 +96,6 @@ export class StageRenderer {
     for (const figure of [this.player, this.pet, this.monster]) breathe(figure.body)
     app.renderer.on("resize", this.onResize)
     this.layout()
-
-    const playerArt = resolveArt("player")
-    if (playerArt !== null) void this.showArt(playerArt, this.player, PlayerBox, () => true)
   }
 
   static async create(container: HTMLElement): Promise<StageRenderer> {
@@ -129,8 +126,12 @@ export class StageRenderer {
     this.updateHealth(state)
     this.showPet(state)
 
-    const art = resolveArt(monsterId)
-    if (art !== null) void this.showArt(art, this.monster, MonsterBox, isCurrent)
+    void this.showArt(
+      contentArtCandidates("monsters", monsterId),
+      this.monster,
+      MonsterBox,
+      isCurrent,
+    )
     void fontReady(monsterName).then(() => {
       if (!isCurrent()) return
       this.monsterBar.label.text = monsterName
@@ -148,11 +149,17 @@ export class StageRenderer {
     if (!state.petActive || state.petName === null) return
 
     const name = state.petName
-    const art = state.petMonsterId === null ? null : resolveArt(state.petMonsterId)
-    if (art !== null) void this.showArt(art, this.pet, PetBox, isCurrent)
-    // 沒有美術圖（或載入失敗）時以小號名牌代替
-    void fontReady(name).then(() => {
-      if (isCurrent() && this.pet.body.children.length === 0) this.drawPetName(name)
+    // 寵物沒有血條，名牌一直留著；有怪物 id 時另外放圖（沒有圖就是佔位圖）
+    const petMonsterId = state.petMonsterId
+    void fontReady(name).then(async () => {
+      if (petMonsterId !== null)
+        await this.showArt(
+          contentArtCandidates("monsters", petMonsterId),
+          this.pet,
+          PetBox,
+          isCurrent,
+        )
+      if (isCurrent()) this.drawPetName(name)
     })
   }
 
@@ -326,14 +333,23 @@ export class StageRenderer {
     this.pet.body.addChild(plate)
   }
 
-  private async showArt(url: string, figure: Figure, box: Box, isCurrent: () => boolean) {
-    let texture: Texture
-    try {
-      texture = await Assets.load<Texture>(url)
-    } catch {
-      return
+  // 依序嘗試每個網址，第一個載入成功的就用；全部失敗就保持原樣（名字仍在血條或名牌上）
+  private async showArt(
+    urls: readonly string[],
+    figure: Figure,
+    box: Box,
+    isCurrent: () => boolean,
+  ) {
+    let texture: Texture | null = null
+    for (const url of urls) {
+      try {
+        texture = await Assets.load<Texture>(url)
+        break
+      } catch {
+        continue
+      }
     }
-    if (this.destroyed || !isCurrent()) return
+    if (texture === null || this.destroyed || !isCurrent()) return
     const sprite = new Sprite(texture)
     sprite.anchor.set(0.5, 1)
     sprite.scale.set(Math.min(box.width / texture.width, box.height / texture.height))

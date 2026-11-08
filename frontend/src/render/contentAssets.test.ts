@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import manifestJson from "../assets/content-manifest.json"
 import {
+  artCandidates,
   ContentCategories,
   createContentAssets,
   validateManifest,
@@ -89,5 +90,24 @@ describe("validateManifest", () => {
 
   it("正式清單格式正確", () => {
     expect(validateManifest(manifestJson)).toEqual([])
+  })
+})
+
+describe("artCandidates", () => {
+  it("有圖時先試 R2 網址、載入失敗再退回佔位圖", () => {
+    const asset = { url: "https://x/monsters/monster-1.3fa2c1d04e5b.webp", placeholder: false }
+
+    expect(artCandidates(asset, "/placeholders/monsters.svg")).toEqual([
+      "https://x/monsters/monster-1.3fa2c1d04e5b.webp",
+      "/placeholders/monsters.svg",
+    ])
+  })
+
+  it("缺圖時只用佔位圖", () => {
+    const asset = { url: "/placeholders/monsters.svg", placeholder: true }
+
+    expect(artCandidates(asset, "/placeholders/monsters.svg")).toEqual([
+      "/placeholders/monsters.svg",
+    ])
   })
 })
