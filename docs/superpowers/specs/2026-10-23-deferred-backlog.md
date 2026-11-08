@@ -29,9 +29,6 @@
 - `api` 沒有 healthcheck，`web` 只 `depends_on: api`（started），剛啟動時 `/api/` 可能短暫回 502。可加 api healthcheck，讓 web 等 `service_healthy`。來源：Task 1 審查（README 已註明）。
 - `frontend/nginx.conf` 送出 `X-Forwarded-Proto`，但 API 沒有啟用 `UseForwardedHeaders`，目前沒有用途。來源：Task 1 審查。
 - `scripts/smoke-compose.sh` 會讀 repo 根目錄 `.env` 的 `EBO_DB_*`（埠已覆寫），沒有完全與 `.env` 隔離。來源：Task 1 審查。
-- `scripts/import-art.sh` 在 `magick` 失敗時可能留下寫到一半的 webp；改成先寫暫存檔再 `mv`。來源：Task 11 審查。
-- ImageMagick 的匯入流程沒有實跑過（這台機器沒裝 ImageMagick 7）；使用者第一次匯入 PNG 時順便確認參數。來源：Task 11 裁定。
-- `artAssets.test.ts` 的「每張美術圖都合規」在第一張圖進來前沒有真正的輸入。來源：Task 11 審查。
 
 ## 測試缺口
 
@@ -42,7 +39,6 @@
 - 密藥的經驗倍率以「開打時刻」判斷；改成以打完時刻判斷的變異可能存活（要一場勝場剛好跨過到期時刻才抓得到）。來源：Task 6 審查。
 - 技能頁「背景重載不覆蓋未儲存的草稿」沒有測試；`game/format.ts` 沒有 `format.test.ts`。來源：Task 10 審查。
 - `CharacterScreen` 卸載時清掉密藥倒數的 interval，沒有測試釘住（實作正確）。來源：Task 10 審查。
-- `artAssets.test.ts` 沒有釘住 VP8 寬高的 `& 0x3fff`（scale 位元）與 VP8L 的 alpha／version 位元：測試資料沒有設定這些位元，拿掉遮罩測試仍然通過。來源：Task 11 審查。
 
 ## 計畫 10 最終審查延後項目
 

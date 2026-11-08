@@ -74,7 +74,7 @@ KB＝1024 bytes。試轉實測（q 為上表品質）：立繪 68～123 KB、道
 
 ## Implementation Contract
 
-**匯入工具指令**（在 `tools/assets` 以 `pnpm <指令>` 執行；路徑參數相對於執行位置）：
+**匯入工具指令**（在 `tools/assets` 以 `pnpm cli <指令>` 執行——`pnpm import` 是 pnpm 內建指令，不能直接當腳本名；路徑參數相對於下指令的位置）：
 
 - `import <類別> <鍵> <來源圖> [--head-y <n>] [--dry-run]`
   - 依規格表輸出 WebP、寫預覽圖 `.asset-preview/<類別>/<鍵>.png`（棋盤底＋輔助線：立繪畫頂線 y=80、腳底線 y=1180、中線 x=400；怪物畫腳底線；圖示畫 88% 框），印出尺寸、品質、位元組數與警告。

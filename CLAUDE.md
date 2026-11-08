@@ -62,6 +62,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
   - `src/ui` — React 畫面與 `theme.css`。
   - `src/test/setup.ts` — Vitest＋Testing Library 設定。
 - `admin` — 內容後台，Vite + React + TypeScript + Refine + Ant Design，pnpm 管理；獨立專案，不與 `frontend` 共用套件。
+- `tools/assets` — 圖片匯入工具（TypeScript、sharp），pnpm 管理；獨立專案。內容圖轉檔、上傳 R2、維護清單，見 `docs/art/README.md`。
 
 ## 硬規則
 
@@ -73,7 +74,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
    - migration 要用 `DROP TABLE`、`DROP VIEW`、`DROP DATABASE`、`TRUNCATE` 時，每次都要先問使用者這次可不可以用，同意才能用；同意只算當次。
 4. `EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs` 與 `Persistence/Models/*.cs` 由 `scripts/scaffold-db.sh` 產生，**不得手改**；擴充寫在 `*.Partial.cs`。
 5. scaffold 產生的 model 只在 Infrastructure 使用，Application 與 Domain 只看見 Domain 型別。
-6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `EndlessBattle.Tests/TestContent/`。
+6. 遊戲內容只放 `backend/content/*.json`，資料庫只存玩家狀態；測試用 `EndlessBattle.Tests/TestContent/`。內容圖（道具、怪物、技能、職業立繪與圖示、戰鬥背景）放 Cloudflare R2，清單在 `frontend/src/assets/content-manifest.json`，只用 `tools/assets` 的 `import` 指令更新。
 7. 時間一律 UTC；資料庫時間欄位用 `DATETIME(6)`。
 
 ### 遊戲前端（`frontend`）
@@ -88,7 +89,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 5. 遊戲狀態只存在 `src/game/` 的純 TS 物件；React state 與 Pixi 物件都不持有權威狀態。`src/game/` 不得 import React、Pixi、GSAP 或 `src/api/` 以外的瀏覽器 API。
 6. 整個 app 只有一個 Pixi `Application`；Pixi `Text` 一律明確指定 `resolution: window.devicePixelRatio`。
 7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。
-8. 美術圖放 `src/assets/art/<內容 id>.webp`，以 `import.meta.glob` 建索引；沒有圖時顯示橫排名牌。規格（畫布、大小上限、構圖）、提示詞範本與匯入流程見 `docs/art/README.md`。
+8. 內容圖只透過 `src/render/contentAssets.ts` 的查找函式取得，缺圖或載入失敗時顯示該類佔位圖（`src/assets/placeholders/`）；設計素材（UI、場景、NPC）放 `src/assets/<分類>/`。規格、匯入流程與提示詞見 `docs/art/README.md`。
 9. `src/api/schema.ts` 是產生檔，不得手改。
 
 ### admin
@@ -102,7 +103,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、API 文件與型別是否最新、後端 build（警告視為錯誤）與測試、前端與 admin 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、API 文件與型別是否最新、後端 build（警告視為錯誤）與測試、前端、admin 與 `tools/assets` 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
 - `./scripts/check-api-types-test.sh` — 測試 API 文件與型別的檢查本身；會重複建置，`check.sh` 只在那兩支腳本有改動時才跑。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
@@ -110,7 +111,10 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `./scripts/deploy-nas.sh` — 把目前的 commit 部署到 NAS（`blazer@192.168.2.216:/volume1/docker/ebo`，`http://192.168.2.216:8080`）；第一次會在 NAS 上產生 `.env`，存檔不受重新部署影響；要在自己的終端機執行，中途會問 NAS 的 sudo 密碼。只上傳、改用 Container Manager 重新建置專案 `ebo`（路徑 `/docker/ebo/app`）時，執行時加 `< /dev/null`，上傳完會停下並以 exit 1 結束。
 - `./scripts/scaffold-db.sh` — 從資料庫重新產生 EF Core model。
 - `./scripts/clean-test-containers.sh` — 刪除測試殘留的 MySQL 容器（只刪 label `ebo.tests=true` 的）。
-- `./scripts/import-art.sh <來源圖> <id>` — 把生成的圖裁切、補成規格畫布並轉成 `frontend/src/assets/art/<id>.webp`（需要 ImageMagick 7 的 `magick`；`id` 是 `player` 或怪物 id），流程見 `docs/art/README.md`。
+- `cd tools/assets && pnpm cli import <類別> <鍵> <來源圖> [--head-y <n>] [--dry-run]` — 內容圖轉成規格 WebP、產生預覽圖（`.asset-preview/`）、上傳 R2 並更新清單；上傳需要 repo 根目錄的 `.env.r2`（範本 `.env.r2.example`），`--dry-run` 不需要。
+- `cd tools/assets && pnpm cli missing [<類別>]` — 列出每類有幾張圖、缺哪些。
+- `cd tools/assets && pnpm cli design <分類> <名稱> <來源圖> [--max-width <n>]` — 設計素材轉成 `frontend/src/assets/<分類>/<名稱>.webp`。
+- `cd tools/assets && pnpm check` — 匯入工具的 eslint、prettier 檢查、`tsc -b`、vitest。
 - `cd backend && dotnet run --project EndlessBattle.Api` — 啟動 API。
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。

@@ -16,7 +16,7 @@
 
 ## 4. 其他指令
 
-- [x] 4.1 [after: 3.1] Missing image report：`missing [<類別>]` 從 `backend/content` 推出各類應有的鍵（立繪＝職業 × male／female、職業圖示、技能、道具、怪物、地點），跟清單比較，印出每類「有圖 n／應有 m」與缺圖的鍵，exit 0。驗證：先寫失敗測試 `missing.test.ts`「清單有 8 張立繪、內容有 12 個職業時顯示 8／24 並列出 16 個鍵」（用測試用的內容資料夾），再實作；之後對真實內容跑 `pnpm missing` 看得到六類統計。
+- [x] 4.1 [after: 3.1] Missing image report：`missing [<類別>]` 從 `backend/content` 推出各類應有的鍵（立繪＝職業 × male／female、職業圖示、技能、道具、怪物、地點），跟清單比較，印出每類「有圖 n／應有 m」與缺圖的鍵，exit 0。驗證：先寫失敗測試 `missing.test.ts`「清單有 8 張立繪、內容有 12 個職業時顯示 8／24 並列出 16 個鍵」（用測試用的內容資料夾），再實作；之後對真實內容跑 `pnpm cli missing` 看得到六類統計。
 - [x] 4.2 [after: 1.1] Design asset import：`design <分類> <名稱> <來源圖> [--max-width <n>]` 寫出 `frontend/src/assets/<分類>/<名稱>.webp`（品質 85、保留透明、不裁切、比來源窄時等比縮小），超過 307200 bytes 就拒絕且不寫檔。驗證：先寫失敗測試 `design.test.ts`「1200 寬的來源加 --max-width 600 輸出 600 寬」「超過上限時不寫檔並非零結束」，再實作。
 
 ## 5. 遊戲前端
@@ -27,9 +27,9 @@
 
 ## 6. 文件與規則
 
-- [ ] 6.1 [after: 5.3] 改寫規則與文件：專案 `CLAUDE.md` 硬規則 6（內容圖放 R2、清單在 git）、前端硬規則 8（只透過查找函式取內容圖、缺圖用佔位圖、設計素材放 `src/assets/<分類>/`）、「結構」加 `tools/assets`、「指令」換掉 `import-art.sh` 改列 `import`／`missing`／`design`；`docs/art/README.md` 改寫成新規格表、匯入流程、`.env.r2` 設定、佔位圖 SVG 不受色碼規則約束；`docs/art/prompts.md` 改指向新流程；裁定彙整「（四）明確不做」那一條註明已由本變更推翻；延後清單刪除 `import-art.sh` 寫到一半、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩三條。驗證：逐檔內容檢查；`git grep -n "import-art\|assets/art"` 在 CLAUDE.md 與 docs/art 沒有結果。
+- [x] 6.1 [after: 5.3] 改寫規則與文件：專案 `CLAUDE.md` 硬規則 6（內容圖放 R2、清單在 git）、前端硬規則 8（只透過查找函式取內容圖、缺圖用佔位圖、設計素材放 `src/assets/<分類>/`）、「結構」加 `tools/assets`、「指令」換掉 `import-art.sh` 改列 `import`／`missing`／`design`；`docs/art/README.md` 改寫成新規格表、匯入流程、`.env.r2` 設定、佔位圖 SVG 不受色碼規則約束；`docs/art/prompts.md` 改指向新流程；裁定彙整「（四）明確不做」那一條註明已由本變更推翻；延後清單刪除 `import-art.sh` 寫到一半、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩三條。驗證：逐檔內容檢查；`git grep -n "import-art\|assets/art"` 在 CLAUDE.md 與 docs/art 沒有結果。
 
 ## 7. 第一批匯入與總檢查
 
-- [ ] 7.1 [after: 3.3, 4.1, 5.2] 第一批正式匯入（使用者先依 `.env.r2.example` 建好 `.env.r2`）：從 `.design-work/assets` 匯入四職男女立繪（`job-6`～`job-9` 的 `-male`／`-female`）與 21 張戰鬥背景，逐張看預覽圖、必要時用 `--head-y`；`pnpm missing` 顯示立繪 8／24、戰鬥背景 21／21；用瀏覽器打開清單裡任一網址看得到圖；核對實際檔案大小與 design 規格表的實測範圍，差太多就回報。驗證：上述手動檢查，清單 commit。
+- [ ] 7.1 [after: 3.3, 4.1, 5.2] 第一批正式匯入（使用者先依 `.env.r2.example` 建好 `.env.r2`）：從 `.design-work/assets` 匯入四職男女立繪（`job-6`～`job-9` 的 `-male`／`-female`）與 21 張戰鬥背景，逐張看預覽圖、必要時用 `--head-y`；`pnpm cli missing` 顯示立繪 8／24、戰鬥背景 21／21；用瀏覽器打開清單裡任一網址看得到圖；核對實際檔案大小與 design 規格表的實測範圍，差太多就回報。驗證：上述手動檢查，清單 commit。
 - [ ] 7.2 [after: 6.1, 7.1] `./scripts/check.sh` exit code 0。
