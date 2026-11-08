@@ -49,6 +49,44 @@ describe("processImage 圖示類", () => {
   })
 })
 
+describe("processImage 怪物與戰鬥背景", () => {
+  it("怪物腳底在 y=529 且水平置中，高度縮到 486", async () => {
+    const source = await syntheticImage(300, 400, [{ left: 40, top: 30, width: 200, height: 300 }])
+
+    const measured = await measure((await processImage("monsters", source)).webp)
+
+    expect([measured.width, measured.height]).toEqual([540, 540])
+    const opaque = measured.opaque!
+    expect(opaque.bottom).toBe(529)
+    expect(opaque.bottom - opaque.top + 1).toBe(486)
+    expect(Math.abs(opaque.left - (539 - opaque.right))).toBeLessThanOrEqual(1)
+  })
+
+  it("扁長的怪物以寬度 513 為限", async () => {
+    const source = await syntheticImage(500, 200, [{ left: 0, top: 50, width: 400, height: 100 }])
+
+    const opaque = (await measure((await processImage("monsters", source)).webp)).opaque!
+
+    expect(opaque.right - opaque.left + 1).toBe(513)
+    expect(opaque.bottom).toBe(529)
+  })
+
+  it("1600×900 的背景輸出 1024×1024 且沒有透明像素", async () => {
+    const source = await syntheticImage(1600, 900, [{ left: 0, top: 0, width: 1600, height: 900 }])
+
+    const measured = await measure((await processImage("battlefields", source)).webp)
+
+    expect([measured.width, measured.height]).toEqual([1024, 1024])
+    expect(measured.hasAlpha).toBe(false)
+  })
+
+  it("比 1024 小的背景會放大並警告", async () => {
+    const source = await syntheticImage(800, 600, [{ left: 0, top: 0, width: 800, height: 600 }])
+
+    expect((await processImage("battlefields", source)).warnings.join("")).toContain("放大")
+  })
+})
+
 describe("encodeWithinLimit", () => {
   it("上限設很小時依序嘗試 85、80…60 後拒絕", async () => {
     const tried: number[] = []

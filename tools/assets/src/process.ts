@@ -26,6 +26,9 @@ export const Specs: Record<Category, Spec> = {
 }
 
 const IconFill = 0.88
+const MonsterMaxHeight = 486
+const MonsterMaxWidth = 513
+const MonsterFeetY = 529
 const OpaqueAlpha = 24
 const LowestQuality = 60
 const QualityStep = 5
@@ -124,12 +127,38 @@ const composeIcon = async (raw: Raw, spec: Spec): Promise<Composed> => {
   return { image, warnings: enlargeWarning(scale) }
 }
 
+const composeMonster = async (raw: Raw, spec: Spec): Promise<Composed> => {
+  const box = opaqueBox(raw)
+  const scale = Math.min(MonsterMaxHeight / box.height, MonsterMaxWidth / box.width)
+  const piece = await scaledPiece(raw, box, scale)
+  const image = blankCanvas(spec).composite([
+    {
+      input: piece.input,
+      left: Math.floor((spec.width - piece.width) / 2),
+      top: MonsterFeetY + 1 - piece.height,
+    },
+  ])
+  return { image, warnings: enlargeWarning(scale) }
+}
+
+const composeBattlefield = async (raw: Raw, spec: Spec): Promise<Composed> => {
+  const scale = Math.max(spec.width / raw.width, spec.height / raw.height)
+  const image = sharp(raw.data, {
+    raw: { width: raw.width, height: raw.height, channels: 4 },
+  }).resize(spec.width, spec.height, { fit: "cover", position: "centre", kernel: "lanczos3" })
+  return { image, warnings: enlargeWarning(scale) }
+}
+
 const compose = async (category: Category, raw: Raw, spec: Spec): Promise<Composed> => {
   switch (category) {
     case "items":
     case "skills":
     case "job-icons":
       return composeIcon(raw, spec)
+    case "monsters":
+      return composeMonster(raw, spec)
+    case "battlefields":
+      return composeBattlefield(raw, spec)
     default:
       throw new AssetError(`尚未支援的類別：${category}`)
   }
