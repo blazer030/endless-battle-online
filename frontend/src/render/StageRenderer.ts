@@ -51,7 +51,8 @@ const PlayerLabel = "你"
 
 type Box = { width: number; height: number }
 // slot 由版面定位在立繪底部中心；body 承載呼吸與受擊抖動
-type Figure = { slot: Container; body: Container }
+// art 只放立繪（或沒有立繪時代替它的怪物名牌），換圖時只清這一層；寵物名牌放在 art 外面
+type Figure = { slot: Container; body: Container; art: Container }
 type HealthBar = { root: Container; label: Text; meter: Graphics; color: number }
 
 const fontFaces = [
@@ -121,7 +122,7 @@ export class StageRenderer {
     // 上一隻逃跑時淡出了，新的怪物要回到不透明
     gsap.killTweensOf(this.monster.slot)
     this.monster.slot.alpha = 1
-    clearBody(this.monster.body)
+    clearFigure(this.monster)
     this.monsterBar.label.text = ""
     this.updateHealth(state)
     this.showPet(state)
@@ -135,7 +136,7 @@ export class StageRenderer {
     void fontReady(monsterName).then(() => {
       if (!isCurrent()) return
       this.monsterBar.label.text = monsterName
-      if (this.monster.body.children.length === 0) this.drawMonsterName(monsterName)
+      if (this.monster.art.children.length === 0) this.drawMonsterName(monsterName)
     })
   }
 
@@ -143,7 +144,7 @@ export class StageRenderer {
     const token = ++this.petToken
     const isCurrent = () => !this.destroyed && token === this.petToken
     gsap.killTweensOf(this.pet.slot)
-    clearBody(this.pet.body)
+    clearFigure(this.pet)
     this.pet.slot.alpha = 1
     this.pet.slot.visible = state.petActive
     if (!state.petActive || state.petName === null) return
@@ -315,7 +316,7 @@ export class StageRenderer {
     const slotX = this.monster.slot.x
     const rightmostCenter = this.app.screen.width - MonsterNameRight - plate.width / 2
     plate.position.set(Math.min(slotX, rightmostCenter) - slotX, MonsterPlateCenterY - StageHeight)
-    this.monster.body.addChild(plate)
+    this.monster.art.addChild(plate)
   }
 
   private drawPetName(name: string) {
@@ -345,20 +346,31 @@ export class StageRenderer {
     const sprite = new Sprite(texture)
     sprite.anchor.set(0.5, 1)
     sprite.scale.set(Math.min(box.width / texture.width, box.height / texture.height))
-    clearBody(figure.body)
-    figure.body.addChild(sprite)
+    clearBody(figure.art)
+    figure.art.addChild(sprite)
   }
 }
 
 const createFigure = (): Figure => {
   const slot = new Container()
   const body = new Container()
+  const art = new Container()
   slot.addChild(body)
-  return { slot, body }
+  body.addChild(art)
+  return { slot, body, art }
 }
 
 const clearBody = (body: Container) => {
   for (const child of body.removeChildren()) child.destroy({ children: true })
+}
+
+const clearFigure = (figure: Figure) => {
+  clearBody(figure.art)
+  for (const child of [...figure.body.children])
+    if (child !== figure.art) {
+      figure.body.removeChild(child)
+      child.destroy({ children: true })
+    }
 }
 
 const breathe = (body: Container) =>
