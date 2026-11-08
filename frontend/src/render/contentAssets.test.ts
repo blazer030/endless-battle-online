@@ -4,8 +4,10 @@ import {
   artCandidates,
   ContentCategories,
   createContentAssets,
+  loadFirst,
   validateManifest,
   type ContentCategory,
+  type ContentManifest,
 } from "./contentAssets"
 
 const placeholders = Object.fromEntries(
@@ -80,6 +82,34 @@ describe("validateManifest", () => {
     expect(errors).toHaveLength(1)
   })
 
+  it("鍵含小寫英數與連字號以外的字元時列出錯誤", () => {
+    // 「.」若被當成正規表示式的任意字元，itemx1 會被誤判成符合 item.1
+    const errors = validateManifest({
+      baseUrl: "https://x",
+      assets: { "items/item.1": { file: "items/itemx1.3fa2c1d04e5b.webp", original: "o" } },
+    })
+
+    expect(errors.join("")).toContain("items/item.1")
+  })
+
+  it("鍵裡有斜線時列出錯誤", () => {
+    const errors = validateManifest({
+      baseUrl: "https://x",
+      assets: { "items/a/b": { file: "items/a/b.3fa2c1d04e5b.webp", original: "o" } },
+    })
+
+    expect(errors.join("")).toContain("items/a/b")
+  })
+
+  it("缺 original 時列出錯誤", () => {
+    const errors = validateManifest({
+      baseUrl: "https://x",
+      assets: { "items/item-1": { file: "items/item-1.3fa2c1d04e5b.webp" } },
+    } as unknown as ContentManifest)
+
+    expect(errors.join("")).toContain("original")
+  })
+
   it("baseUrl 不是 https 時列出錯誤", () => {
     expect(validateManifest({ baseUrl: "http://x", assets: {} })).toHaveLength(1)
   })
@@ -109,5 +139,42 @@ describe("artCandidates", () => {
     expect(artCandidates(asset, "/placeholders/monsters.svg")).toEqual([
       "/placeholders/monsters.svg",
     ])
+  })
+})
+
+describe("loadFirst", () => {
+  const loader = (failing: readonly string[]) => {
+    const tried: string[] = []
+    const load = async (url: string) => {
+      tried.push(url)
+      if (failing.includes(url)) throw new Error(`載入失敗：${url}`)
+      return `texture:${url}`
+    }
+    return { tried, load }
+  }
+
+  it("R2 的圖載入失敗時改用佔位圖", async () => {
+    const { tried, load } = loader(["https://x/monsters/monster-1.3fa2c1d04e5b.webp"])
+
+    const result = await loadFirst(
+      ["https://x/monsters/monster-1.3fa2c1d04e5b.webp", "/placeholders/monsters.svg"],
+      load,
+    )
+
+    expect(result).toBe("texture:/placeholders/monsters.svg")
+    expect(tried).toHaveLength(2)
+  })
+
+  it("第一張成功就不再載入後面的", async () => {
+    const { tried, load } = loader([])
+
+    expect(await loadFirst(["a", "b"], load)).toBe("texture:a")
+    expect(tried).toEqual(["a"])
+  })
+
+  it("全部失敗時回傳 null", async () => {
+    const { load } = loader(["a", "b"])
+
+    expect(await loadFirst(["a", "b"], load)).toBeNull()
   })
 })

@@ -61,10 +61,14 @@ export const validateManifest = (manifest: ContentManifest): string[] => {
   if (!/^https:\/\/[^/]+(\/.*[^/])?$/.test(manifest.baseUrl))
     errors.push(`baseUrl 要是 https 且結尾沒有斜線：${manifest.baseUrl}`)
   for (const [name, entry] of Object.entries(manifest.assets)) {
-    const category = name.split("/")[0] ?? ""
+    const [category = "", ...rest] = name.split("/")
+    const key = rest.join("/")
     if (!isCategory(category)) errors.push(`${name}：不認得的類別`)
+    // 鍵限定小寫英數與連字號，放進正規表示式才不需要跳脫
+    else if (!/^[a-z0-9-]+$/.test(key)) errors.push(`${name}：鍵只能用小寫英文、數字與連字號`)
     else if (!new RegExp(`^${name}\\.[0-9a-f]{12}\\.webp$`).test(entry.file))
       errors.push(`${name}：file 應為 ${name}.<12 位十六進位>.webp，實際是 ${entry.file}`)
+    if (typeof entry.original !== "string") errors.push(`${name}：缺少 original`)
   }
   return errors
 }
