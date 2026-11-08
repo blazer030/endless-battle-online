@@ -79,9 +79,9 @@ KB＝1024 bytes。試轉實測（q 為上表品質）：立繪 68～123 KB、道
 - `import <類別> <鍵> <來源圖> [--head-y <n>] [--dry-run]`
   - 依規格表輸出 WebP、寫預覽圖 `.asset-preview/<類別>/<鍵>.png`（棋盤底＋輔助線：立繪畫頂線 y=80、腳底線 y=1180、中線 x=400；怪物畫腳底線；圖示畫 88% 框），印出尺寸、品質、位元組數與警告。
   - 非 `--dry-run`：上傳原檔到 `ebo-originals` 的 `<類別>/<鍵>.<原檔雜湊>.<原副檔名>`、上傳 WebP 到 `ebo-content` 的 `<類別>/<鍵>.<雜湊>.webp`（`Content-Type: image/webp`、`Cache-Control: public, max-age=31536000, immutable`）；物件已存在就略過上傳；兩者都成功後才更新清單。
-  - 錯誤：未知類別、鍵不符合 `^[a-z0-9-]+$`、來源讀不到、規格不合（超出畫布、降到 q60 仍超過上限）、缺 `.env.r2`（`--dry-run` 不需要）、上傳失敗 → 非零 exit code 與一行中文說明；清單不變。
-- `missing [<類別>]`：讀 `backend/content/*.json` 列出每類應有的鍵，跟清單比較，印出每類「有圖 n／應有 m」與缺圖的鍵；`portraits` 以 jobs × {male, female} 計算、`monsters` 以 monsters.json 計算。exit code 0。
-- `design <分類> <名稱> <來源圖> [--max-width <n>]`：輸出 `frontend/src/assets/<分類>/<名稱>.webp`（品質 85、保留透明、不裁切），超過 300 KB 拒絕；分類與名稱都要符合 `^[a-z0-9-]+$`。
+  - 錯誤：未知類別、鍵不符合 `^[a-z0-9-]+$`、鍵不在 `backend/content` 推出的應有鍵裡（R2 鎖定後刪不掉，所以上傳前擋下；`--dry-run` 只印提醒、照常結束）、來源讀不到、規格不合（超出畫布、降到 q60 仍超過上限）、缺 `.env.r2`（`--dry-run` 不需要）、上傳失敗 → 非零 exit code 與一行中文說明；清單不變。
+- `missing [<類別>]`：讀 `backend/content/*.json` 列出每類應有的鍵，跟清單比較，印出每類「有圖 n／應有 m」、缺圖的鍵，以及清單有、內容沒有的鍵（「多：」）；`portraits` 以 jobs × {male, female} 計算、`monsters` 以 monsters.json 計算。exit code 0。
+- `design <分類> <名稱> <來源圖> [--max-width <n>]`：輸出 `frontend/src/assets/<分類>/<名稱>.webp`（品質 85、保留透明、不裁切），超過 300 KB 拒絕；分類與名稱都要符合 `^[a-z0-9-]+$`；`--max-width` 要是 1 以上的整數。
 
 **金鑰**：repo 根目錄 `.env.r2`（git 忽略），欄位 `R2_ENDPOINT`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`；範本 `.env.r2.example` 只有欄位名。工具不印出金鑰。
 
@@ -104,6 +104,7 @@ KB＝1024 bytes。試轉實測（q 為上表品質）：立繪 68～123 KB、道
 - `tools/assets` 的 vitest：各類輸出尺寸、透明、腳底與中線位置（用合成測試圖）、超出畫布拒絕、品質遞減與拒絕、已存在略過上傳、上傳失敗時清單不變、清單排序、`missing` 統計。
 - `frontend` 的 vitest：查找函式的有圖／缺圖；清單格式檢查（每個鍵的類別合法、`file` 符合 `<類別>/<鍵>.<12 位十六進位>.webp`、`baseUrl` 是 https）；舞台在缺圖時使用佔位圖。
 - `./scripts/check.sh` 通過（含 `tools/assets` 的 `pnpm check`）。
+- 手動（不寫自動測試）：舞台上怪物名字留在血條、寵物名牌一直顯示，屬於 Pixi 畫面呈現，依「樣式不寫測試」只做畫面確認；載入哪些網址與失敗時退回佔位圖由 `artCandidates`、`loadFirst` 的測試涵蓋。2026-11-09 用無頭 Chrome 確認過（寵物以攔截 API 回應的方式放入）。
 - 手動：使用者填好 `.env.r2` 後，匯入四職男女立繪與 21 張戰鬥背景，確認預覽圖、`missing` 統計，並用瀏覽器打開清單裡任一網址看得到圖。
 
 **範圍**：在內——上述工具、清單、查找、佔位圖、舞台改用查找、移除舊管線、文件與規則。在外——見 Non-Goals。
