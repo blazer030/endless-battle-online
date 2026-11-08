@@ -129,6 +129,15 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 3. `./scripts/scaffold-db.sh` 重新產生 model。
 4. 寫用到它的測試與程式。
 
+## 發版
+
+用 git flow：平常在 `develop` 開發，發版時開 `release/<版本>`。
+
+1. `git flow release start <版本>`（版本不加 `v`，例如 `0.2.0`）。
+2. 在 release 分支把 `frontend/package.json` 與 `admin/package.json` 的 `version` 改成同一個版本，`check.sh` 通過後 commit。
+3. `GIT_MERGE_AUTOEDIT=no git flow release finish -m "<版本>" <版本>`（併進 `main`、打 tag、併回 `develop`）。
+4. `git push origin develop main <版本>`。
+
 ## 開發流程
 
 - 照最上方的 Spectra 區塊；與其他流程 skill（superpowers 的 brainstorming、writing-plans、executing-plans、subagent-driven-development、requesting-code-review、systematic-debugging、finishing-a-development-branch）重疊時用 Spectra 的。
