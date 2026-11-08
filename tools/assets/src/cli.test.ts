@@ -1,6 +1,8 @@
+import { randomBytes } from "node:crypto"
 import { access, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import sharp from "sharp"
 import { beforeEach, describe, expect, it } from "vitest"
 import { runCli, type CliEnvironment } from "./cli.ts"
 import { FakeStorage } from "./testing/fakeStorage.ts"
@@ -122,6 +124,37 @@ describe("import", () => {
 
     expect(exitCode).not.toBe(0)
     expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
+  })
+
+  describe("有金鑰但輸入不合格時非零結束、不上傳、清單不變", () => {
+    beforeEach(async () => {
+      await writeFile(
+        join(root, ".env.r2"),
+        "R2_ENDPOINT=https://e\nR2_ACCESS_KEY_ID=id\nR2_SECRET_ACCESS_KEY=secret\n",
+      )
+      // 雜訊圖壓到品質 60 仍遠超過戰鬥背景的 150 KB
+      const noise = randomBytes(1024 * 1024 * 3)
+      await writeFile(
+        join(root, "noise.png"),
+        await sharp(noise, { raw: { width: 1024, height: 1024, channels: 3 } })
+          .png()
+          .toBuffer(),
+      )
+    })
+
+    it.each([
+      ["品質降到 60 仍超過上限", ["battlefields", "1", "noise.png"]],
+      ["類別不認得", ["weapons", "sword-1", "monster.png"]],
+      ["鍵含大寫", ["monsters", "Monster-1", "monster.png"]],
+    ])("%s", async (_, args) => {
+      const { output } = capture()
+
+      const exitCode = await runCli(["import", ...args], output, environment)
+
+      expect(exitCode).not.toBe(0)
+      expect(storage.puts).toEqual([])
+      expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
+    })
   })
 
   it("--head-y 只能用在立繪", async () => {

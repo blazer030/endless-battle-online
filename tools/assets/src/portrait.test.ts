@@ -54,6 +54,18 @@ describe("立繪對齊", () => {
     expect((await measure(webp)).opaque!.bottom).toBe(1180)
   })
 
+  it("同一張圖用同一個 headY 再轉一次，輸出位元組相同（檔名雜湊不變）", async () => {
+    const source = await syntheticImage(400, 1000, [
+      { left: 190, top: 0, width: 20, height: 40 },
+      { left: 100, top: 40, width: 200, height: 960 },
+    ])
+
+    const first = (await processImage("portraits", source, { headY: 40 })).webp
+    const second = (await processImage("portraits", source, { headY: 40 })).webp
+
+    expect(second.equals(first)).toBe(true)
+  })
+
   it("左邊超出時拒絕並寫『左側超出畫布』", async () => {
     const source = await syntheticImage(1200, 1000, [
       { left: 900, top: 0, width: 100, height: 1000 },
