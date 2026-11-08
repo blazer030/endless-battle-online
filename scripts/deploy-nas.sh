@@ -4,16 +4,32 @@
 #
 # NAS 上的 docker 要 sudo，所以要在自己的終端機執行，中途會問 NAS 的密碼。
 # 只想上傳、改用 Container Manager 重新建置專案 ebo 時，執行時加 < /dev/null：上傳完會停下並以 exit 1 結束。
-# 可用環境變數覆寫：EBO_NAS_HOST、EBO_NAS_DIRECTORY；EBO_WEB_PORT 只在第一次產生 .env 時生效，之後改 NAS 上的 .env。
+# NAS 位置與 Cloudflare Tunnel 的 token 放本機 .env.nas.local（NAS_HOST、NAS_DIR、NAS_TUNNEL_TOKEN，範本 .env.nas.local.example）；
+# 也可用環境變數 EBO_NAS_HOST、EBO_NAS_DIRECTORY 覆寫。EBO_WEB_PORT 只在第一次產生 .env 時生效，之後改 NAS 上的 .env。
 set -euo pipefail
-
-nas_host="${EBO_NAS_HOST:-blazer@192.168.2.216}"
-nas_directory="${EBO_NAS_DIRECTORY:-/volume1/docker/ebo}"
-initial_web_port="${EBO_WEB_PORT:-8080}"
-health_timeout_seconds=180
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repository_root"
+
+# 本機設定 .env.nas.local（git 忽略，範本 .env.nas.local.example）；不 source，逐欄讀出，去掉引號與 CR
+local_setting() {
+    local value=""
+    if [[ -f .env.nas.local ]]; then
+        value="$(sed -n "s/^$1=//p" .env.nas.local | tail -n 1 | tr -d '\r')"
+        value="${value#[\"\']}"
+        value="${value%[\"\']}"
+    fi
+    printf '%s' "$value"
+}
+
+# 優先順序：環境變數 → .env.nas.local → 預設值
+nas_host="${EBO_NAS_HOST:-$(local_setting NAS_HOST)}"
+nas_host="${nas_host:-blazer@192.168.2.216}"
+nas_directory="${EBO_NAS_DIRECTORY:-$(local_setting NAS_DIR)}"
+nas_directory="${nas_directory:-/volume1/docker/ebo}"
+tunnel_token="$(local_setting NAS_TUNNEL_TOKEN)"
+initial_web_port="${EBO_WEB_PORT:-8080}"
+health_timeout_seconds=180
 
 quoted_directory="$(printf %q "$nas_directory")"
 nas_address="${nas_host#*@}"
@@ -48,12 +64,6 @@ fi
 REMOTE
 
 # Cloudflare Tunnel 的 token：本機 .env.nas.local（git 忽略）有 NAS_TUNNEL_TOKEN 時，經 ssh stdin 寫進 NAS 的 .env，不出現在指令列也不輸出。
-tunnel_token=""
-if [[ -f .env.nas.local ]]; then
-    tunnel_token="$(sed -n 's/^NAS_TUNNEL_TOKEN=//p' .env.nas.local | tail -n 1 | tr -d '\r')"
-    tunnel_token="${tunnel_token#[\"\']}"
-    tunnel_token="${tunnel_token%[\"\']}"
-fi
 if [[ -n "$tunnel_token" ]]; then
     if [[ "$tunnel_token" =~ [[:space:]] ]]; then
         echo "部署失敗：.env.nas.local 的 NAS_TUNNEL_TOKEN 含有空白，請重新複製（--token 後面那一串）" >&2
