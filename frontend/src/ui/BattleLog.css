@@ -1,0 +1,63 @@
+.battle-log {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 4px 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.battle-log__tabs {
+  display: flex;
+  gap: 14px;
+  padding: 8px 16px 0;
+  font-size: 11px;
+}
+
+.battle-log__tab {
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.battle-log__tab[aria-selected="true"] {
+  border-bottom-color: var(--gold);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.battle-log__lines {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 6px 16px;
+  overflow: hidden;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.85;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* 遮罩只看透明度，用關鍵字而非色碼 */
+  -webkit-mask-image: linear-gradient(transparent, black 22%);
+  mask-image: linear-gradient(transparent, black 22%);
+}
+
+.battle-log__line--muted {
+  color: var(--text-muted);
+}
+
+.battle-log__line--drop b {
+  color: var(--gold);
+}
+
+.battle-log__line--trigger b {
+  color: var(--crimson-text);
+}

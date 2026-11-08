@@ -1,0 +1,47 @@
+## 1. API 文件檔
+
+- [x] 1.1 依「OpenAPI 文件在建置時產生」讓 `dotnet build` 寫出 `backend/openapi/` 的 `v1` 與 `admin` 兩份文件（OpenAPI documents are written at build time），`admin` 文件含 admin 路由、`v1` 不含 `/admin/` 路徑（Admin has its own OpenAPI document）；先驗證建置時產生是否可行（啟動流程的內容載入、JWT 金鑰檢查、`Admin:Enabled`），不可行時改用設計裡的測試比對替代方案並在 design.md 記下採用哪一種。`frontend` 與 `admin` 的 `generate:api` 改讀這兩份檔案（Clients generate types from the document files），`scripts/check.sh` 重新產生後以 `git diff --exit-code` 檢查文件與兩份 `schema.ts`（Stale API types fail the check），CLAUDE.md「指令」段落改寫 `generate:api` 的說明。驗證：在 API 未執行時跑兩個 `pnpm generate:api` 成功且 `schema.ts` 沒有差異；手動在 admin 的 `schema.ts` 加一行後 `./scripts/check.sh` 以非 0 結束，還原後 exit code 0。
+
+## 2. 怪物
+
+- [x] 2.1 依「三層資料」「關聯表併進怪物與技能的紀錄」「欄位完整名稱對照」「內容檔與紀錄雙向轉換不失真」新增怪物紀錄（Application）與 codec（Infrastructure，含 `monster-skills.json`、`isNpc`、`npcMessage`），並為怪物註冊有型別的 `/admin/content/monsters` 路由（GET 列表、GET 一筆、PUT、POST；Editable content kinds、Edits only change the draft、Lossless record conversion），舊的 `/admin/content/{kind}` 繼續處理其他種類。先寫失敗測試：`MonsterCodec_RoundTripsContentFiles`（`backend/content/monsters.json`、`monster-skills.json` 與 TestContent 讀成紀錄再寫回逐字相同）、`Monsters_UseCompleteFieldNames`（`monster-1` 的 `attack` 19、`magicDefense` 5、`encounterRate` 0、掉落 `dropRarity` 90、技能 `activationRate` 10）、`Monsters_RejectBodyWithWrongShape`（400 含欄位名稱、草稿不變）、`Monsters_RejectMissingSkill`（`skills[0].skillId` 指向不存在的技能回 400 含欄位名稱、草稿不變）、`Monsters_SaveSkillsWithMonster`（改 `monster-1` 的技能後 `monster-skills.json` 只有該怪的列改變）、`Monsters_WriteFailureLeavesDraftUnchanged`（第二個檔案寫入失敗時兩個檔案都不變）、`Monsters_InvalidPlaceStillSaved`（Every draft write is checked：`placeId` 指向不存在的地區時照樣保存，回應回報草稿無效與載入錯誤；被 400 拒絕的請求則不寫入）；既有 admin API 測試中送怪物本體的改用新欄位名稱。驗證：`cd backend && dotnet test` 全綠，`backend/openapi/` 的 admin 文件有怪物紀錄的 schema。[after: 1.1]
+- [x] 2.2 新增唯讀任務列表 `GET /admin/content/missions`（Missions are read-only）：回傳每個任務的 `id`、`title`、`daily`，有草稿讀草稿；`PUT`／`POST` 任務路徑回 404。先寫失敗測試 `Missions_ListIdTitleAndDaily`、`Missions_CannotBeWritten`。驗證：`cd backend && dotnet test --filter-class "*AdminMissionTests"` 通過。[after: 2.1]
+- [x] 2.3 依「admin 前端的 DTO、Converter、VO」建立共用基礎與怪物列表（API responses become view objects；依「搜尋與篩選」實作 Lists can be searched and filtered）：`shared/parse.ts` 與 `ContentParseError`、以 react-query 實作的怪物 repository、`MonsterVo`／`MonsterConverter`、怪物列表（每頁 50 筆、搜尋 id／名稱、依地區篩選、地區欄顯示名稱、解析錯誤時顯示路徑且不顯示資料列）。先寫失敗測試：`MonsterConverter` 缺 `level` 時丟出含 `monsters[0].level` 的錯誤、忽略未知欄位、`toDto(toVo(dto))` 等於原 DTO；列表測試「依中央平原篩選並搜尋史萊姆只剩符合的列」「地區欄顯示中央平原」。驗證：`cd admin && pnpm check` 通過。[after: 2.2]
+- [x] 2.4 依「彈窗編輯與新增」「關聯欄位用選的」「結構化欄位逐項輸入」完成怪物彈窗表單的基本欄位（Content pages；Related records are chosen, not typed；Structured fields are edited item by item）：列表開彈窗編輯、新增（空白或複製現有紀錄並清空 id），地區下拉與連動的子地區勾選、可搜尋的掉落列表（道具下拉＋掉落難度）、只列非每日任務的限定任務下拉、勾選 NPC 時只留 NPC 用得到的欄位；存檔成功關閉並更新列表與草稿狀態，409／400 時彈窗保留並顯示錯誤；共用的能力值表、關聯下拉、彈窗元件放 `admin/src/content/shared/`。道具與技能還沒遷移時，選單只從舊路由讀 `id` 與 `name`。先寫失敗測試：「改等級存檔後彈窗關閉、列表顯示新等級」「選中央平原並勾綠風草地，送出 placeId 1 與該子地區序號」「換地區後子地區清空」「加入錢包掉落與限定任務，送出 item-204 與 mission-2」「限定任務選單沒有每日任務」「勾選 NPC 後戰鬥欄位隱藏，送出的數值歸零、沒有掉落與技能」「id 重複時彈窗保留並顯示錯誤」。驗證：`cd admin && pnpm check` 通過；以 `pnpm dev` 開怪物頁確認彈窗與下拉可用。[after: 2.3]
+- [x] 2.5 怪物表單的技能列表（Choose the skills a monster can use）：可新增、刪除，每列是可搜尋的技能下拉、等級（上限依所選技能的 `maxLevel`）、發動率；後端回 400 指出 `skills[0].skillId` 時彈窗保留並顯示錯誤。先寫失敗測試：「選爆氣、等級 2、發動率 10，送出 skill-1 與對應數值」「等級不能超過所選技能的上限」「API 回 400 時彈窗保留並顯示 skills[0].skillId」。驗證：`cd admin && pnpm check` 通過。[after: 2.4]
+
+## 3. 職業、技能、世界
+
+- [x] 3.1 職業：後端紀錄、codec、有型別路由（含 `parentJobId`、`statRequirements[].stat` 列舉、`growth` 各能力 `{ minimum, maximum }`），前端 `JobVo`／`JobConverter`、列表（搜尋、依階級篩選、上級職業顯示名稱）與彈窗（上級職業下拉排除自己、能力需求列表、成長七列最小／最大）。先寫失敗測試：`JobCodec_RoundTripsContentFiles`、`Jobs_UseCompleteFieldNames`（`job-10` 的 `parentJobId` 是 `job-6`）；前端「編輯狂戰士時上級職業選項不含自己」「戰士力量成長改成 2～4，送出 strength `{ minimum: 2, maximum: 4 }` 其他不變」。驗證：`cd backend && dotnet test`、`cd admin && pnpm check` 皆通過。[after: 2.5]
+- [x] 3.2 技能後端：依「技能的條件、消耗、效果」「關聯表併進怪物與技能的紀錄」新增紀錄（`slotType`、`timing`、`description`、`maxLevel`、`prerequisite`、`jobIds`，每級 `learningCost`、`proficiencyRequired`、`cooldown`、`conditions`、`costs`、`effects`，以 `kind` 區分種類）、codec（含 `job-skills.json`）、有型別路由；先對照 `SkillPartsReader`，表格與它不同就修正 design.md。先寫失敗測試：`SkillCodec_RoundTripsContentFiles`（76 個技能與 `job-skills.json` 逐字相同）、`Skills_UseCompleteFieldNames`（`skill-1` 第 1 級 `learningCost` 500、條件 `Chance` 40、`jobIds` 是 `job-6`）、`Skills_RejectUnknownSlotType`（`"slotType": "Sometimes"` 回 400 含 `slotType`）、`Skills_RejectMissingJob`（`jobIds[0]` 指向不存在的職業回 400）。驗證：`cd backend && dotnet test` 全綠，admin 文件有各種類的 schema。[after: 3.1]
+- [x] 3.3 技能前端的列表與基本資料：`SkillVo`／`SkillConverter`、列表（搜尋、依職業與主動／被動篩選、職業顯示名稱）、彈窗（名稱、欄位、時機、說明、能學的職業多選、前置技能下拉排除自己，改 `maxLevel` 時在最後增減等級且新的一級複製前一級，每級學習費用、熟練度、冷卻）。先寫失敗測試：`SkillConverter` 來回相等、缺 `levels[0].learningCost` 時錯誤含路徑；「等級上限從 10 改成 11，第 11 級帶第 10 級的數值，送出 11 級」「前置技能選項不含自己」。驗證：`cd admin && pnpm check` 通過。[after: 3.2]
+- [x] 3.4 技能前端的發動條件與消耗：每級的條件列表（`Chance`、`HitPointsBelow` 顯示百分比，`StatAbove` 顯示能力，`HitPointsBelowOpponent` 沒有欄位）與消耗列表（`HitPoints`、`SkillPoints`、`Money`，固定值、百分比、全部的切換依種類）。先寫失敗測試：「條件選 StatAbove 只顯示能力」「消耗選 Money 只有固定值」「SkillPoints 選全部時送出 all true、不送 amount」「清空條件後送出空的 conditions」。驗證：`cd admin && pnpm check` 通過。[after: 3.3]
+- [x] 3.5 技能前端的效果：每級的效果列表，13 種效果依「技能的條件、消耗、效果」的表只顯示該種類的欄位，三擇一的欄位用切換，`scaling` 是可增減的基準與倍率列表。先寫失敗測試：「StatChange 改成 Silence 後只顯示機率與回合，送出只有 kind、chance、rounds」「StatChange 切到 scaling，送出 scaling、不送 percent」「Stun 加上 chanceByStat 送出 stat 與 percent」，以及 `SkillConverter` 對 `backend/content/skills.json` 全部 76 個技能來回相等的測試。驗證：`cd admin && pnpm check` 通過。[after: 3.4]
+- [x] 3.6 世界：大陸與地區的後端紀錄、codec（`world.json` 的 `startingPlaceId`、`startingSubPlace` 原樣保留）、有型別路由（地區 `subPlaceNames`、`recommendedLevel`），前端 VO／Converter、兩個列表（地區依大陸與是否禁區篩選；大陸的地區顯示名稱）與彈窗（大陸的地區多選、地區的子地區名稱與推薦等級）。先寫失敗測試：`WorldCodec_RoundTripsContentFiles`、`Places_UseCompleteFieldNames`（地區 1 的 `subPlaceNames` 含綠風草地、`recommendedLevel` 1～10）；前端「大陸多選兩個地區後送出兩個 id」「依禁區篩選只剩禁區」。驗證：`cd backend && dotnet test`、`cd admin && pnpm check` 皆通過。[after: 3.5]
+
+## 4. 道具
+
+- [x] 4.1 道具後端：紀錄（含加成、需求、`element` 列舉、`bound`、`shopSellable`、`weaponSkill`、`supplyHitPoints`／`supplySkillPoints`、`amount`、`elixir`、`refine` 各能力範圍、`stone` 固定值與最小／最大與寶箱等級、`key`）、codec、有型別路由。先寫失敗測試：`ItemCodec_RoundTripsContentFiles`（3127 筆道具逐字相同）、`Items_UseCompleteFieldNames`（`item-1823` 的加成 `attack` 650、需求 `strength` 590、`weaponSkill` 的 `activationRate` 12）、`Items_RejectUnknownCategory`。量測 `GET /admin/content/items` 的回應大小與時間，寫進 design.md；超過 1 秒就依「搜尋與篩選」改成只有 id 與名稱的選項路由。驗證：`cd backend && dotnet test` 全綠。[after: 3.6]
+- [x] 4.2 道具前端（裝備與消耗品）：`ItemVo`／`ItemConverter`、列表（每頁 50 筆、搜尋、依分類與商店等級篩選）、彈窗中裝備的加成／需求／孔數／精鍊上限／綁定（武器另有屬性與武器技能，飾品沒有孔數與精鍊上限），與消耗品依種類顯示補給回復、能力藥水加成、密藥、其他種類的數值；`toDto` 只輸出所選分類與種類的欄位。先寫失敗測試：「分類篩選加搜尋」「從 item-2 複製並填 item-9001，送出的新道具帶 item-2 的其他欄位」「消耗品種類選補給只顯示回復 HP／SP」「身體防具沒有屬性與武器技能欄位」「武器選爆氣、等級 2、發動率 12，送出 weaponSkill」。驗證：`cd admin && pnpm check` 通過。[after: 4.1]
+- [x] 4.3 道具前端（魔石、精鍊石、鑰匙、素材、勳章）：魔石的隨機切換、固定值或最小／最大與寶箱等級，精鍊石的等級、系列與各能力範圍，鑰匙的地區下拉與秒數，素材與勳章只有共同欄位與綁定。先寫失敗測試：「新道具分類從武器改成鑰匙並選地區，表單只剩鑰匙欄位，送出有 key、沒有 bonus 與 requires」「隨機魔石送出 minimum 與 maximum、不送 fixed」，以及 `ItemConverter` 對 `backend/content/items.json` 全部 3127 筆來回相等的測試。驗證：`cd admin && pnpm check` 通過。[after: 4.2]
+
+## 5. 收尾
+
+- [x] 5.1 移除舊做法：刪除 `/admin/content/{kind}` 的 JsonObject 路由與 `ContentAdminService` 的 JsonObject 介面、admin 的 `recordFields.ts`、`RecordForm.tsx`、`ContentPages.tsx`、`/<kind>/edit/:id` 與 `/<kind>/create` 路由，以及 `dataProvider.ts` 的內容用途；選單改從有型別的路由讀 `id` 與 `name`；確認不支援的種類（例如 `recipes`）仍回 404。驗證：`AdminContentReadTests.List_UnsupportedKindReturnsNotFound`（recipes 回 404）仍通過；`cd backend && dotnet test`、`cd admin && pnpm check` 全綠；搜尋 `JsonObject` 只出現在 Infrastructure。[after: 4.3]
+- [x] 5.2 最終檢查：`./scripts/check.sh` exit code 0；逐條對照 design.md「硬規則」（內容檔格式與數值不變、`schema.ts` 只由產生得來、admin 路由都在 `/admin` 群組）；以 `pnpm dev` 打開 admin，人工確認六種內容的彈窗、下拉與搜尋篩選都能用，道具列表與選單在 3127 筆下不卡，並把一筆怪物技能的修改存進草稿後捨棄。[after: 5.1]
+
+## 變更紀錄
+
+**2026-11-07 依現況更新**：這份計畫寫於內容匯入前，全部任務都還沒開始。
+
+- 原 3.2（技能）拆成 3.2～3.5，因為技能改成由條件、消耗、效果組成；原 3.3（世界）改編號為 3.6。
+- 新增 2.5（怪物的技能列表），依使用者決定：編輯怪物時選它能用的技能，後端檢查技能還存在。
+- 範例改用目前的內容（`monster-1`、`item-2`、`item-1823`、`skill-1`）；`wandering-puff`、`iron-sword`、`small-supply` 已不存在。
+
+**2026-11-08 驗證後修正**（`/spectra-verify` 的 Warning，不是新任務）：連續複製紀錄會殘留上一筆的能力值；`PUT /admin/content/missions` 回 405；魔石與精鍊石多了綁定欄位；裝備與能力藥水的加成不能編輯 `maxHitPoints`。規格改寫了職業能力需求的形式與 API 型別的比對對象；`design.md` 更新 repository 與共用能力值表。型別檢查抽成 `scripts/check-api-types.sh`，由 `scripts/check-api-types-test.sh` 測試。
+
+**2026-11-08 第二次驗證後修正**：彈窗的選單資料有問題時顯示錯誤並停用「儲存」；條件、消耗、效果少了 `kind` 回 400 而不是 500；`check-api-types.sh` 先刪文件產生的快取，手改又 `git add` 的文件才抓得到。
+
+**2026-11-08 第三次驗證後修正**：技能表單改成每一級都驗證，沒有顯示的那一級留白不會存成 0；內容檔檔名與 `ContentKind` 從 Application 移除；選單改走 repository 與 Converter，新增任務的 Converter。
+
+**2026-11-08 審查後修正**：內容紀錄的列表裡有 `null` 回 400；「複製自」選項與技能等級列的重複計算；`check.sh` 只在 API 型別檢查的腳本有改動時才跑它的自我測試。

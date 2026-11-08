@@ -1,0 +1,62 @@
+namespace EndlessBattle.Domain.Skills;
+
+// Type 只決定能裝在哪一種欄位：主動最多 3 個、被動最多 2 個；其餘規則主動被動相同
+public enum SkillType { Active, Passive }
+
+// BeforeAttack：自己出手前；AfterHit：自己物理命中後，可以用這次造成的傷害；RoundEnd：回合結束時
+public enum SkillTiming { BeforeAttack, AfterHit, RoundEnd }
+
+// 每一級的數值各自設定。Cooldown 以玩家自己的出手計：發動後接下來 Cooldown 次出手都不能再發動，0 表示沒有冷卻
+public sealed record SkillLevel(
+    int Level,
+    long Money,
+    long Proficiency,
+    int Cooldown,
+    IReadOnlyList<SkillCondition> Conditions,
+    IReadOnlyList<SkillCost> Costs,
+    IReadOnlyList<SkillEffect> Effects);
+
+public sealed record SkillDefinition(
+    string Id,
+    string Name,
+    SkillType Type,
+    SkillTiming Timing,
+    string Description,
+    IReadOnlyList<SkillLevel> Levels)
+{
+    public int MaxLevel => Levels.Count;
+
+    // 前置技能：要先學到指定等級才能學這個技能
+    public SkillPrerequisite? Prerequisite { get; init; }
+
+    // 圖示的檔名；目前沒有圖示素材，先留欄位
+    public string? Icon { get; init; }
+
+    // 沒有發動條件就常駐；每一級的種類相同（載入時驗證），看第 1 級即可
+    public bool IsAlwaysOn => Levels[0].Conditions is [];
+
+    // 怪物與武器的技能：用自己的發動率取代每一級的 Chance 條件，其他條件不動；沒有條件的技能也要擲發動率
+    public SkillDefinition WithActivationRate(int rate) => this with
+    {
+        Levels =
+        [
+            .. Levels.Select(level => level with
+            {
+                Conditions = [.. level.Conditions.Where(condition => condition.Kind != SkillConditionKind.Chance), new SkillCondition(SkillConditionKind.Chance, rate)],
+            }),
+        ],
+    };
+
+    // 武器附帶的技能不耗 SP，其他消耗照舊
+    public SkillDefinition WithoutSkillPointCosts() => this with
+    {
+        Levels = [.. Levels.Select(level => level with { Costs = [.. level.Costs.Where(cost => cost.Kind != SkillCostKind.SkillPoints)] })],
+    };
+
+    public SkillLevel LevelAt(int level) =>
+        level >= 1 && level <= MaxLevel
+            ? Levels[level - 1]
+            : throw new ArgumentOutOfRangeException(nameof(level), level, $"技能 {Id} 的等級必須在 1～{MaxLevel}");
+}
+
+public sealed record SkillPrerequisite(string SkillId, int Level);

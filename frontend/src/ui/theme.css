@@ -1,0 +1,48 @@
+:root {
+  color-scheme: dark;
+  --bg-top: #121826;
+  --bg-bottom: #1b2232;
+  --panel: #222b3d;
+  --border: #2e3950;
+  --text: #e8ecf4;
+  --text-muted: #9aa5bd;
+  --gold: #e0a63a;
+  --cyan: #4cc3d9;
+  --crimson: #e2554f;
+  /* 小字用的緋紅，在 --panel 與 --bg-bottom 上對比皆 ≥ 4.5:1 */
+  --crimson-text: #f0706a;
+  --green: #4fc47a;
+  --night: #0b1020;
+  --white: #ffffff;
+  /* 屬性色塊；火、木、風沿用 --crimson、--green、--cyan */
+  --element-earth: #b07a3c;
+  --element-water: #4a8fe0;
+  --element-poison: #9b6ee0;
+  --font-ui: "Noto Sans TC", sans-serif;
+  --font-title: "Cinzel", "Noto Serif TC", serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom)) fixed;
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+/* 全域工具 class：小字的緋紅，例如未達成的需求 */
+.crimson-text {
+  color: var(--crimson-text);
+}
+
+#root {
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+}

@@ -1,0 +1,69 @@
+# 不帶 profile：只有 MySQL 8.4 與 Flyway，開發時遊戲程式在本機用 dotnet 執行。
+# --profile app：再加上 api（ASP.NET Core）與 web（nginx：前端靜態檔＋/api 反向代理），一鍵執行整個遊戲。
+# 設定讀 .env，範本見 .env.example；沒有 EBO_JWT_SIGNING_KEY 時 compose 直接拒絕執行。
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: endless_battle
+      MYSQL_USER: ${EBO_DB_USER:-ebo}
+      MYSQL_PASSWORD: ${EBO_DB_PASSWORD:-ebo_dev}
+      MYSQL_ROOT_PASSWORD: ${EBO_DB_ROOT_PASSWORD:-root_dev}
+    ports:
+      # 只綁本機：開發、scaffold 用；Docker 發布的埠會繞過主機防火牆
+      - "127.0.0.1:${EBO_MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${EBO_DB_USER:-ebo}", "-p${EBO_DB_PASSWORD:-ebo_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  flyway:
+    image: flyway/flyway:11
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./backend/db/ddl:/flyway/sql/ddl:ro
+      - ./backend/db/dml:/flyway/sql/dml:ro
+    command:
+      - -url=jdbc:mysql://mysql:3306/endless_battle?allowPublicKeyRetrieval=true&useSSL=false
+      - -user=${EBO_DB_USER:-ebo}
+      - -password=${EBO_DB_PASSWORD:-ebo_dev}
+      - -locations=filesystem:/flyway/sql/ddl,filesystem:/flyway/sql/dml
+      - -validateMigrationNaming=true
+      - migrate
+
+  api:
+    profiles: [app]
+    build: ./backend
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      Content__Directory: /app/content
+      ConnectionStrings__EndlessBattle: "Server=mysql;Port=3306;Database=endless_battle;User ID=${EBO_DB_USER:-ebo};Password=${EBO_DB_PASSWORD:-ebo_dev};"
+      Jwt__SigningKey: ${EBO_JWT_SIGNING_KEY:?請先 cp .env.example .env 並設定 EBO_JWT_SIGNING_KEY}
+
+  web:
+    profiles: [app]
+    build: ./frontend
+    depends_on:
+      - api
+    restart: unless-stopped
+    ports:
+      - "${EBO_WEB_PORT:-8080}:80"
+    healthcheck:
+      # 用 127.0.0.1：容器裡 localhost 會先解析成 ::1，而 nginx 只聽 IPv4
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:

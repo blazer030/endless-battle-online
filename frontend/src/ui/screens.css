@@ -1,0 +1,121 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 24px 24px;
+}
+
+.title {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+}
+
+.tagline {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  padding-left: 0.25em;
+}
+
+.subtitle {
+  margin: 12px 0 40px;
+  padding: 2px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.form p {
+  margin: 0;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.form input {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.form input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actions button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-weight: 700;
+}
+
+.actions button[type="submit"] {
+  background: var(--gold);
+  color: var(--night);
+}
+
+.actions button:disabled {
+  opacity: 0.6;
+}
+
+.error {
+  margin: 0;
+  color: var(--crimson-text);
+}
+
+.load-error {
+  align-items: center;
+  text-align: center;
+}
+
+.load-error .actions {
+  width: 100%;
+}
+
+/* 分頁內容區沿用外層的直排間距 */
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+  min-width: 0;
+}

@@ -1,0 +1,34 @@
+{
+  "startingPlaceId": 1,
+  "startingSubPlace": 1,
+  "areas": [
+    {"id": "central", "name": "中央大陸", "placeIds": [1, 3, 7, 13]},
+    {"id": "magic", "name": "魔法王國", "placeIds": [2, 8, 12, 15]},
+    {"id": "jungle", "name": "熱帶雨林", "placeIds": [4, 11, 16, 9]},
+    {"id": "doom", "name": "末日王城", "placeIds": [10, 5, 6, 14, 21]},
+    {"id": "restricted", "name": "禁區", "placeIds": [17, 18, 19, 20]}
+  ],
+  "places": [
+    {"id": 1, "name": "中央平原", "subPlaces": ["香茅綠地", "綠風草地", "白沙海灣", "眠獸洞穴"], "recommended": [1, 10], "restricted": false},
+    {"id": 2, "name": "試鍊洞窟", "subPlaces": ["燈影隧道", "晶礦源地", "狹窄地道", "地底空洞"], "recommended": [6, 15], "restricted": false},
+    {"id": 3, "name": "黑暗沼澤", "subPlaces": ["巨大沼澤", "腐植草原", "狂火祭壇", "狩者墳場"], "recommended": [10, 20], "restricted": false},
+    {"id": 4, "name": "迷霧森林", "subPlaces": ["微風樹林", "密林古城", "幻境花園", "濃霧曠野"], "recommended": [12, 22], "restricted": false},
+    {"id": 5, "name": "古代遺跡", "subPlaces": ["灰雨祭壇", "藤蔓古道", "地底通道", "地下遺跡"], "recommended": [60, 75], "restricted": false},
+    {"id": 6, "name": "久遠戰場", "subPlaces": ["古老戰地", "接境戰場", "征戰遺址", "赭紅荒原"], "recommended": [75, 90], "restricted": false},
+    {"id": 7, "name": "王者之路", "subPlaces": ["試煉之道", "邪靈棧橋", "中央高塔", "熔岩斷層"], "recommended": [20, 32], "restricted": false},
+    {"id": 8, "name": "幻獸森林", "subPlaces": ["沉靜叢林", "秘密獸道", "光輝草原", "精靈幻境"], "recommended": [15, 26], "restricted": false},
+    {"id": 9, "name": "星河異界", "subPlaces": ["流星之丘", "星絲銀河", "三角祕境", "次元蟲洞"], "recommended": [48, 62], "restricted": false},
+    {"id": 10, "name": "灼熱荒漠", "subPlaces": ["幻覺沙丘", "海市蜃樓", "大漠絲路", "炎獸沙漠"], "recommended": [45, 60], "restricted": false},
+    {"id": 11, "name": "無淵洞窟", "subPlaces": ["妖魔聚落", "毒氣沼澤", "大地裂痕", "牲祭洞窟"], "recommended": [22, 35], "restricted": false},
+    {"id": 12, "name": "天空之城", "subPlaces": ["雲端城堡", "輝煌都市", "天使之廳", "封神殿堂"], "recommended": [26, 40], "restricted": false},
+    {"id": 13, "name": "水晶之間", "subPlaces": ["幻像步道", "晶花水池", "結晶礦脈", "水晶王座"], "recommended": [32, 45], "restricted": false},
+    {"id": 14, "name": "失落古船", "subPlaces": ["星空海岸", "古船墳地", "潮汐洞穴", "大幽靈船"], "recommended": [90, 110], "restricted": false},
+    {"id": 15, "name": "最果之島", "subPlaces": ["黃金沙灘", "猛獸森林", "密林湖泊", "荒者山峰"], "recommended": [40, 55], "restricted": false},
+    {"id": 16, "name": "冷峰寒地", "subPlaces": ["寒氣苔原", "覆雪大地", "暴風雪山", "極寒冰峰"], "recommended": [35, 48], "restricted": false},
+    {"id": 17, "name": "廢棄洞窟", "subPlaces": ["幽暗礦坑", "濕漉岩壁", "魔怪階梯", "魔實驗場"], "recommended": [60, 80], "restricted": true},
+    {"id": 18, "name": "日沒碉堡", "subPlaces": ["刺影高牆", "螺旋迴廊", "機關巨塔", "碉堡中樞"], "recommended": [80, 100], "restricted": true},
+    {"id": 19, "name": "靜止之城", "subPlaces": ["凝滯地帶", "污泥洞穴", "回朔空間", "片斷時空"], "recommended": [100, 130], "restricted": true},
+    {"id": 20, "name": "黑曜神廟", "subPlaces": [], "recommended": [130, 160], "restricted": true},
+    {"id": 21, "name": "血之魔域", "subPlaces": ["十字墓地", "惡魔遺蹟", "暗紅神殿", "焦池煉獄"], "recommended": [110, 140], "restricted": false}
+  ]
+}

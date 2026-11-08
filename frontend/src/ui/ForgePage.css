@@ -1,0 +1,101 @@
+.forge__select {
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  /* iOS 在字級小於 16px 的欄位聚焦時會放大頁面 */
+  font-size: 16px;
+}
+
+.forge__preview {
+  margin: 0;
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.forge__choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  cursor: pointer;
+}
+
+.forge__choice:has(input:checked) {
+  border-color: var(--gold);
+}
+
+.forge__choice:has(input:disabled) {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.forge__note {
+  margin-left: auto;
+  color: var(--crimson-text);
+  font-size: 12px;
+}
+
+.forge__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  font-size: 13px;
+}
+
+.forge__check:has(input:disabled) {
+  color: var(--text-muted);
+}
+
+.forge__holes {
+  display: flex;
+  gap: 8px;
+}
+
+.forge__hole {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--cyan);
+  font: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.forge__hole[aria-pressed="true"] {
+  border-color: var(--gold);
+}
+
+.forge__merge {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.forge__result {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.forge__select:focus-visible,
+.forge__choice:has(input:focus-visible),
+.forge__check input:focus-visible,
+.forge__hole:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}

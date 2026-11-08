@@ -1,0 +1,134 @@
+.character {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.character__card {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.character__identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.character__name {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-title);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.character__job {
+  color: var(--gold);
+  font-size: 14px;
+}
+
+.character__level {
+  margin-left: auto;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.character__card-title {
+  margin: 0 0 10px;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.character__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 20px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.character__profile {
+  margin: 12px 0 14px;
+  font-size: 13px;
+}
+
+.character__entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.character__entry dt {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.character__entry dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.character__bonus {
+  margin-left: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.character__bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.character__bar {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.character__bar-label {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.character__bar-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.character__muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.character__buffs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.character__lodging {
+  margin: 6px 0 0;
+  font-size: 14px;
+}

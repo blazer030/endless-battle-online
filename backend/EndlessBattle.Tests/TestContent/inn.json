@@ -1,0 +1,12 @@
+{
+  "seconds": 28800,
+  "pricePerLevel": 50,
+  "rooms": [
+    {"id": "apprentice-loft", "name": "學徒閣樓", "kind": "Exp", "multiplier": 1.10, "priceRate": 2},
+    {"id": "training-chamber", "name": "修練廂房", "kind": "JobExp", "multiplier": 1.10, "priceRate": 2},
+    {"id": "fighters-bunk", "name": "鬥士通鋪", "kind": "Attack", "multiplier": 1.05, "priceRate": 1},
+    {"id": "stargazer-tower", "name": "星見塔房", "kind": "Magic", "multiplier": 1.05, "priceRate": 1},
+    {"id": "bulwark-room", "name": "鐵壁客房", "kind": "Defense", "multiplier": 1.05, "priceRate": 1},
+    {"id": "quiet-chapel", "name": "靜謐禱室", "kind": "MagicDefense", "multiplier": 1.05, "priceRate": 1}
+  ]
+}

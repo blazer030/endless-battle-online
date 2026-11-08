@@ -1,0 +1,165 @@
+using EndlessBattle.Domain.Content;
+using EndlessBattle.Domain.World;
+using EndlessBattle.Infrastructure.Content;
+using EndlessBattle.Tests.Support;
+
+namespace EndlessBattle.Tests.Domain.World;
+
+// rand(0,100) = NextInt(101)：擲 0.5 → ⌊50.5⌋ = 50；擲 0.0 → 0；擲 0.999 → ⌊100.9⌋ = 100
+public class MonsterPoolTests
+{
+    private static MonsterDefinition Monster(string id, int meet, int placeId, params int[] subPlaces) =>
+        new(id, id, Level: 1, Hp: 10, Sp: 1, At: 1, Mat: 0, Df: 1, Mdf: 1, Agi: 1, Au: 1, Element: 0, JobExp: 1, meet, placeId, subPlaces);
+
+    private static string[] Ids(IEnumerable<MonsterDefinition> monsters) => monsters.Select(monster => monster.Id).ToArray();
+
+    // 地區 3 子地區 2：a（子地區 1,2）、b（只有 2）、c（只有 1）、d（子地區 2 但 meet 60 > 50）
+    [Fact]
+    public void Pool_FiltersBySubPlaceAndMeet()
+    {
+        MonsterDefinition[] monsters =
+        [
+            Monster("a", 0, 3, 1, 2), Monster("b", 50, 3, 2), Monster("c", 0, 3, 1), Monster("d", 60, 3, 2),
+        ];
+
+        Assert.Equal(["a", "b"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 50)));
+    }
+
+    [Fact]
+    public void Pool_IgnoresSubPlace_WhenNull()
+    {
+        MonsterDefinition[] monsters = [Monster("a", 0, 3, 1), Monster("b", 0, 3, 2)];
+
+        Assert.Equal(["a", "b"], Ids(MonsterPool.Candidates(monsters, 3, null, roll: 0)));
+    }
+
+    // 全域怪（placeId 0）不受子地區限制；其他地區的怪不入選
+    [Fact]
+    public void Pool_IncludesGlobalMonsters()
+    {
+        MonsterDefinition[] monsters = [Monster("local", 0, 3, 1), Monster("global", 0, 0), Monster("other", 0, 4, 2)];
+
+        Assert.Equal(["global"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 0)));
+    }
+
+    // 地區 3 有子地區：沒設子地區的 a 在每個子地區都會出現
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(4)]
+    public void Candidates_EmptySubPlacesEligibleInEverySubPlace(int subPlace)
+    {
+        // anchor 讓這個子地區有候選，不會走「沒有候選就退回全地區」的分支
+        MonsterDefinition[] monsters = [Monster("a", 0, 3), Monster("anchor", 0, 3, subPlace), Monster("other", 0, 3, subPlace % 4 + 1)];
+
+        Assert.Equal(["a", "anchor"], Ids(MonsterPool.Candidates(monsters, 3, subPlace, roll: 100)));
+    }
+
+    // Example：子地區 2 的候選
+    [Fact]
+    public void Candidates_ListedSubPlacesStillFilter()
+    {
+        MonsterDefinition[] monsters = [Monster("empty", 0, 3), Monster("two", 0, 3, 2), Monster("others", 0, 3, 1, 3)];
+
+        Assert.Equal(["empty", "two"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 100)));
+    }
+
+    // 別的地區沒設子地區的怪不會混進來
+    [Fact]
+    public void Candidates_EmptySubPlacesStaysInItsPlace()
+    {
+        MonsterDefinition[] monsters = [Monster("here", 0, 3), Monster("elsewhere", 0, 4)];
+
+        Assert.Equal(["here"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 100)));
+    }
+
+    // 子地區 4 沒有任何怪 → 退回該地區全部（含全域），連 meet 也不看（meet 90 > 擲 0）
+    [Fact]
+    public void Pool_FallsBackToPlace_WhenSubPlaceHasNoCandidates()
+    {
+        MonsterDefinition[] monsters = [Monster("a", 0, 3, 1), Monster("b", 90, 3, 2), Monster("g", 90, 0)];
+
+        Assert.Equal(["a", "b", "g"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0)));
+    }
+
+    // 擲 0 → 候選 a、b、c；第二擲 0.5 → ⌊0.5 × 3⌋ = 1 → b
+    [Fact]
+    public void Pool_UniformAmongCandidates()
+    {
+        MonsterDefinition[] monsters = [Monster("a", 0, 3, 1), Monster("b", 0, 3, 1), Monster("c", 0, 3, 1)];
+        var random = new ScriptedRandom(0.0, 0.0, 0.5);
+
+        Assert.Equal("b", MonsterPool.Pick(monsters, 3, 1, random).Id);
+        Assert.Equal(2, random.Consumed);
+    }
+
+    private static MonsterDefinition MissionMonster(string id, string missionId, int meet, int placeId, params int[] subPlaces) =>
+        Monster(id, meet, placeId, subPlaces) with { MissionId = missionId };
+
+    // 任務怪沒帶任務集合（或集合為空）時一律不入選，退回全地區的分支也一樣（chief meet 0 本來會入選）
+    [Fact]
+    public void Pool_ExcludesMissionMonstersByDefault()
+    {
+        MonsterDefinition[] monsters = [Monster("a", 0, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1)];
+        MonsterDefinition[] onlyRare = [Monster("a", 90, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1)];
+
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0)));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0, new HashSet<string>())));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(onlyRare, 3, 1, roll: 0)));
+        Assert.Equal(["a"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0)));
+    }
+
+    [Fact]
+    public void Pool_IncludesMissionMonsterWhenItsMissionIsActive()
+    {
+        MonsterDefinition[] monsters =
+        [
+            Monster("a", 0, 3, 1), MissionMonster("chief", "hunt", 0, 3, 1), MissionMonster("other", "elsewhere", 0, 3, 1),
+        ];
+        var active = new HashSet<string> { "hunt" };
+
+        Assert.Equal(["a", "chief"], Ids(MonsterPool.Candidates(monsters, 3, 1, roll: 0, active)));
+        Assert.Equal(["a", "chief"], Ids(MonsterPool.Candidates(monsters, 3, 4, roll: 0, active)));
+        // 擲 0 → 候選 a、chief；第二擲 0.5 → ⌊0.5 × 2⌋ = 1 → chief
+        Assert.Equal("chief", MonsterPool.Pick(monsters, 3, 1, new ScriptedRandom(0.0, 0.0, 0.5), active).Id);
+    }
+
+    // 測試內容地區 1：雪精（meet 0，子地區 1,2）、寒狼（meet 30，1,3）、首領（meet 60，1，任務 test-chief-hunt）。
+    // 擲 100 時子地區 1 三隻都過 meet，首領只在任務進行中入選；子地區 4 沒有候選、退回全地區時也一樣
+    [Fact]
+    public void Pool_ExcludesMissionMonstersUnlessActive()
+    {
+        var monsters = JsonGameContent.Load(Path.Combine(AppContext.BaseDirectory, "TestContent")).MonstersOf(1);
+        var none = new HashSet<string>();
+        var chiefHunt = new HashSet<string> { "test-chief-hunt" };
+
+        Assert.Equal(["test-sprite", "test-wolf"], Ids(MonsterPool.Candidates(monsters, 1, 1, roll: 100, none)));
+        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], Ids(MonsterPool.Candidates(monsters, 1, 1, roll: 100, chiefHunt)));
+        Assert.Equal(["test-sprite", "test-wolf"], Ids(MonsterPool.Candidates(monsters, 1, 4, roll: 100, none)));
+        Assert.Equal(["test-sprite", "test-wolf", "test-sprite-chief"], Ids(MonsterPool.Candidates(monsters, 1, 4, roll: 100, chiefHunt)));
+    }
+
+    // 地區只剩任務沒在進行的任務怪：有怪物但沒有任何可遇到的
+    [Fact]
+    public void Pick_ThrowsWhenOnlyInactiveMissionMonsters()
+    {
+        MonsterDefinition[] monsters = [MissionMonster("chief", "hunt", 0, 3, 1)];
+
+        var exception = Assert.Throws<InvalidOperationException>(() => MonsterPool.Pick(monsters, 3, 1, new ScriptedRandom(0.0)));
+
+        Assert.Equal("地區沒有任何可遇到的怪物", exception.Message);
+    }
+
+    // 全域怪寫了子地區也不看：子地區 2 擲 0 時全域怪（只寫子地區 1）照樣入選，不必退回全地區（否則 meet 90 的 local 也會入選）
+    [Fact]
+    public void Candidates_GlobalMonsterIgnoresSubPlace()
+    {
+        MonsterDefinition[] monsters = [Monster("local", 90, 3, 2), Monster("global", 0, 0, 1)];
+
+        Assert.Equal(["global"], Ids(MonsterPool.Candidates(monsters, 3, 2, roll: 0)));
+    }
+
+    [Fact]
+    public void Pool_ThrowsOnEmptyPlace() =>
+        Assert.Throws<InvalidOperationException>(() => MonsterPool.Pick([], 3, 1, new ScriptedRandom(0.0)));
+}

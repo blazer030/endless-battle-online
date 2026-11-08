@@ -1,0 +1,116 @@
+import type { components } from "../api/schema"
+
+type Schemas = components["schemas"]
+
+export type CharacterView = Schemas["CharacterResponse"]
+export type AdvanceResponse = Schemas["AdvanceResponse"]
+export type AdvanceSummary = Schemas["AdvanceSummary"]
+export type ContentNames = Schemas["ContentResponse"]
+export type StatsView = Schemas["StatsResponse"]
+export type GrowthStats = Schemas["BaseStats"]
+export type JobGrowth = Schemas["JobGrowthContent"]
+export type JobOption = Schemas["JobOptionResponse"]
+export type SkillOverview = Schemas["SkillOverviewResponse"]
+export type SkillView = Schemas["SkillResponse"]
+export type SkillSlotView = Schemas["SkillSlotResponse"]
+export type WorldArea = Schemas["WorldAreaResponse"]
+export type WorldPlace = Schemas["WorldPlaceResponse"]
+export type Recommendation = Schemas["Recommendation"]
+export type InventoryView = Schemas["InventoryResponse"]
+export type BagCategoryView = Schemas["BagCategoryResponse"]
+export type InventoryItem = Schemas["InventoryItemResponse"]
+export type EquippedItem = Schemas["EquippedItemResponse"]
+export type ItemCategory = Schemas["ItemCategory"]
+export type EquipmentSlot = Schemas["EquipmentSlot"]
+export type ItemRequirement = Schemas["StatRequirement7"]
+export type StatBonusView = Schemas["StatBonus"]
+export type BaseStatsView = Schemas["BaseStatsResponse"]
+export type ShopItem = Schemas["ShopItemResponse"]
+export type DepotView = Schemas["DepotResponse"]
+export type DepotMove = Schemas["DepotMoveResponse"]
+export type ForgeResult = Schemas["ForgeResponse"]
+export type ItemUseResult = Schemas["UseItemResponse"]
+export type BuffView = Schemas["BuffResponse"]
+export type BuffKind = Schemas["BuffKind"]
+export type InnView = Schemas["InnResponse"]
+export type InnRoomView = Schemas["InnRoomResponse"]
+export type LodgingView = Schemas["LodgingResponse"]
+export type InnBookResult = Schemas["InnBookResponse"]
+export type UnsocketResult = Schemas["UnsocketResponse"]
+export type Recipe = Schemas["RecipeResponse"]
+export type SynthesisResult = Schemas["SynthesisResponse"]
+export type MissionBoard = Schemas["MissionBoardResponse"]
+export type MissionView = Schemas["MissionResponse"]
+export type MissionRewardView = Schemas["MissionRewardResponse"]
+export type MissionCompletion = Schemas["MissionCompleteResponse"]
+export type PetsView = Schemas["PetsResponse"]
+export type PetView = Schemas["PetResponse"]
+export type PetFood = Schemas["PetFoodResponse"]
+export type PetPersonality = Schemas["PetPersonality"]
+export type PetFeedResult = Schemas["PetFeedResponse"]
+export type MercenaryOverview = Schemas["MercenaryOverviewResponse"]
+export type MercenaryCatalogueEntry = Schemas["MercenaryCatalogueResponse"]
+export type MercenaryContract = Schemas["MercenaryContractResponse"]
+export type MercenaryHireResult = Schemas["MercenaryHireResponse"]
+export type MercenaryReport = Schemas["MercenaryReportResponse"]
+export type HonourShop = Schemas["HonourShopResponse"]
+export type HonourExchange = Schemas["HonourExchangeResponse"]
+export type HonourCost = Schemas["HonourCostResponse"]
+
+// 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
+type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }
+export type StatAllocation = FilledFields<Schemas["StatAllocationRequest"]>
+export type CreateCharacterCommand = Omit<
+  FilledFields<Schemas["CreateCharacterRequest"]>,
+  "allocation"
+> & { allocation: StatAllocation }
+export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>
+export type AttackKind = NonNullable<Schemas["AttackKind"]>
+export type AdventureSettingsView = Schemas["AdventureSettingsResponse"]
+// attack 為 null 表示自動
+export type AdventureSettingsCommand = Omit<
+  FilledFields<Schemas["AdventureSettingsRequest"]>,
+  "attack"
+> & {
+  attack: AttackKind | null
+}
+
+// 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
+// 寵物欄位只在帶寵物出戰時才有，維持選填
+export type EncounterEvent = Required<
+  Omit<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
+> &
+  Pick<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
+export type RoundEvent = Required<Schemas["BattleEventRoundEvent"]>
+export type AttackEvent = Required<Schemas["BattleEventAttackEvent"]>
+export type SkillEvent = Required<Schemas["BattleEventSkillEvent"]>
+export type PotionEvent = Required<Schemas["BattleEventPotionEvent"]>
+export type DefeatEvent = Required<Schemas["BattleEventDefeatEvent"]>
+export type TimeoutEvent = Required<Schemas["BattleEventTimeoutEvent"]>
+export type RewardEvent = Required<Schemas["BattleEventRewardEvent"]>
+export type DropResult = Schemas["DropResult"]
+export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
+export type MissionProgressEvent = Required<Schemas["BattleEventMissionProgressEvent"]>
+export type NpcEncounterEvent = Required<Schemas["BattleEventNpcEncounterEvent"]>
+export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
+export type PetGuardEvent = Required<Schemas["BattleEventPetGuardEvent"]>
+export type PetAttackEvent = Required<Schemas["BattleEventPetAttackEvent"]>
+export type CaptureEvent = Required<Schemas["BattleEventCaptureEvent"]>
+export type EscapeEvent = Required<Schemas["BattleEventEscapeEvent"]>
+export type BattleEvent =
+  | EncounterEvent
+  | RoundEvent
+  | AttackEvent
+  | SkillEvent
+  | PotionEvent
+  | DefeatEvent
+  | TimeoutEvent
+  | RewardEvent
+  | LevelUpEvent
+  | MissionProgressEvent
+  | NpcEncounterEvent
+  | RestEvent
+  | PetGuardEvent
+  | PetAttackEvent
+  | CaptureEvent
+  | EscapeEvent

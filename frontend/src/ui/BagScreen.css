@@ -1,0 +1,373 @@
+.bag {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.bag__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.bag__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bag__tab {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-top);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bag__tab[aria-selected="true"] {
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* 分頁數不固定，每個分頁等寬排成一列 */
+.bag__tabs--pages {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.bag__tabs--pages .bag__tab {
+  padding: 8px 0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.bag__tabs--pages .bag__tab[aria-selected="true"] {
+  background: var(--gold);
+  color: var(--night);
+}
+
+.bag__usage,
+.bag__balance,
+.bag__locked,
+.bag__empty {
+  margin: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bag__usage,
+.bag__empty {
+  color: var(--text-muted);
+}
+
+.bag__notice p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bag__empty {
+  padding: 8px 0;
+  text-align: center;
+}
+
+.bag__balance {
+  color: var(--gold);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bag__locked {
+  color: var(--crimson-text);
+  font-weight: 700;
+}
+
+.bag__list,
+.bag__slots,
+.bag__requirements {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bag__list,
+.bag__slots {
+  gap: 8px;
+}
+
+.bag__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+}
+
+.bag__item-button,
+.bag__slot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bag__slot {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+}
+
+.bag__slot[aria-expanded="true"] {
+  border-color: var(--gold);
+}
+
+.bag__slot-label {
+  flex-shrink: 0;
+  min-width: 3em;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.bag__slot-empty {
+  color: var(--text-muted);
+}
+
+.bag__item-head {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bag__item-lock {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.bag__item-name {
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.bag__holes {
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+.bag__detail {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bag__requirements {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bag__requirement {
+  color: var(--green);
+}
+
+.bag__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.bag__buttons,
+.bag__buy,
+.bag__current {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.bag__current {
+  justify-content: space-between;
+}
+
+.bag__action {
+  min-width: 72px;
+  padding: 6px 14px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bag__action--end {
+  align-self: flex-end;
+}
+
+.bag__action:disabled {
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.bag__stepper {
+  display: grid;
+  grid-template-columns: 32px 2.5em 32px;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.bag__stepper button {
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.bag__stepper button:disabled {
+  opacity: 0.35;
+}
+
+.bag__stepper-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.bag__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bag__panel-title {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.bag__field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.bag__field input {
+  min-width: 0;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  /* iOS 在字級小於 16px 的欄位聚焦時會放大頁面 */
+  font-size: 16px;
+}
+
+.bag__bank-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.bag__bank-form .bag__action {
+  height: 36px;
+}
+
+.bag__card .error {
+  font-size: 13px;
+}
+
+.bag__tab:focus-visible,
+.bag__item-button:focus-visible,
+.bag__slot:focus-visible,
+.bag__action:focus-visible,
+.bag__stepper button:focus-visible,
+.bag__field input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+/* 背包有七個子頁，360px 寬時「勳章所」三個字要放得下 */
+.bag > .bag__tabs--pages .bag__tab {
+  font-size: 13px;
+}
+
+.bag__danger {
+  border-color: var(--crimson);
+  color: var(--crimson-text);
+}
+
+.bag__warning {
+  margin: 0;
+  font-size: 13px;
+}
+
+.bag__heading {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1rem;
+}
+
+.bag__percent {
+  width: 3.4em;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-top);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+
+.bag__percent:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}

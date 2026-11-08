@@ -1,0 +1,548 @@
+# wog-content-import Specification
+
+## Purpose
+
+Generate the official game content from the recovered WOG 4.5 data, list the original data the current rules cannot use, and keep custom content only where the original has nothing comparable.
+
+## Requirements
+
+### Requirement: Official content comes from the WOG 4.5 records
+
+The official content files in `backend/content/` SHALL be generated from `docs/research/wog45/data/*.json` by `scripts/import-wog45.py`. Imported records SHALL keep the original values and SHALL use ids of the form `<kind>-<original id>` (`monster-1`, `item-660`, `job-6`, `skill-<id of level 1 row>`, `mission-1`, `recipe-1`, `honour-1`, `mercenary-1`). Item variants that share a name SHALL remain separate records.
+
+#### Scenario: A regular monster keeps its original values
+
+- **WHEN** the official content is loaded after the import
+- **THEN** each imported monster has the level, hit points, attack, defence, element, place, sub-places and drops of its original record
+
+##### Example: slime
+
+- **GIVEN** the original monster 1 史萊姆 with level 2, hp 32, element 風, place 1, sub-place 香茅綠地, and a drop of item 204 錢包 with topr 90
+- **WHEN** the official content is loaded
+- **THEN** monster `monster-1` is named 史萊姆 with level 2, hp 32, element 5, placeId 1, subPlaces `[1]` (香茅綠地 is sub-place 1 of 中央平原), and a drop of `item-204` with topr 90
+
+#### Scenario: Item variants stay separate
+
+- **WHEN** two original items share the name 木刀 with ids 660 and 928
+- **THEN** the official content holds both `item-660` and `item-928`, each with its own original values
+
+#### Scenario: A job keeps its original growth
+
+- **GIVEN** the original job 6 戰士 with strength growth `"1,3"` and no parent job
+- **WHEN** the official content is loaded
+- **THEN** job `job-6` is a tier 1 job whose strength growth is `[1, 3]`
+
+#### Scenario: A delivery mission keeps its original goal and reward
+
+- **GIVEN** the original mission 1 製作漁網 that needs one 蜘蛛絲 (item 331) and rewards one 白色布料 (item 342)
+- **WHEN** the official content is loaded
+- **THEN** mission `mission-1` is titled 製作漁網, delivers one `item-331`, and rewards one `item-342`
+
+
+<!-- @trace
+source: wog45-content-import
+updated: 2026-11-06
+code:
+  - docs/research/README.md
+  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
+  - backend/EndlessBattle.Api/Endpoints/SkillEndpoints.cs
+  - backend/content/monsters.json
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillLearningTests.cs
+  - backend/EndlessBattle.Tests/Infrastructure/ContentFileFormatterTests.cs
+  - docs/research/mission-table.md
+  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
+  - backend/EndlessBattle.Domain/Forge/ForgeTools.cs
+  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
+  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
+  - docs/research/companion-table.md
+  - backend/EndlessBattle.Domain/Battle/BattleOutcome.cs
+  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
+  - frontend/src/game/stageModel.ts
+  - frontend/src/ui/CreateCharacterScreen.tsx
+  - backend/EndlessBattle.Application/Content/IGameContent.cs
+  - docs/research/wog45/export.py
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
+  - docs/research/wog45/gaps.md
+  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
+  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
+  - docs/research/monster-roster.md
+  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillLearning.cs
+  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - docs/research/item-table.md
+  - backend/content/items.json
+  - backend/EndlessBattle.Tests/Application/SkillServiceTests.cs
+  - backend/EndlessBattle.Tests/Support/SkillPreset.cs
+  - frontend/src/game/battleLog.ts
+  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
+  - backend/EndlessBattle.Tests/Content/MonsterRosterTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
+  - frontend/src/game/skills.ts
+  - frontend/src/ui/SkillsScreen.tsx
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
+  - backend/EndlessBattle.Tests/TestContent/job-skills.json
+  - docs/research/wog45/README.md
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Tests/Support/CustomContent.cs
+  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
+  - backend/content/honour-shop.json
+  - backend/content/job-skills.json
+  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
+  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillDefinitionTests.cs
+  - frontend/src/game/inventory.ts
+  - backend/EndlessBattle.Tests/Support/TestSkills.cs
+  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
+  - backend/EndlessBattle.Application/Skills/SkillOverview.cs
+  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
+  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
+  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
+  - backend/content/jobs.json
+  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
+  - backend/content/missions.json
+  - backend/content/skills.json
+  - backend/EndlessBattle.Application/Skills/SkillService.cs
+  - backend/db/ddl/V000000016__default_job_id.sql
+  - backend/EndlessBattle.Tests/Api/SkillEndpointsTests.cs
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - docs/research/job-growth-expectation.md
+  - frontend/src/api/schema.ts
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
+  - backend/content/mercenaries.json
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - backend/EndlessBattle.Tests/TestContent/items.json
+  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentUpdateTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillLoadoutTests.cs
+  - backend/content/recipes.json
+  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
+  - backend/EndlessBattle.Tests/Content/ItemTableTests.cs
+  - backend/EndlessBattle.Tests/TestContent/skills.json
+  - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
+tests:
+  - frontend/src/game/inventory.test.ts
+  - frontend/src/game/battleLog.test.ts
+  - frontend/src/game/skills.test.ts
+  - frontend/src/ui/SkillsScreen.test.tsx
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/game/stageModel.test.ts
+  - frontend/src/ui/CreateCharacterScreen.test.tsx
+-->
+
+---
+### Requirement: Importing is repeatable
+
+Running the import script twice on the same input SHALL produce byte-identical content files and gap list. The content files SHALL be written in the canonical content file format.
+
+#### Scenario: Second run changes nothing
+
+- **WHEN** the import script runs, and then runs again without any change to its input
+- **THEN** `git diff --exit-code backend/content docs/research/wog45/gaps.md` exits 0 after the second run
+
+#### Scenario: Output is in canonical format
+
+- **WHEN** the import script writes `backend/content/monsters.json`
+- **THEN** formatting the file with `ContentFileFormatter` leaves it byte-identical
+
+#### Scenario: Missing source field stops the import
+
+- **WHEN** an original record lacks a field the script needs, such as a monster without `hp`
+- **THEN** the script exits with a non-zero code, prints the file name and record id, and writes no files
+
+
+<!-- @trace
+source: wog45-content-import
+updated: 2026-11-06
+code:
+  - docs/research/README.md
+  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
+  - backend/EndlessBattle.Api/Endpoints/SkillEndpoints.cs
+  - backend/content/monsters.json
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillLearningTests.cs
+  - backend/EndlessBattle.Tests/Infrastructure/ContentFileFormatterTests.cs
+  - docs/research/mission-table.md
+  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
+  - backend/EndlessBattle.Domain/Forge/ForgeTools.cs
+  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
+  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
+  - docs/research/companion-table.md
+  - backend/EndlessBattle.Domain/Battle/BattleOutcome.cs
+  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
+  - frontend/src/game/stageModel.ts
+  - frontend/src/ui/CreateCharacterScreen.tsx
+  - backend/EndlessBattle.Application/Content/IGameContent.cs
+  - docs/research/wog45/export.py
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
+  - docs/research/wog45/gaps.md
+  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
+  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
+  - docs/research/monster-roster.md
+  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillLearning.cs
+  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - docs/research/item-table.md
+  - backend/content/items.json
+  - backend/EndlessBattle.Tests/Application/SkillServiceTests.cs
+  - backend/EndlessBattle.Tests/Support/SkillPreset.cs
+  - frontend/src/game/battleLog.ts
+  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
+  - backend/EndlessBattle.Tests/Content/MonsterRosterTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
+  - frontend/src/game/skills.ts
+  - frontend/src/ui/SkillsScreen.tsx
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
+  - backend/EndlessBattle.Tests/TestContent/job-skills.json
+  - docs/research/wog45/README.md
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Tests/Support/CustomContent.cs
+  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
+  - backend/content/honour-shop.json
+  - backend/content/job-skills.json
+  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
+  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillDefinitionTests.cs
+  - frontend/src/game/inventory.ts
+  - backend/EndlessBattle.Tests/Support/TestSkills.cs
+  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
+  - backend/EndlessBattle.Application/Skills/SkillOverview.cs
+  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
+  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
+  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
+  - backend/content/jobs.json
+  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
+  - backend/content/missions.json
+  - backend/content/skills.json
+  - backend/EndlessBattle.Application/Skills/SkillService.cs
+  - backend/db/ddl/V000000016__default_job_id.sql
+  - backend/EndlessBattle.Tests/Api/SkillEndpointsTests.cs
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - docs/research/job-growth-expectation.md
+  - frontend/src/api/schema.ts
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
+  - backend/content/mercenaries.json
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - backend/EndlessBattle.Tests/TestContent/items.json
+  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentUpdateTests.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillLoadoutTests.cs
+  - backend/content/recipes.json
+  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
+  - backend/EndlessBattle.Tests/Content/ItemTableTests.cs
+  - backend/EndlessBattle.Tests/TestContent/skills.json
+  - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
+tests:
+  - frontend/src/game/inventory.test.ts
+  - frontend/src/game/battleLog.test.ts
+  - frontend/src/game/skills.test.ts
+  - frontend/src/ui/SkillsScreen.test.tsx
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/game/stageModel.test.ts
+  - frontend/src/ui/CreateCharacterScreen.test.tsx
+-->
+
+---
+### Requirement: Data the rules cannot use is listed
+
+Original data that the current rules cannot use SHALL be left out of the content files and listed in `docs/research/wog45/gaps.md` with its original id, name and reason. This SHALL cover:
+
+- unsupported fields;
+- records the current content validation would reject;
+- skills the effect catalogue cannot express;
+- references removed because their target was left out.
+
+A monster's special attack name SHALL be left out of the content files and SHALL NOT be listed per monster, because it was decided not to be used rather than waiting for a rule; `gaps.md` SHALL state this decision once in the monster mapping notes.
+
+The official content SHALL load without errors after every import.
+
+#### Scenario: An NPC that is not a kill target is listed, not imported
+
+- **GIVEN** the original monster 324 錫得里克, an NPC that no mission targets
+- **WHEN** the import runs
+- **THEN** that monster is absent from `monsters.json`, and `gaps.md` lists its id and name with the reason that an NPC must be a kill target of its mission
+
+#### Scenario: Unsupported monster fields are listed
+
+- **GIVEN** the original monster 426 魔王史萊姆 with a drop of the item 2277 that was not imported
+- **WHEN** the import runs
+- **THEN** `monster-426` is imported without that drop, and `gaps.md` lists the drop under monster 426
+
+#### Scenario: A weapon with a skill that was not imported is listed
+
+- **GIVEN** the original item 1834 翼龍獸矛 with the pet skill 戰意驅使 at rate 10
+- **WHEN** the import runs
+- **THEN** `item-1834` has no weapon skill, and `gaps.md` lists that field under item 1834
+
+#### Scenario: A monster with only a special attack is not listed
+
+- **GIVEN** the original monster 13 白蛇龍 with the special attack 白龍巨浪 and no skills
+- **WHEN** the import runs
+- **THEN** `gaps.md` has no row for monster 13 in its list of fields that were not moved
+
+#### Scenario: A reference to an excluded record is removed and listed
+
+- **WHEN** a mission rewards an item that was excluded from the import
+- **THEN** that reward is absent from the mission, and `gaps.md` records the removal and names the excluded item
+
+#### Scenario: The prerequisite of mission 131 is removed and listed
+
+- **GIVEN** the original mission 131 requiring mission 130, which is not imported
+- **WHEN** the import runs
+- **THEN** `mission-131` has no `prerequisiteId`, and `gaps.md` lists that field under mission 131
+
+#### Scenario: A skill reward above level 1 is listed
+
+- **GIVEN** the original mission 240 rewarding level 6 of 無我
+- **WHEN** the import runs
+- **THEN** `mission-240` has no skill reward, and `gaps.md` lists that field under mission 240
+
+#### Scenario: Official content loads
+
+- **WHEN** `JsonGameContent.Load` reads `backend/content` after the import
+- **THEN** loading succeeds without a `GameContentException`
+
+---
+### Requirement: Custom content without an original counterpart is kept
+
+Custom content for which the original data has nothing comparable SHALL be kept with its existing id, and every kept record SHALL appear in the "kept custom content" section of `gaps.md` with its reason. This SHALL cover `inn.json`, and the areas, recommended levels and starting place in `world.json`. Custom items, monsters and mercenaries SHALL be kept only when a current feature needs them and no original record fills the same role. All other custom content SHALL be removed. The official content SHALL NOT include a `champion.json`, and the game SHALL load without one.
+
+#### Scenario: Inn stays unchanged
+
+- **WHEN** the import runs
+- **THEN** `inn.json` is byte-identical to before the import, and `gaps.md` lists it as kept custom content
+
+#### Scenario: Champion content is gone
+
+- **WHEN** the import runs and `JsonGameContent.Load` reads `backend/content`
+- **THEN** no `champion.json` exists in `backend/content`, `gaps.md` does not mention `champion.json`, and loading succeeds without a `GameContentException`
+
+#### Scenario: Custom content with an original counterpart is removed
+
+- **GIVEN** the custom monster `wandering-puff` that is not on the kept list
+- **WHEN** the import runs
+- **THEN** `wandering-puff` is absent from `monsters.json`
+
+<!-- @trace
+source: remove-champion
+updated: 2026-11-06
+code:
+  - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Infrastructure/CompanionRepositoryTests.cs
+  - backend/EndlessBattle.Application/Content/IGameContent.cs
+  - backend/EndlessBattle.Tests/Content/CompanionTableTests.cs
+  - docs/research/wog45/gaps.md
+  - frontend/src/api/client.ts
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - frontend/src/game/types.ts
+  - frontend/src/ui/AdventureScreen.css
+  - frontend/src/ui/AdventureScreen.tsx
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Infrastructure/DependencyInjection.cs
+  - backend/EndlessBattle.Application/DependencyInjection.cs
+  - README.md
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/db/ddl/V000000017__drop_character_champions.sql
+  - frontend/src/api/schema.ts
+  - backend/EndlessBattle.Api/Program.cs
+  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/Models/Character.cs
+tests:
+  - frontend/src/test/fixtures.ts
+  - frontend/src/api/client.test.ts
+  - frontend/src/ui/useAdventureLoop.test.tsx
+  - frontend/src/ui/AdventureScreen.test.tsx
+  - frontend/src/ui/App.test.tsx
+-->
+
+---
+### Requirement: Monster and weapon skills are imported
+
+The import SHALL write each imported monster's original skills to `monster-skills.json` with the imported skill id, level and original rate, and SHALL write each imported weapon's original skill to its `weaponSkill`. The level SHALL follow the rows of the skill's name, so a skill imported with a single level SHALL use level 1. When the skill's `Chance` is not the default `min(100, 30 + 10 × level)`, the written rate SHALL be `max(1, round(rate × Chance / 100))`, and `gaps.md` SHALL record the conversion. When a monster lists the same skill twice, only the row with the higher level SHALL be written and `gaps.md` SHALL list the other row. A monster skill row with no rate SHALL NOT be written and SHALL be listed in `gaps.md`. 假死 SHALL be imported with its default `Chance` and a `Stun` effect with the description's chance and `chanceByStat` intelligence 5.
+
+#### Scenario: A monster's skill is imported
+
+- **GIVEN** the original monster 1 史萊姆 with the skill 爆氣 Lv2 at rate 10
+- **WHEN** the import runs
+- **THEN** `monster-skills.json` has the row `monster-1`, `skill-1`, level 2, rate 10, and `gaps.md` does not list that skill
+
+#### Scenario: A series skill uses level 1
+
+- **GIVEN** the original monster 88 with the skill 魔盾-水 Lv2 at rate 10, where 魔盾-水 is imported with one level
+- **WHEN** the import runs
+- **THEN** `monster-skills.json` has that skill at level 1 with rate 10
+
+#### Scenario: A repeated skill keeps the higher level
+
+- **GIVEN** the original monster 139 盜墓者 with 急影 Lv2 at rate 16 and 急影 Lv1 at rate 19
+- **WHEN** the import runs
+- **THEN** `monster-skills.json` has 急影 once for `monster-139`, at level 2 with rate 16, and `gaps.md` lists 急影 Lv1 rate 19 under monster 139
+
+#### Scenario: A monster skill with no rate is listed, not written
+
+- **GIVEN** the original monster 1 史萊姆 whose skill 爆氣 Lv2 has no rate
+- **WHEN** the import runs
+- **THEN** `monster-skills.json` has no row for `monster-1`, and `gaps.md` lists 爆氣 Lv2 under monster 1 with the reason that it has no rate
+
+#### Scenario: A weapon's skill is imported
+
+- **GIVEN** the original item 1823 爆氣火斧 with skill 2, which is 爆氣 Lv2, at rate 12
+- **WHEN** the import runs
+- **THEN** `item-1823` has weapon skill `skill-1`, level 2, rate 12, and `gaps.md` does not list that item's skill
+
+#### Scenario: A description chance is multiplied into the rate
+
+- **GIVEN** the original item 1828 神經系毒氣 with 鋒針陷阱 level 2, whose `Chance` is 18, at rate 12
+- **WHEN** the import runs
+- **THEN** `item-1828` has rate 2, and `gaps.md` records the conversion from rate 12 and `Chance` 18
+
+#### Scenario: 假死 is imported
+
+- **WHEN** the import runs
+- **THEN** `skills.json` has 假死 with 7 levels, level 1 has `Chance` 40, 9 SP cost and a `Stun` effect with chance 2, `chanceByStat` intelligence 5 and 1 round, the job 刺客 can learn it, and `gaps.md` no longer lists 假死 as not imported
+
+#### Scenario: Every imported monster's skills are written
+
+- **WHEN** `JsonGameContent.Load` reads `backend/content` after the import
+- **THEN** `monster-skills.json` has 568 rows, one for each of the 576 original rows on imported monsters except the 8 repeated ones
+
+<!-- @trace
+source: monster-skills
+updated: 2026-11-07
+code:
+  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - backend/EndlessBattle.Application/Skills/SkillSummary.cs
+  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
+  - docs/research/wog45/gaps.md
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
+  - backend/EndlessBattle.Tests/TestContent/monster-skills.json
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
+  - frontend/src/game/stageModel.ts
+  - backend/EndlessBattle.Domain/Skills/SkillLoadout.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
+  - backend/EndlessBattle.Application/Skills/EquippedSkills.cs
+  - backend/content/job-skills.json
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Domain/Skills/SkillParts.cs
+  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
+  - backend/EndlessBattle.Infrastructure/Content/SkillPartsReader.cs
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
+  - backend/EndlessBattle.Domain/Skills/SkillDefinition.cs
+  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
+  - backend/content/items.json
+  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
+  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Tests/Application/SkillSummaryTests.cs
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - scripts/import-wog45.py
+  - backend/EndlessBattle.Tests/TestContent/items.json
+  - backend/content/monster-skills.json
+  - backend/content/skills.json
+  - frontend/src/api/schema.ts
+  - frontend/src/game/battleLog.ts
+  - backend/EndlessBattle.Tests/Content/ImportScriptTests.cs
+  - README.md
+tests:
+  - frontend/src/test/fixtures.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/game/battleLog.test.ts
+  - frontend/src/ui/bagWidgets.test.tsx
+  - frontend/src/game/stageModel.test.ts
+-->
+
+---
+### Requirement: Missions, monsters and recipes use the extended rules
+
+The import SHALL write several kill targets, pet objectives, skill conditions, NPCs, monsters without sub-places and recipe prerequisites from the original data. Every regular mission SHALL be imported except `mission-130`, whose target is a global mission monster. Every monster SHALL be imported except 261 (the monster of mission 130), 287 (a place that is not on the map) and 324 (an NPC that is not a kill target). The original values of content already imported SHALL NOT change, apart from conditions and rewards restored by these rules.
+
+#### Scenario: Several kill targets are imported
+
+- **GIVEN** the original mission 29 with the targets 111 ×3 and 112 ×3
+- **WHEN** the import runs
+- **THEN** `mission-29` has both in `kills`, in the original order
+
+#### Scenario: A pet objective is imported
+
+- **GIVEN** the original mission 16 asking for the pet 1
+- **WHEN** the import runs
+- **THEN** `mission-16` has `deliverPet` set to `monster-1`
+
+#### Scenario: A skill condition is imported
+
+- **GIVEN** the original mission 318 requiring the skill row 415, which is level 2 of 斯巴達
+- **WHEN** the import runs
+- **THEN** `mission-318` has `requiredSkill` with `skill-414` and level 2
+
+#### Scenario: A skill condition that cannot be used is listed
+
+- **GIVEN** the original mission 325 requiring 戰意驅使, which was not imported
+- **WHEN** the import runs
+- **THEN** `mission-325` has no `requiredSkill`, and `gaps.md` lists that field under mission 325
+
+#### Scenario: An NPC is imported with a cleaned message
+
+- **GIVEN** the original monster 265 倫魯 with level 0, and a message containing the literal text `rn` where line breaks were
+- **WHEN** the import runs
+- **THEN** `monster-265` has `npc` true and `missionId` `mission-133`, and `npcMessage` has a single space in place of each run of `rn`
+
+#### Scenario: Monsters without sub-places are imported
+
+- **GIVEN** the original monster 399 in place 6 with no sub-places
+- **WHEN** the import runs
+- **THEN** `monster-399` is in `monsters.json` with empty `subPlaces`
+
+#### Scenario: A mission monster that is not a target is imported
+
+- **GIVEN** the original monster 434 belonging to mission 267, which targets monster 438
+- **WHEN** the import runs
+- **THEN** `monster-434` is in `monsters.json` with `missionId` `mission-267`
+
+#### Scenario: A recipe prerequisite is imported
+
+- **GIVEN** the original recipe 174 requiring mission 317
+- **WHEN** the import runs
+- **THEN** `recipe-174` has `requiredMissionId` set to `mission-317`, and `gaps.md` has no row for recipe 174
+
+#### Scenario: A pet reward above the old limit is imported
+
+- **GIVEN** the original mission 312 with the pet reward 417 at level 530
+- **WHEN** the import runs and the content loads
+- **THEN** `mission-312` has that pet reward, and loading succeeds

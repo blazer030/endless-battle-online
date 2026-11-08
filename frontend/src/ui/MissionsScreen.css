@@ -1,0 +1,167 @@
+.missions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 16px;
+}
+
+.missions .bag__tabs--pages {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.missions__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.missions__card,
+.missions__result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.missions__result {
+  border-color: var(--gold);
+}
+
+.missions__result p {
+  margin: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.missions__result .missions__speech {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.missions__title {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.missions__giver,
+.missions__description,
+.missions__reset,
+.missions__notice,
+.missions__level {
+  margin: 0;
+  font-size: 13px;
+}
+
+.missions__giver,
+.missions__level {
+  color: var(--text-muted);
+}
+
+.missions__description {
+  overflow-wrap: anywhere;
+}
+
+.missions__reset {
+  color: var(--cyan);
+}
+
+.missions__notice {
+  color: var(--crimson-text);
+  font-weight: 700;
+}
+
+.missions__requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  list-style: none;
+}
+
+.missions__block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.missions__label {
+  margin: 0;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.missions__lines {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+  overflow-wrap: anywhere;
+}
+
+.missions__progress {
+  height: 8px;
+  margin-top: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--night);
+  overflow: hidden;
+}
+
+.missions__progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+}
+
+.missions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.missions__danger {
+  border-color: var(--crimson);
+  color: var(--crimson-text);
+}
+
+.missions__done {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missions__done-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.missions__done-item .missions__title {
+  font-size: 14px;
+}
+
+.missions__done-item .missions__level {
+  grid-row: 1;
+  grid-column: 2;
+  font-variant-numeric: tabular-nums;
+}

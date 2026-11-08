@@ -1,0 +1,5782 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "EndlessBattle.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/content": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounts/register": {
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredentialsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounts/login": {
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredentialsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/accounts/me": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/characters": {
+      "post": {
+        "tags": [
+          "Characters"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCharacterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/characters/me": {
+      "get": {
+        "tags": [
+          "Characters"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/characters/me/buffs": {
+      "get": {
+        "tags": [
+          "Characters"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BuffResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/characters/me/settings": {
+      "put": {
+        "tags": [
+          "Characters"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdventureSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/adventure/advance": {
+      "post": {
+        "tags": [
+          "Adventure"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdvanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/skills": {
+      "get": {
+        "tags": [
+          "Skills"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/skills/learn": {
+      "post": {
+        "tags": [
+          "Skills"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnSkillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/skills/slots": {
+      "put": {
+        "tags": [
+          "Skills"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSkillSlotsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobOptionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/change": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world": {
+      "get": {
+        "tags": [
+          "World"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorldAreaResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/world/location": {
+      "put": {
+        "tags": [
+          "World"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory": {
+      "get": {
+        "tags": [
+          "Inventory"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/equip": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquipRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/unequip": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnequipRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory/use": {
+      "post": {
+        "tags": [
+          "Inventory"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UseItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UseItemResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop": {
+      "get": {
+        "tags": [
+          "Shop"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ItemCategory"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShopItemResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop/buy": {
+      "post": {
+        "tags": [
+          "Shop"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shop/sell": {
+      "post": {
+        "tags": [
+          "Shop"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bank/deposit": {
+      "post": {
+        "tags": [
+          "Bank"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankAmountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bank/withdraw": {
+      "post": {
+        "tags": [
+          "Bank"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BankAmountRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CharacterResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/depot": {
+      "get": {
+        "tags": [
+          "Depot"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/depot/store": {
+      "post": {
+        "tags": [
+          "Depot"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepotMoveResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/depot/take": {
+      "post": {
+        "tags": [
+          "Depot"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TakeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepotMoveResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/refine": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/socket": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/unsocket": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnsocketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnsocketResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/drill": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/merge-stones": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeStonesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/merge-cross": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeCrossRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/recipes": {
+      "get": {
+        "tags": [
+          "Forge"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecipeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/forge/synthesize": {
+      "post": {
+        "tags": [
+          "Forge"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynthesizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynthesisResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/missions": {
+      "get": {
+        "tags": [
+          "Missions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionBoardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/missions/accept": {
+      "post": {
+        "tags": [
+          "Missions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionBoardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/missions/abandon": {
+      "post": {
+        "tags": [
+          "Missions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionBoardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/missions/complete": {
+      "post": {
+        "tags": [
+          "Missions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MissionCompleteResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets": {
+      "get": {
+        "tags": [
+          "Pets"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets/carry": {
+      "post": {
+        "tags": [
+          "Pets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets/store": {
+      "post": {
+        "tags": [
+          "Pets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets/release": {
+      "post": {
+        "tags": [
+          "Pets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets/rename": {
+      "post": {
+        "tags": [
+          "Pets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pets/feed": {
+      "post": {
+        "tags": [
+          "Pets"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetFeedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries": {
+      "get": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries/hire": {
+      "post": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MercenaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryHireResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries/deploy": {
+      "post": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MercenaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries/rest": {
+      "post": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries/rename": {
+      "post": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MercenaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mercenaries/dismiss": {
+      "post": {
+        "tags": [
+          "Mercenaries"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MercenaryOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/honour": {
+      "get": {
+        "tags": [
+          "Honour"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HonourShopResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/honour/exchange": {
+      "post": {
+        "tags": [
+          "Honour"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HonourExchangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HonourShopResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inn": {
+      "get": {
+        "tags": [
+          "Inn"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InnResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inn/book": {
+      "post": {
+        "tags": [
+          "Inn"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InnBookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InnBookResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountResponse": {
+        "required": [
+          "accountId",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "AdvanceResponse": {
+        "required": [
+          "events",
+          "summary",
+          "eventsCoverAll",
+          "character",
+          "mercenary",
+          "areaPassExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BattleEvent"
+            }
+          },
+          "summary": {
+            "$ref": "#/components/schemas/AdvanceSummary"
+          },
+          "eventsCoverAll": {
+            "type": "boolean"
+          },
+          "character": {
+            "$ref": "#/components/schemas/CharacterResponse"
+          },
+          "mercenary": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MercenaryReportResponse"
+              }
+            ]
+          },
+          "areaPassExpiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "AdvanceSummary": {
+        "required": [
+          "fights",
+          "wins",
+          "losses",
+          "timeouts",
+          "exp",
+          "money",
+          "jobExp",
+          "levelsGained",
+          "skillsCast"
+        ],
+        "type": "object",
+        "properties": {
+          "fights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "losses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeouts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "jobExp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "levelsGained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillsCast": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "drops": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "potionsUsed": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "missionKills": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "petsCaptured": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "escapes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          }
+        }
+      },
+      "AdventureSettingsRequest": {
+        "required": [
+          "attack",
+          "potionHpPercent",
+          "potionSpPercent",
+          "restHpPercent",
+          "restSpPercent",
+          "escapeHpPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "attack": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AttackKind"
+              }
+            ]
+          },
+          "potionHpPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "potionSpPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "restHpPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "restSpPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "escapeHpPercent": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "AdventureSettingsResponse": {
+        "required": [
+          "attack",
+          "potionHpPercent",
+          "potionSpPercent",
+          "restHpPercent",
+          "restSpPercent",
+          "escapeHpPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "attack": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AttackKind"
+              }
+            ]
+          },
+          "potionHpPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "potionSpPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "restHpPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "restSpPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "escapeHpPercent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AttackKind": {
+        "enum": [
+          "Physical",
+          "Magic",
+          null
+        ]
+      },
+      "BagCategoryResponse": {
+        "required": [
+          "category",
+          "capacity",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemResponse"
+            }
+          }
+        }
+      },
+      "BankAmountRequest": {
+        "required": [
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "BaseStats": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "vit",
+          "agi",
+          "au",
+          "be"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "be": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "BaseStatsResponse": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "vit",
+          "agi",
+          "au",
+          "be"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "be": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "BattleEvent": {
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/BattleEventEncounterEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventRoundEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventAttackEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventSkillEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventPotionEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventDefeatEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventTimeoutEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventRewardEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventLevelUpEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventRestEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventMissionProgressEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventNpcEncounterEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventPetGuardEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventPetAttackEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventCaptureEvent"
+          },
+          {
+            "$ref": "#/components/schemas/BattleEventEscapeEvent"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "encounter": "#/components/schemas/BattleEventEncounterEvent",
+            "round": "#/components/schemas/BattleEventRoundEvent",
+            "attack": "#/components/schemas/BattleEventAttackEvent",
+            "skill": "#/components/schemas/BattleEventSkillEvent",
+            "potion": "#/components/schemas/BattleEventPotionEvent",
+            "defeat": "#/components/schemas/BattleEventDefeatEvent",
+            "timeout": "#/components/schemas/BattleEventTimeoutEvent",
+            "reward": "#/components/schemas/BattleEventRewardEvent",
+            "levelUp": "#/components/schemas/BattleEventLevelUpEvent",
+            "rest": "#/components/schemas/BattleEventRestEvent",
+            "mission": "#/components/schemas/BattleEventMissionProgressEvent",
+            "npc": "#/components/schemas/BattleEventNpcEncounterEvent",
+            "petGuard": "#/components/schemas/BattleEventPetGuardEvent",
+            "petAttack": "#/components/schemas/BattleEventPetAttackEvent",
+            "capture": "#/components/schemas/BattleEventCaptureEvent",
+            "escape": "#/components/schemas/BattleEventEscapeEvent"
+          }
+        }
+      },
+      "BattleEventAttackEvent": {
+        "required": [
+          "attacker",
+          "kind",
+          "hit",
+          "critical",
+          "damage",
+          "elementMultiplier",
+          "targetHpAfter",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "attack"
+            ],
+            "type": "string"
+          },
+          "attacker": {
+            "$ref": "#/components/schemas/CombatSide"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttackKind"
+          },
+          "hit": {
+            "type": "boolean"
+          },
+          "critical": {
+            "type": "boolean"
+          },
+          "damage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "elementMultiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetHpAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stunned": {
+            "type": "boolean",
+            "default": false
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventCaptureEvent": {
+        "required": [
+          "itemName",
+          "itemBroken",
+          "capturedMonsterId",
+          "remaining",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "capture"
+            ],
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "itemBroken": {
+            "type": "boolean"
+          },
+          "capturedMonsterId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventDefeatEvent": {
+        "required": [
+          "loser",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "defeat"
+            ],
+            "type": "string"
+          },
+          "loser": {
+            "$ref": "#/components/schemas/CombatSide"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventEncounterEvent": {
+        "required": [
+          "monsterId",
+          "monsterHp",
+          "monsterHpMax",
+          "playerHp",
+          "playerHpMax",
+          "playerSp",
+          "playerSpMax",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "encounter"
+            ],
+            "type": "string"
+          },
+          "monsterId": {
+            "type": "string"
+          },
+          "monsterHp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "monsterHpMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playerHp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playerHpMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playerSp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "playerSpMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "petName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "petMonsterId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventEscapeEvent": {
+        "required": [
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "escape"
+            ],
+            "type": "string"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventLevelUpEvent": {
+        "required": [
+          "newLevel",
+          "growth",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "levelUp"
+            ],
+            "type": "string"
+          },
+          "newLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "growth": {
+            "$ref": "#/components/schemas/BaseStats"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventMissionProgressEvent": {
+        "required": [
+          "missionId",
+          "title",
+          "monsterId",
+          "progress",
+          "required",
+          "requiresDelivery",
+          "completed",
+          "skillTooLow",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "mission"
+            ],
+            "type": "string"
+          },
+          "missionId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "monsterId": {
+            "type": "string"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "required": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requiresDelivery": {
+            "type": "boolean"
+          },
+          "completed": {
+            "type": "boolean"
+          },
+          "skillTooLow": {
+            "type": "boolean"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventNpcEncounterEvent": {
+        "required": [
+          "monsterId",
+          "name",
+          "message",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "npc"
+            ],
+            "type": "string"
+          },
+          "monsterId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventPetAttackEvent": {
+        "required": [
+          "petName",
+          "kind",
+          "hit",
+          "critical",
+          "damage",
+          "targetHpAfter",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "petAttack"
+            ],
+            "type": "string"
+          },
+          "petName": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/AttackKind"
+          },
+          "hit": {
+            "type": "boolean"
+          },
+          "critical": {
+            "type": "boolean"
+          },
+          "damage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetHpAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventPetGuardEvent": {
+        "required": [
+          "petName",
+          "damage",
+          "guardAfter",
+          "retired",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "petGuard"
+            ],
+            "type": "string"
+          },
+          "petName": {
+            "type": "string"
+          },
+          "damage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guardAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "retired": {
+            "type": "boolean"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventPotionEvent": {
+        "required": [
+          "itemId",
+          "name",
+          "hp",
+          "sp",
+          "remaining",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "potion"
+            ],
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventRestEvent": {
+        "required": [
+          "cost",
+          "expPenalty",
+          "waitSeconds",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "rest"
+            ],
+            "type": "string"
+          },
+          "cost": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "expPenalty": {
+            "type": "boolean"
+          },
+          "waitSeconds": {
+            "type": "number",
+            "format": "double"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventRewardEvent": {
+        "required": [
+          "exp",
+          "money",
+          "jobExp",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "reward"
+            ],
+            "type": "string"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "jobExp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "drops": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/DropResult"
+            }
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventRoundEvent": {
+        "required": [
+          "round",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "round"
+            ],
+            "type": "string"
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventSkillEvent": {
+        "required": [
+          "caster",
+          "skillId",
+          "skillName",
+          "level",
+          "spAfter",
+          "heal",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "skill"
+            ],
+            "type": "string"
+          },
+          "caster": {
+            "$ref": "#/components/schemas/CombatSide"
+          },
+          "skillId": {
+            "type": "string"
+          },
+          "skillName": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spAfter": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "heal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "damage": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "opponentHpAfter": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "hpCost": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "spCost": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "moneyCost": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "opponentSpLoss": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "spGain": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "lasting": {
+            "type": "boolean",
+            "default": false
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BattleEventTimeoutEvent": {
+        "required": [
+          "rounds",
+          "damageDealt",
+          "atSeconds"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "timeout"
+            ],
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "damageDealt": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "atSeconds": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "BuffKind": {
+        "enum": [
+          "Exp",
+          "JobExp",
+          "Attack",
+          "Magic",
+          "Defense",
+          "MagicDefense"
+        ]
+      },
+      "BuffResponse": {
+        "required": [
+          "kind",
+          "multiplier",
+          "endsAt"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BuffKind"
+          },
+          "multiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BuyRequest": {
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ChangeJobRequest": {
+        "required": [
+          "jobId"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CharacterResponse": {
+        "required": [
+          "name",
+          "level",
+          "exp",
+          "nextExp",
+          "money",
+          "bank",
+          "hp",
+          "sp",
+          "sex",
+          "element",
+          "birth",
+          "jobId",
+          "jobName",
+          "stats",
+          "baseStats",
+          "placeId",
+          "placeName",
+          "subPlace",
+          "subPlaceName",
+          "areaName",
+          "jobProficiency",
+          "settings"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nextExp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bank": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "element": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "birth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "jobName": {
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/StatsResponse"
+          },
+          "baseStats": {
+            "$ref": "#/components/schemas/BaseStatsResponse"
+          },
+          "placeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeName": {
+            "type": "string"
+          },
+          "subPlace": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "subPlaceName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "areaName": {
+            "type": "string"
+          },
+          "jobProficiency": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobProficiencyResponse"
+            }
+          },
+          "settings": {
+            "$ref": "#/components/schemas/AdventureSettingsResponse"
+          }
+        }
+      },
+      "CombatSide": {
+        "enum": [
+          "Player",
+          "Monster"
+        ]
+      },
+      "ConsumableKind": {
+        "enum": [
+          "None",
+          "Supply",
+          "StatPotion",
+          "BagExpansion",
+          "DepotExpansion",
+          "Capture",
+          "StoneBox",
+          "RefineBox",
+          "PetEgg",
+          "ProficiencyBook",
+          "ExperienceCapsule",
+          "Elixir"
+        ]
+      },
+      "ContentResponse": {
+        "required": [
+          "monsters",
+          "jobs",
+          "elements",
+          "births",
+          "sexes"
+        ],
+        "type": "object",
+        "properties": {
+          "monsters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedContent"
+            }
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobContent"
+            }
+          },
+          "elements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedContent"
+            }
+          },
+          "births": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedContent"
+            }
+          },
+          "sexes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NamedContent"
+            }
+          }
+        }
+      },
+      "CreateCharacterRequest": {
+        "required": [
+          "name",
+          "sex",
+          "element",
+          "birth",
+          "jobId",
+          "allocation"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sex": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "element": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "birth": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "jobId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "allocation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatAllocationRequest"
+              }
+            ]
+          }
+        }
+      },
+      "CredentialsRequest": {
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DepotMoveResponse": {
+        "required": [
+          "inventory",
+          "depot"
+        ],
+        "type": "object",
+        "properties": {
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryResponse"
+          },
+          "depot": {
+            "$ref": "#/components/schemas/DepotResponse"
+          }
+        }
+      },
+      "DepotResponse": {
+        "required": [
+          "entries",
+          "capacity"
+        ],
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemResponse"
+            }
+          },
+          "capacity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DrillRequest": {
+        "required": [
+          "inventoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "DropResult": {
+        "required": [
+          "itemId",
+          "name",
+          "quantity",
+          "discarded"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discarded": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EquipmentSlot": {
+        "enum": [
+          "Weapon",
+          "Head",
+          "Body",
+          "Hand",
+          "Foot",
+          "Accessory",
+          "Supply"
+        ]
+      },
+      "EquippedItemResponse": {
+        "required": [
+          "slot",
+          "quantity",
+          "item"
+        ],
+        "type": "object",
+        "properties": {
+          "slot": {
+            "$ref": "#/components/schemas/EquipmentSlot"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "item": {
+            "$ref": "#/components/schemas/InventoryItemResponse"
+          }
+        }
+      },
+      "EquipRequest": {
+        "required": [
+          "inventoryId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "ForgeResponse": {
+        "required": [
+          "success",
+          "inventory"
+        ],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryResponse"
+          }
+        }
+      },
+      "HealthResponse": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "HonourCostResponse": {
+        "required": [
+          "itemId",
+          "name",
+          "quantity",
+          "owned"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "owned": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "HonourExchangeRequest": {
+        "required": [
+          "exchangeId"
+        ],
+        "type": "object",
+        "properties": {
+          "exchangeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "HonourExchangeResponse": {
+        "required": [
+          "id",
+          "kind",
+          "rewardId",
+          "rewardName",
+          "quantity",
+          "cost",
+          "affordable"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "rewardId": {
+            "type": "string"
+          },
+          "rewardName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cost": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HonourCostResponse"
+            }
+          },
+          "affordable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HonourMedalResponse": {
+        "required": [
+          "itemId",
+          "name",
+          "owned"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owned": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "HonourShopResponse": {
+        "required": [
+          "medals",
+          "exchanges"
+        ],
+        "type": "object",
+        "properties": {
+          "medals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HonourMedalResponse"
+            }
+          },
+          "exchanges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HonourExchangeResponse"
+            }
+          }
+        }
+      },
+      "InnBookRequest": {
+        "required": [
+          "roomId"
+        ],
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InnBookResponse": {
+        "required": [
+          "character",
+          "lodging",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "character": {
+            "$ref": "#/components/schemas/CharacterResponse"
+          },
+          "lodging": {
+            "$ref": "#/components/schemas/LodgingResponse"
+          },
+          "cost": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "InnResponse": {
+        "required": [
+          "rooms",
+          "lodging"
+        ],
+        "type": "object",
+        "properties": {
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InnRoomResponse"
+            }
+          },
+          "lodging": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LodgingResponse"
+              }
+            ]
+          }
+        }
+      },
+      "InnRoomResponse": {
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "multiplier",
+          "seconds",
+          "price"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BuffKind"
+          },
+          "multiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "InventoryItemResponse": {
+        "required": [
+          "inventoryId",
+          "itemId",
+          "name",
+          "category",
+          "consumable",
+          "quantity",
+          "bonus",
+          "requires",
+          "jobId",
+          "supplyHp",
+          "supplySp",
+          "amount",
+          "refineLevel",
+          "refineMax",
+          "refineBonus",
+          "holes",
+          "sockets",
+          "price",
+          "bound",
+          "refineStoneLevel",
+          "enhanced",
+          "weaponSkill"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
+          },
+          "consumable": {
+            "$ref": "#/components/schemas/ConsumableKind"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bonus": {
+            "$ref": "#/components/schemas/StatBonus"
+          },
+          "requires": {
+            "$ref": "#/components/schemas/StatRequirement7"
+          },
+          "jobId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "supplyHp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplySp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refineLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refineMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refineBonus": {
+            "$ref": "#/components/schemas/StatBonus"
+          },
+          "holes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sockets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SocketResponse"
+            }
+          },
+          "price": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bound": {
+            "type": "boolean"
+          },
+          "refineStoneLevel": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "enhanced": {
+            "type": "boolean"
+          },
+          "weaponSkill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WeaponSkillResponse"
+              }
+            ]
+          }
+        }
+      },
+      "InventoryResponse": {
+        "required": [
+          "bag",
+          "equipment",
+          "bonus"
+        ],
+        "type": "object",
+        "properties": {
+          "bag": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BagCategoryResponse"
+            }
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EquippedItemResponse"
+            }
+          },
+          "bonus": {
+            "$ref": "#/components/schemas/StatBonus"
+          }
+        }
+      },
+      "ItemCategory": {
+        "enum": [
+          "Weapon",
+          "Head",
+          "Body",
+          "Hand",
+          "Foot",
+          "Accessory",
+          "Consumable",
+          "Stone",
+          "RefineStone",
+          "Material",
+          "Medal",
+          "Key"
+        ]
+      },
+      "JobContent": {
+        "required": [
+          "id",
+          "name",
+          "tier",
+          "parentId",
+          "unlockLevel",
+          "proficiencyRequired",
+          "statRequirements",
+          "growth"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unlockLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "proficiencyRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statRequirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatRequirementContent"
+            }
+          },
+          "growth": {
+            "$ref": "#/components/schemas/JobGrowthContent"
+          }
+        }
+      },
+      "JobGrowthContent": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "vit",
+          "agi",
+          "au",
+          "be"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "smart": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "life": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "vit": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "agi": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "au": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "be": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "JobOptionResponse": {
+        "required": [
+          "id",
+          "name",
+          "tier",
+          "parentId",
+          "parentName",
+          "unlockLevel",
+          "proficiencyRequired",
+          "statRequirements",
+          "growth",
+          "current",
+          "proficiencyPercent",
+          "eligible",
+          "reasons"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "parentName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unlockLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "proficiencyRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statRequirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatRequirementContent"
+            }
+          },
+          "growth": {
+            "$ref": "#/components/schemas/JobGrowthContent"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "proficiencyPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "JobProficiencyResponse": {
+        "required": [
+          "jobId",
+          "proficiency",
+          "skillPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "proficiency": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "LearnSkillRequest": {
+        "required": [
+          "skillId"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LevelRangeResponse": {
+        "required": [
+          "min",
+          "max"
+        ],
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "max": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "LodgingResponse": {
+        "required": [
+          "roomId",
+          "endsAt"
+        ],
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LoginResponse": {
+        "required": [
+          "accessToken"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        }
+      },
+      "MercenaryCatalogueResponse": {
+        "required": [
+          "id",
+          "name",
+          "price",
+          "fights",
+          "moneyPercent",
+          "dropPercent",
+          "expPercent",
+          "deathCost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "fights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "moneyPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dropPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deathCost": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MercenaryContractResponse": {
+        "required": [
+          "mercenaryId",
+          "name",
+          "remaining",
+          "placeId",
+          "placeName",
+          "fighting",
+          "nextFightAt"
+        ],
+        "type": "object",
+        "properties": {
+          "mercenaryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "placeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fighting": {
+            "type": "boolean"
+          },
+          "nextFightAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "MercenaryFightResponse": {
+        "required": [
+          "at",
+          "monsterId",
+          "monsterName",
+          "won",
+          "exp",
+          "money"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "monsterId": {
+            "type": "string"
+          },
+          "monsterName": {
+            "type": "string"
+          },
+          "won": {
+            "type": "boolean"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "MercenaryHireResponse": {
+        "required": [
+          "mercenaries",
+          "character"
+        ],
+        "type": "object",
+        "properties": {
+          "mercenaries": {
+            "$ref": "#/components/schemas/MercenaryOverviewResponse"
+          },
+          "character": {
+            "$ref": "#/components/schemas/CharacterResponse"
+          }
+        }
+      },
+      "MercenaryOverviewResponse": {
+        "required": [
+          "catalogue",
+          "contract"
+        ],
+        "type": "object",
+        "properties": {
+          "catalogue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MercenaryCatalogueResponse"
+            }
+          },
+          "contract": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MercenaryContractResponse"
+              }
+            ]
+          }
+        }
+      },
+      "MercenaryReportResponse": {
+        "required": [
+          "name",
+          "fights",
+          "wins",
+          "exp",
+          "money",
+          "levelsGained",
+          "remaining",
+          "dismissed",
+          "recent"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wins": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "levelsGained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remaining": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dismissed": {
+            "type": "boolean"
+          },
+          "recent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MercenaryFightResponse"
+            }
+          }
+        }
+      },
+      "MercenaryRequest": {
+        "required": [
+          "mercenaryId",
+          "placeId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "mercenaryId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "placeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MergeCrossRequest": {
+        "required": [
+          "firstInventoryId",
+          "secondInventoryId",
+          "quantityPairs"
+        ],
+        "type": "object",
+        "properties": {
+          "firstInventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "secondInventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantityPairs": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MergeStonesRequest": {
+        "required": [
+          "stoneInventoryId",
+          "quantityPairs"
+        ],
+        "type": "object",
+        "properties": {
+          "stoneInventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantityPairs": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MissionBoardResponse": {
+        "required": [
+          "available",
+          "active",
+          "completed",
+          "activeLimit",
+          "nextDailyReset"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionResponse"
+            }
+          },
+          "active": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionResponse"
+            }
+          },
+          "completed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionResponse"
+            }
+          },
+          "activeLimit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextDailyReset": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MissionCompleteResponse": {
+        "required": [
+          "board",
+          "character",
+          "completionMessage",
+          "exp",
+          "money",
+          "items",
+          "skill",
+          "skillGranted",
+          "levelsGained",
+          "pet"
+        ],
+        "type": "object",
+        "properties": {
+          "board": {
+            "$ref": "#/components/schemas/MissionBoardResponse"
+          },
+          "character": {
+            "$ref": "#/components/schemas/CharacterResponse"
+          },
+          "completionMessage": {
+            "type": "string"
+          },
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionRewardItemResponse"
+            }
+          },
+          "skill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionRewardSkillResponse"
+              }
+            ]
+          },
+          "skillGranted": {
+            "type": "boolean"
+          },
+          "levelsGained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pet": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionRewardPetResponse"
+              }
+            ]
+          }
+        }
+      },
+      "MissionDeliverResponse": {
+        "required": [
+          "itemId",
+          "name",
+          "quantity",
+          "owned"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "owned": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MissionKillResponse": {
+        "required": [
+          "monsterId",
+          "monsterName",
+          "placeId",
+          "placeName",
+          "count",
+          "progress"
+        ],
+        "type": "object",
+        "properties": {
+          "monsterId": {
+            "type": "string"
+          },
+          "monsterName": {
+            "type": "string"
+          },
+          "placeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeName": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MissionPetResponse": {
+        "required": [
+          "monsterId",
+          "name",
+          "carried"
+        ],
+        "type": "object",
+        "properties": {
+          "monsterId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "carried": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MissionRequest": {
+        "required": [
+          "missionId"
+        ],
+        "type": "object",
+        "properties": {
+          "missionId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MissionRequiredSkillResponse": {
+        "required": [
+          "skillId",
+          "name",
+          "level",
+          "met"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "met": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MissionRequirementsResponse": {
+        "required": [
+          "jobId",
+          "sex",
+          "birth",
+          "prerequisiteId",
+          "prerequisiteTitle"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sex": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "birth": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "prerequisiteId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "prerequisiteTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "MissionResponse": {
+        "required": [
+          "id",
+          "giver",
+          "title",
+          "description",
+          "level",
+          "placeId",
+          "placeName",
+          "daily",
+          "kills",
+          "deliver",
+          "requirements",
+          "rewards",
+          "ready",
+          "expiresAt",
+          "deliverPet",
+          "requiredSkill"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "giver": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "placeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "placeName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "daily": {
+            "type": "boolean"
+          },
+          "kills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionKillResponse"
+            }
+          },
+          "deliver": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionDeliverResponse"
+            }
+          },
+          "requirements": {
+            "$ref": "#/components/schemas/MissionRequirementsResponse"
+          },
+          "rewards": {
+            "$ref": "#/components/schemas/MissionRewardResponse"
+          },
+          "ready": {
+            "type": "boolean"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "deliverPet": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionPetResponse"
+              }
+            ]
+          },
+          "requiredSkill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionRequiredSkillResponse"
+              }
+            ]
+          }
+        }
+      },
+      "MissionRewardItemResponse": {
+        "required": [
+          "itemId",
+          "name",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MissionRewardPetResponse": {
+        "required": [
+          "monsterId",
+          "name",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "monsterId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MissionRewardResponse": {
+        "required": [
+          "exp",
+          "money",
+          "items",
+          "skill",
+          "pet"
+        ],
+        "type": "object",
+        "properties": {
+          "exp": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MissionRewardItemResponse"
+            }
+          },
+          "skill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionRewardSkillResponse"
+              }
+            ]
+          },
+          "pet": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MissionRewardPetResponse"
+              }
+            ]
+          }
+        }
+      },
+      "MissionRewardSkillResponse": {
+        "required": [
+          "skillId",
+          "name",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MoveRequest": {
+        "required": [
+          "placeId",
+          "subPlace"
+        ],
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "subPlace": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "NamedContent": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PetFeedResponse": {
+        "required": [
+          "pets",
+          "character"
+        ],
+        "type": "object",
+        "properties": {
+          "pets": {
+            "$ref": "#/components/schemas/PetsResponse"
+          },
+          "character": {
+            "$ref": "#/components/schemas/CharacterResponse"
+          }
+        }
+      },
+      "PetFoodResponse": {
+        "required": [
+          "id",
+          "name",
+          "stat",
+          "amount",
+          "cost"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stat": {
+            "$ref": "#/components/schemas/PetStat"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cost": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PetPersonality": {
+        "enum": [
+          "Aggressive",
+          "Cold",
+          "Ironwall",
+          "Desperate"
+        ]
+      },
+      "PetRequest": {
+        "required": [
+          "petId",
+          "name",
+          "foodId"
+        ],
+        "type": "object",
+        "properties": {
+          "petId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "foodId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PetResponse": {
+        "required": [
+          "id",
+          "monsterId",
+          "species",
+          "name",
+          "personality",
+          "attack",
+          "magic",
+          "defense",
+          "spirit",
+          "satiety",
+          "intimacy",
+          "carried",
+          "age",
+          "nextFeedAt",
+          "activationPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monsterId": {
+            "type": "string"
+          },
+          "species": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "personality": {
+            "$ref": "#/components/schemas/PetPersonality"
+          },
+          "attack": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "magic": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defense": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spirit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "satiety": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "intimacy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "carried": {
+            "type": "boolean"
+          },
+          "age": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextFeedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "activationPercent": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PetsResponse": {
+        "required": [
+          "pets",
+          "maxPets",
+          "foods"
+        ],
+        "type": "object",
+        "properties": {
+          "pets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PetResponse"
+            }
+          },
+          "maxPets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "foods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PetFoodResponse"
+            }
+          }
+        }
+      },
+      "PetStat": {
+        "enum": [
+          "Attack",
+          "Magic",
+          "Defense",
+          "Spirit"
+        ]
+      },
+      "RecipeMaterialResponse": {
+        "required": [
+          "itemId",
+          "name",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RecipeRequiredMissionResponse": {
+        "required": [
+          "id",
+          "title",
+          "completed"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecipeResponse": {
+        "required": [
+          "id",
+          "resultItemId",
+          "resultName",
+          "resultQuantity",
+          "materials",
+          "successRate",
+          "costPerAttempt",
+          "requiredMission"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resultItemId": {
+            "type": "string"
+          },
+          "resultName": {
+            "type": "string"
+          },
+          "resultQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "materials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecipeMaterialResponse"
+            }
+          },
+          "successRate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "costPerAttempt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requiredMission": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RecipeRequiredMissionResponse"
+              }
+            ]
+          }
+        }
+      },
+      "Recommendation": {
+        "enum": [
+          "Recommended",
+          "TooHard",
+          "TooEasy",
+          "None"
+        ]
+      },
+      "RefineRequest": {
+        "required": [
+          "inventoryId",
+          "stoneInventoryId",
+          "useSafeStone"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "stoneInventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "useSafeStone": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "RegisterResponse": {
+        "required": [
+          "accountId"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SellRequest": {
+        "required": [
+          "inventoryId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SetSkillSlotsRequest": {
+        "required": [
+          "slots"
+        ],
+        "type": "object",
+        "properties": {
+          "slots": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillSlotRequest"
+            }
+          }
+        }
+      },
+      "ShopItemResponse": {
+        "required": [
+          "id",
+          "name",
+          "category",
+          "price",
+          "bonus",
+          "requires",
+          "holes",
+          "refineMax"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
+          },
+          "price": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bonus": {
+            "$ref": "#/components/schemas/StatBonus"
+          },
+          "requires": {
+            "$ref": "#/components/schemas/StatRequirement7"
+          },
+          "holes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refineMax": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillNextLevelResponse": {
+        "required": [
+          "level",
+          "money",
+          "proficiency",
+          "summary",
+          "canLearn",
+          "reasons"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "proficiency": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "canLearn": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SkillOverviewResponse": {
+        "required": [
+          "jobId",
+          "skillPoints",
+          "skills",
+          "slots"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillResponse"
+            }
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillSlotResponse"
+            }
+          }
+        }
+      },
+      "SkillPrerequisiteResponse": {
+        "required": [
+          "skillId",
+          "name",
+          "level"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SkillResponse": {
+        "required": [
+          "id",
+          "name",
+          "slotType",
+          "timing",
+          "description",
+          "icon",
+          "level",
+          "maxLevel",
+          "summary",
+          "prerequisite",
+          "next"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slotType": {
+            "$ref": "#/components/schemas/SkillType"
+          },
+          "timing": {
+            "$ref": "#/components/schemas/SkillTiming"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "prerequisite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillPrerequisiteResponse"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillNextLevelResponse"
+              }
+            ]
+          }
+        }
+      },
+      "SkillSlotRequest": {
+        "required": [
+          "slot",
+          "skillId"
+        ],
+        "type": "object",
+        "properties": {
+          "slot": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "skillId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SkillSlotResponse": {
+        "required": [
+          "slot",
+          "skillId"
+        ],
+        "type": "object",
+        "properties": {
+          "slot": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skillId": {
+            "type": "string"
+          }
+        }
+      },
+      "SkillTiming": {
+        "enum": [
+          "BeforeAttack",
+          "AfterHit",
+          "RoundEnd"
+        ]
+      },
+      "SkillType": {
+        "enum": [
+          "Active",
+          "Passive"
+        ]
+      },
+      "SocketRequest": {
+        "required": [
+          "inventoryId",
+          "hole",
+          "stoneInventoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "hole": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "stoneInventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "SocketResponse": {
+        "required": [
+          "hole",
+          "stoneId",
+          "stoneName",
+          "rolled"
+        ],
+        "type": "object",
+        "properties": {
+          "hole": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stoneId": {
+            "type": "string"
+          },
+          "stoneName": {
+            "type": "string"
+          },
+          "rolled": {
+            "$ref": "#/components/schemas/StatBonus"
+          }
+        }
+      },
+      "StatAllocationRequest": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "agi"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "smart": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "life": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "agi": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "StatBonus": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "vit",
+          "agi",
+          "au",
+          "be",
+          "at",
+          "mat",
+          "df",
+          "mdf"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "be": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "at": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mat": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "df": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mdf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hpMax": {
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          }
+        }
+      },
+      "StatRequirement7": {
+        "required": [
+          "str",
+          "smart",
+          "agi",
+          "au"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatRequirementContent": {
+        "required": [
+          "stat",
+          "minimum"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "type": "string"
+          },
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatsResponse": {
+        "required": [
+          "str",
+          "smart",
+          "life",
+          "vit",
+          "agi",
+          "au",
+          "be",
+          "at",
+          "mat",
+          "df",
+          "mdf",
+          "hpMax",
+          "spMax"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "life": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "be": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "at": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mat": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "df": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mdf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hpMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spMax": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StoreRequest": {
+        "required": [
+          "inventoryId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SubPlaceResponse": {
+        "required": [
+          "index",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "SynthesisResponse": {
+        "required": [
+          "successes",
+          "attempts",
+          "cost",
+          "inventory"
+        ],
+        "type": "object",
+        "properties": {
+          "successes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cost": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryResponse"
+          }
+        }
+      },
+      "SynthesizeRequest": {
+        "required": [
+          "recipeId",
+          "attempts"
+        ],
+        "type": "object",
+        "properties": {
+          "recipeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attempts": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "TakeRequest": {
+        "required": [
+          "depotId",
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "depotId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UnequipRequest": {
+        "required": [
+          "slot"
+        ],
+        "type": "object",
+        "properties": {
+          "slot": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/EquipmentSlot"
+              }
+            ]
+          }
+        }
+      },
+      "UnsocketRequest": {
+        "required": [
+          "inventoryId",
+          "hole"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "hole": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "UnsocketResponse": {
+        "required": [
+          "success",
+          "recovered",
+          "inventory"
+        ],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "recovered": {
+            "type": "boolean"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryResponse"
+          }
+        }
+      },
+      "UseItemRequest": {
+        "required": [
+          "inventoryId"
+        ],
+        "type": "object",
+        "properties": {
+          "inventoryId": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "UseItemResponse": {
+        "required": [
+          "inventory",
+          "obtained",
+          "petName",
+          "skillPoints",
+          "levelsGained",
+          "buff"
+        ],
+        "type": "object",
+        "properties": {
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryResponse"
+          },
+          "obtained": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "petName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "levelsGained": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "buff": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BuffResponse"
+              }
+            ]
+          }
+        }
+      },
+      "WeaponSkillResponse": {
+        "required": [
+          "name",
+          "level",
+          "rate"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rate": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WorldAreaResponse": {
+        "required": [
+          "id",
+          "name",
+          "places"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "places": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorldPlaceResponse"
+            }
+          }
+        }
+      },
+      "WorldPlaceResponse": {
+        "required": [
+          "id",
+          "name",
+          "subPlaces",
+          "recommended",
+          "restricted",
+          "current",
+          "recommendation",
+          "keys",
+          "passExpiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "subPlaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubPlaceResponse"
+            }
+          },
+          "recommended": {
+            "$ref": "#/components/schemas/LevelRangeResponse"
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "recommendation": {
+            "$ref": "#/components/schemas/Recommendation"
+          },
+          "keys": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "passExpiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Health"
+    },
+    {
+      "name": "Content"
+    },
+    {
+      "name": "Accounts"
+    },
+    {
+      "name": "Characters"
+    },
+    {
+      "name": "Adventure"
+    },
+    {
+      "name": "Skills"
+    },
+    {
+      "name": "Jobs"
+    },
+    {
+      "name": "World"
+    },
+    {
+      "name": "Inventory"
+    },
+    {
+      "name": "Shop"
+    },
+    {
+      "name": "Bank"
+    },
+    {
+      "name": "Depot"
+    },
+    {
+      "name": "Forge"
+    },
+    {
+      "name": "Missions"
+    },
+    {
+      "name": "Pets"
+    },
+    {
+      "name": "Mercenaries"
+    },
+    {
+      "name": "Honour"
+    },
+    {
+      "name": "Inn"
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using EndlessBattle.Application.Characters;
+using EndlessBattle.Application.Skills;
+using EndlessBattle.Domain.Skills;
+using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace EndlessBattle.Tests.Api;
+
+// 新戰士 2000 錢、0 技能點；burst lv1 要 500 錢、300 技能點
+public class SkillEndpointsTests(MySqlDatabaseFixture database)
+{
+    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
+    private static async Task<HttpClient> CreateClientWithCharacterAsync(EndlessBattleApiFactory factory)
+    {
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"習技{Random.Shared.Next(100000, 999999)}"));
+        created.EnsureSuccessStatusCode();
+        return client;
+    }
+
+    private static async Task<long> CharacterIdAsync(EndlessBattleApiFactory factory, HttpClient client)
+    {
+        var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
+        using var scope = factory.Services.CreateScope();
+        var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
+            .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
+        return character!.Id;
+    }
+
+    // 直接寫入技能點：取得技能點要靠戰鬥，這裡跳過
+    private static async Task GrantSkillPointsAsync(EndlessBattleApiFactory factory, HttpClient client, string jobId, long skillPoints)
+    {
+        var characterId = await CharacterIdAsync(factory, client);
+        using var scope = factory.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<IJobProficiencyRepository>()
+            .AddAsync(characterId, jobId, 0, skillPoints, CancellationToken);
+    }
+
+    private static async Task<JsonElement> ReadOkAsync(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+    }
+
+    private static async Task<IReadOnlyList<string>> ReadReasonsAsync(HttpResponseMessage response)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        return problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()!).ToList();
+    }
+
+    private static Task<HttpResponseMessage> PutSlotsAsync(HttpClient client, params object[] slots) =>
+        client.PutAsJsonAsync("/api/skills/slots", new { slots }, CancellationToken);
+
+    [Fact]
+    public async Task Overview_ListsCurrentJobSkillsWithNextLevel()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var body = await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken);
+
+        Assert.Equal("warrior", body.GetProperty("jobId").GetString());
+        Assert.Equal(0, body.GetProperty("skillPoints").GetInt64());
+        Assert.Empty(body.GetProperty("slots").EnumerateArray());
+        var skills = body.GetProperty("skills").EnumerateArray().ToList();
+        Assert.Equal(["burst", "iron-skin"], skills.Select(skill => skill.GetProperty("id").GetString()));
+        var burst = skills[0];
+        Assert.Equal("爆氣", burst.GetProperty("name").GetString());
+        Assert.Equal("Active", burst.GetProperty("slotType").GetString());
+        Assert.Equal(0, burst.GetProperty("level").GetInt32());
+        Assert.Equal(5, burst.GetProperty("maxLevel").GetInt32());
+        var next = burst.GetProperty("next");
+        Assert.Equal(1, next.GetProperty("level").GetInt32());
+        Assert.Equal(500, next.GetProperty("money").GetInt64());
+        Assert.Equal(300, next.GetProperty("proficiency").GetInt64());
+        Assert.False(next.GetProperty("canLearn").GetBoolean());
+        Assert.Equal(["notEnoughProficiency"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        // 效果文字由條件、消耗、效果產生；未學時目前等級沒有效果文字；被動硬甲常駐
+        Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", next.GetProperty("summary").GetString());
+        Assert.Equal(JsonValueKind.Null, burst.GetProperty("summary").ValueKind);
+        Assert.Equal("常駐｜自己物防 +1%", skills[1].GetProperty("next").GetProperty("summary").GetString());
+    }
+
+    // 滿級時 next 為 null；直接寫入技能書，跳過五次學習
+    [Fact]
+    public async Task Overview_ShowsNoNextLevel_AtMaxLevel()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(characterId, new LearnedSkill("burst", 5), CancellationToken);
+        }
+
+        var body = await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken);
+
+        var burst = body.GetProperty("skills").EnumerateArray().First(skill => skill.GetProperty("id").GetString() == "burst");
+        Assert.Equal(5, burst.GetProperty("level").GetInt32());
+        Assert.Equal(JsonValueKind.Null, burst.GetProperty("next").ValueKind);
+    }
+
+    // 狂暴爆氣（他職業技能，已學 lv1）要先把爆氣學到 3 級：回傳前置技能的 id、名稱與等級；沒有前置技能時為 null
+    [Fact]
+    public async Task Skills_ReturnPrerequisite()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(characterId, new LearnedSkill("advanced-burst", 1), CancellationToken);
+        }
+
+        var skills = (await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken)).GetProperty("skills").EnumerateArray()
+            .ToDictionary(skill => skill.GetProperty("id").GetString()!);
+
+        var prerequisite = skills["advanced-burst"].GetProperty("prerequisite");
+        Assert.Equal("burst", prerequisite.GetProperty("skillId").GetString());
+        Assert.Equal("爆氣", prerequisite.GetProperty("name").GetString());
+        Assert.Equal(3, prerequisite.GetProperty("level").GetInt32());
+        Assert.Contains("prerequisite", skills["advanced-burst"].GetProperty("next").GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(JsonValueKind.Null, skills["burst"].GetProperty("prerequisite").ValueKind);
+    }
+
+    // 治癒（他職業技能，已學 lv1）：效果文字含 HP 條件、SP 消耗、回復量與冷卻；舊的 trigger、chance、rounds 欄位不再回傳
+    [Fact]
+    public async Task Skills_ReturnSummaryAndDescription()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>()
+                .UpsertAsync(characterId, new LearnedSkill("heal", 1), CancellationToken);
+        }
+
+        var skills = (await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken)).GetProperty("skills").EnumerateArray()
+            .ToDictionary(skill => skill.GetProperty("id").GetString()!);
+
+        var heal = skills["heal"];
+        Assert.Equal("HP 低於 50%｜消耗 SP 5｜回復 HP 智力×100%，1 回合｜冷卻 4 回合", heal.GetProperty("summary").GetString());
+        Assert.False(string.IsNullOrEmpty(heal.GetProperty("description").GetString()));
+        Assert.Equal("BeforeAttack", heal.GetProperty("timing").GetString());
+        Assert.False(heal.TryGetProperty("trigger", out _));
+        Assert.False(heal.TryGetProperty("chance", out _));
+        Assert.False(heal.TryGetProperty("jobId", out _));
+    }
+
+    [Fact]
+    public async Task Learn_ReturnsUpdatedOverview()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 300);
+
+        var body = await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
+
+        Assert.Equal(0, body.GetProperty("skillPoints").GetInt64());
+        var burst = body.GetProperty("skills").EnumerateArray().First(skill => skill.GetProperty("id").GetString() == "burst");
+        Assert.Equal(1, burst.GetProperty("level").GetInt32());
+        Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", burst.GetProperty("summary").GetString());
+        Assert.Equal(2, burst.GetProperty("next").GetProperty("level").GetInt32());
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(1500, me.GetProperty("money").GetInt64());
+        var proficiency = Assert.Single(me.GetProperty("jobProficiency").EnumerateArray());
+        Assert.Equal(0, proficiency.GetProperty("skillPoints").GetInt64());
+        Assert.Equal(0, proficiency.GetProperty("proficiency").GetInt64());
+    }
+
+    [Fact]
+    public async Task Learn_Returns400WithReasons_WhenNotAllowed()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken);
+
+        Assert.Equal(["notEnoughProficiency"], await ReadReasonsAsync(response));
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal(2000, me.GetProperty("money").GetInt64());
+    }
+
+    // advanced-burst 要先把 burst 學到 3 級；新戰士 burst 0 級，而且戰士不教這個技能（job-skills.json 只有狂戰士）
+    [Fact]
+    public async Task Learn_RefusesMissingPrerequisite()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 10_000);
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "advanced-burst" }, CancellationToken);
+
+        Assert.Contains("prerequisite", await ReadReasonsAsync(response));
+    }
+
+    [Theory]
+    [InlineData("""{"skillId":"no-such-skill"}""")]
+    [InlineData("""{}""")]
+    public async Task Learn_Returns400_WhenSkillUnknown(string json)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var response = await client.PostAsync(
+            "/api/skills/learn", new StringContent(json, Encoding.UTF8, "application/json"), CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    // 已學 burst（主動）與 iron-skin（被動）；stun 未學
+    [Theory]
+    [InlineData("""[{"slot":4,"skillId":"burst"}]""", "activeInPassiveSlot")]
+    [InlineData("""[{"slot":1,"skillId":"burst"},{"slot":2,"skillId":"burst"}]""", "duplicateSkill")]
+    [InlineData("""[{"slot":1,"skillId":"iron-skin"}]""", "passiveInActiveSlot")]
+    [InlineData("""[{"slot":1,"skillId":"stun"}]""", "notLearned")]
+    public async Task Slots_RejectInvalidLoadout_AndKeepExisting(string slotsJson, string reason)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 600);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "iron-skin" }, CancellationToken));
+        var saved = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 1, skillId = "burst" }));
+        Assert.Single(saved.GetProperty("slots").EnumerateArray());
+
+        var rejected = await client.PutAsync(
+            "/api/skills/slots", new StringContent($$"""{"slots":{{slotsJson}}}""", Encoding.UTF8, "application/json"), CancellationToken);
+
+        Assert.Contains(reason, await ReadReasonsAsync(rejected));
+        var body = await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken);
+        var slot = Assert.Single(body.GetProperty("slots").EnumerateArray());
+        Assert.Equal(1, slot.GetProperty("slot").GetInt32());
+        Assert.Equal("burst", slot.GetProperty("skillId").GetString());
+    }
+
+    // 被動欄不限職業：戰士學了 iron-skin 後轉成盜賊，仍能把它裝進欄 4，轉職也不清掉已裝的被動
+    [Fact]
+    public async Task Slots_AcceptPassiveLearnedInAnotherJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 300);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "iron-skin" }, CancellationToken));
+        await ReadOkAsync(await PutSlotsAsync(client, new { slot = 4, skillId = "iron-skin" }));
+
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/jobs/change", new { jobId = "thief" }, CancellationToken));
+        var afterChange = await client.GetFromJsonAsync<JsonElement>("/api/skills", CancellationToken);
+        var saved = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 5, skillId = "iron-skin" }));
+
+        Assert.Equal("thief", afterChange.GetProperty("jobId").GetString());
+        Assert.Equal("iron-skin", Assert.Single(afterChange.GetProperty("slots").EnumerateArray()).GetProperty("skillId").GetString());
+        Assert.Equal(5, Assert.Single(saved.GetProperty("slots").EnumerateArray()).GetProperty("slot").GetInt32());
+    }
+
+    // 發動率由技能決定：請求帶的舊欄位 chance 直接忽略、回應沒有 chance；省略的欄位＝清空
+    [Fact]
+    public async Task Slots_IgnoreChanceAndClearOmitted()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "warrior", 300);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken));
+
+        var body = await ReadOkAsync(await PutSlotsAsync(client, new { slot = 2, skillId = "burst", chance = 55 }));
+        var slot = Assert.Single(body.GetProperty("slots").EnumerateArray());
+        Assert.Equal(["slot", "skillId"], slot.EnumerateObject().Select(property => property.Name));
+
+        var cleared = await ReadOkAsync(await PutSlotsAsync(client));
+        Assert.Empty(cleared.GetProperty("slots").EnumerateArray());
+    }
+
+    // 先找角色再找技能：沒有角色時一律 404
+    [Fact]
+    public async Task Learn_Returns404_WhenNoCharacter_EvenIfSkillUnknown()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "no-such-skill" }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Overview_Returns404_WhenNoCharacter()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/skills", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Overview_RequiresAuthentication()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+
+        var response = await factory.CreateClient().GetAsync("/api/skills", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+}

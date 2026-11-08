@@ -1,0 +1,6 @@
+**/bin
+**/obj
+**/TestResults
+EndlessBattle.Tests
+**/node_modules
+**/dist

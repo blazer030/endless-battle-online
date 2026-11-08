@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="EndlessBattle.Api/EndlessBattle.Api.csproj" />
+  <Project Path="EndlessBattle.Application/EndlessBattle.Application.csproj" />
+  <Project Path="EndlessBattle.Domain/EndlessBattle.Domain.csproj" />
+  <Project Path="EndlessBattle.Infrastructure/EndlessBattle.Infrastructure.csproj" />
+  <Project Path="EndlessBattle.Tests/EndlessBattle.Tests.csproj" />
+</Solution>

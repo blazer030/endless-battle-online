@@ -1,0 +1,140 @@
+using EndlessBattle.Application.Common;
+using EndlessBattle.Domain.Skills;
+using EndlessBattle.Infrastructure.Persistence;
+using EndlessBattle.Tests.Support;
+
+namespace EndlessBattle.Tests.Infrastructure;
+
+public class SkillRepositoriesTests(MySqlDatabaseFixture database)
+{
+    private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
+
+    private async Task<long> CreateCharacterAsync()
+    {
+        var now = DateTimeOffset.UtcNow;
+        await using var context = database.CreateDbContext();
+        var accountId = await new AccountRepository(context).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, CancellationToken);
+        var character = await new CharacterRepository(context).AddAsync(
+            TestCharacters.Default(accountId, $"技能{Random.Shared.Next(100000, 999999)}", 1, 1, now), CancellationToken);
+        return character.Id;
+    }
+
+    private async Task ReplaceSlotsAsync(long characterId, params SkillSlot[] slots)
+    {
+        await using var context = database.CreateDbContext();
+        await new SkillLoadoutRepository(context).ReplaceAsync(characterId, slots, CancellationToken);
+    }
+
+    private async Task<IReadOnlyList<SkillSlot>> ListSlotsAsync(long characterId)
+    {
+        await using var context = database.CreateDbContext();
+        return await new SkillLoadoutRepository(context).ListAsync(characterId, CancellationToken);
+    }
+
+    [Fact]
+    public async Task SkillBook_UpsertRaisesLevel()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        foreach (var level in new[] { 1, 2 })
+        {
+            await using var context = database.CreateDbContext();
+            await new SkillBookRepository(context).UpsertAsync(characterId, new LearnedSkill("slash", level), CancellationToken);
+        }
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new SkillBookRepository(readContext).ListAsync(characterId, CancellationToken);
+        Assert.Equal([new LearnedSkill("slash", 2)], stored);
+    }
+
+    [Fact]
+    public async Task SkillBook_ListsEmptyForNewCharacter()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await using var context = database.CreateDbContext();
+        var stored = await new SkillBookRepository(context).ListAsync(characterId, CancellationToken);
+
+        Assert.Empty(stored);
+    }
+
+    [Fact]
+    public async Task Loadout_ReplaceClearsMissingSlots()
+    {
+        var characterId = await CreateCharacterAsync();
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(2, "guard"), new SkillSlot(4, "heal"));
+
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(3, "bash"));
+
+        Assert.Equal([new SkillSlot(1, "slash"), new SkillSlot(3, "bash")], await ListSlotsAsync(characterId));
+    }
+
+    [Fact]
+    public async Task Loadout_ReplaceWithEmptyClearsAll()
+    {
+        var characterId = await CreateCharacterAsync();
+        await ReplaceSlotsAsync(characterId, new SkillSlot(1, "slash"), new SkillSlot(2, "guard"));
+
+        await ReplaceSlotsAsync(characterId);
+
+        Assert.Empty(await ListSlotsAsync(characterId));
+    }
+
+    // 重複主鍵讓 insert 失敗時，前面的 delete 要一起回復
+    [Fact]
+    public async Task Loadout_ReplaceRollsBack_WhenInsertFails()
+    {
+        var characterId = await CreateCharacterAsync();
+        var original = new[] { new SkillSlot(1, "slash"), new SkillSlot(2, "guard") };
+        await ReplaceSlotsAsync(characterId, original);
+
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            ReplaceSlotsAsync(characterId, new SkillSlot(3, "bash"), new SkillSlot(3, "heal")));
+
+        Assert.Equal(original, await ListSlotsAsync(characterId));
+    }
+
+    // 在用例的交易裡（例如轉職）呼叫時加入外層交易，不另開交易；外層失敗時一起回滾
+    [Fact]
+    public async Task Loadout_ReplaceJoinsOuterTransaction()
+    {
+        var characterId = await CreateCharacterAsync();
+        var original = new[] { new SkillSlot(1, "slash"), new SkillSlot(2, "guard") };
+        await ReplaceSlotsAsync(characterId, original);
+        await using var context = database.CreateDbContext();
+
+        await Assert.ThrowsAsync<ConflictException>(() => new EfUnitOfWork(context).RunAsync<bool>(async cancellationToken =>
+        {
+            await new SkillLoadoutRepository(context).ReplaceAsync(characterId, [new SkillSlot(1, "slash")], cancellationToken);
+            throw new ConflictException("外層失敗");
+        }, CancellationToken));
+
+        Assert.Equal(original, await ListSlotsAsync(characterId));
+    }
+
+    [Fact]
+    public async Task Loadout_ListsOrderedBySlot()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        await ReplaceSlotsAsync(characterId, new SkillSlot(4, "heal"), new SkillSlot(1, "slash"));
+
+        Assert.Equal([new SkillSlot(1, "slash"), new SkillSlot(4, "heal")], await ListSlotsAsync(characterId));
+    }
+
+    [Fact]
+    public async Task SkillBook_ListsOrderedBySkillId()
+    {
+        var characterId = await CreateCharacterAsync();
+
+        foreach (var skillId in new[] { "zeal", "aim" })
+        {
+            await using var context = database.CreateDbContext();
+            await new SkillBookRepository(context).UpsertAsync(characterId, new LearnedSkill(skillId, 1), CancellationToken);
+        }
+
+        await using var readContext = database.CreateDbContext();
+        var stored = await new SkillBookRepository(readContext).ListAsync(characterId, CancellationToken);
+        Assert.Equal([new LearnedSkill("aim", 1), new LearnedSkill("zeal", 1)], stored);
+    }
+}

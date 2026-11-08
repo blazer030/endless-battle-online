@@ -1,0 +1,6 @@
+{
+  "mercenaries": [
+    {"id": "test-mercenary", "name": "測試傭兵", "price": 100, "fights": 3, "moneyPercent": 50, "dropPercent": 100, "expPercent": 50, "deathCost": 2},
+    {"id": "test-honour-mercenary", "name": "測試榮譽傭兵", "price": null, "fights": 5, "moneyPercent": 100, "dropPercent": 100, "expPercent": 100, "deathCost": 1}
+  ]
+}

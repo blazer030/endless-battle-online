@@ -1,0 +1,16 @@
+{
+  "jobs": [
+    {"id": "job-6", "name": "戰士", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {"str": [1, 3], "smart": [0, 1], "life": [1, 3], "vit": [1, 3], "agi": [0, 1], "au": [1, 1], "be": [0, 1]}},
+    {"id": "job-7", "name": "術士", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {"str": [0, 1], "smart": [1, 3], "life": [1, 2], "vit": [1, 1], "agi": [1, 1], "au": [1, 1], "be": [1, 2]}},
+    {"id": "job-8", "name": "盜賊", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {"str": [1, 2], "smart": [0, 1], "life": [1, 1], "vit": [1, 2], "agi": [1, 3], "au": [0, 1], "be": [1, 1]}},
+    {"id": "job-9", "name": "樂手", "tier": 1, "parentId": null, "unlockLevel": 1, "proficiencyRequired": 0, "statRequirements": [], "growth": {"str": [1, 2], "smart": [1, 2], "life": [1, 1], "vit": [0, 2], "agi": [0, 2], "au": [1, 3], "be": [0, 2]}},
+    {"id": "job-10", "name": "狂戰士", "tier": 2, "parentId": "job-6", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [2, 5], "smart": [0, 1], "life": [1, 3], "vit": [1, 3], "agi": [1, 2], "au": [1, 1], "be": [0, 1]}},
+    {"id": "job-11", "name": "騎士", "tier": 2, "parentId": "job-6", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [1, 4], "smart": [1, 1], "life": [2, 4], "vit": [2, 5], "agi": [0, 1], "au": [1, 2], "be": [1, 2]}},
+    {"id": "job-12", "name": "魔導師", "tier": 2, "parentId": "job-7", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [0, 1], "smart": [2, 5], "life": [1, 2], "vit": [1, 1], "agi": [1, 3], "au": [0, 2], "be": [2, 2]}},
+    {"id": "job-13", "name": "風水師", "tier": 2, "parentId": "job-7", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [1, 2], "smart": [2, 3], "life": [1, 2], "vit": [1, 3], "agi": [0, 2], "au": [1, 2], "be": [2, 4]}},
+    {"id": "job-14", "name": "刺客", "tier": 2, "parentId": "job-8", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [1, 3], "smart": [0, 2], "life": [0, 3], "vit": [1, 2], "agi": [2, 5], "au": [0, 1], "be": [1, 3]}},
+    {"id": "job-15", "name": "武術家", "tier": 2, "parentId": "job-8", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [2, 3], "smart": [0, 1], "life": [1, 3], "vit": [1, 1], "agi": [2, 3], "au": [1, 1], "be": [1, 1]}},
+    {"id": "job-16", "name": "舞者", "tier": 2, "parentId": "job-9", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [0, 2], "smart": [2, 2], "life": [1, 2], "vit": [1, 1], "agi": [1, 4], "au": [2, 5], "be": [2, 2]}},
+    {"id": "job-17", "name": "獸師", "tier": 2, "parentId": "job-9", "unlockLevel": 150, "proficiencyRequired": 3500, "statRequirements": [], "growth": {"str": [2, 2], "smart": [1, 2], "life": [1, 3], "vit": [1, 4], "agi": [0, 3], "au": [2, 3], "be": [1, 2]}}
+  ]
+}
