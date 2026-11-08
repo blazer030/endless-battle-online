@@ -150,16 +150,15 @@ export class StageRenderer {
     if (!state.petActive || state.petName === null) return
 
     const name = state.petName
-    // 寵物沒有血條，名牌一直留著；有怪物 id 時另外放圖（沒有圖就是佔位圖）
-    const petMonsterId = state.petMonsterId
-    void fontReady(name).then(async () => {
-      if (petMonsterId !== null)
-        await this.showArt(
-          contentArtCandidates("monsters", petMonsterId),
-          this.pet,
-          PetBox,
-          isCurrent,
-        )
+    // 寵物沒有血條，名牌字型好了就畫、一直留著；圖另外載入，只換 art 那一層（沒有圖就是佔位圖）
+    if (state.petMonsterId !== null)
+      void this.showArt(
+        contentArtCandidates("monsters", state.petMonsterId),
+        this.pet,
+        PetBox,
+        isCurrent,
+      )
+    void fontReady(name).then(() => {
       if (isCurrent()) this.drawPetName(name)
     })
   }
