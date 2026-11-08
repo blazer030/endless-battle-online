@@ -39,3 +39,5 @@ dotnet test
 cd "$repository_root/frontend" && pnpm check
 
 cd "$repository_root/admin" && pnpm check
+
+cd "$repository_root/tools/assets" && pnpm check

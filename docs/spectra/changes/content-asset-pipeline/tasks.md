@@ -1,6 +1,6 @@
 ## 1. 匯入工具專案
 
-- [ ] 1.1 依「匯入工具是獨立的 pnpm 專案 `tools/assets`」建立 `tools/assets`（TypeScript strict、eslint、prettier、vitest，相依 sharp 與 `@aws-sdk/client-s3`），`pnpm check` 依序跑 eslint、prettier 檢查、`tsc -b`、vitest；`scripts/check.sh` 在 admin 之後加跑它；`.gitignore` 加 `.env.r2` 與 `.asset-preview/`；新增只有欄位名的 `.env.r2.example`。驗證：先寫一條會失敗的 `cli.test.ts`「未知指令以非零 exit code 結束並印出可用指令」再實作讓它通過；`cd tools/assets && pnpm check` exit 0；`git check-ignore .env.r2` 有輸出。
+- [x] 1.1 依「匯入工具是獨立的 pnpm 專案 `tools/assets`」建立 `tools/assets`（TypeScript strict、eslint、prettier、vitest，相依 sharp 與 `@aws-sdk/client-s3`），`pnpm check` 依序跑 eslint、prettier 檢查、`tsc -b`、vitest；`scripts/check.sh` 在 admin 之後加跑它；`.gitignore` 加 `.env.r2` 與 `.asset-preview/`；新增只有欄位名的 `.env.r2.example`。驗證：先寫一條會失敗的 `cli.test.ts`「未知指令以非零 exit code 結束並印出可用指令」再實作讓它通過；`cd tools/assets && pnpm check` exit 0；`git check-ignore .env.r2` 有輸出。
 
 ## 2. 轉檔規格
 

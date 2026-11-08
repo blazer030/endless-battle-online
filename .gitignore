@@ -503,3 +503,9 @@ backend/content-draft/
 
 # codegraph 的本機程式碼索引
 .codegraph/
+
+# 內容圖上傳到 R2 的金鑰（範本見 .env.r2.example）
+.env.r2
+
+# 匯入工具的預覽圖
+.asset-preview/
