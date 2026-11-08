@@ -19,6 +19,7 @@
 - 移動後佇列清空了，但舞台上舊怪物的血條會留到下一場遭遇（≤10 秒）。來源：Task 10 審查。
 - 無障礙：賣出確認的文字沒有 `role="status"`（「放生」也沒有）；有合約時停用的「僱用」按鈕沒有 `aria-describedby` 指向「只能僱用一位傭兵」。來源：Task 10 審查。
 - `nameInvalid` 的文案只描述長度規則。來源：Task 3 審查。
+- **內容圖清單整份打包進前端**：`frontend/src/render/contentAssets.ts` import 整份 `content-manifest.json`，連執行時用不到的 `original`、`headY` 也進 JS；全部圖匯入後約 3700 筆、估計 400 KB 未壓縮（雜湊字串幾乎壓不下來）。現在只有 lazy 載入的冒險舞台用到，影響有限；背包、城鎮等畫面引用前（`item-icons` 變更時）改成打包時只留 `baseUrl` 與每筆的 `file`（小 Vite 外掛，或 `import` 另外產生精簡清單）。來源：content-asset-pipeline 的 `/spectra-review`。
 
 ## 後端
 
