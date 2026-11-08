@@ -76,7 +76,7 @@ fi
 
 # 先解到暫存目錄再換上去，上傳中斷時不會留下半套程式。
 # compose 預設讀專案目錄的 .env；Container Manager 不帶 --profile，所以 profile 也寫在裡面。
-# .env 有 TUNNEL_TOKEN 時才啟用 tunnel（Cloudflare Tunnel，https://ebo.blazer030.dev）。
+# .env 有 TUNNEL_TOKEN 時才啟用 tunnel（Cloudflare Tunnel，https://ebo-test.blazer030.dev）。
 git archive --format=tar HEAD docker-compose.yml backend frontend |
     ssh "$nas_host" "cd $quoted_directory && rm -rf app.new && mkdir app.new && tar -xf - -C app.new && cp -p .env app.new/.env && profiles=app && if grep -q '^TUNNEL_TOKEN=.' .env; then profiles=app,tunnel; fi && echo COMPOSE_PROFILES=\$profiles >> app.new/.env && echo \"啟用的 profile：\$profiles\" && rm -rf app && mv app.new app"
 echo "程式已上傳"

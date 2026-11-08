@@ -66,7 +66,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # --profile tunnel：Cloudflare Tunnel，把 https://ebo.blazer030.dev 接到 web（Dashboard 的路由寫 http://web:80）。
+  # --profile tunnel：Cloudflare Tunnel，把 https://ebo-test.blazer030.dev 接到 web（Dashboard 的路由寫 http://web:80）。
   # token 不能用 ${...:?}：compose 連沒啟用的 profile 也會檢查，沒有 token 時整個專案都起不來；只在 NAS 的 .env 有 token 時才啟用這個 profile。
   tunnel:
     profiles: [tunnel]
