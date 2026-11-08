@@ -68,3 +68,22 @@ export const measure = async (image: Buffer): Promise<Measured> => {
     opaque: right < 0 ? null : { left, top, right, bottom },
   }
 }
+
+// 某一列不透明像素的左右邊界（以像素邊緣計：left 是第一個不透明像素的左緣、right 是最後一個的右緣）
+export const rowSpan = async (
+  image: Buffer,
+  y: number,
+): Promise<{ left: number; right: number } | null> => {
+  const { data, info } = await sharp(image)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  let left = -1
+  let right = -1
+  for (let x = 0; x < info.width; x++)
+    if ((data[(y * info.width + x) * 4 + 3] ?? 0) > 24) {
+      if (left < 0) left = x
+      right = x + 1
+    }
+  return left < 0 ? null : { left, right }
+}

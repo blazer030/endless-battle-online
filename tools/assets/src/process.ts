@@ -29,6 +29,11 @@ const IconFill = 0.88
 const MonsterMaxHeight = 486
 const MonsterMaxWidth = 513
 const MonsterFeetY = 529
+const PortraitTopY = 80
+const PortraitFeetY = 1180
+const PortraitAxisX = 400
+const AxisFromRatio = 0.35
+const AxisToRatio = 0.95
 const OpaqueAlpha = 24
 const LowestQuality = 60
 const QualityStep = 5
@@ -98,6 +103,8 @@ const scaledPiece = async (raw: Raw, box: Box, scale: number) => {
   return { input, width, height }
 }
 
+export type ProcessOptions = { headY?: number }
+
 type Composed = { image: Sharp; warnings: string[] }
 
 const enlargeWarning = (scale: number): string[] =>
@@ -127,6 +134,55 @@ const composeIcon = async (raw: Raw, spec: Spec): Promise<Composed> => {
   return { image, warnings: enlargeWarning(scale) }
 }
 
+// 身體中線：人物高度 35%～95% 每一列不透明像素中點的中位數（以像素邊緣計，武器、披風不易拉歪）
+const bodyAxis = (raw: Raw, top: number, bottom: number): number => {
+  const span = bottom - top
+  const centers: number[] = []
+  for (
+    let y = Math.round(top + span * AxisFromRatio);
+    y <= Math.round(top + span * AxisToRatio);
+    y++
+  ) {
+    let left = -1
+    let right = -1
+    for (let x = 0; x < raw.width; x++)
+      if ((raw.data[(y * raw.width + x) * 4 + 3] ?? 0) > OpaqueAlpha) {
+        if (left < 0) left = x
+        right = x + 1
+      }
+    if (left >= 0) centers.push((left + right) / 2)
+  }
+  centers.sort((a, b) => a - b)
+  const middle = Math.floor(centers.length / 2)
+  return centers.length % 2 === 1
+    ? (centers[middle] ?? 0)
+    : ((centers[middle - 1] ?? 0) + (centers[middle] ?? 0)) / 2
+}
+
+const composePortrait = async (
+  raw: Raw,
+  spec: Spec,
+  headY: number | undefined,
+): Promise<Composed> => {
+  const box = opaqueBox(raw)
+  const bottom = box.top + box.height - 1
+  const top = headY ?? box.top
+  if (top < box.top || top >= bottom)
+    throw new AssetError(`--head-y 必須在人物範圍內（${box.top}～${bottom - 1}）`)
+  const scale = (PortraitFeetY - PortraitTopY) / (bottom - top)
+  const piece = await scaledPiece(raw, box, scale)
+  const left = Math.round(PortraitAxisX - (bodyAxis(raw, top, bottom) - box.left) * scale)
+  const pieceTop = PortraitFeetY + 1 - piece.height
+  const overflow = [
+    left < 0 ? "左側" : null,
+    left + piece.width > spec.width ? "右側" : null,
+    pieceTop < 0 ? "上方" : null,
+  ].filter((side) => side !== null)
+  if (overflow.length > 0) throw new AssetError(`${overflow.join("、")}超出畫布`)
+  const image = blankCanvas(spec).composite([{ input: piece.input, left, top: pieceTop }])
+  return { image, warnings: enlargeWarning(scale) }
+}
+
 const composeMonster = async (raw: Raw, spec: Spec): Promise<Composed> => {
   const box = opaqueBox(raw)
   const scale = Math.min(MonsterMaxHeight / box.height, MonsterMaxWidth / box.width)
@@ -149,8 +205,15 @@ const composeBattlefield = async (raw: Raw, spec: Spec): Promise<Composed> => {
   return { image, warnings: enlargeWarning(scale) }
 }
 
-const compose = async (category: Category, raw: Raw, spec: Spec): Promise<Composed> => {
+const compose = async (
+  category: Category,
+  raw: Raw,
+  spec: Spec,
+  options: ProcessOptions,
+): Promise<Composed> => {
   switch (category) {
+    case "portraits":
+      return composePortrait(raw, spec, options.headY)
     case "items":
     case "skills":
     case "job-icons":
@@ -159,17 +222,19 @@ const compose = async (category: Category, raw: Raw, spec: Spec): Promise<Compos
       return composeMonster(raw, spec)
     case "battlefields":
       return composeBattlefield(raw, spec)
-    default:
-      throw new AssetError(`尚未支援的類別：${category}`)
   }
 }
 
 export type Processed = { webp: Buffer; quality: number; warnings: string[] }
 
-export const processImage = async (category: Category, source: Buffer): Promise<Processed> => {
+export const processImage = async (
+  category: Category,
+  source: Buffer,
+  options: ProcessOptions = {},
+): Promise<Processed> => {
   const spec = Specs[category]
   const raw = await readRaw(source)
-  const composed = await compose(category, raw, spec)
+  const composed = await compose(category, raw, spec, options)
   // composite 要先落成像素，才能用不同品質重複編碼
   const flattened = await composed.image.png().toBuffer()
   const { bytes, quality } = await encodeWithinLimit(
