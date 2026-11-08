@@ -1,5 +1,12 @@
-import { describe, expect, it } from "vitest"
-import { runCli } from "./cli.ts"
+import { access, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { beforeEach, describe, expect, it } from "vitest"
+import { runCli, type CliEnvironment } from "./cli.ts"
+import { FakeStorage } from "./testing/fakeStorage.ts"
+import { syntheticImage } from "./testing/images.ts"
+
+const EmptyManifest = '{\n  "baseUrl": "https://ebo-assets.blazer030.dev",\n  "assets": {}\n}\n'
 
 const capture = () => {
   const lines: string[] = []
@@ -9,14 +16,137 @@ const capture = () => {
   }
 }
 
+let root: string
+let storage: FakeStorage
+let storageCreated: boolean
+let environment: CliEnvironment
+const manifestPath = () => join(root, "frontend/src/assets/content-manifest.json")
+
+beforeEach(async () => {
+  root = await mkdtemp(join(tmpdir(), "ebo-cli-"))
+  await mkdir(join(root, "frontend/src/assets"), { recursive: true })
+  await writeFile(manifestPath(), EmptyManifest)
+  await writeFile(
+    join(root, "monster.png"),
+    await syntheticImage(300, 300, [{ left: 50, top: 50, width: 200, height: 200 }]),
+  )
+  storage = new FakeStorage()
+  storageCreated = false
+  environment = {
+    repositoryRoot: root,
+    workingDirectory: root,
+    createStorage: () => {
+      storageCreated = true
+      return storage
+    },
+  }
+})
+
 describe("runCli", () => {
   it("未知指令以非零 exit code 結束並印出可用指令", async () => {
     const { lines, output } = capture()
 
-    const exitCode = await runCli(["unknown"], output)
+    const exitCode = await runCli(["unknown"], output, environment)
 
     expect(exitCode).not.toBe(0)
     const text = lines.join("\n")
     for (const command of ["import", "missing", "design"]) expect(text).toContain(command)
+  })
+})
+
+describe("import", () => {
+  it("沒有 .env.r2 時 --dry-run 產生預覽並以 0 結束、清單不變", async () => {
+    const { output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "monster.png", "--dry-run"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).toBe(0)
+    await access(join(root, ".asset-preview/monsters/monster-1.png"))
+    expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
+    expect(storageCreated).toBe(false)
+  })
+
+  it("非 dry-run 缺金鑰時非零結束且不上傳", async () => {
+    const { lines, output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "monster.png"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).not.toBe(0)
+    expect(lines.join("\n")).toContain(".env.r2")
+    expect(storageCreated).toBe(false)
+    expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
+  })
+
+  it("有金鑰時上傳並把內容圖寫進清單", async () => {
+    await writeFile(
+      join(root, ".env.r2"),
+      "R2_ENDPOINT=https://e\nR2_ACCESS_KEY_ID=id\nR2_SECRET_ACCESS_KEY=secret\n",
+    )
+    const { output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "monster.png"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).toBe(0)
+    const manifest = JSON.parse(await readFile(manifestPath(), "utf8"))
+    expect(manifest.assets["monsters/monster-1"].file).toMatch(
+      /^monsters\/monster-1\.[0-9a-f]{12}\.webp$/,
+    )
+    expect(storage.puts).toHaveLength(2)
+  })
+
+  it("上傳失敗時非零結束且清單不變", async () => {
+    await writeFile(
+      join(root, ".env.r2"),
+      "R2_ENDPOINT=https://e\nR2_ACCESS_KEY_ID=id\nR2_SECRET_ACCESS_KEY=secret\n",
+    )
+    storage.failingBucket = "content"
+    const { output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "monster.png"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).not.toBe(0)
+    expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
+  })
+
+  it("--head-y 只能用在立繪", async () => {
+    const { lines, output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "monster.png", "--head-y", "10", "--dry-run"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).not.toBe(0)
+    expect(lines.join("\n")).toContain("--head-y")
+  })
+
+  it("來源圖讀不到時非零結束", async () => {
+    const { lines, output } = capture()
+
+    const exitCode = await runCli(
+      ["import", "monsters", "monster-1", "nope.png", "--dry-run"],
+      output,
+      environment,
+    )
+
+    expect(exitCode).not.toBe(0)
+    expect(lines.join("\n")).toContain("nope.png")
   })
 })

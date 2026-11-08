@@ -12,7 +12,7 @@
 
 - [x] 3.1 [after: 1.1] Content manifest 與 Immutable content-hashed upload（依「檔名帶雜湊、永不覆寫，清單在 git」「先上傳、再寫清單」）：清單讀寫（`baseUrl`、`assets` 鍵依字母排序、`file`／`original`／`headY`）；物件鍵 `<類別>/<鍵>.<SHA-256 前 12 碼>.webp` 與原檔鍵；儲存體介面（存在檢查、上傳）；已存在就略過；兩個上傳都成功才寫清單。驗證：先用假儲存體寫失敗測試 `publish.test.ts`「換圖時上傳新檔名、清單指向新檔、舊檔沒被刪」「內容圖上傳失敗時清單位元組不變」「同一張圖再匯入不上傳、清單不變」「寫出的清單鍵是排序過的」，再實作。
 - [x] 3.2 [after: 3.1] Upload credentials：從 repo 根目錄 `.env.r2` 讀 `R2_ENDPOINT`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`，缺欄位時錯誤訊息寫出欄位名、不印出任何值；實作 R2 版的儲存體（S3 相容，`ebo-content` 上傳帶 `Content-Type: image/webp` 與 `Cache-Control: public, max-age=31536000, immutable`，`ebo-originals` 存原檔）。驗證：先寫失敗測試 `credentials.test.ts`「缺 R2_SECRET_ACCESS_KEY 時錯誤訊息含欄位名且不含其他欄位的值」，再實作；R2 儲存體的上傳參數用假的 S3 client 測「帶了正確的 Content-Type 與 Cache-Control」。
-- [ ] 3.3 [after: 2.2, 2.3, 3.2] `import <類別> <鍵> <來源圖> [--head-y <n>] [--dry-run]` 指令：串起轉檔、預覽圖（`.asset-preview/<類別>/<鍵>.png`，棋盤底＋輔助線：立繪頂線 y=80、腳底線 y=1180、中線 x=400；怪物腳底線；圖示 88% 框）、上傳與清單；`--dry-run` 不需要金鑰、不上傳、不改清單；任何錯誤非零 exit code 且清單不變。驗證：先寫失敗測試 `cli.test.ts`「沒有 .env.r2 時 --dry-run 產生預覽並以 0 結束、清單不變」「非 dry-run 缺金鑰時非零結束」，再實作。
+- [x] 3.3 [after: 2.2, 2.3, 3.2] `import <類別> <鍵> <來源圖> [--head-y <n>] [--dry-run]` 指令：串起轉檔、預覽圖（`.asset-preview/<類別>/<鍵>.png`，棋盤底＋輔助線：立繪頂線 y=80、腳底線 y=1180、中線 x=400；怪物腳底線；圖示 88% 框）、上傳與清單；`--dry-run` 不需要金鑰、不上傳、不改清單；任何錯誤非零 exit code 且清單不變。驗證：先寫失敗測試 `cli.test.ts`「沒有 .env.r2 時 --dry-run 產生預覽並以 0 結束、清單不變」「非 dry-run 缺金鑰時非零結束」，再實作。
 
 ## 4. 其他指令
 
