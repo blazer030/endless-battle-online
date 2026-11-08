@@ -80,6 +80,14 @@ describe("processImage 怪物與戰鬥背景", () => {
     expect(measured.hasAlpha).toBe(false)
   })
 
+  it("來源有透明區時輸出仍不透明", async () => {
+    const source = await syntheticImage(1600, 900, [{ left: 0, top: 0, width: 800, height: 900 }])
+
+    const measured = await measure((await processImage("battlefields", source)).webp)
+
+    expect(measured.hasAlpha).toBe(false)
+  })
+
   it("比 1024 小的背景會放大並警告", async () => {
     const source = await syntheticImage(800, 600, [{ left: 0, top: 0, width: 800, height: 600 }])
 

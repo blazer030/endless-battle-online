@@ -236,7 +236,8 @@ export const processImage = async (
   const raw = await readRaw(source)
   const composed = await compose(category, raw, spec, options)
   // composite 要先落成像素，才能用不同品質重複編碼
-  const flattened = await composed.image.png().toBuffer()
+  // 不透明的類別把透明區填黑，輸出才不會帶 alpha
+  const flattened = await (spec.alpha ? composed.image : composed.image.flatten()).png().toBuffer()
   const { bytes, quality } = await encodeWithinLimit(
     (current) =>
       sharp(flattened).webp({ quality: current, alphaQuality: 100, effort: 6 }).toBuffer(),
