@@ -1,5 +1,7 @@
 # 生圖提示詞範本
 
+設計畫布（EBO DEMO，日系手繪）素材的提示詞另外整理在 [`prompts/demo/`](prompts/demo/README.md)。
+
 提示詞用英文（生圖模型效果較穩），說明用中文。尺寸、構圖、色彩規則見 `README.md`。輸出請要求透明背景 PNG，再用 `scripts/import-art.sh` 匯入。
 
 ## 共用風格段
