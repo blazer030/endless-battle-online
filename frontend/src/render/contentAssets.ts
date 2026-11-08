@@ -38,6 +38,21 @@ export const createContentAssets =
 export const artCandidates = (asset: ContentAsset, placeholder: string): string[] =>
   asset.placeholder ? [asset.url] : [asset.url, placeholder]
 
+// 依序嘗試每個網址，回傳第一個載入成功的結果；全部失敗回傳 null
+export const loadFirst = async <T>(
+  urls: readonly string[],
+  load: (url: string) => Promise<T>,
+): Promise<T | null> => {
+  for (const url of urls) {
+    try {
+      return await load(url)
+    } catch {
+      continue
+    }
+  }
+  return null
+}
+
 const isCategory = (text: string): text is ContentCategory =>
   (ContentCategories as readonly string[]).includes(text)
 

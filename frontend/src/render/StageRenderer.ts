@@ -4,7 +4,7 @@ import type { Text, Texture } from "pixi.js"
 import { initialStageState } from "../game/stageModel"
 import type { StageEffect, StageState } from "../game/stageModel"
 import { BreathingCycleSeconds } from "../motion/timings"
-import { contentArtCandidates } from "./contentAssets"
+import { contentArtCandidates, loadFirst } from "./contentAssets"
 import {
   createPlate,
   createStageText,
@@ -340,15 +340,7 @@ export class StageRenderer {
     box: Box,
     isCurrent: () => boolean,
   ) {
-    let texture: Texture | null = null
-    for (const url of urls) {
-      try {
-        texture = await Assets.load<Texture>(url)
-        break
-      } catch {
-        continue
-      }
-    }
+    const texture = await loadFirst(urls, (url) => Assets.load<Texture>(url))
     if (texture === null || this.destroyed || !isCurrent()) return
     const sprite = new Sprite(texture)
     sprite.anchor.set(0.5, 1)
