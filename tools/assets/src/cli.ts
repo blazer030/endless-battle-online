@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, extname, join, resolve } from "node:path"
 import { loadCredentials, type Credentials } from "./credentials.ts"
+import { convertDesignAsset } from "./design.ts"
 import { missingReport } from "./missing.ts"
 import { renderPreview } from "./preview.ts"
 import { AssetError, Specs, parseCategory, processImage, validateKey } from "./process.ts"
@@ -132,6 +133,28 @@ const runMissing = async (
   return 0
 }
 
+const runDesign = async (
+  args: readonly string[],
+  output: Output,
+  environment: CliEnvironment,
+): Promise<number> => {
+  const parsed = parseArgs(args, ["--max-width"])
+  if (parsed.flags.size > 0) throw new AssetError(`不認得的選項：${[...parsed.flags].join("、")}`)
+  const [group, name, sourcePath, ...extra] = parsed.positional
+  if (group === undefined || name === undefined || sourcePath === undefined || extra.length > 0)
+    throw new AssetError("用法：design <分類> <名稱> <來源圖> [--max-width <n>]")
+  validateKey(group)
+  validateKey(name)
+  const maxWidth = parseNonNegativeInteger("--max-width", parsed.options.get("--max-width"))
+  const source = await readSource(environment, sourcePath)
+  const webp = await convertDesignAsset(source.bytes, maxWidth)
+  const target = join(environment.repositoryRoot, "frontend/src/assets", group, `${name}.webp`)
+  await mkdir(dirname(target), { recursive: true })
+  await writeFile(target, webp)
+  output.log(`已寫出 ${target}（${webp.length.toLocaleString()} bytes）`)
+  return 0
+}
+
 export const runCli = async (
   args: readonly string[],
   output: Output,
@@ -144,6 +167,8 @@ export const runCli = async (
         return await runImport(rest, output, environment)
       case "missing":
         return await runMissing(rest, output, environment)
+      case "design":
+        return await runDesign(rest, output, environment)
       default:
         output.error(`不認得的指令：${command ?? "（沒有指令）"}`)
         for (const line of Usage) output.error(line)
