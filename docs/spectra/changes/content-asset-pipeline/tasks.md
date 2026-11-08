@@ -31,5 +31,5 @@
 
 ## 7. 第一批匯入與總檢查
 
-- [ ] 7.1 [after: 3.3, 4.1, 5.2] 第一批正式匯入（使用者先依 `.env.r2.example` 建好 `.env.r2`）：從 `.design-work/assets` 匯入四職男女立繪（`job-6`～`job-9` 的 `-male`／`-female`）與 21 張戰鬥背景，逐張看預覽圖、必要時用 `--head-y`；`pnpm cli missing` 顯示立繪 8／24、戰鬥背景 21／21；用瀏覽器打開清單裡任一網址看得到圖；核對實際檔案大小與 design 規格表的實測範圍，差太多就回報。驗證：上述手動檢查，清單 commit。
-- [ ] 7.2 [after: 6.1, 7.1] `./scripts/check.sh` exit code 0。
+- [x] 7.1 [after: 3.3, 4.1, 5.2] 第一批正式匯入（使用者先依 `.env.r2.example` 建好 `.env.r2`）：從 `.design-work/assets` 匯入四職男女立繪（`job-6`～`job-9` 的 `-male`／`-female`）與 21 張戰鬥背景，逐張看預覽圖、必要時用 `--head-y`；`pnpm cli missing` 顯示立繪 8／24、戰鬥背景 21／21；用瀏覽器打開清單裡任一網址看得到圖；核對實際檔案大小與 design 規格表的實測範圍，差太多就回報。驗證：上述手動檢查，清單 commit。
+- [x] 7.2 [after: 6.1, 7.1] `./scripts/check.sh` exit code 0。
