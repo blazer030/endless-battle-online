@@ -36,7 +36,7 @@ A pixel SHALL count as opaque when its alpha is greater than 24. Keys SHALL matc
 
 ### Requirement: Portrait alignment
 
-For `portraits`, the import tool SHALL place the figure so that the figure height is 1100 pixels, the lowest opaque row lands at y=1180 and the body axis lands at x=400 on the 800×1200 canvas. The figure top SHALL default to the topmost opaque row; when `--head-y <n>` is given, the figure top SHALL be row `n` of the source and that value SHALL be stored in the manifest entry as `headY`. The body axis SHALL be the median of the per-row midpoints of opaque pixels between 35% and 95% of the figure height measured from the figure top. The tool SHALL reject the portrait when any opaque pixel would fall outside the canvas, naming the side that overflows.
+For `portraits`, the import tool SHALL scale and place the figure so that the figure top lands at y=80, the lowest opaque row lands at y=1180 and the body axis lands at x=400 on the 800×1200 canvas. The figure top SHALL default to the topmost opaque row; when `--head-y <n>` is given, the figure top SHALL be row `n` of the source and that value SHALL be stored in the manifest entry as `headY`. The body axis SHALL be the median of the per-row midpoints of opaque pixels between 35% and 95% of the figure height measured from the figure top. The tool SHALL reject the portrait when any opaque pixel would fall outside the canvas, naming the side that overflows.
 
 #### Scenario: Portraits share feet line and axis
 
@@ -47,7 +47,7 @@ For `portraits`, the import tool SHALL place the figure so that the figure heigh
 
 - **GIVEN** a source whose opaque rows span y=0 to y=999 (height 1000)
 - **WHEN** it is imported into `portraits`
-- **THEN** it is scaled by 1.1 so its top lands at y=80 and its bottom at y=1180
+- **THEN** its topmost opaque row lands at y=80 and its lowest opaque row at y=1180
 
 #### Scenario: Head position override
 
