@@ -11,7 +11,7 @@
 - **BREAKING（開發流程）**：移除舊的 `frontend/src/assets/art/`、`frontend/src/render/artIndex.ts`、`frontend/src/test/artRules.ts`、`frontend/src/render/artAssets.test.ts`、`scripts/import-art.sh`；`docs/art/README.md` 改寫成新流程。舊管線目前沒有任何圖，移除不影響玩家。
 - 調整舊規則：推翻裁定彙整（docs/superpowers/specs/2026-10-22-wog-remake-rulings.md）「（四）明確不做」的「地區背景圖、道具圖示、依職業換玩家圖：程式沒有使用處，美術規格只涵蓋舞台現有的玩家、怪物、寵物圖」，改為涵蓋上述所有內容圖類別。
 - 改專案 CLAUDE.md：專案硬規則 6 補上「內容圖放 R2、清單在 git」；前端硬規則 8 改成新的圖片規則；結構與指令段落加上 `tools/assets` 與新指令。
-- 刪除延後清單（docs/superpowers/specs/2026-10-23-deferred-backlog.md）中只跟舊管線有關的三條（`import-art.sh` 寫到一半的 webp、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩沒有釘住）。
+- 刪除延後清單（docs/superpowers/specs/2026-10-23-deferred-backlog.md）中只跟舊管線有關的四條（`import-art.sh` 寫到一半的 webp、ImageMagick 匯入流程沒有實跑過、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩沒有釘住）。
 
 ## Non-Goals (optional)
 

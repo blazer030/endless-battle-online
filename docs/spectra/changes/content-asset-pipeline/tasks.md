@@ -27,7 +27,7 @@
 
 ## 6. 文件與規則
 
-- [x] 6.1 [after: 5.3] 改寫規則與文件：專案 `CLAUDE.md` 硬規則 6（內容圖放 R2、清單在 git）、前端硬規則 8（只透過查找函式取內容圖、缺圖用佔位圖、設計素材放 `src/assets/<分類>/`）、「結構」加 `tools/assets`、「指令」換掉 `import-art.sh` 改列 `import`／`missing`／`design`；`docs/art/README.md` 改寫成新規格表、匯入流程、`.env.r2` 設定、佔位圖 SVG 不受色碼規則約束；`docs/art/prompts.md` 改指向新流程；裁定彙整「（四）明確不做」那一條註明已由本變更推翻；延後清單刪除 `import-art.sh` 寫到一半、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩三條。驗證：逐檔內容檢查；`git grep -n "import-art\|assets/art"` 在 CLAUDE.md 與 docs/art 沒有結果。
+- [x] 6.1 [after: 5.3] 改寫規則與文件：專案 `CLAUDE.md` 硬規則 6（內容圖放 R2、清單在 git）、前端硬規則 8（只透過查找函式取內容圖、缺圖用佔位圖、設計素材放 `src/assets/<分類>/`）、「結構」加 `tools/assets`、「指令」換掉 `import-art.sh` 改列 `import`／`missing`／`design`；`docs/art/README.md` 改寫成新規格表、匯入流程、`.env.r2` 設定、佔位圖 SVG 不受色碼規則約束；`docs/art/prompts.md` 改指向新流程；裁定彙整「（四）明確不做」那一條註明已由本變更推翻；延後清單刪除 `import-art.sh` 寫到一半、ImageMagick 匯入流程沒有實跑過、`artAssets.test.ts` 沒有真正輸入、VP8 位元遮罩四條。驗證：逐檔內容檢查；`git grep -n "import-art\|assets/art"` 在 CLAUDE.md 與 docs/art 沒有結果。
 
 ## 7. 第一批匯入與總檢查
 
