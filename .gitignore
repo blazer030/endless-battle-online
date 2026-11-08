@@ -509,3 +509,6 @@ backend/content-draft/
 
 # 匯入工具的預覽圖
 .asset-preview/
+
+# 部署到 NAS 用的本機秘密（範本見 .env.nas.local.example）
+.env.nas.local

@@ -47,10 +47,28 @@ ENVIRONMENT
 fi
 REMOTE
 
+# Cloudflare Tunnel 的 token：本機 .env.nas.local（git 忽略）有 NAS_TUNNEL_TOKEN 時，經 ssh stdin 寫進 NAS 的 .env，不出現在指令列也不輸出。
+tunnel_token=""
+if [[ -f .env.nas.local ]]; then
+    tunnel_token="$(sed -n 's/^NAS_TUNNEL_TOKEN=//p' .env.nas.local | tail -n 1 | tr -d '\r')"
+    tunnel_token="${tunnel_token#[\"\']}"
+    tunnel_token="${tunnel_token%[\"\']}"
+fi
+if [[ -n "$tunnel_token" ]]; then
+    if [[ "$tunnel_token" =~ [[:space:]] ]]; then
+        echo "部署失敗：.env.nas.local 的 NAS_TUNNEL_TOKEN 含有空白，請重新複製（--token 後面那一串）" >&2
+        exit 1
+    fi
+    printf '%s\n' "$tunnel_token" |
+        ssh "$nas_host" "cd $quoted_directory && umask 077 && IFS= read -r token && { grep -v '^TUNNEL_TOKEN=' .env || true; printf 'TUNNEL_TOKEN=%s\n' \"\$token\"; } > .env.new && chmod 600 .env.new && mv .env.new .env"
+    echo "已更新 NAS .env 的 TUNNEL_TOKEN"
+fi
+
 # 先解到暫存目錄再換上去，上傳中斷時不會留下半套程式。
 # compose 預設讀專案目錄的 .env；Container Manager 不帶 --profile，所以 profile 也寫在裡面。
+# .env 有 TUNNEL_TOKEN 時才啟用 tunnel（Cloudflare Tunnel，https://ebo.blazer030.dev）。
 git archive --format=tar HEAD docker-compose.yml backend frontend |
-    ssh "$nas_host" "cd $quoted_directory && rm -rf app.new && mkdir app.new && tar -xf - -C app.new && cp -p .env app.new/.env && echo COMPOSE_PROFILES=app >> app.new/.env && rm -rf app && mv app.new app"
+    ssh "$nas_host" "cd $quoted_directory && rm -rf app.new && mkdir app.new && tar -xf - -C app.new && cp -p .env app.new/.env && profiles=app && if grep -q '^TUNNEL_TOKEN=.' .env; then profiles=app,tunnel; fi && echo COMPOSE_PROFILES=\$profiles >> app.new/.env && echo \"啟用的 profile：\$profiles\" && rm -rf app && mv app.new app"
 echo "程式已上傳"
 
 if [[ ! -t 0 ]]; then

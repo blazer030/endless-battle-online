@@ -1,5 +1,6 @@
 # 不帶 profile：只有 MySQL 8.4 與 Flyway，開發時遊戲程式在本機用 dotnet 執行。
 # --profile app：再加上 api（ASP.NET Core）與 web（nginx：前端靜態檔＋/api 反向代理），一鍵執行整個遊戲。
+# --profile tunnel：再加上 Cloudflare Tunnel（只在 NAS 用，需要 .env 的 TUNNEL_TOKEN）。
 # 設定讀 .env，範本見 .env.example；沒有 EBO_JWT_SIGNING_KEY 時 compose 直接拒絕執行。
 services:
   mysql:
@@ -64,6 +65,18 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # --profile tunnel：Cloudflare Tunnel，把 https://ebo.blazer030.dev 接到 web（Dashboard 的路由寫 http://web:80）。
+  # token 不能用 ${...:?}：compose 連沒啟用的 profile 也會檢查，沒有 token 時整個專案都起不來；只在 NAS 的 .env 有 token 時才啟用這個 profile。
+  tunnel:
+    profiles: [tunnel]
+    image: cloudflare/cloudflared:2026.10.7
+    command: tunnel --no-autoupdate run
+    depends_on:
+      - web
+    restart: unless-stopped
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
 
 volumes:
   mysql-data:

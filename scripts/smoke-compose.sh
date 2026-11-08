@@ -48,4 +48,13 @@ if ! curl -fsS -o /dev/null "$base_url/api/content"; then
     exit 1
 fi
 
+# 經 Cloudflare Tunnel 對外的測試環境不讓搜尋引擎收錄：頁面、靜態檔與 API 都要帶 noindex
+asset_path="$(grep -o '/assets/[^"]*\.js' <<< "$index_html" | head -n 1)"
+for path in / "$asset_path" /api/health; do
+    if ! curl -fsS -o /dev/null -D - "$base_url$path" | grep -qi '^x-robots-tag: noindex, nofollow'; then
+        echo "smoke failed: $base_url$path has no X-Robots-Tag: noindex, nofollow" >&2
+        exit 1
+    fi
+done
+
 echo "smoke passed"
