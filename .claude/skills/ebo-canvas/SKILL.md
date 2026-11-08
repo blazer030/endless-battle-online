@@ -26,9 +26,12 @@ zsh $S/gen.sh 名稱 1:1 item "A single small leather coin purse tied with a cor
 zsh $S/gen.sh 名稱 16:9 scene "Interior of a cozy blacksmith forge…"
 zsh $S/gen.sh 名稱 16:9 item "Four leather bookmark tabs in a row…" --pieces 4 red green blue gold
 zsh $S/gen.sh 名稱 1:1 item "An empty red seal stamp impression…" --all
+zsh $S/gen.sh bg-place-03 1:1 stage "a gloomy swamp with murky green water pools…"
 ```
 
 - 畫風固定在 `gen.sh`（墨線＋水彩、紙紋、暖色；item 加洋紅底、no text、no drop shadow）。換專案時改這段即可。
+- `stage`＝戰鬥舞台背景：繪本水彩、明亮可愛、限定細節（不寫細節限制，grok 會畫得太寫實）；主體只寫場景。21 個地點的場景清單與重產腳本在 `.design-work/work/battle-bg/`（`gen-all.sh 03 07` 只重產指定地點）。
+- 每張圖實際送出的提示詞存在 `raw/名稱.prompt.txt`。素材庫每張素材的提示詞整理在 `docs/art/prompts/demo/`；新增素材後依序跑 `.design-work/work/prompts/` 的 `collect.py`（從 grok／Gemini 本機紀錄抓提示詞）→ `match.py` → `build-docs.py` 更新，對不到的要人工比對（見那裡的 keyed.py、cropped.py、byname.py）。
 - item 會自動跑 `keyclean.py`（preparing-ai-generated-ui-assets skill），並產生 `out/名稱.check.png`（疊在淺、深兩種底上）。**一定要看 check 圖**，看邊緣有沒有紫紅色。
 - `--all`：主體把洋紅包在裡面時用（印章框、戒指圈），而且主體本身沒有粉紫色。
 - 立繪不用 grok：交給使用者用 Gemini 產。
