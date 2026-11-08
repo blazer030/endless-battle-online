@@ -16,7 +16,7 @@
 
 ## 4. 其他指令
 
-- [ ] 4.1 [after: 3.1] Missing image report：`missing [<類別>]` 從 `backend/content` 推出各類應有的鍵（立繪＝職業 × male／female、職業圖示、技能、道具、怪物、地點），跟清單比較，印出每類「有圖 n／應有 m」與缺圖的鍵，exit 0。驗證：先寫失敗測試 `missing.test.ts`「清單有 8 張立繪、內容有 12 個職業時顯示 8／24 並列出 16 個鍵」（用測試用的內容資料夾），再實作；之後對真實內容跑 `pnpm missing` 看得到六類統計。
+- [x] 4.1 [after: 3.1] Missing image report：`missing [<類別>]` 從 `backend/content` 推出各類應有的鍵（立繪＝職業 × male／female、職業圖示、技能、道具、怪物、地點），跟清單比較，印出每類「有圖 n／應有 m」與缺圖的鍵，exit 0。驗證：先寫失敗測試 `missing.test.ts`「清單有 8 張立繪、內容有 12 個職業時顯示 8／24 並列出 16 個鍵」（用測試用的內容資料夾），再實作；之後對真實內容跑 `pnpm missing` 看得到六類統計。
 - [ ] 4.2 [after: 1.1] Design asset import：`design <分類> <名稱> <來源圖> [--max-width <n>]` 寫出 `frontend/src/assets/<分類>/<名稱>.webp`（品質 85、保留透明、不裁切、比來源窄時等比縮小），超過 307200 bytes 就拒絕且不寫檔。驗證：先寫失敗測試 `design.test.ts`「1200 寬的來源加 --max-width 600 輸出 600 寬」「超過上限時不寫檔並非零結束」，再實作。
 
 ## 5. 遊戲前端

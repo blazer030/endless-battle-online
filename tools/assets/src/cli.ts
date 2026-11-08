@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, extname, join, resolve } from "node:path"
 import { loadCredentials, type Credentials } from "./credentials.ts"
+import { missingReport } from "./missing.ts"
 import { renderPreview } from "./preview.ts"
 import { AssetError, Specs, parseCategory, processImage, validateKey } from "./process.ts"
 import { publishAsset } from "./publish.ts"
@@ -115,6 +116,22 @@ const runImport = async (
   return 0
 }
 
+const runMissing = async (
+  args: readonly string[],
+  output: Output,
+  environment: CliEnvironment,
+): Promise<number> => {
+  if (args.length > 1) throw new AssetError("用法：missing [<類別>]")
+  const categories = args[0] === undefined ? undefined : [parseCategory(args[0])]
+  const lines = await missingReport(
+    join(environment.repositoryRoot, "backend/content"),
+    manifestPathOf(environment.repositoryRoot),
+    categories,
+  )
+  for (const line of lines) output.log(line)
+  return 0
+}
+
 export const runCli = async (
   args: readonly string[],
   output: Output,
@@ -125,6 +142,8 @@ export const runCli = async (
     switch (command) {
       case "import":
         return await runImport(rest, output, environment)
+      case "missing":
+        return await runMissing(rest, output, environment)
       default:
         output.error(`不認得的指令：${command ?? "（沒有指令）"}`)
         for (const line of Usage) output.error(line)
