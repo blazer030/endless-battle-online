@@ -172,6 +172,14 @@ describe("import", () => {
       expect(storage.puts).toEqual([])
       expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
     })
+
+    it("鍵不在內容裡時錯誤訊息寫出類別與鍵", async () => {
+      const { lines, output } = capture()
+
+      await runCli(["import", "portraits", "job-6", "portrait.png"], output, environment)
+
+      expect(lines.join("\n")).toContain("portraits/job-6")
+    })
   })
 
   it("--dry-run 時鍵不在內容裡只警告", async () => {
