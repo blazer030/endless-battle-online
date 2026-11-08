@@ -41,11 +41,21 @@ export const missingReport = async (
   categories: readonly Category[] = Categories,
 ): Promise<string[]> => {
   const expected = await expectedKeys(contentDirectory)
-  const present = new Set(Object.keys((await readManifest(manifestPath)).assets))
+  const present = Object.keys((await readManifest(manifestPath)).assets)
   return categories.flatMap((category) => {
     const keys = expected[category]
-    const missing = keys.filter((key) => !present.has(`${category}/${key}`))
-    const summary = `${category}：有圖 ${keys.length - missing.length}／應有 ${keys.length}`
-    return missing.length === 0 ? [summary] : [summary, `  缺：${missing.join("、")}`]
+    const prefix = `${category}/`
+    const presentKeys = new Set(
+      present.filter((name) => name.startsWith(prefix)).map((name) => name.slice(prefix.length)),
+    )
+    const missing = keys.filter((key) => !presentKeys.has(key))
+    // 清單有、內容沒有：多半是匯入時打錯鍵
+    const expectedSet = new Set(keys)
+    const extra = [...presentKeys].filter((key) => !expectedSet.has(key))
+    return [
+      `${category}：有圖 ${keys.length - missing.length}／應有 ${keys.length}`,
+      ...(missing.length === 0 ? [] : [`  缺：${missing.join("、")}`]),
+      ...(extra.length === 0 ? [] : [`  多：${extra.join("、")}`]),
+    ]
   })
 }

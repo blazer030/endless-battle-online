@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, extname, join, resolve } from "node:path"
 import { loadCredentials, type Credentials } from "./credentials.ts"
 import { convertDesignAsset } from "./design.ts"
-import { missingReport } from "./missing.ts"
+import { expectedKeys, missingReport } from "./missing.ts"
 import { renderPreview } from "./preview.ts"
 import { AssetError, Specs, parseCategory, processImage, validateKey } from "./process.ts"
 import { publishAsset } from "./publish.ts"
@@ -26,6 +26,8 @@ const Usage = [
 
 export const manifestPathOf = (root: string) =>
   join(root, "frontend/src/assets/content-manifest.json")
+
+const contentDirectoryOf = (root: string) => join(root, "backend/content")
 
 type Parsed = { positional: string[]; flags: Set<string>; options: Map<string, string> }
 
@@ -84,6 +86,13 @@ const runImport = async (
   if (headY !== undefined && category !== "portraits")
     throw new AssetError("--head-y 只能用在 portraits")
   const dryRun = parsed.flags.has("--dry-run")
+  // R2 鎖定後刪不掉，打錯的鍵要在上傳前擋下；試轉時只提醒
+  const known = (await expectedKeys(contentDirectoryOf(environment.repositoryRoot)))[category]
+  if (!known.includes(key)) {
+    const message = `內容裡沒有 ${category}/${key}（先把它加進 backend/content）`
+    if (!dryRun) throw new AssetError(message)
+    output.log(`注意：${message}`)
+  }
 
   const source = await readSource(environment, sourcePath)
   const processed = await processImage(category, source.bytes, headY === undefined ? {} : { headY })
@@ -125,7 +134,7 @@ const runMissing = async (
   if (args.length > 1) throw new AssetError("用法：missing [<類別>]")
   const categories = args[0] === undefined ? undefined : [parseCategory(args[0])]
   const lines = await missingReport(
-    join(environment.repositoryRoot, "backend/content"),
+    contentDirectoryOf(environment.repositoryRoot),
     manifestPathOf(environment.repositoryRoot),
     categories,
   )

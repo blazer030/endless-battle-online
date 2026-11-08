@@ -17,7 +17,7 @@ The import tool SHALL convert a source image into a WebP whose canvas, compositi
 | monsters | `<monster id>` | 540×540 | trimmed artwork scaled to fit 513 wide by 486 tall, horizontally centered, lowest opaque row at y=529 | yes | 80 | 61440 |
 | battlefields | `<place id>` | 1024×1024 | scaled to cover, center-cropped | no | 75 | 153600 |
 
-A pixel SHALL count as opaque when its alpha is greater than 24. Keys SHALL match `^[a-z0-9-]+$`. When the encoded file exceeds the limit, the tool SHALL retry with quality lowered by 5 each time and SHALL reject the image when quality 60 still exceeds the limit. When the source must be enlarged to reach the composition size, the tool SHALL still produce the output and SHALL print a warning.
+A pixel SHALL count as opaque when its alpha is greater than 24. Keys SHALL match `^[a-z0-9-]+$` and SHALL be one of the category's expected keys derived from `backend/content` (see "Missing image report"); with `--dry-run` an unknown key SHALL only print a warning. When the encoded file exceeds the limit, the tool SHALL retry with quality lowered by 5 each time and SHALL reject the image when quality 60 still exceeds the limit. When the source must be enlarged to reach the composition size, the tool SHALL still produce the output and SHALL print a warning.
 
 #### Scenario: Item icon is centered on a square canvas
 
@@ -33,6 +33,11 @@ A pixel SHALL count as opaque when its alpha is greater than 24. Keys SHALL matc
 
 - **WHEN** the category is not one of the six categories or the key contains characters outside `a-z`, `0-9` and `-`
 - **THEN** the tool exits with a non-zero code and leaves the manifest unchanged
+
+#### Scenario: Key not defined in content
+
+- **WHEN** `import portraits job-6 <source>` is run without `--dry-run` while `backend/content` defines job `job-6`
+- **THEN** the tool exits with a non-zero code naming `portraits/job-6`, uploads nothing and leaves the manifest unchanged; with `--dry-run` it prints the same message as a warning and exits with code 0
 
 ### Requirement: Portrait alignment
 
@@ -122,12 +127,17 @@ The game frontend SHALL obtain every content image through a single lookup that 
 
 ### Requirement: Missing image report
 
-The import tool SHALL provide a `missing [<category>]` command that derives the expected keys from `backend/content` (portraits: every job id with `-male` and `-female`; job-icons: job ids; skills: skill ids; items: item ids; monsters: monster ids; battlefields: place ids), compares them with the manifest, and prints per category the count with images, the expected count and the missing keys. It SHALL exit with code 0.
+The import tool SHALL provide a `missing [<category>]` command that derives the expected keys from `backend/content` (portraits: every job id with `-male` and `-female`; job-icons: job ids; skills: skill ids; items: item ids; monsters: monster ids; battlefields: place ids), compares them with the manifest, and prints per category the count with images, the expected count, the missing keys and any manifest keys the content does not define. It SHALL exit with code 0.
 
 #### Scenario: Report counts
 
 - **WHEN** the manifest holds 8 portraits and `backend/content/jobs.json` defines 12 jobs
 - **THEN** the report shows portraits as 8 of 24 and lists the 16 missing keys
+
+#### Scenario: Manifest key not in content
+
+- **WHEN** the manifest holds `monsters/monster-l` and `backend/content/monsters.json` has no monster with that id
+- **THEN** the monsters line of the report is followed by a line listing `monster-l` as extra
 
 ### Requirement: Design asset import
 

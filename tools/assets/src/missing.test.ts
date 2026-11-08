@@ -82,6 +82,21 @@ describe("missing", () => {
     expect(text).not.toContain("monster-1、")
   })
 
+  it("清單有、內容沒有的鍵另外列出", async () => {
+    await writeJson("frontend/src/assets/content-manifest.json", {
+      baseUrl: "https://x",
+      assets: {
+        "monsters/monster-1": { file: "f", original: "o" },
+        "monsters/monster-l": { file: "f", original: "o" },
+      },
+    })
+
+    const { text } = await run(["missing", "monsters"])
+
+    expect(text).toContain("monsters：有圖 1／應有 2")
+    expect(text).toContain("多：monster-l")
+  })
+
   it("類別不認得時非零結束", async () => {
     expect((await run(["missing", "weapons"])).exitCode).not.toBe(0)
   })
