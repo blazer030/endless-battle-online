@@ -82,10 +82,12 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 以下只適用於遊戲前端 `frontend`，不適用於 `admin`。
 
 1. TypeScript `strict`，禁用 `any`。
-2. 手機直式優先：以 375×667 為主要設計尺寸，360～430 寬度不得出現水平捲動；電腦上整個畫面置中、最大寬度 480px。
-3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，數值與 CSS 變數一致（`theme.test.ts` 會比對）。
-   - 色彩變數：`--bg-top`、`--bg-bottom`、`--panel`、`--border`、`--text`、`--text-muted`、`--gold`、`--cyan`、`--crimson`、`--crimson-text`（小字用，對比 ≥ 4.5:1）、`--green`、`--night`、`--white`，屬性色塊另有 `--element-earth`、`--element-water`、`--element-poison`（火、木、風沿用 `--crimson`、`--green`、`--cyan`）；字型變數：`--font-ui`、`--font-title`。
-4. 字型（Google Fonts）：介面用 Noto Sans TC；標題用 Noto Serif TC 700（中文）與 Cinzel 700（拉丁），妖怪名牌用 Noto Serif TC 700。
+2. 手機直式優先。新畫面（標題、建角起）排在寬 390、高 683～722 的舞台上，由 `StageFrame` 依視窗縮放：高寬比 1.75～1.85 時舞台高度伸縮、剛好填滿；超出時以寬、高較緊的一邊等比縮放（倍率上限 1.25），舞台置中、舞台外鋪共用背景 `--stage-backdrop`，畫面不得畫到舞台外。基準尺寸下內文 ≥ 13px、小標籤 ≥ 11px。360～430 寬不得出現整頁捲動，超出區域的清單在區域內捲動。還沒換成新設計的舊畫面維持 375×667、電腦上置中最大寬度 480px。
+3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，`Palette` 有的鍵數值要與 CSS 變數一致（`theme.test.ts` 會比對）。
+   - 舊畫面色彩變數：`--bg-top`、`--bg-bottom`、`--panel`、`--border`、`--text`、`--text-muted`、`--gold`、`--cyan`、`--crimson`、`--crimson-text`（小字用，對比 ≥ 4.5:1）、`--green`、`--night`、`--white`，屬性色塊另有 `--element-earth`、`--element-water`、`--element-poison`（火、木、風沿用 `--crimson`、`--green`、`--cyan`）。
+   - 新畫面色彩變數：`--paper`、`--paper-light`、`--ink`、`--umber-deep`、`--umber`、`--umber-mid`、`--umber-faded`、`--wood`、`--wood-deep`、`--seal-red`、`--error-red`、`--brass`、`--amber`；陰影與壓暗用 RGB 三元組 `--shade-rgb`、`--umber-rgb`、`--glow-rgb`（`rgb(var(--shade-rgb) / .55)`）；舞台外背景 `--stage-backdrop`。
+   - 字型變數：`--font-ui`、`--font-title`（舊畫面）、`--font-serif`、`--font-number`、`--font-script`。
+4. 字型（Google Fonts）：介面用 Noto Sans TC 400／500／700／900；標題用 Noto Serif TC 700／900（中文）與 Cinzel 500／700（拉丁與數字），新畫面的英文副標用 Great Vibes；妖怪名牌用 Noto Serif TC 700。
 5. 遊戲狀態只存在 `src/game/` 的純 TS 物件；React state 與 Pixi 物件都不持有權威狀態。`src/game/` 不得 import React、Pixi、GSAP 或 `src/api/` 以外的瀏覽器 API。
 6. 整個 app 只有一個 Pixi `Application`；Pixi `Text` 一律明確指定 `resolution: window.devicePixelRatio`。
 7. 動畫時長、輪詢間隔等常數集中在 `src/motion/timings.ts`。

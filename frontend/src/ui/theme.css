@@ -20,6 +20,30 @@
   --element-poison: #9b6ee0;
   --font-ui: "Noto Sans TC", sans-serif;
   --font-title: "Cinzel", "Noto Serif TC", serif;
+
+  /* 新畫面（標題、建角起）：紙、墨、木頭 */
+  --paper: #f6ebd5;
+  --paper-light: #f3e3c0;
+  --ink: #2a1a0c;
+  --umber-deep: #3a2410;
+  --umber: #4a2e14;
+  --umber-mid: #5a3a1c;
+  --umber-faded: #8a6a40;
+  --wood: #6a4a2c;
+  --wood-deep: #6a4626;
+  --seal-red: #8a2a1a;
+  --error-red: #a8321e;
+  --brass: #c9a464;
+  --amber: #b07a2a;
+  /* 陰影與壓暗用的 RGB 三元組：rgb(var(--shade-rgb) / .55) */
+  --shade-rgb: 20 10 4;
+  --umber-rgb: 90 60 30;
+  --glow-rgb: 255 244 222;
+  /* 舞台外的空間：所有新畫面共用，之後換成靜態大圖只改這裡 */
+  --stage-backdrop: var(--ink);
+  --font-serif: "Noto Serif TC", serif;
+  --font-number: "Cinzel", serif;
+  --font-script: "Great Vibes", cursive;
 }
 
 *,
