@@ -121,3 +121,185 @@
   right: 16px;
   bottom: auto;
 }
+
+/* 立繪：畫在紙上，右緣與下緣淡出；立繪匯入時已置中、腳底對齊 */
+.job-book-art {
+  position: absolute;
+  left: -30px;
+  top: 58px;
+  width: 196px;
+  height: 190px;
+  pointer-events: none;
+  mask: linear-gradient(90deg, rgb(var(--shade-rgb)) 76%, transparent);
+}
+
+.job-book-portrait {
+  position: absolute;
+  left: calc(50% - 113px);
+  top: 0;
+  height: 340px;
+  mask: linear-gradient(180deg, rgb(var(--shade-rgb)) 120px, transparent 190px);
+  filter: drop-shadow(0 4px 6px rgb(var(--umber-rgb) / 0.3));
+}
+
+.job-book-info {
+  position: absolute;
+  left: 160px;
+  right: 18px;
+  top: 62px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.job-book-role {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--umber-mid);
+}
+
+.job-book-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--umber);
+}
+
+.job-book-info h3,
+.job-book-skills h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--umber-faded);
+}
+
+.job-book-info h3::after,
+.job-book-skills h3::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+}
+
+.job-book-growth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-number);
+  font-size: 12px;
+  color: var(--umber-mid);
+}
+
+.job-book-growth li {
+  display: flex;
+  justify-content: space-between;
+}
+
+.job-book-growth i {
+  font-style: normal;
+  font-family: var(--font-serif);
+  font-size: 11px;
+  color: var(--umber-faded);
+}
+
+.job-book-growth .job-book-growth--top,
+.job-book-growth .job-book-growth--top i {
+  font-weight: 700;
+  color: var(--seal-red);
+}
+
+/* 技能：每招 Lv1 與最高級兩行；清單貼介紹冊下緣、高度伸縮，放不下時在清單內捲動、下緣淡出 */
+.job-book-skills {
+  position: absolute;
+  left: 28px;
+  right: 18px;
+  top: 234px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.job-book-skills ul {
+  flex: 1;
+  min-height: 0;
+  margin: 6px 0 0;
+  padding: 0 2px 16px 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  mask: linear-gradient(180deg, rgb(var(--shade-rgb)) calc(100% - 26px), transparent);
+}
+
+.job-book-skills ul::-webkit-scrollbar {
+  display: none;
+}
+
+.job-book-skills li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 8px;
+  align-items: baseline;
+}
+
+.job-book-skills b {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: var(--umber-deep);
+}
+
+.job-book-skills small {
+  justify-self: start;
+  font-size: 11px;
+  color: var(--umber-faded);
+  white-space: nowrap;
+}
+
+.job-book-skill--first small {
+  color: var(--paper);
+  background: var(--seal-red);
+  padding: 0 6px;
+  border-radius: 7px;
+}
+
+.job-book-max {
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--umber-faded);
+  white-space: nowrap;
+}
+
+.job-book-skills p {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--umber);
+}
+
+.job-book-skills em {
+  flex: 0 0 36px;
+  font-style: normal;
+  font-family: var(--font-number);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 19px;
+  color: var(--umber-faded);
+}
