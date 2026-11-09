@@ -118,8 +118,9 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         new { str = 0, smart = 4, life = 3, agi = 3 },
         new { str = -1, smart = 4, life = 4, agi = 3 },
         new { str = int.MaxValue, smart = int.MaxValue, life = 1, agi = 1 },
-        new { str = 2.5, smart = 2, life = 2, agi = 2 },
-        new { str = 2, smart = 2, life = 2 },
+        // 以下兩筆其餘欄位補到 10 點，400 只會來自非整數、缺欄位
+        new { str = 2.5, smart = 4, life = 2, agi = 2 },
+        new { str = 4, smart = 3, life = 3 },
         (object?)null,
     };
 
