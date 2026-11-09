@@ -16,7 +16,14 @@ vi.mock("./AdventureScreen", () => ({
 }))
 
 vi.mock("./create/CreateScreen", () => ({
-  CreateScreen: () => <p>建立角色</p>,
+  CreateScreen: ({ onLeave }: { onLeave: () => void }) => (
+    <>
+      <p>建立角色</p>
+      <button type="button" onClick={onLeave}>
+        先離開
+      </button>
+    </>
+  ),
 }))
 
 const character = makeCharacter({ name: "青衣" })
@@ -159,6 +166,24 @@ test("App_Register_OpensCharacterCreation", async () => {
   act(() => vi.advanceTimersByTime(RegisterSealSettleMilliseconds))
 
   expect(await screen.findByText("建立角色")).toBeInTheDocument()
+})
+
+// 建角時離開 → 回到標題，自己那張登記證帶剛註冊的帳號、密碼空白
+test("App_LeavingCreation_ReturnsToOwnCardWithAccount", async () => {
+  const user = setupUser()
+  renderApp(createFakeApi())
+  await user.click(screen.getByRole("button", { name: "拿一張空白登記證" }))
+  await user.type(blankCard().getByLabelText("帳號"), "newbie")
+  await user.type(blankCard().getByLabelText("密碼"), "abcdefgh")
+  await user.click(blankCard().getByRole("button", { name: "登記" }))
+  act(() => vi.advanceTimersByTime(RegisterSealSettleMilliseconds))
+  await screen.findByText("建立角色")
+
+  await user.click(screen.getByRole("button", { name: "先離開" }))
+
+  expect(ownCard().getByLabelText("帳號")).toHaveValue("newbie")
+  expect(ownCard().getByLabelText("密碼")).toHaveValue("")
+  expect(ownCard().getByLabelText("帳號")).toBeEnabled()
 })
 
 // 已登入打開網頁、有角色 → 直接進遊戲，不顯示登記證與歡迎回來

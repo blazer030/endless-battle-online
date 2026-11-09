@@ -1,5 +1,6 @@
-import { useState, type KeyboardEvent, type ReactNode } from "react"
-import type { ApiClient } from "../../api/client"
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
+import { clearAccessToken } from "../../api/authStorage"
+import { ApiError, type ApiClient } from "../../api/client"
 import cardBlank from "../../assets/title/card-blank.webp"
 import cardSealed from "../../assets/title/card-sealed.webp"
 import clerk from "../../assets/title/clerk.webp"
@@ -19,7 +20,9 @@ import {
 } from "../../game/creationDraft"
 import type { JobVo } from "../../game/jobBook"
 import type { CharacterView } from "../../game/types"
+import { PassageMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
+import { Passage } from "../title/Passage"
 import { Seal } from "../title/Seal"
 import { elementIcons } from "./art"
 import { birthLines, jobFlavors, Lines, Questions, sexAddress } from "./flavor"
@@ -55,7 +58,7 @@ const optionName = (options: readonly { id: number; name: string }[], id: number
   options.find((option) => option.id === id)?.name ?? ""
 
 // 建角：公會櫃檯，莉瑟問、玩家自己點登記證的欄位來填，不照順序
-export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
+export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) => {
   const firstTierJobs = jobs.filter((job) => job.tier === 1)
   const [draft, setDraft] = useState<CreationDraft>(emptyDraft)
   const [step, setStep] = useState<Step>("idle")
@@ -63,7 +66,12 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
   const [nameInput, setNameInput] = useState("")
   const [page, setPage] = useState(firstTierJobs[0]?.id ?? "")
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
+  // 送出後莉瑟的回覆（400 的訊息、沒有回應）；點任何一欄或再按出發就換掉
+  const [notice, setNotice] = useState<string | null>(null)
+  const [created, setCreated] = useState<CharacterView | null>(null)
+  const passageTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => () => clearTimeout(passageTimer.current), [])
 
   const ready = isReady(draft)
   const left = pointsLeft(draft)
@@ -72,7 +80,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
 
   const open = (next: Step) => {
     setSay(null)
-    setFailed(false)
+    setNotice(null)
     if (step === next) {
       setStep("idle")
       return
@@ -91,7 +99,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
     setDraft(next)
     setStep("idle")
     setSay(line)
-    setFailed(false)
+    setNotice(null)
   }
 
   const submitName = () => {
@@ -105,17 +113,33 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
     setSay(null)
   }
 
+  // 成功：印章退場、蓋上蠟封，「踏上旅途＋名字」停一下再進遊戲
   const depart = async () => {
     if (!ready || busy) return
     setBusy(true)
-    setFailed(false)
+    setNotice(null)
     try {
-      onCreated(await api.createCharacter(toCommand(draft)))
-    } catch {
+      const character = await api.createCharacter(toCommand(draft))
+      setCreated(character)
+      passageTimer.current = setTimeout(() => onCreated(character), PassageMilliseconds)
+    } catch (error) {
       setBusy(false)
+      setSay(null)
+      if (error instanceof ApiError && error.status === 409) {
+        // 名字重複：打開名字欄讓玩家改
+        setStep("name")
+        setNameInput(draft.name ?? "")
+        setSay(Lines.nameTaken(draft.name ?? ""))
+        return
+      }
       setStep("idle")
-      setFailed(true)
+      setNotice(error instanceof ApiError && error.status === 400 ? error.detail : Lines.noResponse)
     }
+  }
+
+  const leave = () => {
+    clearAccessToken()
+    onLeave()
   }
 
   const filled = [
@@ -131,9 +155,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
     : (say ?? (filled.some((value) => value !== null) ? Lines.keepGoing : Lines.greeting))
   const line =
     step === "idle"
-      ? failed
-        ? Lines.noResponse
-        : idleLine
+      ? (notice ?? idleLine)
       : (say ?? (step === "job" ? Questions.job : Questions[step]))
 
   const job = firstTierJobs.find((candidate) => candidate.id === draft.jobId)
@@ -160,8 +182,33 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
   }
 
   return (
-    <section className="create" aria-label="建立角色">
+    <section
+      className={`create${created !== null ? " create--departing" : ""}`}
+      aria-label="建立角色"
+    >
       <div className="create-hall" aria-hidden="true" />
+      <button
+        type="button"
+        className="create-back"
+        aria-label="離開，回到標題"
+        disabled={busy}
+        onClick={() => open("leave")}
+      >
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M14.5 5.5c-2.2 2.3-4.4 4.4-6.5 6.4 2 2.1 4.2 4.3 6.6 6.6" />
+        </svg>
+        離開
+      </button>
       <img className="create-clerk" src={clerk} alt="公會接待員 莉瑟" />
       <p className="create-bubble" aria-live="polite" data-testid="lise-line">
         {line}
@@ -237,6 +284,20 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
                   {element.name}
                 </button>
               ))}
+            {step === "leave" && (
+              <>
+                <button type="button" className="create-chip create-chip--wide" onClick={close}>
+                  繼續填寫
+                </button>
+                <button
+                  type="button"
+                  className="create-chip create-chip--go create-chip--wide"
+                  onClick={leave}
+                >
+                  先離開
+                </button>
+              </>
+            )}
             {step === "stats" && (
               <>
                 {statRows.map(({ key, label }) => (
@@ -348,6 +409,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated }: Props) => {
         }}
         onPick={(picked) => answer({ ...draft, jobId: picked.id }, Lines.jobPicked(picked.name))}
       />
+      {created !== null && <Passage title="踏上旅途" subtitle={created.name} />}
     </section>
   )
 }
