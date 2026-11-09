@@ -11,6 +11,7 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
 {
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
+    // spec 的 Valid registration 情境（ethan_01／abcdefgh）；帳號要唯一，用隨機帳號
     [Fact]
     public async Task Register_ThenLogin_GrantsAccessToProtectedEndpoint()
     {
@@ -62,7 +63,7 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(detail, await DetailOf(response));
     }
 
-    // 帳號長度的兩端：3 與 32 個字元；密碼剛好 8 個字元
+    // spec 註冊範例表的「abc」列（帳號要唯一，用隨機 3 個字）與上限 32 個字元；密碼剛好 8 個字元
     [Theory]
     [InlineData(3)]
     [InlineData(32)]

@@ -264,7 +264,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(TakenDetail, await DetailOf(duplicate));
     }
 
-    // 名字長度的兩端：2 與 12 個中文字
+    // spec 名字長度範例表的「艾倫」與「12 個中文字」列；名字要唯一，用隨機漢字
     [Theory]
     [InlineData(2)]
     [InlineData(12)]
@@ -322,7 +322,9 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
     }
 
+    // spec 名字長度範例表的「艾」列；另外兩列是超過 12 字與只有空白
     [Theory]
+    [InlineData("艾")]
     [InlineData("墨")]
     [InlineData("一二三四五六七八九十甲乙丙")]
     [InlineData("   ")]

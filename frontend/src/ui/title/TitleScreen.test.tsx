@@ -87,6 +87,27 @@ test("TitleScreen_RegisterThenSignsInWithSameAccount", async () => {
   await vi.waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("newbie", "reg"), {
     timeout: 2000,
   })
+  // 蓋上蠟封後不能再登記一次
+  expect(blankCard().getByRole("button", { name: "登記" })).toBeDisabled()
+})
+
+test("TitleScreen_TappingOwnCardBringsItBack", async () => {
+  const user = userEvent.setup()
+  const api = makeApi({ register: vi.fn().mockRejectedValue(new ApiError(409, "帳號已被使用")) })
+  renderTitle(api)
+  await user.click(screen.getByRole("button", { name: "拿一張空白登記證" }))
+  expect(ownCard().getByLabelText("帳號")).toBeDisabled()
+  await user.type(blankCard().getByLabelText("帳號"), "ethan")
+  await user.type(blankCard().getByLabelText("密碼"), "abcdefgh")
+  await user.click(blankCard().getByRole("button", { name: "登記" }))
+  await blankCard().findByRole("alert")
+
+  await user.click(screen.getByRole("button", { name: "拿回我的登記證" }))
+
+  expect(ownCard().getByLabelText("帳號")).toBeEnabled()
+  expect(blankCard().getByLabelText("帳號")).toBeDisabled()
+  expect(blankCard().queryByRole("alert")).not.toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "拿一張空白登記證" })).toBeInTheDocument()
 })
 
 test("TitleScreen_ShowsGenericErrorWhenNoApiResponse", async () => {

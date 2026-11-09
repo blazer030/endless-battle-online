@@ -20,12 +20,12 @@ Endpoints that serve game data readable without signing in SHALL live under `/ap
 
 ### Requirement: Public job list with skills
 
-`GET /api/public/jobs` SHALL return every job in the game content in content order. Each job SHALL carry its id, name, tier, parent job id (null for first-tier jobs), unlock level, required proficiency, stat requirements, and growth as a minimum and maximum per stat using full stat names (`strength`, `intelligence`, `life`, `vitality`, `agility`, `charisma`, `faith`). Each job SHALL list the skills its job teaches, in the order of `backend/content/job-skills.json`; each skill SHALL carry its id, name, description, maximum level, prerequisite (skill id, skill name and required level, or null), and one entry per level with the level number and the effect summary text that the skill page shows for that level.
+`GET /api/public/jobs` SHALL return every job in the game content in content order. Each job SHALL carry its id, name, tier, parent job id (null for first-tier jobs), unlock level, required proficiency, stat requirements, and growth as a minimum and maximum per stat using full stat names (`strength`, `intelligence`, `life`, `vitality`, `agility`, `charisma`, `faith`). Each job SHALL list the skills its job teaches, in the same order as the skill page lists them (the order of `backend/content/skills.json`); each skill SHALL carry its id, name, description, maximum level, prerequisite (skill id, skill name and required level, or null), and one entry per level with the level number and the effect summary text that the skill page shows for that level.
 
 #### Scenario: Job carries its skills in teaching order
 
 - **WHEN** a client requests `GET /api/public/jobs`
-- **THEN** each job lists the skills that `backend/content/job-skills.json` assigns to it, in that file's order, each with a summary for every level from 1 to its maximum level
+- **THEN** each job lists the skills that `backend/content/job-skills.json` assigns to it, in the same order as the skill page, each with a summary for every level from 1 to its maximum level
 
 ##### Example: warrior skills
 
