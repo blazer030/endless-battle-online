@@ -5,7 +5,7 @@ import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
 import { PassageMilliseconds, RegisterSealSettleMilliseconds } from "../motion/timings"
-import { makeCharacter, makeContent, makeJob } from "../test/fixtures"
+import { makeCharacter, makeCreationOptions, makePublicJobs } from "../test/fixtures"
 import { App, type SessionExpiryListener } from "./App"
 
 // 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
@@ -15,13 +15,11 @@ vi.mock("./AdventureScreen", () => ({
   ),
 }))
 
-vi.mock("./CreateCharacterScreen", () => ({
-  CreateCharacterScreen: () => <p>建立角色</p>,
+vi.mock("./create/CreateScreen", () => ({
+  CreateScreen: () => <p>建立角色</p>,
 }))
 
 const character = makeCharacter({ name: "青衣" })
-
-const content = makeContent({ jobs: [makeJob()] })
 
 const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   register: vi.fn(),
@@ -29,9 +27,9 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   getMyCharacter: vi.fn().mockResolvedValue(null),
   createCharacter: vi.fn(),
   advance: vi.fn(),
-  getContent: vi.fn().mockResolvedValue(content),
-  getPublicJobs: vi.fn(),
-  getCreationOptions: vi.fn(),
+  getContent: vi.fn(),
+  getPublicJobs: vi.fn().mockResolvedValue(makePublicJobs()),
+  getCreationOptions: vi.fn().mockResolvedValue(makeCreationOptions()),
   getJobs: vi.fn(),
   changeJob: vi.fn(),
   getSkills: vi.fn(),
@@ -214,7 +212,7 @@ test.each([
   },
   {
     failure: "creation data network error",
-    overrides: { getContent: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
+    overrides: { getPublicJobs: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
   },
 ])("App_FailedLoad_ShowsNoteWithRetry ($failure)", async ({ overrides }) => {
   saveAccessToken("token")

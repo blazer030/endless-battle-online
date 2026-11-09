@@ -15,6 +15,8 @@ import type {
   WorldArea,
   WorldPlace,
 } from "../game/types"
+import { CreationOptionsVo } from "../game/creationOptions"
+import { JobVo } from "../game/jobBook"
 
 type JobContent = ContentNames["jobs"][number]
 
@@ -400,3 +402,79 @@ export const makeHonourShop = (overrides: Partial<HonourShop> = {}): HonourShop 
   ],
   ...overrides,
 })
+
+// 公開 API 的初階職業與建角選項（轉換後的 VO）
+export const makePublicJob = (overrides: Partial<Parameters<typeof JobVo.create>[0]> = {}) =>
+  JobVo.create({
+    id: "job-6",
+    name: "戰士",
+    tier: 1,
+    parentId: null,
+    unlockLevel: 1,
+    proficiencyRequired: 0,
+    statRequirements: [],
+    growth: {
+      strength: { minimum: 1, maximum: 3 },
+      intelligence: { minimum: 0, maximum: 1 },
+      life: { minimum: 1, maximum: 3 },
+      vitality: { minimum: 1, maximum: 3 },
+      agility: { minimum: 0, maximum: 1 },
+      charisma: { minimum: 1, maximum: 1 },
+      faith: { minimum: 0, maximum: 1 },
+    },
+    skills: [
+      {
+        id: "skill-1",
+        name: "爆氣",
+        description: "",
+        maxLevel: 10,
+        prerequisite: null,
+        levels: Array.from({ length: 10 }, (_, index) => ({
+          level: index + 1,
+          summary: `爆氣 Lv${index + 1} 的效果`,
+        })),
+      },
+      {
+        id: "skill-61",
+        name: "防禦心得",
+        description: "",
+        maxLevel: 5,
+        prerequisite: { skillId: "skill-1", name: "爆氣", level: 3 },
+        levels: Array.from({ length: 5 }, (_, index) => ({
+          level: index + 1,
+          summary: `防禦心得 Lv${index + 1} 的效果`,
+        })),
+      },
+    ],
+    ...overrides,
+  })
+
+export const makePublicJobs = () => [
+  makePublicJob(),
+  makePublicJob({ id: "job-7", name: "術士", skills: [] }),
+  makePublicJob({ id: "job-8", name: "盜賊", skills: [] }),
+  makePublicJob({ id: "job-9", name: "樂手", skills: [] }),
+  makePublicJob({ id: "job-10", name: "狂戰士", tier: 2, parentId: "job-6", skills: [] }),
+]
+
+export const makeCreationOptions = () =>
+  CreationOptionsVo.create({
+    sexes: [
+      { id: 1, name: "男" },
+      { id: 2, name: "女" },
+    ],
+    elements: [
+      { id: 1, name: "地", strongAgainst: 2, weakAgainst: 6 },
+      { id: 2, name: "水", strongAgainst: 3, weakAgainst: 1 },
+      { id: 3, name: "火", strongAgainst: 4, weakAgainst: 2 },
+      { id: 4, name: "木", strongAgainst: 5, weakAgainst: 3 },
+      { id: 5, name: "風", strongAgainst: 6, weakAgainst: 4 },
+      { id: 6, name: "毒", strongAgainst: 1, weakAgainst: 5 },
+    ],
+    births: [
+      { id: 1, name: "中央大陸" },
+      { id: 2, name: "魔法王國" },
+      { id: 3, name: "熱帶雨林" },
+      { id: 4, name: "末日王城" },
+    ],
+  })

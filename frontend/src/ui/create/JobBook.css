@@ -1,0 +1,123 @@
+/* 職業介紹冊：上緣 top 206，從櫃檯下方推上來蓋住登記證；書籤從紙頁後面露出上緣 */
+.job-book {
+  position: absolute;
+  z-index: 6;
+  left: 0;
+  right: 0;
+  top: 206px;
+  bottom: 0;
+  isolation: isolate;
+  transform: translateY(110%);
+  visibility: hidden;
+  transition:
+    transform 0.45s cubic-bezier(0.3, 0.9, 0.3, 1),
+    visibility 0s 0.45s;
+}
+
+.job-book--open {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.45s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+.job-book-marks {
+  position: absolute;
+  left: 150px;
+  right: 58px;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 書籤翻過來、尖角朝上；選中的多露 20px，圖示跟著下移 10px */
+.job-book-mark {
+  position: relative;
+  width: 44px;
+  height: 110px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: none;
+  transform: translateY(-38px);
+  transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.job-book-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--mark) center / 100% 100% no-repeat;
+  transform: scaleY(-1);
+  filter: drop-shadow(0 -2px 3px rgb(var(--shade-rgb) / 0.45));
+}
+
+.job-book-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  background: var(--paper-light);
+  mask: var(--mark-icon) center / contain no-repeat;
+  transition: top 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.job-book-mark[aria-selected="true"] {
+  transform: translateY(-58px);
+}
+
+.job-book-mark[aria-selected="true"]::after {
+  top: 24px;
+}
+
+.job-book-page {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: url("../../assets/title/book-page.webp") center / 100% 100%;
+  color: var(--umber-deep);
+  box-shadow:
+    inset 14px 0 18px -10px rgb(var(--umber-rgb) / 0.55),
+    0 -6px 14px rgb(var(--shade-rgb) / 0.45);
+}
+
+.job-book-head {
+  position: absolute;
+  left: 20px;
+  right: 14px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1.5px solid rgb(var(--umber-rgb) / 0.55);
+}
+
+.job-book-head > img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.job-book-head > b {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--umber-deep);
+}
+
+.job-book-head > small {
+  font-family: var(--font-script);
+  font-size: 24px;
+  color: var(--umber-faded);
+}
+
+/* 「就職」印章在頁首右邊，不壓到技能清單 */
+.job-book-page .seal {
+  top: 4px;
+  right: 16px;
+  bottom: auto;
+}

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { readAccessToken } from "../api/authStorage"
 import { ApiError, type ApiClient } from "../api/client"
-import type { CharacterView, ContentNames } from "../game/types"
+import type { CreationOptionsVo } from "../game/creationOptions"
+import type { JobVo } from "../game/jobBook"
+import type { CharacterView } from "../game/types"
 import { PassageMilliseconds } from "../motion/timings"
 import { AdventureScreen } from "./AdventureScreen"
-import { CreateCharacterScreen } from "./CreateCharacterScreen"
+import { CreateScreen } from "./create/CreateScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { Passage } from "./title/Passage"
 import { TitleBackdrop } from "./title/TitleBackdrop"
@@ -17,7 +19,7 @@ type Destination = SignInRoute | "open"
 
 type Phase =
   | { name: "title"; loading: TitleLoading; destination: Destination; account: string }
-  | { name: "create"; content: ContentNames; account: string }
+  | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
   | { name: "passage"; title: string; subtitle: string; character: CharacterView }
   | { name: "game"; character: CharacterView }
 
@@ -66,7 +68,11 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     api
       .getMyCharacter()
       .then(async (character): Promise<Phase> => {
-        if (character === null) return { name: "create", content: await api.getContent(), account }
+        if (character === null) {
+          // 建角要職業介紹冊與性別、屬性、出生地，先取回再打開
+          const [jobs, options] = await Promise.all([api.getPublicJobs(), api.getCreationOptions()])
+          return { name: "create", jobs, options, account }
+        }
         if (destination === "open") return { name: "game", character }
         return { name: "passage", title: "歡迎回來", subtitle: account, character }
       })
@@ -120,11 +126,16 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       )
     case "create":
       return (
-        <CreateCharacterScreen
-          api={api}
-          content={phase.content}
-          onCreated={(character) => setPhase({ name: "game", character })}
-        />
+        <StageFrame>
+          <CreateScreen
+            api={api}
+            jobs={phase.jobs}
+            options={phase.options}
+            account={phase.account}
+            onCreated={(character) => setPhase({ name: "game", character })}
+            onLeave={() => setPhase(titlePhase(phase.account))}
+          />
+        </StageFrame>
       )
     case "game":
       return <AdventureScreen api={api} initialCharacter={phase.character} />
