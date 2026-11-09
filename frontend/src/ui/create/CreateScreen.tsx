@@ -19,6 +19,7 @@ import {
   type CreationDraft,
 } from "../../game/creationDraft"
 import type { JobVo } from "../../game/jobBook"
+import { baseStatLabels, baseStatsFromAllocation } from "../../game/stats"
 import type { CharacterView } from "../../game/types"
 import { PassageMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
@@ -45,14 +46,12 @@ type Step = "idle" | "name" | "sex" | "birth" | "element" | "job" | "stats" | "l
 
 const askingSteps: readonly Step[] = ["name", "sex", "birth", "element", "stats", "leave"]
 
-const statRows: { key: AllocationStat; label: string }[] = [
-  { key: "str", label: "力量" },
-  { key: "smart", label: "智力" },
-  { key: "life", label: "生命" },
-  { key: "agi", label: "敏捷" },
-]
+const allocationStats: readonly AllocationStat[] = ["str", "smart", "life", "agi"]
 
-const StartingBonus = 10
+// 可分配的四項，名稱與顯示順序同角色頁
+const statRows = baseStatLabels.filter((row): row is { key: AllocationStat; label: string } =>
+  (allocationStats as readonly string[]).includes(row.key),
+)
 
 const optionName = (options: readonly { id: number; name: string }[], id: number | null) =>
   options.find((option) => option.id === id)?.name ?? ""
@@ -76,6 +75,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
   const ready = isReady(draft)
   const left = pointsLeft(draft)
   const { hpMax, spMax } = previewStats(draft)
+  const baseStats = baseStatsFromAllocation(draft.allocation)
   const asking = askingSteps.includes(step)
 
   const open = (next: Step) => {
@@ -311,7 +311,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
                     >
                       −
                     </button>
-                    <b>{draft.allocation[key] + StartingBonus}</b>
+                    <b>{baseStats[key]}</b>
                     <button
                       type="button"
                       aria-label={`增加${label}`}
@@ -374,7 +374,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
               {statRows.map(({ key, label }) => (
                 <span key={key}>
                   <i>{label}</i>
-                  {draft.allocation[key] + StartingBonus}
+                  {baseStats[key]}
                 </span>
               ))}
             </b>
