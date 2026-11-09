@@ -119,35 +119,20 @@ export const JobBook = ({ open, jobs, page, sex, onPage, onPick }: Props) => {
         <div className="job-book-skills">
           <h3>技能</h3>
           <ul aria-label="技能">
-            {job.skills.map((skill) => {
-              const top = skill.levels[skill.levels.length - 1]
-              return (
-                <li
-                  key={skill.id}
-                  className={skill.prerequisite === null ? "job-book-skill--first" : undefined}
-                >
-                  <b>{skill.name}</b>
-                  <small>
-                    {skill.prerequisite === null
-                      ? "入門"
-                      : `前置 ${skill.prerequisite.name} Lv${skill.prerequisite.level}`}
-                  </small>
-                  <span className="job-book-max">最高 Lv{skill.maxLevel}</span>
-                  {skill.levels[0] !== undefined && (
-                    <p>
-                      <em>Lv1</em>
-                      {skill.levels[0].summary}
-                    </p>
-                  )}
-                  {top !== undefined && top.level > 1 && (
-                    <p>
-                      <em>Lv{top.level}</em>
-                      {top.summary}
-                    </p>
-                  )}
-                </li>
-              )
-            })}
+            {job.skills.map((skill) => (
+              <li
+                key={skill.id}
+                className={skill.prerequisite === null ? "job-book-skill--first" : undefined}
+              >
+                <b>{skill.name}</b>
+                <small>
+                  {skill.prerequisite === null
+                    ? "入門"
+                    : `前置 ${skill.prerequisite.name} Lv${skill.prerequisite.level}`}
+                </small>
+                <p>{skill.description}</p>
+              </li>
+            ))}
           </ul>
         </div>
         <Seal label="就職" className="seal--glow" onClick={() => onPick(job)} />

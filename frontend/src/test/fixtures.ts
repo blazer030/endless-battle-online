@@ -426,7 +426,7 @@ export const makePublicJob = (overrides: Partial<Parameters<typeof JobVo.create>
       {
         id: "skill-1",
         name: "爆氣",
-        description: "",
+        description: "爆發體內的鬥氣，接下來幾回合物攻提升。",
         maxLevel: 10,
         prerequisite: null,
         levels: Array.from({ length: 10 }, (_, index) => ({
@@ -437,7 +437,7 @@ export const makePublicJob = (overrides: Partial<Parameters<typeof JobVo.create>
       {
         id: "skill-61",
         name: "防禦心得",
-        description: "",
+        description: "看準來勢架開攻擊，減輕受到的物理傷害。",
         maxLevel: 5,
         prerequisite: { skillId: "skill-1", name: "爆氣", level: 3 },
         levels: Array.from({ length: 5 }, (_, index) => ({

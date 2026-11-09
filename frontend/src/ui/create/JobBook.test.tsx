@@ -43,20 +43,21 @@ test("JobBook_ShowsRoleDescriptionAndFastestGrowth", () => {
   expect(growth.getByText("魅力").closest("li")).not.toHaveClass("job-book-growth--top")
 })
 
-test("JobBook_ListsWarriorSkillsWithPrerequisiteAndMaxLevel", () => {
+// 介紹冊讓人大概了解職業特性：只寫入門或前置與描述，不寫最高等級與各級效果
+test("JobBook_ListsWarriorSkillsWithPrerequisiteAndDescription", () => {
   renderBook("job-6", 1)
 
-  const skills = within(screen.getByRole("list", { name: "技能" })).getAllByRole("listitem")
+  const list = screen.getByRole("list", { name: "技能" })
+  const skills = within(list).getAllByRole("listitem")
   expect(skills).toHaveLength(2)
   expect(skills[0]).toHaveTextContent("爆氣")
   expect(skills[0]).toHaveTextContent("入門")
-  expect(skills[0]).toHaveTextContent("最高 Lv10")
-  expect(skills[0]).toHaveTextContent("Lv1爆氣 Lv1 的效果")
-  expect(skills[0]).toHaveTextContent("Lv10爆氣 Lv10 的效果")
+  expect(skills[0]).toHaveTextContent("爆發體內的鬥氣，接下來幾回合物攻提升。")
   expect(skills[1]).toHaveTextContent("防禦心得")
   expect(skills[1]).toHaveTextContent("前置 爆氣 Lv3")
-  expect(skills[1]).toHaveTextContent("最高 Lv5")
-  expect(skills[1]).toHaveTextContent("Lv5防禦心得 Lv5 的效果")
+  expect(skills[1]).toHaveTextContent("看準來勢架開攻擊，減輕受到的物理傷害。")
+  expect(list).not.toHaveTextContent("最高")
+  expect(list).not.toHaveTextContent("的效果")
 })
 
 test("JobBook_PickFillsJobRowAndCloses", async () => {

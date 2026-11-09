@@ -41,3 +41,8 @@
 - [x] 7.1 [after: 6.2] 依「Stage size and scale」把舞台高度範圍改成 624～780、倍率 `min(w/390, h/624)`：先把 `frontend/src/ui/stage/fitStage.test.ts` 的範例表換成 spec 新表（390×624、390×780、402×714、412×880 上下各 28.0、375×555 左右各 14.1、1920×950 左右各 663.1），`StageFrame.test.tsx` 的 412×880 改成高 780，並斷言外框同時給出不帶單位的 `--stage-height`，看測試失敗後再改 `fitStage.ts` 的常數與 `StageFrame.tsx`；專案 `CLAUDE.md` 前端硬規則 2 改成「高 624～780、高寬比 1.6～2.0」。驗證：`cd frontend && pnpm check` 通過。
 - [x] 7.2 [after: 7.1] 依 design.md 的建角列調整 `frontend/src/ui/create/CreateScreen.css`：櫃檯露出高度 D＝min(0.7H, 502)，大廳、壓暗層、回答彈窗跟著 D，登記證倍率 min((0.7H−20)/368, 1.3)、bottom 8，「剩 N 點」字級 9px 改 10px（樣式不寫測試）。驗證：`pnpm dev` 在 390×624、390×644、390×683、390×722、390×780 截建角、能力彈窗、職業介紹冊：大廳在 624～717 高時佔舞台約 30%（量櫃檯上緣位置）、登記證上緣不高過櫃檯上緣、彈窗不超出舞台；標題頁在 390×624、360×576 登記證與印章都在舞台內。
 
+## 8. 介紹冊改成職業特性導向（使用者 2026-11-09 追加）
+
+- [x] 8.1 [after: 7.2] 補四個初階職業 16 招的技能描述（design.md「技能描述」）：先在 `backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs` 加失敗測試 `PublicJobs_StarterSkillsCarryDescriptions`（第一階職業教的每一招 `description` 都不是空字串，爆氣是「爆發體內的鬥氣，接下來幾回合物攻提升。」），再改 `backend/content/skills.json` 這 16 招的 `description`。驗證：`cd backend && dotnet test --filter-class "*PublicEndpointsTests"` 通過。
+- [x] 8.2 [after: 8.1] 依「Job introduction book」改介紹冊：技能每招只顯示名稱、入門或前置、描述，不顯示最高等級與各級摘要；立繪區 left 改 −12。先把 `JobBook.test.tsx` 的技能測試改成 `JobBook_ListsWarriorSkillsWithPrerequisiteAndDescription`（爆氣有入門與描述、防禦心得有「前置 爆氣 Lv3」、畫面沒有「最高」與「Lv1」）並看它失敗，再改 `JobBook.tsx`／`JobBook.css`。驗證：`cd frontend && pnpm check` 通過；`pnpm dev` 在 390×624 與 390×780 截四個職業頁，立繪不壓到左邊書脊、不壓到右欄文字。
+

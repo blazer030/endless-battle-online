@@ -125,7 +125,7 @@
 /* 立繪：畫在紙上，右緣與下緣淡出；立繪匯入時已置中、腳底對齊 */
 .job-book-art {
   position: absolute;
-  left: -30px;
+  left: -12px;
   top: 58px;
   width: 196px;
   height: 190px;
@@ -218,7 +218,7 @@
   color: var(--seal-red);
 }
 
-/* 技能：每招 Lv1 與最高級兩行；清單貼介紹冊下緣、高度伸縮，放不下時在清單內捲動、下緣淡出 */
+/* 技能：每招名稱、入門或前置，下面一行描述；清單貼介紹冊下緣、高度伸縮，放不下時在清單內捲動、下緣淡出 */
 .job-book-skills {
   position: absolute;
   left: 28px;
@@ -249,7 +249,7 @@
 
 .job-book-skills li {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   column-gap: 8px;
   align-items: baseline;
 }
@@ -276,30 +276,10 @@
   border-radius: 7px;
 }
 
-.job-book-max {
-  font-family: var(--font-number);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--umber-faded);
-  white-space: nowrap;
-}
-
 .job-book-skills p {
   grid-column: 1 / -1;
-  display: flex;
-  gap: 6px;
   margin: 2px 0 0;
   font-size: 13px;
   line-height: 1.45;
   color: var(--umber);
-}
-
-.job-book-skills em {
-  flex: 0 0 36px;
-  font-style: normal;
-  font-family: var(--font-number);
-  font-weight: 700;
-  font-size: 11px;
-  line-height: 19px;
-  color: var(--umber-faded);
 }
