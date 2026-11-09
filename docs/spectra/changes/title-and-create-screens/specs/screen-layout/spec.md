@@ -6,7 +6,7 @@ Screens built from the new design are laid out on a fixed-width stage whose heig
 
 ### Requirement: Stage size and scale
 
-A new-design screen SHALL be laid out on a stage 390 px wide whose height is between 683 px and 722 px. Given the browser window's width `w` and height `h` in CSS pixels, the stage scale SHALL be the smaller of `w / 390` and `h / 683`, with no upper limit, and the stage height SHALL be `h / scale` clamped to 683–722. The scaled stage SHALL be centered in the window. When the window's height-to-width ratio is between 1.75 and 1.85, the scaled stage SHALL fill the window with no spare space; otherwise it SHALL fill the tighter dimension and leave spare space only on the two opposite sides of the other.
+A new-design screen SHALL be laid out on a stage 390 px wide whose height is between 624 px and 780 px. Given the browser window's width `w` and height `h` in CSS pixels, the stage scale SHALL be the smaller of `w / 390` and `h / 624`, with no upper limit, and the stage height SHALL be `h / scale` clamped to 624–780. The scaled stage SHALL be centered in the window. When the window's height-to-width ratio is between 1.6 and 2.0, the scaled stage SHALL fill the window with no spare space; otherwise it SHALL fill the tighter dimension and leave spare space only on the two opposite sides of the other.
 
 #### Scenario: Window within the ratio range
 
@@ -15,19 +15,19 @@ A new-design screen SHALL be laid out on a stage 390 px wide whose height is bet
 
 #### Scenario: Window outside the ratio range
 
-- **WHEN** the window is taller than 1.85 times its width or shorter than 1.75 times its width, including a large desktop window
-- **THEN** the stage keeps the nearest height in 683–722, is scaled to fill the tighter dimension, and is centered with equal spare space on the two opposite sides of the other dimension
+- **WHEN** the window is taller than 2.0 times its width or shorter than 1.6 times its width, including a large desktop window
+- **THEN** the stage keeps the nearest height in 624–780, is scaled to fill the tighter dimension, and is centered with equal spare space on the two opposite sides of the other dimension
 
 ##### Example: stage fit
 
 | Window (w×h) | Scale | Stage height | Spare space |
 | --- | --- | --- | --- |
-| 390×683 | 1 | 683 | none |
-| 390×722 | 1 | 722 | none |
+| 390×624 | 1 | 624 | none |
+| 390×780 | 1 | 780 | none |
 | 402×714 | 1.0308 | 692.7 | none |
-| 412×880 | 1.0564 | 722 | 58.6 above and below |
-| 375×555 | 0.8126 | 683 | 29.0 left and right |
-| 1920×950 | 1.3909 | 683 | 688.8 left and right |
+| 412×880 | 1.0564 | 780 | 28.0 above and below |
+| 375×555 | 0.8894 | 624 | 14.1 left and right |
+| 1920×950 | 1.5224 | 624 | 663.1 left and right |
 
 ### Requirement: One shared background fills spare space
 
@@ -36,7 +36,7 @@ The spare space around a scaled stage SHALL show one background shared by every 
 #### Scenario: Tall phone shows the shared background
 
 - **WHEN** the title screen is shown in a 412×880 window
-- **THEN** the 58.6 px above and below the stage show the shared background, the title screen's sky and desk end at the stage edges, and no button or field lies outside the stage
+- **THEN** the 28.0 px above and below the stage show the shared background, the title screen's sky and desk end at the stage edges, and no button or field lies outside the stage
 
 ### Requirement: No scrolling at phone widths
 
