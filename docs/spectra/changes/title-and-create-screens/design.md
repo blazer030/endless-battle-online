@@ -25,13 +25,13 @@
 | 標題 | 讀角色 | 登記證與那疊 translate(0,470px) 0.5s；墨點三個 13px `#F3E3C0`、間距 14、bottom 190、0.45s 後淡入、跳動 1.2s |
 | 標題 | 讀取失敗字條 `75aeed6c` | bottom 108、寬 274、高 176、rotate(−2deg)；字 Noto Serif TC 900 17px `#4A2E14`；重試印章右下、發光 2.4s |
 | 標題 | 過場 | 鋪滿舞台；「歡迎回來／踏上旅途」Noto Serif TC 900 26px `#4A2E14`、副字 Great Vibes 26px `#6A4626`；夜晚改 `#F6EBD5` |
-| 建角 | 大廳 `12b6be86` | top −80、寬 470；露出高度＝H−502（181～220）；元素高 calc(H − 406px) |
+| 建角 | 大廳 `12b6be86` | top −80、寬 470；露出高度＝H−476（207～246，683 高時約 30%；使用者 2026-11-09 要求大廳至少約三成）；元素高 calc(H − 380px) |
 | 建角 | 莉瑟 `a32a504a` | 貼上緣 top 28、高 486、left −4 |
 | 建角 | 對話框 `b97d9abd` | top 44、left 166、寬 216、高 104；13px 行高 1.6 `#3A2410`、最多三行 |
 | 建角 | 離開 | top 12、left 12、14px `#F3E3C0` |
-| 建角 | 櫃檯木桌 | 同標題木桌，高 582（舞台內 502）、bottom −80 |
-| 建角 | 登記證 `3a7feeba`（成功後蠟封 `e5a31933` 淡入）| 照 250×368 排版、bottom 12、`transform-origin: 50% 100%`、scale(1.3)、rotate(−1deg)；列高 ≥25；欄位名 11px（放大後 14.3）；「剩 N 點」9px `#F6EBD5` 底 `#8A2A1A`；出發印章 bottom −4、right −6、可按時發光 |
-| 建角 | 回答彈窗（紙 `75aeed6c` border-image `140 210 70 60 fill / 28px 42px 14px 12px`）| left/right 14、中心在 H−250（bottom 250＋translateY(50%)）；壓暗層 top＝H−520 到底 `rgba(20,10,4,.55)`；選項四欄格、間距 8；選項 min-height 38、`#F6EBD5`、選中 `#5A3A1C` 字 `#F6EBD5`、確定 `#8A2A1A` |
+| 建角 | 櫃檯木桌 | 同標題木桌，高 556（舞台內 476）、bottom −80 |
+| 建角 | 登記證 `3a7feeba`（成功後蠟封 `e5a31933` 淡入）| 照 250×368 排版、bottom 8、`transform-origin: 50% 100%`、scale(1.24)、rotate(−1deg)；列高 ≥25；欄位名 11px（放大後 13.6）；最小的字 9px（放大後 11.2）；「剩 N 點」9px `#F6EBD5` 底 `#8A2A1A`；出發印章 bottom −4、right −6、可按時發光 |
+| 建角 | 回答彈窗（紙 `75aeed6c` border-image `140 210 70 60 fill / 28px 42px 14px 12px`）| left/right 14、中心在 H−238（bottom 238＋translateY(50%)）；壓暗層 top＝H−494 到底 `rgba(20,10,4,.55)`；選項四欄格、間距 8；選項 min-height 38、`#F6EBD5`、選中 `#5A3A1C` 字 `#F6EBD5`、確定 `#8A2A1A` |
 | 建角 | 屬性徽章 | 地 `374bc9f4`、水 `9bc2ed53`、火 `df05ace4`、木 `d85235a7`、風 `e8f93fd9`、毒 `9f653c0d`；26×26；三欄兩排 |
 | 介紹冊 | 紙 `dd89ce59`、書籤 戰士 `d702e92f`／術士 `d371eec9`／盜賊 `88b2eedf`／樂手 `2ccfd7be` | 介紹冊 top 206 到底；書籤 44×110 翻轉、往上露到 148，選中多露 20 |
 | 介紹冊 | 頁首 | 職業圖示 30×30、名稱 Noto Serif TC 900 24px、英文 Great Vibes 24px `#8A6A40`；「就職」印章 top 4、right 16 |
