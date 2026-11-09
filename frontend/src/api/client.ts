@@ -37,7 +37,7 @@ import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorag
 import { parseArray } from "./parse"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 
-const fallbackDetail = "發生錯誤，請稍後再試"
+export const fallbackDetail = "發生錯誤，請稍後再試"
 
 export class ApiError extends Error {
   readonly status: number

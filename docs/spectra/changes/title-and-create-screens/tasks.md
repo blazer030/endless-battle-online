@@ -16,7 +16,7 @@
 ## 3. 標題頁
 
 - [x] 3.1 [after: 2.2, 2.3, 2.4] 依「Title flow and creation draft as plain TypeScript」實作 Title background follows the time of day：純函式 `timeOfDay(hour)` 與標題的背景層（招牌、四時段天空、木桌，照 Design Source 的錨點；每分鐘重算時段）。先寫失敗測試 `timeOfDay.test.ts`（spec 的時段邊界表 04、05、07、08、16、17、18、19），再實作；手動在 `pnpm dev`（5175）用 390×683 與 390×722 看標題背景，對照 TitleFit 的 title 狀態。
-- [ ] 3.2 [after: 3.1] 實作 Sign in on the registry card 與 Register with a blank card：自己那張登記證（帳號、密碼、入城印章、Enter 送出、錯誤紅字照 `detail`、沒有 API 回應時「發生錯誤，請稍後再試」）、空白證疊（點了交換、登記印章、註冊後接著登入、成功蓋蠟封）。先寫失敗測試 `TitleScreen.test.tsx`：`TitleScreen_ShowsLoginErrorDetailOnOwnCard`、`TitleScreen_DisablesEnterSealUntilBothFieldsFilled`、`TitleScreen_ShowsAccountTakenOnBlankCard`、`TitleScreen_RegisterThenSignsInWithSameAccount`、`TitleScreen_ShowsGenericErrorWhenNoApiResponse`，再實作。
+- [x] 3.2 [after: 3.1] 實作 Sign in on the registry card 與 Register with a blank card：自己那張登記證（帳號、密碼、入城印章、Enter 送出、錯誤紅字照 `detail`、沒有 API 回應時「發生錯誤，請稍後再試」）、空白證疊（點了交換、登記印章、註冊後接著登入、成功蓋蠟封）。先寫失敗測試 `TitleScreen.test.tsx`：`TitleScreen_ShowsLoginErrorDetailOnOwnCard`、`TitleScreen_DisablesEnterSealUntilBothFieldsFilled`、`TitleScreen_ShowsAccountTakenOnBlankCard`、`TitleScreen_RegisterThenSignsInWithSameAccount`、`TitleScreen_ShowsGenericErrorWhenNoApiResponse`，再實作。
 - [ ] 3.3 [after: 3.2] 依「Title flow and creation draft as plain TypeScript」實作 Load the character before entering：`App.tsx` 改成 title → create → game 的流程（載入時登記證收下桌、0.45 秒後才出現墨點；讀取失敗字條＋重試印章沿用原目的地；401 清 token 回登記證；有 token 打開網頁直接讀角色、不顯示登記證與歡迎回來；登入成功顯示「歡迎回來＋帳號」2.4 秒再進遊戲）；時長放 `frontend/src/motion/timings.ts`。先寫失敗測試（`App.test.tsx`，依 spec 的 destination after loading 表：登入有角色、登入沒角色、註冊、token 有角色、token 沒角色、401，以及 `App_RetryRepeatsLoadWithSameDestination`），再實作。
 
 ## 4. 建角頁

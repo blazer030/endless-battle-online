@@ -24,3 +24,9 @@ export const PanelRefreshMilliseconds = 5_000
 export const BuffTickMilliseconds = 30_000
 // 標題背景依時段換圖，畫面開著時隔這麼久重算一次
 export const TimeOfDayRefreshMilliseconds = 60_000
+// 註冊成功蓋上蠟封後，停這麼久再開始讀角色
+export const RegisterSealSettleMilliseconds = 900
+// 讀角色時，過這麼久還沒好才浮出墨點，快的時候不閃
+export const InkDotsDelaySeconds = 0.45
+// 「歡迎回來」「踏上旅途」過場停留多久再進遊戲
+export const PassageMilliseconds = 2_400

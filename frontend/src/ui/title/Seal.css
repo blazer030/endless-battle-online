@@ -1,0 +1,62 @@
+.seal {
+  position: absolute;
+  bottom: 2px;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--shade-rgb) / 0.35));
+  transform: rotate(-3deg);
+  transition:
+    transform 0.12s,
+    filter 0.2s,
+    opacity 0.25s;
+}
+
+.seal span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+  text-shadow: 0 0 1px rgb(var(--shade-rgb) / 0.6);
+}
+
+/* 按下縮一下；停用時不動，免得像按得下去 */
+.seal:not(:disabled):active {
+  transform: rotate(-3deg) scale(0.9);
+}
+
+.seal:disabled {
+  cursor: default;
+  filter: grayscale(0.85) opacity(0.45);
+}
+
+/* 可以按、等玩家按的印章：輕輕發光 */
+.seal--glow:not(:disabled) {
+  animation: seal-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes seal-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 2px 2px rgb(var(--shade-rgb) / 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgb(var(--glow-rgb) / 0.9));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal--glow:not(:disabled) {
+    animation: none;
+  }
+}

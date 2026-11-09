@@ -1,0 +1,350 @@
+/* 標題：舞台座標（寬 390、高 --stage-h），登記證與那疊貼下緣 bottom 12 */
+.title {
+  position: absolute;
+  inset: 0;
+}
+
+/* 一疊空白證（右邊）與兩張登記證 */
+.title-stack i,
+.title-card {
+  position: absolute;
+  left: 77px;
+  bottom: 12px;
+  width: 236px;
+  height: 336px;
+}
+
+.title-stack i {
+  z-index: 2;
+  background: url("../../assets/title/card-blank.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 4px 6px rgb(var(--shade-rgb) / 0.5));
+  transition: translate 0.5s ease-in;
+}
+
+.title-stack i:nth-child(1) {
+  transform: translate(232px, 70px) rotate(13deg);
+}
+
+.title-stack i:nth-child(2) {
+  transform: translate(227px, 60px) rotate(10deg);
+}
+
+.title-card {
+  z-index: 4;
+  margin: 0;
+  filter: drop-shadow(0 8px 12px rgb(var(--shade-rgb) / 0.55));
+  transition:
+    transform 0.55s cubic-bezier(0.3, 1.1, 0.4, 1),
+    translate 0.5s ease-in;
+}
+
+.title-paper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 自己那張在手上；空白證在那疊上面。註冊時兩張交換 */
+.title-card--own {
+  transform: rotate(-2deg);
+}
+
+.title-card--blank {
+  z-index: 3;
+  transform: translate(222px, 50px) rotate(7deg);
+}
+
+.title--reg .title-card--own {
+  z-index: 3;
+  transform: translate(-226px, 44px) rotate(-9deg);
+}
+
+.title--reg .title-card--blank {
+  z-index: 4;
+  transform: rotate(1.5deg);
+}
+
+/* 沒拿在手上的那張整張可點；每隔幾秒輕輕動一下 */
+.title-pick {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.title:not(.title--reg):not(.title--loading) .title-card--blank,
+.title--reg:not(.title--loading):not(.title--sealed) .title-card--own {
+  animation: title-nudge 5s ease-in-out 1.5s infinite;
+}
+
+@keyframes title-nudge {
+  0%,
+  82%,
+  100% {
+    translate: 0 0;
+  }
+  86% {
+    translate: -7px -5px;
+  }
+  90% {
+    translate: 0 0;
+  }
+  94% {
+    translate: -3px -2px;
+  }
+}
+
+.title:not(.title--reg) .title-card--blank .title-card-inside,
+.title--reg .title-card--own .title-card-inside {
+  opacity: 0.55;
+}
+
+/* 證上的內容 */
+.title-card-inside {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  top: 64px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s;
+}
+
+.title-card h2 {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  color: var(--umber);
+}
+
+.title-card-english {
+  margin-top: 1px;
+  text-align: center;
+  font-family: var(--font-script);
+  font-size: 16px;
+  line-height: 1.1;
+  color: var(--umber-faded);
+}
+
+.title-card hr {
+  width: 100%;
+  margin: 8px 0 2px;
+  border: 0;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+}
+
+.title-field {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.title-field > span {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--umber-faded);
+}
+
+.title-field input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0 0;
+  padding: 2px 2px 3px;
+  border: 0;
+  border-bottom: 1.5px dotted rgb(var(--umber-rgb) / 0.75);
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 18px;
+  color: var(--ink);
+  transition: background 0.15s;
+}
+
+.title-field input:focus {
+  border-bottom: 1.5px solid var(--wood-deep);
+  background: rgb(var(--glow-rgb) / 0.4);
+}
+
+.title-field input[type="password"] {
+  letter-spacing: 0.16em;
+}
+
+.title-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--error-red);
+}
+
+/* 紅印章：自己那張在左下（右下是蠟封）、空白證在右下（蓋上就成了蠟封） */
+.title-card--own .seal {
+  left: -4px;
+}
+
+.title-card--blank .seal {
+  right: -10px;
+  bottom: 4px;
+}
+
+.title--busy .title-card .seal {
+  animation: title-press 0.7s ease-in-out;
+}
+
+@keyframes title-press {
+  0%,
+  100% {
+    scale: 1;
+  }
+  35% {
+    scale: 1.12;
+  }
+  60% {
+    scale: 0.88;
+  }
+}
+
+/* 註冊成功：空白證蓋上蠟封 */
+.title-wax {
+  opacity: 0;
+  transition: opacity 0.25s 0.1s;
+}
+
+.title--sealed .title-wax {
+  opacity: 1;
+}
+
+.title--sealed .title-card--blank .seal {
+  opacity: 0;
+  transform: scale(1.5);
+  pointer-events: none;
+}
+
+.title--sealed .title-card--blank {
+  animation: title-bump 0.4s ease-out;
+}
+
+@keyframes title-bump {
+  40% {
+    scale: 1.04;
+  }
+}
+
+/* 讀角色：登記證收下桌、只留招牌；過一下子才浮出三點墨，快的時候不閃 */
+.title--loading .title-card,
+.title--loading .title-stack i {
+  translate: 0 470px;
+  animation: none;
+}
+
+.title-wait {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: 190px;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.title--waiting .title-wait {
+  opacity: 1;
+  transition: opacity 0.3s var(--ink-dots-delay);
+}
+
+.title-wait i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--paper-light);
+  box-shadow:
+    0 1px 4px rgb(var(--shade-rgb) / 0.85),
+    0 0 0 1px rgb(var(--umber-rgb) / 0.35);
+  animation: title-dot 1.2s ease-in-out infinite;
+}
+
+.title-wait i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.title-wait i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes title-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+}
+
+/* 讀不到：桌上攤一張字條＋紅印章「重試」 */
+.title-fail {
+  position: absolute;
+  z-index: 6;
+  left: 58px;
+  bottom: 108px;
+  width: 274px;
+  height: 176px;
+  box-sizing: border-box;
+  padding: 0 30px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url("../../assets/title/note.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 6px 8px rgb(var(--shade-rgb) / 0.55));
+  transform: rotate(-2deg);
+  animation: title-slip 0.45s cubic-bezier(0.3, 1.1, 0.4, 1);
+}
+
+.title-fail p {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  color: var(--umber);
+  text-align: center;
+}
+
+.title-fail .seal {
+  right: 14px;
+  bottom: -14px;
+}
+
+@keyframes title-slip {
+  from {
+    translate: 0 120px;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-card,
+  .title-wait i {
+    animation: none !important;
+  }
+}
