@@ -67,6 +67,7 @@ app.UseAuthorization();
 
 app.MapHealthEndpoints();
 app.MapContentEndpoints();
+app.MapPublicEndpoints();
 app.MapAccountEndpoints();
 app.MapCharacterEndpoints();
 app.MapAdventureEndpoints();

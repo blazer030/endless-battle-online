@@ -7,6 +7,18 @@ public static class ElementTable
     public const double Disadvantage = 0.8;
     public const double Neutral = 1.0;
 
+    public const int ElementCount = 6;
+
+    // 這個屬性攻擊時佔優勢的對象
+    public static int StrongAgainst(int element) =>
+        Elements().Single(other => Multiplier(element, other) > Neutral);
+
+    // 攻擊這個屬性時佔優勢的對象
+    public static int WeakAgainst(int element) =>
+        Elements().Single(other => Multiplier(other, element) > Neutral);
+
+    private static IEnumerable<int> Elements() => Enumerable.Range(1, ElementCount);
+
     public static double Multiplier(int attackerElement, int defenderElement)
     {
         if (attackerElement == 0 || defenderElement == 0)

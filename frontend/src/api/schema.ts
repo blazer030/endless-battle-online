@@ -74,6 +74,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicSettingsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/accounts/register": {
         parameters: {
             query?: never;
@@ -2611,6 +2646,15 @@ export interface components {
             quantity: number;
             discarded: boolean;
         };
+        ElementOptionResponse: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            /** Format: int32 */
+            strongAgainst: number;
+            /** Format: int32 */
+            weakAgainst: number;
+        };
         /** @enum {unknown} */
         EquipmentSlot: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Supply";
         EquippedItemResponse: {
@@ -3002,6 +3046,11 @@ export interface components {
             id: string;
             name: string;
         };
+        OptionResponse: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+        };
         PetFeedResponse: {
             pets: components["schemas"]["PetsResponse"];
             character: components["schemas"]["CharacterResponse"];
@@ -3058,6 +3107,11 @@ export interface components {
         };
         /** @enum {unknown} */
         PetStat: "Attack" | "Magic" | "Defense" | "Spirit";
+        PublicSettingsResponse: {
+            sexes: components["schemas"]["OptionResponse"][];
+            elements: components["schemas"]["ElementOptionResponse"][];
+            births: components["schemas"]["OptionResponse"][];
+        };
         RecipeMaterialResponse: {
             itemId: string;
             name: string;

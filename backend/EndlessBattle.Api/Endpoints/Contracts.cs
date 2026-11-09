@@ -452,3 +452,13 @@ public sealed record InnResponse(IReadOnlyList<InnRoomResponse> Rooms, LodgingRe
 public sealed record InnBookRequest(string? RoomId);
 
 public sealed record InnBookResponse(CharacterResponse Character, LodgingResponse Lodging, long Cost);
+
+public sealed record OptionResponse(int Id, string Name);
+
+// StrongAgainst／WeakAgainst 是屬性 id：攻擊時剋制的對象、會被剋制的對象
+public sealed record ElementOptionResponse(int Id, string Name, int StrongAgainst, int WeakAgainst);
+
+public sealed record PublicSettingsResponse(
+    IReadOnlyList<OptionResponse> Sexes,
+    IReadOnlyList<ElementOptionResponse> Elements,
+    IReadOnlyList<OptionResponse> Births);

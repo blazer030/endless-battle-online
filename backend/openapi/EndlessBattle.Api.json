@@ -43,6 +43,25 @@
         }
       }
     },
+    "/api/public/settings": {
+      "get": {
+        "tags": [
+          "Public"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/accounts/register": {
       "post": {
         "tags": [
@@ -2958,6 +2977,32 @@
           }
         }
       },
+      "ElementOptionResponse": {
+        "required": [
+          "id",
+          "name",
+          "strongAgainst",
+          "weakAgainst"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "strongAgainst": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weakAgainst": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "EquipmentSlot": {
         "enum": [
           "Weapon",
@@ -4493,6 +4538,22 @@
           }
         }
       },
+      "OptionResponse": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "PetFeedResponse": {
         "required": [
           "pets",
@@ -4684,6 +4745,34 @@
           "Defense",
           "Spirit"
         ]
+      },
+      "PublicSettingsResponse": {
+        "required": [
+          "sexes",
+          "elements",
+          "births"
+        ],
+        "type": "object",
+        "properties": {
+          "sexes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptionResponse"
+            }
+          },
+          "elements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ElementOptionResponse"
+            }
+          },
+          "births": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptionResponse"
+            }
+          }
+        }
       },
       "RecipeMaterialResponse": {
         "required": [
@@ -5729,6 +5818,9 @@
     },
     {
       "name": "Content"
+    },
+    {
+      "name": "Public"
     },
     {
       "name": "Accounts"
