@@ -29,7 +29,7 @@
 ## 5. 補既有功能的規格
 
 - [x] 5.1 補 Account registration 與 Sign in 的測試對照（`accounts` 規格，描述現況、不改行為）：逐條把規格的情境與範例表對到 `backend/EndlessBattle.Tests/Api/AccountEndpointsTests.cs` 既有的測試；沒有對到的補成測試，例如範例表的 `ab`／`abc`／33 個字母／`has space`／7 字密碼各一列、token 的到期時間是簽發後 30 天。補的測試若直接通過，暫時把對應的規則改壞（例如把長度上限改成 33）確認測試會失敗，再改回。驗證：`cd backend && dotnet test --filter-class "*AccountEndpointsTests"` 通過。
-- [ ] 5.2 補 One named character per account、Creation choices and allocation、Starting state 的測試對照（`character-creation-rules` 規格，描述現況、不改行為）：對到 `CharacterEndpointsTests`、`CharacterServiceTests`、`CharacterFactoryTests` 既有的測試；沒有對到的補上，例如名字大小寫不同也算重名、12 個中文字可以、13 個不行、能力 4／2／3／1 的起始底值與 HP／SP／金錢。補的測試若直接通過，同 5.1 用暫時改壞的方式確認會失敗。驗證：`cd backend && dotnet test --filter-class "*Character*"` 通過。
+- [x] 5.2 補 One named character per account、Creation choices and allocation、Starting state 的測試對照（`character-creation-rules` 規格，描述現況、不改行為）：對到 `CharacterEndpointsTests`、`CharacterServiceTests`、`CharacterFactoryTests` 既有的測試；沒有對到的補上，例如名字大小寫不同也算重名、12 個中文字可以、13 個不行、能力 4／2／3／1 的起始底值與 HP／SP／金錢。補的測試若直接通過，同 5.1 用暫時改壞的方式確認會失敗。驗證：`cd backend && dotnet test --filter-class "*Character*"` 通過。
 
 ## 6. 收尾
 

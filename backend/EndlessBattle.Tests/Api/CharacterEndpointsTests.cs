@@ -242,7 +242,72 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
         var second = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(UniqueName("再")), CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+        Assert.Equal(TakenDetail, await DetailOf(second));
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.StartsWith("初", me.GetProperty("name").GetString());
     }
+
+    private const string TakenDetail = "此帳號已有角色，或角色名稱已被使用";
+
+    [Fact]
+    public async Task Create_Returns409_WhenNameTakenInOtherLetterCase()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var firstClient = await factory.CreateAuthenticatedClientAsync();
+        var secondClient = await factory.CreateAuthenticatedClientAsync();
+        var name = $"Allen{Random.Shared.Next(100000, 999999)}";
+
+        (await firstClient.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        var duplicate = await secondClient.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name.ToUpperInvariant()));
+
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        Assert.Equal(TakenDetail, await DetailOf(duplicate));
+    }
+
+    // 名字長度的兩端：2 與 12 個中文字
+    [Theory]
+    [InlineData(2)]
+    [InlineData(12)]
+    public async Task Create_AcceptsNameLengthBounds(int length)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = string.Concat(Enumerable.Range(0, length).Select(_ => (char)Random.Shared.Next(0x4E00, 0x9FA6)));
+
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(1, 1, 1, 3, "能力點數必須剛好分完 10 點")]
+    [InlineData(4, 2, 3, 2, "能力點數必須剛好分完 10 點")]
+    [InlineData(0, 4, 3, 3, "每項能力至少要分配 1 點")]
+    public async Task Create_Returns400_WithAllocationDetail(int str, int smart, int life, int agi, string detail)
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("配點"), str: str, smart: smart, life: life, agi: agi));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(detail, await DetailOf(response));
+    }
+
+    [Fact]
+    public async Task Create_Returns400_ForAdvancedJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("轉職"), jobId: "berserker"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("只能選擇初階職業", await DetailOf(response));
+    }
+
+    private static async Task<string?> DetailOf(HttpResponseMessage response) =>
+        (await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("detail").GetString();
 
     [Fact]
     public async Task Create_Returns409_WhenNameTaken()
