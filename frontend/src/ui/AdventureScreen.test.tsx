@@ -125,6 +125,8 @@ const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient =
   createCharacter: vi.fn(),
   advance: vi.fn().mockResolvedValue(advanceResponse),
   getContent: vi.fn().mockResolvedValue(content),
+  getPublicJobs: vi.fn(),
+  getCreationOptions: vi.fn(),
   getJobs: vi.fn().mockResolvedValue([thiefOption]),
   changeJob: vi.fn().mockResolvedValue({ ...character, jobId: "thief", jobName: "盜賊" }),
   getSkills: vi.fn().mockResolvedValue(skillOverview),

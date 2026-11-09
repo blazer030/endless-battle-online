@@ -30,8 +30,12 @@ import type {
   UnsocketResult,
   WorldArea,
 } from "../game/types"
+import type { CreationOptionsVo } from "../game/creationOptions"
+import type { JobVo } from "../game/jobBook"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
+import { parseArray } from "./parse"
+import { CreationOptionsConverter, JobConverter } from "./publicData"
 
 const fallbackDetail = "發生錯誤，請稍後再試"
 
@@ -57,6 +61,9 @@ export type ApiClient = {
   createCharacter: (command: CreateCharacterCommand) => Promise<CharacterView>
   advance: () => Promise<AdvanceResponse>
   getContent: () => Promise<ContentNames>
+  // 不用登入的公開資料
+  getPublicJobs: () => Promise<JobVo[]>
+  getCreationOptions: () => Promise<CreationOptionsVo>
   getJobs: () => Promise<JobOption[]>
   changeJob: (jobId: string) => Promise<CharacterView>
   getSkills: () => Promise<SkillOverview>
@@ -192,6 +199,12 @@ export const createApiClient = (options: {
     createCharacter: (command) => requestJson<CharacterView>("/api/characters", "POST", command),
     advance: () => requestJson<AdvanceResponse>("/api/adventure/advance", "POST"),
     getContent: () => requestJson<ContentNames>("/api/content", "GET"),
+    getPublicJobs: async () =>
+      parseArray(await requestJson<unknown>("/api/public/jobs", "GET"), "jobs", (item, path) =>
+        JobConverter.toVo(item, path),
+      ),
+    getCreationOptions: async () =>
+      CreationOptionsConverter.toVo(await requestJson<unknown>("/api/public/settings", "GET")),
     getJobs: () => requestJson<JobOption[]>("/api/jobs", "GET"),
     changeJob: (jobId) => requestJson<CharacterView>("/api/jobs/change", "POST", { jobId }),
     getSkills: () => requestJson<SkillOverview>("/api/skills", "GET"),

@@ -25,6 +25,8 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   createCharacter: vi.fn(),
   advance: vi.fn(),
   getContent: vi.fn(),
+  getPublicJobs: vi.fn(),
+  getCreationOptions: vi.fn(),
   getJobs: vi.fn(),
   changeJob: vi.fn(),
   getSkills: vi.fn(),
