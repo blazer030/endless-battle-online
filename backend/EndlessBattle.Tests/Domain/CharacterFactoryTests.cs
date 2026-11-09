@@ -84,12 +84,14 @@ public class CharacterFactoryTests
         Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(str, smart, life, agi))));
     }
 
-    [Fact]
-    public void Create_AllowsUnderspent()
+    [Theory]
+    [InlineData(1, 1, 1, 3)]
+    [InlineData(4, 2, 3, 2)]
+    public void Create_RejectsUnspentPoints(int str, int smart, int life, int agi)
     {
-        var character = Create(Command(new StatAllocation(2, 2, 2, 2)));
+        var exception = Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(str, smart, life, agi))));
 
-        Assert.Equal(new BaseStats(12, 12, 12, 10, 12, 10, 10), character.Base);
+        Assert.Equal("能力點數必須剛好分完 10 點", exception.Message);
     }
 
     [Theory]

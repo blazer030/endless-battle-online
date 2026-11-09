@@ -64,7 +64,7 @@ public static class CharacterFactory
             Version: 0);
     }
 
-    // 每項至少 1 點、總和不超過 10；沒分完的點數作廢（WOG 如此）
+    // 每項至少 1 點、總和剛好 10（WOG 允許沒分完，這裡不允許：沒分完沒有好處，多半是誤點）
     private static void ValidateAllocation(StatAllocation allocation)
     {
         int[] points = [allocation.Str, allocation.Smart, allocation.Life, allocation.Agi];
@@ -74,9 +74,9 @@ public static class CharacterFactory
         }
 
         // 先擋單項過大，避免加總溢位
-        if (points.Any(point => point > TotalPoints) || points.Sum() > TotalPoints)
+        if (points.Any(point => point > TotalPoints) || points.Sum() != TotalPoints)
         {
-            throw new CharacterCreationException($"能力點數總和不得超過 {TotalPoints}");
+            throw new CharacterCreationException($"能力點數必須剛好分完 {TotalPoints} 點");
         }
     }
 

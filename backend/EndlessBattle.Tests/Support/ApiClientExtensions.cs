@@ -22,12 +22,12 @@ public static class ApiClientExtensions
         return client;
     }
 
-    // 合法的創角 body（戰士、配點 2/2/2/2）；可覆寫個別欄位
+    // 合法的創角 body（戰士、配點 2/4/2/2，剛好 10 點）；可覆寫個別欄位
     public static object ValidCharacterBody(
         string name,
         string jobId = "warrior",
         int str = 2,
-        int smart = 2,
+        int smart = 4,
         int life = 2,
         int agi = 2) => new
         {

@@ -49,7 +49,7 @@ public class BalanceTests
         for (var life = 1; life <= 7; life++)
         for (var agi = 1; agi <= 7; agi++)
         {
-            if (str + smart + life + agi > CharacterFactory.TotalPoints)
+            if (str + smart + life + agi != CharacterFactory.TotalPoints)
             {
                 continue;
             }

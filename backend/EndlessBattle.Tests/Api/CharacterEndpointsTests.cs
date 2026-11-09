@@ -47,7 +47,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             element = 3,
             birth = 1,
             jobId = "warrior",
-            allocation = new { str = 2, smart = 2, life = 2, agi = 2 },
+            allocation = new { str = 2, smart = 4, life = 2, agi = 2 },
         };
 
         var created = await client.CreateCharacterAsync(body);
@@ -162,7 +162,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             ["element"] = 3,
             ["birth"] = 1,
             ["jobId"] = "warrior",
-            ["allocation"] = new { str = 2, smart = 2, life = 2, agi = 2 },
+            ["allocation"] = new { str = 2, smart = 4, life = 2, agi = 2 },
         };
         body.Remove(missingField);
 
@@ -184,15 +184,18 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Fact]
-    public async Task Create_AllowsUnderspentPoints()
+    public async Task Create_Returns400_WhenPointsUnspent()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
 
-        // 2/2/2/2 只花了 8 點
-        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點")));
+        // 1/1/1/3 只花了 6 點
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點"), str: 1, smart: 1, life: 1, agi: 3));
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal("能力點數必須剛好分完 10 點", problem.GetProperty("detail").GetString());
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/characters/me", CancellationToken)).StatusCode);
     }
 
     [Theory]
@@ -212,7 +215,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             element,
             birth,
             jobId,
-            allocation = new { str = 2, smart = 2, life = 2, agi = 2 },
+            allocation = new { str = 2, smart = 4, life = 2, agi = 2 },
         };
 
         var response = await client.CreateCharacterAsync(body);

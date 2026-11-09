@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EndlessBattle.Tests.Api;
 
-// 新戰士（配點 2/2/2/2）：Base str 12、vit 10 → at 12、df 10。商店在 Task 4，測試直接把道具寫進背包表
+// 新戰士（配點 2/4/2/2）：Base str 12、vit 10 → at 12、df 10。商店在 Task 4，測試直接把道具寫進背包表
 public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 {
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
