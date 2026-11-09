@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react"
-import { expect, test, vi } from "vitest"
+import { afterEach, expect, test, vi } from "vitest"
+import { contentArtCandidates } from "../../render/contentAssets"
 import { makeCreationOptions, makePublicJobs } from "../../test/fixtures"
 import { user } from "../../test/user"
 import { CreateScreen } from "./CreateScreen"
@@ -79,4 +80,28 @@ test("JobBook_PickFillsJobRowAndCloses", async () => {
   expect(screen.getByRole("button", { name: /^職業/ })).toHaveAccessibleName("職業 盜賊")
   expect(screen.queryByRole("tabpanel")).not.toBeInTheDocument()
   expect(screen.getByTestId("lise-line")).toHaveTextContent("那就寫上「盜賊」囉。")
+})
+
+afterEach(() => vi.unstubAllGlobals())
+
+// R2 的圖讀不到時，書籤上的職業圖示要換成佔位圖
+test("JobBook_BookmarkIconFallsBackToPlaceholder", async () => {
+  const [remote, placeholder] = contentArtCandidates("job-icons", "job-6")
+  vi.stubGlobal(
+    "Image",
+    class {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      set src(url: string) {
+        setTimeout(() => (url === remote ? this.onerror?.() : this.onload?.()))
+      }
+    },
+  )
+
+  renderBook("job-6", 1)
+
+  const mark = screen.getByRole("tab", { name: "戰士" })
+  await vi.waitFor(() =>
+    expect(mark.style.getPropertyValue("--mark-icon")).toBe(`url(${placeholder})`),
+  )
 })

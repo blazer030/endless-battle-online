@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react"
 import { growthStatKeys, type GrowthStatKey, type JobVo } from "../../game/jobBook"
-import { contentArtCandidates } from "../../render/contentAssets"
 import { ContentImage } from "../ContentImage"
+import { useContentArtUrl } from "../useContentArtUrl"
 import { Seal } from "../title/Seal"
 import { bookmarkOf } from "./art"
 import { jobFlavors } from "./flavor"
@@ -33,6 +33,32 @@ const growthText = ({ minimum, maximum }: { minimum: number; maximum: number }) 
 const portraitKey = (jobId: string, sex: number | null) =>
   `${jobId}-${sex === 2 ? "female" : "male"}`
 
+// 書籤：圖示是職業圖示的遮罩，讀不到 R2 的圖時用佔位圖
+const Bookmark = ({
+  job,
+  selected,
+  onClick,
+}: {
+  job: JobVo
+  selected: boolean
+  onClick: () => void
+}) => {
+  const icon = useContentArtUrl("job-icons", job.id)
+  return (
+    <button
+      type="button"
+      role="tab"
+      className="job-book-mark"
+      aria-selected={selected}
+      aria-label={job.name}
+      style={
+        { "--mark": `url(${bookmarkOf(job.id)})`, "--mark-icon": `url(${icon})` } as CSSProperties
+      }
+      onClick={onClick}
+    />
+  )
+}
+
 // 職業介紹冊：從櫃檯下方推上來，書籤換頁、「就職」把這頁的職業填進登記證
 export const JobBook = ({ open, jobs, page, sex, onPage, onPick }: Props) => {
   const job = jobs.find((candidate) => candidate.id === page) ?? jobs[0]
@@ -48,19 +74,10 @@ export const JobBook = ({ open, jobs, page, sex, onPage, onPick }: Props) => {
     >
       <div className="job-book-marks" role="tablist" aria-label="職業">
         {jobs.map((candidate) => (
-          <button
+          <Bookmark
             key={candidate.id}
-            type="button"
-            role="tab"
-            className="job-book-mark"
-            aria-selected={candidate.id === job.id}
-            aria-label={candidate.name}
-            style={
-              {
-                "--mark": `url(${bookmarkOf(candidate.id)})`,
-                "--mark-icon": `url(${contentArtCandidates("job-icons", candidate.id)[0]})`,
-              } as CSSProperties
-            }
+            job={candidate}
+            selected={candidate.id === job.id}
             onClick={() => onPage(candidate.id)}
           />
         ))}
