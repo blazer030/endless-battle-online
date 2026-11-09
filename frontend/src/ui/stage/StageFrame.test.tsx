@@ -38,3 +38,24 @@ test("StageFrame_FollowsTheWindowSize", () => {
   expect(Number(x)).toBe(0)
   expect(Math.round(Number(y) * 10) / 10).toBe(58.6)
 })
+
+// 雙指放大或鍵盤彈出只改變可見範圍（visualViewport），舞台不跟著縮
+test("StageFrame_IgnoresZoomAndKeyboard", () => {
+  resizeWindow(390, 683)
+  const viewport = Object.assign(new EventTarget(), { width: 195, height: 341 })
+  Object.defineProperty(window, "visualViewport", { configurable: true, value: viewport })
+  try {
+    const { container } = render(
+      <StageFrame>
+        <p>登記證</p>
+      </StageFrame>,
+    )
+
+    act(() => viewport.dispatchEvent(new Event("resize")))
+
+    expect(stageOf(container).style.getPropertyValue("--stage-h")).toBe("683px")
+    expect(stageOf(container).style.transform).toBe("translate(0px, 0px) scale(1)")
+  } finally {
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: null })
+  }
+})

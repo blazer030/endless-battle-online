@@ -78,7 +78,7 @@
 
 ### Stage frame fits a flexible-height stage
 
-新增純函式 `fitStage(width, height)`：`scale = min(width / 390, height / 683, 1.25)`、`stageHeight = clamp(height / scale, 683, 722)`、置中位移。新增元件（例如 `StageFrame`）用 `window.visualViewport`（沒有時用 `innerWidth/innerHeight`）量視窗、監聽 resize，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。
+新增純函式 `fitStage(width, height)`：`scale = min(width / 390, height / 683, 1.25)`、`stageHeight = clamp(height / scale, 683, 722)`、置中位移。新增元件（例如 `StageFrame`）用 `window.innerWidth/innerHeight`（版面視窗）量視窗、監聽 `resize`，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。也考慮過用 `visualViewport`（review 時改掉）：它在雙指放大與鍵盤彈出時會變小，舞台會跟著縮，抵銷放大、鍵盤一出來登記證縮到一半。
 
 ### Theme tokens for the new screens
 
@@ -135,7 +135,7 @@
 - [字型變重（Noto Serif TC 900、Great Vibes）拖慢首次載入] → `display=swap`；只載用到的字重。
 - [設計素材進 git 讓 repo 變大] → 每張依顯示大小 2 倍轉 WebP、單張上限 300 KB；本變更約 25 張。
 - [`/api/content` 與新 API 並存一段時間，資料有兩份出口] → 新畫面只用新 API；拆除排在 `game-api-dto-vo`。
-- [行動瀏覽器在網址列收起或旋轉時視窗大小會變] → 監聽 `visualViewport` 的 resize 重新計算；遊戲頁面本身不捲動，Safari 工具列維持展開。
+- [行動瀏覽器在網址列收起或旋轉時視窗大小會變] → 監聽 `window` 的 resize 重新計算（版面視窗會跟著網址列與旋轉變，不受雙指放大與鍵盤影響）；遊戲頁面本身不捲動，Safari 工具列維持展開。
 
 ## Migration Plan
 
