@@ -35,3 +35,9 @@
 
 - [x] 6.1 [after: 3.3, 4.4] 依「Replace old screens」刪除 `frontend/src/ui/AuthScreen.tsx`、`CreateCharacterScreen.tsx` 與其 CSS、測試，以及 `screens.css` 只給它們用的樣式；單獨以結構性變更 commit（此時已無引用，行為不變）。驗證：刪除前後 `cd frontend && pnpm check` 都通過；`git grep -n "AuthScreen\|CreateCharacterScreen" frontend/src` 沒有結果。
 - [x] 6.2 [after: 5.1, 5.2, 6.1] 手動驗收與總檢查：`pnpm dev`（5175）在 390×683、390×722、412×880、375×555、1440×780 各截標題、建角、職業介紹冊，對照 TitleFit 同狀態；360×640 確認沒有整頁捲動；舞台外是共用背景。最後 `./scripts/check.sh` exit code 0。
+
+## 7. 放寬舞台比例與建角大廳（使用者 2026-11-09 追加）
+
+- [x] 7.1 [after: 6.2] 依「Stage size and scale」把舞台高度範圍改成 624～780、倍率 `min(w/390, h/624)`：先把 `frontend/src/ui/stage/fitStage.test.ts` 的範例表換成 spec 新表（390×624、390×780、402×714、412×880 上下各 28.0、375×555 左右各 14.1、1920×950 左右各 663.1），`StageFrame.test.tsx` 的 412×880 改成高 780，並斷言外框同時給出不帶單位的 `--stage-height`，看測試失敗後再改 `fitStage.ts` 的常數與 `StageFrame.tsx`；專案 `CLAUDE.md` 前端硬規則 2 改成「高 624～780、高寬比 1.6～2.0」。驗證：`cd frontend && pnpm check` 通過。
+- [x] 7.2 [after: 7.1] 依 design.md 的建角列調整 `frontend/src/ui/create/CreateScreen.css`：櫃檯露出高度 D＝min(0.7H, 502)，大廳、壓暗層、回答彈窗跟著 D，登記證倍率 min((0.7H−20)/368, 1.3)、bottom 8，「剩 N 點」字級 9px 改 10px（樣式不寫測試）。驗證：`pnpm dev` 在 390×624、390×644、390×683、390×722、390×780 截建角、能力彈窗、職業介紹冊：大廳在 624～717 高時佔舞台約 30%（量櫃檯上緣位置）、登記證上緣不高過櫃檯上緣、彈窗不超出舞台；標題頁在 390×624、360×576 登記證與印章都在舞台內。
+

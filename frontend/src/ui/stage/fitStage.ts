@@ -1,7 +1,7 @@
 // 新畫面的舞台：寬固定、高在範圍內伸縮，整個舞台依視窗等比縮放、以較緊的一邊貼滿（不設倍率上限）
 export const StageWidth = 390
-export const StageMinimumHeight = 683
-export const StageMaximumHeight = 722
+export const StageMinimumHeight = 624
+export const StageMaximumHeight = 780
 
 export type StageFit = {
   scale: number
