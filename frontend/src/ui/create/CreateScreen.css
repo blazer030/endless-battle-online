@@ -1,5 +1,8 @@
-/* 建角：舞台座標（寬 390、高 --stage-h）。莉瑟、對話框貼上緣；櫃檯、登記證、回答彈窗貼下緣 */
+/* 建角：舞台座標（寬 390、高 --stage-h）。莉瑟、對話框貼上緣；櫃檯、登記證、回答彈窗貼下緣
+   櫃檯露出高度＝舞台高 × 0.7、最高 502，大廳因此至少約三成；登記證跟著櫃檯縮放、最大 1.3 倍 */
 .create {
+  --desk: min(calc(var(--stage-h) * 0.7), 502px);
+  --card-scale: min(calc((var(--stage-height) * 0.7 - 20) / 368), 1.3);
   position: absolute;
   inset: 0;
   z-index: 15;
@@ -13,13 +16,13 @@
   }
 }
 
-/* 大廳露出的高度 = 舞台高 − 476（683 高時約 30%） */
+/* 大廳露出到櫃檯上緣，往下多 16 壓在櫃檯底下 */
 .create-hall {
   position: absolute;
   left: -40px;
   right: -40px;
   top: -80px;
-  height: calc(var(--stage-h) - 380px);
+  height: calc(var(--stage-h) - var(--desk) + 96px);
   background: url("../../assets/title/hall.webp") center top / 470px auto no-repeat;
 }
 
@@ -63,13 +66,13 @@
   filter: drop-shadow(0 3px 5px rgb(var(--shade-rgb) / 0.35));
 }
 
-/* 櫃檯木桌：高 476（往下延伸到舞台外） */
+/* 櫃檯木桌（往下延伸到舞台外） */
 .create-desk {
   position: absolute;
   left: -40px;
   right: -40px;
   bottom: -80px;
-  height: 556px;
+  height: calc(var(--desk) + 80px);
   background: var(--wood) url("../../assets/title/desk.webp") center top / 470px auto repeat-y;
   box-shadow: inset 0 34px 40px -22px rgb(var(--shade-rgb) / 0.65);
 }
@@ -99,7 +102,7 @@
   z-index: 5;
   left: -40px;
   right: -40px;
-  top: calc(var(--stage-h) - 494px);
+  top: calc(var(--stage-h) - var(--desk) - 18px);
   bottom: -80px;
   background: rgb(var(--shade-rgb) / 0.55);
   animation: create-fade 0.2s ease;
@@ -116,7 +119,7 @@
   z-index: 5;
   left: 14px;
   right: 14px;
-  bottom: 238px;
+  bottom: calc(var(--desk) / 2);
   transform: translateY(50%);
   box-sizing: border-box;
   padding: 12px 10px 8px;
@@ -293,7 +296,7 @@
   box-shadow: 0 0 0 1px var(--brass);
 }
 
-/* 櫃檯上的登記證：照 250×368 排版，以下緣為準放大 1.24 倍，證上最小的字（9px）放大後也有 11px */
+/* 櫃檯上的登記證：照 250×368 排版，以下緣為準放大；最矮的舞台放大 1.13 倍，證上最小的字（10px）放大後也有 11px */
 .create-card {
   position: absolute;
   z-index: 4;
@@ -301,7 +304,7 @@
   bottom: 8px;
   width: 250px;
   height: 368px;
-  transform: scale(1.24) rotate(-1deg);
+  transform: scale(var(--card-scale)) rotate(-1deg);
   transform-origin: 50% 100%;
   filter: drop-shadow(0 8px 12px rgb(var(--shade-rgb) / 0.55));
 }
@@ -422,7 +425,7 @@
   font-style: normal;
   font-family: var(--font-ui);
   font-weight: 700;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
