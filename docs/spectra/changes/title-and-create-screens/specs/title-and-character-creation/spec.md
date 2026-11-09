@@ -109,7 +109,7 @@ The character creation screen SHALL show the receptionist 莉瑟 with a speech b
 
 ### Requirement: Job introduction book
 
-Tapping the 職業 row SHALL open the job introduction book showing the first-tier jobs from `GET /api/public/jobs`, one page per job selected by bookmarks. A page SHALL show the job's icon, name, portrait, role, description, growth per stat with the fastest-growing stats highlighted, and every skill the job teaches with its prerequisite (or 入門 when it has none), its maximum level, and the effect summaries of level 1 and of the maximum level. The portrait SHALL be the content image `portraits/<job id>-female` when 性別 is 女 and `portraits/<job id>-male` otherwise, falling back to the portrait placeholder when missing. Pressing 就職 SHALL fill the 職業 row with the shown job and close the book.
+Tapping the 職業 row SHALL open the job introduction book showing the first-tier jobs from `GET /api/public/jobs`, one page per job selected by bookmarks. A page SHALL show the job's icon, name, portrait, role, description, growth per stat with the fastest-growing stats highlighted, and every skill the job teaches with its prerequisite (or 入門 when it has none) and its one-line description from the skill content. The book SHALL NOT show a skill's maximum level or per-level effect summaries, because it introduces what each job is like rather than how to train its skills. The portrait SHALL be the content image `portraits/<job id>-female` when 性別 is 女 and `portraits/<job id>-male` otherwise, falling back to the portrait placeholder when missing. Pressing 就職 SHALL fill the 職業 row with the shown job and close the book.
 
 #### Scenario: Female portrait
 
@@ -119,7 +119,7 @@ Tapping the 職業 row SHALL open the job introduction book showing the first-ti
 #### Scenario: Skill entries
 
 - **WHEN** the book shows 戰士 (`job-6`)
-- **THEN** 爆氣 is marked 入門 with 最高 Lv10 and its level 1 and level 10 summaries, and 防禦心得 shows its prerequisite 爆氣 Lv3 with 最高 Lv5
+- **THEN** 爆氣 is marked 入門 with the description 爆發體內的鬥氣，接下來幾回合物攻提升。, 防禦心得 shows its prerequisite 爆氣 Lv3, and no 最高 Lv or level summary appears
 
 ### Requirement: Submit or leave character creation
 
