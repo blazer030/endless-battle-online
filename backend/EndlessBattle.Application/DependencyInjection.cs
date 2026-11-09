@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<AdventureService>();
         services.AddScoped<SkillService>();
         services.AddScoped<JobService>();
+        services.AddScoped<PublicJobService>();
         services.AddScoped<WorldService>();
         services.AddScoped<InventoryService>();
         services.AddScoped<ShopService>();

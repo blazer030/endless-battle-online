@@ -462,3 +462,40 @@ public sealed record PublicSettingsResponse(
     IReadOnlyList<OptionResponse> Sexes,
     IReadOnlyList<ElementOptionResponse> Elements,
     IReadOnlyList<OptionResponse> Births);
+
+public sealed record GrowthRangeResponse(int Minimum, int Maximum);
+
+public sealed record JobGrowthResponse(
+    GrowthRangeResponse Strength,
+    GrowthRangeResponse Intelligence,
+    GrowthRangeResponse Life,
+    GrowthRangeResponse Vitality,
+    GrowthRangeResponse Agility,
+    GrowthRangeResponse Charisma,
+    GrowthRangeResponse Faith);
+
+// Stat 是 strength、intelligence、life、vitality、agility、charisma、faith 之一
+public sealed record JobStatRequirementResponse(string Stat, int Minimum);
+
+public sealed record SkillLevelSummaryResponse(int Level, string Summary);
+
+// Prerequisite 在沒有前置技能時為 null；Levels 從 1 到最高級，Summary 與技能頁同一份文字
+public sealed record JobSkillResponse(
+    string Id,
+    string Name,
+    string Description,
+    int MaxLevel,
+    SkillPrerequisiteResponse? Prerequisite,
+    IReadOnlyList<SkillLevelSummaryResponse> Levels);
+
+// ParentId 在初階職業為 null
+public sealed record PublicJobResponse(
+    string Id,
+    string Name,
+    int Tier,
+    string? ParentId,
+    int UnlockLevel,
+    int ProficiencyRequired,
+    IReadOnlyList<JobStatRequirementResponse> StatRequirements,
+    JobGrowthResponse Growth,
+    IReadOnlyList<JobSkillResponse> Skills);

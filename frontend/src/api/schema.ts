@@ -74,6 +74,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicJobResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/settings": {
         parameters: {
             query?: never;
@@ -2673,6 +2708,12 @@ export interface components {
             success: boolean;
             inventory: components["schemas"]["InventoryResponse"];
         };
+        GrowthRangeResponse: {
+            /** Format: int32 */
+            minimum: number;
+            /** Format: int32 */
+            maximum: number;
+        };
         HealthResponse: {
             status: string;
         };
@@ -2794,6 +2835,15 @@ export interface components {
             au: number[];
             be: number[];
         };
+        JobGrowthResponse: {
+            strength: components["schemas"]["GrowthRangeResponse"];
+            intelligence: components["schemas"]["GrowthRangeResponse"];
+            life: components["schemas"]["GrowthRangeResponse"];
+            vitality: components["schemas"]["GrowthRangeResponse"];
+            agility: components["schemas"]["GrowthRangeResponse"];
+            charisma: components["schemas"]["GrowthRangeResponse"];
+            faith: components["schemas"]["GrowthRangeResponse"];
+        };
         JobOptionResponse: {
             id: string;
             name: string;
@@ -2819,6 +2869,20 @@ export interface components {
             proficiency: number;
             /** Format: int64 */
             skillPoints: number;
+        };
+        JobSkillResponse: {
+            id: string;
+            name: string;
+            description: string;
+            /** Format: int32 */
+            maxLevel: number;
+            prerequisite: null | components["schemas"]["SkillPrerequisiteResponse"];
+            levels: components["schemas"]["SkillLevelSummaryResponse"][];
+        };
+        JobStatRequirementResponse: {
+            stat: string;
+            /** Format: int32 */
+            minimum: number;
         };
         LearnSkillRequest: {
             skillId: null | string;
@@ -3107,6 +3171,20 @@ export interface components {
         };
         /** @enum {unknown} */
         PetStat: "Attack" | "Magic" | "Defense" | "Spirit";
+        PublicJobResponse: {
+            id: string;
+            name: string;
+            /** Format: int32 */
+            tier: number;
+            parentId: null | string;
+            /** Format: int32 */
+            unlockLevel: number;
+            /** Format: int32 */
+            proficiencyRequired: number;
+            statRequirements: components["schemas"]["JobStatRequirementResponse"][];
+            growth: components["schemas"]["JobGrowthResponse"];
+            skills: components["schemas"]["JobSkillResponse"][];
+        };
         PublicSettingsResponse: {
             sexes: components["schemas"]["OptionResponse"][];
             elements: components["schemas"]["ElementOptionResponse"][];
@@ -3170,6 +3248,11 @@ export interface components {
             holes: number;
             /** Format: int32 */
             refineMax: number;
+        };
+        SkillLevelSummaryResponse: {
+            /** Format: int32 */
+            level: number;
+            summary: string;
         };
         SkillNextLevelResponse: {
             /** Format: int32 */

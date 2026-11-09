@@ -43,6 +43,28 @@
         }
       }
     },
+    "/api/public/jobs": {
+      "get": {
+        "tags": [
+          "Public"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicJobResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/public/settings": {
       "get": {
         "tags": [
@@ -3072,6 +3094,23 @@
           }
         }
       },
+      "GrowthRangeResponse": {
+        "required": [
+          "minimum",
+          "maximum"
+        ],
+        "type": "object",
+        "properties": {
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maximum": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "HealthResponse": {
         "required": [
           "status"
@@ -3568,6 +3607,41 @@
           }
         }
       },
+      "JobGrowthResponse": {
+        "required": [
+          "strength",
+          "intelligence",
+          "life",
+          "vitality",
+          "agility",
+          "charisma",
+          "faith"
+        ],
+        "type": "object",
+        "properties": {
+          "strength": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "intelligence": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "life": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "vitality": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "agility": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "charisma": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          },
+          "faith": {
+            "$ref": "#/components/schemas/GrowthRangeResponse"
+          }
+        }
+      },
       "JobOptionResponse": {
         "required": [
           "id",
@@ -3661,6 +3735,64 @@
           "skillPoints": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "JobSkillResponse": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "maxLevel",
+          "prerequisite",
+          "levels"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "maxLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "prerequisite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillPrerequisiteResponse"
+              }
+            ]
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillLevelSummaryResponse"
+            }
+          }
+        }
+      },
+      "JobStatRequirementResponse": {
+        "required": [
+          "stat",
+          "minimum"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "type": "string"
+          },
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -4746,6 +4878,61 @@
           "Spirit"
         ]
       },
+      "PublicJobResponse": {
+        "required": [
+          "id",
+          "name",
+          "tier",
+          "parentId",
+          "unlockLevel",
+          "proficiencyRequired",
+          "statRequirements",
+          "growth",
+          "skills"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "parentId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unlockLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "proficiencyRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "statRequirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobStatRequirementResponse"
+            }
+          },
+          "growth": {
+            "$ref": "#/components/schemas/JobGrowthResponse"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobSkillResponse"
+            }
+          }
+        }
+      },
       "PublicSettingsResponse": {
         "required": [
           "sexes",
@@ -4994,6 +5181,22 @@
           "refineMax": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "SkillLevelSummaryResponse": {
+        "required": [
+          "level",
+          "summary"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "summary": {
+            "type": "string"
           }
         }
       },
