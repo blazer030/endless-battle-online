@@ -76,7 +76,26 @@ cd tools/assets
 pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-width 600
 ```
 
-輸出 `frontend/src/assets/ui/paper-strip.webp`：品質 85、保留透明、不裁切，比 `--max-width` 寬才等比縮小；超過 300 KB 就拒絕。
+輸出 `frontend/src/assets/ui/paper-strip.webp`：品質 85、保留透明、不裁切，比 `--max-width` 寬才等比縮小；超過 300 KB 就拒絕。`--max-width` 設成畫面上顯示寬度的 2 倍（原圖比這小就照原圖）。
+
+### `title/`：標題與建角（設計板 TitleFit）
+
+來源是 `.design-work/assets/<blob id>.*`，括號裡是 `--max-width`。
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `sign` | 招牌（600） | `a02aafe6` |
+| `sky-dawn`、`sky-day`、`sky-dusk`、`sky-night` | 標題的城鎮遠景，依時段換（972，原圖 848） | `e6eb4eb9`、`815cd4a2`、`67e2bf51`、`6a33dc7e` |
+| `desk`、`desk-edge` | 木桌與前緣木條；建角的櫃檯也用（940／216） | `6884370a`、`d137517f` |
+| `card-sealed`、`card-blank` | 有蠟封的登記證、空白登記證（650，原圖 476） | `e5a31933`、`3a7feeba` |
+| `seal` | 紅印章（入城、登記、出發、就職、重試）（128） | `759746ed` |
+| `note` | 讀取失敗的字條、建角的回答彈窗紙（439；`border-image` 切 `84 126 42 36`） | `75aeed6c` |
+| `hall`、`clerk`、`bubble` | 公會大廳、接待員莉瑟、對話框（940／372／432） | `12b6be86`、`a32a504a`、`b97d9abd` |
+| `element-earth`～`element-poison` | 屬性徽章：地、水、火、木、風、毒（52） | `374bc9f4`、`9bc2ed53`、`df05ace4`、`d85235a7`、`e8f93fd9`、`9f653c0d` |
+| `book-page` | 職業介紹冊的紙（780，原圖 720） | `dd89ce59` |
+| `bookmark-warrior`、`-sorcerer`、`-thief`、`-bard` | 介紹冊的書籤（88） | `d702e92f`、`d371eec9`、`88b2eedf`、`2ccfd7be` |
+
+職業圖示不是設計素材：`job-icons/job-6`～`job-9` 用 `import` 上傳 R2（戰士 `62fa0017`、術士 `707f3b3a`、盜賊 `eb722b44`、樂手 `36314e2f`）。
 
 ## 提示詞
 
