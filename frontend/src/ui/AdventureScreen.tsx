@@ -56,9 +56,10 @@ type AreaPass = {
   subPlace: CharacterView["subPlace"]
 }
 
-type Props = { api: ApiClient; initialCharacter: CharacterView }
+// onSignOut：玩家在角色頁按登出
+type Props = { api: ApiClient; initialCharacter: CharacterView; onSignOut: () => void }
 
-export function AdventureScreen({ api, initialCharacter }: Props) {
+export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
   const [content, setContent] = useState<ContentNames | null>(null)
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
   const [character, setCharacter] = useState(initialCharacter)
@@ -268,7 +269,12 @@ export function AdventureScreen({ api, initialCharacter }: Props) {
         {/* 角色分頁每次打開才載入密藥效果，剩餘時間是最新的 */}
         {tab === "character" && (
           <div className="adventure__sheet">
-            <CharacterScreen api={api} character={character} content={content ?? emptyContent} />
+            <CharacterScreen
+              api={api}
+              character={character}
+              content={content ?? emptyContent}
+              onSignOut={onSignOut}
+            />
           </div>
         )}
         {/* 技能分頁每次打開才載入，轉職條件與熟練度都是最新的 */}

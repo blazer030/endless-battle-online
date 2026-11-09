@@ -10,8 +10,19 @@ import { App, type SessionExpiryListener } from "./App"
 
 // 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
 vi.mock("./AdventureScreen", () => ({
-  AdventureScreen: ({ initialCharacter }: { initialCharacter: CharacterView }) => (
-    <p>冒險中：{initialCharacter.name}</p>
+  AdventureScreen: ({
+    initialCharacter,
+    onSignOut,
+  }: {
+    initialCharacter: CharacterView
+    onSignOut: () => void
+  }) => (
+    <>
+      <p>冒險中：{initialCharacter.name}</p>
+      <button type="button" onClick={onSignOut}>
+        登出
+      </button>
+    </>
   ),
 }))
 
@@ -305,4 +316,17 @@ test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
 
   expect(await ownCard().findByRole("alert")).toHaveTextContent("帳號或密碼錯誤")
   expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
+})
+
+test("App_SignOut_ClearsTokenAndReturnsToRegistryCards", async () => {
+  const user = setupUser()
+  saveAccessToken("token")
+  renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
+  await screen.findByText("冒險中：青衣")
+
+  await user.click(screen.getByRole("button", { name: "登出" }))
+
+  expect(readAccessToken()).toBeNull()
+  expect(ownCard().getByLabelText("帳號")).toHaveValue("")
+  expect(ownCard().getByRole("button", { name: "入城" })).toBeInTheDocument()
 })

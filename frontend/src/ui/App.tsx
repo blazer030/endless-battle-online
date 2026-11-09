@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { readAccessToken } from "../api/authStorage"
+import { clearAccessToken, readAccessToken } from "../api/authStorage"
 import { ApiError, type ApiClient } from "../api/client"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
@@ -138,6 +138,15 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
         </StageFrame>
       )
     case "game":
-      return <AdventureScreen api={api} initialCharacter={phase.character} />
+      return (
+        <AdventureScreen
+          api={api}
+          initialCharacter={phase.character}
+          onSignOut={() => {
+            clearAccessToken()
+            setPhase(titlePhase())
+          }}
+        />
+      )
   }
 }

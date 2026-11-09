@@ -14,6 +14,7 @@ type Props = {
   api: Pick<ApiClient, "getBuffs" | "getInn">
   character: CharacterView
   content: Pick<ContentNames, "elements" | "births" | "sexes">
+  onSignOut: () => void
 }
 
 const derivedStats: { key: keyof DerivedStats; label: string }[] = [
@@ -37,7 +38,7 @@ const describeProficiency = (value: number) =>
 
 const signed = (value: number) => (value > 0 ? `+${formatNumber(value)}` : formatNumber(value))
 
-export function CharacterScreen({ api, character, content }: Props) {
+export function CharacterScreen({ api, character, content, onSignOut }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
   const derivedStatsId = useId()
@@ -177,6 +178,9 @@ export function CharacterScreen({ api, character, content }: Props) {
         )}
         {lodging !== null && <p className="character__lodging">{lodging}</p>}
       </section>
+      <button type="button" className="character__sign-out" onClick={onSignOut}>
+        登出
+      </button>
     </div>
   )
 }

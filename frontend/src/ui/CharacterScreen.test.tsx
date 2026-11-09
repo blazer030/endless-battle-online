@@ -3,6 +3,7 @@ import { expect, test, vi } from "vitest"
 import type { BuffView, CharacterView, ContentNames, InnView } from "../game/types"
 import { makeCharacter, makeContent } from "../test/fixtures"
 import { CharacterScreen } from "./CharacterScreen"
+import { user } from "../test/user"
 
 const character: CharacterView = makeCharacter({
   name: "青衣",
@@ -65,7 +66,9 @@ const valueOf = (term: string, container: HTMLElement = document.body) => {
 }
 
 test("CharacterScreen_ShowsProfile", () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={character} content={content} onSignOut={vi.fn()} />,
+  )
 
   expect(screen.getByRole("heading", { name: "青衣" })).toBeInTheDocument()
   expect(screen.getByText("術士")).toBeInTheDocument()
@@ -83,6 +86,7 @@ test("CharacterScreen_ShowsZeroProficiency_WhenCurrentJobHasNone", () => {
       api={noBuffs()}
       character={{ ...character, jobProficiency: [] }}
       content={content}
+      onSignOut={vi.fn()}
     />,
   )
 
@@ -90,7 +94,9 @@ test("CharacterScreen_ShowsZeroProficiency_WhenCurrentJobHasNone", () => {
 })
 
 test("CharacterScreen_ShowsProportionalBars", () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={character} content={content} onSignOut={vi.fn()} />,
+  )
 
   const bars = [
     ["HP", 210, 600, "210 / 600"],
@@ -106,7 +112,9 @@ test("CharacterScreen_ShowsProportionalBars", () => {
 })
 
 test("CharacterScreen_ShowsBareStatsWithEquipmentBonus", () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={character} content={content} onSignOut={vi.fn()} />,
+  )
 
   // 裸點（+裝備）；加成為 0 時不顯示括號
   const stats = [
@@ -125,7 +133,9 @@ test("CharacterScreen_ShowsBareStatsWithEquipmentBonus", () => {
 })
 
 test("CharacterScreen_ShowsDerivedStats", () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={character} content={content} onSignOut={vi.fn()} />,
+  )
 
   const stats = [
     ["物攻", "15"],
@@ -142,7 +152,14 @@ test("CharacterScreen_ShowsDerivedStats", () => {
 })
 
 test("CharacterScreen_FallsBackToIds_WhenContentMissing", () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={makeContent()} />)
+  render(
+    <CharacterScreen
+      api={noBuffs()}
+      character={character}
+      content={makeContent()}
+      onSignOut={vi.fn()}
+    />,
+  )
 
   const profile = screen.getByRole("region", { name: "青衣" })
   expect(valueOf("性別", profile)).toHaveTextContent(/^2$/)
@@ -155,7 +172,9 @@ test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
     ...character,
     jobProficiency: [{ jobId: "sorcerer", proficiency: 9000, skillPoints: 0 }],
   }
-  render(<CharacterScreen api={noBuffs()} character={veteran} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={veteran} content={content} onSignOut={vi.fn()} />,
+  )
 
   expect(valueOf("職業熟練度")).toHaveTextContent(/^100%（9,000）$/)
 })
@@ -167,7 +186,7 @@ test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
     { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
     { kind: "Defense", multiplier: 1.2, endsAt: new Date(Date.now() + 600_000).toISOString() },
   ])
-  render(<CharacterScreen api={api} character={character} content={content} />)
+  render(<CharacterScreen api={api} character={character} content={content} onSignOut={vi.fn()} />)
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
@@ -176,7 +195,9 @@ test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
 })
 
 test("CharacterScreen_ShowsNoBuffs", async () => {
-  render(<CharacterScreen api={noBuffs()} character={character} content={content} />)
+  render(
+    <CharacterScreen api={noBuffs()} character={character} content={content} onSignOut={vi.fn()} />,
+  )
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("沒有生效中的密藥")).toBeInTheDocument()
@@ -191,7 +212,9 @@ test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
       { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T03:30:00Z" },
       { kind: "Defense", multiplier: 1.2, endsAt: "2026-10-23T03:01:30Z" },
     ])
-    render(<CharacterScreen api={api} character={character} content={content} />)
+    render(
+      <CharacterScreen api={api} character={character} content={content} onSignOut={vi.fn()} />,
+    )
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0)
     })
@@ -226,7 +249,7 @@ test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
     rooms: [loft],
     lodging: { roomId: "apprentice-loft", endsAt: new Date(Date.now() + 3_600_000).toISOString() },
   })
-  render(<CharacterScreen api={api} character={character} content={content} />)
+  render(<CharacterScreen api={api} character={character} content={content} onSignOut={vi.fn()} />)
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("學徒閣樓・經驗 ×1.10（剩 1:00）")).toBeInTheDocument()
@@ -238,7 +261,7 @@ test("CharacterScreen_HidesTheLodgingLineWithoutLodging", async () => {
   api.getBuffs.mockResolvedValue([
     { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
   ])
-  render(<CharacterScreen api={api} character={character} content={content} />)
+  render(<CharacterScreen api={api} character={character} content={content} onSignOut={vi.fn()} />)
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
@@ -252,9 +275,25 @@ test("CharacterScreen_KeepsElixirsWhenTheInnFails", async () => {
   api.getBuffs.mockResolvedValue([
     { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
   ])
-  render(<CharacterScreen api={api} character={character} content={content} />)
+  render(<CharacterScreen api={api} character={character} content={content} onSignOut={vi.fn()} />)
 
   const card = screen.getByRole("region", { name: "密藥效果" })
   expect(await within(card).findByText("經驗 ×1.5（剩 60 分）")).toBeInTheDocument()
   expect(within(card).queryByText(/・/)).not.toBeInTheDocument()
+})
+
+test("CharacterScreen_SignOutButtonNotifies", async () => {
+  const onSignOut = vi.fn()
+  render(
+    <CharacterScreen
+      api={noBuffs()}
+      character={character}
+      content={content}
+      onSignOut={onSignOut}
+    />,
+  )
+
+  await user.click(screen.getByRole("button", { name: "登出" }))
+
+  expect(onSignOut).toHaveBeenCalledTimes(1)
 })

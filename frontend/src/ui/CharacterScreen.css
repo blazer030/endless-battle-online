@@ -132,3 +132,20 @@
   margin: 6px 0 0;
   font-size: 14px;
 }
+
+/* 登出：角色頁最下面，跟分頁的按鈕同一種外框 */
+.character__sign-out {
+  align-self: center;
+  min-width: 160px;
+  padding: 10px 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.character__sign-out:hover {
+  color: var(--text);
+}
