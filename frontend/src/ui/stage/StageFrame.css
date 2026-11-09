@@ -1,0 +1,16 @@
+.stage-frame {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--stage-backdrop);
+}
+
+.stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 390px;
+  height: var(--stage-h);
+  overflow: hidden;
+  transform-origin: 0 0;
+}
