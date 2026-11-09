@@ -33,7 +33,7 @@ const onEnter = (action: () => void) => (event: KeyboardEvent) => {
   if (event.key === "Enter") action()
 }
 
-// 標題：桌上自己那張登記證（入城＝登入）與一疊空白證（登記＝註冊）
+// 標題：桌上自己那張登記證（入城＝登入）與一疊空白證（登記＝註冊）；讀角色時登記證收下桌，看不到也點不到
 export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onRetry }: Props) => {
   const [mode, setMode] = useState<SignInRoute>("login")
   const [own, setOwn] = useState<Card>({ ...emptyCard, user: initialAccount })
@@ -110,7 +110,12 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
         <i />
       </div>
 
-      <section className="title-card title-card--own" aria-label="我的冒險者登記證">
+      <section
+        className="title-card title-card--own"
+        aria-label="我的冒險者登記證"
+        aria-hidden={loading !== null || undefined}
+        inert={loading !== null}
+      >
         <img className="title-paper" src={cardSealed} alt="" />
         <div className="title-card-inside">
           <h2>冒險者登記證</h2>
@@ -160,7 +165,12 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
         )}
       </section>
 
-      <section className="title-card title-card--blank" aria-label="空白登記證">
+      <section
+        className="title-card title-card--blank"
+        aria-label="空白登記證"
+        aria-hidden={loading !== null || undefined}
+        inert={loading !== null}
+      >
         <img className="title-paper" src={cardBlank} alt="" />
         <img className="title-paper title-wax" src={cardSealed} alt="" />
         <div className="title-card-inside">

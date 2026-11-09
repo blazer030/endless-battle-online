@@ -1,11 +1,12 @@
-import { act, render, screen } from "@testing-library/react"
-import { user } from "../test/user"
+import { act, render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
+import { PassageMilliseconds, RegisterSealSettleMilliseconds } from "../motion/timings"
 import { makeCharacter, makeContent, makeJob } from "../test/fixtures"
-import { App } from "./App"
+import { App, type SessionExpiryListener } from "./App"
 
 // 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
 vi.mock("./AdventureScreen", () => ({
@@ -14,9 +15,13 @@ vi.mock("./AdventureScreen", () => ({
   ),
 }))
 
+vi.mock("./CreateCharacterScreen", () => ({
+  CreateCharacterScreen: () => <p>建立角色</p>,
+}))
+
 const character = makeCharacter({ name: "青衣" })
 
-const job = makeJob()
+const content = makeContent({ jobs: [makeJob()] })
 
 const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   register: vi.fn(),
@@ -24,7 +29,7 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   getMyCharacter: vi.fn().mockResolvedValue(null),
   createCharacter: vi.fn(),
   advance: vi.fn(),
-  getContent: vi.fn(),
+  getContent: vi.fn().mockResolvedValue(content),
   getPublicJobs: vi.fn(),
   getCreationOptions: vi.fn(),
   getJobs: vi.fn(),
@@ -79,124 +84,202 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   ...overrides,
 })
 
-beforeEach(() => localStorage.clear())
-afterEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+})
+afterEach(() => {
+  vi.useRealTimers()
+  localStorage.clear()
+})
 
-test("App_ShowsLogin_WhenNoToken", () => {
+const setupUser = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+
+const renderApp = (
+  api: ApiClient,
+  subscribeToSessionExpiry: SessionExpiryListener = () => () => {},
+) => render(<App api={api} subscribeToSessionExpiry={subscribeToSessionExpiry} />)
+
+const ownCard = () => within(screen.getByRole("region", { name: "我的冒險者登記證" }))
+const blankCard = () => within(screen.getByRole("region", { name: "空白登記證" }))
+
+const signIn = async (user: ReturnType<typeof setupUser>, account = "ethan") => {
+  await user.type(ownCard().getByLabelText("帳號"), account)
+  await user.type(ownCard().getByLabelText("密碼"), "abcdefgh")
+  await user.click(ownCard().getByRole("button", { name: "入城" }))
+}
+
+test("App_ShowsRegistryCards_WhenNoToken", () => {
   const api = createFakeApi()
 
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
+  renderApp(api)
 
-  expect(screen.getByRole("button", { name: "登入" })).toBeInTheDocument()
+  expect(ownCard().getByRole("button", { name: "入城" })).toBeInTheDocument()
   expect(api.getMyCharacter).not.toHaveBeenCalled()
 })
 
-test("App_ShowsCreateCharacter_WhenLoggedInWithoutCharacter", async () => {
-  saveAccessToken("token")
-  const content = makeContent({ jobs: [job] })
-  const api = createFakeApi({
-    getMyCharacter: vi.fn().mockResolvedValue(null),
-    getContent: vi.fn().mockResolvedValue(content),
-  })
-
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
-
-  expect(await screen.findByRole("button", { name: "踏上旅途" })).toBeInTheDocument()
-  expect(screen.getByRole("button", { name: /戰士/ })).toBeInTheDocument()
-})
-
-test("App_KeepsLoading_UntilContentArrives", async () => {
-  saveAccessToken("token")
-  const api = createFakeApi({
-    getMyCharacter: vi.fn().mockResolvedValue(null),
-    getContent: vi.fn(() => new Promise<never>(() => {})),
-  })
-
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
-
-  await vi.waitFor(() => expect(api.getContent).toHaveBeenCalled())
-  expect(screen.getByText("載入中…")).toBeInTheDocument()
-  expect(screen.queryByRole("button", { name: "踏上旅途" })).not.toBeInTheDocument()
-})
-
-test.each([
-  {
-    failure: "content network error",
-    overrides: {
-      getMyCharacter: vi.fn().mockResolvedValue(null),
-      getContent: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
-    },
-  },
-  {
-    failure: "character server error",
-    overrides: {
-      getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")),
-    },
-  },
-])("App_ShowsRetry_WhenLoadFails ($failure)", async ({ overrides }) => {
-  saveAccessToken("token")
-  const api = createFakeApi(overrides)
-
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
-
-  expect(await screen.findByText("載入失敗，請稍後再試")).toBeInTheDocument()
-  expect(screen.getByRole("button", { name: "重試" })).toBeInTheDocument()
-  expect(screen.queryByRole("button", { name: "登入" })).not.toBeInTheDocument()
-  expect(readAccessToken()).toBe("token")
-})
-
-test("App_RetriesLoad_WhenRetryClicked", async () => {
-  saveAccessToken("token")
-  const api = createFakeApi({
-    getMyCharacter: vi.fn().mockResolvedValue(null),
-    getContent: vi
-      .fn()
-      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
-      .mockResolvedValueOnce(makeContent({ jobs: [job] })),
-  })
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
-
-  await user.click(await screen.findByRole("button", { name: "重試" }))
-
-  expect(await screen.findByRole("button", { name: "踏上旅途" })).toBeInTheDocument()
-  expect(api.getMyCharacter).toHaveBeenCalledTimes(2)
-  expect(api.getContent).toHaveBeenCalledTimes(2)
-})
-
-// 401 由 client 的 onUnauthorized 處理；載入流程不另外顯示錯誤面板
-test("App_ShowsLogin_WhenLoadIsUnauthorized", async () => {
-  saveAccessToken("token")
-  const api = createFakeApi({
-    getMyCharacter: vi.fn().mockRejectedValue(new ApiError(401, "未授權")),
-  })
-
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
-
-  expect(await screen.findByRole("button", { name: "登入" })).toBeInTheDocument()
-  expect(screen.queryByText("載入失敗，請稍後再試")).not.toBeInTheDocument()
-})
-
-test("App_ShowsAdventure_WhenCharacterExists", async () => {
-  saveAccessToken("token")
+// destination after loading：登入、有角色 → 歡迎回來＋帳號，停一下再進遊戲
+test("App_SignInWithCharacter_WelcomesBackThenOpensGame", async () => {
+  const user = setupUser()
   const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
+  renderApp(api)
 
-  render(<App api={api} subscribeToSessionExpiry={() => () => {}} />)
+  await signIn(user)
+
+  expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
+  expect(screen.getByText("ethan")).toBeInTheDocument()
+  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+
+  act(() => vi.advanceTimersByTime(PassageMilliseconds))
 
   expect(await screen.findByText("冒險中：青衣")).toBeInTheDocument()
 })
 
-test("App_ShowsLogin_WhenSessionExpires", async () => {
+// 登入、沒角色 → 建角
+test("App_SignInWithoutCharacter_OpensCharacterCreation", async () => {
+  const user = setupUser()
+  const api = createFakeApi()
+  renderApp(api)
+
+  await signIn(user)
+
+  expect(await screen.findByText("建立角色")).toBeInTheDocument()
+  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+})
+
+// 註冊 → 建角
+test("App_Register_OpensCharacterCreation", async () => {
+  const user = setupUser()
+  const api = createFakeApi()
+  renderApp(api)
+
+  await user.click(screen.getByRole("button", { name: "拿一張空白登記證" }))
+  await user.type(blankCard().getByLabelText("帳號"), "newbie")
+  await user.type(blankCard().getByLabelText("密碼"), "abcdefgh")
+  await user.click(blankCard().getByRole("button", { name: "登記" }))
+  await vi.waitFor(() => expect(api.login).toHaveBeenCalledWith("newbie", "abcdefgh"))
+  act(() => vi.advanceTimersByTime(RegisterSealSettleMilliseconds))
+
+  expect(await screen.findByText("建立角色")).toBeInTheDocument()
+})
+
+// 已登入打開網頁、有角色 → 直接進遊戲，不顯示登記證與歡迎回來
+test("App_StoredTokenWithCharacter_OpensGameDirectly", async () => {
+  saveAccessToken("token")
+  const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
+
+  renderApp(api)
+
+  expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
+  expect(await screen.findByText("冒險中：青衣")).toBeInTheDocument()
+  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+})
+
+// 已登入打開網頁、沒角色 → 建角
+test("App_StoredTokenWithoutCharacter_OpensCharacterCreation", async () => {
+  saveAccessToken("token")
+  const api = createFakeApi()
+
+  renderApp(api)
+
+  expect(await screen.findByText("建立角色")).toBeInTheDocument()
+})
+
+// 讀角色 401 → 清 token、回到登記證（client 收到 401 會清 token 並通知）
+test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
+  saveAccessToken("token")
+  let expire = () => {}
+  const api = createFakeApi({
+    getMyCharacter: vi.fn().mockImplementation(() => {
+      localStorage.clear()
+      expire()
+      return Promise.reject(new ApiError(401, "未授權"))
+    }),
+  })
+
+  renderApp(api, (listener) => {
+    expire = listener
+    return () => {}
+  })
+
+  expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  expect(readAccessToken()).toBeNull()
+  expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
+})
+
+test.each([
+  {
+    failure: "character server error",
+    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) },
+  },
+  {
+    failure: "creation data network error",
+    overrides: { getContent: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
+  },
+])("App_FailedLoad_ShowsNoteWithRetry ($failure)", async ({ overrides }) => {
+  saveAccessToken("token")
+  const api = createFakeApi(overrides)
+
+  renderApp(api)
+
+  const note = await screen.findByRole("alert", { name: "讀取失敗" })
+  expect(note).toHaveTextContent("公會那邊沒有回音……")
+  expect(within(note).getByRole("button", { name: "重試" })).toBeInTheDocument()
+  expect(readAccessToken()).toBe("token")
+})
+
+// 重試沿用第一次的目的地：登入後讀不到 → 重試成功 → 一樣先歡迎回來
+test("App_RetryRepeatsLoadWithSameDestination", async () => {
+  const user = setupUser()
+  const api = createFakeApi({
+    getMyCharacter: vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce(character),
+  })
+  renderApp(api)
+  await signIn(user)
+
+  const note = await screen.findByRole("alert", { name: "讀取失敗" })
+  await user.click(within(note).getByRole("button", { name: "重試" }))
+
+  expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
+  expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
+  expect(api.getMyCharacter).toHaveBeenCalledTimes(2)
+})
+
+test("App_ReturnsToRegistryCards_WhenSessionExpires", async () => {
   saveAccessToken("token")
   const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
   let expire = () => {}
-  const subscribeToSessionExpiry = (listener: () => void) => {
+  renderApp(api, (listener) => {
     expire = listener
     return () => {}
-  }
-  render(<App api={api} subscribeToSessionExpiry={subscribeToSessionExpiry} />)
+  })
   await screen.findByText("冒險中：青衣")
 
   act(() => expire())
 
-  expect(screen.getByRole("button", { name: "登入" })).toBeInTheDocument()
+  expect(ownCard().getByRole("button", { name: "入城" })).toBeInTheDocument()
+})
+
+// 登入時密碼錯（401）也會觸發 client 的登出通知，登記證上的錯誤要留著
+test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
+  const user = setupUser()
+  let expire = () => {}
+  const api = createFakeApi({
+    login: vi.fn().mockImplementation(() => {
+      expire()
+      return Promise.reject(new ApiError(401, "帳號或密碼錯誤"))
+    }),
+  })
+  renderApp(api, (listener) => {
+    expire = listener
+    return () => {}
+  })
+
+  await signIn(user)
+
+  expect(await ownCard().findByRole("alert")).toHaveTextContent("帳號或密碼錯誤")
+  expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
 })

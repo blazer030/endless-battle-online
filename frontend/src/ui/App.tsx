@@ -2,85 +2,131 @@ import { useEffect, useState } from "react"
 import { readAccessToken } from "../api/authStorage"
 import { ApiError, type ApiClient } from "../api/client"
 import type { CharacterView, ContentNames } from "../game/types"
+import { PassageMilliseconds } from "../motion/timings"
 import { AdventureScreen } from "./AdventureScreen"
-import { AuthScreen } from "./AuthScreen"
 import { CreateCharacterScreen } from "./CreateCharacterScreen"
+import { StageFrame } from "./stage/StageFrame"
+import { Passage } from "./title/Passage"
+import { TitleBackdrop } from "./title/TitleBackdrop"
+import { TitleScreen, type SignInRoute, type TitleLoading } from "./title/TitleScreen"
 
 export type SessionExpiryListener = (listener: () => void) => () => void
 
+// 讀完角色要去哪：login 登入（有角色先歡迎回來）、reg 註冊（去建角）、open 已登入的人打開網頁（有角色直接進遊戲）
+type Destination = SignInRoute | "open"
+
 type Phase =
-  | { name: "auth" }
-  | { name: "loading" }
-  | { name: "error" }
-  | { name: "create"; content: ContentNames }
-  | { name: "adventure"; character: CharacterView }
+  | { name: "title"; loading: TitleLoading; destination: Destination; account: string }
+  | { name: "create"; content: ContentNames; account: string }
+  | { name: "passage"; title: string; subtitle: string; character: CharacterView }
+  | { name: "game"; character: CharacterView }
 
 type Props = {
   api: ApiClient
   subscribeToSessionExpiry: SessionExpiryListener
 }
 
-export const App = ({ api, subscribeToSessionExpiry }: Props) => {
-  const [phase, setPhase] = useState<Phase>(() => ({
-    name: readAccessToken() === null ? "auth" : "loading",
-  }))
+const titlePhase = (account = ""): Phase => ({
+  name: "title",
+  loading: null,
+  destination: "login",
+  account,
+})
 
+const accountOf = (phase: Phase) =>
+  phase.name === "title" || phase.name === "create" ? phase.account : ""
+
+export const App = ({ api, subscribeToSessionExpiry }: Props) => {
+  const [phase, setPhase] = useState<Phase>(() =>
+    readAccessToken() === null
+      ? titlePhase()
+      : { name: "title", loading: "wait", destination: "open", account: "" },
+  )
+
+  // token 失效（任何請求 401）：回到登記證；已經在登記證上（例如密碼打錯）就不動，留著證上的錯誤
   useEffect(
-    () => subscribeToSessionExpiry(() => setPhase({ name: "auth" })),
+    () =>
+      subscribeToSessionExpiry(() =>
+        setPhase((current) =>
+          current.name === "title" && current.loading === null
+            ? current
+            : titlePhase(accountOf(current)),
+        ),
+      ),
     [subscribeToSessionExpiry],
   )
 
+  const isLoading = phase.name === "title" && phase.loading === "wait"
+  const destination = phase.name === "title" ? phase.destination : "open"
+  const account = accountOf(phase)
+
   useEffect(() => {
-    if (phase.name !== "loading") return
+    if (!isLoading) return
     let isCurrent = true
     api
       .getMyCharacter()
       .then(async (character): Promise<Phase> => {
-        if (character !== null) return { name: "adventure", character }
-        // 建角畫面的選項（職業、屬性等）來自內容，先取回再顯示
-        return { name: "create", content: await api.getContent() }
+        if (character === null) return { name: "create", content: await api.getContent(), account }
+        if (destination === "open") return { name: "game", character }
+        return { name: "passage", title: "歡迎回來", subtitle: account, character }
       })
       .then((next) => {
         if (isCurrent) setPhase(next)
       })
       .catch((error: unknown) => {
         if (!isCurrent) return
-        // 401 已由 client 清掉 token 並通知登出；其他失敗（斷線、5xx）留在原地讓玩家重試
-        const isUnauthorized = error instanceof ApiError && error.status === 401
-        setPhase(isUnauthorized ? { name: "auth" } : { name: "error" })
+        // 401 已由 client 清掉 token 並通知登出；其他失敗（斷線、5xx）攤字條讓玩家重試
+        if (error instanceof ApiError && error.status === 401) setPhase(titlePhase(account))
+        else setPhase({ name: "title", loading: "fail", destination, account })
       })
     return () => {
       isCurrent = false
     }
-  }, [api, phase.name])
+  }, [api, isLoading, destination, account])
+
+  const passageCharacter = phase.name === "passage" ? phase.character : null
+  useEffect(() => {
+    if (passageCharacter === null) return
+    const timer = setTimeout(
+      () => setPhase({ name: "game", character: passageCharacter }),
+      PassageMilliseconds,
+    )
+    return () => clearTimeout(timer)
+  }, [passageCharacter])
 
   switch (phase.name) {
-    case "auth":
-      return <AuthScreen api={api} onAuthenticated={() => setPhase({ name: "loading" })} />
-    case "loading":
-      return <p className="screen">載入中…</p>
-    case "error":
+    case "title":
       return (
-        <main className="screen">
-          <div className="form load-error">
-            <p>載入失敗，請稍後再試</p>
-            <div className="actions">
-              <button type="button" onClick={() => setPhase({ name: "loading" })}>
-                重試
-              </button>
-            </div>
+        <StageFrame>
+          <TitleScreen
+            api={api}
+            initialAccount={phase.account}
+            loading={phase.loading}
+            onSignedIn={(signedIn, route) =>
+              setPhase({ name: "title", loading: "wait", destination: route, account: signedIn })
+            }
+            onRetry={() => setPhase({ ...phase, loading: "wait" })}
+          />
+        </StageFrame>
+      )
+    case "passage":
+      return (
+        <StageFrame>
+          <div className="title title--loading">
+            <TitleBackdrop departing />
           </div>
-        </main>
+          <Passage title={phase.title} subtitle={phase.subtitle} />
+        </StageFrame>
       )
     case "create":
       return (
         <CreateCharacterScreen
           api={api}
           content={phase.content}
-          onCreated={(character) => setPhase({ name: "adventure", character })}
+          onCreated={(character) => setPhase({ name: "game", character })}
         />
       )
-    case "adventure":
+    case "game":
       return <AdventureScreen api={api} initialCharacter={phase.character} />
   }
 }

@@ -1,0 +1,60 @@
+.passage {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background:
+    linear-gradient(rgb(var(--glow-rgb) / 0.5), rgb(var(--glow-rgb) / 0.78)),
+    url("../../assets/title/sky-dawn.webp") center 62% / auto 135% no-repeat;
+  animation: passage-in 0.6s ease 0.3s both;
+}
+
+.passage--day {
+  background-image:
+    linear-gradient(rgb(var(--glow-rgb) / 0.5), rgb(var(--glow-rgb) / 0.78)),
+    url("../../assets/title/sky-day.webp");
+}
+
+.passage--dusk {
+  background-image:
+    linear-gradient(rgb(var(--glow-rgb) / 0.5), rgb(var(--glow-rgb) / 0.78)),
+    url("../../assets/title/sky-dusk.webp");
+}
+
+.passage--night {
+  background-image:
+    linear-gradient(rgb(var(--night-rgb) / 0.35), rgb(var(--night-rgb) / 0.62)),
+    url("../../assets/title/sky-night.webp");
+}
+
+.passage b {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--umber);
+  text-shadow: 0 1px 0 rgb(var(--glow-rgb) / 0.8);
+}
+
+.passage small {
+  font-family: var(--font-script);
+  font-size: 26px;
+  color: var(--wood-deep);
+}
+
+.passage--night b,
+.passage--night small {
+  color: var(--paper);
+  text-shadow: 0 1px 3px rgb(var(--night-rgb) / 0.8);
+}
+
+@keyframes passage-in {
+  from {
+    opacity: 0;
+  }
+}
