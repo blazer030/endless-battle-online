@@ -1,15 +1,17 @@
+using System.Globalization;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Api.Endpoints;
 
 public static class ContentEndpoints
 {
-    private static readonly NamedContent[] Elements = [new("1", "地"), new("2", "水"), new("3", "火"), new("4", "木"), new("5", "風"), new("6", "毒")];
+    private static readonly NamedContent[] Elements = ToNamedContent(CharacterOptions.Elements);
 
-    private static readonly NamedContent[] Births = [new("1", "中央大陸"), new("2", "魔法王國"), new("3", "熱帶雨林"), new("4", "末日王城")];
+    private static readonly NamedContent[] Births = ToNamedContent(CharacterOptions.Births);
 
-    private static readonly NamedContent[] Sexes = [new("1", "男"), new("2", "女")];
+    private static readonly NamedContent[] Sexes = ToNamedContent(CharacterOptions.Sexes);
 
     // 公開端點：給前端顯示名稱與創角選項用，不回傳戰鬥數值
     public static IEndpointRouteBuilder MapContentEndpoints(this IEndpointRouteBuilder app)
@@ -33,6 +35,9 @@ public static class ContentEndpoints
 
         return app;
     }
+
+    private static NamedContent[] ToNamedContent(IReadOnlyList<CharacterOption> options) =>
+        options.Select(option => new NamedContent(option.Id.ToString(CultureInfo.InvariantCulture), option.Name)).ToArray();
 
     internal static JobGrowthContent ToGrowthContent(JobGrowth growth) => new(
         [growth.Str.Min, growth.Str.Max],

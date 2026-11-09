@@ -14,10 +14,6 @@ public static class CharacterFactory
     public const long StartingNextExp = 1000;
     public const int StartingJobTier = 1;
 
-    private const int SexCount = 2;
-    private const int ElementCount = 6;
-    private const int BirthCount = 4;
-
     // 違反規則時丟 CharacterCreationException
     public static Character Create(
         long accountId,
@@ -29,9 +25,9 @@ public static class CharacterFactory
     {
         var allocation = command.Allocation;
         ValidateAllocation(allocation);
-        ValidateChoice(command.Sex, SexCount, "性別");
-        ValidateChoice(command.Element, ElementCount, "屬性");
-        ValidateChoice(command.Birth, BirthCount, "出生地");
+        ValidateChoice(command.Sex, CharacterOptions.Sexes.Count, "性別");
+        ValidateChoice(command.Element, CharacterOptions.Elements.Count, "屬性");
+        ValidateChoice(command.Birth, CharacterOptions.Births.Count, "出生地");
         if (job.Tier != StartingJobTier)
         {
             throw new CharacterCreationException("只能選擇初階職業");
