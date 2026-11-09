@@ -33,5 +33,5 @@
 
 ## 6. 收尾
 
-- [ ] 6.1 [after: 3.3, 4.4] 依「Replace old screens」刪除 `frontend/src/ui/AuthScreen.tsx`、`CreateCharacterScreen.tsx` 與其 CSS、測試，以及 `screens.css` 只給它們用的樣式；單獨以結構性變更 commit（此時已無引用，行為不變）。驗證：刪除前後 `cd frontend && pnpm check` 都通過；`git grep -n "AuthScreen\|CreateCharacterScreen" frontend/src` 沒有結果。
+- [x] 6.1 [after: 3.3, 4.4] 依「Replace old screens」刪除 `frontend/src/ui/AuthScreen.tsx`、`CreateCharacterScreen.tsx` 與其 CSS、測試，以及 `screens.css` 只給它們用的樣式；單獨以結構性變更 commit（此時已無引用，行為不變）。驗證：刪除前後 `cd frontend && pnpm check` 都通過；`git grep -n "AuthScreen\|CreateCharacterScreen" frontend/src` 沒有結果。
 - [ ] 6.2 [after: 5.1, 5.2, 6.1] 手動驗收與總檢查：`pnpm dev`（5175）在 390×683、390×722、412×880、375×555、1440×780 各截標題、建角、職業介紹冊，對照 TitleFit 同狀態；360×640 確認沒有整頁捲動；舞台外是共用背景。最後 `./scripts/check.sh` exit code 0。
