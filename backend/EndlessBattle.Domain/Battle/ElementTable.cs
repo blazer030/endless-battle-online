@@ -1,3 +1,5 @@
+using EndlessBattle.Domain.Characters;
+
 namespace EndlessBattle.Domain.Battle;
 
 // 地 1 → 水 2 → 火 3 → 木 4 → 風 5 → 毒 6 → 地：前者剋後者；0 為無屬性
@@ -7,8 +9,6 @@ public static class ElementTable
     public const double Disadvantage = 0.8;
     public const double Neutral = 1.0;
 
-    public const int ElementCount = 6;
-
     // 這個屬性攻擊時佔優勢的對象
     public static int StrongAgainst(int element) =>
         Elements().Single(other => Multiplier(element, other) > Neutral);
@@ -17,7 +17,7 @@ public static class ElementTable
     public static int WeakAgainst(int element) =>
         Elements().Single(other => Multiplier(other, element) > Neutral);
 
-    private static IEnumerable<int> Elements() => Enumerable.Range(1, ElementCount);
+    private static IEnumerable<int> Elements() => CharacterOptions.Elements.Select(element => element.Id);
 
     public static double Multiplier(int attackerElement, int defenderElement)
     {
