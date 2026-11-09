@@ -39,6 +39,7 @@
   --shade-rgb: 20 10 4;
   --umber-rgb: 90 60 30;
   --glow-rgb: 255 244 222;
+  --ink-rgb: 42 26 12;
   /* 舞台外的空間：所有新畫面共用，之後換成靜態大圖只改這裡 */
   --stage-backdrop: var(--ink);
   --font-serif: "Noto Serif TC", serif;

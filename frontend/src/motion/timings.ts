@@ -22,3 +22,5 @@ export const LevelUpHintMilliseconds = 3_000
 export const PanelRefreshMilliseconds = 5_000
 // 角色頁密藥剩餘分鐘的重算間隔
 export const BuffTickMilliseconds = 30_000
+// 標題背景依時段換圖，畫面開著時隔這麼久重算一次
+export const TimeOfDayRefreshMilliseconds = 60_000

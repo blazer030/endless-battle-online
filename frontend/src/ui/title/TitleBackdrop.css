@@ -1,0 +1,134 @@
+/* 舞台座標：寬 390、高 --stage-h；超出舞台的部分被舞台裁掉 */
+
+/* 上半：城鎮遠景，以下緣對齊木桌，露出高度 = 舞台高 − 356 */
+.title-sky {
+  position: absolute;
+  left: -48px;
+  right: -48px;
+  top: -80px;
+  bottom: 330px;
+  background: url("../../assets/title/sky-dawn.webp") center bottom -140px / 486px auto no-repeat;
+  animation: title-drift 26s ease-in-out infinite alternate;
+}
+
+.title-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(var(--glow-rgb) / 0) 62%, rgb(var(--ink-rgb) / 0.4));
+}
+
+.title-sky--day {
+  background-image: url("../../assets/title/sky-day.webp");
+}
+
+.title-sky--dusk {
+  background-image: url("../../assets/title/sky-dusk.webp");
+}
+
+.title-sky--night {
+  background-image: url("../../assets/title/sky-night.webp");
+}
+
+/* 進城時鏡頭往城鎮推近 */
+.title-sky--departing {
+  animation: none;
+  transform: scale(1.2) translateY(40px);
+  transition: transform 1.4s ease-in;
+}
+
+@keyframes title-drift {
+  to {
+    transform: translateX(-14px) scale(1.03);
+  }
+}
+
+/* 招牌：貼上緣，遊戲名先用字體，之後換 logo */
+.title-sign {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: -34px;
+  width: 300px;
+  height: 223px;
+  margin: 0 0 0 -150px;
+  padding-top: 58px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: url("../../assets/title/sign.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 8px 10px rgb(var(--shade-rgb) / 0.45));
+  transform-origin: 50% 0;
+  animation: title-swing 7s ease-in-out infinite;
+}
+
+.title-sign b {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+  color: var(--umber);
+  text-shadow:
+    0 1px 0 rgb(var(--glow-rgb) / 0.65),
+    0 -1px 0 rgb(var(--shade-rgb) / 0.35);
+}
+
+.title-sign small {
+  margin-top: 12px;
+  font-family: var(--font-script);
+  font-size: 23px;
+  line-height: 1;
+  color: var(--umber-mid);
+  text-shadow: 0 1px 0 rgb(var(--glow-rgb) / 0.5);
+}
+
+@keyframes title-swing {
+  0%,
+  100% {
+    transform: rotate(-1.1deg);
+  }
+  50% {
+    transform: rotate(1.1deg);
+  }
+}
+
+/* 下半：木桌高 356（往下延伸到舞台外），前緣一條木條 */
+.title-desk {
+  position: absolute;
+  left: -40px;
+  right: -40px;
+  bottom: -80px;
+  height: 436px;
+  background: var(--wood) url("../../assets/title/desk.webp") center top / 470px auto repeat-y;
+  box-shadow: inset 0 34px 40px -22px rgb(var(--shade-rgb) / 0.65);
+}
+
+.title-desk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(var(--umber-rgb) / 0.22), rgb(var(--shade-rgb) / 0.3));
+}
+
+.title-desk::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 36px;
+  background: url("../../assets/title/desk-edge.webp") left center / auto 100% repeat-x;
+  filter: drop-shadow(0 4px 4px rgb(var(--shade-rgb) / 0.7));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-sky,
+  .title-sign {
+    animation: none;
+  }
+}
