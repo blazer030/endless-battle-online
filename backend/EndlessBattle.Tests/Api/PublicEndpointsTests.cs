@@ -136,6 +136,28 @@ public class PublicEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.String, defense.GetProperty("description").ValueKind);
     }
 
+    // 職業介紹冊只顯示名稱、入門或前置與描述，第一階職業教的每一招都要有描述
+    [Fact]
+    public async Task PublicJobs_StarterSkillsCarryDescriptions()
+    {
+        await using var official = new EndlessBattleApiFactory(database);
+        var factory = official.WithWebHostBuilder(builder =>
+            builder.UseSetting("Content:Directory", Path.Combine(BackendPaths.BackendDirectory, "content")));
+
+        var jobs = await factory.CreateClient().GetFromJsonAsync<JsonElement>("/api/public/jobs", CancellationToken);
+
+        var starterSkills = jobs.EnumerateArray()
+            .Where(job => job.GetProperty("tier").GetInt32() == 1)
+            .SelectMany(job => job.GetProperty("skills").EnumerateArray())
+            .ToList();
+        Assert.Equal(16, starterSkills.Count);
+        Assert.All(starterSkills, skill => Assert.False(
+            string.IsNullOrWhiteSpace(skill.GetProperty("description").GetString()),
+            $"{skill.GetProperty("name").GetString()} 沒有描述"));
+        var burst = starterSkills.First(skill => skill.GetProperty("id").GetString() == "skill-1");
+        Assert.Equal("爆發體內的鬥氣，接下來幾回合物攻提升。", burst.GetProperty("description").GetString());
+    }
+
     [Fact]
     public async Task PublicJobs_LevelSummaryMatchesSkillPage()
     {
