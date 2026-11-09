@@ -78,7 +78,7 @@
 
 ### Stage frame fits a flexible-height stage
 
-新增純函式 `fitStage(width, height)`：`scale = min(width / 390, height / 683, 1.25)`、`stageHeight = clamp(height / scale, 683, 722)`、置中位移。新增元件（例如 `StageFrame`）用 `window.innerWidth/innerHeight`（版面視窗）量視窗、監聽 `resize`，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。也考慮過用 `visualViewport`（review 時改掉）：它在雙指放大與鍵盤彈出時會變小，舞台會跟著縮，抵銷放大、鍵盤一出來登記證縮到一半。
+新增純函式 `fitStage(width, height)`：`scale = min(width / 390, height / 683)`（不設上限：原本電腦上限 1.25，使用者 2026-11-09 看了大螢幕四邊都補底色後改成一律以較緊的一邊貼滿；設計素材是 2 倍圖，常見螢幕不會超過 2 倍）、`stageHeight = clamp(height / scale, 683, 722)`、置中位移。新增元件（例如 `StageFrame`）用 `window.innerWidth/innerHeight`（版面視窗）量視窗、監聽 `resize`，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。也考慮過用 `visualViewport`（review 時改掉）：它在雙指放大與鍵盤彈出時會變小，舞台會跟著縮，抵銷放大、鍵盤一出來登記證縮到一半。
 
 ### Theme tokens for the new screens
 

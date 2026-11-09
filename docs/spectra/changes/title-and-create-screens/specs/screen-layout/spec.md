@@ -6,17 +6,17 @@ Screens built from the new design are laid out on a fixed-width stage whose heig
 
 ### Requirement: Stage size and scale
 
-A new-design screen SHALL be laid out on a stage 390 px wide whose height is between 683 px and 722 px. Given the browser window's width `w` and height `h` in CSS pixels, the stage scale SHALL be the smallest of `w / 390`, `h / 683` and 1.25, and the stage height SHALL be `h / scale` clamped to 683–722. The scaled stage SHALL be centered in the window. When the window's height-to-width ratio is between 1.75 and 1.85 and the scale is below the 1.25 cap, the scaled stage SHALL fill the window with no spare space.
+A new-design screen SHALL be laid out on a stage 390 px wide whose height is between 683 px and 722 px. Given the browser window's width `w` and height `h` in CSS pixels, the stage scale SHALL be the smaller of `w / 390` and `h / 683`, with no upper limit, and the stage height SHALL be `h / scale` clamped to 683–722. The scaled stage SHALL be centered in the window. When the window's height-to-width ratio is between 1.75 and 1.85, the scaled stage SHALL fill the window with no spare space; otherwise it SHALL fill the tighter dimension and leave spare space only on the two opposite sides of the other.
 
 #### Scenario: Window within the ratio range
 
 - **WHEN** the window is 402×714 CSS px
 - **THEN** the stage is scaled by 402/390 and its height flexes so the scaled stage fills the window exactly
 
-#### Scenario: Window outside the ratio range or above the cap
+#### Scenario: Window outside the ratio range
 
-- **WHEN** the window is taller than 1.85 times its width, shorter than 1.75 times its width, or larger than the stage at scale 1.25
-- **THEN** the stage keeps the nearest height in 683–722, is scaled by the tightest of the three limits, and is centered with equal spare space on the opposite sides
+- **WHEN** the window is taller than 1.85 times its width or shorter than 1.75 times its width, including a large desktop window
+- **THEN** the stage keeps the nearest height in 683–722, is scaled to fill the tighter dimension, and is centered with equal spare space on the two opposite sides of the other dimension
 
 ##### Example: stage fit
 
@@ -27,7 +27,7 @@ A new-design screen SHALL be laid out on a stage 390 px wide whose height is bet
 | 402×714 | 1.0308 | 692.7 | none |
 | 412×880 | 1.0564 | 722 | 58.6 above and below |
 | 375×555 | 0.8126 | 683 | 29.0 left and right |
-| 1920×950 | 1.25 | 722 | 716.3 left and right, 23.8 above and below |
+| 1920×950 | 1.3909 | 683 | 688.8 left and right |
 
 ### Requirement: One shared background fills spare space
 

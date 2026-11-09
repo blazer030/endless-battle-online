@@ -11,7 +11,8 @@ test.each([
   { width: 402, height: 714, scale: 1.0308, stageHeight: 692.7, sideSpace: 0, topSpace: 0 },
   { width: 412, height: 880, scale: 1.0564, stageHeight: 722, sideSpace: 0, topSpace: 58.6 },
   { width: 375, height: 555, scale: 0.8126, stageHeight: 683, sideSpace: 29.0, topSpace: 0 },
-  { width: 1920, height: 950, scale: 1.25, stageHeight: 722, sideSpace: 716.3, topSpace: 23.8 },
+  // 電腦大螢幕也以較緊的一邊貼滿，不設倍率上限
+  { width: 1920, height: 950, scale: 1.3909, stageHeight: 683, sideSpace: 688.8, topSpace: 0 },
 ])("fitStage_$width×$height", ({ width, height, scale, stageHeight, sideSpace, topSpace }) => {
   const fit = fitStage(width, height)
 
