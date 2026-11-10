@@ -46,3 +46,6 @@
 - [x] 8.1 [after: 7.2] 補四個初階職業 16 招的技能描述（design.md「技能描述」）：先在 `backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs` 加失敗測試 `PublicJobs_StarterSkillsCarryDescriptions`（第一階職業教的每一招 `description` 都不是空字串，爆氣是「爆發體內的鬥氣，接下來幾回合物攻提升。」），再改 `backend/content/skills.json` 這 16 招的 `description`。驗證：`cd backend && dotnet test --filter-class "*PublicEndpointsTests"` 通過。
 - [x] 8.2 [after: 8.1] 依「Job introduction book」改介紹冊：技能每招只顯示名稱、入門或前置、描述，不顯示最高等級與各級摘要；立繪區 left 改 −12。先把 `JobBook.test.tsx` 的技能測試改成 `JobBook_ListsWarriorSkillsWithPrerequisiteAndDescription`（爆氣有入門與描述、防禦心得有「前置 爆氣 Lv3」、畫面沒有「最高」與「Lv1」）並看它失敗，再改 `JobBook.tsx`／`JobBook.css`。驗證：`cd frontend && pnpm check` 通過；`pnpm dev` 在 390×624 與 390×780 截四個職業頁，立繪不壓到左邊書脊、不壓到右欄文字。
 
+## 9. 寬視窗用較高的舞台（使用者 2026-11-10 追加）
+
+- [x] 9.1 [after: 8.2] 依「Stage size and scale」改比 1.6 扁時的舞台：先在 `frontend/src/ui/stage/fitStage.test.ts` 的範例表加入 414×660（倍率 1、高 660、左右各 12）、1440×720（倍率 1、高 720、左右各 525）、820×1180（倍率 1.5128、高 780、左右各 115），1920×950 改成倍率 1.2179、高 780、左右各 722.5，看測試失敗後再改 `fitStage.ts`（高寬比 ≥ 1.6 照寬度、否則舞台高＝視窗高限 624～780、倍率＝視窗高／舞台高）；專案 `CLAUDE.md` 前端硬規則 2 改寫比 1.6 扁時的規則。驗證：`cd frontend && pnpm check` 通過；`pnpm dev` 在 1920×950 截標題頁，舞台高 780。

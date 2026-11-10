@@ -82,7 +82,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 以下只適用於遊戲前端 `frontend`，不適用於 `admin`。
 
 1. TypeScript `strict`，禁用 `any`。
-2. 手機直式優先。新畫面（標題、建角起）排在寬 390、高 624～780 的舞台上，由 `StageFrame` 依視窗縮放：高寬比 1.6～2.0 時舞台高度伸縮、剛好填滿；超出時以寬、高較緊的一邊等比縮放、貼滿那一邊（電腦上也一樣，不設倍率上限），舞台置中、舞台外鋪共用背景 `--stage-backdrop`，畫面不得畫到舞台外。基準尺寸下內文 ≥ 13px、小標籤 ≥ 11px。360～430 寬不得出現整頁捲動，超出區域的清單在區域內捲動。還沒換成新設計的舊畫面維持 375×667、電腦上置中最大寬度 480px。
+2. 手機直式優先。新畫面（標題、建角起）排在寬 390、高 624～780 的舞台上，由 `StageFrame` 依視窗縮放：高寬比 1.6～2.0 時舞台高度伸縮、剛好填滿；比 2.0 細長時高停在 780、照寬度縮放；比 1.6 扁（例如電腦）時舞台盡量拉高——舞台高＝視窗高限 624～780、倍率＝視窗高／舞台高（比 624 矮才縮小），不設倍率上限；舞台置中、舞台外鋪共用背景 `--stage-backdrop`，畫面不得畫到舞台外。基準尺寸下內文 ≥ 13px、小標籤 ≥ 11px。360～430 寬不得出現整頁捲動，超出區域的清單在區域內捲動。還沒換成新設計的舊畫面維持 375×667、電腦上置中最大寬度 480px。
 3. 顏色只定義在 `src/ui/theme.css` 的 CSS 變數，其他地方不得寫死色碼；Pixi 端從 `src/render/palette.ts` 取，`Palette` 有的鍵數值要與 CSS 變數一致（`theme.test.ts` 會比對）。
    - 舊畫面色彩變數：`--bg-top`、`--bg-bottom`、`--panel`、`--border`、`--text`、`--text-muted`、`--gold`、`--cyan`、`--crimson`、`--crimson-text`（小字用，對比 ≥ 4.5:1）、`--green`、`--night`、`--white`，屬性色塊另有 `--element-earth`、`--element-water`、`--element-poison`（火、木、風沿用 `--crimson`、`--green`、`--cyan`）。
    - 新畫面色彩變數：`--paper`、`--paper-light`、`--ink`、`--umber-deep`、`--umber`、`--umber-mid`、`--umber-faded`、`--wood`、`--wood-deep`、`--seal-red`、`--error-red`、`--brass`、`--amber`；陰影與壓暗用 RGB 三元組 `--shade-rgb`、`--umber-rgb`、`--glow-rgb`、`--ink-rgb`、`--night-rgb`（`rgb(var(--shade-rgb) / .55)`）；舞台外背景 `--stage-backdrop`。
