@@ -119,6 +119,19 @@ const renderApp = (
 const ownCard = () => within(screen.getByRole("region", { name: "我的冒險者登記證" }))
 const blankCard = () => within(screen.getByRole("region", { name: "空白登記證" }))
 
+// 過場的計時器在 effect 裡設，可能比畫面晚一步；推進到真的進遊戲為止
+const finishPassage = () =>
+  vi.waitFor(() => {
+    act(() => vi.advanceTimersByTime(PassageMilliseconds))
+    expect(screen.getByText("冒險中：青衣")).toBeInTheDocument()
+  })
+
+// 有角色時先播歡迎回來過場，播完才進遊戲
+const passIntoGame = async () => {
+  await screen.findByText("歡迎回來")
+  await finishPassage()
+}
+
 const signIn = async (user: ReturnType<typeof setupUser>, account = "ethan") => {
   await user.type(ownCard().getByLabelText("帳號"), account)
   await user.type(ownCard().getByLabelText("密碼"), "abcdefgh")
@@ -134,7 +147,7 @@ test("App_ShowsRegistryCards_WhenNoToken", () => {
   expect(api.getMyCharacter).not.toHaveBeenCalled()
 })
 
-// destination after loading：登入、有角色 → 歡迎回來＋帳號，停一下再進遊戲
+// result after loading：登入、有角色 → 歡迎回來＋角色名（不是帳號），停一下再進遊戲
 test("App_SignInWithCharacter_WelcomesBackThenOpensGame", async () => {
   const user = setupUser()
   const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
@@ -143,12 +156,11 @@ test("App_SignInWithCharacter_WelcomesBackThenOpensGame", async () => {
   await signIn(user)
 
   expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
-  expect(screen.getByText("ethan")).toBeInTheDocument()
+  expect(screen.getByText("青衣")).toBeInTheDocument()
+  expect(screen.queryByText("ethan")).not.toBeInTheDocument()
   expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
 
-  act(() => vi.advanceTimersByTime(PassageMilliseconds))
-
-  expect(await screen.findByText("冒險中：青衣")).toBeInTheDocument()
+  await finishPassage()
 })
 
 // 登入、沒角色 → 建角
@@ -199,16 +211,19 @@ test("App_LeavingCreation_ReturnsToOwnCardWithAccount", async () => {
   expect(ownCard().getByLabelText("帳號")).toBeEnabled()
 })
 
-// 已登入打開網頁、有角色 → 直接進遊戲，不顯示登記證與歡迎回來
-test("App_StoredTokenWithCharacter_OpensGameDirectly", async () => {
+// 已登入打開網頁、有角色 → 不顯示登記證，跟登入一樣先歡迎回來＋角色名，停一下再進遊戲
+test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
   saveAccessToken("token")
   const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
 
   renderApp(api)
 
   expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
-  expect(await screen.findByText("冒險中：青衣")).toBeInTheDocument()
-  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+  expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
+  expect(screen.getByText("青衣")).toBeInTheDocument()
+  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+
+  await finishPassage()
 })
 
 // 已登入打開網頁、沒角色 → 建角
@@ -292,7 +307,7 @@ test("App_ReturnsToRegistryCards_WhenSessionExpires", async () => {
     expire = listener
     return () => {}
   })
-  await screen.findByText("冒險中：青衣")
+  await passIntoGame()
 
   act(() => expire())
 
@@ -324,7 +339,7 @@ test("App_SignOut_ClearsTokenAndReturnsToRegistryCards", async () => {
   const user = setupUser()
   saveAccessToken("token")
   renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
-  await screen.findByText("冒險中：青衣")
+  await passIntoGame()
 
   await user.click(screen.getByRole("button", { name: "登出" }))
 

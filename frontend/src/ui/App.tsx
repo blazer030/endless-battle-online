@@ -73,8 +73,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
           const [jobs, options] = await Promise.all([api.getPublicJobs(), api.getCreationOptions()])
           return { name: "create", jobs, options, account }
         }
-        if (destination === "open") return { name: "game", character }
-        return { name: "passage", title: "歡迎回來", subtitle: account, character }
+        return { name: "passage", title: "歡迎回來", subtitle: character.name, character }
       })
       .then((next) => {
         if (isCurrent) setPhase(next)
