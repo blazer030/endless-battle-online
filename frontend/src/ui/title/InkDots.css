@@ -1,0 +1,44 @@
+.ink-dots {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+
+.ink-dots i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--paper-light);
+  box-shadow:
+    0 1px 4px rgb(var(--shade-rgb) / 0.85),
+    0 0 0 1px rgb(var(--umber-rgb) / 0.35);
+  animation: ink-dot 1.2s ease-in-out infinite;
+}
+
+.ink-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ink-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ink-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-dots i {
+    animation: none !important;
+  }
+}

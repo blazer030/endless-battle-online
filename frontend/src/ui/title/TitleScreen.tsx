@@ -7,6 +7,7 @@ import {
   RegisterCardReturnMilliseconds,
   RegisterSealSettleMilliseconds,
 } from "../../motion/timings"
+import { InkDots } from "./InkDots"
 import { Seal } from "./Seal"
 import { TitleBackdrop } from "./TitleBackdrop"
 import "./TitleScreen.css"
@@ -264,11 +265,7 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
         )}
       </section>
 
-      <div className="title-wait" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
+      <InkDots className="title-wait" />
       {loading === "fail" && (
         <section className="title-fail" role="alert" aria-label="讀取失敗">
           <p>公會那邊沒有回音……</p>
