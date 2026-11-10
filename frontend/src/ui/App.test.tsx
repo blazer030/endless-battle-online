@@ -314,6 +314,32 @@ test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
   expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
 })
 
+// 登入後讀角色 401 → 清 token、回到登記證，帳號留著，不攤字條
+test("App_SignInThenUnauthorizedLoad_ReturnsToRegistryCards", async () => {
+  const user = setupUser()
+  let expire = () => {}
+  const api = createFakeApi({
+    login: vi.fn().mockImplementation(async () => saveAccessToken("token")),
+    getMyCharacter: vi.fn().mockImplementation(() => {
+      localStorage.clear()
+      expire()
+      return Promise.reject(new ApiError(401, "未授權"))
+    }),
+  })
+  renderApp(api, (listener) => {
+    expire = listener
+    return () => {}
+  })
+
+  await signIn(user)
+
+  await vi.waitFor(() => expect(api.getMyCharacter).toHaveBeenCalled())
+  expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
+  expect(readAccessToken()).toBeNull()
+  expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
+})
+
 test.each([
   {
     failure: "character server error",
