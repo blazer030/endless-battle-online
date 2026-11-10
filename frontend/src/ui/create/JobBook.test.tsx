@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, expect, test, vi } from "vitest"
 import { contentArtCandidates } from "../../render/contentAssets"
 import { makeCreationOptions, makePublicJobs } from "../../test/fixtures"
@@ -86,6 +86,18 @@ test("JobBook_PickFillsJobRowAndCloses", async () => {
 afterEach(() => vi.unstubAllGlobals())
 
 // R2 的圖讀不到時，書籤上的職業圖示要換成佔位圖
+// 立繪讀不到 R2 的圖時換成立繪的佔位圖
+test("JobBook_PortraitFallsBackToPlaceholder", () => {
+  const candidates = contentArtCandidates("portraits", "job-7-female")
+  renderBook("job-7", 2)
+  const portrait = screen.getByRole("img", { name: "術士" })
+  expect(portrait).not.toHaveAttribute("src", candidates.at(-1))
+
+  for (let attempt = 1; attempt < candidates.length; attempt += 1) fireEvent.error(portrait)
+
+  expect(portrait).toHaveAttribute("src", candidates.at(-1))
+})
+
 test("JobBook_BookmarkIconFallsBackToPlaceholder", async () => {
   const [remote, placeholder] = contentArtCandidates("job-icons", "job-6")
   vi.stubGlobal(
