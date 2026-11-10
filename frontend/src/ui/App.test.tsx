@@ -324,16 +324,50 @@ test.each([
     overrides: { getPublicJobs: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
   },
 ])("App_FailedLoad_ShowsNoteWithRetry ($failure)", async ({ overrides }) => {
-  saveAccessToken("token")
-  const api = createFakeApi(overrides)
-
+  // 字條＋重試只在登入、註冊之後；登入成功時 client 會存 token
+  const user = setupUser()
+  const api = createFakeApi({
+    login: vi.fn().mockImplementation(async () => saveAccessToken("token")),
+    ...overrides,
+  })
   renderApp(api)
+
+  await signIn(user)
 
   const note = await screen.findByRole("alert", { name: "讀取失敗" })
   expect(note).toHaveTextContent("公會那邊沒有回音……")
   expect(within(note).getByRole("button", { name: "重試" })).toBeInTheDocument()
   expect(readAccessToken()).toBe("token")
 })
+
+// 已登入打開網頁讀不到（斷線、伺服器錯誤）先當成登入失敗：清 token、回到登記證，不攤字條
+test.each([
+  {
+    failure: "character server error",
+    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) },
+  },
+  {
+    failure: "character network error",
+    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
+  },
+  {
+    failure: "creation data network error",
+    overrides: { getPublicJobs: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) },
+  },
+])(
+  "App_StoredTokenLoadFails_ClearsTokenAndShowsRegistryCards ($failure)",
+  async ({ overrides }) => {
+    saveAccessToken("token")
+
+    renderApp(createFakeApi(overrides))
+
+    await screen.findByRole("region", { name: "我的冒險者登記證" })
+    expect(ownCard().getByRole("button", { name: "入城" })).toBeInTheDocument()
+    expect(ownCard().getByLabelText("帳號")).toHaveValue("")
+    expect(readAccessToken()).toBeNull()
+    expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
+  },
+)
 
 // 重試再讀一次角色：登入後讀不到 → 重試時回到讀取中（字條收起、看不到登記證）→ 成功後跟第一次就成功一樣先歡迎回來
 test("App_RetryRepeatsLoad", async () => {

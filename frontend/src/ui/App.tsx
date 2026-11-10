@@ -74,6 +74,12 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       })
       .catch((error: unknown) => {
         if (!isCurrent) return
+        // 打開網頁時讀不到，不論原因都先當成登入失敗：清 token、回登記證（之後再做錯誤頁）
+        if (isOpening) {
+          clearAccessToken()
+          setPhase(titlePhase())
+          return
+        }
         // 401 已由 client 清掉 token 並通知登出；其他失敗（斷線、5xx）攤字條讓玩家重試
         if (error instanceof ApiError && error.status === 401) setPhase(titlePhase(account))
         else setPhase({ name: "title", loading: "fail", account })
