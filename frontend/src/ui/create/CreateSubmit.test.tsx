@@ -15,10 +15,15 @@ afterEach(() => {
 
 const setupUser = () => userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
 
-const renderCreate = (api: CreateApi, onCreated = vi.fn(), onLeave = vi.fn()) => {
+// 沒給 getMyCharacter 的測試不會走到讀角色
+const renderCreate = (
+  api: Pick<CreateApi, "createCharacter"> & Partial<CreateApi>,
+  onCreated = vi.fn(),
+  onLeave = vi.fn(),
+) => {
   render(
     <CreateScreen
-      api={api}
+      api={{ getMyCharacter: vi.fn(), ...api }}
       jobs={makePublicJobs()}
       options={makeCreationOptions()}
       account="newbie"
@@ -82,7 +87,8 @@ test("CreateScreen_NameTakenOpensNameRow", async () => {
   const api = {
     createCharacter: vi
       .fn()
-      .mockRejectedValue(new ApiError(409, "此帳號已有角色，或角色名稱已被使用")),
+      .mockRejectedValue(new ApiError(409, "角色名稱已被使用", ["character-name-taken"])),
+    getMyCharacter: vi.fn(),
   }
   renderCreate(api)
   await fillCard(user, "收尾者")
@@ -93,6 +99,45 @@ test("CreateScreen_NameTakenOpensNameRow", async () => {
     await screen.findByText("哎呀，「收尾者」已經有人登記了……換一個名字好嗎？"),
   ).toBeInTheDocument()
   expect(within(answer()).getByRole("textbox", { name: "名字" })).toHaveValue("收尾者")
+})
+
+// 第一次出發其實建好了、只是回應逾時：再按出發回 409「帳號已有角色」，讀角色後照成功進遊戲
+test("CreateScreen_AccountAlreadyHasCharacterEntersTheGame", async () => {
+  const user = setupUser()
+  const character = makeCharacter({ name: "收尾者" })
+  const api = {
+    createCharacter: vi
+      .fn()
+      .mockRejectedValue(new ApiError(409, "此帳號已有角色", ["account-has-character"])),
+    getMyCharacter: vi.fn().mockResolvedValue(character),
+  }
+  const { onCreated } = renderCreate(api)
+  await fillCard(user, "艾倫")
+
+  await user.click(depart())
+
+  expect(await screen.findByText("踏上旅途")).toBeInTheDocument()
+  expect(screen.getByText("收尾者")).toBeInTheDocument()
+  act(() => vi.advanceTimersByTime(PassageMilliseconds))
+  expect(onCreated).toHaveBeenCalledWith(character)
+})
+
+test("CreateScreen_AccountAlreadyHasCharacterButLoadFailsKeepsCard", async () => {
+  const user = setupUser()
+  const api = {
+    createCharacter: vi
+      .fn()
+      .mockRejectedValue(new ApiError(409, "此帳號已有角色", ["account-has-character"])),
+    getMyCharacter: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
+  }
+  const { onCreated } = renderCreate(api)
+  await fillCard(user)
+
+  await user.click(depart())
+
+  await vi.waitFor(() => expect(lise()).toHaveTextContent("咦，登記簿那邊沒有回應……"))
+  expect(depart()).toBeEnabled()
+  expect(onCreated).not.toHaveBeenCalled()
 })
 
 test("CreateScreen_BadRequestShowsDetail", async () => {

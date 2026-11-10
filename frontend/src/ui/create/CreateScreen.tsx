@@ -30,7 +30,7 @@ import { birthLines, jobFlavors, Lines, Questions, sexAddress } from "./flavor"
 import { JobBook } from "./JobBook"
 import "./CreateScreen.css"
 
-export type CreateApi = Pick<ApiClient, "createCharacter">
+export type CreateApi = Pick<ApiClient, "createCharacter" | "getMyCharacter">
 
 type Props = {
   api: CreateApi
@@ -118,14 +118,29 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
     if (!ready || busy) return
     setBusy(true)
     setNotice(null)
-    try {
-      const character = await api.createCharacter(toCommand(draft))
+    const enter = (character: CharacterView) => {
       setCreated(character)
       passageTimer.current = setTimeout(() => onCreated(character), PassageMilliseconds)
+    }
+    try {
+      enter(await api.createCharacter(toCommand(draft)))
     } catch (error) {
+      // 帳號已經有角色（例如上一次出發其實建好了、只是回應逾時）：讀那個角色，照成功進遊戲
+      const existing =
+        error instanceof ApiError && error.reasons.includes("account-has-character")
+          ? await api.getMyCharacter().catch(() => null)
+          : null
+      if (existing !== null) {
+        enter(existing)
+        return
+      }
       setBusy(false)
       setSay(null)
-      if (error instanceof ApiError && error.status === 409) {
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        !error.reasons.includes("account-has-character")
+      ) {
         // 名字重複：打開名字欄讓玩家改
         setStep("name")
         setNameInput(draft.name ?? "")

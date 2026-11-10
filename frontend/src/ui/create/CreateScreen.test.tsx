@@ -7,7 +7,7 @@ import { CreateScreen } from "./CreateScreen"
 const renderCreate = () =>
   render(
     <CreateScreen
-      api={{ createCharacter: vi.fn() }}
+      api={{ createCharacter: vi.fn(), getMyCharacter: vi.fn() }}
       jobs={makePublicJobs()}
       options={makeCreationOptions()}
       account="newbie"

@@ -63,7 +63,7 @@ test("JobBook_ListsWarriorSkillsWithPrerequisiteAndDescription", () => {
 test("JobBook_PickFillsJobRowAndCloses", async () => {
   render(
     <CreateScreen
-      api={{ createCharacter: vi.fn() }}
+      api={{ createCharacter: vi.fn(), getMyCharacter: vi.fn() }}
       jobs={makePublicJobs()}
       options={makeCreationOptions()}
       account="newbie"

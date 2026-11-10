@@ -42,7 +42,7 @@ export const fallbackDetail = "發生錯誤，請稍後再試"
 export class ApiError extends Error {
   readonly status: number
   readonly detail: string
-  // ProblemDetails 的 reasons 擴充欄位：驗證失敗的原因代碼
+  // ProblemDetails 的 reasons 擴充欄位：驗證失敗（400）與衝突（409）的原因代碼
   readonly reasons: string[]
 
   constructor(status: number, detail: string, reasons: string[] = []) {
