@@ -20,7 +20,8 @@ type Phase =
   | { name: "opening" }
   | { name: "title"; loading: TitleLoading; account: string }
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
-  | { name: "passage"; character: CharacterView }
+  // fromOpening：接在打開網頁的過場背景後面，背景已經在了
+  | { name: "passage"; character: CharacterView; fromOpening: boolean }
   | { name: "game"; character: CharacterView }
 
 type Props = {
@@ -51,7 +52,8 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     [subscribeToSessionExpiry],
   )
 
-  const isLoading = phase.name === "opening" || (phase.name === "title" && phase.loading === "wait")
+  const isOpening = phase.name === "opening"
+  const isLoading = isOpening || (phase.name === "title" && phase.loading === "wait")
   const account = accountOf(phase)
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
           const [jobs, options] = await Promise.all([api.getPublicJobs(), api.getCreationOptions()])
           return { name: "create", jobs, options, account }
         }
-        return { name: "passage", character }
+        return { name: "passage", character, fromOpening: isOpening }
       })
       .then((next) => {
         if (isCurrent) setPhase(next)
@@ -79,7 +81,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     return () => {
       isCurrent = false
     }
-  }, [api, isLoading, account])
+  }, [api, isLoading, isOpening, account])
 
   const passageCharacter = phase.name === "passage" ? phase.character : null
   useEffect(() => {
@@ -113,6 +115,13 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
         </StageFrame>
       )
     case "passage":
+      // 接在打開網頁後面時與 opening 同一個結構，React 沿用同一個背景，只把墨點換成歡迎詞
+      if (phase.fromOpening)
+        return (
+          <StageFrame>
+            <Passage immediate title="歡迎回來" subtitle={phase.character.name} />
+          </StageFrame>
+        )
       return (
         <StageFrame>
           <div className="title title--loading">

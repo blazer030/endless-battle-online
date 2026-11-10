@@ -236,9 +236,32 @@ test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
   expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
   expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
   expect(screen.getByText("青衣")).toBeInTheDocument()
+  // 墨點換成歡迎詞，背後還是過場背景，不是標題的招牌
+  expect(screen.queryByRole("status", { name: "讀取中" })).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole("heading", { name: "無盡戰記 Endless Battle Online" }),
+  ).not.toBeInTheDocument()
   expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
 
   await finishPassage()
+})
+
+// 讀到角色時不換背景：墨點和歡迎詞在同一個過場元素裡，背景不重畫、不閃
+test("App_StoredTokenWithCharacter_KeepsPassageBackdrop", async () => {
+  saveAccessToken("token")
+  let finishLoad: (loaded: CharacterView) => void = () => {}
+  renderApp(
+    createFakeApi({
+      getMyCharacter: vi
+        .fn()
+        .mockReturnValue(new Promise<CharacterView>((resolve) => (finishLoad = resolve))),
+    }),
+  )
+  const backdrop = screen.getByRole("status", { name: "讀取中" }).parentElement
+
+  await act(async () => finishLoad(character))
+
+  expect(screen.getByText("歡迎回來").parentElement).toBe(backdrop)
 })
 
 // 過場停 PassageMilliseconds：差 1 毫秒還在過場，滿了才進遊戲
