@@ -20,7 +20,7 @@ The title screen SHALL show the player's own registry card with an account field
 
 ### Requirement: Register with a blank card
 
-The title screen SHALL show a stack of blank registry cards beside the own card. Tapping the stack SHALL bring a blank card to the front with its own account field, password field, password confirmation field and 登記 seal; tapping the own card SHALL bring it back. When the two passwords differ, pressing 登記 SHALL show 兩次輸入的密碼不一樣 on the blank card and SHALL NOT call the API. Otherwise pressing 登記 SHALL register the account and then sign in with the same account and password. On success the blank card SHALL be sealed with wax and the screen SHALL load the character. When registration fails the blank card SHALL show the API's error detail. When registration succeeds but the sign-in fails, the own card SHALL come to the front with the new account name filled in, an empty password and the failure's error detail, because registering the same account again can only fail.
+The title screen SHALL show a stack of blank registry cards beside the own card. Tapping the stack SHALL bring a blank card to the front with its own account field, password field, password confirmation field and 登記 seal; tapping the own card SHALL bring it back. The 登記 seal SHALL stay disabled until all three fields are filled. When the two passwords differ, pressing 登記 SHALL show 兩次密碼不一樣 on the blank card and SHALL NOT call the API. Otherwise pressing 登記 SHALL register the account and then sign in with the same account and password. On success the blank card SHALL be sealed with wax and the screen SHALL load the character. When registration fails the blank card SHALL show the API's error detail. When registration succeeds but the sign-in fails, the blank card SHALL be sealed and, 0.9 seconds later, the own card SHALL come to the front with the new account name filled in, an empty password and the failure's error detail, because registering the same account again can only fail; 0.6 seconds after that the blank card SHALL be cleared and returned to the stack.
 
 #### Scenario: Account already taken
 
@@ -30,7 +30,7 @@ The title screen SHALL show a stack of blank registry cards beside the own card.
 #### Scenario: Passwords do not match
 
 - **WHEN** the player fills the blank card with the password `secret-one` and the confirmation `secret-two` and presses 登記
-- **THEN** the blank card shows 兩次輸入的密碼不一樣 and no request is sent
+- **THEN** the blank card shows 兩次密碼不一樣 and no request is sent
 
 #### Scenario: Sign-in fails after registering
 
