@@ -226,6 +226,24 @@ test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
   await finishPassage()
 })
 
+// 過場停 PassageMilliseconds：差 1 毫秒還在過場，滿了才進遊戲
+test("App_WelcomePassage_LastsPassageMilliseconds", async () => {
+  // 時鐘不跟真實時間走，機器忙的時候才量得準
+  vi.useFakeTimers({ shouldAdvanceTime: false })
+  saveAccessToken("token")
+  renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
+  // findByText 要等計時器、vi.waitFor 會推時鐘；只用 act 讓讀角色與過場的 effect 跑完，時鐘停在 0
+  for (let flush = 0; flush < 10 && screen.queryByText("歡迎回來") === null; flush++)
+    await act(async () => {})
+  expect(screen.getByText("歡迎回來")).toBeInTheDocument()
+
+  act(() => vi.advanceTimersByTime(PassageMilliseconds - 1))
+  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+
+  act(() => vi.advanceTimersByTime(1))
+  expect(screen.getByText("冒險中：青衣")).toBeInTheDocument()
+})
+
 // 已登入打開網頁、沒角色 → 建角
 test("App_StoredTokenWithoutCharacter_OpensCharacterCreation", async () => {
   saveAccessToken("token")
@@ -279,14 +297,15 @@ test.each([
   expect(readAccessToken()).toBe("token")
 })
 
-// 重試再讀一次角色：登入後讀不到 → 重試成功 → 跟第一次就成功一樣先歡迎回來
+// 重試再讀一次角色：登入後讀不到 → 重試時回到讀取中（字條收起、看不到登記證）→ 成功後跟第一次就成功一樣先歡迎回來
 test("App_RetryRepeatsLoad", async () => {
   const user = setupUser()
+  let finishRetry: (loaded: CharacterView) => void = () => {}
   const api = createFakeApi({
     getMyCharacter: vi
       .fn()
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
-      .mockResolvedValueOnce(character),
+      .mockReturnValueOnce(new Promise<CharacterView>((resolve) => (finishRetry = resolve))),
   })
   renderApp(api)
   await signIn(user)
@@ -294,9 +313,14 @@ test("App_RetryRepeatsLoad", async () => {
   const note = await screen.findByRole("alert", { name: "讀取失敗" })
   await user.click(within(note).getByRole("button", { name: "重試" }))
 
-  expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
+  await vi.waitFor(() => expect(api.getMyCharacter).toHaveBeenCalledTimes(2))
   expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
-  expect(api.getMyCharacter).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
+  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+
+  await act(async () => finishRetry(character))
+
+  expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
 })
 
 test("App_ReturnsToRegistryCards_WhenSessionExpires", async () => {
