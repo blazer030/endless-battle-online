@@ -23,3 +23,4 @@
 - [x] 4.5 實機逐格確認：本機完整 stack 重建後，用本機測試帳號的 token 重新整理頁面，在每一個 animation frame 記錄 DOM 是否出現 `.title-sign`、`.title-desk`、`.title-card`——從載入到進遊戲都必須沒有；截圖第一格（過場背景＋墨點）與歡迎回來；改存一個無效 token 重新整理，回到有登記證的登入頁且 localStorage 沒有 `ebo.accessToken`。測試帳號只建在本機資料庫。[after: 4.4]
 - [x] 4.6 `./scripts/check.sh` exit code 0。[after: 4.5]
 - [x] 4.7 用 SendMessage 通知 EBO-design 在標題設計稿補上「已登入打開網頁：過場背景＋墨點 → 歡迎回來 → 遊戲；失敗回登記證」的狀態，附 4.5 的截圖路徑；驗證：訊息已送出。[after: 4.6]
+- [x] 4.8 依 EBO-design 回覆的 TitleFit v465 同步樣式（樣式不寫測試，截圖確認）：清晨、白天、黃昏的過場背景上，墨點改成 `var(--umber)` 並加 `rgb(var(--glow-rgb) / 0.8)` 的陰影（夜晚維持奶油色）；「歡迎回來」下方小字字型改成 `"Great Vibes", var(--font-serif)`、粗細 700，中文角色名用思源宋體。驗證：白天時段截圖墨點清楚、角色名的 computed font-family 為 Great Vibes＋Noto Serif TC、`cd frontend && pnpm check` 全綠。[after: 4.7]
