@@ -290,148 +290,57 @@ tests:
 ---
 ### Requirement: Load the character before entering
 
-After signing in, after registering, and when the game opens with a stored access token, the screen SHALL enter a loading state that hides the registry cards and, after 0.45 seconds, shows three animated ink dots on the desk. Loading SHALL request the player's character. When a character exists the game SHALL open: after signing in it SHALL first show 歡迎回來 with the account name; when opened with a stored token it SHALL open the game directly. When the account has no character the character creation screen SHALL open. When the request is rejected as unauthorized the stored token SHALL be cleared and the title screen SHALL show the registry cards. Any other failure SHALL show a note reading 公會那邊沒有回音…… with a 重試 seal that repeats the load with the same destination.
+After signing in or registering, the screen SHALL enter a loading state that hides the registry cards and, after 0.45 seconds, shows three animated ink dots on the desk. When the game opens with a stored access token, the first screen SHALL be the passage background of the current time of day with three animated ink dots from the start, and SHALL NOT show the title sign, the desk or the registry cards. Loading SHALL request the player's character. When a character exists the screen SHALL show 歡迎回來 with the character's name over the passage background, and SHALL then open the game; this SHALL be the same whether loading started from signing in, registering or a stored access token. When the account has no character the character creation screen SHALL open. When the game opens with a stored access token and loading fails for any reason, including an unauthorized response, a network error or a server error, the stored token SHALL be cleared and the title screen SHALL show the registry cards with an empty account and no note. After signing in or registering, when the request is rejected as unauthorized the stored token SHALL be cleared and the title screen SHALL show the registry cards; any other failure SHALL show a note reading 公會那邊沒有回音…… with a 重試 seal that repeats the load.
 
 #### Scenario: Opening the game while signed in
 
-- **WHEN** the game opens with a stored access token whose account has a character
-- **THEN** the loading state appears without showing the registry cards and the game opens without the 歡迎回來 transition
+- **WHEN** the game opens with a stored access token whose account has a character named 青衣
+- **THEN** the first screen shows the passage background with ink dots and neither the title sign nor the registry cards, then the ink dots give way to 歡迎回來 with 青衣, and the game opens after the transition
+
+#### Scenario: Opening the game while signed in fails
+
+- **WHEN** the game opens with a stored access token and loading the character fails with a network error
+- **THEN** the stored token is cleared and the title screen shows the registry cards with an empty account and no 讀取失敗 note
+
+#### Scenario: Signing in shows the character name
+
+- **WHEN** the player signs in as ethan and the account has a character named 青衣
+- **THEN** 歡迎回來 appears with 青衣 and not with the account name ethan, and the game opens after the transition
 
 #### Scenario: Load fails and is retried
 
-- **WHEN** loading the character fails with a network error and the player presses 重試
-- **THEN** the note disappears, the loading state returns, and a successful load continues to the same destination as the first attempt
+- **WHEN** after signing in, loading the character fails with a network error and the player presses 重試
+- **THEN** the note disappears, the loading state returns, and a successful load continues as the first attempt would have
 
-##### Example: destination after loading
+##### Example: result after loading
 
-| Started from | Character exists | Result |
+| Started from | Load result | Result |
 | --- | --- | --- |
-| sign in | yes | 歡迎回來 + account name, then game |
-| sign in | no | character creation |
-| register | no | character creation |
-| stored token | yes | game, no transition |
-| stored token | no | character creation |
-| any | request unauthorized | title screen with cards, token cleared |
+| sign in | character exists | 歡迎回來 + character name, then game |
+| sign in | no character | character creation |
+| sign in | unauthorized | title screen with cards, token cleared |
+| sign in | network or server error | note with 重試, token kept |
+| register | no character | character creation |
+| stored token | character exists | passage background with ink dots, then 歡迎回來 + character name, then game |
+| stored token | no character | character creation |
+| stored token | unauthorized, network or server error | title screen with cards and empty account, token cleared, no note |
 
 
 <!-- @trace
-source: title-and-create-screens
-updated: 2026-11-10
+source: welcome-back-on-open
+updated: 2026-11-11
 code:
-  - frontend/src/ui/create/art.ts
-  - frontend/src/game/jobBook.ts
-  - frontend/src/assets/title/bookmark-thief.webp
-  - frontend/src/ui/title/TitleBackdrop.tsx
-  - frontend/src/ui/title/TitleScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Api/Errors/ApplicationExceptionHandler.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/MySqlErrors.cs
-  - frontend/src/assets/title/card-sealed.webp
-  - frontend/src/ui/CharacterScreen.css
-  - frontend/src/ui/screens.css
-  - backend/EndlessBattle.Application/Characters/ICharacterRepository.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/assets/title/element-fire.webp
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - frontend/src/assets/title/element-water.webp
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/title/TitleBackdrop.css
-  - backend/content/skills.json
-  - frontend/src/assets/title/sky-day.webp
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - frontend/src/assets/title/desk-edge.webp
-  - frontend/src/ui/stage/StageFrame.css
-  - frontend/src/assets/title/bookmark-bard.webp
-  - backend/EndlessBattle.Tests/Api/AccountEndpointsTests.cs
-  - docs/art/README.md
-  - frontend/src/assets/title/bubble.webp
-  - frontend/src/assets/title/sky-dawn.webp
-  - frontend/src/ui/CharacterScreen.tsx
-  - frontend/src/ui/create/CreateScreen.css
-  - frontend/src/assets/title/card-blank.webp
-  - frontend/src/ui/AdventureScreen.tsx
-  - backend/EndlessBattle.Domain/Battle/ElementTable.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/assets/title/note.webp
-  - frontend/src/game/creationOptions.ts
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs
-  - .env.nas.local.example
-  - frontend/src/ui/stage/StageFrame.tsx
-  - CLAUDE.md
-  - frontend/index.html
-  - frontend/src/ui/useContentArtUrl.ts
-  - frontend/src/assets/title/sign.webp
-  - frontend/src/game/creationDraft.ts
-  - frontend/src/ui/CreateCharacterScreen.css
-  - frontend/src/assets/title/hall.webp
-  - frontend/src/assets/title/sky-dusk.webp
-  - frontend/src/ui/title/Passage.tsx
-  - frontend/src/ui/create/JobBook.css
-  - frontend/src/ui/title/Seal.tsx
-  - backend/EndlessBattle.Tests/Support/InMemoryCharacterRepository.cs
-  - frontend/src/assets/title/bookmark-sorcerer.webp
-  - frontend/src/assets/title/desk.webp
-  - frontend/src/ui/App.tsx
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/title/element-earth.webp
-  - frontend/src/assets/title/bookmark-warrior.webp
-  - frontend/src/api/client.ts
-  - frontend/src/assets/title/element-wood.webp
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/assets/content-manifest.json
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - docs/superpowers/specs/2026-10-22-wog-remake-rulings.md
-  - frontend/src/ui/create/JobBook.tsx
-  - frontend/src/ui/stage/fitStage.ts
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - scripts/deploy-nas.sh
-  - backend/EndlessBattle.Application/Common/ApplicationExceptions.cs
-  - frontend/src/assets/title/book-page.webp
-  - frontend/src/assets/title/element-poison.webp
-  - frontend/src/game/timeOfDay.ts
-  - frontend/src/assets/title/clerk.webp
-  - backend/EndlessBattle.Api/Program.cs
-  - frontend/src/assets/title/seal.webp
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - frontend/src/assets/title/sky-night.webp
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/ui/create/flavor.ts
-  - frontend/src/ui/title/Passage.css
-  - frontend/src/ui/title/useTimeOfDay.ts
-  - frontend/src/ui/AuthScreen.tsx
-  - frontend/src/ui/title/Seal.css
-  - backend/openapi/EndlessBattle.Api.json
-  - frontend/src/ui/ContentImage.tsx
-  - frontend/src/api/parse.ts
-  - frontend/src/assets/title/element-wind.webp
-  - backend/EndlessBattle.Domain/Characters/CharacterOptions.cs
-  - backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs
-  - backend/EndlessBattle.Application/DependencyInjection.cs
   - frontend/src/motion/timings.ts
+  - frontend/src/ui/title/TitleScreen.tsx
+  - frontend/src/ui/title/InkDots.css
+  - frontend/src/ui/title/InkDots.tsx
+  - frontend/src/ui/title/Passage.css
   - frontend/src/ui/title/TitleScreen.css
+  - frontend/src/ui/App.tsx
+  - frontend/src/ui/title/Passage.tsx
 tests:
-  - frontend/src/api/publicData.test.ts
-  - frontend/src/ui/stage/StageFrame.test.tsx
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/test/fixtures.ts
-  - frontend/src/game/timeOfDay.test.ts
-  - frontend/src/ui/create/JobBook.test.tsx
-  - frontend/src/ui/theme.test.ts
-  - frontend/src/ui/create/CreateScreen.test.tsx
-  - frontend/src/ui/AuthScreen.test.tsx
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/ui/stage/fitStage.test.ts
-  - frontend/src/ui/title/TitleBackdrop.test.tsx
-  - frontend/src/ui/App.test.tsx
   - frontend/src/ui/title/TitleScreen.test.tsx
-  - frontend/src/ui/create/CreateSubmit.test.tsx
+  - frontend/src/ui/App.test.tsx
 -->
 
 ---
