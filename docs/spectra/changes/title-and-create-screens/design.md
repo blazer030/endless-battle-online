@@ -163,8 +163,8 @@ jsdom 不算版面，下面兩個情境用 `pnpm dev`＋無頭 Chrome 在 iframe
 ## 409 原因與註冊補強（2026-11-10 追加，封存前 review）
 
 - 問題（`/spectra-review` 發現）：建角回 409 時前端一律當成名字重複，但後端兩種衝突（帳號已有角色、角色名稱重複）回一樣的 409 與訊息。第一次按出發其實建好了、只是回應逾時，再按就一直說名字重複，玩家卡在建角頁。使用者：「應該是要不同的錯誤代碼比較合理」。
-- 決定：沿用 400 已有的 ProblemDetails `reasons`（原因代碼），`ConflictException` 也能帶原因，`ApplicationExceptionHandler` 對 409 一樣輸出 `reasons`。`CharacterRepository` 依 MySQL duplicate entry 訊息裡的唯一鍵名判斷：`uk_characters_account_id` → `account-has-character`（訊息「此帳號已有角色」），`uk_characters_name` → `character-name-taken`（訊息「角色名稱已被使用」）。HTTP 狀態碼維持 409，不另造狀態碼。考慮過：前端收到任何 409 先讀一次角色再判斷——不用改後端，但多一次請求，而且使用者偏好後端直接說清楚。
-- 前端：`account-has-character` → 讀角色，照建角成功走「踏上旅途」（名字用讀回來的角色名）再進遊戲；讀角色失敗時照送出失敗的台詞處理。其他 409 維持名字重複的台詞與打開名字欄。
+- 決定：沿用 400 已有的 ProblemDetails `reasons`（原因代碼），`ConflictException` 也能帶原因，`ApplicationExceptionHandler` 對 409 一樣輸出 `reasons`。`CharacterRepository` 依 MySQL duplicate entry 訊息裡的唯一鍵名判斷：`uk_characters_account_id` → `accountHasCharacter`（訊息「此帳號已有角色」），`uk_characters_name` → `characterNameTaken`（訊息「角色名稱已被使用」）。HTTP 狀態碼維持 409，不另造狀態碼。原因代碼用駝峰式，跟既有的 `wrongJob`、`bagFull` 等一致（Supersedes 任務 10.1、10.2 描述裡的連字號寫法 `account-has-character`、`character-name-taken`：封存前 review 發現跟專案慣例不一致，使用者 2026-11-10 決定改名；那兩項任務的描述保留原文）。考慮過：前端收到任何 409 先讀一次角色再判斷——不用改後端，但多一次請求，而且使用者偏好後端直接說清楚。
+- 前端：`accountHasCharacter` → 讀角色，照建角成功走「踏上旅途」（名字用讀回來的角色名）再進遊戲；讀角色失敗時照送出失敗的台詞處理。其他 409 維持名字重複的台詞與打開名字欄。
 - 註冊：空白證加「確認密碼」欄，兩次不同時證上寫「兩次密碼不一樣」、不呼叫 API（只在前端檢查，後端註冊 API 不變）。註冊成功但接著登入失敗時，帳號已經建好、再登記只會回「帳號已被使用」，所以換到自己的登記證、帳號填好、密碼留空、錯誤原文寫在自己的證上（使用者：「失敗的時候可以幫忙換到入城那邊然後填上帳號」）。版面：TitleFit v463（EBO-design 2026-11-10）。
   - 兩張證一起重排：欄距 margin-top 10 → 4、欄名 line-height 14、輸入框 padding 1px 2px 2px（字仍 18px），每欄高 46；證內區域 180×252（left／right 28、top 64、bottom 20），三欄在 top 59、109、159。確認密碼欄與錯誤字 margin-right 58，讓開右下「登記」印章（x126、y184、64×64）；錯誤字 13px、margin-top 8 → 4，空白證在 top 209、寬 122 可放兩行，入城證在 top 159、全寬一行（原本 margin-top 8 會壓到入城印章，一起修掉）。
   - 文字「兩次密碼不一樣」（原本建議「兩次輸入的密碼不一樣」，寬 122 時「樣」會單獨換行）；前端檢查、不送請求、印章不做按下動畫；三欄都填了才能按「登記」。

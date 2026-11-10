@@ -133,16 +133,16 @@ Tapping the 職業 row SHALL open the job introduction book showing the first-ti
 
 ### Requirement: Submit or leave character creation
 
-Pressing 出發 SHALL create the character with the filled values. On success the screen SHALL show 踏上旅途 with the character name and then open the game. When the API responds 409 with the reason `account-has-character`, the account already has a character (for example the first press of 出發 succeeded but its response timed out), so the screen SHALL load that character and continue as on success with the loaded character's name. Any other 409 SHALL make 莉瑟 say 哎呀，「<name>」已經有人登記了……換一個名字好嗎？ and the 名字 row SHALL open with the name to edit. When the API responds 400, 莉瑟 SHALL say the API's error detail. Any other failure SHALL make 莉瑟 say 咦，登記簿那邊沒有回應……, keep every filled row, and keep 出發 enabled; tapping a row or pressing 出發 again SHALL replace that line. The 離開 button SHALL ask 登記證還沒填完呢，確定現在就要離開嗎？ with 繼續填寫 and 先離開; 先離開 SHALL clear the stored access token and return to the title screen with the account name on the own card and an empty password.
+Pressing 出發 SHALL create the character with the filled values. On success the screen SHALL show 踏上旅途 with the character name and then open the game. When the API responds 409 with the reason `accountHasCharacter`, the account already has a character (for example the first press of 出發 succeeded but its response timed out), so the screen SHALL load that character and continue as on success with the loaded character's name. Any other 409 SHALL make 莉瑟 say 哎呀，「<name>」已經有人登記了……換一個名字好嗎？ and the 名字 row SHALL open with the name to edit. When the API responds 400, 莉瑟 SHALL say the API's error detail. Any other failure SHALL make 莉瑟 say 咦，登記簿那邊沒有回應……, keep every filled row, and keep 出發 enabled; tapping a row or pressing 出發 again SHALL replace that line. The 離開 button SHALL ask 登記證還沒填完呢，確定現在就要離開嗎？ with 繼續填寫 and 先離開; 先離開 SHALL clear the stored access token and return to the title screen with the account name on the own card and an empty password.
 
 #### Scenario: Name taken
 
-- **WHEN** the player presses 出發 with the name 收尾者 and the API responds 409 with the reason `character-name-taken`
+- **WHEN** the player presses 出發 with the name 收尾者 and the API responds 409 with the reason `characterNameTaken`
 - **THEN** 莉瑟 says 哎呀，「收尾者」已經有人登記了……換一個名字好嗎？ and the 名字 answer is open containing 收尾者
 
 #### Scenario: Account already has a character
 
-- **WHEN** the player presses 出發 again after an earlier press created the character 收尾者 but timed out, and the API responds 409 with the reason `account-has-character`
+- **WHEN** the player presses 出發 again after an earlier press created the character 收尾者 but timed out, and the API responds 409 with the reason `accountHasCharacter`
 - **THEN** the screen loads the character, shows 踏上旅途 with 收尾者, and opens the game
 
 #### Scenario: Network failure keeps the card

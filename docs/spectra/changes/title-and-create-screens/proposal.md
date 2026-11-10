@@ -37,7 +37,7 @@
 
 - Api：新增 `backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs`（`/api/public` 群組，不需驗證）與對應的回應型別；`backend/openapi/` 文件重新產生。
 - Domain：`CharacterFactory` 的配點檢查改成必須剛好 10 點。
-- Application／Infrastructure／Api：`ConflictException` 帶原因代碼，`CharacterRepository` 依撞到的唯一鍵給 `account-has-character` 或 `character-name-taken`，`ApplicationExceptionHandler` 把 409 的原因也放進 ProblemDetails 的 `reasons`。
+- Application／Infrastructure／Api：`ConflictException` 帶原因代碼，`CharacterRepository` 依撞到的唯一鍵給 `accountHasCharacter` 或 `characterNameTaken`，`ApplicationExceptionHandler` 把 409 的原因也放進 ProblemDetails 的 `reasons`。
 - Application：職業與技能公開資料的組裝（技能每級效果摘要沿用 `backend/EndlessBattle.Application/Skills/SkillSummary.cs`）。
 - Tests：`backend/EndlessBattle.Tests` 新增公開 API 的測試；帳號與建角規則補缺少的測試。
 - frontend：`frontend/src/api/`（client、`schema.ts` 重新產生、公開資料的轉換）、`frontend/src/game/`（建角草稿、版面計算、時段等純 TS 模型）、`frontend/src/ui/`（新的標題與建角畫面、`App.tsx` 流程、`theme.css`）、`frontend/index.html`（字型）、`frontend/src/assets/`（設計素材、`content-manifest.json` 加入職業圖示）；刪除 `AuthScreen`、`CreateCharacterScreen` 與其測試。
