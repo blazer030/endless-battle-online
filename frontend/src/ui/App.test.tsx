@@ -216,12 +216,14 @@ test("App_StoredToken_OpensOnPassageBackdropWithInkDots", () => {
   saveAccessToken("token")
   const api = createFakeApi({ getMyCharacter: vi.fn().mockReturnValue(new Promise(() => {})) })
 
-  renderApp(api)
+  const { container } = renderApp(api)
 
   expect(screen.getByRole("status", { name: "讀取中" })).toBeInTheDocument()
   expect(
     screen.queryByRole("heading", { name: "無盡戰記 Endless Battle Online" }),
   ).not.toBeInTheDocument()
+  // 木桌是裝飾、沒有可查的角色，直接看標題的木桌元素在不在
+  expect(container.querySelector(".title-desk")).toBeNull()
   expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
   expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
 })
@@ -310,6 +312,7 @@ test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
   })
 
   expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  expect(ownCard().getByLabelText("帳號")).toHaveValue("")
   expect(readAccessToken()).toBeNull()
   expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
 })
