@@ -88,13 +88,13 @@ python3 $S/canvas.py test forge-open steps.js
 - `-s 舊=>新` 改初始狀態，直接打開要看的畫面；每組要剛好比對到 1 處（比對到多處就改挑更長、唯一的字串）。
 - `shot --size 寬x高` 截不同視窗大小；`strip` 的 `--zoom` 只收整數。
 - `test` 的無頭視窗實際只有 500×757：板子底部 87px 在視窗外，`tap` 在那裡會點空。量底部元素改比對位置。
-- transition／animation 在無頭 Chrome 裡停在起點，會留下看不見卻擋點擊的層。要測整段流程或量最終位置，加 `-s "</style>=>*{transition:none !important;animation:none !important}</style>"`。
+- transition／animation 在無頭瀏覽器（Edge） 裡停在起點，會留下看不見卻擋點擊的層。要測整段流程或量最終位置，加 `-s "</style>=>*{transition:none !important;animation:none !important}</style>"`。
 - 有 `transform`（旋轉、縮放）的元素，量法看要量什麼：
   - 回報 CSS 數值（欄位 top、高度）：用 `offsetTop`／`offsetHeight` 一路加上去，量的是變形前的版面，跟 CSS 寫的值對得上。`getBoundingClientRect` 量到的是旋轉後的外接框，會變大。
   - 檢查有沒有重疊、超出：看截圖，或比對兩個元素的 `getBoundingClientRect`。
 - `test` 的腳本裡可用 `log()`、`q()`、`qa()`、`tap(el)`（在元素中心找實際點到的東西再點）、`swipe(el, dx)`，步驟寫成 `window.STEPS = [[等待毫秒, () => {...}], …]`。
   **要用 `tap`，不要直接 `el.click()`**：3D、疊層會擋住點擊，只有 `tap` 測得出來（帳簿翻開後點不到「闔上」就是這樣漏掉的）。
-- 無頭 Chrome 的虛擬時間會跳過動畫中間。要看動畫某一刻：用 `-s` 在 `</style>` 前加一段 CSS，讓動畫 `animation-play-state: paused` 並把 `animation-delay` 設成負的那個時間點；transition 則直接把屬性寫成那一刻的值。PixiJS 的 ticker 也不會自己跑，要手動呼叫一次 tick 再 `app.render()`。
+- 無頭瀏覽器 的虛擬時間會跳過動畫中間。要看動畫某一刻：用 `-s` 在 `</style>` 前加一段 CSS，讓動畫 `animation-play-state: paused` 並把 `animation-delay` 設成負的那個時間點；transition 則直接把屬性寫成那一刻的值。PixiJS 的 ticker 也不會自己跑，要手動呼叫一次 tick 再 `app.render()`。
 
 ## 發布
 

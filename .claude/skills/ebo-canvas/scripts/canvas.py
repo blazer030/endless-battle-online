@@ -18,15 +18,15 @@
                                           多張截圖並排（可先裁切、放大），方便一次看
   canvas.py check OUT IMG...              去背圖疊在淺色、深色底上，檢查邊緣
   canvas.py test 名稱 SCRIPT.js [--wait 15000]
-                                          把測試腳本注入預覽頁，用無頭 Chrome 跑，印出 log
+                                          把測試腳本注入預覽頁，用無頭 Edge 跑，印出 log
 """
 import argparse, glob, importlib.util, os, re, shutil, socket, subprocess, sys, html as htmlmod
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 WORK = os.environ.get('EBO_DESIGN_WORK', os.path.join(REPO, '.design-work'))
 PORT = 8770  # 專用的埠，不跟其他預覽伺服器撞
-CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-PROFILE = os.path.join(WORK, '.chrome')
+BROWSER = '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+PROFILE = os.path.join(WORK, '.edge')
 MA_PATH = os.path.expanduser('~/.claude/skills/preparing-ai-generated-ui-assets/scripts/magenta_assets.py')
 
 
@@ -98,7 +98,7 @@ def cmd_play(a):
 
 def chrome(args, budget):
     if not serving(): cmd_serve(None)
-    return subprocess.run([CHROME, '--headless=new', f'--user-data-dir={PROFILE}', f'--virtual-time-budget={budget}', *args],
+    return subprocess.run([BROWSER, '--headless=new', f'--user-data-dir={PROFILE}', f'--virtual-time-budget={budget}', *args],
                           capture_output=True, text=True, timeout=180)
 
 
