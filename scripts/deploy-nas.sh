@@ -5,7 +5,7 @@
 # NAS 上的 docker 要 sudo，所以要在自己的終端機執行，中途會問 NAS 的密碼。
 # 只想上傳、改用 Container Manager 重新建置專案 ebo 時，執行時加 < /dev/null：上傳完會停下並以 exit 1 結束。
 # NAS 位置與 Cloudflare Tunnel 的 token 放本機 .env.nas.local（NAS_HOST、NAS_DIR、NAS_TUNNEL_TOKEN，範本 .env.nas.local.example）；
-# 也可用環境變數 EBO_NAS_HOST、EBO_NAS_DIRECTORY 覆寫。EBO_WEB_PORT 只在第一次產生 .env 時生效，之後改 NAS 上的 .env。
+# 也可用環境變數 EBO_NAS_HOST、EBO_NAS_DIRECTORY 覆寫。NAS_HOST 可列好幾個位置（空白隔開，例如區網、Tailscale），用第一個連得上的。EBO_WEB_PORT 只在第一次產生 .env 時生效，之後改 NAS 上的 .env。
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -25,6 +25,27 @@ local_setting() {
 # 優先順序：環境變數 → .env.nas.local → 預設值
 nas_host="${EBO_NAS_HOST:-$(local_setting NAS_HOST)}"
 nas_host="${nas_host:-blazer@192.168.2.216}"
+
+# 列了好幾個位置時，依序用 ssh 金鑰實際登入試，用第一個連得上的；
+# 主機金鑰對不上也算連不上（例如別的網路剛好有同一個區網位址），會換下一個
+pick_reachable_host() {
+    local candidate
+    for candidate in "$@"; do
+        if ssh -o BatchMode=yes -o ConnectTimeout=3 "$candidate" true 2> /dev/null; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+read -r -a nas_host_candidates <<< "$nas_host"
+if (( ${#nas_host_candidates[@]} > 1 )); then
+    if ! nas_host="$(pick_reachable_host "${nas_host_candidates[@]}")"; then
+        echo "連不到 NAS（試過：${nas_host_candidates[*]}）" >&2
+        exit 1
+    fi
+fi
 nas_directory="${EBO_NAS_DIRECTORY:-$(local_setting NAS_DIR)}"
 nas_directory="${nas_directory:-/volume1/docker/ebo}"
 tunnel_token="$(local_setting NAS_TUNNEL_TOKEN)"
