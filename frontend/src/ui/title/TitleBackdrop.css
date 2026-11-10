@@ -30,11 +30,15 @@
   background-image: url("../../assets/title/sky-night.webp");
 }
 
-/* 進城時鏡頭往城鎮推近 */
+/* 進城時鏡頭往城鎮推近；過場時天空是新掛上的元素，transition 不會跑，所以用 animation */
 .title-sky--departing {
-  animation: none;
-  transform: scale(1.2) translateY(40px);
-  transition: transform 1.4s ease-in;
+  animation: title-depart 1.4s ease-in forwards;
+}
+
+@keyframes title-depart {
+  to {
+    transform: scale(1.2) translateY(40px);
+  }
 }
 
 @keyframes title-drift {
