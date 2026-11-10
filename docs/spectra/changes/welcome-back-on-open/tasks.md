@@ -24,3 +24,11 @@
 - [x] 4.6 `./scripts/check.sh` exit code 0。[after: 4.5]
 - [x] 4.7 用 SendMessage 通知 EBO-design 在標題設計稿補上「已登入打開網頁：過場背景＋墨點 → 歡迎回來 → 遊戲；失敗回登記證」的狀態，附 4.5 的截圖路徑；驗證：訊息已送出。[after: 4.6]
 - [x] 4.8 依 EBO-design 回覆的 TitleFit v465 同步樣式（樣式不寫測試，截圖確認）：清晨、白天、黃昏的過場背景上，墨點改成 `var(--umber)` 並加 `rgb(var(--glow-rgb) / 0.8)` 的陰影（夜晚維持奶油色）；「歡迎回來」下方小字字型改成 `"Great Vibes", var(--font-serif)`、粗細 700，中文角色名用思源宋體。驗證：白天時段截圖墨點清楚、角色名的 computed font-family 為 Great Vibes＋Noto Serif TC、`cd frontend && pnpm check` 全綠。[after: 4.7]
+
+> 2026-11-11 使用者決定照 TitleFit v465 補上淡出（見 design.md「打開網頁沒角色或讀取失敗時，過場背景淡出再露出下一個畫面」）。Great Vibes 只有 400、設 700 會假加粗，已交給 EBO-design 決定，回覆後另外同步。
+
+## 5. 打開網頁沒角色或讀取失敗時過場背景淡出
+
+- [x] 5.1 opening 讀取失敗回登記證、或沒角色去建角時，過場背景疊在新畫面上淡出，`PassageLeaveMilliseconds`（900）後移除（Load the character before entering）。先寫失敗測試 `App_StoredTokenLoadFails_FadesPassageOverRegistryCards`（500 失敗：登記證已可用、`.passage` 還在且沒有「讀取中」status；推進 `PassageLeaveMilliseconds` 後 `.passage` 消失）與 `App_StoredTokenWithoutCharacter_FadesPassageOverCreation`（同樣檢查建角畫面）。確認失敗後在 `timings.ts` 加常數、`Passage` 加 `leaving` 模式（`aria-hidden`、墨點不帶 label、`pointer-events: none`、背景 0.6 秒延遲 0.3 秒淡出、墨點 0.2 秒淡出），`App` 在 title／create 階段疊上這層。驗證：`App.test.tsx` 全綠。[after: 4.8]
+- [ ] 5.2 實機逐格確認：本機用無效 token 重新整理，記錄每格 `.passage` 的 computed opacity 與 `.title-card` 是否存在——登記證從第一格就在底下、過場背景約 0.3 秒後開始變淡、約 0.9 秒後移除；截圖淡出中的一格。測試帳號只建在本機資料庫。[after: 5.1]
+- [ ] 5.3 `./scripts/check.sh` exit code 0。[after: 5.2]
