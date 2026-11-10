@@ -5,9 +5,9 @@
 
 ## 2. 移除不再影響結果的去向（結構性變更，單獨 commit）
 
-- [ ] 2.1 讀完角色的結果已不因起點不同，移除 `App` 的 `Destination` 型別與 phase 裡的 `destination` 欄位，`TitleScreen` 的 `onSignedIn` 只傳帳號（拿掉 `login`／`reg` 參數，`SignInRoute` 仍留給登記證切換模式用），並更新 `App.tsx`、`Passage.tsx` 描述過場內容的註解。行為不變：改前改後 `cd frontend && pnpm check` 都全綠，`TitleScreen.test.tsx` 只把 `toHaveBeenCalledWith("ethan", "login")`／`("newbie", "reg")` 改成只帶帳號。以結構性變更單獨 commit。[after: 1.2]
+- [x] 2.1 讀完角色的結果已不因起點不同，移除 `App` 的 `Destination` 型別與 phase 裡的 `destination` 欄位，`TitleScreen` 的 `onSignedIn` 只傳帳號（拿掉 `login`／`reg` 參數，`SignInRoute` 仍留給登記證切換模式用），並更新 `App.tsx`、`Passage.tsx` 描述過場內容的註解。行為不變：改前改後 `cd frontend && pnpm check` 都全綠，`TitleScreen.test.tsx` 只把 `toHaveBeenCalledWith("ethan", "login")`／`("newbie", "reg")` 改成只帶帳號。以結構性變更單獨 commit。[after: 1.2]
 
 ## 3. 驗證
 
-- [ ] 3.1 實機確認：在本機完整 stack（`docker compose --profile app up -d --build` 或 `pnpm dev`）登入一個有角色的測試帳號後重新整理頁面，畫面是標題背景（看不到登記證）→ 歡迎回來＋角色名 → 進遊戲，沒有標題背景一閃就切畫面；清掉 localStorage 的 `ebo.accessToken` 後重新整理，回到有登記證的標題頁。測試帳號只建在本機資料庫。[after: 2.1]
-- [ ] 3.2 `./scripts/check.sh` exit code 0。[after: 3.1]
+- [x] 3.1 實機確認：在本機完整 stack（`docker compose --profile app up -d --build` 或 `pnpm dev`）登入一個有角色的測試帳號後重新整理頁面，畫面是標題背景（看不到登記證）→ 歡迎回來＋角色名 → 進遊戲，沒有標題背景一閃就切畫面；清掉 localStorage 的 `ebo.accessToken` 後重新整理，回到有登記證的標題頁。測試帳號只建在本機資料庫。[after: 2.1]
+- [x] 3.2 `./scripts/check.sh` exit code 0。[after: 3.1]
