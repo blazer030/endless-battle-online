@@ -69,7 +69,7 @@
 
 ### Job list assembly reuses SkillSummary
 
-在 Application 新增公開資料的組裝（例如 `PublicDataService`）：讀 `IGameContent` 的職業、技能與職業技能關聯，技能每級的摘要呼叫 `SkillSummary.Of(level)`，跟技能頁同一份文字。回應欄位用完整名稱（`strength`、`intelligence`、`life`、`vitality`、`agility`、`charisma`、`faith`），成長每項 `{ minimum, maximum }`。不在後端另做「1～10%」這種範圍文字：前端顯示 Lv1 與最高級兩行即可，之後轉職頁要逐級表也能沿用。
+在 Application 新增公開資料的組裝（例如 `PublicDataService`）：讀 `IGameContent` 的職業、技能與職業技能關聯，技能每級的摘要呼叫 `SkillSummary.Of(level)`，跟技能頁同一份文字。回應欄位用完整名稱（`strength`、`intelligence`、`life`、`vitality`、`agility`、`charisma`、`faith`），成長每項 `{ minimum, maximum }`。不在後端另做「1～10%」這種範圍文字：前端顯示 Lv1 與最高級兩行即可，之後轉職頁要逐級表也能沿用（介紹冊的部分已被「技能描述」一節取代：介紹冊不顯示等級摘要，`levels` 留給之後的轉職頁）。
 
 ### Element advantage exposed from ElementTable
 
@@ -81,7 +81,7 @@
 
 ### Stage frame fits a flexible-height stage
 
-新增純函式 `fitStage(width, height)`：`scale = min(width / 390, height / 624)`（不設上限：原本電腦上限 1.25，使用者 2026-11-09 看了大螢幕四邊都補底色後改成一律以較緊的一邊貼滿；設計素材是 2 倍圖，常見螢幕不會超過 2 倍）、`stageHeight = clamp(height / scale, 624, 780)`（原本 683～722，使用者 2026-11-09 放寬）、置中位移。新增元件（例如 `StageFrame`）用 `window.innerWidth/innerHeight`（版面視窗）量視窗、監聽 `resize`，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`；外框另給不帶單位的 `--stage-height`，給要跟高度等比的倍率（建角登記證）用，因為 CSS 長度相除得到數字的寫法還沒有各瀏覽器都支援。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。也考慮過用 `visualViewport`（review 時改掉）：它在雙指放大與鍵盤彈出時會變小，舞台會跟著縮，抵銷放大、鍵盤一出來登記證縮到一半。
+新增純函式 `fitStage(width, height)`：高寬比 ≥ 1.6 時 `scale = width / 390`、`stageHeight = clamp(height / scale, 624, 780)`；比 1.6 扁時 `stageHeight = clamp(height, 624, 780)`、`scale = height / stageHeight`（使用者 2026-11-10 改，見 Context；原本一律 `scale = min(width / 390, height / 624)`）；置中位移。不設倍率上限：原本電腦上限 1.25，使用者 2026-11-09 看了大螢幕四邊都補底色後拿掉；設計素材是 2 倍圖，常見螢幕不會超過 2 倍。高度範圍原本 683～722，使用者 2026-11-09 放寬成 624～780。新增元件（例如 `StageFrame`）用 `window.innerWidth/innerHeight`（版面視窗）量視窗、監聽 `resize`，把舞台設成 `width: 390px; height: var(--stage-h)`、`transform: scale(...)`、`overflow: hidden`。舞台外的空間由外框統一鋪一個背景（先用深色 `#2A1A0C`，之後要換成一張大的靜態背景圖只改外框一處），各畫面不畫延伸背景。版面全部照 TitleFit 以 top／bottom 錨點絕對定位，伸縮的區塊用 `calc(var(--stage-h) - Npx)`；外框另給不帶單位的 `--stage-height`，給要跟高度等比的倍率（建角登記證）用，因為 CSS 長度相除得到數字的寫法還沒有各瀏覽器都支援。`#root` 的 max-width 480 只套舊畫面；新畫面的外框鋪滿視窗、底色 `#2A1A0C`。考慮過：用 CSS `aspect-ratio` 與 container query——縮放字與圖要逐一處理，跟設計稿逐像素對不上。也考慮過用 `visualViewport`（review 時改掉）：它在雙指放大與鍵盤彈出時會變小，舞台會跟著縮，抵銷放大、鍵盤一出來登記證縮到一半。
 
 ### Theme tokens for the new screens
 
@@ -152,3 +152,10 @@
 
 介紹冊的技能改成名稱＋入門／前置＋一行描述。描述寫在 `backend/content/skills.json` 既有的 `description` 欄位（原本全部空字串；公開 API 與技能頁本來就會帶出這個欄位，技能頁也會一起顯示），只補四個初階職業會教的 16 招，其他技能留空、之後再補。描述不寫數字，只說效果的方向（提升什麼、減輕什麼、回復什麼），數字留給技能頁的等級摘要。考慮過：把描述放前端 `flavor.ts`（像職業介紹那樣）——技能頁也需要同一份說明，放內容檔才只有一份。公開 API 照舊回傳最高等級與各級摘要，介紹冊不用但不刪，避免為了顯示改動已定的 API 形狀。
 
+
+## 版面驗收紀錄（2026-11-10，封存前）
+
+jsdom 不算版面，下面兩個情境用 `pnpm dev`＋無頭 Chrome 在 iframe 裡實測（本機測試帳號，沒有角色所以停在建角頁）：
+
+- Narrow phone：360×640 的標題頁與建角頁 `scrollWidth`／`scrollHeight` 都等於視窗（360／640），沒有整頁捲動。
+- Tall phone shows the shared background：412×880 的標題頁與建角頁舞台在 top 28、高 824（倍率 1.0564），外框底色 `rgb(42, 26, 12)`（#2A1A0C），舞台 `overflow: hidden`。
