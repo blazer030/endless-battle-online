@@ -8,7 +8,7 @@
 
 ## Design Source
 
-- 來源：EBO 設計畫布 https://claude.ai/artifact/5cCvccEmyZvkiAeSffazXZ 的板子 `project/TitleFit.dc.html`（畫布 v454，2026-11-09 由 EBO-design 依新比例從 HomeJ 抽出重做，v454 改成能力要分完 10 點才能確定；v456 依舞台 624～780 與建角大廳三成更新、舞台外裁掉只露外框底色；v457 介紹冊技能改成名稱＋入門／前置＋描述（描述由 build.py 讀 `skills.json`）、立繪區 left −12；產生腳本 `.design-work/work/titlefit/build.py`）。流程與台詞同 HomeJ v452。
+- 來源：EBO 設計畫布 https://claude.ai/artifact/5cCvccEmyZvkiAeSffazXZ 的板子 `project/TitleFit.dc.html`（畫布 v454，2026-11-09 由 EBO-design 依新比例從 HomeJ 抽出重做，v454 改成能力要分完 10 點才能確定；v456 依舞台 624～780 與建角大廳三成更新、舞台外裁掉只露外框底色；v457 介紹冊技能改成名稱＋入門／前置＋描述（描述由 build.py 讀 `skills.json`）、立繪區 left −12；v461 「就職」印章移到介紹冊右下角；產生腳本 `.design-work/work/titlefit/build.py`）。流程與台詞同 HomeJ v452。
 - 快取：`.spectra/design-cache/title-and-create-screens/TitleFit.dc.html`（git 忽略）。素材原檔在 `.design-work/assets/<blob id>.*`。
 - 補背景（使用者 2026-11-09 改決定）：TitleFit 各畫面往舞台外延伸的天空、木桌、大廳（上下 80、左右 40）**不實作**；舞台外一律是外框的共用背景（先用深色，之後可換一張大的靜態圖）。表中負的 top／left／right／bottom 一律在舞台邊緣被裁掉。
 - 預覽：`python3 .claude/skills/ebo-canvas/scripts/canvas.py play TitleFit -o tf -s "this.startView = 'title'=>this.startView = '<狀態>'"`，狀態有 title、reg、wait、fail、create、name、stats、book、leave、done、crfail、go；加 `-s "{ marks: false }=>{ marks: true }"` 顯示錨點。截圖 `shot tf --size 2642x970`（v456 起五框：390×624、390×683、390×780、細長 390×848 停在 780 上下補、矮 422×624 停在 624 左右補）。
@@ -35,9 +35,10 @@
 | 建角 | 回答彈窗（紙 `75aeed6c` border-image `140 210 70 60 fill / 28px 42px 14px 12px`）| left/right 14、中心在櫃檯一半（bottom D/2＋translateY(50%)）；壓暗層 top＝H−D−18 到底 `rgba(20,10,4,.55)`；選項四欄格、間距 8；選項 min-height 38、`#F6EBD5`、選中 `#5A3A1C` 字 `#F6EBD5`、確定 `#8A2A1A` |
 | 建角 | 屬性徽章 | 地 `374bc9f4`、水 `9bc2ed53`、火 `df05ace4`、木 `d85235a7`、風 `e8f93fd9`、毒 `9f653c0d`；26×26；三欄兩排 |
 | 介紹冊 | 紙 `dd89ce59`、書籤 戰士 `d702e92f`／術士 `d371eec9`／盜賊 `88b2eedf`／樂手 `2ccfd7be` | 介紹冊 top 206 到底；書籤 44×110 翻轉、往上露到 148，選中多露 20 |
-| 介紹冊 | 頁首 | 職業圖示 30×30、名稱 Noto Serif TC 900 24px、英文 Great Vibes 24px `#8A6A40`；「就職」印章 top 4、right 16 |
+| 介紹冊 | 頁首 | 職業圖示 30×30、名稱 Noto Serif TC 900 24px、英文 Great Vibes 24px `#8A6A40` |
 | 介紹冊 | 立繪區 | top 58、高 190、left −12（原本 −30，使用者 2026-11-09 覺得立繪太偏左、右邊空太多）；右欄 left 160、top 62；定位 13px 700、說明 13px、成長兩欄 Cinzel 12px（最快的 `#8A2A1A`） |
-| 介紹冊 | 技能清單 | top 234 到介紹冊底（約 205～244 高）、內部捲動、下緣淡出 26px、不顯示捲軸；每招一行標題（名稱、入門或「前置 xx LvN」）＋一行描述 13px（技能內容的 `description`）。原本右側「最高 LvN」＋ Lv1 與最高級摘要（作廢，使用者 2026-11-09：介紹冊是讓人大概了解職業特性，還不是練技能的地方） |
+| 介紹冊 | 技能清單 | top 234 到介紹冊底（約 184～340 高）、內部捲動、下緣淡出 26px、不顯示捲軸；每招一行標題（名稱、入門或「前置 xx LvN」）＋一行描述 13px（技能內容的 `description`）。原本右側「最高 LvN」＋ Lv1 與最高級摘要（作廢，使用者 2026-11-09：介紹冊是讓人大概了解職業特性，還不是練技能的地方）。清單底部留 96，捲到底時最後一招停在印章上方 16；遮罩再疊一個圓形挖洞（圓心＝印章中心換成清單座標：距清單右緣 34、距底 46，40～50 淡出）跟下緣淡出取交集，經過印章旁的字淡掉 |
+| 介紹冊 | 「就職」印章 | 固定在介紹冊右下角 right 20、bottom 14、64×64，不在清單裡、不跟著捲動（使用者 2026-11-10：就職要在右下角、不受技能捲動影響；原本 v457 在頁首右邊 top 4、right 16） |
 
 職業圖示（`job-icons`，匯入 R2）：戰士 `62fa0017`、術士 `707f3b3a`、盜賊 `eb722b44`、樂手 `36314e2f`。職業立繪已在 R2 `portraits/job-6～9-male|female`（不照設計稿的 fx 位移，立繪在匯入時已對齊）。
 
