@@ -32,3 +32,5 @@ export const RegisterCardReturnMilliseconds = 600
 export const InkDotsDelaySeconds = 0.45
 // 「歡迎回來」「踏上旅途」過場停留多久再進遊戲
 export const PassageMilliseconds = 2_400
+// 打開網頁沒角色或讀不到時，過場背景疊在下一個畫面上淡出（延遲 0.3 秒＋0.6 秒，與 Passage.css 一致）
+export const PassageLeaveMilliseconds = 900

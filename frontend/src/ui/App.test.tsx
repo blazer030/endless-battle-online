@@ -4,7 +4,11 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
 import type { CharacterView } from "../game/types"
-import { PassageMilliseconds, RegisterSealSettleMilliseconds } from "../motion/timings"
+import {
+  PassageLeaveMilliseconds,
+  PassageMilliseconds,
+  RegisterSealSettleMilliseconds,
+} from "../motion/timings"
 import { makeCharacter, makeCreationOptions, makePublicJobs } from "../test/fixtures"
 import { App, type SessionExpiryListener } from "./App"
 
@@ -294,6 +298,34 @@ test("App_StoredTokenWithoutCharacter_OpensCharacterCreation", async () => {
   expect(await screen.findByText("建立角色")).toBeInTheDocument()
 })
 
+// 打開網頁沒角色 → 建角已在底下，過場背景留在上面淡出，PassageLeaveMilliseconds 後拿掉
+test("App_StoredTokenWithoutCharacter_FadesPassageOverCreation", async () => {
+  saveAccessToken("token")
+  const { container } = renderApp(createFakeApi())
+
+  await screen.findByText("建立角色")
+  expect(container.querySelector(".passage")).not.toBeNull()
+  expect(screen.queryByRole("status", { name: "讀取中" })).not.toBeInTheDocument()
+
+  act(() => vi.advanceTimersByTime(PassageLeaveMilliseconds))
+  expect(container.querySelector(".passage")).toBeNull()
+})
+
+// 打開網頁讀不到 → 登記證已在底下，過場背景留在上面淡出，PassageLeaveMilliseconds 後拿掉
+test("App_StoredTokenLoadFails_FadesPassageOverRegistryCards", async () => {
+  saveAccessToken("token")
+  const { container } = renderApp(
+    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) }),
+  )
+
+  await screen.findByRole("region", { name: "我的冒險者登記證" })
+  expect(container.querySelector(".passage")).not.toBeNull()
+  expect(screen.queryByRole("status", { name: "讀取中" })).not.toBeInTheDocument()
+
+  act(() => vi.advanceTimersByTime(PassageLeaveMilliseconds))
+  expect(container.querySelector(".passage")).toBeNull()
+})
+
 // 讀角色 401 → 清 token、回到登記證（client 收到 401 會清 token 並通知）
 test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
   saveAccessToken("token")
@@ -306,12 +338,14 @@ test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
     }),
   })
 
-  renderApp(api, (listener) => {
+  const { container } = renderApp(api, (listener) => {
     expire = listener
     return () => {}
   })
 
   expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  // 401 由登出通知切回登記證，過場背景一樣淡出
+  expect(container.querySelector(".passage")).not.toBeNull()
   expect(ownCard().getByLabelText("帳號")).toHaveValue("")
   expect(readAccessToken()).toBeNull()
   expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()

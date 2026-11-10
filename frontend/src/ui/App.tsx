@@ -4,7 +4,7 @@ import { ApiError, type ApiClient } from "../api/client"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
 import type { CharacterView } from "../game/types"
-import { PassageMilliseconds } from "../motion/timings"
+import { PassageLeaveMilliseconds, PassageMilliseconds } from "../motion/timings"
 import { AdventureScreen } from "./AdventureScreen"
 import { CreateScreen } from "./create/CreateScreen"
 import { StageFrame } from "./stage/StageFrame"
@@ -51,6 +51,22 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       ),
     [subscribeToSessionExpiry],
   )
+
+  // 打開網頁沒角色或讀不到（含 401 登出通知）：下一個畫面已在底下，過場背景留在上面淡出
+  const [previousPhaseName, setPreviousPhaseName] = useState(phase.name)
+  const [isPassageLeaving, setIsPassageLeaving] = useState(false)
+  if (previousPhaseName !== phase.name) {
+    setPreviousPhaseName(phase.name)
+    setIsPassageLeaving(
+      previousPhaseName === "opening" && (phase.name === "title" || phase.name === "create"),
+    )
+  }
+  useEffect(() => {
+    if (!isPassageLeaving) return
+    const timer = setTimeout(() => setIsPassageLeaving(false), PassageLeaveMilliseconds)
+    return () => clearTimeout(timer)
+  }, [isPassageLeaving])
+  const leavingPassage = isPassageLeaving && <Passage leaving />
 
   const isOpening = phase.name === "opening"
   const isLoading = isOpening || (phase.name === "title" && phase.loading === "wait")
@@ -118,6 +134,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
             }
             onRetry={() => setPhase({ ...phase, loading: "wait" })}
           />
+          {leavingPassage}
         </StageFrame>
       )
     case "passage":
@@ -147,6 +164,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
             onCreated={(character) => setPhase({ name: "game", character })}
             onLeave={() => setPhase(titlePhase(phase.account))}
           />
+          {leavingPassage}
         </StageFrame>
       )
     case "game":
