@@ -41,10 +41,11 @@
   text-shadow: 0 1px 0 rgb(var(--glow-rgb) / 0.8);
 }
 
-/* 拉丁字母用草寫，中文角色名用思源宋體 */
+/* 拉丁字母用草寫（Great Vibes 只有 400，不假加粗），中文角色名用思源宋體 700 */
 .passage small {
   font-family: "Great Vibes", var(--font-serif);
   font-weight: 700;
+  font-synthesis: none;
   font-size: 26px;
   color: var(--wood-deep);
 }
