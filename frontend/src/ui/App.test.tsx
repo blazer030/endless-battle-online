@@ -211,6 +211,21 @@ test("App_LeavingCreation_ReturnsToOwnCardWithAccount", async () => {
   expect(ownCard().getByLabelText("帳號")).toBeEnabled()
 })
 
+// 已登入打開網頁：還沒讀到角色時就停在過場背景＋墨點，看不到招牌、登記證
+test("App_StoredToken_OpensOnPassageBackdropWithInkDots", () => {
+  saveAccessToken("token")
+  const api = createFakeApi({ getMyCharacter: vi.fn().mockReturnValue(new Promise(() => {})) })
+
+  renderApp(api)
+
+  expect(screen.getByRole("status", { name: "讀取中" })).toBeInTheDocument()
+  expect(
+    screen.queryByRole("heading", { name: "無盡戰記 Endless Battle Online" }),
+  ).not.toBeInTheDocument()
+  expect(screen.queryByRole("button", { name: "入城" })).not.toBeInTheDocument()
+  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+})
+
 // 已登入打開網頁、有角色 → 不顯示登記證，跟登入一樣先歡迎回來＋角色名，停一下再進遊戲
 test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
   saveAccessToken("token")

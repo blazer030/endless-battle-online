@@ -14,8 +14,10 @@ import { TitleScreen, type TitleLoading } from "./title/TitleScreen"
 
 export type SessionExpiryListener = (listener: () => void) => () => void
 
-// 讀角色（title 的 loading）不論從登入、註冊或已登入打開網頁開始，結果都一樣：有角色先歡迎回來、沒有就建角
+// 讀角色：登入、註冊後在標題上讀（title 的 loading），已登入打開網頁時停在過場背景上讀（opening）；
+// 結果都一樣：有角色先歡迎回來、沒有就建角
 type Phase =
+  | { name: "opening" }
   | { name: "title"; loading: TitleLoading; account: string }
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
   | { name: "passage"; character: CharacterView }
@@ -33,7 +35,7 @@ const accountOf = (phase: Phase) =>
 
 export const App = ({ api, subscribeToSessionExpiry }: Props) => {
   const [phase, setPhase] = useState<Phase>(() =>
-    readAccessToken() === null ? titlePhase() : { name: "title", loading: "wait", account: "" },
+    readAccessToken() === null ? titlePhase() : { name: "opening" },
   )
 
   // token 失效（任何請求 401）：回到登記證；已經在登記證上（例如密碼打錯）就不動，留著證上的錯誤
@@ -49,7 +51,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     [subscribeToSessionExpiry],
   )
 
-  const isLoading = phase.name === "title" && phase.loading === "wait"
+  const isLoading = phase.name === "opening" || (phase.name === "title" && phase.loading === "wait")
   const account = accountOf(phase)
 
   useEffect(() => {
@@ -90,6 +92,12 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
   }, [passageCharacter])
 
   switch (phase.name) {
+    case "opening":
+      return (
+        <StageFrame>
+          <Passage immediate />
+        </StageFrame>
+      )
     case "title":
       return (
         <StageFrame>
