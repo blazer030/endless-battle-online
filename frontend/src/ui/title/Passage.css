@@ -41,8 +41,10 @@
   text-shadow: 0 1px 0 rgb(var(--glow-rgb) / 0.8);
 }
 
+/* 拉丁字母用草寫，中文角色名用思源宋體 */
 .passage small {
-  font-family: var(--font-script);
+  font-family: "Great Vibes", var(--font-serif);
+  font-weight: 700;
   font-size: 26px;
   color: var(--wood-deep);
 }
@@ -51,6 +53,12 @@
 .passage--night small {
   color: var(--paper);
   text-shadow: 0 1px 3px rgb(var(--night-rgb) / 0.8);
+}
+
+/* 清晨、白天、黃昏的背景蓋了淡米色，奶油色墨點看不見，改成跟歡迎詞同色；夜晚維持原色 */
+.passage:not(.passage--night) .passage-wait i {
+  background: var(--umber);
+  box-shadow: 0 1px 2px rgb(var(--glow-rgb) / 0.8);
 }
 
 .passage--immediate {
