@@ -9,10 +9,10 @@
 
 ## Design Source
 
-- 來源：EBO 設計畫布 https://claude.ai/artifact/5cCvccEmyZvkiAeSffazXZ 的板子 `project/TitleFit.dc.html`（畫布 v454，2026-11-09 由 EBO-design 依新比例從 HomeJ 抽出重做，v454 改成能力要分完 10 點才能確定；v456 依舞台 624～780 與建角大廳三成更新、舞台外裁掉只露外框底色；v457 介紹冊技能改成名稱＋入門／前置＋描述（描述由 build.py 讀 `skills.json`）、立繪區 left −12；v461 「就職」印章移到介紹冊右下角；產生腳本 `.design-work/work/titlefit/build.py`）。流程與台詞同 HomeJ v452。
+- 來源：EBO 設計畫布 https://claude.ai/artifact/5cCvccEmyZvkiAeSffazXZ 的板子 `project/TitleFit.dc.html`（畫布 v454，2026-11-09 由 EBO-design 依新比例從 HomeJ 抽出重做，v454 改成能力要分完 10 點才能確定；v456 依舞台 624～780 與建角大廳三成更新、舞台外裁掉只露外框底色；v457 介紹冊技能改成名稱＋入門／前置＋描述（描述由 build.py 讀 `skills.json`）、立繪區 left −12；v461 「就職」印章移到介紹冊右下角；v462 比 1.6 扁的例子改成 1440×720（框 470×720，只畫中間一段，舞台 720 高），板寬 2690；產生腳本 `.design-work/work/titlefit/build.py`）。流程與台詞同 HomeJ v452。
 - 快取：`.spectra/design-cache/title-and-create-screens/TitleFit.dc.html`（git 忽略）。素材原檔在 `.design-work/assets/<blob id>.*`。
 - 補背景（使用者 2026-11-09 改決定）：TitleFit 各畫面往舞台外延伸的天空、木桌、大廳（上下 80、左右 40）**不實作**；舞台外一律是外框的共用背景（先用深色，之後可換一張大的靜態圖）。表中負的 top／left／right／bottom 一律在舞台邊緣被裁掉。
-- 預覽：`python3 .claude/skills/ebo-canvas/scripts/canvas.py play TitleFit -o tf -s "this.startView = 'title'=>this.startView = '<狀態>'"`，狀態有 title、reg、wait、fail、create、name、stats、book、leave、done、crfail、go；加 `-s "{ marks: false }=>{ marks: true }"` 顯示錨點。截圖 `shot tf --size 2642x970`（v456 起五框：390×624、390×683、390×780、細長 390×848 停在 780 上下補、矮 422×624 停在 624 左右補）。
+- 預覽：`python3 .claude/skills/ebo-canvas/scripts/canvas.py play TitleFit -o tf -s "this.startView = 'title'=>this.startView = '<狀態>'"`，狀態有 title、reg、wait、fail、create、name、stats、book、leave、done、crfail、go；加 `-s "{ marks: false }=>{ marks: true }"` 顯示錨點。截圖 `shot tf --size 2690x970`（v456 起五框：390×624、390×683、390×780、細長 390×848 停在 780 上下補、矮的那格 v462 起改成 470×720（例 1440×720 的中間一段，舞台 720 高、左右各露 40））。
 
 舞台：寬 390、高 H＝624～780；以下單位都是舞台 px，`bottom` 從舞台下緣算。建角的櫃檯露出高度記為 D＝min(0.7H, 502)。
 
