@@ -159,3 +159,11 @@ jsdom 不算版面，下面兩個情境用 `pnpm dev`＋無頭 Chrome 在 iframe
 
 - Narrow phone：360×640 的標題頁與建角頁 `scrollWidth`／`scrollHeight` 都等於視窗（360／640），沒有整頁捲動。
 - Tall phone shows the shared background：412×880 的標題頁與建角頁舞台在 top 28、高 824（倍率 1.0564），外框底色 `rgb(42, 26, 12)`（#2A1A0C），舞台 `overflow: hidden`。
+
+## 409 原因與註冊補強（2026-11-10 追加，封存前 review）
+
+- 問題（`/spectra-review` 發現）：建角回 409 時前端一律當成名字重複，但後端兩種衝突（帳號已有角色、角色名稱重複）回一樣的 409 與訊息。第一次按出發其實建好了、只是回應逾時，再按就一直說名字重複，玩家卡在建角頁。使用者：「應該是要不同的錯誤代碼比較合理」。
+- 決定：沿用 400 已有的 ProblemDetails `reasons`（原因代碼），`ConflictException` 也能帶原因，`ApplicationExceptionHandler` 對 409 一樣輸出 `reasons`。`CharacterRepository` 依 MySQL duplicate entry 訊息裡的唯一鍵名判斷：`uk_characters_account_id` → `account-has-character`（訊息「此帳號已有角色」），`uk_characters_name` → `character-name-taken`（訊息「角色名稱已被使用」）。HTTP 狀態碼維持 409，不另造狀態碼。考慮過：前端收到任何 409 先讀一次角色再判斷——不用改後端，但多一次請求，而且使用者偏好後端直接說清楚。
+- 前端：`account-has-character` → 讀角色，照建角成功走「踏上旅途」（名字用讀回來的角色名）再進遊戲；讀角色失敗時照送出失敗的台詞處理。其他 409 維持名字重複的台詞與打開名字欄。
+- 註冊：空白證加「確認密碼」欄，兩次不同時證上寫「兩次輸入的密碼不一樣」、不呼叫 API（只在前端檢查，後端註冊 API 不變）。註冊成功但接著登入失敗時，帳號已經建好、再登記只會回「帳號已被使用」，所以換到自己的登記證、帳號填好、密碼留空、錯誤原文寫在自己的證上（使用者：「失敗的時候可以幫忙換到入城那邊然後填上帳號」）。版面與文字等 EBO-design 在 TitleFit 補上後記在這裡。
+

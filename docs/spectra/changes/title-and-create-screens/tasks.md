@@ -49,3 +49,10 @@
 ## 9. 寬視窗用較高的舞台（使用者 2026-11-10 追加）
 
 - [x] 9.1 [after: 8.2] 依「Stage size and scale」改比 1.6 扁時的舞台：先在 `frontend/src/ui/stage/fitStage.test.ts` 的範例表加入 414×660（倍率 1、高 660、左右各 12）、1440×720（倍率 1、高 720、左右各 525）、820×1180（倍率 1.5128、高 780、左右各 115），1920×950 改成倍率 1.2179、高 780、左右各 722.5，看測試失敗後再改 `fitStage.ts`（高寬比 ≥ 1.6 照寬度、否則舞台高＝視窗高限 624～780、倍率＝視窗高／舞台高）；專案 `CLAUDE.md` 前端硬規則 2 改寫比 1.6 扁時的規則。驗證：`cd frontend && pnpm check` 通過；`pnpm dev` 在 1920×950 截標題頁，舞台高 780。
+
+## 10. 封存前 review 後補強（使用者 2026-11-10 追加）
+
+- [ ] 10.1 [after: 9.1] 依「One named character per account」讓建角的 409 帶原因代碼：先在 `backend/EndlessBattle.Tests` 的建角 API 測試加兩條失敗測試（同帳號建第二個角色回 409、`reasons` 是 `account-has-character`、detail「此帳號已有角色」；另一個帳號用不同大小寫的同名回 409、`reasons` 是 `character-name-taken`、detail「角色名稱已被使用」），再加一條 `CharacterRepository` 層級的最小重現測試；然後讓 `ConflictException` 可帶原因、`CharacterRepository` 依唯一鍵名給原因、`ApplicationExceptionHandler` 對 409 輸出 `reasons`。驗證：`cd backend && dotnet test --filter-class "*CharacterEndpointsTests"` 與 repository 測試通過、`dotnet build` 後 OpenAPI 與 `schema.ts` 若有變動一併更新。
+- [ ] 10.2 [after: 10.1] 依「Submit or leave character creation」處理 `account-has-character`：先在 `frontend/src/ui/create/CreateScreen.test.tsx` 加失敗測試（出發回 409 `account-has-character` 時讀角色、顯示「踏上旅途」與讀回來的名字、通知進遊戲；回 409 `character-name-taken` 維持名字重複台詞），必要時在 `frontend/src/api/client.test.ts` 確認 409 的 `reasons` 會讀進 `ApiError`，再改 `CreateScreen.tsx`（與 `App.tsx` 的接線）。驗證：`cd frontend && pnpm check` 通過。
+- [ ] 10.3 [after: 10.2] 依「Register with a blank card」與 TitleFit 補上的版面（EBO-design 回報的畫布版本，記進 design.md）改標題頁：空白證加確認密碼欄，兩次不同時證上顯示「兩次輸入的密碼不一樣」且不呼叫 API；註冊成功但登入失敗時換到自己的證、帳號填好、密碼留空、顯示錯誤原文。先在 `frontend/src/ui/title/TitleScreen.test.tsx` 寫這兩個情境的失敗測試，再改 `TitleScreen.tsx`／CSS。驗證：`cd frontend && pnpm check` 通過；`pnpm dev` 在 390×624 與 390×780 截空白證（含錯誤文字），欄位、錯誤、印章不互壓。
+

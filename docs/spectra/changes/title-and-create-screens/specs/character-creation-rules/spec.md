@@ -6,7 +6,7 @@ Character creation rules decide what a new account can choose for its single cha
 
 ### Requirement: One named character per account
 
-`POST /api/characters` SHALL create the signed-in account's only character. The name SHALL be trimmed of surrounding whitespace and SHALL then be 2 to 12 characters, counting each user-perceived character (including a combined emoji) as one; a name that fits that count but exceeds 12 code points SHALL also be rejected. Invalid names SHALL respond 400. Character names SHALL be unique ignoring letter case, and an account SHALL have at most one character; either conflict SHALL respond 409 with the detail 此帳號已有角色，或角色名稱已被使用. `GET /api/characters/me` SHALL respond 404 when the account has no character.
+`POST /api/characters` SHALL create the signed-in account's only character. The name SHALL be trimmed of surrounding whitespace and SHALL then be 2 to 12 characters, counting each user-perceived character (including a combined emoji) as one; a name that fits that count but exceeds 12 code points SHALL also be rejected. Invalid names SHALL respond 400. Character names SHALL be unique ignoring letter case, and an account SHALL have at most one character; either conflict SHALL respond 409, and the response's `reasons` SHALL name which one happened: `account-has-character` with the detail 此帳號已有角色 when the account already has a character, or `character-name-taken` with the detail 角色名稱已被使用 when another character has the name. `GET /api/characters/me` SHALL respond 404 when the account has no character.
 
 #### Scenario: Name is trimmed
 
@@ -16,7 +16,12 @@ Character creation rules decide what a new account can choose for its single cha
 #### Scenario: Second character for the same account
 
 - **WHEN** an account that already has a character creates another
-- **THEN** the API responds 409 and the first character is unchanged
+- **THEN** the API responds 409 with the reason `account-has-character` and the first character is unchanged
+
+#### Scenario: Name used by another account
+
+- **WHEN** a new account creates a character with the name of another account's character in a different letter case
+- **THEN** the API responds 409 with the reason `character-name-taken` and no character is created
 
 ##### Example: name length
 

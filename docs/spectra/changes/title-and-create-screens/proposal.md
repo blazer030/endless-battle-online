@@ -14,6 +14,7 @@
 - 建角頁照 TitleFit 重做：公會櫃檯與接待員莉瑟，玩家自己點登記證的欄位來填（名字、性別、出身、屬性、職業、能力），每一欄打開對應的回答彈窗；職業欄攤開職業介紹冊（立繪依性別、定位、介紹、成長、技能）；六欄都填完「出發」才能按；名字重複時莉瑟說明並打開名字欄；送出失敗時莉瑟說明、內容保留可再按；「離開」先確認，確認後登出回標題、帳號留在登記證上；建角成功的「踏上旅途」過場後進遊戲。
 - 職業立繪改由內容圖清單（R2 `portraits/<職業 id>-male|female`）取得；四個初階職業圖示匯入 R2 `job-icons`；招牌、木桌、登記證、印章、莉瑟、書籤、屬性徽章、四時段背景等轉成設計素材進 `frontend/src/assets/`。
 - **BREAKING（規則）**：改寫前端硬規則 2（版面基準）、3（新增新畫面用的色彩變數）、4（字型加入 Noto Serif TC 900、Great Vibes 等）。推翻舊設計文件 `docs/superpowers/specs/2026-10-21-wog-remake-design.md` §10 的深藍夜色色票與字型（裁定彙整 `docs/superpowers/specs/2026-10-22-wog-remake-rulings.md` 計畫 3 那條「主題與創角規則依 spec §3、§10」中 §10 的部分）；§3.2 的創角規則（10 點、每項至少 1、選項）不變。
+- 封存前 review 後補強（使用者 2026-11-10）：建角的 409 由後端用原因代碼分成「帳號已有角色」與「角色名稱已被使用」，前端遇到前者讀角色進遊戲（第一次出發其實成功但回應逾時時不會卡住）；註冊的空白證加「確認密碼」，兩次不同不送出；註冊成功但接著登入失敗時換到自己的登記證、帳號填好。
 - 舊的 `AuthScreen`、`CreateCharacterScreen` 由新畫面取代並刪除；遊戲頁（`AdventureScreen`）維持現狀。
 - **BREAKING（規則）**：建角能力點數必須剛好分完 10 點才能建立（原本照 WOG 原版，沒分完的點數作廢）；使用者判斷沒分完沒有好處、多半是誤點。後端回 400「能力點數必須剛好分完 10 點」，建角畫面在還有點數時不能確定能力。舊設計文件 `docs/superpowers/specs/2026-10-21-wog-remake-design.md` §3.2 只寫「可分配 10 點、每項至少 1」，這條補上「必須分完」。
 - 補規格：這兩頁依賴的帳號規則（註冊、登入、token 期限）與建角規則（名字、選項、配點、起始狀態）在導入 Spectra 前就做好、沒有規格，這次寫成 `accounts`、`character-creation-rules`（除了上面的配點規則，都描述現況），逐條對照既有測試，缺的補上。
@@ -36,6 +37,7 @@
 
 - Api：新增 `backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs`（`/api/public` 群組，不需驗證）與對應的回應型別；`backend/openapi/` 文件重新產生。
 - Domain：`CharacterFactory` 的配點檢查改成必須剛好 10 點。
+- Application／Infrastructure／Api：`ConflictException` 帶原因代碼，`CharacterRepository` 依撞到的唯一鍵給 `account-has-character` 或 `character-name-taken`，`ApplicationExceptionHandler` 把 409 的原因也放進 ProblemDetails 的 `reasons`。
 - Application：職業與技能公開資料的組裝（技能每級效果摘要沿用 `backend/EndlessBattle.Application/Skills/SkillSummary.cs`）。
 - Tests：`backend/EndlessBattle.Tests` 新增公開 API 的測試；帳號與建角規則補缺少的測試。
 - frontend：`frontend/src/api/`（client、`schema.ts` 重新產生、公開資料的轉換）、`frontend/src/game/`（建角草稿、版面計算、時段等純 TS 模型）、`frontend/src/ui/`（新的標題與建角畫面、`App.tsx` 流程、`theme.css`）、`frontend/index.html`（字型）、`frontend/src/assets/`（設計素材、`content-manifest.json` 加入職業圖示）；刪除 `AuthScreen`、`CreateCharacterScreen` 與其測試。
