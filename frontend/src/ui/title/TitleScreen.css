@@ -143,16 +143,18 @@
   border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
 }
 
+/* 每欄高 46：欄名 14＋間距 2＋輸入框 30；空白證三欄才放得下 */
 .title-field {
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
+  margin-top: 4px;
 }
 
 .title-field > span {
   font-family: var(--font-serif);
   font-weight: 700;
   font-size: 11px;
+  line-height: 14px;
   letter-spacing: 0.3em;
   color: var(--umber-faded);
 }
@@ -161,7 +163,7 @@
   width: 100%;
   box-sizing: border-box;
   margin: 2px 0 0;
-  padding: 2px 2px 3px;
+  padding: 1px 2px 2px;
   border: 0;
   border-bottom: 1.5px dotted rgb(var(--umber-rgb) / 0.75);
   border-radius: 0;
@@ -183,10 +185,16 @@
 }
 
 .title-error {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   font-size: 13px;
   line-height: 1.4;
   color: var(--error-red);
+}
+
+/* 空白證的確認密碼與錯誤字讓開右下的「登記」印章 */
+.title-card--blank .title-field--confirm,
+.title-card--blank .title-error {
+  margin-right: 58px;
 }
 
 /* 紅印章：自己那張在左下（右下是蠟封）、空白證在右下（蓋上就成了蠟封） */

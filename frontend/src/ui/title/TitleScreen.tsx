@@ -2,7 +2,11 @@ import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } f
 import { ApiError, fallbackDetail, type ApiClient } from "../../api/client"
 import cardBlank from "../../assets/title/card-blank.webp"
 import cardSealed from "../../assets/title/card-sealed.webp"
-import { InkDotsDelaySeconds, RegisterSealSettleMilliseconds } from "../../motion/timings"
+import {
+  InkDotsDelaySeconds,
+  RegisterCardReturnMilliseconds,
+  RegisterSealSettleMilliseconds,
+} from "../../motion/timings"
 import { Seal } from "./Seal"
 import { TitleBackdrop } from "./TitleBackdrop"
 import "./TitleScreen.css"
@@ -23,9 +27,12 @@ type Props = {
   onRetry: () => void
 }
 
-type Card = { user: string; pass: string; error: string | null }
+// confirmation 只有空白證（註冊）用
+type Card = { user: string; pass: string; confirmation: string; error: string | null }
 
-const emptyCard: Card = { user: "", pass: "", error: null }
+const emptyCard: Card = { user: "", pass: "", confirmation: "", error: null }
+
+const passwordMismatch = "兩次密碼不一樣"
 
 const errorText = (error: unknown) => (error instanceof ApiError ? error.detail : fallbackDetail)
 
@@ -63,16 +70,36 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
 
   // 註冊後用同一組帳密登入；成功就蓋上蠟封，停一下再讀角色
   const register = async () => {
-    if (isLocked || sealed || blank.user === "" || blank.pass === "") return
-    const { user, pass } = blank
+    if (isLocked || sealed || blank.user === "" || blank.pass === "" || blank.confirmation === "")
+      return
+    const { user, pass, confirmation } = blank
+    if (pass !== confirmation) {
+      setBlank((card) => ({ ...card, error: passwordMismatch }))
+      return
+    }
     setBusy(true)
     setBlank((card) => ({ ...card, error: null }))
     try {
       await api.register(user, pass)
-      await api.login(user, pass)
     } catch (error) {
       setBusy(false)
       setBlank((card) => ({ ...card, error: errorText(error) }))
+      return
+    }
+    try {
+      await api.login(user, pass)
+    } catch (error) {
+      // 帳號已經建好，再登記只會回「帳號已被使用」：蓋好蠟封後換到自己那張證、帳號填好，空白證清空放回那疊
+      setBusy(false)
+      setSealed(true)
+      settleTimer.current = setTimeout(() => {
+        setMode("login")
+        setOwn({ ...emptyCard, user, error: errorText(error) })
+        settleTimer.current = setTimeout(() => {
+          setSealed(false)
+          setBlank(emptyCard)
+        }, RegisterCardReturnMilliseconds)
+      }, RegisterSealSettleMilliseconds)
       return
     }
     setBusy(false)
@@ -200,6 +227,19 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
               onKeyDown={onEnter(() => void register())}
             />
           </label>
+          <label className="title-field title-field--confirm">
+            <span>確認密碼</span>
+            <input
+              type="password"
+              value={blank.confirmation}
+              autoComplete="new-password"
+              disabled={!isRegistering || isLocked || sealed}
+              onChange={(event) =>
+                setBlank({ ...blank, confirmation: event.target.value, error: null })
+              }
+              onKeyDown={onEnter(() => void register())}
+            />
+          </label>
           {blank.error !== null && (
             <p className="title-error" role="alert">
               {blank.error}
@@ -207,7 +247,9 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
           )}
           <Seal
             label="登記"
-            disabled={blank.user === "" || blank.pass === "" || busy || sealed}
+            disabled={
+              blank.user === "" || blank.pass === "" || blank.confirmation === "" || busy || sealed
+            }
             onClick={() => void register()}
           />
         </div>

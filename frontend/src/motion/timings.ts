@@ -26,6 +26,8 @@ export const BuffTickMilliseconds = 30_000
 export const TimeOfDayRefreshMilliseconds = 60_000
 // 註冊成功蓋上蠟封後，停這麼久再開始讀角色
 export const RegisterSealSettleMilliseconds = 900
+// 註冊成功但登入失敗、換回自己那張證後，空白證停這麼久再清空放回那疊（兩張證互換的動畫 0.55 秒）
+export const RegisterCardReturnMilliseconds = 600
 // 讀角色時，過這麼久還沒好才浮出墨點，快的時候不閃
 export const InkDotsDelaySeconds = 0.45
 // 「歡迎回來」「踏上旅途」過場停留多久再進遊戲
