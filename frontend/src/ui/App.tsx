@@ -18,7 +18,7 @@ export type SessionExpiryListener = (listener: () => void) => () => void
 type Phase =
   | { name: "title"; loading: TitleLoading; account: string }
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
-  | { name: "passage"; title: string; subtitle: string; character: CharacterView }
+  | { name: "passage"; character: CharacterView }
   | { name: "game"; character: CharacterView }
 
 type Props = {
@@ -63,7 +63,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
           const [jobs, options] = await Promise.all([api.getPublicJobs(), api.getCreationOptions()])
           return { name: "create", jobs, options, account }
         }
-        return { name: "passage", title: "歡迎回來", subtitle: character.name, character }
+        return { name: "passage", character }
       })
       .then((next) => {
         if (isCurrent) setPhase(next)
@@ -110,7 +110,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
           <div className="title title--loading">
             <TitleBackdrop departing />
           </div>
-          <Passage title={phase.title} subtitle={phase.subtitle} />
+          <Passage title="歡迎回來" subtitle={phase.character.name} />
         </StageFrame>
       )
     case "create":
