@@ -58,6 +58,29 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         Assert.IsType<DbUpdateException>(character.InnerException, exactMatch: false);
     }
 
+    // 建角撞唯一鍵時依撞到哪一個鍵給原因：帳號已有角色、角色名稱已被使用
+    [Fact]
+    public async Task AddAsync_ConflictNamesWhichKeyWasTaken()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = DateTimeOffset.UtcNow;
+        var name = UniqueName("原因");
+        await using var context = database.CreateDbContext();
+        var accountId = await new AccountRepository(context).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        var otherAccountId = await new AccountRepository(context).AddAsync(ApiClientExtensions.NewUsername(), "hash", now, cancellationToken);
+        await new CharacterRepository(context).AddAsync(TestCharacters.Default(accountId, name, 1, 1, now), cancellationToken);
+
+        await using var secondContext = database.CreateDbContext();
+        var secondCharacter = await Assert.ThrowsAsync<ConflictException>(() => new CharacterRepository(secondContext).AddAsync(
+            TestCharacters.Default(accountId, UniqueName("原因"), 1, 1, now), cancellationToken));
+        await using var nameContext = database.CreateDbContext();
+        var takenName = await Assert.ThrowsAsync<ConflictException>(() => new CharacterRepository(nameContext).AddAsync(
+            TestCharacters.Default(otherAccountId, name, 1, 1, now), cancellationToken));
+
+        Assert.Equal(["account-has-character"], secondCharacter.Reasons);
+        Assert.Equal(["character-name-taken"], takenName.Reasons);
+    }
+
     // 每個欄位都用和資料庫預設值不同的值，漏對應的欄位才會被抓到
     [Fact]
     public async Task AddAsync_RoundTripsAllColumns()

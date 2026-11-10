@@ -24,9 +24,15 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
         }
 
         var problemDetails = new ProblemDetails { Status = status, Title = title, Detail = exception.Message };
-        if (exception is InputValidationException { Reasons.Count: > 0 } validation)
+        var reasons = exception switch
         {
-            problemDetails.Extensions["reasons"] = validation.Reasons;
+            InputValidationException validation => validation.Reasons,
+            ConflictException conflict => conflict.Reasons,
+            _ => [],
+        };
+        if (reasons.Count > 0)
+        {
+            problemDetails.Extensions["reasons"] = reasons;
         }
 
         httpContext.Response.StatusCode = status;
