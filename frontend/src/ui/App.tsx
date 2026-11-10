@@ -10,15 +10,13 @@ import { CreateScreen } from "./create/CreateScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { Passage } from "./title/Passage"
 import { TitleBackdrop } from "./title/TitleBackdrop"
-import { TitleScreen, type SignInRoute, type TitleLoading } from "./title/TitleScreen"
+import { TitleScreen, type TitleLoading } from "./title/TitleScreen"
 
 export type SessionExpiryListener = (listener: () => void) => () => void
 
-// 讀完角色要去哪：login 登入（有角色先歡迎回來）、reg 註冊（去建角）、open 已登入的人打開網頁（有角色直接進遊戲）
-type Destination = SignInRoute | "open"
-
+// 讀角色（title 的 loading）不論從登入、註冊或已登入打開網頁開始，結果都一樣：有角色先歡迎回來、沒有就建角
 type Phase =
-  | { name: "title"; loading: TitleLoading; destination: Destination; account: string }
+  | { name: "title"; loading: TitleLoading; account: string }
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
   | { name: "passage"; title: string; subtitle: string; character: CharacterView }
   | { name: "game"; character: CharacterView }
@@ -28,21 +26,14 @@ type Props = {
   subscribeToSessionExpiry: SessionExpiryListener
 }
 
-const titlePhase = (account = ""): Phase => ({
-  name: "title",
-  loading: null,
-  destination: "login",
-  account,
-})
+const titlePhase = (account = ""): Phase => ({ name: "title", loading: null, account })
 
 const accountOf = (phase: Phase) =>
   phase.name === "title" || phase.name === "create" ? phase.account : ""
 
 export const App = ({ api, subscribeToSessionExpiry }: Props) => {
   const [phase, setPhase] = useState<Phase>(() =>
-    readAccessToken() === null
-      ? titlePhase()
-      : { name: "title", loading: "wait", destination: "open", account: "" },
+    readAccessToken() === null ? titlePhase() : { name: "title", loading: "wait", account: "" },
   )
 
   // token 失效（任何請求 401）：回到登記證；已經在登記證上（例如密碼打錯）就不動，留著證上的錯誤
@@ -59,7 +50,6 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
   )
 
   const isLoading = phase.name === "title" && phase.loading === "wait"
-  const destination = phase.name === "title" ? phase.destination : "open"
   const account = accountOf(phase)
 
   useEffect(() => {
@@ -82,12 +72,12 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
         if (!isCurrent) return
         // 401 已由 client 清掉 token 並通知登出；其他失敗（斷線、5xx）攤字條讓玩家重試
         if (error instanceof ApiError && error.status === 401) setPhase(titlePhase(account))
-        else setPhase({ name: "title", loading: "fail", destination, account })
+        else setPhase({ name: "title", loading: "fail", account })
       })
     return () => {
       isCurrent = false
     }
-  }, [api, isLoading, destination, account])
+  }, [api, isLoading, account])
 
   const passageCharacter = phase.name === "passage" ? phase.character : null
   useEffect(() => {
@@ -107,8 +97,8 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
             api={api}
             initialAccount={phase.account}
             loading={phase.loading}
-            onSignedIn={(signedIn, route) =>
-              setPhase({ name: "title", loading: "wait", destination: route, account: signedIn })
+            onSignedIn={(signedIn) =>
+              setPhase({ name: "title", loading: "wait", account: signedIn })
             }
             onRetry={() => setPhase({ ...phase, loading: "wait" })}
           />

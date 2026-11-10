@@ -68,7 +68,7 @@ test("TitleScreen_SignsInWithEnter", async () => {
   await user.type(ownCard().getByLabelText("密碼"), "abcdefgh{Enter}")
 
   expect(api.login).toHaveBeenCalledWith("ethan", "abcdefgh")
-  await vi.waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("ethan", "login"))
+  await vi.waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("ethan"))
 })
 
 test("TitleScreen_ShowsAccountTakenOnBlankCard", async () => {
@@ -93,7 +93,7 @@ test("TitleScreen_RegisterThenSignsInWithSameAccount", async () => {
 
   expect(api.register).toHaveBeenCalledWith("newbie", "abcdefgh")
   await vi.waitFor(() => expect(api.login).toHaveBeenCalledWith("newbie", "abcdefgh"))
-  await vi.waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("newbie", "reg"), {
+  await vi.waitFor(() => expect(onSignedIn).toHaveBeenCalledWith("newbie"), {
     timeout: 2000,
   })
   // 蓋上蠟封後不能再登記一次

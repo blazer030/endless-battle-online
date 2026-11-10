@@ -16,14 +16,15 @@ export type TitleApi = Pick<ApiClient, "login" | "register">
 // 讀角色：wait 等待中、fail 讀不到（字條＋重試）；null 是平常的標題
 export type TitleLoading = null | "wait" | "fail"
 
-export type SignInRoute = "login" | "reg"
+// 桌上正在用哪張證：login 自己那張、reg 空白證
+type SignInRoute = "login" | "reg"
 
 type Props = {
   api: TitleApi
   // 自己那張登記證預先填好的帳號（例如剛註冊完離開建角）
   initialAccount?: string
   loading: TitleLoading
-  onSignedIn: (account: string, route: SignInRoute) => void
+  onSignedIn: (account: string) => void
   onRetry: () => void
 }
 
@@ -61,7 +62,7 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
     try {
       await api.login(own.user, own.pass)
       setBusy(false)
-      onSignedIn(own.user, "login")
+      onSignedIn(own.user)
     } catch (error) {
       setBusy(false)
       setOwn((card) => ({ ...card, error: errorText(error) }))
@@ -105,7 +106,7 @@ export const TitleScreen = ({ api, initialAccount = "", loading, onSignedIn, onR
     setBusy(false)
     setSealed(true)
     setOwn({ ...emptyCard, user })
-    settleTimer.current = setTimeout(() => onSignedIn(user, "reg"), RegisterSealSettleMilliseconds)
+    settleTimer.current = setTimeout(() => onSignedIn(user), RegisterSealSettleMilliseconds)
   }
 
   const pick = (next: SignInRoute) => {

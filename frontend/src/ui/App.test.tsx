@@ -279,8 +279,8 @@ test.each([
   expect(readAccessToken()).toBe("token")
 })
 
-// 重試沿用第一次的目的地：登入後讀不到 → 重試成功 → 一樣先歡迎回來
-test("App_RetryRepeatsLoadWithSameDestination", async () => {
+// 重試再讀一次角色：登入後讀不到 → 重試成功 → 跟第一次就成功一樣先歡迎回來
+test("App_RetryRepeatsLoad", async () => {
   const user = setupUser()
   const api = createFakeApi({
     getMyCharacter: vi
