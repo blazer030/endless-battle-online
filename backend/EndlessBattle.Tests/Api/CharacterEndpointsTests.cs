@@ -245,7 +245,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
         var (detail, reasons) = await ConflictOf(second);
         Assert.Equal("此帳號已有角色", detail);
-        Assert.Equal(["account-has-character"], reasons);
+        Assert.Equal(["accountHasCharacter"], reasons);
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.StartsWith("初", me.GetProperty("name").GetString());
     }
@@ -264,7 +264,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         var (detail, reasons) = await ConflictOf(duplicate);
         Assert.Equal("角色名稱已被使用", detail);
-        Assert.Equal(["character-name-taken"], reasons);
+        Assert.Equal(["characterNameTaken"], reasons);
     }
 
     // spec 名字長度範例表的「艾倫」與「12 個中文字」列；名字要唯一，用隨機漢字

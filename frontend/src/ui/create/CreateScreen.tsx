@@ -127,7 +127,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
     } catch (error) {
       // 帳號已經有角色（例如上一次出發其實建好了、只是回應逾時）：讀那個角色，照成功進遊戲
       const existing =
-        error instanceof ApiError && error.reasons.includes("account-has-character")
+        error instanceof ApiError && error.reasons.includes("accountHasCharacter")
           ? await api.getMyCharacter().catch(() => null)
           : null
       if (existing !== null) {
@@ -139,7 +139,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
       if (
         error instanceof ApiError &&
         error.status === 409 &&
-        !error.reasons.includes("account-has-character")
+        !error.reasons.includes("accountHasCharacter")
       ) {
         // 名字重複：打開名字欄讓玩家改
         setStep("name")
