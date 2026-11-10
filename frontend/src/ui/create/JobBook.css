@@ -115,11 +115,10 @@
   color: var(--umber-faded);
 }
 
-/* 「就職」印章在頁首右邊，不壓到技能清單 */
+/* 「就職」印章固定在介紹冊右下角，不跟著技能清單捲動 */
 .job-book-page .seal {
-  top: 4px;
-  right: 16px;
-  bottom: auto;
+  right: 20px;
+  bottom: 14px;
 }
 
 /* 立繪：畫在紙上，右緣與下緣淡出；立繪匯入時已置中、腳底對齊 */
@@ -218,7 +217,8 @@
   color: var(--seal-red);
 }
 
-/* 技能：每招名稱、入門或前置，下面一行描述；清單貼介紹冊下緣、高度伸縮，放不下時在清單內捲動、下緣淡出 */
+/* 技能：每招名稱、入門或前置，下面一行描述；清單貼介紹冊下緣、高度伸縮，放不下時在清單內捲動、下緣淡出。
+   底下留 96 讓最後一招捲到底時停在印章上方；印章旁挖一個圓形淡出，經過的字不壓在印章下面（圓心＝印章中心換成清單座標） */
 .job-book-skills {
   position: absolute;
   left: 28px;
@@ -233,14 +233,21 @@
   flex: 1;
   min-height: 0;
   margin: 6px 0 0;
-  padding: 0 2px 16px 0;
+  padding: 0 2px 96px 0;
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 9px;
   overflow-y: auto;
   scrollbar-width: none;
-  mask: linear-gradient(180deg, rgb(var(--shade-rgb)) calc(100% - 26px), transparent);
+  mask:
+    linear-gradient(180deg, rgb(var(--shade-rgb)) calc(100% - 26px), transparent),
+    radial-gradient(
+      circle at calc(100% - 34px) calc(100% - 46px),
+      transparent 40px,
+      rgb(var(--shade-rgb)) 50px
+    );
+  mask-composite: intersect;
 }
 
 .job-book-skills ul::-webkit-scrollbar {
