@@ -36,3 +36,29 @@ export const parseArray = <T>(
   if (!Array.isArray(value)) throw new ParseError(path, "陣列")
   return value.map((item, index) => parseItem(item, `${path}[${index}]`))
 }
+
+export const parseBoolean = (value: unknown, path: string): boolean => {
+  if (typeof value !== "boolean") throw new ParseError(path, "布林值")
+  return value
+}
+
+export const parseNullableNumber = (value: unknown, path: string): number | null =>
+  value === null ? null : parseNumber(value, path)
+
+export const parseOneOf = <const T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  path: string,
+): T => {
+  const found = allowed.find((candidate) => candidate === value)
+  if (found === undefined) throw new ParseError(path, `${allowed.join("、")} 之一`)
+  return found
+}
+
+// ISO 8601 時間字串轉成 Date；格式錯誤或不是文字都丟出 ParseError
+export const parseTimestamp = (value: unknown, path: string): Date => {
+  const text = parseString(value, path)
+  const date = new Date(text)
+  if (Number.isNaN(date.getTime())) throw new ParseError(path, "時間")
+  return date
+}
