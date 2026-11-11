@@ -15,10 +15,10 @@ import {
   validateLoadout,
 } from "./skills"
 import type { SlotDraft } from "./skills"
-import type { JobOption, SkillOverview, SkillView } from "./types"
-import { makeJob } from "../test/fixtures"
+import type { JobChoiceVo, Skill, SkillOverviewVo } from "./skillOverview"
+import { makeJobChoice } from "../test/fixtures"
 
-const skill = (overrides: Partial<SkillView>): SkillView => ({
+const skill = (overrides: Partial<Skill>): Skill => ({
   id: "burst",
   name: "爆氣",
   slotType: "Active",
@@ -33,7 +33,7 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   ...overrides,
 })
 
-const overview: SkillOverview = {
+const overview: SkillOverviewVo = {
   jobId: "warrior",
   skillPoints: 0,
   skills: [
@@ -129,14 +129,8 @@ describe("skills", () => {
   })
 
   it("markCurrentJob_MovesCurrentAndSameJobToTheNewJob", () => {
-    const option = (id: string, current: boolean, reasons: string[]): JobOption => ({
-      ...makeJob({ id }),
-      parentName: null,
-      current,
-      proficiencyPercent: 0,
-      eligible: reasons.length === 0,
-      reasons,
-    })
+    const option = (id: string, current: boolean, reasons: string[]): JobChoiceVo =>
+      makeJobChoice({ id, current, eligible: reasons.length === 0, reasons })
     const jobs = [
       option("warrior", true, ["sameJob"]),
       option("thief", false, []),

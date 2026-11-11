@@ -1,5 +1,5 @@
 import { statLabel } from "./stats"
-import type { JobOption, SkillOverview, SkillSlotCommand, SkillView } from "./types"
+import type { JobChoiceVo, Skill, SkillOverviewVo, SkillSlotCommand } from "./skillOverview"
 
 // 與後端 SkillLoadout 相同：1～3 主動欄、4～5 被動欄；兩種欄位都不限職業，規則相同、只差欄位
 export type SlotNumber = 1 | 2 | 3 | 4 | 5
@@ -15,7 +15,7 @@ const allSlots: readonly SlotNumber[] = [...ActiveSlots, ...PassiveSlots]
 export const isActiveSlot = (slot: number) => ActiveSlots.some((active) => active === slot)
 const isPassiveSlot = (slot: number) => PassiveSlots.some((passive) => passive === slot)
 
-export const draftsFrom = (overview: SkillOverview): SlotDraft[] =>
+export const draftsFrom = (overview: SkillOverviewVo): SlotDraft[] =>
   allSlots.map((slot) => ({
     slot,
     skillId: overview.slots.find((entry) => entry.slot === slot)?.skillId ?? null,
@@ -34,13 +34,13 @@ export const clearSlot = (drafts: SlotDraft[], slot: SlotNumber) =>
   updateSlot(drafts, slot, (draft) => ({ ...draft, skillId: null }))
 
 // 命中後、回合結束才發動的技能在效果文字前標出時機；出手前是預設，不標
-export const timingText = (timing: SkillView["timing"]): string | null =>
+export const timingText = (timing: Skill["timing"]): string | null =>
   timing === "AfterHit" ? "命中後" : timing === "RoundEnd" ? "回合結束" : null
 
 // 主動欄裝入技能目前等級的效果文字；空欄、找不到技能、未學或被動欄回傳 null
 export const equippedSummary = (
   drafts: SlotDraft[],
-  overview: SkillOverview,
+  overview: SkillOverviewVo,
   slot: SlotNumber,
 ): string | null => {
   if (!isActiveSlot(slot)) return null
@@ -53,7 +53,7 @@ export const toSlotCommands = (drafts: SlotDraft[]): SkillSlotCommand[] =>
   drafts.flatMap(({ slot, skillId }) => (skillId === null ? [] : [{ slot, skillId }]))
 
 // 鏡射後端 SkillLoadout.Validate：代碼與順序相同，送出前就能顯示原因
-export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverview): string[] => {
+export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverviewVo): string[] => {
   const reasons: string[] = []
   const seenSlots = new Set<number>()
   const seenSkills = new Set<string>()
@@ -109,7 +109,7 @@ const Prerequisite = "prerequisite"
 
 // 技能卡上的未達成原因：前置技能寫出名稱與要求等級
 export const learnReasonTextOf =
-  ({ prerequisite }: SkillView) =>
+  ({ prerequisite }: Skill) =>
   (code: string) =>
     code === Prerequisite && prerequisite !== null
       ? `前置技能：${prerequisite.name} Lv ${prerequisite.level}`
@@ -127,7 +127,7 @@ export const slotReasonText = translate({
 const SameJob = "sameJob"
 
 // 轉職成功但列表沒能重新載入時，在本地改標目前職業；其他條件沿用上次的判定
-export const markCurrentJob = (jobs: JobOption[], currentJobId: string): JobOption[] =>
+export const markCurrentJob = (jobs: JobChoiceVo[], currentJobId: string): JobChoiceVo[] =>
   jobs.map((job) => {
     const isCurrent = job.id === currentJobId
     const others = job.reasons.filter((code) => code !== SameJob)

@@ -4,6 +4,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Jobs;
 using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Content;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -41,10 +42,21 @@ public static class JobEndpoints
         option.ParentName,
         option.UnlockLevel,
         option.ProficiencyRequired,
-        option.StatRequirements.Select(requirement => new StatRequirementContent(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
-        ContentEndpoints.ToGrowthContent(option.Growth),
+        option.StatRequirements.Select(requirement => new JobStatRequirementResponse(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
+        ToResponse(option.Growth),
         option.Current,
         option.ProficiencyPercent,
         option.Eligible,
         option.Reasons);
+
+    private static JobGrowthResponse ToResponse(JobGrowth growth) => new(
+        ToResponse(growth.Strength),
+        ToResponse(growth.Intelligence),
+        ToResponse(growth.Life),
+        ToResponse(growth.Vitality),
+        ToResponse(growth.Agility),
+        ToResponse(growth.Charisma),
+        ToResponse(growth.Faith));
+
+    private static GrowthRangeResponse ToResponse(StatRange range) => new(range.Minimum, range.Maximum);
 }

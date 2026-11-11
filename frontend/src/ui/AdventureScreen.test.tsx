@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
-import type { ContentNames, JobOption, SkillOverview } from "../game/types"
+import type { ContentNames } from "../game/types"
+import type { JobChoiceVo, SkillOverviewVo } from "../game/skillOverview"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
@@ -11,14 +12,14 @@ import {
   makeCharacter,
   makeContent,
   makeHonourShop,
-  makeMercenaryOverview,
-  makePet,
-  makePets,
   makeInventory,
   makeItem,
-  makeJob,
+  makeJobChoice,
+  makeMercenaryOverview,
   makeMission,
   makeMissionBoard,
+  makePet,
+  makePets,
   makeSummary,
   makeWorld,
 } from "../test/fixtures"
@@ -116,16 +117,9 @@ const levelUpResponse: AdvanceVo = {
   areaPassExpiresAt: null,
 }
 
-const thiefOption: JobOption = {
-  ...makeJob({ id: "thief", name: "盜賊" }),
-  parentName: null,
-  current: false,
-  proficiencyPercent: 0,
-  eligible: true,
-  reasons: [],
-}
+const thiefOption: JobChoiceVo = makeJobChoice({ id: "thief", name: "盜賊" })
 
-const skillOverview: SkillOverview = {
+const skillOverview: SkillOverviewVo = {
   jobId: "test-warrior",
   skillPoints: 0,
   skills: [],

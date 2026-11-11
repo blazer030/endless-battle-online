@@ -10,10 +10,6 @@ type WithCharacter<T extends { character: unknown }> = Omit<T, "character"> & {
 
 export type ContentNames = Schemas["ContentResponse"]
 export type JobGrowth = Schemas["JobGrowthContent"]
-export type JobOption = Schemas["JobOptionResponse"]
-export type SkillOverview = Schemas["SkillOverviewResponse"]
-export type SkillView = Schemas["SkillResponse"]
-export type SkillSlotView = Schemas["SkillSlotResponse"]
 export type WorldArea = Schemas["WorldAreaResponse"]
 export type WorldPlace = Schemas["WorldPlaceResponse"]
 export type Recommendation = Schemas["Recommendation"]
@@ -55,7 +51,3 @@ export type MercenaryHireResult = WithCharacter<Schemas["MercenaryHireResponse"]
 export type HonourShop = Schemas["HonourShopResponse"]
 export type HonourExchange = Schemas["HonourExchangeResponse"]
 export type HonourCost = Schemas["HonourCostResponse"]
-
-// 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
-type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }
-export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>

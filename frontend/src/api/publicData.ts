@@ -5,6 +5,8 @@ import {
   type GrowthRange,
   type GrowthStatKey,
   type JobSkill,
+  type SkillPrerequisite,
+  type StatRequirement,
 } from "../game/jobBook"
 import { parseArray, parseNullableString, parseNumber, parseObject, parseString } from "./parse"
 import type { components } from "./schema"
@@ -25,24 +27,41 @@ const toGrowthRange = (value: unknown, path: string): GrowthRange => {
   }
 }
 
+// 技能頁（api/skillData.ts）也用同樣的前置技能、能力需求與成長格式
+export const toPrerequisite = (value: unknown, path: string): SkillPrerequisite | null => {
+  if (value === null) return null
+  const dto = parseObject(value, path)
+  return {
+    skillId: parseString(dto.skillId, `${path}.skillId`),
+    name: parseString(dto.name, `${path}.name`),
+    level: parseNumber(dto.level, `${path}.level`),
+  }
+}
+
+export const toStatRequirements = (value: unknown, path: string): StatRequirement[] =>
+  parseArray(value, path, (item, itemPath) => {
+    const requirement = parseObject(item, itemPath)
+    return {
+      stat: parseString(requirement.stat, `${itemPath}.stat`),
+      minimum: parseNumber(requirement.minimum, `${itemPath}.minimum`),
+    }
+  })
+
+export const toGrowth = (value: unknown, path: string): Record<GrowthStatKey, GrowthRange> => {
+  const dto = parseObject(value, path)
+  return Object.fromEntries(
+    growthStatKeys.map((key) => [key, toGrowthRange(dto[key], `${path}.${key}`)]),
+  ) as Record<GrowthStatKey, GrowthRange>
+}
+
 const toSkill = (value: unknown, path: string): JobSkill => {
   const dto = parseObject(value, path)
-  const prerequisitePath = `${path}.prerequisite`
-  const prerequisite =
-    dto.prerequisite === null ? null : parseObject(dto.prerequisite, prerequisitePath)
   return {
     id: parseString(dto.id, `${path}.id`),
     name: parseString(dto.name, `${path}.name`),
     description: parseString(dto.description, `${path}.description`),
     maxLevel: parseNumber(dto.maxLevel, `${path}.maxLevel`),
-    prerequisite:
-      prerequisite === null
-        ? null
-        : {
-            skillId: parseString(prerequisite.skillId, `${prerequisitePath}.skillId`),
-            name: parseString(prerequisite.name, `${prerequisitePath}.name`),
-            level: parseNumber(prerequisite.level, `${prerequisitePath}.level`),
-          },
+    prerequisite: toPrerequisite(dto.prerequisite, `${path}.prerequisite`),
     levels: parseArray(dto.levels, `${path}.levels`, (item, itemPath) => {
       const level = parseObject(item, itemPath)
       return {
@@ -56,7 +75,6 @@ const toSkill = (value: unknown, path: string): JobSkill => {
 export const JobConverter = {
   toVo(value: unknown, path = "job"): JobVo {
     const dto = parseObject(value, path)
-    const growth = parseObject(dto.growth, `${path}.growth`)
     return JobVo.create({
       id: parseString(dto.id, `${path}.id`),
       name: parseString(dto.name, `${path}.name`),
@@ -64,20 +82,8 @@ export const JobConverter = {
       parentId: parseNullableString(dto.parentId, `${path}.parentId`),
       unlockLevel: parseNumber(dto.unlockLevel, `${path}.unlockLevel`),
       proficiencyRequired: parseNumber(dto.proficiencyRequired, `${path}.proficiencyRequired`),
-      statRequirements: parseArray(
-        dto.statRequirements,
-        `${path}.statRequirements`,
-        (item, itemPath) => {
-          const requirement = parseObject(item, itemPath)
-          return {
-            stat: parseString(requirement.stat, `${itemPath}.stat`),
-            minimum: parseNumber(requirement.minimum, `${itemPath}.minimum`),
-          }
-        },
-      ),
-      growth: Object.fromEntries(
-        growthStatKeys.map((key) => [key, toGrowthRange(growth[key], `${path}.growth.${key}`)]),
-      ) as Record<GrowthStatKey, GrowthRange>,
+      statRequirements: toStatRequirements(dto.statRequirements, `${path}.statRequirements`),
+      growth: toGrowth(dto.growth, `${path}.growth`),
       skills: parseArray(dto.skills, `${path}.skills`, toSkill),
     })
   },

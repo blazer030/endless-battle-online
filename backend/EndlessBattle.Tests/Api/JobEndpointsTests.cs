@@ -39,10 +39,26 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.False(berserker.GetProperty("eligible").GetBoolean());
         Assert.Equal("測試戰士", berserker.GetProperty("parentName").GetString());
         Assert.Equal(60, berserker.GetProperty("statRequirements")[0].GetProperty("minimum").GetInt32());
-        Assert.Equal(3, berserker.GetProperty("growth").GetProperty("str")[0].GetInt32());
+        Assert.Equal(3, berserker.GetProperty("growth").GetProperty("strength").GetProperty("minimum").GetInt32());
         Assert.Equal(
             ["levelTooLow", "parentProficiencyTooLow", "statTooLow:strength"],
             berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    // 測試狂戰士：成長 str [3, 4]、需求 str 60
+    [Fact]
+    public async Task Jobs_UseCompleteGrowthNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var jobs = (await client.GetFromJsonAsync<JsonElement>("/api/jobs", CancellationToken)).EnumerateArray();
+
+        var berserker = jobs.First(job => job.GetProperty("id").GetString() == "berserker");
+        var strength = berserker.GetProperty("growth").GetProperty("strength");
+        Assert.Equal((3, 4), (strength.GetProperty("minimum").GetInt32(), strength.GetProperty("maximum").GetInt32()));
+        Assert.False(berserker.GetProperty("growth").TryGetProperty("str", out _));
+        Assert.Equal("strength", berserker.GetProperty("statRequirements")[0].GetProperty("stat").GetString());
     }
 
     // 測試狂戰士要求力量 60

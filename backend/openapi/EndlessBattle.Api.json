@@ -3694,11 +3694,11 @@
           "statRequirements": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StatRequirementContent"
+              "$ref": "#/components/schemas/JobStatRequirementResponse"
             }
           },
           "growth": {
-            "$ref": "#/components/schemas/JobGrowthContent"
+            "$ref": "#/components/schemas/JobGrowthResponse"
           },
           "current": {
             "type": "boolean"

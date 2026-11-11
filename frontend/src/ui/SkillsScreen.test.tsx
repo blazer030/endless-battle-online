@@ -3,21 +3,13 @@ import { PanelRefreshMilliseconds } from "../motion/timings"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { JobOption, SkillOverview, SkillView } from "../game/types"
-import { makeCharacter, makeJob } from "../test/fixtures"
+import type { JobChoiceVo, Skill, SkillOverviewVo } from "../game/skillOverview"
+import { makeCharacter, makeJobChoice } from "../test/fixtures"
 import { SkillsScreen, type SkillsApi } from "./SkillsScreen"
 
-const jobOption = (overrides: Partial<JobOption>): JobOption => ({
-  ...makeJob(),
-  parentName: null,
-  current: false,
-  proficiencyPercent: 0,
-  eligible: true,
-  reasons: [],
-  ...overrides,
-})
+const jobOption = (overrides: Partial<JobChoiceVo>): JobChoiceVo => makeJobChoice(overrides)
 
-const jobs: JobOption[] = [
+const jobs: JobChoiceVo[] = [
   jobOption({
     id: "warrior",
     name: "戰士",
@@ -45,7 +37,7 @@ const jobs: JobOption[] = [
 ]
 
 // 效果文字由後端依每級的條件、消耗、效果產生，畫面照樣顯示
-const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
+const next = (overrides: Partial<NonNullable<Skill["next"]>> = {}) => ({
   level: 1,
   money: 500,
   proficiency: 300,
@@ -55,7 +47,7 @@ const next = (overrides: Partial<NonNullable<SkillView["next"]>> = {}) => ({
   ...overrides,
 })
 
-const skill = (overrides: Partial<SkillView>): SkillView => ({
+const skill = (overrides: Partial<Skill>): Skill => ({
   id: "burst",
   name: "爆氣",
   slotType: "Active",
@@ -70,7 +62,7 @@ const skill = (overrides: Partial<SkillView>): SkillView => ({
   ...overrides,
 })
 
-const overview: SkillOverview = {
+const overview: SkillOverviewVo = {
   jobId: "warrior",
   skillPoints: 1200,
   skills: [
@@ -132,7 +124,7 @@ const overview: SkillOverview = {
   slots: [{ slot: 4, skillId: "iron-skin" }],
 }
 
-const learned: SkillOverview = {
+const learned: SkillOverviewVo = {
   ...overview,
   skillPoints: 900,
   skills: overview.skills.map((entry) =>

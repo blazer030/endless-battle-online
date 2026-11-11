@@ -122,7 +122,16 @@ test("request_TimesOut_WhenServerNeverResponds", async () => {
 })
 
 test("skillAndJobCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const emptyOverview = { jobId: "warrior", skillPoints: 0, skills: [], slots: [] }
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) =>
+      Promise.resolve(
+        jsonResponse(
+          path === "/api/jobs" ? [] : path.startsWith("/api/skills") ? emptyOverview : anyBody,
+        ),
+      ),
+    )
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getJobs()

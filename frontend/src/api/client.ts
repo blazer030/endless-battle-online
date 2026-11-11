@@ -11,7 +11,6 @@ import type {
   InventoryView,
   ItemCategory,
   ItemUseResult,
-  JobOption,
   MercenaryHireResult,
   MercenaryOverview,
   MissionBoard,
@@ -20,13 +19,12 @@ import type {
   PetsView,
   Recipe,
   ShopItem,
-  SkillOverview,
-  SkillSlotCommand,
   SynthesisResult,
   UnsocketResult,
   WorldArea,
 } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
+import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { AdventureSettings, CharacterVo, CreateCharacterCommand } from "../game/character"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
@@ -41,6 +39,7 @@ import {
   CreateCharacterConverter,
 } from "./characterData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
+import { JobChoiceConverter, SkillOverviewConverter } from "./skillData"
 
 export const fallbackDetail = "發生錯誤，請稍後再試"
 
@@ -69,11 +68,11 @@ export type ApiClient = {
   // 不用登入的公開資料
   getPublicJobs: () => Promise<JobVo[]>
   getCreationOptions: () => Promise<CreationOptionsVo>
-  getJobs: () => Promise<JobOption[]>
+  getJobs: () => Promise<JobChoiceVo[]>
   changeJob: (jobId: string) => Promise<CharacterVo>
-  getSkills: () => Promise<SkillOverview>
-  learnSkill: (skillId: string) => Promise<SkillOverview>
-  setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverview>
+  getSkills: () => Promise<SkillOverviewVo>
+  learnSkill: (skillId: string) => Promise<SkillOverviewVo>
+  setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverviewVo>
   getWorld: () => Promise<WorldArea[]>
   moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterVo>
   getInventory: () => Promise<InventoryView>
@@ -225,11 +224,21 @@ export const createApiClient = (options: {
       ),
     getCreationOptions: async () =>
       CreationOptionsConverter.toVo(await requestJson<unknown>("/api/public/settings", "GET")),
-    getJobs: () => requestJson<JobOption[]>("/api/jobs", "GET"),
+    getJobs: async () =>
+      parseArray(await requestJson<unknown>("/api/jobs", "GET"), "jobs", (item, path) =>
+        JobChoiceConverter.toVo(item, path),
+      ),
     changeJob: (jobId) => requestCharacter("/api/jobs/change", "POST", { jobId }),
-    getSkills: () => requestJson<SkillOverview>("/api/skills", "GET"),
-    learnSkill: (skillId) => requestJson<SkillOverview>("/api/skills/learn", "POST", { skillId }),
-    setSkillSlots: (slots) => requestJson<SkillOverview>("/api/skills/slots", "PUT", { slots }),
+    getSkills: async () =>
+      SkillOverviewConverter.toVo(await requestJson<unknown>("/api/skills", "GET")),
+    learnSkill: async (skillId) =>
+      SkillOverviewConverter.toVo(
+        await requestJson<unknown>("/api/skills/learn", "POST", { skillId }),
+      ),
+    setSkillSlots: async (slots) =>
+      SkillOverviewConverter.toVo(
+        await requestJson<unknown>("/api/skills/slots", "PUT", { slots }),
+      ),
     getWorld: () => requestJson<WorldArea[]>("/api/world", "GET"),
     moveTo: (placeId, subPlace) =>
       requestCharacter("/api/world/location", "PUT", { placeId, subPlace }),

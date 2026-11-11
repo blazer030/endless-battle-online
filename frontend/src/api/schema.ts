@@ -2817,8 +2817,8 @@ export interface components {
             unlockLevel: number;
             /** Format: int32 */
             proficiencyRequired: number;
-            statRequirements: components["schemas"]["StatRequirementContent"][];
-            growth: components["schemas"]["JobGrowthContent"];
+            statRequirements: components["schemas"]["JobStatRequirementResponse"][];
+            growth: components["schemas"]["JobGrowthResponse"];
             current: boolean;
             /** Format: int32 */
             proficiencyPercent: number;

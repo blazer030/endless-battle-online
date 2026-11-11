@@ -18,7 +18,7 @@ import {
 } from "../game/skills"
 import type { SlotDraft, SlotNumber } from "../game/skills"
 import { statLabel } from "../game/stats"
-import type { JobOption, SkillOverview, SkillView } from "../game/types"
+import type { JobChoiceVo, Skill, SkillOverviewVo } from "../game/skillOverview"
 import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import "./SkillsScreen.css"
@@ -51,7 +51,7 @@ const tierLabel = (tier: number) => (tier === 1 ? "基礎" : "進階")
 
 type Requirement = { text: string; met: boolean }
 
-const requirementsOf = (job: JobOption, jobs: JobOption[]): Requirement[] => {
+const requirementsOf = (job: JobChoiceVo, jobs: JobChoiceVo[]): Requirement[] => {
   const unmet = new Set(job.reasons)
   const rows: Requirement[] = [{ text: `Lv ${job.unlockLevel}`, met: !unmet.has("levelTooLow") }]
   if (job.parentId !== null) {
@@ -72,22 +72,22 @@ const requirementsOf = (job: JobOption, jobs: JobOption[]): Requirement[] => {
 
 const ReloadAfterChangeFailed = "已轉職，重新載入失敗，請稍後再試"
 
-type Loaded = { jobs: JobOption[]; overview: SkillOverview }
+type Loaded = { jobs: JobChoiceVo[]; overview: SkillOverviewVo }
 
 const loadAll = async (api: SkillsApi): Promise<Loaded> => {
   const [jobs, overview] = await Promise.all([api.getJobs(), api.getSkills()])
   return { jobs, overview }
 }
 
-const reasonsTitle = (reasons: string[], text: (code: string) => string) =>
+const reasonsTitle = (reasons: readonly string[], text: (code: string) => string) =>
   reasons.length === 0 ? undefined : reasons.map(text).join("、")
 
 export function SkillsScreen({ api, character, onCharacterChange, refreshSignal = 0 }: Props) {
   const jobsId = useId()
   const skillsId = useId()
   const slotsId = useId()
-  const [jobs, setJobs] = useState<JobOption[] | null>(null)
-  const [overview, setOverview] = useState<SkillOverview | null>(null)
+  const [jobs, setJobs] = useState<JobChoiceVo[] | null>(null)
+  const [overview, setOverview] = useState<SkillOverviewVo | null>(null)
   const [drafts, setDrafts] = useState<SlotDraft[]>([])
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -339,11 +339,11 @@ const draftOf = (drafts: SlotDraft[], slot: SlotNumber): SlotDraft =>
   drafts.find((draft) => draft.slot === slot) ?? { slot, skillId: null }
 
 // 下一級：後端產生的效果文字，最後是學習費用
-const nextLevelText = (next: NonNullable<SkillView["next"]>) =>
+const nextLevelText = (next: NonNullable<Skill["next"]>) =>
   `${next.summary}・${formatNumber(next.money)} 金錢・${formatNumber(next.proficiency)} 熟練度`
 
 // 已學技能在標題列顯示時機（命中後）與目前等級的效果文字
-const currentParts = (skill: SkillView): string[] =>
+const currentParts = (skill: Skill): string[] =>
   [timingText(skill.timing), skill.summary].filter((part): part is string => part !== null)
 
 function SkillCard({
@@ -351,7 +351,7 @@ function SkillCard({
   busy,
   onLearn,
 }: {
-  skill: SkillView
+  skill: Skill
   busy: boolean
   onLearn: (skillId: string) => void
 }) {
@@ -405,7 +405,7 @@ function SlotRow({
   draft: SlotDraft
   drafts: SlotDraft[]
   activation: string | null
-  options: SkillView[]
+  options: Skill[]
   onChange: (drafts: SlotDraft[]) => void
   disabled: boolean
 }) {

@@ -17,6 +17,7 @@ import type { AdvanceSummary } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { CreationOptionsVo } from "../game/creationOptions"
 import { JobVo } from "../game/jobBook"
+import type { JobChoiceVo } from "../game/skillOverview"
 
 type JobContent = ContentNames["jobs"][number]
 
@@ -119,6 +120,32 @@ export const makeJob = (overrides: Partial<JobContent> = {}): JobContent => ({
     au: [0, 1],
     be: [0, 1],
   },
+  ...overrides,
+})
+
+// 轉職頁的職業（/api/jobs）
+export const makeJobChoice = (overrides: Partial<JobChoiceVo> = {}): JobChoiceVo => ({
+  id: "warrior",
+  name: "戰士",
+  tier: 1,
+  parentId: null,
+  parentName: null,
+  unlockLevel: 1,
+  proficiencyRequired: 0,
+  statRequirements: [],
+  growth: {
+    strength: { minimum: 1, maximum: 2 },
+    intelligence: { minimum: 0, maximum: 1 },
+    life: { minimum: 1, maximum: 1 },
+    vitality: { minimum: 1, maximum: 2 },
+    agility: { minimum: 0, maximum: 1 },
+    charisma: { minimum: 0, maximum: 1 },
+    faith: { minimum: 0, maximum: 1 },
+  },
+  current: false,
+  proficiencyPercent: 0,
+  eligible: true,
+  reasons: [],
   ...overrides,
 })
 
