@@ -263,10 +263,10 @@ public class WorldServiceTests
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal((2, (int?)1), (stored!.PlaceId, stored.SubPlace));
         Assert.Equal(Start.AddSeconds(22.4), stored.LastSettledAt, TimeSpan.FromMilliseconds(1));
-        Assert.Equal(928, stored.Exp);
+        Assert.Equal(928, stored.Experience);
         Assert.Equal(2, stored.Version);
         Assert.Equal([new JobProficiency("warrior", 96, 96)], profile.JobProficiency);
-        Assert.Equal(stored.Exp, profile.Character.Exp);
+        Assert.Equal(stored.Experience, profile.Character.Experience);
     }
 
     // 推進撞上別的請求（輪詢）時直接丟 409，位置不變

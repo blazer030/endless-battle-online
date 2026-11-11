@@ -39,29 +39,29 @@ public class BuffsTests
     public void ApplyTo_MultipliesAttackWithPhpRounding()
     {
         var player = new CombatantState(
-            Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 25, Mat: 17, Df: 11, Mdf: 9, Agi: 12, Au: 10, Element: 1,
-            Str: 12, Smart: 12);
+            HealthPoints: 60, MaxHealthPoints: 350, ManaPoints: 25, MaxManaPoints: 91, Attack: 25, MagicAttack: 17, Defense: 11, MagicDefense: 9, Agility: 12, Charisma: 10, Element: 1,
+            Strength: 12, Intelligence: 12);
 
         var buffed = Buffs.ApplyTo(player, [Buff(BuffKind.Attack, 1.2), Buff(BuffKind.Defense, 1.2)], StartsAt);
 
-        Assert.Equal(player with { At = 30, Df = 13 }, buffed);
+        Assert.Equal(player with { Attack = 30, Defense = 13 }, buffed);
         Assert.Equal(player, Buffs.ApplyTo(player, [Buff(BuffKind.Attack, 1.2)], StartsAt.AddHours(1)));
     }
 
     // 四項戰鬥數值各不相同，乘 1.2 後也各不相同：任兩種對應互換都會被抓到
     private static readonly CombatantState Player = new(
-        Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 25, Mat: 40, Df: 11, Mdf: 15, Agi: 12, Au: 10, Element: 1,
-        Str: 12, Smart: 12);
+        HealthPoints: 60, MaxHealthPoints: 350, ManaPoints: 25, MaxManaPoints: 91, Attack: 25, MagicAttack: 40, Defense: 11, MagicDefense: 15, Agility: 12, Charisma: 10, Element: 1,
+        Strength: 12, Intelligence: 12);
 
     // mat 40 × 1.2 = 48，其他不變
     [Fact]
     public void ApplyTo_MultipliesMagicOnly() =>
-        Assert.Equal(Player with { Mat = 48 }, Buffs.ApplyTo(Player, [Buff(BuffKind.Magic, 1.2)], StartsAt));
+        Assert.Equal(Player with { MagicAttack = 48 }, Buffs.ApplyTo(Player, [Buff(BuffKind.Magic, 1.2)], StartsAt));
 
     // mdf 15 × 1.2 = 18，其他不變
     [Fact]
     public void ApplyTo_MultipliesMagicDefenseOnly() =>
-        Assert.Equal(Player with { Mdf = 18 }, Buffs.ApplyTo(Player, [Buff(BuffKind.MagicDefense, 1.2)], StartsAt));
+        Assert.Equal(Player with { MagicDefense = 18 }, Buffs.ApplyTo(Player, [Buff(BuffKind.MagicDefense, 1.2)], StartsAt));
 
     // 每一種密藥只動自己那一項：at 25 → 30、mat 40 → 48、df 11 → 13、mdf 15 → 18；經驗與熟練密藥不動戰鬥數值
     [Theory]
@@ -72,5 +72,5 @@ public class BuffsTests
     [InlineData(BuffKind.Exp, 25, 40, 11, 15)]
     [InlineData(BuffKind.JobExp, 25, 40, 11, 15)]
     public void ApplyTo_MultipliesOnlyItsOwnStat(BuffKind kind, int at, int mat, int df, int mdf) =>
-        Assert.Equal(Player with { At = at, Mat = mat, Df = df, Mdf = mdf }, Buffs.ApplyTo(Player, [Buff(kind, 1.2)], StartsAt));
+        Assert.Equal(Player with { Attack = at, MagicAttack = mat, Defense = df, MagicDefense = mdf }, Buffs.ApplyTo(Player, [Buff(kind, 1.2)], StartsAt));
 }

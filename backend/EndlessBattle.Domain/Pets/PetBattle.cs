@@ -30,8 +30,8 @@ public static class PetBattle
         var magic = pet.Personality == PetPersonality.Cold ? pet.Magic * PersonalityBonus : pet.Magic;
         var guard = pet.Personality == PetPersonality.Ironwall ? DerivedStats.RoundLikePhp(pet.Defense * PersonalityBonus) : pet.Defense;
 
-        var monsterAu = monster.Au == 0 ? 1 : monster.Au;
-        var activation = Activation(pet, DerivedStats.RoundLikePhp((double)player.Au / monsterAu));
+        var monsterAu = monster.Charisma == 0 ? 1 : monster.Charisma;
+        var activation = Activation(pet, DerivedStats.RoundLikePhp((double)player.Charisma / monsterAu));
         return new PetCombatant(pet.Name, attack, magic, guard, activation);
     }
 
@@ -58,10 +58,10 @@ public static class PetBattle
             return new PetStrikeResult(kind, Hit: false, Critical: false, Damage: 0);
         }
 
-        var ratio = (double)(player.Au + player.Agi) / Math.Max(1, monster.Au + monster.Agi);
+        var ratio = (double)(player.Charisma + player.Agility) / Math.Max(1, monster.Charisma + monster.Agility);
         var critical = PhpRandom.Between(random, 1, 100) < Math.Min(MaximumCriticalChance, ratio * BaseCriticalChance);
         var multiplier = critical ? Math.Min(MaximumCriticalMultiplier, ratio * BaseCriticalMultiplier) : 1;
-        var (attack, defense) = kind == AttackKind.Physical ? (pet.Attack, monster.Df) : (pet.Magic, monster.Mdf);
+        var (attack, defense) = kind == AttackKind.Physical ? (pet.Attack, monster.Defense) : (pet.Magic, monster.MagicDefense);
         var damage = WogDamage.Fight(attack * multiplier, defense, elementMultiplier: 1.0, random, bonusDamage: PetBonusDamage);
         return new PetStrikeResult(kind, Hit: true, critical, damage);
     }

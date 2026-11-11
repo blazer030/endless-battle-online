@@ -65,18 +65,18 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_AppliesLevelUpsAndJobGains()
     {
-        var run = Run(Hero() with { Exp = 999 }, seconds: 1);
+        var run = Run(Hero() with { Experience = 999 }, seconds: 1);
 
         // 999 + 146 = 1145 > 1000 → Lv2，剩 145，下一級 6·4 + 1080·2 = 2184；成長各取下限 (2,0,1,1,1,0,0)
         var growth = new BaseStats(2, 0, 1, 1, 1, 0, 0);
-        Assert.Equal(new RewardEvent(0, Exp: 146, Money: 2, JobExp: 12), run.Events.OfType<RewardEvent>().Single());
+        Assert.Equal(new RewardEvent(0, Experience: 146, Money: 2, JobExperience: 12), run.Events.OfType<RewardEvent>().Single());
         Assert.Equal(new LevelUpEvent(0, NewLevel: 2, growth), run.Events.OfType<LevelUpEvent>().Single());
         Assert.Equal(2, run.Character.Level);
-        Assert.Equal(145, run.Character.Exp);
-        Assert.Equal(2184, run.Character.NextExp);
+        Assert.Equal(145, run.Character.Experience);
+        Assert.Equal(2184, run.Character.NextLevelExperience);
         Assert.Equal(2002, run.Character.Money);
         Assert.Equal(new BaseStats(14, 12, 13, 11, 13, 10, 10), run.Character.Base);
-        Assert.Equal(new AdvanceSummary(Fights: 1, Wins: 1, Losses: 0, Timeouts: 0, Exp: 146, Money: 2, JobExp: 12, LevelsGained: 1, SkillsCast: 0), run.Summary);
+        Assert.Equal(new AdvanceSummary(Fights: 1, Wins: 1, Losses: 0, Timeouts: 0, Experience: 146, Money: 2, JobExperience: 12, LevelsGained: 1, SkillsCast: 0), run.Summary);
         Assert.Equal([new JobGain("warrior", 12, 12)], run.JobGains);
         Assert.True(run.EventsCoverAll);
     }
@@ -87,7 +87,7 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 1);
 
         Assert.Equal(
-            new EncounterEvent(0, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 60, PlayerHpMax: 350, PlayerSp: 25, PlayerSpMax: 91),
+            new EncounterEvent(0, "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 60, PlayerMaxHealthPoints: 350, PlayerManaPoints: 25, PlayerMaxManaPoints: 91),
             run.Events[0]);
         Assert.Contains(run.Events, battleEvent => battleEvent is RoundEvent);
         Assert.Contains(run.Events, battleEvent => battleEvent is AttackEvent);
@@ -97,11 +97,11 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_RestsBeforeNextFight_WhenDead()
     {
-        var run = Run(Hero() with { Hp = 0 }, seconds: 16);
+        var run = Run(Hero() with { HealthPoints = 0 }, seconds: 16);
 
-        Assert.Equal(new RestEvent(0, Cost: 0, ExpPenalty: false, WaitSeconds: 15), run.Events[0]);
+        Assert.Equal(new RestEvent(0, Cost: 0, ExperiencePenalty: false, WaitSeconds: 15), run.Events[0]);
         Assert.Equal(
-            new EncounterEvent(15, "dummy", MonsterHp: 100, MonsterHpMax: 100, PlayerHp: 350, PlayerHpMax: 350, PlayerSp: 91, PlayerSpMax: 91),
+            new EncounterEvent(15, "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 350, PlayerMaxHealthPoints: 350, PlayerManaPoints: 91, PlayerMaxManaPoints: 91),
             run.Events[1]);
         Assert.Equal(1, run.Summary.Fights);
     }
@@ -112,24 +112,24 @@ public class AdventureSimulatorTests
     [InlineData(15, false)]
     public void Adventure_RestsBeforeFight_WhenHpBelowThreshold(int hp, bool rests)
     {
-        var hero = Hero() with { Base = Hero().Base with { Life = 2 }, Hp = hp };
+        var hero = Hero() with { Base = Hero().Base with { Life = 2 }, HealthPoints = hp };
 
         var run = Run(hero, seconds: 6);
 
         if (rests)
         {
-            Assert.Equal(new RestEvent(0, Cost: 0, ExpPenalty: false, WaitSeconds: 5), run.Events[0]);
+            Assert.Equal(new RestEvent(0, Cost: 0, ExperiencePenalty: false, WaitSeconds: 5), run.Events[0]);
             var encounter = Assert.IsType<EncounterEvent>(run.Events[1]);
             Assert.Equal(5, encounter.AtSeconds);
-            Assert.Equal(100, encounter.PlayerHp);
-            Assert.Equal(100, encounter.PlayerHpMax);
+            Assert.Equal(100, encounter.PlayerHealthPoints);
+            Assert.Equal(100, encounter.PlayerMaxHealthPoints);
         }
         else
         {
             var encounter = Assert.IsType<EncounterEvent>(run.Events[0]);
             Assert.Equal(0, encounter.AtSeconds);
-            Assert.Equal(15, encounter.PlayerHp);
-            Assert.Equal(100, encounter.PlayerHpMax);
+            Assert.Equal(15, encounter.PlayerHealthPoints);
+            Assert.Equal(100, encounter.PlayerMaxHealthPoints);
         }
     }
 
@@ -137,7 +137,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_EventsCoverAll_WhenOnlyARestIsSkipped()
     {
-        var run = Run(Hero() with { Hp = 0 }, seconds: 31);
+        var run = Run(Hero() with { HealthPoints = 0 }, seconds: 31);
 
         Assert.Empty(run.Events.OfType<RestEvent>());
         Assert.Equal(15, Assert.IsType<EncounterEvent>(run.Events[0]).AtSeconds);
@@ -154,8 +154,8 @@ public class AdventureSimulatorTests
 
         Assert.Equal(new DefeatEvent(0.4, CombatSide.Player), run.Events.OfType<DefeatEvent>().Single());
         Assert.Empty(run.Events.OfType<RewardEvent>());
-        Assert.Equal(0, run.Character.Hp);
-        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Exp: 0, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
+        Assert.Equal(0, run.Character.HealthPoints);
+        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Experience: 0, Money: 0, JobExperience: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
         Assert.Empty(run.JobGains);
         Assert.Equal(2.8, run.ConsumedSeconds, 9);
     }
@@ -182,7 +182,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_EscapeCountsAsLossWithoutRewards()
     {
-        var coward = Hero() with { Settings = AdventureSettings.Default with { EscapeHpPercent = 50 } };
+        var coward = Hero() with { Settings = AdventureSettings.Default with { EscapeHealthPointsPercent = 50 } };
 
         var run = Run(coward, seconds: 1, monsters: Monster("wall", hp: 60, at: 10, df: 1000));
 
@@ -190,9 +190,9 @@ public class AdventureSimulatorTests
         Assert.Empty(run.Events.OfType<RewardEvent>());
         Assert.Empty(run.Events.OfType<DefeatEvent>());
         Assert.Equal(
-            new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Exp: 0, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0, Escapes: 1),
+            new AdvanceSummary(1, Wins: 0, Losses: 1, Timeouts: 0, Experience: 0, Money: 0, JobExperience: 0, LevelsGained: 0, SkillsCast: 0, Escapes: 1),
             run.Summary);
-        Assert.True(run.Character.Hp > 0);
+        Assert.True(run.Character.HealthPoints > 0);
         Assert.Empty(run.JobGains);
         Assert.Equal(3.6, run.ConsumedSeconds, 9);
     }
@@ -220,10 +220,10 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_EveryFightPaysFullAtNormalInterval()
     {
-        var run = Run(Hero() with { NextExp = 1_000_000 }, seconds: 200);
+        var run = Run(Hero() with { NextLevelExperience = 1_000_000 }, seconds: 200);
 
         Assert.Equal(72, run.Summary.Fights);
-        Assert.Equal((Exp: 72 * 146L, Money: 72 * 2L, JobExp: 72 * 12L), (run.Summary.Exp, run.Summary.Money, run.Summary.JobExp));
+        Assert.Equal((Experience: 72 * 146L, Money: 72 * 2L, JobExperience: 72 * 12L), (run.Summary.Experience, run.Summary.Money, run.Summary.JobExperience));
         var encounters = run.Events.OfType<EncounterEvent>().ToList();
         Assert.All(encounters.Zip(encounters.Skip(1)), pair => Assert.Equal(2.8, pair.Second.AtSeconds - pair.First.AtSeconds, 9));
         Assert.Equal(201.6, run.ConsumedSeconds, 6);
@@ -241,10 +241,10 @@ public class AdventureSimulatorTests
         var run = Run(tough, seconds: 1, monsters: rock);
 
         Assert.Equal(new TimeoutEvent(32, 40, 40), run.Events.OfType<TimeoutEvent>().Single());
-        Assert.Equal(new RewardEvent(32, Exp: 43, Money: 0, JobExp: 0), run.Events.OfType<RewardEvent>().Single());
+        Assert.Equal(new RewardEvent(32, Experience: 43, Money: 0, JobExperience: 0), run.Events.OfType<RewardEvent>().Single());
         Assert.Equal(43, RewardFormulas.Exp(rock, 27, playerLevel: 1, killed: false, new ScriptedRandom(0.0), levelOverride: 3));
-        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Exp: 43, Money: 0, JobExp: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
-        Assert.Equal(20, run.Character.Hp);
+        Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Experience: 43, Money: 0, JobExperience: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
+        Assert.Equal(20, run.Character.HealthPoints);
         Assert.Empty(run.JobGains);
         Assert.Equal(34, run.ConsumedSeconds, 9);
     }
@@ -271,7 +271,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_RestsWhenSpBelowThreshold_OnlyWithActiveSkills()
     {
-        var hero = Hero() with { Hp = 350, Sp = 13 };
+        var hero = Hero() with { HealthPoints = 350, ManaPoints = 13 };
         var ironSkin = new EquippedSkill(TestSkills.Create("iron-skin", SkillType.Passive), Level: 1, Slot: 4);
 
         Assert.IsType<RestEvent>(Run(hero, seconds: 1, skills: [Burst]).Events[0]);
@@ -283,7 +283,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Run_WeaponSkillOnly_IgnoresSpRestThreshold()
     {
-        var hero = Hero() with { Hp = 350, Sp = 13 };
+        var hero = Hero() with { HealthPoints = 350, ManaPoints = 13 };
         var weapon = new EquippedSkill(TestSkills.Create("burst", SkillType.Active), Level: 1, SkillLoadout.WeaponSlot);
 
         Assert.IsType<EncounterEvent>(Run(hero, seconds: 1, skills: [weapon]).Events[0]);
@@ -309,9 +309,9 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 3, skills: [Burst]);
 
         Assert.Equal(2, run.Summary.Fights);
-        Assert.Equal([20, 15], run.Events.OfType<SkillEvent>().Select(skill => skill.SpAfter));
-        Assert.Equal([25, 20], run.Events.OfType<EncounterEvent>().Select(encounter => encounter.PlayerSp));
-        Assert.Equal(15, run.Character.Sp);
+        Assert.Equal([20, 15], run.Events.OfType<SkillEvent>().Select(skill => skill.ManaPointsAfter));
+        Assert.Equal([25, 20], run.Events.OfType<EncounterEvent>().Select(encounter => encounter.PlayerManaPoints));
+        Assert.Equal(15, run.Character.ManaPoints);
     }
 
     // 冷卻只在一場戰鬥內有效：冷卻 99 的 burst 在 0 秒與 2.8 秒兩場都各施放一次
@@ -323,7 +323,7 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 3, skills: [longCooldown]);
 
         Assert.Equal(2, run.Summary.Fights);
-        Assert.Equal([20, 15], run.Events.OfType<SkillEvent>().Select(skill => skill.SpAfter));
+        Assert.Equal([20, 15], run.Events.OfType<SkillEvent>().Select(skill => skill.ManaPointsAfter));
     }
 
     // 每場耗 SP 5，開打前 SP < 91 × 15% = 13.65 就住宿（5 秒，回滿 91）。時間線（每場 2.8 秒）：
@@ -337,7 +337,7 @@ public class AdventureSimulatorTests
         Assert.Equal(38, run.Summary.Fights);
         Assert.Equal(9, run.Events.OfType<SkillEvent>().Count());
         Assert.Equal(38, run.Summary.SkillsCast);
-        Assert.Equal(91 - 3 * 5, run.Character.Sp);
+        Assert.Equal(91 - 3 * 5, run.Character.ManaPoints);
     }
 
     // 施毒每回合結束的持續傷害不算施放：施放次數只數發動（怪物 1000 血，第 1 回合打不倒，才有持續傷害）
@@ -393,7 +393,7 @@ public class AdventureSimulatorTests
             Hero(), Warrior, Place, [Dummy], ItemOf, [], From, From.AddSeconds(1), new ScriptedRandom(0.0), bonus);
 
         Assert.IsType<RestEvent>(run.Events[0]);
-        Assert.Equal(850, run.Character.Hp);
+        Assert.Equal(850, run.Character.HealthPoints);
     }
 
     // pebble（hp 2、at 40、df 1000）對 Df 1000 的角色：雙方每下 1 點，玩家先攻，第 2 回合擊倒，每場 1.6 秒 + 場間 2 秒。
@@ -402,7 +402,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_CarriesSupplyAcrossFights()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, Hp = 53 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, HealthPoints = 53 };
         var pebble = Monster("pebble", hp: 2, at: 40, df: 1000);
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 1);
 
@@ -410,10 +410,10 @@ public class AdventureSimulatorTests
             tough, Warrior, Place, [pebble], ItemOf, [], From, From.AddSeconds(4), new ScriptedRandom(0.0), supply: supply);
 
         Assert.Equal(2, run.Summary.Fights);
-        Assert.Equal(new PotionEvent(0.8, "tonic", "補給", Hp: 1, Sp: 0, Remaining: 0), run.Events.OfType<PotionEvent>().Single());
+        Assert.Equal(new PotionEvent(0.8, "tonic", "補給", HealthPoints: 1, ManaPoints: 0, Remaining: 0), run.Events.OfType<PotionEvent>().Single());
         Assert.Equal(1, run.Summary.PotionsUsed);
         Assert.Equal(0, run.SupplyRemaining);
-        Assert.Equal(52, run.Character.Hp);
+        Assert.Equal(52, run.Character.HealthPoints);
     }
 
     // pebble 改成 hp 10：第 1 回合被打到 52，第 2～10 回合開頭各喝一次（+1 → 53），第 10 回合擊倒時停在 53，不住宿。
@@ -421,7 +421,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_PotionCounterResetsEachFight()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, Hp = 53 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, HealthPoints = 53 };
         var pebble = Monster("pebble", hp: 10, at: 40, df: 1000);
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 20);
 
@@ -544,7 +544,7 @@ public class AdventureSimulatorTests
     }
 
     private static MonsterDefinition Npc(string id = "npc", string? message = "我是信使") => new(
-        id, "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+        id, "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExperience: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
     {
         MissionId = "visit",
         Npc = true,
@@ -565,7 +565,7 @@ public class AdventureSimulatorTests
             run.Events,
             first => Assert.Equal(new NpcEncounterEvent(0, "npc", "信使", "我是信使"), first),
             second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", 1, 1, false, true, false), second));
-        Assert.Equal((0, 0, 0, 0L, 0L, 1), (run.Summary.Fights, run.Summary.Wins, run.Summary.Losses, run.Summary.Exp, run.Summary.Money, run.Summary.MissionKills));
+        Assert.Equal((0, 0, 0, 0L, 0L, 1), (run.Summary.Fights, run.Summary.Wins, run.Summary.Losses, run.Summary.Experience, run.Summary.Money, run.Summary.MissionKills));
         Assert.Equal(hero, run.Character);
         TrackedMissions.AssertSame([Visit().WithProgress(1)], run.Missions);
     }
@@ -700,7 +700,7 @@ public class AdventureSimulatorTests
         var from = new DateTimeOffset(2026, 10, 22, 0, 59, 49, TimeSpan.Zero);
         var reset = new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero);
         var daily = TrackedMissions.Single("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, AcceptedAt: from, ExpiresAt: reset);
-        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, NextExp = 1_000_000 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, NextLevelExperience = 1_000_000 };
         var pebble = Monster("test-sprite", hp: 2, at: 40, df: 1000);
 
         var run = RunWithMissions(tough, seconds: 20, [daily], from, monsters: pebble);
@@ -721,7 +721,7 @@ public class AdventureSimulatorTests
     {
         var longHunt = TrackedMissions.Single("long-hunt", "長期討伐", "test-sprite", Required: 100, Progress: 0, AcceptedAt: From, ExpiresAt: null);
 
-        var run = RunWithMissions(Hero() with { NextExp = 1_000_000 }, seconds: 60, [longHunt]);
+        var run = RunWithMissions(Hero() with { NextLevelExperience = 1_000_000 }, seconds: 60, [longHunt]);
 
         Assert.Equal(22, run.Summary.Wins);
         Assert.Equal(11, run.Events.OfType<EncounterEvent>().Count());
@@ -734,7 +734,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_EmitsMissionProgressBeforeLevelUp()
     {
-        var run = RunWithMissions(Hero() with { Exp = 999 }, seconds: 1, [Hunt()]);
+        var run = RunWithMissions(Hero() with { Experience = 999 }, seconds: 1, [Hunt()]);
 
         Assert.Equal(
             [typeof(RewardEvent), typeof(MissionProgressEvent), typeof(LevelUpEvent)],
@@ -941,7 +941,7 @@ public class AdventureSimulatorTests
     [InlineData(3, 0)]
     public void Adventure_CaptureSkipsWhenPetsFull(int petCount, int expectedCaptures)
     {
-        var run = RunWithCapture(Hero() with { NextExp = 1_000_000 }, seconds: 30, Net(20), new ScriptedRandom(0.0), petCount);
+        var run = RunWithCapture(Hero() with { NextLevelExperience = 1_000_000 }, seconds: 30, Net(20), new ScriptedRandom(0.0), petCount);
 
         Assert.Equal(11, run.Summary.Wins);
         Assert.Equal(expectedCaptures, run.Captured.Count);
@@ -977,7 +977,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_CaptureEventFollowsReward()
     {
-        var run = RunWithCapture(Hero() with { Exp = 999 }, seconds: 1, Net(5), new ScriptedRandom(0.0), missions: [Hunt()], monsters: Sprite);
+        var run = RunWithCapture(Hero() with { Experience = 999 }, seconds: 1, Net(5), new ScriptedRandom(0.0), missions: [Hunt()], monsters: Sprite);
 
         Assert.Equal(
             [typeof(RewardEvent), typeof(CaptureEvent), typeof(MissionProgressEvent), typeof(LevelUpEvent)],
@@ -1022,7 +1022,7 @@ public class AdventureSimulatorTests
             }
             else if (battleEvent is RewardEvent reward)
             {
-                rewards.Add((start, reward.Exp, reward.Money, reward.JobExp));
+                rewards.Add((start, reward.Experience, reward.Money, reward.JobExperience));
             }
         }
 
@@ -1034,7 +1034,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_ElixirAppliesOnlyWithinItsWindow()
     {
-        var hero = Hero() with { NextExp = 1_000_000_000 };
+        var hero = Hero() with { NextLevelExperience = 1_000_000_000 };
         IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Exp, 1.5, From.AddSeconds(-3570), From.AddSeconds(30))];
 
         var plain = RewardsByFightStart(RunWithBuffs(hero, 50, null, new SeededRandom(7)));
@@ -1066,9 +1066,9 @@ public class AdventureSimulatorTests
         var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var timeout = RunWithBuffs(tough, seconds: 1, buffs, new ScriptedRandom(0.0), Monster("rock", hp: 60, at: 40, df: 1000));
 
-        Assert.Equal(new RewardEvent(0, Exp: 219, Money: 2, JobExp: 18), win.Events.OfType<RewardEvent>().Single());
+        Assert.Equal(new RewardEvent(0, Experience: 219, Money: 2, JobExperience: 18), win.Events.OfType<RewardEvent>().Single());
         Assert.Equal([new JobGain("warrior", 18, 18)], win.JobGains);
-        Assert.Equal(new RewardEvent(32, Exp: 43, Money: 0, JobExp: 0), timeout.Events.OfType<RewardEvent>().Single());
+        Assert.Equal(new RewardEvent(32, Experience: 43, Money: 0, JobExperience: 0), timeout.Events.OfType<RewardEvent>().Single());
     }
 
     // 沒有密藥時（空清單或 null）擲骰序列與計畫 9 相同：事件、摘要、角色逐一相等
@@ -1088,7 +1088,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_LodgingBoostsWinExpInsideWindow()
     {
-        var hero = Hero() with { NextExp = 1_000_000_000 };
+        var hero = Hero() with { NextLevelExperience = 1_000_000_000 };
         var lodging = new CharacterBuff(BuffKind.Exp, 1.1, From, From.AddSeconds(30));
 
         var plain = RewardsByFightStart(RunWithLodging(hero, 50, null, null, new SeededRandom(7)));
@@ -1114,7 +1114,7 @@ public class AdventureSimulatorTests
 
         var run = RunWithLodging(Hero(), seconds: 1, buffs, lodging, new ScriptedRandom(0.0));
 
-        Assert.Equal(Buffs.Scale(146, 1.65), run.Events.OfType<RewardEvent>().Single().Exp);
+        Assert.Equal(Buffs.Scale(146, 1.65), run.Events.OfType<RewardEvent>().Single().Experience);
     }
 
     // 沒有房型加成時（不傳或 null）擲骰序列不變：事件、摘要、角色逐一相等

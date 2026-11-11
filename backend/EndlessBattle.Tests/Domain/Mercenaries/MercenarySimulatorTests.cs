@@ -26,11 +26,11 @@ public class MercenarySimulatorTests
     private static readonly MercenaryDefinition Full = new("test", "測試傭兵", Price: 100, Fights: 10, MoneyPercent: 100, DropPercent: 100, ExpPercent: 100, DeathCost: 2);
 
     private static MonsterDefinition Monster(string id, int hp = 100, int at = 10, int df = 1, int placeId = 1) =>
-        new(id, id, Level: 5, hp, ManaPoints: 5, at, MagicAttack: 0, df, MagicDefense: 1, Agility: 12, Charisma: 10, Element: 0, JobExp: 12, Meet: 0, placeId);
+        new(id, id, Level: 5, hp, ManaPoints: 5, at, MagicAttack: 0, df, MagicDefense: 1, Agility: 12, Charisma: 10, Element: 0, JobExperience: 12, Meet: 0, placeId);
 
     private static readonly MonsterDefinition Dummy = Monster("dummy");
 
-    private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", 1, 1, Now) with { NextExp = 1_000_000_000 };
+    private static Character Hero() => TestCharacters.Default(accountId: 1, "勇者", 1, 1, Now) with { NextLevelExperience = 1_000_000_000 };
 
     private static MercenaryContract Contract(int remaining, DateTimeOffset nextFightAt) =>
         new("test", "阿傭", remaining, PlaceId: 1, nextFightAt, HiredAt: Now.AddDays(-3));
@@ -58,7 +58,7 @@ public class MercenarySimulatorTests
         Assert.Equal([start, start.AddSeconds(100), start.AddSeconds(200)], run.Fights.Select(fight => fight.At));
         Assert.Equal(Contract(7, start.AddSeconds(300)), run.Contract);
         Assert.All(run.Fights, fight => Assert.Equal(("dummy", MercenaryFightResult.Won, 146L, 2L), (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
-        Assert.Equal(3 * 146, run.Character.Exp);
+        Assert.Equal(3 * 146, run.Character.Experience);
         Assert.Equal(2000 + 3 * 2, run.Character.Money);
         Assert.Equal(3 * 12, run.JobExp);
     }
@@ -77,7 +77,7 @@ public class MercenarySimulatorTests
             full.Fights.Select(fight => (fight.MonsterId, fight.Result, MercenaryRules.Discount(fight.Exp, 50), MercenaryRules.Discount(fight.Money, 50))),
             discounted.Fights.Select(fight => (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
         Assert.Equal(full.JobExp, discounted.JobExp);
-        Assert.Equal(full.Fights.Sum(fight => MercenaryRules.Discount(fight.Exp, 50)), discounted.Character.Exp);
+        Assert.Equal(full.Fights.Sum(fight => MercenaryRules.Discount(fight.Exp, 50)), discounted.Character.Experience);
     }
 
     // hornet（hp 300）：玩家第 1 回合 210 點打不死，怪物還手；Hp 1 的角色會倒下，傭兵以滿血開打所以第 2 回合擊倒。
@@ -86,7 +86,7 @@ public class MercenarySimulatorTests
     public void Mercenary_FightsAtFullHealthWithoutTouchingCharacterHp()
     {
         var hornet = Monster("hornet", hp: 300);
-        var wounded = Hero() with { Hp = 1, Sp = 3 };
+        var wounded = Hero() with { HealthPoints = 1, ManaPoints = 3 };
         Assert.Equal(
             CombatSide.Monster,
             WogBattle.Run(CombatBridge.ToCombatant(wounded), CombatantState.From(hornet), playerPreferred: null, new ScriptedRandom(0.0)).Winner);
@@ -94,7 +94,7 @@ public class MercenarySimulatorTests
         var run = Run(wounded, Contract(10, Now), monsters: [hornet]);
 
         Assert.Equal(MercenaryFightResult.Won, Assert.Single(run.Fights).Result);
-        Assert.Equal((1, 3), (run.Character.Hp, run.Character.Sp));
+        Assert.Equal((1, 3), (run.Character.HealthPoints, run.Character.ManaPoints));
     }
 
     // 能力全 1 的角色打 brute（at 40、df 1000）：每場都輸（或超限），次數每場 −2
@@ -193,7 +193,7 @@ public class MercenarySimulatorTests
     }
 
     private static readonly MonsterDefinition Herald = new(
-        "herald", "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+        "herald", "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExperience: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
     {
         MissionId = "visit",
         Npc = true,
@@ -250,10 +250,10 @@ public class MercenarySimulatorTests
     [Fact]
     public void Mercenary_LevelsUpTheCharacter()
     {
-        var run = Run(Hero() with { Exp = 999, NextExp = 1000 }, Contract(10, Now));
+        var run = Run(Hero() with { Experience = 999, NextLevelExperience = 1000 }, Contract(10, Now));
 
         Assert.Equal(1, run.LevelsGained);
-        Assert.Equal((2, 145L), (run.Character.Level, run.Character.Exp));
+        Assert.Equal((2, 145L), (run.Character.Level, run.Character.Experience));
         Assert.Equal(new BaseStats(14, 12, 13, 11, 13, 10, 10), run.Character.Base);
     }
 

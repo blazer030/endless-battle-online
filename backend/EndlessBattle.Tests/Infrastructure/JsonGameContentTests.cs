@@ -27,7 +27,7 @@ public class JsonGameContentTests
         Assert.Equal(
             (32, 100, 19, 15, 8, 5, 2, 10, 12, 10, 6, 10),
             (slime.HealthPoints, slime.ManaPoints, slime.Attack, slime.MagicAttack, slime.Defense, slime.MagicDefense, slime.Agility, slime.Charisma, slime.Strength, slime.Intelligence, slime.Vitality, slime.Faith));
-        Assert.Equal(1L, slime.JobExp);
+        Assert.Equal(1L, slime.JobExperience);
 
         var staff = content.GetItem("item-6");
         Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0), staff.Bonus);
@@ -137,11 +137,11 @@ public class JsonGameContentTests
         Assert.Null(content.GetMonster("test-sprite").MissionId);
         // SubPlaces、Drops 是清單，record 的 Equals 只比參考，改用結構比對
         Assert.Equivalent(
-            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, HealthPoints: 95, ManaPoints: 10, Attack: 20, MagicAttack: 6, Defense: 9, MagicDefense: 5, Agility: 13, Charisma: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
+            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, HealthPoints: 95, ManaPoints: 10, Attack: 20, MagicAttack: 6, Defense: 9, MagicDefense: 5, Agility: 13, Charisma: 7, Element: 2, JobExperience: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
             content.GetMonster("test-wolf"),
             strict: true);
         Assert.Equivalent(
-            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, HealthPoints: 60, ManaPoints: 10, Attack: 14, MagicAttack: 8, Defense: 6, MagicDefense: 4, Agility: 9, Charisma: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
+            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, HealthPoints: 60, ManaPoints: 10, Attack: 14, MagicAttack: 8, Defense: 6, MagicDefense: 4, Agility: 9, Charisma: 6, Element: 2, JobExperience: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
             content.GetMonster("test-sprite"),
             strict: true);
     }

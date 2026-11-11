@@ -35,12 +35,12 @@ public class CharacterFactoryTests
         var character = Create(Command());
 
         Assert.Equal(new BaseStats(Strength: 14, Intelligence: 12, Life: 13, Vitality: 10, Agility: 11, Charisma: 10, Faith: 10), character.Base);
-        Assert.Equal(50, character.Hp);
-        Assert.Equal(25, character.Sp);
+        Assert.Equal(50, character.HealthPoints);
+        Assert.Equal(25, character.ManaPoints);
         Assert.Equal(2000, character.Money);
         Assert.Equal(1, character.Level);
-        Assert.Equal(1000, character.NextExp);
-        Assert.Equal(0, character.Exp);
+        Assert.Equal(1000, character.NextLevelExperience);
+        Assert.Equal(0, character.Experience);
         Assert.Equal("warrior", character.JobId);
         Assert.Equal(2, character.Sex);
         Assert.Equal(3, character.Element);
@@ -132,7 +132,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 12, Mat: 12, Df: 10, Mdf: 10, Agi: 12, Au: 10, Element: 1, Str: 12, Smart: 12, Vit: 10, Be: 10, Level: 1),
+            new CombatantState(HealthPoints: 60, MaxHealthPoints: 350, ManaPoints: 25, MaxManaPoints: 91, Attack: 12, MagicAttack: 12, Defense: 10, MagicDefense: 10, Agility: 12, Charisma: 10, Element: 1, Strength: 12, Intelligence: 12, Vitality: 10, Faith: 10, Level: 1),
             combatant);
     }
 
@@ -147,7 +147,7 @@ public class CharacterFactoryTests
         var combatant = CombatBridge.ToCombatant(character, bonus);
 
         Assert.Equal(
-            new CombatantState(Hp: 60, HpMax: 500, Sp: 25, SpMax: 100, At: 42, Mat: 20, Df: 22, Mdf: 23, Agi: 17, Au: 16, Element: 1, Str: 14, Smart: 13, Vit: 13, Be: 12, Level: 1),
+            new CombatantState(HealthPoints: 60, MaxHealthPoints: 500, ManaPoints: 25, MaxManaPoints: 100, Attack: 42, MagicAttack: 20, Defense: 22, MagicDefense: 23, Agility: 17, Charisma: 16, Element: 1, Strength: 14, Intelligence: 13, Vitality: 13, Faith: 12, Level: 1),
             combatant);
     }
 
@@ -160,7 +160,7 @@ public class CharacterFactoryTests
         var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
         var bonus = new EquipmentBonus(StatBonus.Zero with { Agility = 5, Charisma = 5 });
         var monster = new CombatantState(
-            Hp: 1, HpMax: 1, Sp: 0, SpMax: 0, At: 0, Mat: 0, Df: 1, Mdf: 1, Agi: 15, Au: 12, Element: 0, Str: 0, Smart: 0);
+            HealthPoints: 1, MaxHealthPoints: 1, ManaPoints: 0, MaxManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 1, MagicDefense: 1, Agility: 15, Charisma: 12, Element: 0, Strength: 0, Intelligence: 0);
 
         var outcome = WogBattle.Run(CombatBridge.ToCombatant(character, bonus), monster, AttackKind.Magic, new ScriptedRandom(0.99, 0.5, 0.11));
 
@@ -172,10 +172,10 @@ public class CharacterFactoryTests
     [Fact]
     public void CombatBridge_ClampsHpToEffectiveMax()
     {
-        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now) with { Hp = 850, Sp = 200 };
+        var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now) with { HealthPoints = 850, ManaPoints = 200 };
 
         var combatant = CombatBridge.ToCombatant(character, EquipmentBonus.Zero);
 
-        Assert.Equal((350, 350, 91, 91), (combatant.Hp, combatant.HpMax, combatant.Sp, combatant.SpMax));
+        Assert.Equal((350, 350, 91, 91), (combatant.HealthPoints, combatant.MaxHealthPoints, combatant.ManaPoints, combatant.MaxManaPoints));
     }
 }

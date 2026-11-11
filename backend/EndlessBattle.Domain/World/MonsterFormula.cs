@@ -22,7 +22,7 @@ public static class MonsterFormula
             Agility: Round(6 + 1.3m * level),
             Charisma: Round(4 + 1.1m * level),
             Element: 0,
-            JobExp: Round(8 + 1.6m * level),
+            JobExperience: Round(8 + 1.6m * level),
             Meet: 0);
     }
 }

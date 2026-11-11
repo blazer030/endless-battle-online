@@ -82,12 +82,12 @@ public static class CharacterEndpoints
         return new CharacterResponse(
             character.Name,
             character.Level,
-            character.Exp,
-            character.NextExp,
+            character.Experience,
+            character.NextLevelExperience,
             character.Money,
             character.Bank,
-            vitals.Hp,
-            vitals.Sp,
+            vitals.HealthPoints,
+            vitals.ManaPoints,
             character.Sex,
             character.Element,
             character.Birth,
@@ -105,10 +105,10 @@ public static class CharacterEndpoints
             jobProficiency.Select(row => new JobProficiencyResponse(row.JobId, row.Proficiency, row.SkillPoints)).ToList(),
             new AdventureSettingsResponse(
                 character.Settings.Attack,
-                character.Settings.PotionHpPercent,
-                character.Settings.PotionSpPercent,
-                character.Settings.RestHpPercent,
-                character.Settings.RestSpPercent,
-                character.Settings.EscapeHpPercent));
+                character.Settings.PotionHealthPointsPercent,
+                character.Settings.PotionManaPointsPercent,
+                character.Settings.RestHealthPointsPercent,
+                character.Settings.RestManaPointsPercent,
+                character.Settings.EscapeHealthPointsPercent));
     }
 }

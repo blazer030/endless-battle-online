@@ -13,10 +13,10 @@ public class HotelTests
         TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with
         {
             Level = level,
-            Hp = hp,
-            Sp = 3,
+            HealthPoints = hp,
+            ManaPoints = 3,
             Money = money,
-            Exp = exp,
+            Experience = exp,
             Base = new BaseStats(Strength: 12, Intelligence: 12, Life: 38, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
         };
 
@@ -30,7 +30,7 @@ public class HotelTests
 
         var result = Hotel.Rest(hero);
 
-        Assert.Equal(hero with { Hp = 1000, Sp = 91 }, result.Character);
+        Assert.Equal(hero with { HealthPoints = 1000, ManaPoints = 91 }, result.Character);
         Assert.Equal(0, result.Cost);
         Assert.False(result.ExpPenalty);
         Assert.Equal(5.0, result.WaitSeconds);
@@ -44,9 +44,9 @@ public class HotelTests
 
         Assert.Equal(2160, result.Cost);
         Assert.Equal(100_000 - 2160, result.Character.Money);
-        Assert.Equal(1000, result.Character.Hp);
-        Assert.Equal(91, result.Character.Sp);
-        Assert.Equal(500, result.Character.Exp);
+        Assert.Equal(1000, result.Character.HealthPoints);
+        Assert.Equal(91, result.Character.ManaPoints);
+        Assert.Equal(500, result.Character.Experience);
         Assert.False(result.ExpPenalty);
         Assert.Equal(5.0, result.WaitSeconds);
     }
@@ -81,9 +81,9 @@ public class HotelTests
         Assert.Equal(0, result.Cost);
         Assert.True(result.ExpPenalty);
         Assert.Equal(2159, result.Character.Money);
-        Assert.Equal(400, result.Character.Exp);
-        Assert.Equal(1000, result.Character.Hp);
-        Assert.Equal(799, Hotel.Rest(Hero(120, hp: 30, money: 0, exp: 999)).Character.Exp);
+        Assert.Equal(400, result.Character.Experience);
+        Assert.Equal(1000, result.Character.HealthPoints);
+        Assert.Equal(799, Hotel.Rest(Hero(120, hp: 30, money: 0, exp: 999)).Character.Experience);
     }
 
     // 死亡等待 15 秒；存活 5 秒（Lv ≤ 100 與付費路徑皆然）
@@ -102,8 +102,8 @@ public class HotelTests
         var result = Hotel.Rest(Hero(120, hp: 30, money: 0, exp: 2));
 
         Assert.True(result.ExpPenalty);
-        Assert.Equal(2, result.Character.Exp);
-        Assert.Equal(1000, result.Character.Hp);
+        Assert.Equal(2, result.Character.Experience);
+        Assert.Equal(1000, result.Character.HealthPoints);
         Assert.Equal(0, result.Character.Money);
     }
 
@@ -113,7 +113,7 @@ public class HotelTests
     [InlineData(3, 2)]
     public void Hotel_ExpPenalty_RoundsToNearest(long exp, long expected)
     {
-        Assert.Equal(expected, Hotel.Rest(Hero(120, hp: 30, money: 0, exp: exp)).Character.Exp);
+        Assert.Equal(expected, Hotel.Rest(Hero(120, hp: 30, money: 0, exp: exp)).Character.Experience);
     }
 
     // HP 100 = HpMax/10：100 > 100 不成立 → 1.4×(1000−100)/1000 = 1.26；round(1200×1.26 = 1512) = 1512
@@ -139,7 +139,7 @@ public class HotelTests
         Assert.Equal(2160, result.Cost);
         Assert.Equal(0, result.Character.Money);
         Assert.False(result.ExpPenalty);
-        Assert.Equal(500, result.Character.Exp);
+        Assert.Equal(500, result.Character.Experience);
     }
 
     // Lv 101 開始收費：HP 30 → 1.8；round(10×101×1.8 = 1818) = 1818 ≥ 下限 1010
@@ -160,6 +160,6 @@ public class HotelTests
 
         var result = Hotel.Rest(Hero(1, hp: 30), bonus);
 
-        Assert.Equal((1080, 94), (result.Character.Hp, result.Character.Sp));
+        Assert.Equal((1080, 94), (result.Character.HealthPoints, result.Character.ManaPoints));
     }
 }

@@ -45,10 +45,10 @@ public static class Buffs
 
     public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at, CharacterBuff? lodging) => player with
     {
-        At = Scale(player.At, Multiplier(buffs, BuffKind.Attack, at, lodging)),
-        Mat = Scale(player.Mat, Multiplier(buffs, BuffKind.Magic, at, lodging)),
-        Df = Scale(player.Df, Multiplier(buffs, BuffKind.Defense, at, lodging)),
-        Mdf = Scale(player.Mdf, Multiplier(buffs, BuffKind.MagicDefense, at, lodging)),
+        Attack = Scale(player.Attack, Multiplier(buffs, BuffKind.Attack, at, lodging)),
+        MagicAttack = Scale(player.MagicAttack, Multiplier(buffs, BuffKind.Magic, at, lodging)),
+        Defense = Scale(player.Defense, Multiplier(buffs, BuffKind.Defense, at, lodging)),
+        MagicDefense = Scale(player.MagicDefense, Multiplier(buffs, BuffKind.MagicDefense, at, lodging)),
     };
 
     public static CharacterBuff Start(ElixirSpec elixir, DateTimeOffset now) =>

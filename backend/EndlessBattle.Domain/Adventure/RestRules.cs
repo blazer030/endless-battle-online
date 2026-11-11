@@ -8,9 +8,9 @@ public static class RestRules
     public static bool ShouldRest(Character character, DerivedStats derived, bool hasActiveSkills)
     {
         var settings = character.Settings;
-        return character.Hp <= 0
-            || Below(character.Hp, derived.MaxHealthPoints, settings.RestHpPercent)
-            || (hasActiveSkills && Below(character.Sp, derived.MaxManaPoints, settings.RestSpPercent));
+        return character.HealthPoints <= 0
+            || Below(character.HealthPoints, derived.MaxHealthPoints, settings.RestHealthPointsPercent)
+            || (hasActiveSkills && Below(character.ManaPoints, derived.MaxManaPoints, settings.RestManaPointsPercent));
     }
 
     private static bool Below(int value, int maximum, int percent) =>

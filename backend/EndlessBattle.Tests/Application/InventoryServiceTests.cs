@@ -569,7 +569,7 @@ public class InventoryServiceTests
     [Fact]
     public async Task Use_ElixirDoesNotApplyToUnsettledFightsBeforeIt()
     {
-        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextExp = 1_000_000_000 });
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextLevelExperience = 1_000_000_000 });
         var elixir = await GiveAsync(character, "test-exp-elixir");
         clock.Advance(TimeSpan.FromSeconds(60));
 
@@ -577,14 +577,14 @@ public class InventoryServiceTests
         clock.Advance(TimeSpan.FromSeconds(30));
         await adventure.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal((22 * 116) + (11 * 174), (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Exp);
+        Assert.Equal((22 * 116) + (11 * 174), (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Experience);
     }
 
     // 再喝一瓶同種密藥會覆蓋舊的：喝之前先把經過的時間以舊密藥結算掉，0～58.8 的 22 場仍是 174；之後的 11 場由新密藥加成
     [Fact]
     public async Task Use_ElixirSettlesElapsedTimeUnderTheBuffItReplaces()
     {
-        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextExp = 1_000_000_000 });
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextLevelExperience = 1_000_000_000 });
         await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Exp, 1.5, Now.AddMinutes(-30), Now.AddMinutes(30)), CancellationToken);
         var elixir = await GiveAsync(character, "test-exp-elixir");
         clock.Advance(TimeSpan.FromSeconds(60));
@@ -593,7 +593,7 @@ public class InventoryServiceTests
         clock.Advance(TimeSpan.FromSeconds(30));
         await adventure.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal(33 * 174, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Exp);
+        Assert.Equal(33 * 174, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Experience);
         Assert.Equal(
             [new CharacterBuff(BuffKind.Exp, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660))], await buffs.ListAsync(character.Id, CancellationToken));
     }

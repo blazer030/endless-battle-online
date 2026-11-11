@@ -67,7 +67,7 @@ public class ConsumableUseTests
         };
 
     private static MonsterDefinition Monster(string id, string? missionId = null) =>
-        new(id, $"怪物{id}", Level: 1, HealthPoints: 10, ManaPoints: 1, Attack: 1, MagicAttack: 1, Defense: 1, MagicDefense: 1, Agility: 1, Charisma: 1, Element: 0, JobExp: 1, Meet: 0, MissionId: missionId);
+        new(id, $"怪物{id}", Level: 1, HealthPoints: 10, ManaPoints: 1, Attack: 1, MagicAttack: 1, Defense: 1, MagicDefense: 1, Agility: 1, Charisma: 1, Element: 0, JobExperience: 1, Meet: 0, MissionId: missionId);
 
     private static UseContext Full(Character character, int petCount = 0, IReadOnlyList<MonsterDefinition>? monsters = null) =>
         new(character, Warrior, petCount, AllItems, monsters ?? []);
@@ -156,7 +156,7 @@ public class ConsumableUseTests
 
         Assert.True(outcome.LevelsGained >= 1);
         Assert.Equal(1 + outcome.LevelsGained, outcome.Character.Level);
-        Assert.True(outcome.Character.Exp < outcome.Character.NextExp);
+        Assert.True(outcome.Character.Experience < outcome.Character.NextLevelExperience);
         Assert.Equal(0, outcome.SkillPoints);
     }
 
@@ -164,11 +164,11 @@ public class ConsumableUseTests
     [Fact]
     public void ExperienceCapsule_AddsToExistingExp()
     {
-        var hero = Hero with { Exp = 500 };
+        var hero = Hero with { Experience = 500 };
 
         var outcome = ConsumableUse.Apply(Full(hero), Usable(ConsumableKind.ExperienceCapsule, 300), Now, new ScriptedRandom(0.0));
 
-        Assert.Equal(hero with { Exp = 800 }, outcome.Character);
+        Assert.Equal(hero with { Experience = 800 }, outcome.Character);
         Assert.Equal(0, outcome.LevelsGained);
     }
 

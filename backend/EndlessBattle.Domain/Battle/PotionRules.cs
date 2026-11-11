@@ -15,13 +15,13 @@ public static class PotionRules
     public static bool ShouldUse(CombatantState player, SupplyState? supply, int usedThisFight) =>
         supply is { Quantity: > 0 }
         && usedThisFight < MaxUsesPerFight
-        && Below(player.Hp, player.HpMax, supply.HpPercent)
-        && Below(player.Sp, player.SpMax, supply.SpPercent)
+        && Below(player.HealthPoints, player.MaxHealthPoints, supply.HpPercent)
+        && Below(player.ManaPoints, player.MaxManaPoints, supply.SpPercent)
         && Recovers(player, supply);
 
     // 門檻可以都填 -1 略過；補不到任何東西時不喝，免得滿血滿魔也把補給喝光
     private static bool Recovers(CombatantState player, SupplyState supply) =>
-        (supply.Hp > 0 && player.Hp < player.HpMax) || (supply.Sp > 0 && player.Sp < player.SpMax);
+        (supply.Hp > 0 && player.HealthPoints < player.MaxHealthPoints) || (supply.Sp > 0 && player.ManaPoints < player.MaxManaPoints);
 
     private static bool Below(int value, int maximum, int percent) =>
         percent < 0 || (long)value * 100 < (long)percent * maximum;

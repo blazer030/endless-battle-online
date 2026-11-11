@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Pets;
 public class PetBattleTests
 {
     private static CombatantState Side(int au) =>
-        new(Hp: 100, HpMax: 100, Sp: 0, SpMax: 0, At: 10, Mat: 10, Df: 10, Mdf: 10, Agi: 10, au, Element: 0, Str: 0, Smart: 0);
+        new(HealthPoints: 100, MaxHealthPoints: 100, ManaPoints: 0, MaxManaPoints: 0, Attack: 10, MagicAttack: 10, Defense: 10, MagicDefense: 10, Agility: 10, au, Element: 0, Strength: 0, Intelligence: 0);
 
     // 出擊率 = 親密度/255×10 + 出擊值'/255×10 + round(玩家 au / 怪 au)，上限 35。
     // 255／255 積極、30 對 10 → 10 + 10 + 3 = 23；危急的出擊值 ×1.5 → 15 + 10 + 3 = 28；300 對 10 → 50 封頂 35；

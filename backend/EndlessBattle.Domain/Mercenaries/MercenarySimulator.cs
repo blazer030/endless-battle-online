@@ -84,7 +84,7 @@ public static class MercenarySimulator
             }
 
             var derived = DerivedStats.From(character.Base, equipment);
-            var player = CombatBridge.ToCombatant(character with { Hp = derived.MaxHealthPoints, Sp = derived.MaxManaPoints }, equipment);
+            var player = CombatBridge.ToCombatant(character with { HealthPoints = derived.MaxHealthPoints, ManaPoints = derived.MaxManaPoints }, equipment);
             var opponent = CombatantState.From(monster);
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, opponent);
             var outcome = WogBattle.Run(player, opponent, playerPreferred: null, skills, supply: null, random, pet, monsterSkills: monster.Skills);
@@ -120,7 +120,7 @@ public static class MercenarySimulator
 
             fights.Add(new MercenaryFight(fightAt, monster.Id, result, exp, money, dropped));
             droppedItemIds.AddRange(dropped);
-            character = character with { Exp = character.Exp + exp, Money = character.Money + money };
+            character = character with { Experience = character.Experience + exp, Money = character.Money + money };
             var levelUp = LevelUp.Apply(character, job, random, atSeconds: 0);
             character = levelUp.Character;
             levelsGained += levelUp.Events.Count;

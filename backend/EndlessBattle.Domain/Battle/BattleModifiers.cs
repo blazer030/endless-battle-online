@@ -53,22 +53,22 @@ public sealed record BattleModifiers(
     // 能力倍率最低 0.9，正值四捨五入後仍至少 1，所以不另設下限；倍率為 1 時數值完全不變
     public CombatantState ApplyToCaster(CombatantState caster) => caster with
     {
-        At = Math.Max(0, Scale(caster.At, this.At) + FlatAt),
-        Mat = Math.Max(0, Scale(caster.Mat, this.Mat) + FlatMat),
-        Df = Math.Max(0, Scale(caster.Df, this.Df) + FlatDf),
-        Mdf = Math.Max(0, Scale(caster.Mdf, this.Mdf) + FlatMdf),
-        Agi = Math.Max(1, Scale(caster.Agi, this.Agi) + FlatAgi),
-        Au = Math.Max(1, Scale(caster.Au, this.Au) + FlatAu),
+        Attack = Math.Max(0, Scale(caster.Attack, this.At) + FlatAt),
+        MagicAttack = Math.Max(0, Scale(caster.MagicAttack, this.Mat) + FlatMat),
+        Defense = Math.Max(0, Scale(caster.Defense, this.Df) + FlatDf),
+        MagicDefense = Math.Max(0, Scale(caster.MagicDefense, this.Mdf) + FlatMdf),
+        Agility = Math.Max(1, Scale(caster.Agility, this.Agi) + FlatAgi),
+        Charisma = Math.Max(1, Scale(caster.Charisma, this.Au) + FlatAu),
     };
 
     public CombatantState ApplyToOpponent(CombatantState opponent) => opponent with
     {
-        At = Math.Max(0, Scale(opponent.At, EnemyAt) + EnemyFlatAt),
-        Mat = Math.Max(0, Scale(opponent.Mat, EnemyMat) + EnemyFlatMat),
-        Df = Math.Max(0, Scale(opponent.Df, EnemyDf) + EnemyFlatDf),
-        Mdf = Math.Max(0, Scale(opponent.Mdf, EnemyMdf) + EnemyFlatMdf),
-        Agi = Math.Max(1, Scale(opponent.Agi, EnemyAgi) + EnemyFlatAgi),
-        Au = Math.Max(1, Scale(opponent.Au, EnemyAu) + EnemyFlatAu),
+        Attack = Math.Max(0, Scale(opponent.Attack, EnemyAt) + EnemyFlatAt),
+        MagicAttack = Math.Max(0, Scale(opponent.MagicAttack, EnemyMat) + EnemyFlatMat),
+        Defense = Math.Max(0, Scale(opponent.Defense, EnemyDf) + EnemyFlatDf),
+        MagicDefense = Math.Max(0, Scale(opponent.MagicDefense, EnemyMdf) + EnemyFlatMdf),
+        Agility = Math.Max(1, Scale(opponent.Agility, EnemyAgi) + EnemyFlatAgi),
+        Charisma = Math.Max(1, Scale(opponent.Charisma, EnemyAu) + EnemyFlatAu),
     };
 
     // 施放者受到的物理傷害；原本有傷害時減免後至少 1

@@ -28,7 +28,7 @@ public static class Inn
     {
         var cost = Price(inn, room, character.Level);
         var stats = DerivedStats.From(character.Base, equipment);
-        var booked = character with { Money = character.Money - cost, Hp = stats.MaxHealthPoints, Sp = stats.MaxManaPoints };
+        var booked = character with { Money = character.Money - cost, HealthPoints = stats.MaxHealthPoints, ManaPoints = stats.MaxManaPoints };
 
         return new InnBooking(booked, new Lodging(room.Id, now, now.AddSeconds(inn.Seconds)), cost);
     }

@@ -20,8 +20,8 @@ public class InnTests
         TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with
         {
             Level = level,
-            Hp = 30,
-            Sp = 3,
+            HealthPoints = 30,
+            ManaPoints = 3,
             Money = money,
             Base = new BaseStats(Strength: 12, Intelligence: 12, Life: 38, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
         };
@@ -59,7 +59,7 @@ public class InnTests
 
         Assert.Equal(600, booking.Cost);
         Assert.Equal(400, booking.Character.Money);
-        Assert.Equal((1000, 91), (booking.Character.Hp, booking.Character.Sp));
+        Assert.Equal((1000, 91), (booking.Character.HealthPoints, booking.Character.ManaPoints));
         Assert.Equal(new Lodging("apprentice-loft", Now, Now.AddSeconds(28_800)), booking.Lodging);
     }
 
@@ -70,7 +70,7 @@ public class InnTests
 
         var booking = Inn.Book(Hero(), equipment, Definition, Loft, Now);
 
-        Assert.Equal((1100, 91), (booking.Character.Hp, booking.Character.Sp));
+        Assert.Equal((1100, 91), (booking.Character.HealthPoints, booking.Character.ManaPoints));
     }
 
     [Fact]
@@ -126,11 +126,11 @@ public class InnTests
     public void ApplyTo_WithLodgingRoundsOnce()
     {
         var player = new CombatantState(
-            Hp: 60, HpMax: 350, Sp: 25, SpMax: 91, At: 100, Mat: 40, Df: 11, Mdf: 15, Agi: 12, Au: 10, Element: 1,
-            Str: 12, Smart: 12);
+            HealthPoints: 60, MaxHealthPoints: 350, ManaPoints: 25, MaxManaPoints: 91, Attack: 100, MagicAttack: 40, Defense: 11, MagicDefense: 15, Agility: 12, Charisma: 10, Element: 1,
+            Strength: 12, Intelligence: 12);
 
         var buffed = Buffs.ApplyTo(player, [Elixir(BuffKind.Attack, 1.2)], Now, Stay(BuffKind.Attack, 1.05));
 
-        Assert.Equal(DerivedStats.RoundLikePhp(126.0), buffed.At);
+        Assert.Equal(DerivedStats.RoundLikePhp(126.0), buffed.Attack);
     }
 }

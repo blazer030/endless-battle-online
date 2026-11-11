@@ -11,7 +11,7 @@ public class SkillActivationRateTests
     private static readonly SkillEffect Effect = new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, 5, null, null, Rounds: 0);
 
     private static CombatantState Combatant(int hp = 1000) =>
-        new(hp, HpMax: 1000, Sp: 100, SpMax: 100, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 10, Element: 0, Str: 100, Smart: 20);
+        new(hp, MaxHealthPoints: 1000, ManaPoints: 100, MaxManaPoints: 100, Attack: 100, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 20, Charisma: 10, Element: 0, Strength: 100, Intelligence: 20);
 
     private static SkillDefinition Skill(IReadOnlyList<SkillCondition> conditions, params SkillEffect[] effects) =>
         new("skill", "技能", SkillType.Active, SkillTiming.BeforeAttack, "", [new SkillLevel(1, 0, 0, 0, conditions, [], effects)]);

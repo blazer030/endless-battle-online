@@ -12,7 +12,7 @@ public class RoundResolverTests
     [InlineData(AttackKind.Magic, false)]
     public void Strike_CritChanceBonusAppliesToPhysicalOnly(AttackKind kind, bool expectedCritical)
     {
-        var fighter = new CombatantState(100, 100, 0, 0, At: 100, Mat: 100, Df: 50, Mdf: 50, Agi: 10, Au: 10, Element: 0, Str: 100, Smart: 100);
+        var fighter = new CombatantState(100, 100, 0, 0, Attack: 100, MagicAttack: 100, Defense: 50, MagicDefense: 50, Agility: 10, Charisma: 10, Element: 0, Strength: 100, Intelligence: 100);
         var rolls = kind == AttackKind.Physical ? new[] { 0.0, 0.145, 0.0 } : [0.145, 0.0];
 
         // 物理暴擊率技能只算進物理攻擊：依攻擊方式取這一下的暴擊率加成

@@ -19,7 +19,7 @@ public sealed record MonsterDefinition(
     int Agility,
     int Charisma,
     int Element,
-    long JobExp,
+    long JobExperience,
     int Meet,
     int PlaceId = 0,
     IReadOnlyList<int>? SubPlaces = null,

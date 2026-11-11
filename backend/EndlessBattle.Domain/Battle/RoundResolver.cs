@@ -41,14 +41,14 @@ public static class RoundResolver
         var physical = kind == AttackKind.Physical;
 
         // 魔法必中
-        if (physical && !PhysicalHits(attacker.Agi, defender.Agi, rag, random))
+        if (physical && !PhysicalHits(attacker.Agility, defender.Agility, rag, random))
         {
             return new AttackResult(Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0);
         }
 
         var (criticalChance, criticalMultiplier) = physical
-            ? CriticalOdds(attacker.Agi, defender.Agi, criticalCapPercent)
-            : CriticalOdds(attacker.Au, defender.Au, criticalCapPercent);
+            ? CriticalOdds(attacker.Agility, defender.Agility, criticalCapPercent)
+            : CriticalOdds(attacker.Charisma, defender.Charisma, criticalCapPercent);
 
         // 暴擊率技能加在 20% 上限之後、不再封頂
         var critical = PhpRandom.Between(random, 1, 100) < criticalChance + criticalChanceBonus;
@@ -58,7 +58,7 @@ public static class RoundResolver
         {
             elementMultiplier *= 1 + elementAdvantagePercent / 100;
         }
-        var (attack, defense) = physical ? (attacker.At, defender.Df) : (attacker.Mat, defender.Mdf);
+        var (attack, defense) = physical ? (attacker.Attack, defender.Defense) : (attacker.MagicAttack, defender.MagicDefense);
         var damage = WogDamage.Fight(critical ? attack * criticalMultiplier : attack, defense, elementMultiplier, random, bonusDamage: bonusDamage);
         return new AttackResult(Hit: true, critical, damage, elementMultiplier);
     }

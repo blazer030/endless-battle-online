@@ -9,7 +9,7 @@ namespace EndlessBattle.Tests.Domain.World;
 public class MonsterPoolTests
 {
     private static MonsterDefinition Monster(string id, int meet, int placeId, params int[] subPlaces) =>
-        new(id, id, Level: 1, HealthPoints: 10, ManaPoints: 1, Attack: 1, MagicAttack: 0, Defense: 1, MagicDefense: 1, Agility: 1, Charisma: 1, Element: 0, JobExp: 1, meet, placeId, subPlaces);
+        new(id, id, Level: 1, HealthPoints: 10, ManaPoints: 1, Attack: 1, MagicAttack: 0, Defense: 1, MagicDefense: 1, Agility: 1, Charisma: 1, Element: 0, JobExperience: 1, meet, placeId, subPlaces);
 
     private static string[] Ids(IEnumerable<MonsterDefinition> monsters) => monsters.Select(monster => monster.Id).ToArray();
 

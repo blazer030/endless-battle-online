@@ -218,8 +218,8 @@ public sealed class AdventureService(
             ? (null, new CaptureState(item.Id, item.Name, item.Amount, equipped.SupplyQuantity))
             : (new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity)
             {
-                HpPercent = settings.PotionHpPercent,
-                SpPercent = settings.PotionSpPercent,
+                HpPercent = settings.PotionHealthPointsPercent,
+                SpPercent = settings.PotionManaPointsPercent,
             }, null);
     }
 

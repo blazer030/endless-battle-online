@@ -72,5 +72,5 @@ public static class RewardFormulas
     }
 
     // 每次擊殺的職業熟練度與技能點增量（WOG wog_fight_select.php 用 floor）
-    public static long JobExp(MonsterDefinition m) => m.JobExp;
+    public static long JobExp(MonsterDefinition m) => m.JobExperience;
 }

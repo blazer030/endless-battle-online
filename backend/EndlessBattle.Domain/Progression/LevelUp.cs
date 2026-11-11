@@ -13,15 +13,15 @@ public static class LevelUp
     public static LevelUpResult Apply(Character character, JobDefinition job, IRandomSource random, double atSeconds)
     {
         var events = new List<LevelUpEvent>();
-        while (character.Exp > character.NextExp)
+        while (character.Experience > character.NextLevelExperience)
         {
             var level = character.Level + 1;
             var growth = RollGrowth(job.Growth, random);
             character = character with
             {
                 Level = level,
-                Exp = character.Exp - character.NextExp,
-                NextExp = ExperienceCurve.NextExpFor(level),
+                Experience = character.Experience - character.NextLevelExperience,
+                NextLevelExperience = ExperienceCurve.NextExpFor(level),
                 Base = Add(character.Base, growth),
             };
             events.Add(new LevelUpEvent(atSeconds, level, growth));

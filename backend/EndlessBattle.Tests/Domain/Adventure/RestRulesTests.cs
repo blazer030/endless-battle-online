@@ -12,8 +12,8 @@ public class RestRulesTests
     private static Character Hero(int hp, int sp, AdventureSettings? settings = null) =>
         TestCharacters.Default(accountId: 1, "勇者", 1, 1, DateTimeOffset.UnixEpoch) with
         {
-            Hp = hp,
-            Sp = sp,
+            HealthPoints = hp,
+            ManaPoints = sp,
             Settings = settings ?? AdventureSettings.Default,
         };
 
@@ -32,18 +32,18 @@ public class RestRulesTests
     [Fact]
     public void ShouldRest_DeadAlwaysRests()
     {
-        Assert.True(RestRules.ShouldRest(Hero(0, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasActiveSkills: false));
+        Assert.True(RestRules.ShouldRest(Hero(0, 100, AdventureSettings.Default with { RestHealthPointsPercent = -1 }), Derived, hasActiveSkills: false));
     }
 
     [Fact]
     public void ShouldRest_SpSkippedWhenMinusOne()
     {
-        Assert.False(RestRules.ShouldRest(Hero(100, 0, AdventureSettings.Default with { RestSpPercent = -1 }), Derived, hasActiveSkills: true));
+        Assert.False(RestRules.ShouldRest(Hero(100, 0, AdventureSettings.Default with { RestManaPointsPercent = -1 }), Derived, hasActiveSkills: true));
     }
 
     [Fact]
     public void ShouldRest_HpSkippedWhenMinusOne()
     {
-        Assert.False(RestRules.ShouldRest(Hero(1, 100, AdventureSettings.Default with { RestHpPercent = -1 }), Derived, hasActiveSkills: false));
+        Assert.False(RestRules.ShouldRest(Hero(1, 100, AdventureSettings.Default with { RestHealthPointsPercent = -1 }), Derived, hasActiveSkills: false));
     }
 }

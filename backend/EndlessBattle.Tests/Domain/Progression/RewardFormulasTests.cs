@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Progression;
 public class RewardFormulasTests
 {
     private static readonly MonsterDefinition SnowSprite = new(
-        "snow-sprite", "雪精", Level: 3, HealthPoints: 60, ManaPoints: 0, Attack: 14, MagicAttack: 8, Defense: 5, MagicDefense: 5, Agility: 8, Charisma: 5, Element: 2, JobExp: 12, Meet: 50);
+        "snow-sprite", "雪精", Level: 3, HealthPoints: 60, ManaPoints: 0, Attack: 14, MagicAttack: 8, Defense: 5, MagicDefense: 5, Agility: 8, Charisma: 5, Element: 2, JobExperience: 12, Meet: 50);
 
     // base = (14+8)/2 = 11；rand(11, 14) = NextInt(4) + 11，0.0 → 11
     // plv 1 ≤ 100：11 × 1.3 = 14.3；3 × 14.3 × (3/1) × 1 × 0.18 = 23.166
@@ -134,7 +134,7 @@ public class RewardFormulasTests
     [Fact]
     public void Money_ZeroAttackSumYieldsZero()
     {
-        var minimal = new MonsterDefinition("minimal", "最小", Level: 1, HealthPoints: 5, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 1, Charisma: 0, Element: 0, JobExp: 0, Meet: 0);
+        var minimal = new MonsterDefinition("minimal", "最小", Level: 1, HealthPoints: 5, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 1, Charisma: 0, Element: 0, JobExperience: 0, Meet: 0);
 
         Assert.Equal(0, RewardFormulas.Money(minimal, new ScriptedRandom(0.99)));
     }
@@ -142,6 +142,6 @@ public class RewardFormulasTests
     [Fact]
     public void JobExp_IsTheMonsterJobExp()
     {
-        Assert.Equal(13, RewardFormulas.JobExp(SnowSprite with { JobExp = 13 }));
+        Assert.Equal(13, RewardFormulas.JobExp(SnowSprite with { JobExperience = 13 }));
     }
 }

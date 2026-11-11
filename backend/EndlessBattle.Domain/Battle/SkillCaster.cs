@@ -196,7 +196,7 @@ public sealed class SkillCaster
     private bool ConditionsWithoutRollHold(SkillLevel level, int hp, int opponentHp) =>
         level.Conditions.All(condition => condition.Kind switch
         {
-            SkillConditionKind.HitPointsBelow => (long)hp * 100 < (long)condition.Percent * caster.HpMax,
+            SkillConditionKind.HitPointsBelow => (long)hp * 100 < (long)condition.Percent * caster.MaxHealthPoints,
             SkillConditionKind.HitPointsBelowOpponent => hp < opponentHp,
             SkillConditionKind.StatAbove => StatOf(condition.Stat!.Value, caster) > StatOf(condition.Stat.Value, opponentStats),
             _ => true,
@@ -214,8 +214,8 @@ public sealed class SkillCaster
             cost.All ? sp : cost.Percent is { } percent ? BattleModifiers.Round(maximum * percent / 100) : cost.Amount;
 
         return (
-            level.Costs.Where(cost => cost.Kind == SkillCostKind.HitPoints).Sum(cost => AmountOf(cost, caster.HpMax)),
-            level.Costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => AmountOf(cost, caster.SpMax)),
+            level.Costs.Where(cost => cost.Kind == SkillCostKind.HitPoints).Sum(cost => AmountOf(cost, caster.MaxHealthPoints)),
+            level.Costs.Where(cost => cost.Kind == SkillCostKind.SkillPoints).Sum(cost => AmountOf(cost, caster.MaxManaPoints)),
             level.Costs.Where(cost => cost.Kind == SkillCostKind.Money).Sum(cost => cost.Amount));
     }
 
@@ -242,8 +242,8 @@ public sealed class SkillCaster
         var opponentSpLoss = effects.OfType<ReduceSkillPointsEffect>()
             .Sum(effect => effect.Amount ?? BattleModifiers.Round(opponent.SpMax * effect.PercentOfMaximum!.Value / 100));
         return new InstantResult(
-            Math.Min(RestoreOf(SkillResource.HitPoints, caster.HpMax), caster.HpMax - hp),
-            Math.Max(0, Math.Min(RestoreOf(SkillResource.SkillPoints, caster.SpMax), caster.SpMax - sp)),
+            Math.Min(RestoreOf(SkillResource.HitPoints, caster.MaxHealthPoints), caster.MaxHealthPoints - hp),
+            Math.Max(0, Math.Min(RestoreOf(SkillResource.SkillPoints, caster.MaxManaPoints), caster.MaxManaPoints - sp)),
             Math.Min(opponentDamage, Math.Max(0, opponent.Hp)),
             Math.Min(opponentSpLoss, Math.Max(0, opponent.Sp)));
     }
@@ -274,7 +274,7 @@ public sealed class SkillCaster
     // 以 SP 為基準時用該技能發動當下（扣消耗前）的 SP；常駐技能用開戰時的 SP
     private int Scaled(IReadOnlyList<SkillScaling> scaling, EquippedSkill equipped) =>
         BattleModifiers.Round(scaling.Sum(term => term.Ratio * (term.Basis == SkillScalingBasis.SkillPoints
-            ? castSkillPoints.GetValueOrDefault(equipped, caster.Sp)
+            ? castSkillPoints.GetValueOrDefault(equipped, caster.ManaPoints)
             : StatOf(term.Basis, caster))));
 
     private int StunChanceOf(StunEffect stun) => stun.ChanceByStat is not { } adjustment
@@ -284,17 +284,17 @@ public sealed class SkillCaster
     // 沒有對手資料時一律當 0
     private static int StatOf(SkillScalingBasis basis, CombatantState? state) => state is null ? 0 : basis switch
     {
-        SkillScalingBasis.Strength => state.Str,
-        SkillScalingBasis.Intelligence => state.Smart,
-        SkillScalingBasis.Vitality => state.Vit,
-        SkillScalingBasis.Agility => state.Agi,
-        SkillScalingBasis.Charisma => state.Au,
-        SkillScalingBasis.Faith => state.Be,
+        SkillScalingBasis.Strength => state.Strength,
+        SkillScalingBasis.Intelligence => state.Intelligence,
+        SkillScalingBasis.Vitality => state.Vitality,
+        SkillScalingBasis.Agility => state.Agility,
+        SkillScalingBasis.Charisma => state.Charisma,
+        SkillScalingBasis.Faith => state.Faith,
         SkillScalingBasis.Level => state.Level,
-        SkillScalingBasis.Attack => state.At,
-        SkillScalingBasis.MagicAttack => state.Mat,
-        SkillScalingBasis.Defense => state.Df,
-        SkillScalingBasis.SkillPoints => state.Sp,
+        SkillScalingBasis.Attack => state.Attack,
+        SkillScalingBasis.MagicAttack => state.MagicAttack,
+        SkillScalingBasis.Defense => state.Defense,
+        SkillScalingBasis.SkillPoints => state.ManaPoints,
         _ => throw new ArgumentOutOfRangeException(nameof(basis), basis, "未知的能力基準"),
     };
 
@@ -310,7 +310,7 @@ public sealed class SkillCaster
     // 效果全部是回復的技能，在要回復的資源都已滿時不發動
     private bool RestoresOnlyFullResources(SkillLevel level, int hp, int sp) =>
         level.Effects.All(effect => effect is RestoreEffect restore
-            && (restore.Resource == SkillResource.HitPoints ? hp >= caster.HpMax : sp >= caster.SpMax));
+            && (restore.Resource == SkillResource.HitPoints ? hp >= caster.MaxHealthPoints : sp >= caster.MaxManaPoints));
 
     private bool IsInEffect(EquippedSkill equipped) =>
         equipped.Skill.IsAlwaysOn || remainingRounds.ContainsKey(equipped);

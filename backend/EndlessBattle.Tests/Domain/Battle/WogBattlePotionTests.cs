@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Battle;
 public class WogBattlePotionTests
 {
     private static CombatantState Player(int hp, int sp, int hpMax = 100, int spMax = 100, int at = 100, int df = 50) =>
-        new(hp, hpMax, sp, spMax, at, Mat: 0, df, Mdf: 50, Agi: 20, Au: 10, Element: 0, Str: 100, Smart: 0);
+        new(hp, hpMax, sp, spMax, at, MagicAttack: 0, df, MagicDefense: 50, Agility: 20, Charisma: 10, Element: 0, Strength: 100, Intelligence: 0);
 
     private static SupplyState Supply(int hp = 50, int sp = 25, int quantity = 5, int hpPercent = 15, int spPercent = 100) =>
         new("test-supply", "測試補給藥劑", hp, sp, quantity) { HpPercent = hpPercent, SpPercent = spPercent };
@@ -67,12 +67,12 @@ public class WogBattlePotionTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new PotionEvent(0, "test-supply", "測試補給藥劑", Hp: 50, Sp: 25, Remaining: 4),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 0),
+                new PotionEvent(0, "test-supply", "測試補給藥劑", HealthPoints: 50, ManaPoints: 25, Remaining: 4),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHealthPointsAfter: 0),
                 new DefeatEvent(0, CombatSide.Monster),
             },
             outcome.Events);
-        Assert.Equal((64, 75), (outcome.Player.Hp, outcome.Player.Sp));
+        Assert.Equal((64, 75), (outcome.Player.HealthPoints, outcome.Player.ManaPoints));
         Assert.Equal(Supply(quantity: 4), outcome.Supply);
     }
 
@@ -83,7 +83,7 @@ public class WogBattlePotionTests
         var outcome = Run(Player(hp: 14, sp: 100), Supply(quantity: 5), new ScriptedRandom(0.99, 0.695, 0.0, 0.99, 0.5));
 
         Assert.Empty(outcome.Events.OfType<PotionEvent>());
-        Assert.Equal(14, outcome.Player.Hp);
+        Assert.Equal(14, outcome.Player.HealthPoints);
         Assert.Equal(Supply(quantity: 5), outcome.Supply);
     }
 
@@ -93,7 +93,7 @@ public class WogBattlePotionTests
         var outcome = Run(Player(hp: 14, sp: 50), Supply(quantity: 0), new ScriptedRandom(0.99, 0.695, 0.0, 0.99, 0.5));
 
         Assert.Empty(outcome.Events.OfType<PotionEvent>());
-        Assert.Equal((14, 50), (outcome.Player.Hp, outcome.Player.Sp));
+        Assert.Equal((14, 50), (outcome.Player.HealthPoints, outcome.Player.ManaPoints));
         Assert.Equal(Supply(quantity: 0), outcome.Supply);
     }
 
@@ -103,7 +103,7 @@ public class WogBattlePotionTests
     {
         var outcome = Run(Player(hp: 14, sp: 90), Supply(hp: 800, sp: 400), new ScriptedRandom(0.99, 0.695, 0.0, 0.99, 0.5));
 
-        Assert.Equal((100, 100), (outcome.Player.Hp, outcome.Player.Sp));
+        Assert.Equal((100, 100), (outcome.Player.HealthPoints, outcome.Player.ManaPoints));
     }
 
     // 事件記實際回復量：HP 100 − 14 = 86、SP 100 − 90 = 10
@@ -112,7 +112,7 @@ public class WogBattlePotionTests
     {
         var outcome = Run(Player(hp: 14, sp: 90), Supply(hp: 800, sp: 400, quantity: 2), new ScriptedRandom(0.99, 0.695, 0.0, 0.99, 0.5));
 
-        Assert.Equal(new PotionEvent(0, "test-supply", "測試補給藥劑", Hp: 86, Sp: 10, Remaining: 1), outcome.Events.OfType<PotionEvent>().Single());
+        Assert.Equal(new PotionEvent(0, "test-supply", "測試補給藥劑", HealthPoints: 86, ManaPoints: 10, Remaining: 1), outcome.Events.OfType<PotionEvent>().Single());
     }
 
     // 雙方 df 1000、每下 1 點（擲骰一律 0.0，玩家先攻）：HP 14 → 喝 1 → 15 → 被打 → 14，每回合開頭都符合門檻。
@@ -125,12 +125,12 @@ public class WogBattlePotionTests
 
         var potions = outcome.Events.OfType<PotionEvent>().ToList();
         Assert.Equal(Enumerable.Range(0, 9).Select(round => round * BattleTiming.SecondsPerRound), potions.Select(potion => potion.AtSeconds));
-        Assert.All(potions, potion => Assert.Equal(1, potion.Hp));
+        Assert.All(potions, potion => Assert.Equal(1, potion.HealthPoints));
         Assert.Equal(90, potions[^1].Remaining);
         Assert.Equal(90, outcome.Supply!.Quantity);
 
         var roundTen = outcome.Events.ToList().IndexOf(new RoundEvent(9 * BattleTiming.SecondsPerRound, 10));
-        var hpAtRoundTen = outcome.Events.Take(roundTen).OfType<AttackEvent>().Last(attack => attack.Attacker == CombatSide.Monster).TargetHpAfter;
+        var hpAtRoundTen = outcome.Events.Take(roundTen).OfType<AttackEvent>().Last(attack => attack.Attacker == CombatSide.Monster).TargetHealthPointsAfter;
         Assert.Equal(14, hpAtRoundTen);
         Assert.IsNotType<PotionEvent>(outcome.Events[roundTen + 1]);
     }
@@ -146,12 +146,12 @@ public class WogBattlePotionTests
 
         Assert.Equal(
             new (double, int, int, int)[] { (1 * BattleTiming.SecondsPerRound, 50, 25, 19), (2 * BattleTiming.SecondsPerRound, 50, 8, 18) },
-            outcome.Events.OfType<PotionEvent>().Select(potion => (potion.AtSeconds, potion.Hp, potion.Sp, potion.Remaining)));
+            outcome.Events.OfType<PotionEvent>().Select(potion => (potion.AtSeconds, potion.HealthPoints, potion.ManaPoints, potion.Remaining)));
         Assert.Equal((3, 12, 21, 18), (outcome.Rounds, outcome.Events.Count, random.Consumed, outcome.Supply!.Quantity));
     }
 
     private static CombatantState Monster(int hp = 100, int at = 0, int df = 50) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, Agi: 10, Au: 10, Element: 0, Str: at, Smart: 0);
+        new(hp, hp, ManaPoints: 0, MaxManaPoints: 0, at, MagicAttack: 0, df, MagicDefense: 50, Agility: 10, Charisma: 10, Element: 0, Strength: at, Intelligence: 0);
 
     private static BattleOutcome Run(CombatantState player, SupplyState? supply, ScriptedRandom random, CombatantState? monster = null) =>
         WogBattle.Run(player, monster ?? Monster(), playerPreferred: null, skills: [], supply, random);

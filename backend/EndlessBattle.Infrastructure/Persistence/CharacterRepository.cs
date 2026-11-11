@@ -69,8 +69,8 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
     private static void CopyState(Character character, CharacterRow row)
     {
         row.Level = character.Level;
-        row.Exp = character.Exp;
-        row.NextExp = character.NextExp;
+        row.Exp = character.Experience;
+        row.NextExp = character.NextLevelExperience;
         row.Money = character.Money;
         row.Sex = (sbyte)character.Sex;
         row.Element = (sbyte)character.Element;
@@ -83,8 +83,8 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.BaseAgi = character.Base.Agility;
         row.BaseAu = character.Base.Charisma;
         row.BaseBe = character.Base.Faith;
-        row.Hp = character.Hp;
-        row.Sp = character.Sp;
+        row.Hp = character.HealthPoints;
+        row.Sp = character.ManaPoints;
         row.CurrentPlaceId = character.PlaceId;
         row.CurrentSubPlace = (sbyte?)character.SubPlace;
         row.LastSettledAt = character.LastSettledAt.UtcDateTime;
@@ -93,11 +93,11 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         row.DepotBonus = character.DepotBonus;
         var settings = character.Settings;
         row.AttackPreference = settings.Attack is { } attack ? (sbyte)((int)attack + 1) : null;
-        row.PotionHpPercent = (sbyte)settings.PotionHpPercent;
-        row.PotionSpPercent = (sbyte)settings.PotionSpPercent;
-        row.RestHpPercent = (sbyte)settings.RestHpPercent;
-        row.RestSpPercent = (sbyte)settings.RestSpPercent;
-        row.EscapeHpPercent = (sbyte)settings.EscapeHpPercent;
+        row.PotionHpPercent = (sbyte)settings.PotionHealthPointsPercent;
+        row.PotionSpPercent = (sbyte)settings.PotionManaPointsPercent;
+        row.RestHpPercent = (sbyte)settings.RestHealthPointsPercent;
+        row.RestSpPercent = (sbyte)settings.RestManaPointsPercent;
+        row.EscapeHpPercent = (sbyte)settings.EscapeHealthPointsPercent;
     }
 
     private static Character ToDomain(CharacterRow row) => new(
@@ -105,16 +105,16 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         AccountId: row.AccountId,
         Name: row.Name,
         Level: row.Level,
-        Exp: row.Exp,
-        NextExp: row.NextExp,
+        Experience: row.Exp,
+        NextLevelExperience: row.NextExp,
         Money: row.Money,
         Sex: row.Sex,
         Element: row.Element,
         Birth: row.Birth,
         JobId: row.JobId,
         Base: new BaseStats(row.BaseStr, row.BaseSmart, row.BaseLife, row.BaseVit, row.BaseAgi, row.BaseAu, row.BaseBe),
-        Hp: row.Hp,
-        Sp: row.Sp,
+        HealthPoints: row.Hp,
+        ManaPoints: row.Sp,
         PlaceId: row.CurrentPlaceId,
         SubPlace: row.CurrentSubPlace,
         LastSettledAt: ToUtc(row.LastSettledAt),

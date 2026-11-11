@@ -32,11 +32,11 @@ public class LevelUpTests
             Faith: new StatRange(1, 2)));
         var random = new ScriptedRandom(0.5, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
 
-        var result = LevelUp.Apply(Novice with { Exp = 1001 }, job, random, atSeconds: 12.0);
+        var result = LevelUp.Apply(Novice with { Experience = 1001 }, job, random, atSeconds: 12.0);
 
         var growth = new BaseStats(Strength: 5, Intelligence: 0, Life: 4, Vitality: 1, Agility: 6, Charisma: 0, Faith: 2);
         Assert.Equal(
-            Novice with { Level = 2, Exp = 1, NextExp = 2184, Base = new BaseStats(17, 12, 16, 11, 18, 10, 12) },
+            Novice with { Level = 2, Experience = 1, NextLevelExperience = 2184, Base = new BaseStats(17, 12, 16, 11, 18, 10, 12) },
             result.Character);
         Assert.Equal([new LevelUpEvent(12.0, 2, growth)], result.Events);
         Assert.Equal(7, random.Consumed);
@@ -53,10 +53,10 @@ public class LevelUpTests
         var job = JobWith(new JobGrowth(range, range, range, range, range, range, range));
         var random = new ScriptedRandom(0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99);
 
-        var result = LevelUp.Apply(Novice with { Exp = 3684 }, job, random, atSeconds: 5.0);
+        var result = LevelUp.Apply(Novice with { Experience = 3684 }, job, random, atSeconds: 5.0);
 
         Assert.Equal(
-            Novice with { Level = 3, Exp = 500, NextExp = 3294, Base = new BaseStats(16, 16, 16, 14, 16, 14, 14) },
+            Novice with { Level = 3, Experience = 500, NextLevelExperience = 3294, Base = new BaseStats(16, 16, 16, 14, 16, 14, 14) },
             result.Character);
         Assert.Equal(
             [
@@ -74,7 +74,7 @@ public class LevelUpTests
         var range = new StatRange(1, 3);
         var job = JobWith(new JobGrowth(range, range, range, range, range, range, range));
         var random = new ScriptedRandom(0.5);
-        var character = Novice with { Exp = 1000 };
+        var character = Novice with { Experience = 1000 };
 
         var result = LevelUp.Apply(character, job, random, atSeconds: 0.0);
 

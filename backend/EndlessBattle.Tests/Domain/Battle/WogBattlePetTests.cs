@@ -13,10 +13,10 @@ public class WogBattlePetTests
     private static readonly double PetAttackOffset = BattleTiming.SecondsPerRound * 0.95;
 
     private static CombatantState Player(int hp = 100, int at = 10, int df = 50, int agi = 10, int au = 10) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, Mdf: 50, agi, au, Element: 0, Str: at, Smart: 0);
+        new(hp, hp, ManaPoints: 0, MaxManaPoints: 0, at, MagicAttack: 0, df, MagicDefense: 50, agi, au, Element: 0, Strength: at, Intelligence: 0);
 
     private static CombatantState Monster(int hp = 1000, int at = 0, int df = 50, int mdf = 50, int agi = 10, int au = 10) =>
-        new(hp, hp, Sp: 0, SpMax: 0, at, Mat: 0, df, mdf, agi, au, Element: 0, Str: at, Smart: 0);
+        new(hp, hp, ManaPoints: 0, MaxManaPoints: 0, at, MagicAttack: 0, df, mdf, agi, au, Element: 0, Strength: at, Intelligence: 0);
 
     // 對上測試雪精的數值：df 6、mdf 4、agi 9、au 6；怪物 at 0 也打不中（擲 100）
     private static CombatantState Sprite(int hp = 1000) => Monster(hp, at: 0, df: 6, mdf: 4, agi: 9, au: 6);
@@ -38,11 +38,11 @@ public class WogBattlePetTests
             {
                 new RoundEvent(0, 1),
                 new PetGuardEvent(0, PetName, Damage: 150, GuardAfter: 350, Retired: false),
-                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 1000),
+                new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHealthPointsAfter: 1000),
                 new RoundEvent(BattleTiming.SecondsPerRound, 2),
             },
             outcome.Events.Take(4));
-        Assert.Equal(100, outcome.Player.Hp);
+        Assert.Equal(100, outcome.Player.HealthPoints);
     }
 
     // 怪物沒打中時不擲代擋：先攻 0.99 怪物先；命中 0.99 未命中；下一顆 0.0 是玩家的命中（若誤擲代擋就會被吃掉、玩家改擲 0.99 落空）；
@@ -54,7 +54,7 @@ public class WogBattlePetTests
 
         Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
         Assert.Equal(
-            new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850),
+            new AttackEvent(0.4, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHealthPointsAfter: 850),
             outcome.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player));
     }
 
@@ -70,7 +70,7 @@ public class WogBattlePetTests
 
         Assert.Equal(new PetGuardEvent(0, PetName, Damage: 15, GuardAfter: 0, Retired: true), outcome.Events.OfType<PetGuardEvent>().Single());
         Assert.Contains(
-            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85),
+            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHealthPointsAfter: 85),
             outcome.Events);
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
         Assert.Equal(CombatSide.Monster, outcome.Winner);
@@ -86,7 +86,7 @@ public class WogBattlePetTests
 
         Assert.Equal(new PetGuardEvent(0, PetName, Damage: 15, GuardAfter: 0, Retired: true), outcome.Events.OfType<PetGuardEvent>().Single());
         Assert.Contains(
-            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHpAfter: 85),
+            new AttackEvent(BattleTiming.SecondsPerRound, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 15, ElementMultiplier: 1.0, TargetHealthPointsAfter: 85),
             outcome.Events);
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
     }
@@ -120,7 +120,7 @@ public class WogBattlePetTests
         Assert.Empty(outcome.Events.OfType<PetGuardEvent>());
         Assert.Empty(outcome.Events.OfType<PetAttackEvent>());
         Assert.Equal(
-            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHpAfter: 850),
+            new AttackEvent(0, CombatSide.Monster, AttackKind.Physical, Hit: true, Critical: false, Damage: 150, ElementMultiplier: 1.0, TargetHealthPointsAfter: 850),
             outcome.Events.OfType<AttackEvent>().First());
     }
 
@@ -135,14 +135,14 @@ public class WogBattlePetTests
         var quicken = TestSkills.Battle("quicken", "加敏", SkillPreset.AgiMultiplier);
         var slow = TestSkills.Battle("slow", "降敵敏", SkillPreset.EnemyAgiDown);
         EquippedSkill[] skills = [new(quicken, Level: 5, Slot: 1), new(slow, Level: 5, Slot: 2)];
-        var player = new CombatantState(1000, 1000, Sp: 100, SpMax: 100, At: 10, Mat: 0, Df: 50, Mdf: 50, Agi: 100, Au: 10, Element: 0, Str: 10, Smart: 0);
+        var player = new CombatantState(1000, 1000, ManaPoints: 100, MaxManaPoints: 100, Attack: 10, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 100, Charisma: 10, Element: 0, Strength: 10, Intelligence: 0);
         var monster = Monster(at: 0, df: 6, mdf: 4, agi: 100, au: 10);
 
         var outcome = WogBattle.Run(player, monster, playerPreferred: null, skills, supply: null,
             new ScriptedRandom(0.99, 0.0, 0.0, 0.0, 0.99, 0.99, 0.0, 0.0, 0.0, 0.095, 0.0), Pet());
 
         Assert.Equal(
-            new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: true, Damage: 256, TargetHpAfter: 744),
+            new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: true, Damage: 256, TargetHealthPointsAfter: 744),
             outcome.Events.OfType<PetAttackEvent>().First());
     }
 
@@ -158,9 +158,9 @@ public class WogBattlePetTests
         var outcome = Run(Player(agi: 12), Sprite(), Pet(), new ScriptedRandom(0.99, 0.0, 0.99, 0.99, 0.0, kindRoll, 0.0, 0.99, 0.0));
 
         Assert.Equal(
-            new PetAttackEvent(PetAttackOffset, PetName, kind, Hit: true, Critical: false, damage, TargetHpAfter: 1000 - damage),
+            new PetAttackEvent(PetAttackOffset, PetName, kind, Hit: true, Critical: false, damage, TargetHealthPointsAfter: 1000 - damage),
             outcome.Events.OfType<PetAttackEvent>().Single());
-        Assert.Equal(1000 - damage, outcome.Monster.Hp);
+        Assert.Equal(1000 - damage, outcome.Monster.HealthPoints);
         Assert.Equal(damage, outcome.DamageDealtToMonster);
     }
 
@@ -171,7 +171,7 @@ public class WogBattlePetTests
         var outcome = Run(Player(agi: 12), Sprite(), Pet(), new ScriptedRandom(0.99, 0.0, 0.99, 0.99, 0.0, 0.0, 0.99));
 
         Assert.Equal(
-            new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, TargetHpAfter: 1000),
+            new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, TargetHealthPointsAfter: 1000),
             outcome.Events.OfType<PetAttackEvent>().Single());
         Assert.Equal(0, outcome.DamageDealtToMonster);
     }
@@ -204,16 +204,16 @@ public class WogBattlePetTests
             new BattleEvent[]
             {
                 new RoundEvent(0, 1),
-                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 5),
-                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHpAfter: 100),
-                new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: false, Damage: 146, TargetHpAfter: 0),
+                new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHealthPointsAfter: 5),
+                new AttackEvent(0.4, CombatSide.Monster, AttackKind.Physical, Hit: false, Critical: false, Damage: 0, ElementMultiplier: 1.0, TargetHealthPointsAfter: 100),
+                new PetAttackEvent(PetAttackOffset, PetName, AttackKind.Physical, Hit: true, Critical: false, Damage: 146, TargetHealthPointsAfter: 0),
                 new DefeatEvent(PetAttackOffset, CombatSide.Monster),
             },
             outcome.Events);
         Assert.Equal(CombatSide.Player, outcome.Winner);
         Assert.Equal(1, outcome.Rounds);
         Assert.Equal(146, outcome.DamageDealtToMonster);
-        Assert.Equal(0, outcome.Monster.Hp);
+        Assert.Equal(0, outcome.Monster.HealthPoints);
     }
 
     // 沒有寵物時新多載不擲任何多的骰：同一串亂數（取自 SeededRandom）跑舊多載與新多載，事件與用掉的亂數數相同

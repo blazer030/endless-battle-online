@@ -53,7 +53,7 @@ public static class MissionRewards
             return new MissionRewardOutcome(character, 0, [], [], null, reasons);
         }
 
-        var rewarded = character with { Exp = character.Exp + objective.Exp, Money = character.Money + reward.Money };
+        var rewarded = character with { Experience = character.Experience + objective.Exp, Money = character.Money + reward.Money };
         // 獎勵不是戰鬥中取得，升級事件的時間點沒有意義
         var levelUp = LevelUp.Apply(rewarded, job, random, atSeconds: 0);
         var newPet = reward.Pet is { } pet ? PetCapture.NewPet(monsters(pet.MonsterId), pet.Level, now, random) : null;

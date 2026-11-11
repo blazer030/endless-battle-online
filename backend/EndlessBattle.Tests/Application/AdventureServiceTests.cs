@@ -71,18 +71,18 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_SettlesThroughLastStartedFight()
     {
-        await AddCharacterAsync(character => character with { Exp = 100 });
+        await AddCharacterAsync(character => character with { Experience = 100 });
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         Assert.Equal(8, result.Events.OfType<EncounterEvent>().Count());
         Assert.All(result.Events.OfType<EncounterEvent>(), encounter => Assert.Equal("test-sprite", encounter.MonsterId));
-        Assert.Equal(new AdvanceSummary(Fights: 8, Wins: 8, Losses: 0, Timeouts: 0, Exp: 928, Money: 0, JobExp: 96, LevelsGained: 1, SkillsCast: 0, Drops: 8), result.Summary);
+        Assert.Equal(new AdvanceSummary(Fights: 8, Wins: 8, Losses: 0, Timeouts: 0, Experience: 928, Money: 0, JobExperience: 96, LevelsGained: 1, SkillsCast: 0, Drops: 8), result.Summary);
         Assert.True(result.EventsCoverAll);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(Start.AddSeconds(22.4), stored!.LastSettledAt, TimeSpan.FromMilliseconds(1));
-        Assert.Equal(28, stored.Exp);
+        Assert.Equal(28, stored.Experience);
         Assert.Equal(result.Character, stored);
         Assert.Equal([new JobProficiency("warrior", 96, 96)], result.JobProficiency);
     }
@@ -92,28 +92,28 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_LoadsBuffs()
     {
-        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000_000 });
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
         await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Exp, 1.5, Start, Start.AddHours(1)), CancellationToken);
         await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.JobExp, 1.5, Start.AddHours(-1), Start), CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal((8, 8 * 174L, 8 * 12L), (result.Summary.Wins, result.Summary.Exp, result.Summary.JobExp));
-        Assert.All(result.Events.OfType<RewardEvent>(), reward => Assert.Equal(174, reward.Exp));
+        Assert.Equal((8, 8 * 174L, 8 * 12L), (result.Summary.Wins, result.Summary.Experience, result.Summary.JobExperience));
+        Assert.All(result.Events.OfType<RewardEvent>(), reward => Assert.Equal(174, reward.Experience));
     }
 
     // 住學徒閣樓（經驗 ×1.10）：8 場勝場各 round(116 × 1.1) = 128，沒住時是 116
     [Fact]
     public async Task Advance_PassesLodgingToSimulation()
     {
-        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000_000 });
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
         await lodgings.SaveAsync(character.Id, new Lodging("apprentice-loft", Start, Start.AddHours(8)), CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal((8, 8 * 128L), (result.Summary.Wins, result.Summary.Exp));
+        Assert.Equal((8, 8 * 128L), (result.Summary.Wins, result.Summary.Experience));
     }
 
     // 內容移除了角色所在的地區（999）：時間沒有前進時照樣回傳空結果，不查地區、不寫入
@@ -164,7 +164,7 @@ public class AdventureServiceTests
         Assert.Empty(result.Events);
         Assert.Equal(Start, result.AreaPassExpiresAt);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal((clock.UtcNow, character.Exp), (stored!.LastSettledAt, stored.Exp));
+        Assert.Equal((clock.UtcNow, character.Experience), (stored!.LastSettledAt, stored.Experience));
         Assert.Equal(1, Assert.Single(await inventory.ListAsync(character.Id, CancellationToken)).Quantity);
         Assert.Equal(new AreaPass(17, Start), await passes.FindAsync(character.Id, 17, CancellationToken));
     }
@@ -173,7 +173,7 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_AfterExpiryStillSettlesMercenaryAndHunger()
     {
-        var character = await AddCharacterAsync(character => character with { PlaceId = 17, SubPlace = 1, NextExp = 1_000_000 });
+        var character = await AddCharacterAsync(character => character with { PlaceId = 17, SubPlace = 1, NextLevelExperience = 1_000_000 });
         await passes.SaveAsync(character.Id, new AreaPass(17, Start), CancellationToken);
         var petId = await pets.AddAsync(
             character.Id, TestPets.Create("小雪", "test-sprite", intimacy: 5) with { HungerSince = Start.AddHours(-1) }, CancellationToken);
@@ -233,18 +233,18 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_PersistsHpAndLevel()
     {
-        await AddCharacterAsync(character => character with { Hp = 0, Sp = 0, Exp = 999 });
+        await AddCharacterAsync(character => character with { HealthPoints = 0, ManaPoints = 0, Experience = 999 });
         clock.Advance(TimeSpan.FromSeconds(16));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         Assert.IsType<RestEvent>(result.Events[0]);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal(350, stored!.Hp);
-        Assert.Equal(91, stored.Sp);
+        Assert.Equal(350, stored!.HealthPoints);
+        Assert.Equal(91, stored.ManaPoints);
         Assert.Equal(2, stored.Level);
-        Assert.Equal(115, stored.Exp);
-        Assert.Equal(2184, stored.NextExp);
+        Assert.Equal(115, stored.Experience);
+        Assert.Equal(2184, stored.NextLevelExperience);
         Assert.Equal(new BaseStats(14, 12, 13, 11, 13, 10, 10), stored.Base);
         Assert.Equal(1, stored.Version);
     }
@@ -253,7 +253,7 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_ReportsAllEvents_WhenOnlyTheOpeningRestIsSkipped()
     {
-        await AddCharacterAsync(character => character with { Hp = 0 });
+        await AddCharacterAsync(character => character with { HealthPoints = 0 });
         clock.Advance(TimeSpan.FromSeconds(40));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
@@ -353,7 +353,7 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_BuildsLoadoutFromBookAndSlots()
     {
-        var character = await AddCharacterAsync(character => character with { Sp = 91 });
+        var character = await AddCharacterAsync(character => character with { ManaPoints = 91 });
         await EquipAsync(
             character,
             [new LearnedSkill("burst", 2), new LearnedSkill("iron-skin", 1)],
@@ -364,9 +364,9 @@ public class AdventureServiceTests
 
         Assert.Equal(
             [("burst", 2, 83), ("burst", 2, 75)],
-            result.Events.OfType<SkillEvent>().Select(skill => (skill.SkillId, skill.Level, skill.SpAfter)));
+            result.Events.OfType<SkillEvent>().Select(skill => (skill.SkillId, skill.Level, skill.ManaPointsAfter)));
         Assert.Equal(2, result.Summary.SkillsCast);
-        Assert.Equal(75, result.Character.Sp);
+        Assert.Equal(75, result.Character.ManaPoints);
     }
 
     // 欄位不限職業：thief 的欄 4 留著戰士的被動（常駐、沒有施放事件）、欄 1 仍可施放 burst（6 秒開 3 場：25 → 20 → 15 → 10）
@@ -541,9 +541,9 @@ public class AdventureServiceTests
     {
         var character = await AddCharacterAsync(character => character with
         {
-            Hp = DerivedStats.From(character.Base).MaxHealthPoints,
-            Sp = DerivedStats.From(character.Base).MaxManaPoints,
-            Settings = AdventureSettings.Default with { PotionHpPercent = AdventureSettings.Skip, PotionSpPercent = AdventureSettings.Skip },
+            HealthPoints = DerivedStats.From(character.Base).MaxHealthPoints,
+            ManaPoints = DerivedStats.From(character.Base).MaxManaPoints,
+            Settings = AdventureSettings.Default with { PotionHealthPointsPercent = AdventureSettings.Skip, PotionManaPointsPercent = AdventureSettings.Skip },
         });
         await EquipSupplyAsync(character, quantity: 5);
         clock.Advance(TimeSpan.FromSeconds(20));
@@ -843,7 +843,7 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_SettlesMercenaryBeforeAdventure()
     {
-        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000 });
         await AddMissionAsync(character, ActiveRecord("test-hunt") with { AcceptedAt = Start.AddHours(-1) });
         clock.Advance(TimeSpan.FromSeconds(20));
         var now = clock.UtcNow;
@@ -857,9 +857,9 @@ public class AdventureServiceTests
         Assert.All(report.Fights, fight => Assert.Equal(
             ("test-sprite", MercenaryFightResult.Won, 58L, 0L), (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
         Assert.Equal((174L, 0L, 0, 7, false), (report.Exp, report.Money, report.LevelsGained, report.Remaining, report.Dismissed));
-        Assert.Equal((8, 928L, 0, 8), (result.Summary.Wins, result.Summary.Exp, result.Summary.MissionKills, result.Summary.Drops));
+        Assert.Equal((8, 928L, 0, 8), (result.Summary.Wins, result.Summary.Experience, result.Summary.MissionKills, result.Summary.Drops));
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal(174 + 928, stored!.Exp);
+        Assert.Equal(174 + 928, stored!.Experience);
         Assert.Equal([new JobProficiency("warrior", 36 + 96, 36 + 96)], result.JobProficiency);
         Assert.Equal(3, (await missions.ListAsync(character.Id, CancellationToken)).Single().ProgressOf(0));
         Assert.Equal(11, (await inventory.ListAsync(character.Id, CancellationToken)).Where(entry => entry.ItemId == "test-supply").Sum(entry => entry.Quantity));
@@ -876,7 +876,7 @@ public class AdventureServiceTests
         var advance = new AdventureService(
             repository, proficiencies, skillBook, loadout, sharedInventory, sharedEquipment, missions, pets, mercenaries, passes, buffs, lodgings, Content, clock,
             new ScriptedRandomFactory(), new InMemoryUnitOfWork(repository, proficiencies, sharedInventory, missions, pets, mercenaries, passes, buffs));
-        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000 });
         clock.Advance(TimeSpan.FromSeconds(20));
         await DeployMercenaryAsync(character, remaining: 10, clock.UtcNow.AddSeconds(-200));
 
@@ -891,7 +891,7 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_MercenaryDropsTakeBagSpaceFirst()
     {
-        var character = await AddCharacterAsync(character => character with { NextExp = 1_000_000 });
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000 });
         for (var index = 0; index < InventoryRules.SlotsPerCategory - 1; index++)
         {
             await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", InventoryRules.StackLimit), CancellationToken);
@@ -1037,14 +1037,14 @@ public class AdventureServiceTests
     [Fact]
     public async Task Advance_EquippedWeaponWithSkill_CastsItWithoutSp()
     {
-        var character = await AddCharacterAsync(hero => hero with { Sp = 0 });
+        var character = await AddCharacterAsync(hero => hero with { ManaPoints = 0 });
         await equipment.SetSlotAsync(character.Id, EquipmentSlot.Weapon, await AddToBagAsync(character, "test-burst-blade"), null, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(3));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         var cast = result.Events.OfType<SkillEvent>().First();
-        Assert.Equal(("爆氣", 2, 0), (cast.SkillName, cast.Level, cast.SpCost));
+        Assert.Equal(("爆氣", 2, 0), (cast.SkillName, cast.Level, cast.ManaPointsCost));
     }
 
     [Fact]

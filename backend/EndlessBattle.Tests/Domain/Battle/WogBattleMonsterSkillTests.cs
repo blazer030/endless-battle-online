@@ -17,10 +17,10 @@ public class WogBattleMonsterSkillTests
     private const double NoCritical = 0.5;
 
     private static CombatantState Player(int hp = 1000, int sp = 100, int element = 0) =>
-        new(hp, HpMax: 1000, sp, SpMax: 100, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 10, element, Str: 100, Smart: 20);
+        new(hp, MaxHealthPoints: 1000, sp, MaxManaPoints: 100, Attack: 100, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 20, Charisma: 10, element, Strength: 100, Intelligence: 20);
 
     private static CombatantState Monster(int hp = 1000, int hpMax = 1000, int sp = 100, int at = 100) =>
-        new(hp, hpMax, sp, SpMax: 100, at, Mat: 0, Df: 50, Mdf: 50, Agi: 10, Au: 10, Element: 0, Str: at, Smart: 0);
+        new(hp, hpMax, sp, MaxManaPoints: 100, at, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 10, Charisma: 10, Element: 0, Strength: at, Intelligence: 0);
 
     private static EquippedSkill Skill(string name, IReadOnlyList<SkillCost> costs, params SkillEffect[] effects) =>
         new(new SkillDefinition(name, name, SkillType.Active, SkillTiming.BeforeAttack, "",
@@ -39,7 +39,7 @@ public class WogBattleMonsterSkillTests
         var casts = outcome.Events.OfType<SkillEvent>().Take(2).ToList();
         Assert.Equal([CombatSide.Player, CombatSide.Monster], casts.Select(cast => cast.Caster));
         Assert.Equal("怪物的技能", casts[1].SkillName);
-        Assert.Equal((0.0, 96, 4, 10), (casts[1].AtSeconds, casts[1].SpAfter, casts[1].SpCost, casts[1].HpCost));
+        Assert.Equal((0.0, 96, 4, 10), (casts[1].AtSeconds, casts[1].ManaPointsAfter, casts[1].ManaPointsCost, casts[1].HealthPointsCost));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class WogBattleMonsterSkillTests
 
         var cast = outcome.Events.OfType<SkillEvent>().First();
         Assert.Equal((CombatSide.Monster, 50), (cast.Caster, cast.Heal));
-        Assert.Equal(700, outcome.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player).TargetHpAfter);
+        Assert.Equal(700, outcome.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player).TargetHealthPointsAfter);
     }
 
     [Fact]
@@ -90,8 +90,8 @@ public class WogBattleMonsterSkillTests
         Assert.Equal(CombatSide.Monster, outcome.Winner);
         Assert.Equal(CombatSide.Player, outcome.Events.OfType<DefeatEvent>().Single().Loser);
         Assert.Empty(outcome.Events.OfType<AttackEvent>());
-        Assert.Equal(0, outcome.Player.Hp);
-        Assert.Equal(0, outcome.Events.OfType<SkillEvent>().Single().OpponentHpAfter);
+        Assert.Equal(0, outcome.Player.HealthPoints);
+        Assert.Equal(0, outcome.Events.OfType<SkillEvent>().Single().OpponentHealthPointsAfter);
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class WogBattleMonsterSkillTests
         var outcome = RunWithMonsterSkill(combo, [FirstRoll, LastRoll, FirstRoll, NoCritical, FirstRoll, FirstRoll, NoCritical, FirstRoll], Player(hp: 200));
 
         var hits = outcome.Events.OfType<AttackEvent>().Where(attack => attack.Attacker == CombatSide.Monster).ToList();
-        Assert.Equal([50, 0], hits.Select(hit => hit.TargetHpAfter));
+        Assert.Equal([50, 0], hits.Select(hit => hit.TargetHealthPointsAfter));
         // 3 下平分在怪物的半回合內，第 2 下不是下一回合才打
         Assert.Equal(BattleTiming.SecondsPerRound / 2 / 3, hits[1].AtSeconds - hits[0].AtSeconds, 6);
         Assert.Equal(CombatSide.Monster, outcome.Winner);
@@ -294,7 +294,7 @@ public class WogBattleMonsterSkillTests
         var outcome = WogBattle.Run(Player(hp: 50), Monster(), null, [], null, new ScriptedRandom(LastRoll), null, monsterSkills: [poison]);
 
         var lasting = outcome.Events.OfType<SkillEvent>().Last();
-        Assert.Equal((CombatSide.Monster, true, 100, (int?)0), (lasting.Caster, lasting.Lasting, lasting.Damage, lasting.OpponentHpAfter));
+        Assert.Equal((CombatSide.Monster, true, 100, (int?)0), (lasting.Caster, lasting.Lasting, lasting.Damage, lasting.OpponentHealthPointsAfter));
         Assert.IsType<DefeatEvent>(outcome.Events[^1]);
         Assert.Equal(CombatSide.Player, ((DefeatEvent)outcome.Events[^1]).Loser);
         Assert.Equal(CombatSide.Monster, outcome.Winner);
@@ -309,7 +309,7 @@ public class WogBattleMonsterSkillTests
         // 全部擲 1：代擋（1 < 35）隨時都能成立，技能傷害仍然直接打在玩家身上
         var outcome = WogBattle.Run(Player(), Monster(), null, [], null, new ScriptedRandom(FirstRoll), pet, monsterSkills: [starlight]);
 
-        Assert.Equal(900, outcome.Events.OfType<SkillEvent>().First().OpponentHpAfter);
+        Assert.Equal(900, outcome.Events.OfType<SkillEvent>().First().OpponentHealthPointsAfter);
         Assert.Empty(outcome.Events.TakeWhile(battleEvent => battleEvent is not AttackEvent).OfType<PetGuardEvent>());
     }
 
@@ -358,7 +358,7 @@ public class WogBattleMonsterSkillTests
         var outcome = RunWithMonsterSkill(stun, [FirstRoll, FirstRoll, FirstRoll]);
 
         var attack = FirstAttackBy(outcome, CombatSide.Player);
-        Assert.Equal((true, false, 0, 1000), (attack.Stunned, attack.Hit, attack.Damage, attack.TargetHpAfter));
+        Assert.Equal((true, false, 0, 1000), (attack.Stunned, attack.Hit, attack.Damage, attack.TargetHealthPointsAfter));
     }
 
     [Fact]

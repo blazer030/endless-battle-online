@@ -38,11 +38,11 @@ public class BalanceTests
     {
         var reference = Reference();
 
-        Assert.Equal(325, reference.HpMax);
-        Assert.Equal(10, reference.Df);
-        Assert.Equal(10, reference.Mdf);
-        Assert.Equal(11, reference.Agi);
-        Assert.Equal(10, reference.Au);
+        Assert.Equal(325, reference.MaxHealthPoints);
+        Assert.Equal(10, reference.Defense);
+        Assert.Equal(10, reference.MagicDefense);
+        Assert.Equal(11, reference.Agility);
+        Assert.Equal(10, reference.Charisma);
 
         for (var str = 1; str <= 7; str++)
         for (var smart = 1; smart <= 7; smart++)
@@ -55,11 +55,11 @@ public class BalanceTests
             }
 
             var other = Create(new StatAllocation(str, smart, life, agi), element: 1);
-            Assert.True(other.HpMax >= reference.HpMax, $"{str}/{smart}/{life}/{agi} HpMax {other.HpMax}");
-            Assert.True(other.Df >= reference.Df, $"{str}/{smart}/{life}/{agi} Df {other.Df}");
-            Assert.True(other.Mdf >= reference.Mdf, $"{str}/{smart}/{life}/{agi} Mdf {other.Mdf}");
-            Assert.True(other.Agi >= reference.Agi, $"{str}/{smart}/{life}/{agi} Agi {other.Agi}");
-            Assert.True(other.Au >= reference.Au, $"{str}/{smart}/{life}/{agi} Au {other.Au}");
+            Assert.True(other.MaxHealthPoints >= reference.MaxHealthPoints, $"{str}/{smart}/{life}/{agi} HpMax {other.MaxHealthPoints}");
+            Assert.True(other.Defense >= reference.Defense, $"{str}/{smart}/{life}/{agi} Df {other.Defense}");
+            Assert.True(other.MagicDefense >= reference.MagicDefense, $"{str}/{smart}/{life}/{agi} Mdf {other.MagicDefense}");
+            Assert.True(other.Agility >= reference.Agility, $"{str}/{smart}/{life}/{agi} Agi {other.Agility}");
+            Assert.True(other.Charisma >= reference.Charisma, $"{str}/{smart}/{life}/{agi} Au {other.Charisma}");
         }
     }
 
@@ -91,9 +91,9 @@ public class BalanceTests
     {
         var random = new HighestRandom();
         var physical = WogDamage.Fight(
-            monster.Attack * RoundResolver.CriticalOdds(monster.Agility, player.Agi).Multiplier, player.Df, StrongestElement(monster), random);
+            monster.Attack * RoundResolver.CriticalOdds(monster.Agility, player.Agility).Multiplier, player.Defense, StrongestElement(monster), random);
         var magic = WogDamage.Fight(
-            monster.MagicAttack * RoundResolver.CriticalOdds(monster.Charisma, player.Au).Multiplier, player.Mdf, StrongestElement(monster), random);
+            monster.MagicAttack * RoundResolver.CriticalOdds(monster.Charisma, player.Charisma).Multiplier, player.MagicDefense, StrongestElement(monster), random);
         return Math.Max(physical, magic);
     }
 

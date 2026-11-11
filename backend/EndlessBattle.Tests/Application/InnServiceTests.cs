@@ -62,7 +62,7 @@ public class InnServiceTests
     [Fact]
     public async Task Book_SpendsHealsAndSavesLodging()
     {
-        var character = await AddCharacterAsync(character => character with { Hp = 1, Sp = 0 });
+        var character = await AddCharacterAsync(character => character with { HealthPoints = 1, ManaPoints = 0 });
         var stats = DerivedStats.From(character.Base, EquipmentBonus.Zero);
 
         var result = await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
@@ -70,7 +70,7 @@ public class InnServiceTests
         var expected = new Lodging("apprentice-loft", Now, Now.AddHours(8));
         Assert.Equal(100, result.Cost);
         Assert.Equal(expected, result.Lodging);
-        Assert.Equal((1900L, stats.MaxHealthPoints, stats.MaxManaPoints), (result.Character.Money, result.Character.Hp, result.Character.Sp));
+        Assert.Equal((1900L, stats.MaxHealthPoints, stats.MaxManaPoints), (result.Character.Money, result.Character.HealthPoints, result.Character.ManaPoints));
         Assert.Equal(result.Character, await ReloadAsync());
         Assert.Equal(expected, await lodgings.FindAsync(character.Id, CancellationToken));
         Assert.Equal(["update", "lodging"], log);
@@ -99,21 +99,21 @@ public class InnServiceTests
     [Fact]
     public async Task Book_DoesNotBoostFightsBeforeBooking()
     {
-        await AddCharacterAsync(character => character with { NextExp = 1_000_000_000 });
+        await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
         clock.Advance(TimeSpan.FromSeconds(60));
 
         await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(30));
         await adventure.AdvanceAsync(AccountId, CancellationToken);
 
-        Assert.Equal((22 * 116) + (11 * 128), (await ReloadAsync()).Exp);
+        Assert.Equal((22 * 116) + (11 * 128), (await ReloadAsync()).Experience);
     }
 
     // Lv 101、陣亡、錢剛好 101 × 50 × 2 = 10100：結算時先自動住宿花掉 round(10 × 101 × 2.1) = 2121，剩 7979 不夠 → 整筆回滾
     [Fact]
     public async Task Book_RechecksMoneyAfterSettling()
     {
-        var character = await AddCharacterAsync(character => character with { Level = 101, Hp = 0, Money = 10100, NextExp = 1_000_000_000 });
+        var character = await AddCharacterAsync(character => character with { Level = 101, HealthPoints = 0, Money = 10100, NextLevelExperience = 1_000_000_000 });
         var previous = new Lodging("fighters-bunk", Now.AddHours(-1), Now.AddHours(7));
         await lodgings.SaveAsync(character.Id, previous, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(1));
@@ -128,7 +128,7 @@ public class InnServiceTests
     [Fact]
     public async Task Book_ChargesThePriceForTheLevelReachedWhileSettling()
     {
-        await AddCharacterAsync(character => character with { Exp = 900 });
+        await AddCharacterAsync(character => character with { Experience = 900 });
         clock.Advance(TimeSpan.FromSeconds(2));
 
         var result = await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);

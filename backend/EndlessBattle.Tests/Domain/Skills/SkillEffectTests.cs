@@ -10,7 +10,7 @@ namespace EndlessBattle.Tests.Domain.Skills;
 public class SkillEffectTests
 {
     private static CombatantState Player(int at = 200, int hp = 1000, int sp = 100, int str = 100) =>
-        new(Hp: hp, HpMax: 1000, Sp: sp, SpMax: 100, At: at, Mat: 100, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0, Str: str, Smart: 50);
+        new(HealthPoints: hp, MaxHealthPoints: 1000, ManaPoints: sp, MaxManaPoints: 100, Attack: at, MagicAttack: 100, Defense: 50, MagicDefense: 50, Agility: 20, Charisma: 25, Element: 0, Strength: str, Intelligence: 50);
 
     private static SkillDefinition Skill(SkillType type, params SkillLevel[] levels) =>
         new("skill", "技能", type, SkillTiming.BeforeAttack, "說明", levels);
@@ -24,7 +24,7 @@ public class SkillEffectTests
     private static StatChangeEffect AttackPercent(double percent, int rounds = 3) =>
         new(SkillTarget.Caster, SkillStat.Attack, percent, Amount: null, Scaling: null, rounds);
 
-    private static int AttackAfter(SkillCaster caster, CombatantState player) => caster.Current.ApplyToCaster(player).At;
+    private static int AttackAfter(SkillCaster caster, CombatantState player) => caster.Current.ApplyToCaster(player).Attack;
 
     [Fact]
     public void StatChange_RaisesAttackByLevelPercent()
@@ -36,7 +36,7 @@ public class SkillEffectTests
         var player = Player(at: 200);
         var caster = new SkillCaster(player, [new EquippedSkill(skill, Level: 3, Slot: 1)]);
 
-        caster.CastBeforeAttack(player.Hp, player.Sp, new ScriptedRandom(0.0));
+        caster.CastBeforeAttack(player.HealthPoints, player.ManaPoints, new ScriptedRandom(0.0));
         var rounds = new List<int> { AttackAfter(caster, player) };
         for (var round = 2; round <= 4; round++)
         {
@@ -94,7 +94,7 @@ public class SkillEffectTests
         Assert.Empty(caster.CastBeforeAttack(1000, 100, random));
         caster.ExpireAtRoundStart();
 
-        Assert.Equal((55, 0), (caster.Current.ApplyToCaster(Player()).Df, random.Consumed));
+        Assert.Equal((55, 0), (caster.Current.ApplyToCaster(Player()).Defense, random.Consumed));
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class SkillEffectTests
     }
 
     private static CombatantState Monster() =>
-        new(Hp: 3000, HpMax: 3000, Sp: 0, SpMax: 0, At: 120, Mat: 0, Df: 50, Mdf: 50, Agi: 15, Au: 10, Element: 0, Str: 0, Smart: 0);
+        new(HealthPoints: 3000, MaxHealthPoints: 3000, ManaPoints: 0, MaxManaPoints: 0, Attack: 120, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 15, Charisma: 10, Element: 0, Strength: 0, Intelligence: 0);
 
     private static string BattleWith(SkillDefinition skill, int level, int slot = 1) =>
         // 以執行期型別序列化，才會寫出各事件自己的欄位
@@ -195,7 +195,7 @@ public class SkillEffectTests
         var passive = Skill(SkillType.Passive, AttackLevel(1, 5));
 
         Assert.Equal(BattleWith(active, level: 1, slot: 1), BattleWith(passive, level: 1, slot: 4));
-        Assert.Contains("\"SpAfter\":95", BattleWith(passive, level: 1, slot: 4));
+        Assert.Contains("\"ManaPointsAfter\":95", BattleWith(passive, level: 1, slot: 4));
     }
 
     [Fact]
@@ -233,8 +233,8 @@ public class SkillEffectTests
     [Fact]
     public void MagicCriticalChance_RaisesMagicCriticalOdds()
     {
-        var mage = Player() with { Mat = 300, Au = 10 };
-        var target = Monster() with { Au = 10 };
+        var mage = Player() with { MagicAttack = 300, Charisma = 10 };
+        var target = Monster() with { Charisma = 10 };
         // 魔法必中；暴擊擲 30：基本 10% 不暴擊，加 50% 後暴擊
         var withoutBonus = RoundResolver.Strike(mage, target, AttackKind.Magic, new ScriptedRandom(0.0, Roll(30)));
         var withBonus = RoundResolver.Strike(mage, target, AttackKind.Magic, new ScriptedRandom(0.0, Roll(30)), criticalChanceBonus: 50);
@@ -271,34 +271,34 @@ public class SkillEffectTests
     [Fact]
     public void OpponentStat_LowersMonsterAgility()
     {
-        var monster = Monster() with { Agi = 250, Au = 100 };
+        var monster = Monster() with { Agility = 250, Charisma = 100 };
 
         var lowered = AlwaysOn(Player(), Change(SkillStat.Agility, amount: -200, target: SkillTarget.Opponent)).Current.ApplyToOpponent(monster);
         var floored = AlwaysOn(Player(), Change(SkillStat.Charisma, amount: -4900, target: SkillTarget.Opponent)).Current.ApplyToOpponent(monster);
 
-        Assert.Equal((50, 1), (lowered.Agi, floored.Au));
+        Assert.Equal((50, 1), (lowered.Agility, floored.Charisma));
     }
 
     [Fact]
     public void Scaling_UsesCharisma()
     {
         // 力量之舞：物攻 + 魅力×5%；魅力 100 → +5
-        var player = Player(at: 200) with { Au = 100 };
+        var player = Player(at: 200) with { Charisma = 100 };
         var caster = AlwaysOn(player, Change(SkillStat.Attack, scaling: [new SkillScaling(SkillScalingBasis.Charisma, 0.05)]));
 
-        Assert.Equal(205, caster.Current.ApplyToCaster(player).At);
+        Assert.Equal(205, caster.Current.ApplyToCaster(player).Attack);
     }
 
     [Fact]
     public void Scaling_UsesVitalityFaithAndLevel()
     {
-        var player = Player(at: 200) with { Vit = 40, Be = 20, Level = 10 };
+        var player = Player(at: 200) with { Vitality = 40, Faith = 20, Level = 10 };
         var caster = AlwaysOn(player, Change(SkillStat.Attack, scaling:
         [
             new SkillScaling(SkillScalingBasis.Vitality, 0.5), new SkillScaling(SkillScalingBasis.Faith, 1), new SkillScaling(SkillScalingBasis.Level, 2),
         ]));
 
-        Assert.Equal(260, caster.Current.ApplyToCaster(player).At);
+        Assert.Equal(260, caster.Current.ApplyToCaster(player).Attack);
     }
 
     [Fact]
@@ -355,7 +355,7 @@ public class SkillEffectTests
 
         Assert.Equal(CombatSide.Player, outcome.Winner);
         var tick = outcome.Events.OfType<SkillEvent>().Last();
-        Assert.Equal((5000, 0), (tick.Damage, tick.OpponentHpAfter));
+        Assert.Equal((5000, 0), (tick.Damage, tick.OpponentHealthPointsAfter));
         Assert.IsType<DefeatEvent>(outcome.Events[^1]);
     }
 
@@ -378,9 +378,9 @@ public class SkillEffectTests
     {
         var drain = Skill(SkillType.Passive, Level(1, [], [new ReduceSkillPointsEffect(Amount: 20, PercentOfMaximum: null, Rounds: 0)]));
 
-        var outcome = WogBattle.Run(Player(), Monster() with { Sp = 30, SpMax = 30 }, AttackKind.Physical, [new EquippedSkill(drain, 1, 4)], new SeededRandom(7));
+        var outcome = WogBattle.Run(Player(), Monster() with { ManaPoints = 30, MaxManaPoints = 30 }, AttackKind.Physical, [new EquippedSkill(drain, 1, 4)], new SeededRandom(7));
 
-        Assert.Equal([20, 10], outcome.Events.OfType<SkillEvent>().Select(skill => skill.OpponentSpLoss));
+        Assert.Equal([20, 10], outcome.Events.OfType<SkillEvent>().Select(skill => skill.OpponentManaPointsLoss));
     }
 
     [Fact]
@@ -461,7 +461,7 @@ public class SkillEffectTests
     {
         var stun = new StunEffect(chance, Rounds: 1) { ChanceByStat = new SkillChanceAdjustment(SkillScalingBasis.Intelligence, 5) };
         var skill = new EquippedSkill(Skill(SkillType.Active, Level(1, [Chance(100)], [stun])), 1, 1);
-        var caster = new SkillCaster(Player() with { Smart = casterSmart }, [skill], Player() with { Smart = opponentSmart });
+        var caster = new SkillCaster(Player() with { Intelligence = casterSmart }, [skill], Player() with { Intelligence = opponentSmart });
 
         caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
 
@@ -549,11 +549,11 @@ public class SkillEffectTests
             [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.MagicAttack }, Chance(40)],
             [AttackPercent(5)], costs: [new SkillCost(SkillCostKind.SkillPoints, 5)]));
         var random = new ScriptedRandom(0.0);
-        var caster = new SkillCaster(Player() with { Mat = 50 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { Mat = 60 });
+        var caster = new SkillCaster(Player() with { MagicAttack = 50 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { MagicAttack = 60 });
 
         Assert.Empty(caster.CastBeforeAttack(1000, 100, random));
         Assert.Equal(0, random.Consumed);
-        Assert.Single(new SkillCaster(Player() with { Mat = 70 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { Mat = 60 })
+        Assert.Single(new SkillCaster(Player() with { MagicAttack = 70 }, [new EquippedSkill(skill, 1, 1)], opponent: Monster() with { MagicAttack = 60 })
             .CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
     }
 
@@ -582,7 +582,7 @@ public class SkillEffectTests
     public void EffectValues_UseResourcesBeforeCost()
     {
         // 魔力爆發：消耗全部 SP，魔攻 + SP×0.1；SP 300、魔攻 100 → 130，SP 變 0
-        var player = Player() with { Mat = 100, Sp = 300, SpMax = 300 };
+        var player = Player() with { MagicAttack = 100, ManaPoints = 300, MaxManaPoints = 300 };
         var skill = Skill(SkillType.Active, Level(1, [Chance(100)],
             [Change(SkillStat.MagicAttack, scaling: [new SkillScaling(SkillScalingBasis.SkillPoints, 0.1)]) with { Rounds = 1 }],
             costs: [new SkillCost(SkillCostKind.SkillPoints, 0) { All = true }]));
@@ -590,7 +590,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(caster.CastBeforeAttack(1000, 300, new ScriptedRandom(0.0)));
 
-        Assert.Equal((130, 0, 300), (caster.Current.ApplyToCaster(player).Mat, cast.SpAfter, cast.SpCost));
+        Assert.Equal((130, 0, 300), (caster.Current.ApplyToCaster(player).MagicAttack, cast.SpAfter, cast.SpCost));
     }
 
     [Fact]

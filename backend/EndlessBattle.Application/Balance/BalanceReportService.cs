@@ -127,7 +127,7 @@ public sealed class BalanceReportService
     {
         var bonus = new EquipmentBonus(gear.Aggregate(StatBonus.Zero, (total, item) => total + item.Bonus));
         var derived = DerivedStats.From(character.Base, bonus);
-        character = character with { Hp = derived.MaxHealthPoints, Sp = derived.MaxManaPoints };
+        character = character with { HealthPoints = derived.MaxHealthPoints, ManaPoints = derived.MaxManaPoints };
 
         var run = AdventureSimulator.Run(
             character,
@@ -155,7 +155,7 @@ public sealed class BalanceReportService
             summary.Fights == 0 ? 0 : (double)summary.Wins / summary.Fights,
             summary.Losses,
             summary.Timeouts,
-            summary.Exp / SimulatedHours,
+            summary.Experience / SimulatedHours,
             summary.Money / SimulatedHours,
             netPerHour,
             summary.LevelsGained,
@@ -180,7 +180,7 @@ public sealed class BalanceReportService
         return character with
         {
             Level = level,
-            NextExp = level == 1 ? character.NextExp : ExperienceCurve.NextExpFor(level),
+            NextLevelExperience = level == 1 ? character.NextLevelExperience : ExperienceCurve.NextExpFor(level),
             Base = StatsAt(character.Base, job.Growth, level),
             Money = 0,
             PlaceId = place.Id,

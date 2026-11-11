@@ -244,7 +244,7 @@ public class MissionServiceTests
         var record = Assert.Single(await RecordsAsync(character));
         Assert.Equal((MissionState.Completed, (DateTimeOffset?)Now), (record.State, record.CompletedAt));
         var after = await CurrentAsync();
-        Assert.Equal((character.Money + 50, character.Exp + 190), (after.Money, after.Exp));
+        Assert.Equal((character.Money + 50, character.Experience + 190), (after.Money, after.Experience));
         Assert.Equal(("謝謝你。", 190L, 50L, 0), (completion.CompletionMessage, completion.Exp, completion.Money, completion.LevelsGained));
         Assert.Empty(completion.Items);
         Assert.Null(completion.Skill);
@@ -455,7 +455,7 @@ public class MissionServiceTests
     public async Task Complete_BoardReflectsLevelUp()
     {
         var character = await characters.AddAsync(
-            TestCharacters.Default(AccountId, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with { Level = 4, Exp = 900 }, CancellationToken);
+            TestCharacters.Default(AccountId, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with { Level = 4, Experience = 900 }, CancellationToken);
         await SeedAsync(character, Active("test-hunt", progress: 3));
 
         var completion = await service.CompleteAsync(AccountId, "test-hunt", CancellationToken);

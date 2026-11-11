@@ -20,16 +20,16 @@ public class AdventureSettingsTests
 
         AdventureSettings[] invalid =
         [
-            AdventureSettings.Default with { PotionHpPercent = -2 },
-            AdventureSettings.Default with { PotionHpPercent = 101 },
-            AdventureSettings.Default with { PotionSpPercent = -2 },
-            AdventureSettings.Default with { PotionSpPercent = 101 },
-            AdventureSettings.Default with { RestHpPercent = -2 },
-            AdventureSettings.Default with { RestHpPercent = 101 },
-            AdventureSettings.Default with { RestSpPercent = -2 },
-            AdventureSettings.Default with { RestSpPercent = 101 },
-            AdventureSettings.Default with { EscapeHpPercent = -1 },
-            AdventureSettings.Default with { EscapeHpPercent = 101 },
+            AdventureSettings.Default with { PotionHealthPointsPercent = -2 },
+            AdventureSettings.Default with { PotionHealthPointsPercent = 101 },
+            AdventureSettings.Default with { PotionManaPointsPercent = -2 },
+            AdventureSettings.Default with { PotionManaPointsPercent = 101 },
+            AdventureSettings.Default with { RestHealthPointsPercent = -2 },
+            AdventureSettings.Default with { RestHealthPointsPercent = 101 },
+            AdventureSettings.Default with { RestManaPointsPercent = -2 },
+            AdventureSettings.Default with { RestManaPointsPercent = 101 },
+            AdventureSettings.Default with { EscapeHealthPointsPercent = -1 },
+            AdventureSettings.Default with { EscapeHealthPointsPercent = 101 },
             new AdventureSettings(null, 101, -2, 101, -2, 101),
         ];
         Assert.All(invalid, settings => Assert.Equal(["invalidPercent"], settings.Validate()));

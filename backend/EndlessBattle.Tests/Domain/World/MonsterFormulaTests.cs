@@ -18,7 +18,7 @@ public class MonsterFormulaTests
 
         Assert.Equal(
             (level, hp, sp, at, mat, df, mdf, agi, au, jobExp),
-            (baseline.Level, baseline.HealthPoints, baseline.ManaPoints, baseline.Attack, baseline.MagicAttack, baseline.Defense, baseline.MagicDefense, baseline.Agility, baseline.Charisma, baseline.JobExp));
+            (baseline.Level, baseline.HealthPoints, baseline.ManaPoints, baseline.Attack, baseline.MagicAttack, baseline.Defense, baseline.MagicDefense, baseline.Agility, baseline.Charisma, baseline.JobExperience));
         Assert.Equal($"baseline-{level}", baseline.Id);
         Assert.Equal((0, 0, 0), (baseline.Element, baseline.Meet, baseline.PlaceId));
         Assert.Empty(baseline.SubPlaces);

@@ -13,7 +13,7 @@ public class SkillCasterTests
     private static readonly SkillDefinition ManaSurge = TestSkills.Battle("mana-surge", "魔力增幅", SkillPreset.MatMultiplier);
 
     private static CombatantState Player(int sp) =>
-        new(Hp: 100, HpMax: 100, Sp: sp, SpMax: sp, At: 100, Mat: 0, Df: 50, Mdf: 50, Agi: 20, Au: 25, Element: 0, Str: 100, Smart: 0);
+        new(HealthPoints: 100, MaxHealthPoints: 100, ManaPoints: sp, MaxManaPoints: sp, Attack: 100, MagicAttack: 0, Defense: 50, MagicDefense: 50, Agility: 20, Charisma: 25, Element: 0, Strength: 100, Intelligence: 0);
 
     // 欄位 3、1、2 亂序傳入，擲骰都是 0.0 → 1，不超過任何等級的發動率（30 + 10·lv）。依欄位 1→5：
     // 爆氣 lv1 sp 5（20 → 15）、魔力增幅 lv2 sp 8（15 → 7）、靡靡之音 lv3 sp 11 > 7 → 不擲骰也不扣。
@@ -144,7 +144,7 @@ public class SkillCasterTests
     {
         var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, trigger: TestTrigger.HpBelow(50));
         var random = new ScriptedRandom(0.99);
-        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+        var caster = new SkillCaster(Player(sp: 100) with { Intelligence = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
         var casts = caster.CastBeforeAttack(hp, sp: 100, random);
 
@@ -157,7 +157,7 @@ public class SkillCasterTests
     public void Caster_HpBelowHeal_SkipsAtFullHp()
     {
         var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, trigger: TestTrigger.HpBelow(99));
-        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+        var caster = new SkillCaster(Player(sp: 100) with { Intelligence = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
         Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0)));
     }
@@ -167,7 +167,7 @@ public class SkillCasterTests
     public void Caster_HpBelow_RespectsCooldown()
     {
         var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, cooldown: 4, trigger: TestTrigger.HpBelow(50));
-        var caster = new SkillCaster(Player(sp: 100) with { Smart = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
+        var caster = new SkillCaster(Player(sp: 100) with { Intelligence = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
         Assert.Equal([1, 6], CastRounds(caster, rounds: 6, hp: 10, new ScriptedRandom(0.0)));
     }

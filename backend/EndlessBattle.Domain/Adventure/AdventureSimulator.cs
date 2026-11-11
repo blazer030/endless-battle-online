@@ -101,7 +101,7 @@ public static class AdventureSimulator
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
             // 補給的剩餘數量一場接一場帶下去；每場的 9 次上限由戰鬥自己重新計算
             var outcome = WogBattle.Run(
-                player, monster, character.Settings.Attack, skills, supply, random, pet, character.Settings.EscapeHpPercent, character.Money, definition.Skills);
+                player, monster, character.Settings.Attack, skills, supply, random, pet, character.Settings.EscapeHealthPointsPercent, character.Money, definition.Skills);
             supply = outcome.Supply;
             var fightStart = cursor;
             var fightEnd = fightStart + outcome.Events[^1].AtSeconds;
@@ -112,7 +112,7 @@ public static class AdventureSimulator
             if (keepEvents)
             {
                 events.Add(new EncounterEvent(fightStart, definition.Id, definition.HealthPoints, definition.HealthPoints,
-                    player.Hp, player.HpMax, player.Sp, player.SpMax, carriedPet?.Name, carriedPet?.MonsterId));
+                    player.HealthPoints, player.MaxHealthPoints, player.ManaPoints, player.MaxManaPoints, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
                     events.Add(battleEvent with { AtSeconds = battleEvent.AtSeconds + fightStart });
@@ -132,7 +132,7 @@ public static class AdventureSimulator
                 }
             }
 
-            character = character with { Hp = outcome.Player.Hp, Sp = outcome.Player.Sp, Money = character.Money - outcome.MoneySpent };
+            character = character with { HealthPoints = outcome.Player.HealthPoints, ManaPoints = outcome.Player.ManaPoints, Money = character.Money - outcome.MoneySpent };
 
             long exp = 0, money = 0, jobExp = 0;
             IReadOnlyList<string> dropped = [];
@@ -208,7 +208,7 @@ public static class AdventureSimulator
                 expTotal += exp;
                 moneyTotal += money;
                 jobExpTotal += jobExp;
-                character = character with { Exp = character.Exp + exp, Money = character.Money + money };
+                character = character with { Experience = character.Experience + exp, Money = character.Money + money };
                 var levelUp = LevelUp.Apply(character, job, random, fightEnd);
                 character = levelUp.Character;
                 levelsGained += levelUp.Events.Count;

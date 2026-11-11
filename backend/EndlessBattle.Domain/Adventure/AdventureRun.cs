@@ -5,7 +5,7 @@ using EndlessBattle.Domain.Pets;
 
 namespace EndlessBattle.Domain.Adventure;
 
-public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Exp, long Money, long JobExp, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0, int MissionKills = 0, int PetsCaptured = 0, int Escapes = 0)
+public sealed record AdvanceSummary(int Fights, int Wins, int Losses, int Timeouts, long Experience, long Money, long JobExperience, int LevelsGained, int SkillsCast, int Drops = 0, int PotionsUsed = 0, int MissionKills = 0, int PetsCaptured = 0, int Escapes = 0)
 {
     public static AdvanceSummary Empty { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

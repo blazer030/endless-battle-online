@@ -13,7 +13,7 @@ public sealed class BattleEventResponsesTests
     public void AttackEvent_SerializesWithoutSpecialAttackName()
     {
         var json = Serialize(new AttackEvent(0, CombatSide.Player, AttackKind.Physical, Hit: true, Critical: true,
-            Damage: 500, ElementMultiplier: 1.0, TargetHpAfter: 0));
+            Damage: 500, ElementMultiplier: 1.0, TargetHealthPointsAfter: 0));
 
         Assert.Equal("attack", json.GetProperty("type").GetString());
         Assert.True(json.GetProperty("critical").GetBoolean());
@@ -23,7 +23,7 @@ public sealed class BattleEventResponsesTests
     [Fact]
     public void SkillEvent_SerializesWithSkillDiscriminator()
     {
-        var json = Serialize(new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 1, SpAfter: 10, Heal: 0));
+        var json = Serialize(new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 1, ManaPointsAfter: 10, Heal: 0));
 
         Assert.Equal("skill", json.GetProperty("type").GetString());
         Assert.Equal("爆氣", json.GetProperty("skillName").GetString());

@@ -53,12 +53,12 @@ public class MissionRewardsTests
     [Fact]
     public void Apply_GrantsLevelTimes190AndMoney()
     {
-        var veteran = Hero with { Level = 20, Exp = 100, NextExp = 1_000_000 };
+        var veteran = Hero with { Level = 20, Experience = 100, NextLevelExperience = 1_000_000 };
 
         var outcome = Apply(veteran, Objective(level: 15, money: 750));
 
         Assert.Empty(outcome.Reasons);
-        Assert.Equal(100 + 2850, outcome.Character.Exp);
+        Assert.Equal(100 + 2850, outcome.Character.Experience);
         Assert.Equal(veteran.Money + 750, outcome.Character.Money);
         Assert.Equal(0, outcome.LevelsGained);
     }
@@ -67,10 +67,10 @@ public class MissionRewardsTests
     [Fact]
     public void Apply_LevelsUpImmediately()
     {
-        var outcome = Apply(Hero with { Exp = 900 }, Objective(level: 1, money: 0));
+        var outcome = Apply(Hero with { Experience = 900 }, Objective(level: 1, money: 0));
 
         Assert.Equal(1, outcome.LevelsGained);
-        Assert.Equal((2, 90L, 2184L), (outcome.Character.Level, outcome.Character.Exp, outcome.Character.NextExp));
+        Assert.Equal((2, 90L, 2184L), (outcome.Character.Level, outcome.Character.Experience, outcome.Character.NextLevelExperience));
         Assert.Equal(Hero.Base.Strength + 1, outcome.Character.Base.Strength);
     }
 
@@ -116,7 +116,7 @@ public class MissionRewardsTests
 
         Assert.Empty(outcome.Reasons);
         Assert.Null(outcome.GrantedSkill);
-        Assert.Equal((Hero.Exp + 190, Hero.Money + 250), (outcome.Character.Exp, outcome.Character.Money));
+        Assert.Equal((Hero.Experience + 190, Hero.Money + 250), (outcome.Character.Experience, outcome.Character.Money));
     }
 
     // ScriptedRandom 的 rand(1, n) = ⌊擲骰 × n⌋ + 1：0.45 → rand(1,10) 5、0.0 → 個性 1 積極；不升級所以不擲成長
@@ -142,7 +142,7 @@ public class MissionRewardsTests
     {
         var random = new ScriptedRandom(0.0, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95);
 
-        var outcome = Apply(Hero with { Exp = 900 }, Objective(level: 1, money: 0, pet: new PetReward("test-wolf", 2)), random: random);
+        var outcome = Apply(Hero with { Experience = 900 }, Objective(level: 1, money: 0, pet: new PetReward("test-wolf", 2)), random: random);
 
         Assert.Equal(1, outcome.LevelsGained);
         var pet = outcome.NewPet!;

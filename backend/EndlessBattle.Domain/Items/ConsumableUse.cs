@@ -90,7 +90,7 @@ public static class ConsumableUse
     // 加經驗後立刻升級
     private static UseOutcome GainExp(UseContext context, int exp, IRandomSource random)
     {
-        var levelUp = LevelUp.Apply(context.Character with { Exp = context.Character.Exp + exp }, context.Job, random, atSeconds: 0);
+        var levelUp = LevelUp.Apply(context.Character with { Experience = context.Character.Experience + exp }, context.Job, random, atSeconds: 0);
         return new UseOutcome(levelUp.Character, [], null, 0, levelUp.Events.Count);
     }
 }

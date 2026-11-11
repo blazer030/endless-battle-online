@@ -67,7 +67,7 @@ public class CharacterServiceTests
         Assert.Equal(StatBonus.Zero with { Attack = 8 }, profile.Equipment.Total);
     }
 
-    private static readonly AdventureSettings Thirsty = new(AttackKind.Magic, PotionHpPercent: 100, PotionSpPercent: -1, RestHpPercent: 20, RestSpPercent: -1, EscapeHpPercent: 5);
+    private static readonly AdventureSettings Thirsty = new(AttackKind.Magic, PotionHealthPointsPercent: 100, PotionManaPointsPercent: -1, RestHealthPointsPercent: 20, RestManaPointsPercent: -1, EscapeHealthPointsPercent: 5);
 
     // SP 全滿（91／91）、沒有技能：舊門檻（SP < 100%）永遠不喝；新門檻（HP < 100%、略過 SP）幾乎每回合都會喝。
     // 存設定前先以舊門檻結算經過的 60 秒 → 補給一瓶都沒少；存完之後的推進才用新門檻
@@ -79,7 +79,7 @@ public class CharacterServiceTests
         var equipment = new InMemoryEquipmentRepository(inventory);
         var clock = new FakeClock(Now);
         var (service, adventure) = Services(repository, new InMemoryJobProficiencyRepository(), equipment, clock, inventory);
-        var character = await repository.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { Sp = 91 }, CancellationToken);
+        var character = await repository.AddAsync(TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { ManaPoints = 91 }, CancellationToken);
         var supply = await inventory.AddAsync(character.Id, TestItems.Entry(0, "test-supply", 20), CancellationToken);
         await equipment.SetSlotAsync(character.Id, EquipmentSlot.Supply, supply, 20, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(60));
@@ -111,7 +111,7 @@ public class CharacterServiceTests
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
-            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHpPercent = potionHpPercent }, CancellationToken));
+            service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHealthPointsPercent = potionHpPercent }, CancellationToken));
 
         Assert.Equal(["invalidPercent"], exception.Reasons);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
