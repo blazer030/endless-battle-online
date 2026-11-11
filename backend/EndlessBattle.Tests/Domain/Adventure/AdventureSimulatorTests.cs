@@ -29,7 +29,7 @@ public class AdventureSimulatorTests
     private static MonsterDefinition Monster(
         string id, int level = 5, int hp = 100, int at = 10, int df = 1, int jobExp = 12, int meet = 0,
         int placeId = 0, params int[] subPlaces) =>
-        new(id, id, level, hp, Sp: 5, at, Mat: 0, df, Mdf: 1, Agi: 12, Au: 10, Element: 0, jobExp, meet, placeId, subPlaces);
+        new(id, id, level, hp, ManaPoints: 5, at, MagicAttack: 0, df, MagicDefense: 1, Agility: 12, Charisma: 10, Element: 0, jobExp, meet, placeId, subPlaces);
 
     private static ItemDefinition ItemOf(string id) => TestItems.Item(id, ItemCategory.Material) with { Name = $"名稱-{id}" };
 
@@ -166,7 +166,7 @@ public class AdventureSimulatorTests
     {
         var mage = Hero() with
         {
-            Base = Hero().Base with { Smart = 5 },
+            Base = Hero().Base with { Intelligence = 5 },
             Settings = AdventureSettings.Default with { Attack = AttackKind.Magic },
         };
 
@@ -235,7 +235,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_TimeoutGivesPartialExpOnly()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
 
         var run = Run(tough, seconds: 1, monsters: rock);
@@ -402,7 +402,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_CarriesSupplyAcrossFights()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, Hp = 53 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, Hp = 53 };
         var pebble = Monster("pebble", hp: 2, at: 40, df: 1000);
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 1);
 
@@ -421,7 +421,7 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_PotionCounterResetsEachFight()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, Hp = 53 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, Hp = 53 };
         var pebble = Monster("pebble", hp: 10, at: 40, df: 1000);
         var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 20);
 
@@ -474,7 +474,7 @@ public class AdventureSimulatorTests
         Assert.Equal(1, lost.Summary.Losses);
         Assert.Empty(lost.DroppedItemIds);
 
-        var timedOut = Run(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, monsters: rock);
+        var timedOut = Run(Hero() with { Base = Hero().Base with { Vitality = 1000 } }, seconds: 1, monsters: rock);
         Assert.Equal(1, timedOut.Summary.Timeouts);
         Assert.Empty(timedOut.DroppedItemIds);
         Assert.All(timedOut.Events.OfType<RewardEvent>(), reward => Assert.Empty(reward.Drops));
@@ -544,7 +544,7 @@ public class AdventureSimulatorTests
     }
 
     private static MonsterDefinition Npc(string id = "npc", string? message = "我是信使") => new(
-        id, "信使", Level: 0, Hp: 0, Sp: 0, At: 0, Mat: 0, Df: 0, Mdf: 0, Agi: 0, Au: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+        id, "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
     {
         MissionId = "visit",
         Npc = true,
@@ -683,7 +683,7 @@ public class AdventureSimulatorTests
         Assert.Empty(lost.Events.OfType<MissionProgressEvent>());
         Assert.Equal(0, lost.Summary.MissionKills);
 
-        var timedOut = RunWithMissions(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, [rockHunt], monsters: rock);
+        var timedOut = RunWithMissions(Hero() with { Base = Hero().Base with { Vitality = 1000 } }, seconds: 1, [rockHunt], monsters: rock);
         Assert.Equal(1, timedOut.Summary.Timeouts);
         TrackedMissions.AssertSame([rockHunt], timedOut.Missions);
         Assert.Empty(timedOut.Events.OfType<MissionProgressEvent>());
@@ -700,7 +700,7 @@ public class AdventureSimulatorTests
         var from = new DateTimeOffset(2026, 10, 22, 0, 59, 49, TimeSpan.Zero);
         var reset = new DateTimeOffset(2026, 10, 22, 1, 0, 0, TimeSpan.Zero);
         var daily = TrackedMissions.Single("test-daily", "測試每日", "test-sprite", Required: 10, Progress: 0, AcceptedAt: from, ExpiresAt: reset);
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 }, NextExp = 1_000_000 };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, NextExp = 1_000_000 };
         var pebble = Monster("test-sprite", hp: 2, at: 40, df: 1000);
 
         var run = RunWithMissions(tough, seconds: 20, [daily], from, monsters: pebble);
@@ -887,7 +887,7 @@ public class AdventureSimulatorTests
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
 
         var lost = RunWithCapture(Hero(), seconds: 1, Net(5), new ScriptedRandom(0.0), monsters: brute);
-        var timedOut = RunWithCapture(Hero() with { Base = Hero().Base with { Vit = 1000 } }, seconds: 1, Net(5), new ScriptedRandom(0.0), monsters: rock);
+        var timedOut = RunWithCapture(Hero() with { Base = Hero().Base with { Vitality = 1000 } }, seconds: 1, Net(5), new ScriptedRandom(0.0), monsters: rock);
 
         Assert.Equal((1, 1), (lost.Summary.Losses, timedOut.Summary.Timeouts));
         foreach (var run in new[] { lost, timedOut })
@@ -1063,7 +1063,7 @@ public class AdventureSimulatorTests
         ];
 
         var win = RunWithBuffs(Hero(), seconds: 1, buffs, new ScriptedRandom(0.0));
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var timeout = RunWithBuffs(tough, seconds: 1, buffs, new ScriptedRandom(0.0), Monster("rock", hp: 60, at: 40, df: 1000));
 
         Assert.Equal(new RewardEvent(0, Exp: 219, Money: 2, JobExp: 18), win.Events.OfType<RewardEvent>().Single());
@@ -1139,7 +1139,7 @@ public class AdventureSimulatorTests
         IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Attack, 1.2, From, From.AddHours(1))];
         IReadOnlyList<CharacterBuff> expired = [new(BuffKind.Attack, 1.2, From.AddHours(-1), From)];
 
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
 
         var plain = RunWithBuffs(tough, 1, null, new ScriptedRandom(0.5), sturdy);
         var buffed = RunWithBuffs(tough, 1, buffs, new ScriptedRandom(0.5), sturdy);

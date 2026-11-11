@@ -10,7 +10,7 @@ public class PetCaptureTests
     private static readonly DateTimeOffset At = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static readonly MonsterDefinition Sprite = new(
-        "test-sprite", "雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0);
+        "test-sprite", "雪精", Level: 3, HealthPoints: 60, ManaPoints: 10, Attack: 14, MagicAttack: 8, Defense: 6, MagicDefense: 4, Agility: 9, Charisma: 6, Element: 2, JobExp: 12, Meet: 0);
 
     private static CaptureState Net(int quantity = 5) => new("capture-net", "捕獸網", Multiplier: 1, quantity);
 

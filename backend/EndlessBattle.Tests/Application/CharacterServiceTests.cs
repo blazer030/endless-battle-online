@@ -64,7 +64,7 @@ public class CharacterServiceTests
 
         var profile = await service.GetAsync(AccountId, CancellationToken);
 
-        Assert.Equal(StatBonus.Zero with { At = 8 }, profile.Equipment.Total);
+        Assert.Equal(StatBonus.Zero with { Attack = 8 }, profile.Equipment.Total);
     }
 
     private static readonly AdventureSettings Thirsty = new(AttackKind.Magic, PotionHpPercent: 100, PotionSpPercent: -1, RestHpPercent: 20, RestSpPercent: -1, EscapeHpPercent: 5);

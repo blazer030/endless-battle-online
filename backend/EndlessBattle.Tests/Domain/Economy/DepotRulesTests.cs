@@ -60,12 +60,12 @@ public class DepotRulesTests
     [Fact]
     public void TryStore_EquipmentKeepsEnhancements()
     {
-        var refined = TestItems.Entry(9, "sword") with { RefineLevel = 2, RefineBonus = StatBonus.Zero with { At = 3 }, Holes = 1 };
+        var refined = TestItems.Entry(9, "sword") with { RefineLevel = 2, RefineBonus = StatBonus.Zero with { Attack = 3 }, Holes = 1 };
 
         var plan = DepotRules.TryStore([], Sword, refined, 1, 0);
 
         var created = Assert.Single(plan.Created);
-        Assert.Equal((0L, 2, 3, 1), (created.Id, created.RefineLevel, created.RefineBonus.At, created.Holes));
+        Assert.Equal((0L, 2, 3, 1), (created.Id, created.RefineLevel, created.RefineBonus.Attack, created.Holes));
     }
 
     [Fact]

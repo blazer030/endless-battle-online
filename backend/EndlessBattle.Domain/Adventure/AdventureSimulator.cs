@@ -111,7 +111,7 @@ public static class AdventureSimulator
 
             if (keepEvents)
             {
-                events.Add(new EncounterEvent(fightStart, definition.Id, definition.Hp, definition.Hp,
+                events.Add(new EncounterEvent(fightStart, definition.Id, definition.HealthPoints, definition.HealthPoints,
                     player.Hp, player.HpMax, player.Sp, player.SpMax, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
@@ -147,7 +147,7 @@ public static class AdventureSimulator
                     wins++;
                     // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
                     exp = Buffs.Scale(
-                        RewardFormulas.Exp(definition, definition.Hp, character.Level, killed: true, random),
+                        RewardFormulas.Exp(definition, definition.HealthPoints, character.Level, killed: true, random),
                         Buffs.Multiplier(buffs, BuffKind.Exp, fightStartsAt, lodging));
                     money = RewardFormulas.Money(definition, random);
                     jobExp = Buffs.Scale(RewardFormulas.JobExp(definition), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt, lodging));

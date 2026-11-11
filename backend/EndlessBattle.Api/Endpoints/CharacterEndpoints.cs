@@ -94,9 +94,9 @@ public static class CharacterEndpoints
             character.JobId,
             content.GetJob(character.JobId).Name,
             new StatsResponse(
-                total.Str, total.Smart, total.Life, total.Vit, total.Agi, total.Au, total.Be,
-                derived.At, derived.Mat, derived.Df, derived.Mdf, derived.HpMax, derived.SpMax),
-            new BaseStatsResponse(bare.Str, bare.Smart, bare.Life, bare.Vit, bare.Agi, bare.Au, bare.Be),
+                total.Strength, total.Intelligence, total.Life, total.Vitality, total.Agility, total.Charisma, total.Faith,
+                derived.Attack, derived.MagicAttack, derived.Defense, derived.MagicDefense, derived.MaxHealthPoints, derived.MaxManaPoints),
+            new BaseStatsResponse(bare.Strength, bare.Intelligence, bare.Life, bare.Vitality, bare.Agility, bare.Charisma, bare.Faith),
             place.Id,
             place.Name,
             character.SubPlace,

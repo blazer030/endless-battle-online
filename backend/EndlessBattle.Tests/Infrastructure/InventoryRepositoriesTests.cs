@@ -62,7 +62,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
     {
         var characterId = await CreateCharacterAsync();
         var entry = new InventoryEntry(
-            0, "test-sword", 1, 1, new StatBonus(1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, HpMax: 30),
+            0, "test-sword", 1, 1, new StatBonus(1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, MaxHealthPoints: 30),
             [new SocketedStone(1, "test-stone", StatBonus.Zero), new SocketedStone(2, "test-stone", StatBonus.Zero)], 2);
 
         var id = await AddInventoryAsync(characterId, entry);
@@ -341,7 +341,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
         var socket = Assert.Single(entry.Sockets);
         Assert.Equal(1, socket.Hole);
         Assert.Equal("test-stone", socket.StoneId);
-        Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, HpMax: 30), socket.Rolled);
+        Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, MaxHealthPoints: 30), socket.Rolled);
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
         var characterId = await CreateCharacterAsync();
         var entry = new InventoryEntry(
             0, "test-sword", 1, 1, new StatBonus(2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0),
-            [new SocketedStone(1, "test-stone", new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, HpMax: 30))], 1);
+            [new SocketedStone(1, "test-stone", new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, MaxHealthPoints: 30))], 1);
 
         var id = await AddInventoryAsync(characterId, entry);
 

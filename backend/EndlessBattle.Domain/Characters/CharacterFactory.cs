@@ -46,13 +46,13 @@ public static class CharacterFactory
             Birth: command.Birth,
             JobId: job.Id,
             Base: new BaseStats(
-                Str: allocation.Str + StartingBonus,
-                Smart: allocation.Smart + StartingBonus,
+                Strength: allocation.Strength + StartingBonus,
+                Intelligence: allocation.Intelligence + StartingBonus,
                 Life: allocation.Life + StartingBonus,
-                Vit: UnallocatedStatValue,
-                Agi: allocation.Agi + StartingBonus,
-                Au: UnallocatedStatValue,
-                Be: UnallocatedStatValue),
+                Vitality: UnallocatedStatValue,
+                Agility: allocation.Agility + StartingBonus,
+                Charisma: UnallocatedStatValue,
+                Faith: UnallocatedStatValue),
             Hp: StartingHp,
             Sp: StartingSp,
             PlaceId: startingPlaceId,
@@ -67,7 +67,7 @@ public static class CharacterFactory
     // 每項至少 1 點、總和剛好 10（WOG 允許沒分完，這裡不允許：沒分完沒有好處，多半是誤點）
     private static void ValidateAllocation(StatAllocation allocation)
     {
-        int[] points = [allocation.Str, allocation.Smart, allocation.Life, allocation.Agi];
+        int[] points = [allocation.Strength, allocation.Intelligence, allocation.Life, allocation.Agility];
         if (points.Any(point => point < 1))
         {
             throw new CharacterCreationException("每項能力至少要分配 1 點");

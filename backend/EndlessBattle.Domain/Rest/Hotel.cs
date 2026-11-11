@@ -17,7 +17,7 @@ public static class Hotel
     {
         var stats = DerivedStats.From(c.Base, equipment);
         var wait = c.Hp <= 0 ? BattleTiming.RestWaitWhenDeadSeconds : BattleTiming.RestWaitSeconds;
-        var healed = c with { Hp = stats.HpMax, Sp = stats.SpMax };
+        var healed = c with { Hp = stats.MaxHealthPoints, Sp = stats.MaxManaPoints };
 
         if (c.Level <= FreeLevelMax)
         {
@@ -26,7 +26,7 @@ public static class Hotel
 
         // hp 夾回上限，缺血比例才不會變負（不變量：係數 ≥ 0）
         var cost = Math.Max(
-            (long)Math.Round(10.0 * c.Level * Coefficient(Math.Min(c.Hp, stats.HpMax), stats.HpMax), MidpointRounding.AwayFromZero),
+            (long)Math.Round(10.0 * c.Level * Coefficient(Math.Min(c.Hp, stats.MaxHealthPoints), stats.MaxHealthPoints), MidpointRounding.AwayFromZero),
             10L * c.Level);
 
         return c.Money >= cost

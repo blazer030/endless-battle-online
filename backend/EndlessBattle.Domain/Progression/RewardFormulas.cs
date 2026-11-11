@@ -21,7 +21,7 @@ public static class RewardFormulas
     {
         // 超過回合上限時呼叫端傳 m.Level × 0.6
         var monsterLevel = levelOverride ?? m.Level;
-        var expBase = (m.At + m.Mat) / 2.0;
+        var expBase = (m.Attack + m.MagicAttack) / 2.0;
         double e = PhpRandom.Between(random, expBase, expBase + monsterLevel);
         if (playerLevel <= 100)
         {
@@ -34,7 +34,7 @@ public static class RewardFormulas
         }
 
         // 擊殺時 WOG 傳入 m_hp = m_hpmax，比值為 1；未擊殺時比值乘兩次
-        var hpRatio = killed ? 1.0 : monsterHpValue / (double)m.Hp;
+        var hpRatio = killed ? 1.0 : monsterHpValue / (double)m.HealthPoints;
         e = monsterLevel * e * (monsterLevel / playerLevel) * hpRatio * 0.18;
         if (!killed)
         {
@@ -52,13 +52,13 @@ public static class RewardFormulas
     // 超限時 WOG 以怪物等級 × 0.6、round(min(累計傷害, hpmax) / 1.5) 計算部分經驗
     public static long TimeoutExp(MonsterDefinition monster, int damageDealt, int playerLevel, IRandomSource random)
     {
-        var damageValue = (int)Math.Round(Math.Min(damageDealt, monster.Hp) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
+        var damageValue = (int)Math.Round(Math.Min(damageDealt, monster.HealthPoints) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
         return Exp(monster, damageValue, playerLevel, killed: false, random, levelOverride: monster.Level * TimeoutLevelFactor);
     }
 
     public static long Money(MonsterDefinition m, IRandomSource random)
     {
-        double attackSum = m.At + m.Mat;
+        double attackSum = m.Attack + m.MagicAttack;
         // At + Mat 為 0 時 WOG 的 hp/(at+mat) 除以零得 false，rand(0, false) = 0，金錢為 0
         if (attackSum == 0)
         {
@@ -67,7 +67,7 @@ public static class RewardFormulas
 
         double monsterLevel = m.Level;
         var levelRoll = PhpRandom.Between(random, monsterLevel / 2.5, monsterLevel);
-        var attackRoll = PhpRandom.Between(random, attackSum / monsterLevel, m.Hp / attackSum * 0.4);
+        var attackRoll = PhpRandom.Between(random, attackSum / monsterLevel, m.HealthPoints / attackSum * 0.4);
         return (long)Math.Round(levelRoll * (attackRoll * 0.4), MidpointRounding.AwayFromZero);
     }
 

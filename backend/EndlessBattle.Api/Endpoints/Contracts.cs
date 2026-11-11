@@ -111,14 +111,14 @@ public sealed record AdventureSettingsRequest(
 public sealed record StatBonusResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax)
 {
     internal static StatBonusResponse From(StatBonus bonus) =>
-        new(bonus.Str, bonus.Smart, bonus.Life, bonus.Vit, bonus.Agi, bonus.Au, bonus.Be, bonus.At, bonus.Mat, bonus.Df, bonus.Mdf, bonus.HpMax);
+        new(bonus.Strength, bonus.Intelligence, bonus.Life, bonus.Vitality, bonus.Agility, bonus.Charisma, bonus.Faith, bonus.Attack, bonus.MagicAttack, bonus.Defense, bonus.MagicDefense, bonus.MaxHealthPoints);
 }
 
 // 裝備需求只比對這四項裸點
 public sealed record EquipmentRequirementResponse(int Str, int Smart, int Agi, int Au)
 {
-    internal static EquipmentRequirementResponse From(StatRequirement7 requirement) =>
-        new(requirement.Str, requirement.Smart, requirement.Agi, requirement.Au);
+    internal static EquipmentRequirementResponse From(EquipmentRequirement requirement) =>
+        new(requirement.Strength, requirement.Intelligence, requirement.Agility, requirement.Charisma);
 }
 
 public sealed record AdvanceSummaryResponse(

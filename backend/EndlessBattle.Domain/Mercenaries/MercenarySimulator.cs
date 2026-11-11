@@ -84,7 +84,7 @@ public static class MercenarySimulator
             }
 
             var derived = DerivedStats.From(character.Base, equipment);
-            var player = CombatBridge.ToCombatant(character with { Hp = derived.HpMax, Sp = derived.SpMax }, equipment);
+            var player = CombatBridge.ToCombatant(character with { Hp = derived.MaxHealthPoints, Sp = derived.MaxManaPoints }, equipment);
             var opponent = CombatantState.From(monster);
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, opponent);
             var outcome = WogBattle.Run(player, opponent, playerPreferred: null, skills, supply: null, random, pet, monsterSkills: monster.Skills);
@@ -97,7 +97,7 @@ public static class MercenarySimulator
                 case CombatSide.Player:
                     result = MercenaryFightResult.Won;
                     exp = MercenaryRules.Discount(
-                        RewardFormulas.Exp(monster, monster.Hp, character.Level, killed: true, random), definition.ExpPercent);
+                        RewardFormulas.Exp(monster, monster.HealthPoints, character.Level, killed: true, random), definition.ExpPercent);
                     money = MercenaryRules.Discount(RewardFormulas.Money(monster, random), definition.MoneyPercent);
                     // 熟練度不打折（PHP win_check）
                     jobExpTotal += RewardFormulas.JobExp(monster);

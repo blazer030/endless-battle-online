@@ -26,12 +26,12 @@ public class JsonGameContentTests
         var slime = content.GetMonster("monster-1");
         Assert.Equal(
             (32, 100, 19, 15, 8, 5, 2, 10, 12, 10, 6, 10),
-            (slime.Hp, slime.Sp, slime.At, slime.Mat, slime.Df, slime.Mdf, slime.Agi, slime.Au, slime.Str, slime.Smart, slime.Vit, slime.Be));
+            (slime.HealthPoints, slime.ManaPoints, slime.Attack, slime.MagicAttack, slime.Defense, slime.MagicDefense, slime.Agility, slime.Charisma, slime.Strength, slime.Intelligence, slime.Vitality, slime.Faith));
         Assert.Equal(1L, slime.JobExp);
 
         var staff = content.GetItem("item-6");
         Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0), staff.Bonus);
-        Assert.Equal(new StatRequirement7(8, 8, 8, 0), staff.Requires);
+        Assert.Equal(new EquipmentRequirement(8, 8, 8, 0), staff.Requires);
 
         var lifeStone = content.GetItem("item-589").Stone!;
         Assert.Equal(new StatBonus(0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 15), lifeStone.Fixed);
@@ -122,7 +122,7 @@ public class JsonGameContentTests
         var berserker = content.GetJob("berserker");
         Assert.Equal("warrior", berserker.ParentId);
         Assert.Equal(new StatRequirement("str", 60), berserker.StatRequirements[0]);
-        Assert.Equal(new StatRange(3, 4), berserker.Growth.Str);
+        Assert.Equal(new StatRange(3, 4), berserker.Growth.Strength);
     }
 
     [Fact]
@@ -137,11 +137,11 @@ public class JsonGameContentTests
         Assert.Null(content.GetMonster("test-sprite").MissionId);
         // SubPlaces、Drops 是清單，record 的 Equals 只比參考，改用結構比對
         Assert.Equivalent(
-            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, Hp: 95, Sp: 10, At: 20, Mat: 6, Df: 9, Mdf: 5, Agi: 13, Au: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
+            new MonsterDefinition("test-wolf", "測試寒狼", Level: 5, HealthPoints: 95, ManaPoints: 10, Attack: 20, MagicAttack: 6, Defense: 9, MagicDefense: 5, Agility: 13, Charisma: 7, Element: 2, JobExp: 18, Meet: 30, PlaceId: 1, SubPlaces: [1, 3], Drops: [new DropEntry("test-ore", 3)]),
             content.GetMonster("test-wolf"),
             strict: true);
         Assert.Equivalent(
-            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, Hp: 60, Sp: 10, At: 14, Mat: 8, Df: 6, Mdf: 4, Agi: 9, Au: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
+            new MonsterDefinition("test-sprite", "測試雪精", Level: 3, HealthPoints: 60, ManaPoints: 10, Attack: 14, MagicAttack: 8, Defense: 6, MagicDefense: 4, Agility: 9, Charisma: 6, Element: 2, JobExp: 12, Meet: 0, PlaceId: 1, SubPlaces: [1, 2], Drops: [new DropEntry("test-supply", 1)]),
             content.GetMonster("test-sprite"),
             strict: true);
     }
@@ -807,8 +807,8 @@ public class JsonGameContentTests
         var sword = content.GetItem("test-sword");
         Assert.Equal(ItemCategory.Weapon, sword.Category);
         Assert.Equal(ConsumableKind.None, sword.Consumable);
-        Assert.Equal(StatBonus.Zero with { At = 8 }, sword.Bonus);
-        Assert.Equal(new StatRequirement7(10, 0, 0, 0), sword.Requires);
+        Assert.Equal(StatBonus.Zero with { Attack = 8 }, sword.Bonus);
+        Assert.Equal(new EquipmentRequirement(10, 0, 0, 0), sword.Requires);
         Assert.Equal((1, 4, 200L, 1, true), (sword.Holes, sword.RefineMax, sword.Price, sword.ShopLevel, sword.ShopSellable));
         Assert.True(sword.IsEquipment);
         Assert.False(sword.Stackable);
@@ -824,7 +824,7 @@ public class JsonGameContentTests
 
         var stone = content.GetItem("test-stone").Stone!;
         Assert.False(stone.Random);
-        Assert.Equal(StatBonus.Zero with { At = 5 }, stone.Fixed);
+        Assert.Equal(StatBonus.Zero with { Attack = 5 }, stone.Fixed);
         Assert.Equal(1, stone.BoxClass);
         Assert.Equal((ConsumableKind.StoneBox, 1), (content.GetItem("test-stone-box").Consumable, content.GetItem("test-stone-box").Amount));
 
@@ -1289,7 +1289,7 @@ public class JsonGameContentTests
         var npc = WithMissionContent(
             ValidMissionList, ChiefAsNpc("\"npcMessage\": \"你好\", "), directory => JsonGameContent.Load(directory).GetMonster("chief"));
 
-        Assert.Equal((true, "你好", 0, 0), (npc.Npc, npc.NpcMessage, npc.Level, npc.Hp));
+        Assert.Equal((true, "你好", 0, 0), (npc.Npc, npc.NpcMessage, npc.Level, npc.HealthPoints));
     }
 
     [Fact]

@@ -23,18 +23,18 @@ public class LevelUpTests
     public void LevelUp_UsesJobGrowthRanges()
     {
         var job = JobWith(new JobGrowth(
-            Str: new StatRange(2, 5),
-            Smart: new StatRange(0, 1),
+            Strength: new StatRange(2, 5),
+            Intelligence: new StatRange(0, 1),
             Life: new StatRange(3, 4),
-            Vit: new StatRange(1, 1),
-            Agi: new StatRange(2, 6),
-            Au: new StatRange(0, 2),
-            Be: new StatRange(1, 2)));
+            Vitality: new StatRange(1, 1),
+            Agility: new StatRange(2, 6),
+            Charisma: new StatRange(0, 2),
+            Faith: new StatRange(1, 2)));
         var random = new ScriptedRandom(0.5, 0.99, 0.0, 0.99, 0.0, 0.99, 0.0, 0.99);
 
         var result = LevelUp.Apply(Novice with { Exp = 1001 }, job, random, atSeconds: 12.0);
 
-        var growth = new BaseStats(Str: 5, Smart: 0, Life: 4, Vit: 1, Agi: 6, Au: 0, Be: 2);
+        var growth = new BaseStats(Strength: 5, Intelligence: 0, Life: 4, Vitality: 1, Agility: 6, Charisma: 0, Faith: 2);
         Assert.Equal(
             Novice with { Level = 2, Exp = 1, NextExp = 2184, Base = new BaseStats(17, 12, 16, 11, 18, 10, 12) },
             result.Character);

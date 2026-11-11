@@ -92,7 +92,7 @@ public static class PetCare
     public static DateTimeOffset NextFeedAt(Pet pet) => pet.HungerSince.AddSeconds(FeedCooldownSeconds);
 
     private static bool ExceedsOwner(Pet pet, DerivedStats owner) =>
-        pet.Attack > owner.At || pet.Magic > owner.Mat || pet.Defense > Math.Max(owner.Df, owner.Mdf);
+        pet.Attack > owner.Attack || pet.Magic > owner.MagicAttack || pet.Defense > Math.Max(owner.Defense, owner.MagicDefense);
 
     private static Pet Raise(Pet pet, PetFood food) => food.Stat switch
     {

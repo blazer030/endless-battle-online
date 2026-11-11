@@ -18,7 +18,7 @@ public class MonsterFormulaTests
 
         Assert.Equal(
             (level, hp, sp, at, mat, df, mdf, agi, au, jobExp),
-            (baseline.Level, baseline.Hp, baseline.Sp, baseline.At, baseline.Mat, baseline.Df, baseline.Mdf, baseline.Agi, baseline.Au, baseline.JobExp));
+            (baseline.Level, baseline.HealthPoints, baseline.ManaPoints, baseline.Attack, baseline.MagicAttack, baseline.Defense, baseline.MagicDefense, baseline.Agility, baseline.Charisma, baseline.JobExp));
         Assert.Equal($"baseline-{level}", baseline.Id);
         Assert.Equal((0, 0, 0), (baseline.Element, baseline.Meet, baseline.PlaceId));
         Assert.Empty(baseline.SubPlaces);
@@ -27,7 +27,7 @@ public class MonsterFormulaTests
     // 0.5 的進位方向：L=5 時 mdf = 2+4.5 = 6.5 → AwayFromZero 為 7（銀行家捨入會得 6）
     [Fact]
     public void Formula_RoundsHalfAwayFromZero() =>
-        Assert.Equal(7, MonsterFormula.Baseline(5).Mdf);
+        Assert.Equal(7, MonsterFormula.Baseline(5).MagicDefense);
 
     // 校準目標：Lv1 戰士（at 14、df 10、HP 400）3～6 下打倒同級普通怪，每下受傷約 3～6% HP
     [Fact]
@@ -38,10 +38,10 @@ public class MonsterFormulaTests
         const int warriorDf = 10;
         const int warriorHpMax = 400;
 
-        var dealt = WogDamage.Fight(warriorAt, monster.Df, elementMultiplier: 1.0, new ScriptedRandom(0.0));
-        var taken = WogDamage.Fight(monster.At, warriorDf, elementMultiplier: 1.0, new ScriptedRandom(0.0));
+        var dealt = WogDamage.Fight(warriorAt, monster.Defense, elementMultiplier: 1.0, new ScriptedRandom(0.0));
+        var taken = WogDamage.Fight(monster.Attack, warriorDf, elementMultiplier: 1.0, new ScriptedRandom(0.0));
 
-        Assert.InRange((monster.Hp + dealt - 1) / dealt, 3, 6);
+        Assert.InRange((monster.HealthPoints + dealt - 1) / dealt, 3, 6);
         Assert.InRange((double)taken / warriorHpMax, 0.03, 0.06);
     }
 }

@@ -85,7 +85,7 @@ public class InventoryServiceTests
 
         Assert.Equal([(EquipmentSlot.Weapon, "test-axe", 1)], EquippedOf(swapped));
         Assert.Equal([("test-sword", 1)], BagOf(swapped, ItemCategory.Weapon));
-        Assert.Equal(12, swapped.Bonus.Total.At);
+        Assert.Equal(12, swapped.Bonus.Total.Attack);
     }
 
     [Fact]
@@ -283,12 +283,12 @@ public class InventoryServiceTests
         var view = (await service.UseAsync(AccountId, potion, CancellationToken)).Inventory;
 
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
-        Assert.Equal(character.Base with { Str = 13, Vit = 12 }, stored!.Base);
+        Assert.Equal(character.Base with { Strength = 13, Vitality = 12 }, stored!.Base);
         Assert.Equal([("test-str-potion", 1)], BagOf(view, ItemCategory.Consumable));
 
         var emptied = (await service.UseAsync(AccountId, potion, CancellationToken)).Inventory;
         Assert.Empty(BagOf(emptied, ItemCategory.Consumable));
-        Assert.Equal(14, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Base.Str);
+        Assert.Equal(14, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Base.Strength);
     }
 
     // 擴充是「設定」為 5，不是累加：3 → 5（累加會變 8）；道具與魔石分類變 20 格

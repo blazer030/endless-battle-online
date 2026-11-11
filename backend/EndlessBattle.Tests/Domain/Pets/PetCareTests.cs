@@ -9,7 +9,7 @@ namespace EndlessBattle.Tests.Domain.Pets;
 public class PetCareTests
 {
     private static readonly DateTimeOffset Now = new(2026, 3, 1, 12, 0, 0, TimeSpan.Zero);
-    private static readonly DerivedStats Owner = new(At: 180, Mat: 180, Df: 50, Mdf: 80, HpMax: 500, SpMax: 100);
+    private static readonly DerivedStats Owner = new(Attack: 180, MagicAttack: 180, Defense: 50, MagicDefense: 80, MaxHealthPoints: 500, MaxManaPoints: 100);
 
     private static PetFood Food(string id) => PetCare.Foods.Single(food => food.Id == id);
 

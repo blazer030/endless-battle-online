@@ -26,7 +26,7 @@ public class MercenarySimulatorTests
     private static readonly MercenaryDefinition Full = new("test", "測試傭兵", Price: 100, Fights: 10, MoneyPercent: 100, DropPercent: 100, ExpPercent: 100, DeathCost: 2);
 
     private static MonsterDefinition Monster(string id, int hp = 100, int at = 10, int df = 1, int placeId = 1) =>
-        new(id, id, Level: 5, hp, Sp: 5, at, Mat: 0, df, Mdf: 1, Agi: 12, Au: 10, Element: 0, JobExp: 12, Meet: 0, placeId);
+        new(id, id, Level: 5, hp, ManaPoints: 5, at, MagicAttack: 0, df, MagicDefense: 1, Agility: 12, Charisma: 10, Element: 0, JobExp: 12, Meet: 0, placeId);
 
     private static readonly MonsterDefinition Dummy = Monster("dummy");
 
@@ -117,7 +117,7 @@ public class MercenarySimulatorTests
     [Fact]
     public void Mercenary_TimeoutGivesDiscountedPartialExp()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
         var half = Full with { ExpPercent = 50 };
 
@@ -193,7 +193,7 @@ public class MercenarySimulatorTests
     }
 
     private static readonly MonsterDefinition Herald = new(
-        "herald", "信使", Level: 0, Hp: 0, Sp: 0, At: 0, Mat: 0, Df: 0, Mdf: 0, Agi: 0, Au: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
+        "herald", "信使", Level: 0, HealthPoints: 0, ManaPoints: 0, Attack: 0, MagicAttack: 0, Defense: 0, MagicDefense: 0, Agility: 0, Charisma: 0, Element: 0, JobExp: 0, Meet: 0, PlaceId: 1, SubPlaces: [])
     {
         MissionId = "visit",
         Npc = true,
@@ -262,7 +262,7 @@ public class MercenarySimulatorTests
     [Fact]
     public void Mercenary_CarriedPetJoins()
     {
-        var tough = Hero() with { Base = Hero().Base with { Vit = 1000 } };
+        var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
         var pet = TestPets.Create(attack: 5000, defense: 5000, spirit: 255, intimacy: 255);
 

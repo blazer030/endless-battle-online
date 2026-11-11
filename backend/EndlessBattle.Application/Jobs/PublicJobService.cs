@@ -55,13 +55,13 @@ public sealed class PublicJobService(IGameContent content)
         job.ProficiencyRequired,
         job.StatRequirements.Select(requirement => new JobStatRequirementView(FullStatName(requirement.Stat), requirement.Minimum)).ToList(),
         new JobGrowthView(
-            Range(job.Growth.Str),
-            Range(job.Growth.Smart),
+            Range(job.Growth.Strength),
+            Range(job.Growth.Intelligence),
             Range(job.Growth.Life),
-            Range(job.Growth.Vit),
-            Range(job.Growth.Agi),
-            Range(job.Growth.Au),
-            Range(job.Growth.Be)),
+            Range(job.Growth.Vitality),
+            Range(job.Growth.Agility),
+            Range(job.Growth.Charisma),
+            Range(job.Growth.Faith)),
         content.SkillsOf(job.Id).Select(ToView).ToList());
 
     private JobSkillView ToView(SkillDefinition skill) => new(
@@ -74,7 +74,7 @@ public sealed class PublicJobService(IGameContent content)
             : null,
         skill.Levels.Select(level => new SkillLevelSummaryView(level.Level, SkillSummary.Of(level))).ToList());
 
-    private static GrowthRangeView Range(StatRange range) => new(range.Min, range.Max);
+    private static GrowthRangeView Range(StatRange range) => new(range.Minimum, range.Maximum);
 
     private static string FullStatName(string stat) => stat switch
     {

@@ -1703,13 +1703,13 @@ export interface components {
         SkillTiming: "BeforeAttack" | "AfterHit" | "RoundEnd";
         StatAllocation: {
             /** Format: int32 */
-            str: number;
+            strength: number;
             /** Format: int32 */
-            smart: number;
+            intelligence: number;
             /** Format: int32 */
             life: number;
             /** Format: int32 */
-            agi: number;
+            agility: number;
         };
         WearLevelCell: {
             /** Format: int32 */

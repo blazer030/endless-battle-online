@@ -9,10 +9,10 @@ public static class TestItems
         string id,
         ItemCategory category = ItemCategory.Weapon,
         StatBonus? bonus = null,
-        StatRequirement7? requires = null,
+        EquipmentRequirement? requires = null,
         string? jobId = null,
         int holes = 0) =>
-        Item(id, category) with { Bonus = bonus ?? StatBonus.Zero, Requires = requires ?? StatRequirement7.None, JobId = jobId, Holes = holes, RefineMax = 4 };
+        Item(id, category) with { Bonus = bonus ?? StatBonus.Zero, Requires = requires ?? EquipmentRequirement.None, JobId = jobId, Holes = holes, RefineMax = 4 };
 
     public static ItemDefinition Consumable(string id, ConsumableKind kind = ConsumableKind.Supply) =>
         Item(id, ItemCategory.Consumable) with { Consumable = kind, SupplyHp = kind == ConsumableKind.Supply ? 50 : 0 };
@@ -26,7 +26,7 @@ public static class TestItems
         SupplyHp: 0,
         SupplySp: 0,
         Amount: 0,
-        Requires: StatRequirement7.None,
+        Requires: EquipmentRequirement.None,
         JobId: null,
         Element: 0,
         Holes: 0,

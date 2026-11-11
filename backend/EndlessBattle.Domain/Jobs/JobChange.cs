@@ -43,13 +43,13 @@ public static class JobChange
 
     private static int BaseStatOf(BaseStats stats, string stat) => stat switch
     {
-        "str" => stats.Str,
-        "smart" => stats.Smart,
+        "str" => stats.Strength,
+        "smart" => stats.Intelligence,
         "life" => stats.Life,
-        "vit" => stats.Vit,
-        "agi" => stats.Agi,
-        "au" => stats.Au,
-        "be" => stats.Be,
+        "vit" => stats.Vitality,
+        "agi" => stats.Agility,
+        "au" => stats.Charisma,
+        "be" => stats.Faith,
         _ => throw new ArgumentException($"未知的能力值：{stat}", nameof(stat)),
     };
 }

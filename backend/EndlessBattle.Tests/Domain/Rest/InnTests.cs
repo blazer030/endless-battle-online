@@ -23,7 +23,7 @@ public class InnTests
             Hp = 30,
             Sp = 3,
             Money = money,
-            Base = new BaseStats(Str: 12, Smart: 12, Life: 38, Vit: 10, Agi: 12, Au: 10, Be: 10),
+            Base = new BaseStats(Strength: 12, Intelligence: 12, Life: 38, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
         };
 
     private static CharacterBuff Elixir(BuffKind kind, double multiplier) =>
@@ -66,7 +66,7 @@ public class InnTests
     [Fact]
     public void Book_HealsToMaxIncludingEquipment()
     {
-        var equipment = new EquipmentBonus(StatBonus.Zero with { HpMax = 100 });
+        var equipment = new EquipmentBonus(StatBonus.Zero with { MaxHealthPoints = 100 });
 
         var booking = Inn.Book(Hero(), equipment, Definition, Loft, Now);
 

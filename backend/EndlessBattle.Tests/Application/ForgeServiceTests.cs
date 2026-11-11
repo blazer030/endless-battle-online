@@ -74,11 +74,11 @@ public class ForgeServiceTests
         AssertConsumedBeforeEnhanced(sword);
         var refined = Find(character, sword);
         Assert.Equal(1, refined.RefineLevel);
-        Assert.Equal(StatBonus.Zero with { At = 2, Df = 2 }, refined.RefineBonus);
+        Assert.Equal(StatBonus.Zero with { Attack = 2, Defense = 2 }, refined.RefineBonus);
         Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
         var weapon = Assert.Single(result.Inventory.Equipped);
         Assert.Equal(1, weapon.Item.Entry.RefineLevel);
-        Assert.Equal(8 + 2, result.Inventory.Bonus.Total.At);
+        Assert.Equal(8 + 2, result.Inventory.Bonus.Total.Attack);
         Assert.Equal(["update"], log);
     }
 
@@ -175,7 +175,7 @@ public class ForgeServiceTests
 
         Assert.True(result.Success);
         AssertConsumedBeforeEnhanced(sword);
-        Assert.Equal([new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], Find(character, sword).Sockets);
+        Assert.Equal([new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], Find(character, sword).Sockets);
         Assert.Equal([("test-sword", 1), ("test-stone", 2)], await ItemsAsync(character));
         Assert.Equal(["update"], log);
     }
@@ -184,7 +184,7 @@ public class ForgeServiceTests
     {
         var sword = await GiveAsync(character, "test-sword");
         await inventory.UpdateEnhancementAsync(
-            character.Id, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+            character.Id, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 1, CancellationToken);
         return sword;
     }
 
@@ -389,8 +389,8 @@ public class ForgeServiceTests
         var character = await AddCharacterAsync();
         var sword = await GiveAsync(character, "test-sword");
         await inventory.UpdateEnhancementAsync(
-            character.Id, sword, 1, StatBonus.Zero with { At = 2, Df = 1 },
-            [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 2, CancellationToken);
+            character.Id, sword, 1, StatBonus.Zero with { Attack = 2, Defense = 1 },
+            [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 2, CancellationToken);
         var stone = await GiveAsync(character, "test-refine-stone-2", 2);
         var before = Find(character, sword);
         inventory.Writes.Clear();

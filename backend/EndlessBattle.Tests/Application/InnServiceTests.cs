@@ -70,7 +70,7 @@ public class InnServiceTests
         var expected = new Lodging("apprentice-loft", Now, Now.AddHours(8));
         Assert.Equal(100, result.Cost);
         Assert.Equal(expected, result.Lodging);
-        Assert.Equal((1900L, stats.HpMax, stats.SpMax), (result.Character.Money, result.Character.Hp, result.Character.Sp));
+        Assert.Equal((1900L, stats.MaxHealthPoints, stats.MaxManaPoints), (result.Character.Money, result.Character.Hp, result.Character.Sp));
         Assert.Equal(result.Character, await ReloadAsync());
         Assert.Equal(expected, await lodgings.FindAsync(character.Id, CancellationToken));
         Assert.Equal(["update", "lodging"], log);

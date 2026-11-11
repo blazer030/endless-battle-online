@@ -71,7 +71,7 @@ public class MissionRewardsTests
 
         Assert.Equal(1, outcome.LevelsGained);
         Assert.Equal((2, 90L, 2184L), (outcome.Character.Level, outcome.Character.Exp, outcome.Character.NextExp));
-        Assert.Equal(Hero.Base.Str + 1, outcome.Character.Base.Str);
+        Assert.Equal(Hero.Base.Strength + 1, outcome.Character.Base.Strength);
     }
 
     // 材料分類 15 格滿、沒有可疊的 safe-refine-stone

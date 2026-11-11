@@ -22,16 +22,16 @@ public sealed class BalanceReportService
     public const int MaxReportedLevel = 100;
 
     // 同 BalanceTests 的最弱新角色配點
-    public static readonly StatAllocation Allocation = new(Str: 4, Smart: 4, Life: 1, Agi: 1);
+    public static readonly StatAllocation Allocation = new(Strength: 4, Intelligence: 4, Life: 1, Agility: 1);
 
     private static readonly DateTimeOffset Start = new(2026, 11, 4, 0, 0, 0, TimeSpan.Zero);
 
-    private static readonly (string Stat, Func<BaseStats, int> Have, Func<StatRequirement7, int> Need)[] RequirementStats =
+    private static readonly (string Stat, Func<BaseStats, int> Have, Func<EquipmentRequirement, int> Need)[] RequirementStats =
     [
-        ("str", stats => stats.Str, requires => requires.Str),
-        ("smart", stats => stats.Smart, requires => requires.Smart),
-        ("agi", stats => stats.Agi, requires => requires.Agi),
-        ("au", stats => stats.Au, requires => requires.Au),
+        ("str", stats => stats.Strength, requires => requires.Strength),
+        ("smart", stats => stats.Intelligence, requires => requires.Intelligence),
+        ("agi", stats => stats.Agility, requires => requires.Agility),
+        ("au", stats => stats.Charisma, requires => requires.Charisma),
     ];
 
     public BalanceReport Build(IGameContent content, BalanceReportOptions options)
@@ -127,7 +127,7 @@ public sealed class BalanceReportService
     {
         var bonus = new EquipmentBonus(gear.Aggregate(StatBonus.Zero, (total, item) => total + item.Bonus));
         var derived = DerivedStats.From(character.Base, bonus);
-        character = character with { Hp = derived.HpMax, Sp = derived.SpMax };
+        character = character with { Hp = derived.MaxHealthPoints, Sp = derived.MaxManaPoints };
 
         var run = AdventureSimulator.Run(
             character,
@@ -212,14 +212,14 @@ public sealed class BalanceReportService
     {
         var levelsGained = level - 1;
         return new BaseStats(
-            Str: start.Str + Expected(growth.Str, levelsGained),
-            Smart: start.Smart + Expected(growth.Smart, levelsGained),
+            Strength: start.Strength + Expected(growth.Strength, levelsGained),
+            Intelligence: start.Intelligence + Expected(growth.Intelligence, levelsGained),
             Life: start.Life + Expected(growth.Life, levelsGained),
-            Vit: start.Vit + Expected(growth.Vit, levelsGained),
-            Agi: start.Agi + Expected(growth.Agi, levelsGained),
-            Au: start.Au + Expected(growth.Au, levelsGained),
-            Be: start.Be + Expected(growth.Be, levelsGained));
+            Vitality: start.Vitality + Expected(growth.Vitality, levelsGained),
+            Agility: start.Agility + Expected(growth.Agility, levelsGained),
+            Charisma: start.Charisma + Expected(growth.Charisma, levelsGained),
+            Faith: start.Faith + Expected(growth.Faith, levelsGained));
     }
 
-    private static int Expected(StatRange range, int levelsGained) => levelsGained * (range.Min + range.Max) / 2;
+    private static int Expected(StatRange range, int levelsGained) => levelsGained * (range.Minimum + range.Maximum) / 2;
 }

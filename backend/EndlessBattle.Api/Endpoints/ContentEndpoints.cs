@@ -40,11 +40,11 @@ public static class ContentEndpoints
         options.Select(option => new NamedContent(option.Id.ToString(CultureInfo.InvariantCulture), option.Name)).ToArray();
 
     internal static JobGrowthContent ToGrowthContent(JobGrowth growth) => new(
-        [growth.Str.Min, growth.Str.Max],
-        [growth.Smart.Min, growth.Smart.Max],
-        [growth.Life.Min, growth.Life.Max],
-        [growth.Vit.Min, growth.Vit.Max],
-        [growth.Agi.Min, growth.Agi.Max],
-        [growth.Au.Min, growth.Au.Max],
-        [growth.Be.Min, growth.Be.Max]);
+        [growth.Strength.Minimum, growth.Strength.Maximum],
+        [growth.Intelligence.Minimum, growth.Intelligence.Maximum],
+        [growth.Life.Minimum, growth.Life.Maximum],
+        [growth.Vitality.Minimum, growth.Vitality.Maximum],
+        [growth.Agility.Minimum, growth.Agility.Maximum],
+        [growth.Charisma.Minimum, growth.Charisma.Maximum],
+        [growth.Faith.Minimum, growth.Faith.Maximum]);
 }

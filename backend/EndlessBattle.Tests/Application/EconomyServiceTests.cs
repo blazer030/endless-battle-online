@@ -146,9 +146,9 @@ public class EconomyServiceTests
             TestItems.Entry(0, "test-sword") with
             {
                 RefineLevel = 2,
-                RefineBonus = StatBonus.Zero with { At = 3 },
+                RefineBonus = StatBonus.Zero with { Attack = 3 },
                 Holes = 1,
-                Sockets = [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })],
+                Sockets = [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })],
             },
             CancellationToken);
 
@@ -256,21 +256,21 @@ public class EconomyServiceTests
         var character = await AddCharacterAsync();
         var id = await inventory.AddAsync(
             character.Id,
-            TestItems.Entry(0, "test-sword") with { RefineLevel = 3, RefineBonus = StatBonus.Zero with { At = 4 }, Holes = 1 },
+            TestItems.Entry(0, "test-sword") with { RefineLevel = 3, RefineBonus = StatBonus.Zero with { Attack = 4 }, Holes = 1 },
             CancellationToken);
 
         var stored = await depotService.StoreAsync(AccountId, id, 1, CancellationToken);
 
         Assert.Empty(BagOf(stored.Inventory, ItemCategory.Weapon));
         var inDepot = Assert.Single(stored.Depot.Entries).Entry;
-        Assert.Equal((3, 4, 1), (inDepot.RefineLevel, inDepot.RefineBonus.At, inDepot.Holes));
+        Assert.Equal((3, 4, 1), (inDepot.RefineLevel, inDepot.RefineBonus.Attack, inDepot.Holes));
         Assert.Equal(20, stored.Depot.Capacity);
 
         var taken = await depotService.TakeAsync(AccountId, inDepot.Id, 1, CancellationToken);
 
         Assert.Empty(taken.Depot.Entries);
         var back = taken.Inventory.Bag.Single(bag => bag.Category == ItemCategory.Weapon).Items.Single().Entry;
-        Assert.Equal((3, 4, 1), (back.RefineLevel, back.RefineBonus.At, back.Holes));
+        Assert.Equal((3, 4, 1), (back.RefineLevel, back.RefineBonus.Attack, back.Holes));
     }
 
     [Fact]

@@ -58,7 +58,7 @@ public class ConsumableUseTests
     private static readonly DateTimeOffset Now = new(2026, 10, 22, 3, 0, 0, TimeSpan.Zero);
 
     private static ItemDefinition Stone(string id, int boxClass) =>
-        TestItems.Item(id, ItemCategory.Stone) with { Stone = new StoneSpec(false, StatBonus.Zero with { At = 1 }, null, null, boxClass) };
+        TestItems.Item(id, ItemCategory.Stone) with { Stone = new StoneSpec(false, StatBonus.Zero with { Attack = 1 }, null, null, boxClass) };
 
     private static ItemDefinition RefineStone(int kind, int level) =>
         TestItems.Item($"kind{kind}-refine-stone-{level}", ItemCategory.RefineStone) with
@@ -67,7 +67,7 @@ public class ConsumableUseTests
         };
 
     private static MonsterDefinition Monster(string id, string? missionId = null) =>
-        new(id, $"怪物{id}", Level: 1, Hp: 10, Sp: 1, At: 1, Mat: 1, Df: 1, Mdf: 1, Agi: 1, Au: 1, Element: 0, JobExp: 1, Meet: 0, MissionId: missionId);
+        new(id, $"怪物{id}", Level: 1, HealthPoints: 10, ManaPoints: 1, Attack: 1, MagicAttack: 1, Defense: 1, MagicDefense: 1, Agility: 1, Charisma: 1, Element: 0, JobExp: 1, Meet: 0, MissionId: missionId);
 
     private static UseContext Full(Character character, int petCount = 0, IReadOnlyList<MonsterDefinition>? monsters = null) =>
         new(character, Warrior, petCount, AllItems, monsters ?? []);

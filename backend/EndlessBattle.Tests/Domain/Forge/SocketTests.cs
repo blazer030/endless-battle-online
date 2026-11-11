@@ -8,8 +8,8 @@ namespace EndlessBattle.Tests.Domain.Forge;
 public class SocketTests
 {
     private static readonly ItemDefinition Sword = TestItems.Equipment("sword", holes: 2);
-    private static readonly ItemDefinition Attack = FixedStone("attack-stone", StatBonus.Zero with { At = 5 });
-    private static readonly ItemDefinition Guard = FixedStone("guard-stone", StatBonus.Zero with { Df = 3 });
+    private static readonly ItemDefinition Attack = FixedStone("attack-stone", StatBonus.Zero with { Attack = 5 });
+    private static readonly ItemDefinition Guard = FixedStone("guard-stone", StatBonus.Zero with { Defense = 3 });
 
     private static ItemDefinition FixedStone(string id, StatBonus bonus) =>
         TestItems.Item(id, ItemCategory.Stone) with { Stone = new StoneSpec(false, bonus, null, null) };
@@ -50,8 +50,8 @@ public class SocketTests
             Stone = new StoneSpec(
                 true,
                 StatBonus.Zero,
-                StatBonus.Zero with { At = 1, Mat = 1, HpMax = 10 },
-                StatBonus.Zero with { At = 10, Mat = 10, HpMax = 50 }),
+                StatBonus.Zero with { Attack = 1, MagicAttack = 1, MaxHealthPoints = 10 },
+                StatBonus.Zero with { Attack = 10, MagicAttack = 10, MaxHealthPoints = 50 }),
         };
         var equipment = Equipment();
         double[] zeros = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
@@ -59,7 +59,7 @@ public class SocketTests
 
         var outcome = Socket.Insert(equipment, 2, chaos, random);
 
-        var rolled = StatBonus.Zero with { At = 7, Mat = 3, HpMax = 30 };
+        var rolled = StatBonus.Zero with { Attack = 7, MagicAttack = 3, MaxHealthPoints = 30 };
         Assert.Equal(new SocketedStone(2, "chaos-stone", rolled), outcome.Socket);
         Assert.Equal([outcome.Socket], outcome.Entry.Sockets);
         Assert.Equal(12, random.Consumed);
@@ -73,7 +73,7 @@ public class SocketTests
 
         var outcome = Socket.Insert(Equipment(), 1, Attack, random);
 
-        Assert.Equal(new SocketedStone(1, "attack-stone", StatBonus.Zero with { At = 5 }), outcome.Socket);
+        Assert.Equal(new SocketedStone(1, "attack-stone", StatBonus.Zero with { Attack = 5 }), outcome.Socket);
         Assert.Equal(0, random.Consumed);
     }
 

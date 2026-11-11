@@ -9,8 +9,8 @@ public static class RestRules
     {
         var settings = character.Settings;
         return character.Hp <= 0
-            || Below(character.Hp, derived.HpMax, settings.RestHpPercent)
-            || (hasActiveSkills && Below(character.Sp, derived.SpMax, settings.RestSpPercent));
+            || Below(character.Hp, derived.MaxHealthPoints, settings.RestHpPercent)
+            || (hasActiveSkills && Below(character.Sp, derived.MaxManaPoints, settings.RestSpPercent));
     }
 
     private static bool Below(int value, int maximum, int percent) =>

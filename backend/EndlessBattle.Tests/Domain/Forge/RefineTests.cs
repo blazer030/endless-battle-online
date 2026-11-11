@@ -47,15 +47,15 @@ public class RefineTests
     [Fact]
     public void Refine_SuccessAddsRolledBonus()
     {
-        var equipment = Equipment(0) with { RefineBonus = StatBonus.Zero with { At = 1 } };
+        var equipment = Equipment(0) with { RefineBonus = StatBonus.Zero with { Attack = 1 } };
         var random = new ScriptedRandom(0.0, RollOf(100), RollOf(2, 1, 2), RollOf(4, 3, 5));
 
         var outcome = Refine.Attempt(equipment, Sword, Stone(1, df: new StatRange(3, 5)), useSafeStone: false, random);
 
         Assert.True(outcome.Success);
-        Assert.Equal(StatBonus.Zero with { At = 3, Df = 4 }, outcome.Entry.RefineBonus);
+        Assert.Equal(StatBonus.Zero with { Attack = 3, Defense = 4 }, outcome.Entry.RefineBonus);
         Assert.Equal(3, random.Consumed);
-        Assert.Equal(StatBonus.Zero with { At = 1 }, equipment.RefineBonus);
+        Assert.Equal(StatBonus.Zero with { Attack = 1 }, equipment.RefineBonus);
     }
 
     // +4 失敗（擲 39 < 40）：裝備原封不動、只扣精鍊石，失敗不再擲能力
@@ -64,8 +64,8 @@ public class RefineTests
     {
         var equipment = Equipment(3) with
         {
-            RefineBonus = StatBonus.Zero with { At = 7 },
-            Sockets = [new SocketedStone(1, "attack-stone", StatBonus.Zero with { At = 5 })],
+            RefineBonus = StatBonus.Zero with { Attack = 7 },
+            Sockets = [new SocketedStone(1, "attack-stone", StatBonus.Zero with { Attack = 5 })],
             Holes = 2,
         };
         var random = new ScriptedRandom(0.0, RollOf(39));

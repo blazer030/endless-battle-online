@@ -400,7 +400,7 @@ public class AdventureServiceTests
         var first = result.Events.OfType<AttackEvent>().First(attack => attack.Attacker == CombatSide.Player);
         Assert.True(first.Critical);
         Assert.Equal(200, first.Damage);
-        Assert.Equal(8, result.Equipment.Total.At);
+        Assert.Equal(8, result.Equipment.Total.Attack);
     }
 
     [Fact]
@@ -491,7 +491,7 @@ public class AdventureServiceTests
     // 1 秒只開打一場：第 1 回合被打到 45 < 52.5 → 第 2 回合開頭喝（+50／+25 → 95／50）；第 4 回合後 50 → 第 5 回合再喝（+50／+8，SP 滿）。
     // 之後 SP 已滿，HP 再低也不喝，第 11 回合倒下。共喝 2 瓶
     private Task<Character> AddWeakCharacterAsync() =>
-        AddCharacterAsync(character => character with { Base = character.Base with { Str = 1, Smart = 1 } });
+        AddCharacterAsync(character => character with { Base = character.Base with { Strength = 1, Intelligence = 1 } });
 
     private async Task<long> EquipSupplyAsync(Character character, int quantity)
     {
@@ -541,8 +541,8 @@ public class AdventureServiceTests
     {
         var character = await AddCharacterAsync(character => character with
         {
-            Hp = DerivedStats.From(character.Base).HpMax,
-            Sp = DerivedStats.From(character.Base).SpMax,
+            Hp = DerivedStats.From(character.Base).MaxHealthPoints,
+            Sp = DerivedStats.From(character.Base).MaxManaPoints,
             Settings = AdventureSettings.Default with { PotionHpPercent = AdventureSettings.Skip, PotionSpPercent = AdventureSettings.Skip },
         });
         await EquipSupplyAsync(character, quantity: 5);

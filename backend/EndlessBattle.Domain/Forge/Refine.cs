@@ -65,5 +65,5 @@ public static class Refine
         Roll(spec.Mdf, random));
 
     private static int Roll(StatRange? range, IRandomSource random) =>
-        range is null ? 0 : PhpRandom.Between(random, range.Min, range.Max);
+        range is null ? 0 : PhpRandom.Between(random, range.Minimum, range.Maximum);
 }

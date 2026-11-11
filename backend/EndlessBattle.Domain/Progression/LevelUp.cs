@@ -31,22 +31,22 @@ public static class LevelUp
     }
 
     private static BaseStats RollGrowth(JobGrowth growth, IRandomSource random) => new(
-        Str: Roll(growth.Str, random),
-        Smart: Roll(growth.Smart, random),
+        Strength: Roll(growth.Strength, random),
+        Intelligence: Roll(growth.Intelligence, random),
         Life: Roll(growth.Life, random),
-        Vit: Roll(growth.Vit, random),
-        Agi: Roll(growth.Agi, random),
-        Au: Roll(growth.Au, random),
-        Be: Roll(growth.Be, random));
+        Vitality: Roll(growth.Vitality, random),
+        Agility: Roll(growth.Agility, random),
+        Charisma: Roll(growth.Charisma, random),
+        Faith: Roll(growth.Faith, random));
 
-    private static int Roll(StatRange range, IRandomSource random) => PhpRandom.Between(random, range.Min, range.Max);
+    private static int Roll(StatRange range, IRandomSource random) => PhpRandom.Between(random, range.Minimum, range.Maximum);
 
     private static BaseStats Add(BaseStats stats, BaseStats growth) => new(
-        stats.Str + growth.Str,
-        stats.Smart + growth.Smart,
+        stats.Strength + growth.Strength,
+        stats.Intelligence + growth.Intelligence,
         stats.Life + growth.Life,
-        stats.Vit + growth.Vit,
-        stats.Agi + growth.Agi,
-        stats.Au + growth.Au,
-        stats.Be + growth.Be);
+        stats.Vitality + growth.Vitality,
+        stats.Agility + growth.Agility,
+        stats.Charisma + growth.Charisma,
+        stats.Faith + growth.Faith);
 }

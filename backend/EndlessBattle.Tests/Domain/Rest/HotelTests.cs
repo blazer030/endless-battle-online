@@ -17,7 +17,7 @@ public class HotelTests
             Sp = 3,
             Money = money,
             Exp = exp,
-            Base = new BaseStats(Str: 12, Smart: 12, Life: 38, Vit: 10, Agi: 12, Au: 10, Be: 10),
+            Base = new BaseStats(Strength: 12, Intelligence: 12, Life: 38, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
         };
 
     // Lv 100 以下免費：不扣錢、無懲罰、回滿 HP 1000／SP 91、等待 5 秒
@@ -156,7 +156,7 @@ public class HotelTests
     [Fact]
     public void Hotel_HealsToEffectiveMaximum()
     {
-        var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 2, Smart = 1, HpMax = 30 });
+        var bonus = new EquipmentBonus(StatBonus.Zero with { Life = 2, Intelligence = 1, MaxHealthPoints = 30 });
 
         var result = Hotel.Rest(Hero(1, hp: 30), bonus);
 

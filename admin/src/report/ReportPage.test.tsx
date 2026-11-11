@@ -11,7 +11,7 @@ afterEach(() => {
 
 const reportWithWarriorLevel = (level: number): BalanceReport => ({
   assumptions: {
-    allocation: { str: 4, smart: 4, life: 1, agi: 1 },
+    allocation: { strength: 4, intelligence: 4, life: 1, agility: 1 },
     seed: 1,
     simulatedHours: 8,
     maxReportedLevel: 100,

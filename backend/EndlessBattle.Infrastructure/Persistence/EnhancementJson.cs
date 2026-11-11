@@ -37,7 +37,7 @@ internal static class EnhancementJson
         [property: JsonPropertyName("hpMax")] int HpMax)
     {
         public static StoredStatBonus From(StatBonus bonus) => new(
-            bonus.Str, bonus.Smart, bonus.Life, bonus.Vit, bonus.Agi, bonus.Au, bonus.Be, bonus.At, bonus.Mat, bonus.Df, bonus.Mdf, bonus.HpMax);
+            bonus.Strength, bonus.Intelligence, bonus.Life, bonus.Vitality, bonus.Agility, bonus.Charisma, bonus.Faith, bonus.Attack, bonus.MagicAttack, bonus.Defense, bonus.MagicDefense, bonus.MaxHealthPoints);
 
         public StatBonus ToDomain() => new(Str, Smart, Life, Vit, Agi, Au, Be, At, Mat, Df, Mdf, HpMax);
     }

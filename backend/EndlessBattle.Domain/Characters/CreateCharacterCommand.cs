@@ -1,6 +1,6 @@
 namespace EndlessBattle.Domain.Characters;
 
-public sealed record StatAllocation(int Str, int Smart, int Life, int Agi);
+public sealed record StatAllocation(int Strength, int Intelligence, int Life, int Agility);
 
 public sealed record CreateCharacterCommand(
     string Name,

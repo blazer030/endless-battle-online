@@ -7,7 +7,7 @@ namespace EndlessBattle.Tests.Domain.Adventure;
 // 上限固定 HpMax 100、SpMax 100，門檻直接是百分比
 public class RestRulesTests
 {
-    private static readonly DerivedStats Derived = new(At: 10, Mat: 10, Df: 10, Mdf: 10, HpMax: 100, SpMax: 100);
+    private static readonly DerivedStats Derived = new(Attack: 10, MagicAttack: 10, Defense: 10, MagicDefense: 10, MaxHealthPoints: 100, MaxManaPoints: 100);
 
     private static Character Hero(int hp, int sp, AdventureSettings? settings = null) =>
         TestCharacters.Default(accountId: 1, "勇者", 1, 1, DateTimeOffset.UnixEpoch) with

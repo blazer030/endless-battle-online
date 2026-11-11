@@ -75,18 +75,18 @@ public static class Socket
 
     // 固定魔石不擲骰；隨機魔石依 StatBonus 的欄位順序（Str…Be、At、Mat、Df、Mdf、HpMax）各擲一次，範圍 [0, 0] 也照擲
     private static StatBonus Roll(StatBonus min, StatBonus max, IRandomSource random) => new(
-        PhpRandom.Between(random, min.Str, max.Str),
-        PhpRandom.Between(random, min.Smart, max.Smart),
+        PhpRandom.Between(random, min.Strength, max.Strength),
+        PhpRandom.Between(random, min.Intelligence, max.Intelligence),
         PhpRandom.Between(random, min.Life, max.Life),
-        PhpRandom.Between(random, min.Vit, max.Vit),
-        PhpRandom.Between(random, min.Agi, max.Agi),
-        PhpRandom.Between(random, min.Au, max.Au),
-        PhpRandom.Between(random, min.Be, max.Be),
-        PhpRandom.Between(random, min.At, max.At),
-        PhpRandom.Between(random, min.Mat, max.Mat),
-        PhpRandom.Between(random, min.Df, max.Df),
-        PhpRandom.Between(random, min.Mdf, max.Mdf),
-        PhpRandom.Between(random, min.HpMax, max.HpMax));
+        PhpRandom.Between(random, min.Vitality, max.Vitality),
+        PhpRandom.Between(random, min.Agility, max.Agility),
+        PhpRandom.Between(random, min.Charisma, max.Charisma),
+        PhpRandom.Between(random, min.Faith, max.Faith),
+        PhpRandom.Between(random, min.Attack, max.Attack),
+        PhpRandom.Between(random, min.MagicAttack, max.MagicAttack),
+        PhpRandom.Between(random, min.Defense, max.Defense),
+        PhpRandom.Between(random, min.MagicDefense, max.MagicDefense),
+        PhpRandom.Between(random, min.MaxHealthPoints, max.MaxHealthPoints));
 
     private static IReadOnlyList<string> InsertReasons(InventoryEntry equipment, int hole, ItemDefinition stone)
     {

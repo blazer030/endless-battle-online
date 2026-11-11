@@ -46,7 +46,7 @@ public class DeliveryTests
     [Fact]
     public void Plan_TreatsSocketedEquipmentAsEnhanced()
     {
-        var socketed = TestItems.Entry(5, "test-sword") with { Sockets = [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })] };
+        var socketed = TestItems.Entry(5, "test-sword") with { Sockets = [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })] };
         IReadOnlyList<InventoryEntry> bag = [socketed, TestItems.Entry(9, "test-sword")];
 
         var plan = Delivery.Plan(bag, [new ItemQuantity("test-sword", 1)]);

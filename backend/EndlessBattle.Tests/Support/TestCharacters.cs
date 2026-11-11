@@ -18,7 +18,7 @@ public static class TestCharacters
         Element: 1,
         Birth: 1,
         JobId: "warrior",
-        Base: new BaseStats(Str: 12, Smart: 12, Life: 12, Vit: 10, Agi: 12, Au: 10, Be: 10),
+        Base: new BaseStats(Strength: 12, Intelligence: 12, Life: 12, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
         Hp: 60,
         Sp: 25,
         PlaceId: placeId,

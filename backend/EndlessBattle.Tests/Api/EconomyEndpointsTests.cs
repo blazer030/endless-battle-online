@@ -155,7 +155,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         await using (var context = database.CreateDbContext())
         {
             await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(
-                characterId, sword, 2, StatBonus.Zero with { At = 3 }, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+                characterId, sword, 2, StatBonus.Zero with { Attack = 3 }, [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 1, CancellationToken);
         }
 
         var stored = await ReadAsync(await client.PostAsJsonAsync("/api/depot/store", new { inventoryId = sword, quantity = 1 }, CancellationToken));

@@ -9,11 +9,11 @@ public class EquipmentBonusTests
 {
     private static readonly Dictionary<string, ItemDefinition> Items = new[]
     {
-        TestItems.Equipment("sword", bonus: StatBonus.Zero with { At = 20 }),
-        TestItems.Equipment("helm", ItemCategory.Head, bonus: StatBonus.Zero with { Df = 2 }),
-        TestItems.Equipment("ring", ItemCategory.Accessory, bonus: StatBonus.Zero with { Str = 2 }),
+        TestItems.Equipment("sword", bonus: StatBonus.Zero with { Attack = 20 }),
+        TestItems.Equipment("helm", ItemCategory.Head, bonus: StatBonus.Zero with { Defense = 2 }),
+        TestItems.Equipment("ring", ItemCategory.Accessory, bonus: StatBonus.Zero with { Strength = 2 }),
         // 補給欄的道具不計加成：故意給它能力，證明被排除
-        TestItems.Consumable("supply") with { Bonus = StatBonus.Zero with { Str = 99, At = 99 } },
+        TestItems.Consumable("supply") with { Bonus = StatBonus.Zero with { Strength = 99, Attack = 99 } },
     }.ToDictionary(item => item.Id);
 
     // 武器本體 at 20 + 精鍊 at 8 = 28；戒指 str +2 → 有效 str 14 → at 28 + 14 = 42；
@@ -23,11 +23,11 @@ public class EquipmentBonusTests
     {
         var loadout = new Loadout(new Dictionary<EquipmentSlot, InventoryEntry>
         {
-            [EquipmentSlot.Weapon] = TestItems.Entry(1, "sword") with { RefineLevel = 2, RefineBonus = StatBonus.Zero with { At = 8 } },
+            [EquipmentSlot.Weapon] = TestItems.Entry(1, "sword") with { RefineLevel = 2, RefineBonus = StatBonus.Zero with { Attack = 8 } },
             [EquipmentSlot.Head] = TestItems.Entry(2, "helm") with
             {
                 Holes = 1,
-                Sockets = [new SocketedStone(1, "stone", StatBonus.Zero with { HpMax = 50 })],
+                Sockets = [new SocketedStone(1, "stone", StatBonus.Zero with { MaxHealthPoints = 50 })],
             },
             [EquipmentSlot.Accessory] = TestItems.Entry(3, "ring"),
             [EquipmentSlot.Supply] = TestItems.Entry(4, "supply", 10),
@@ -35,9 +35,9 @@ public class EquipmentBonusTests
 
         var bonus = EquipmentBonusCalculator.Sum(loadout, id => Items[id]);
 
-        Assert.Equal(StatBonus.Zero with { At = 28, Str = 2, Df = 2, HpMax = 50 }, bonus.Total);
-        var derived = DerivedStats.From(new BaseStats(Str: 12, Smart: 12, Life: 12, Vit: 10, Agi: 12, Au: 10, Be: 10), bonus);
-        Assert.Equal((42, 12, 400), (derived.At, derived.Df, derived.HpMax));
+        Assert.Equal(StatBonus.Zero with { Attack = 28, Strength = 2, Defense = 2, MaxHealthPoints = 50 }, bonus.Total);
+        var derived = DerivedStats.From(new BaseStats(Strength: 12, Intelligence: 12, Life: 12, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10), bonus);
+        Assert.Equal((42, 12, 400), (derived.Attack, derived.Defense, derived.MaxHealthPoints));
     }
 
     [Fact]

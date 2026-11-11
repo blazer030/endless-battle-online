@@ -34,7 +34,7 @@ public class CharacterFactoryTests
     {
         var character = Create(Command());
 
-        Assert.Equal(new BaseStats(Str: 14, Smart: 12, Life: 13, Vit: 10, Agi: 11, Au: 10, Be: 10), character.Base);
+        Assert.Equal(new BaseStats(Strength: 14, Intelligence: 12, Life: 13, Vitality: 10, Agility: 11, Charisma: 10, Faith: 10), character.Base);
         Assert.Equal(50, character.Hp);
         Assert.Equal(25, character.Sp);
         Assert.Equal(2000, character.Money);
@@ -142,7 +142,7 @@ public class CharacterFactoryTests
     {
         var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
         var bonus = new EquipmentBonus(new StatBonus(
-            Str: 2, Smart: 1, Life: 4, Vit: 3, Agi: 5, Au: 6, Be: 2, At: 28, Mat: 7, Df: 9, Mdf: 11, HpMax: 50));
+            Strength: 2, Intelligence: 1, Life: 4, Vitality: 3, Agility: 5, Charisma: 6, Faith: 2, Attack: 28, MagicAttack: 7, Defense: 9, MagicDefense: 11, MaxHealthPoints: 50));
 
         var combatant = CombatBridge.ToCombatant(character, bonus);
 
@@ -158,7 +158,7 @@ public class CharacterFactoryTests
     public void CombatBridge_CarriesEquipmentAgiAndAuIntoBattle()
     {
         var character = TestCharacters.Default(AccountId, "測試者", StartingPlaceId, StartingSubPlace, Now);
-        var bonus = new EquipmentBonus(StatBonus.Zero with { Agi = 5, Au = 5 });
+        var bonus = new EquipmentBonus(StatBonus.Zero with { Agility = 5, Charisma = 5 });
         var monster = new CombatantState(
             Hp: 1, HpMax: 1, Sp: 0, SpMax: 0, At: 0, Mat: 0, Df: 1, Mdf: 1, Agi: 15, Au: 12, Element: 0, Str: 0, Smart: 0);
 

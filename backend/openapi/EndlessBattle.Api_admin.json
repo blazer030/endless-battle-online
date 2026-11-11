@@ -3106,18 +3106,18 @@
       },
       "StatAllocation": {
         "required": [
-          "str",
-          "smart",
+          "strength",
+          "intelligence",
           "life",
-          "agi"
+          "agility"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": "integer",
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": "integer",
             "format": "int32"
           },
@@ -3125,7 +3125,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": "integer",
             "format": "int32"
           }

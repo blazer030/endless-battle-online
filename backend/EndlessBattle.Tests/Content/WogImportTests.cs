@@ -153,7 +153,7 @@ public class WogImportTests
 
         Assert.Equal(
             ("布衣", ItemCategory.Body, 3, 1, 6L, 1, 3),
-            (cloth.Name, cloth.Category, cloth.Bonus.Df, cloth.Bonus.Mdf, cloth.Price, cloth.Holes, cloth.RefineMax));
+            (cloth.Name, cloth.Category, cloth.Bonus.Defense, cloth.Bonus.MagicDefense, cloth.Price, cloth.Holes, cloth.RefineMax));
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class WogImportTests
         var warrior = Content.GetJob("job-6");
 
         Assert.Equal(("戰士", 1, (string?)null), (warrior.Name, warrior.Tier, warrior.ParentId));
-        Assert.Equal(new StatRange(1, 3), warrior.Growth.Str);
+        Assert.Equal(new StatRange(1, 3), warrior.Growth.Strength);
         Assert.Equal(("job-6", 150, 3500), (Content.GetJob("job-10").ParentId!, Content.GetJob("job-10").UnlockLevel, Content.GetJob("job-10").ProficiencyRequired));
     }
 
@@ -179,7 +179,7 @@ public class WogImportTests
     {
         var slime = Content.GetMonster("monster-1");
 
-        Assert.Equal(("史萊姆", 2, 32, 5, 1), (slime.Name, slime.Level, slime.Hp, slime.Element, slime.PlaceId));
+        Assert.Equal(("史萊姆", 2, 32, 5, 1), (slime.Name, slime.Level, slime.HealthPoints, slime.Element, slime.PlaceId));
         Assert.Equal([1], slime.SubPlaces);
         Assert.Contains(new DropEntry("item-204", 90), slime.Drops);
     }
@@ -196,7 +196,7 @@ public class WogImportTests
 
         Assert.Equal(28, zeroStats.Count);
         Assert.All(zeroStats.Where(id => id != 324), id => Assert.True(Content.GetMonster($"monster-{id}").Npc));
-        Assert.DoesNotContain(Content.AllMonsters, monster => !monster.Npc && (monster.Level < 1 || monster.Hp < 1));
+        Assert.DoesNotContain(Content.AllMonsters, monster => !monster.Npc && (monster.Level < 1 || monster.HealthPoints < 1));
     }
 
     private static (string SkillId, int Level, int Rate) Row(EquippedSkill skill) =>

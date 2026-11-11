@@ -102,7 +102,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         await using (var context = database.CreateDbContext())
         {
             await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(
-                characterId, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+                characterId, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 1, CancellationToken);
         }
 
         var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
@@ -299,9 +299,9 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         {
             var repository = new InventoryRepository(context, TestGameContent.Instance);
             await repository.UpdateEnhancementAsync(characterId, fresh, 0, StatBonus.Zero, [], 1, CancellationToken);
-            await repository.UpdateEnhancementAsync(characterId, refined, 1, StatBonus.Zero with { At = 2 }, [], 1, CancellationToken);
+            await repository.UpdateEnhancementAsync(characterId, refined, 1, StatBonus.Zero with { Attack = 2 }, [], 1, CancellationToken);
             await repository.UpdateEnhancementAsync(
-                characterId, socketed, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { At = 5 })], 1, CancellationToken);
+                characterId, socketed, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 1, CancellationToken);
             await repository.UpdateEnhancementAsync(characterId, drilled, 0, StatBonus.Zero, [], 1, CancellationToken);
         }
 

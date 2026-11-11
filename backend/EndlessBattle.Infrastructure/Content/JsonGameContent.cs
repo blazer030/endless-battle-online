@@ -557,7 +557,7 @@ public sealed class JsonGameContent : IGameContent
     private static void ValidateMonster(MonsterDefinition monster, Dictionary<int, PlaceDefinition> places)
     {
         // agi 是命中公式的分母；NPC 不會進入戰鬥
-        if (!monster.Npc && (monster.Hp <= 0 || monster.Agi <= 0))
+        if (!monster.Npc && (monster.HealthPoints <= 0 || monster.Agility <= 0))
         {
             throw new GameContentException($"怪物 {monster.Id} 的 hp 與 agi 必須大於 0");
         }
@@ -622,8 +622,8 @@ public sealed class JsonGameContent : IGameContent
         }
 
         var growth = job.Growth;
-        StatRange[] ranges = [growth.Str, growth.Smart, growth.Life, growth.Vit, growth.Agi, growth.Au, growth.Be];
-        if (ranges.Any(range => range.Min < 0 || range.Min > range.Max))
+        StatRange[] ranges = [growth.Strength, growth.Intelligence, growth.Life, growth.Vitality, growth.Agility, growth.Charisma, growth.Faith];
+        if (ranges.Any(range => range.Minimum < 0 || range.Minimum > range.Maximum))
         {
             throw new GameContentException($"職業 {job.Id} 的成長範圍必須 0 ≤ min ≤ max");
         }
@@ -770,7 +770,7 @@ public sealed class JsonGameContent : IGameContent
             return;
         }
 
-        Require(item.Requires == StatRequirement7.None && item.JobId is null, $"非裝備道具 {id} 不能有能力需求（requires）或 jobId");
+        Require(item.Requires == EquipmentRequirement.None && item.JobId is null, $"非裝備道具 {id} 不能有能力需求（requires）或 jobId");
         Require(item.Holes == 0, $"非裝備道具 {id} 的 holes 必須為 0");
         Require(item.RefineMax == 0, $"非裝備道具 {id} 的 refineMax 必須為 0");
 
@@ -929,7 +929,7 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"精鍊石 {id} 至少要有一項能力範圍");
         }
 
-        if (ranges.Any(range => range is not null && (range.Min < 0 || range.Min > range.Max)))
+        if (ranges.Any(range => range is not null && (range.Minimum < 0 || range.Minimum > range.Maximum)))
         {
             throw new GameContentException($"精鍊石 {id} 的能力範圍必須 0 ≤ min ≤ max");
         }
@@ -975,8 +975,8 @@ public sealed class JsonGameContent : IGameContent
 
     private static int[] Values(StatBonus bonus) =>
     [
-        bonus.Str, bonus.Smart, bonus.Life, bonus.Vit, bonus.Agi, bonus.Au, bonus.Be,
-        bonus.At, bonus.Mat, bonus.Df, bonus.Mdf, bonus.HpMax,
+        bonus.Strength, bonus.Intelligence, bonus.Life, bonus.Vitality, bonus.Agility, bonus.Charisma, bonus.Faith,
+        bonus.Attack, bonus.MagicAttack, bonus.Defense, bonus.MagicDefense, bonus.MaxHealthPoints,
     ];
 
     private static void ValidateRecipe(Recipe recipe, Dictionary<string, ItemDefinition> items)
@@ -1543,7 +1543,7 @@ public sealed class JsonGameContent : IGameContent
             entry.SupplyHp,
             entry.SupplySp,
             entry.Amount,
-            entry.Requires?.ToDomain() ?? StatRequirement7.None,
+            entry.Requires?.ToDomain() ?? EquipmentRequirement.None,
             entry.JobId,
             entry.Element,
             entry.Holes,
@@ -1710,7 +1710,7 @@ public sealed class JsonGameContent : IGameContent
 
     private sealed record StatRequirementEntry(int Str, int Smart, int Agi, int Au)
     {
-        public StatRequirement7 ToDomain() => new(Str, Smart, Agi, Au);
+        public EquipmentRequirement ToDomain() => new(Str, Smart, Agi, Au);
     }
 
     private sealed record RecipeFile(IReadOnlyList<RecipeEntry> Recipes);

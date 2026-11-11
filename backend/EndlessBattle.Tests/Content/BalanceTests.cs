@@ -91,9 +91,9 @@ public class BalanceTests
     {
         var random = new HighestRandom();
         var physical = WogDamage.Fight(
-            monster.At * RoundResolver.CriticalOdds(monster.Agi, player.Agi).Multiplier, player.Df, StrongestElement(monster), random);
+            monster.Attack * RoundResolver.CriticalOdds(monster.Agility, player.Agi).Multiplier, player.Df, StrongestElement(monster), random);
         var magic = WogDamage.Fight(
-            monster.Mat * RoundResolver.CriticalOdds(monster.Au, player.Au).Multiplier, player.Mdf, StrongestElement(monster), random);
+            monster.MagicAttack * RoundResolver.CriticalOdds(monster.Charisma, player.Au).Multiplier, player.Mdf, StrongestElement(monster), random);
         return Math.Max(physical, magic);
     }
 

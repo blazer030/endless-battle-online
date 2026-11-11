@@ -14,21 +14,21 @@ public static class CombatBridge
         var total = equipment.Effective(character.Base);
         var derived = DerivedStats.From(character.Base, equipment);
         return new CombatantState(
-            Hp: Math.Min(character.Hp, derived.HpMax),
-            HpMax: derived.HpMax,
-            Sp: Math.Min(character.Sp, derived.SpMax),
-            SpMax: derived.SpMax,
-            At: derived.At,
-            Mat: derived.Mat,
-            Df: derived.Df,
-            Mdf: derived.Mdf,
-            Agi: total.Agi,
-            Au: total.Au,
+            Hp: Math.Min(character.Hp, derived.MaxHealthPoints),
+            HpMax: derived.MaxHealthPoints,
+            Sp: Math.Min(character.Sp, derived.MaxManaPoints),
+            SpMax: derived.MaxManaPoints,
+            At: derived.Attack,
+            Mat: derived.MagicAttack,
+            Df: derived.Defense,
+            Mdf: derived.MagicDefense,
+            Agi: total.Agility,
+            Au: total.Charisma,
             Element: character.Element,
-            Str: total.Str,
-            Smart: total.Smart,
-            Vit: total.Vit,
-            Be: total.Be,
+            Str: total.Strength,
+            Smart: total.Intelligence,
+            Vit: total.Vitality,
+            Be: total.Faith,
             Level: character.Level);
     }
 }

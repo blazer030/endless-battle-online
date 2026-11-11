@@ -4,39 +4,50 @@ using EndlessBattle.Domain.Content;
 namespace EndlessBattle.Domain.Items;
 
 public sealed record StatBonus(
-    int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax = 0)
+    int Strength,
+    int Intelligence,
+    int Life,
+    int Vitality,
+    int Agility,
+    int Charisma,
+    int Faith,
+    int Attack,
+    int MagicAttack,
+    int Defense,
+    int MagicDefense,
+    int MaxHealthPoints = 0)
 {
     public static StatBonus Zero { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     // 只加七項能力
     public BaseStats AddTo(BaseStats stats) => new(
-        Str: stats.Str + Str,
-        Smart: stats.Smart + Smart,
+        Strength: stats.Strength + Strength,
+        Intelligence: stats.Intelligence + Intelligence,
         Life: stats.Life + Life,
-        Vit: stats.Vit + Vit,
-        Agi: stats.Agi + Agi,
-        Au: stats.Au + Au,
-        Be: stats.Be + Be);
+        Vitality: stats.Vitality + Vitality,
+        Agility: stats.Agility + Agility,
+        Charisma: stats.Charisma + Charisma,
+        Faith: stats.Faith + Faith);
 
     public static StatBonus operator +(StatBonus left, StatBonus right) => new(
-        left.Str + right.Str,
-        left.Smart + right.Smart,
+        left.Strength + right.Strength,
+        left.Intelligence + right.Intelligence,
         left.Life + right.Life,
-        left.Vit + right.Vit,
-        left.Agi + right.Agi,
-        left.Au + right.Au,
-        left.Be + right.Be,
-        left.At + right.At,
-        left.Mat + right.Mat,
-        left.Df + right.Df,
-        left.Mdf + right.Mdf,
-        left.HpMax + right.HpMax);
+        left.Vitality + right.Vitality,
+        left.Agility + right.Agility,
+        left.Charisma + right.Charisma,
+        left.Faith + right.Faith,
+        left.Attack + right.Attack,
+        left.MagicAttack + right.MagicAttack,
+        left.Defense + right.Defense,
+        left.MagicDefense + right.MagicDefense,
+        left.MaxHealthPoints + right.MaxHealthPoints);
 }
 
 // 裝備需求只比對這四項裸點
-public sealed record StatRequirement7(int Str, int Smart, int Agi, int Au)
+public sealed record EquipmentRequirement(int Strength, int Intelligence, int Agility, int Charisma)
 {
-    public static StatRequirement7 None { get; } = new(0, 0, 0, 0);
+    public static EquipmentRequirement None { get; } = new(0, 0, 0, 0);
 }
 
 // 精鍊成功時各能力在 [Min, Max] 擲骰累加；null 表示不加該能力
@@ -76,7 +87,7 @@ public sealed record ItemDefinition(
     int SupplyHp,
     int SupplySp,
     int Amount, // 消耗品的數值，意義依 ConsumableKind
-    StatRequirement7 Requires,
+    EquipmentRequirement Requires,
     string? JobId,
     int Element,
     int Holes,

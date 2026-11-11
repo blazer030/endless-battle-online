@@ -14,7 +14,7 @@ public class EquipmentRulesTests
     [Fact]
     public void Equip_RequirementsUseBaseStats()
     {
-        var heavy = TestItems.Equipment("heavy", requires: new StatRequirement7(Str: 60, Smart: 0, Agi: 13, Au: 10));
+        var heavy = TestItems.Equipment("heavy", requires: new EquipmentRequirement(Strength: 60, Intelligence: 0, Agility: 13, Charisma: 10));
 
         Assert.Equal(["statTooLow:str", "statTooLow:agi"], EquipmentRules.CanEquip(Warrior, heavy));
     }
@@ -28,7 +28,7 @@ public class EquipmentRulesTests
     [Fact]
     public void Equip_AllowsAnyJobWhenNull()
     {
-        Assert.Empty(EquipmentRules.CanEquip(Warrior, TestItems.Equipment("sword", requires: new StatRequirement7(12, 12, 12, 10))));
+        Assert.Empty(EquipmentRules.CanEquip(Warrior, TestItems.Equipment("sword", requires: new EquipmentRequirement(12, 12, 12, 10))));
         Assert.Empty(EquipmentRules.CanEquip(Warrior, TestItems.Equipment("axe", jobId: "warrior")));
     }
 
