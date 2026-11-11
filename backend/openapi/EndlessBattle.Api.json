@@ -1994,6 +1994,7 @@
           "itemName",
           "itemBroken",
           "capturedMonsterId",
+          "capturedMonsterName",
           "remaining",
           "atSeconds"
         ],
@@ -2011,6 +2012,12 @@
             "type": "boolean"
           },
           "capturedMonsterId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "capturedMonsterName": {
             "type": [
               "null",
               "string"
@@ -2050,6 +2057,7 @@
       "BattleEventResponseEncounterEventResponse": {
         "required": [
           "monsterId",
+          "monsterName",
           "monsterHp",
           "monsterHpMax",
           "playerHp",
@@ -2068,6 +2076,9 @@
             "type": "string"
           },
           "monsterId": {
+            "type": "string"
+          },
+          "monsterName": {
             "type": "string"
           },
           "monsterHp": {
@@ -2160,6 +2171,7 @@
           "missionId",
           "title",
           "monsterId",
+          "monsterName",
           "progress",
           "required",
           "requiresDelivery",
@@ -2181,6 +2193,9 @@
             "type": "string"
           },
           "monsterId": {
+            "type": "string"
+          },
+          "monsterName": {
             "type": "string"
           },
           "progress": {

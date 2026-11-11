@@ -87,10 +87,21 @@ public class AdventureSimulatorTests
         var run = Run(Hero(), seconds: 1);
 
         Assert.Equal(
-            new EncounterEvent(0, "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 60, PlayerMaxHealthPoints: 350, PlayerManaPoints: 25, PlayerMaxManaPoints: 91),
+            new EncounterEvent(0, "dummy", MonsterName: "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 60, PlayerMaxHealthPoints: 350, PlayerManaPoints: 25, PlayerMaxManaPoints: 91),
             run.Events[0]);
         Assert.Contains(run.Events, battleEvent => battleEvent is RoundEvent);
         Assert.Contains(run.Events, battleEvent => battleEvent is AttackEvent);
+    }
+
+    [Fact]
+    public void AdventureSimulator_EncounterCarriesMonsterName()
+    {
+        var slime = Monster("monster-1") with { Name = "史萊姆" };
+
+        var run = Run(Hero(), seconds: 1, random: null, slime);
+
+        var encounter = Assert.IsType<EncounterEvent>(run.Events[0]);
+        Assert.Equal(("monster-1", "史萊姆"), (encounter.MonsterId, encounter.MonsterName));
     }
 
     // 住宿：Lv ≤ 100 免費、回滿 HP 350／SP 91、死亡等 15 秒；第一場在 15 秒以滿血開打
@@ -101,7 +112,7 @@ public class AdventureSimulatorTests
 
         Assert.Equal(new RestEvent(0, Cost: 0, ExperiencePenalty: false, WaitSeconds: 15), run.Events[0]);
         Assert.Equal(
-            new EncounterEvent(15, "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 350, PlayerMaxHealthPoints: 350, PlayerManaPoints: 91, PlayerMaxManaPoints: 91),
+            new EncounterEvent(15, "dummy", MonsterName: "dummy", MonsterHealthPoints: 100, MonsterMaxHealthPoints: 100, PlayerHealthPoints: 350, PlayerMaxHealthPoints: 350, PlayerManaPoints: 91, PlayerMaxManaPoints: 91),
             run.Events[1]);
         Assert.Equal(1, run.Summary.Fights);
     }
@@ -564,7 +575,7 @@ public class AdventureSimulatorTests
         Assert.Collection(
             run.Events,
             first => Assert.Equal(new NpcEncounterEvent(0, "npc", "信使", "我是信使"), first),
-            second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", 1, 1, false, true, false), second));
+            second => Assert.Equal(new MissionProgressEvent(0, "visit", "拜訪", "npc", "信使", 1, 1, false, true, false), second));
         Assert.Equal((0, 0, 0, 0L, 0L, 1), (run.Summary.Fights, run.Summary.Wins, run.Summary.Losses, run.Summary.Experience, run.Summary.Money, run.Summary.MissionKills));
         Assert.Equal(hero, run.Character);
         TrackedMissions.AssertSame([Visit().WithProgress(1)], run.Missions);
@@ -983,7 +994,7 @@ public class AdventureSimulatorTests
             [typeof(RewardEvent), typeof(CaptureEvent), typeof(MissionProgressEvent), typeof(LevelUpEvent)],
             run.Events.Where(battleEvent => battleEvent is RewardEvent or CaptureEvent or MissionProgressEvent or LevelUpEvent)
                 .Select(battleEvent => battleEvent.GetType()));
-        Assert.Equal(new CaptureEvent(0, "捕獸網", ItemBroken: true, CapturedMonsterId: "test-sprite", Remaining: 3), run.Events.OfType<CaptureEvent>().Single());
+        Assert.Equal(new CaptureEvent(0, "捕獸網", ItemBroken: true, CapturedMonsterId: "test-sprite", CapturedMonsterName: "test-sprite", Remaining: 3), run.Events.OfType<CaptureEvent>().Single());
         Assert.Equal(run.Events.OfType<RewardEvent>().Single().AtSeconds, run.Events.OfType<CaptureEvent>().Single().AtSeconds);
         Assert.Equal([new CapturedPet("test-sprite", "test-sprite", PetPersonality.Aggressive, 1, 1, 1, From)], run.Captured);
         Assert.Equal(1, run.Summary.PetsCaptured);

@@ -4,7 +4,6 @@ import { baseStatLabels } from "./stats"
 import type {
   AttackEvent,
   CaptureEvent,
-  ContentNames,
   DropResult,
   GrowthStats,
   MercenaryReport,
@@ -18,15 +17,8 @@ import type {
 export type LogLineKind = "normal" | "muted" | "drop" | "trigger"
 export type LogLine = { id: number; text: string; kind: LogLineKind }
 export type LogEntry = Omit<LogLine, "id">
-export type MonsterNameResolver = (monsterId: string) => string
 
 export const MaxLogLines = 200
-
-export const createMonsterNameResolver = (content: ContentNames): MonsterNameResolver => {
-  const names = new Map<string, string>()
-  for (const monster of content.monsters) names.set(monster.id, monster.name)
-  return (monsterId) => names.get(monsterId) ?? monsterId
-}
 
 const describeAttack = (event: AttackEvent, monster: string): LogEntry => {
   const damage = formatNumber(event.damage)
@@ -157,13 +149,13 @@ const describePetAttack = (event: PetAttackEvent, monster: string): LogEntry => 
     : { text: `${event.petName}發動攻擊，對${monster}造成 ${damage} 點傷害。`, kind: "normal" }
 }
 
-const describeCapture = (event: CaptureEvent, monsterName: MonsterNameResolver): LogEntry[] => {
+const describeCapture = (event: CaptureEvent): LogEntry[] => {
   const lines: LogEntry[] = []
   if (event.itemBroken)
     lines.push({ text: `${event.itemName}受到損壞，數量減少1個！！`, kind: "muted" })
-  if (event.capturedMonsterId !== null)
+  if (event.capturedMonsterName !== null)
     lines.push({
-      text: `捕捉到 ${monsterName(event.capturedMonsterId)}，${event.itemName}數量減少1個！！`,
+      text: `捕捉到 ${event.capturedMonsterName}，${event.itemName}數量減少1個！！`,
       kind: "trigger",
     })
   return lines
@@ -198,11 +190,10 @@ const describeGrowth = (growth: GrowthStats) =>
     .map(({ key, label }) => `${label}+${formatNumber(growth[key])}`)
     .join(" ")
 
-// playerName 只用於 WOG 原文帶角色名的句子（逃跑）
+// currentMonsterName 是目前對戰的怪物（沒有對戰時為 null）；playerName 只用於 WOG 原文帶角色名的句子（逃跑）
 export const describePlaybackItem = (
   item: PlaybackItem,
-  monsterName: MonsterNameResolver,
-  currentMonsterId: string | null,
+  currentMonsterName: string | null,
   playerName = "你",
 ): LogEntry[] => {
   if (item.kind === "mercenary") return describeMercenaryReport(item.report)
@@ -215,10 +206,10 @@ export const describePlaybackItem = (
   }
 
   const event = item.event
-  const current = currentMonsterId === null ? "" : monsterName(currentMonsterId)
+  const current = currentMonsterName ?? ""
   switch (event.type) {
     case "encounter":
-      return [{ text: `遭遇 ${monsterName(event.monsterId)}！`, kind: "normal" }]
+      return [{ text: `遭遇 ${event.monsterName}！`, kind: "normal" }]
     case "round":
       return []
     case "attack":
@@ -248,11 +239,11 @@ export const describePlaybackItem = (
     case "petAttack":
       return [describePetAttack(event, current)]
     case "capture":
-      return describeCapture(event, monsterName)
+      return describeCapture(event)
     case "reward":
       return describeReward(event)
     case "mission":
-      return describeMission(event, monsterName(event.monsterId))
+      return describeMission(event, event.monsterName)
     case "npc":
       return [
         {

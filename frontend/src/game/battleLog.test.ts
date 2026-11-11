@@ -1,12 +1,7 @@
 import { describe, expect, test } from "vitest"
-import {
-  createMonsterNameResolver,
-  describeMercenaryReport,
-  describePlaybackItem,
-} from "./battleLog"
+import { describeMercenaryReport, describePlaybackItem } from "./battleLog"
 import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
-import { makeContent } from "../test/fixtures"
 import type {
   AttackEvent,
   PetAttackEvent,
@@ -19,10 +14,6 @@ import type {
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
-const resolver = createMonsterNameResolver(
-  makeContent({ monsters: [{ id: "slime", name: "史萊姆" }] }),
-)
-
 const event = (e: DistributiveOmit<BattleEvent, "atSeconds">): PlaybackItem => ({
   kind: "event",
   event: { ...e, atSeconds: 0 } as BattleEvent,
@@ -32,6 +23,7 @@ const encounter = (overrides: Partial<EncounterEvent> = {}) =>
   event({
     type: "encounter",
     monsterId: "slime",
+    monsterName: "史萊姆",
     monsterHp: 10,
     monsterHpMax: 10,
     playerHp: 20,
@@ -378,6 +370,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m1",
       title: "清除雪精",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 2,
       required: 3,
       requiresDelivery: false,
@@ -393,6 +386,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m1",
       title: "清除雪精",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: false,
@@ -421,6 +415,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m3",
       title: "冒牌傳說",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: false,
@@ -436,6 +431,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m2",
       title: "幽靈船長的寶藏",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: true,
@@ -454,6 +450,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m3",
       title: "血之試煉",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: false,
@@ -472,6 +469,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       missionId: "m4",
       title: "血之試煉",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: true,
@@ -533,6 +531,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       itemName: "捕捉網",
       itemBroken: true,
       capturedMonsterId: "slime",
+      capturedMonsterName: "史萊姆",
       remaining: 3,
     }),
     [
@@ -547,6 +546,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       itemName: "捕捉網",
       itemBroken: true,
       capturedMonsterId: null,
+      capturedMonsterName: null,
       remaining: 3,
     }),
     [["捕捉網受到損壞，數量減少1個！！", "muted"]],
@@ -569,23 +569,21 @@ const cases: [string, PlaybackItem, Line[]][] = [
 
 // WOG end_date「{角色名} 逃跑成功」
 test("describePlaybackItem_EscapeNamesThePlayer", () => {
-  expect(describePlaybackItem(event({ type: "escape" }), resolver, "slime", "青衣")).toEqual([
+  expect(describePlaybackItem(event({ type: "escape" }), "史萊姆", "青衣")).toEqual([
     { text: "青衣 逃跑成功", kind: "muted" },
   ])
 })
 
 describe("describePlaybackItem", () => {
   test.each(cases)("%s", (_name, item, lines) => {
-    expect(describePlaybackItem(item, resolver, "slime")).toEqual(
+    expect(describePlaybackItem(item, "史萊姆")).toEqual(
       lines.map(([text, kind]) => ({ text, kind })),
     )
   })
 
-  test("describePlaybackItem_FallsBackToMonsterId_WhenNameUnknown", () => {
-    const item = encounter({ monsterId: "mystery" })
-    expect(describePlaybackItem(item, resolver, null)).toEqual([
-      { text: "遭遇 mystery！", kind: "normal" },
-    ])
+  test("describePlaybackItem_UsesTheNameOnTheEncounter", () => {
+    const item = encounter({ monsterId: "monster-1", monsterName: "神秘怪" })
+    expect(describePlaybackItem(item, null)).toEqual([{ text: "遭遇 神秘怪！", kind: "normal" }])
   })
 })
 
@@ -655,8 +653,8 @@ describe("describeMercenaryReport", () => {
   })
 
   test("describePlaybackItem_DescribesMercenaryItems", () => {
-    expect(
-      describePlaybackItem({ kind: "mercenary", report: mercenaryReport() }, resolver, null),
-    ).toEqual(describeMercenaryReport(mercenaryReport()))
+    expect(describePlaybackItem({ kind: "mercenary", report: mercenaryReport() }, null)).toEqual(
+      describeMercenaryReport(mercenaryReport()),
+    )
   })
 })

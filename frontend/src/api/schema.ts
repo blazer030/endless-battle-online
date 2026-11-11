@@ -2346,6 +2346,7 @@ export interface components {
             itemName: string;
             itemBroken: boolean;
             capturedMonsterId: null | string;
+            capturedMonsterName: null | string;
             /** Format: int32 */
             remaining: number;
             /** Format: double */
@@ -2362,6 +2363,7 @@ export interface components {
             /** @enum {string} */
             type?: "encounter";
             monsterId: string;
+            monsterName: string;
             /** Format: int32 */
             monsterHp: number;
             /** Format: int32 */
@@ -2400,6 +2402,7 @@ export interface components {
             missionId: string;
             title: string;
             monsterId: string;
+            monsterName: string;
             /** Format: int32 */
             progress: number;
             /** Format: int32 */

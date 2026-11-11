@@ -28,6 +28,7 @@ public abstract record BattleEventResponse(double AtSeconds)
         EncounterEvent encounter => new EncounterEventResponse(
             encounter.AtSeconds,
             encounter.MonsterId,
+            encounter.MonsterName,
             encounter.MonsterHealthPoints,
             encounter.MonsterMaxHealthPoints,
             encounter.PlayerHealthPoints,
@@ -89,6 +90,7 @@ public abstract record BattleEventResponse(double AtSeconds)
             mission.MissionId,
             mission.Title,
             mission.MonsterId,
+            mission.MonsterName,
             mission.Progress,
             mission.Required,
             mission.RequiresDelivery,
@@ -99,7 +101,7 @@ public abstract record BattleEventResponse(double AtSeconds)
         PetAttackEvent petAttack => new PetAttackEventResponse(
             petAttack.AtSeconds, petAttack.PetName, petAttack.Kind, petAttack.Hit, petAttack.Critical, petAttack.Damage, petAttack.TargetHealthPointsAfter),
         CaptureEvent capture => new CaptureEventResponse(
-            capture.AtSeconds, capture.ItemName, capture.ItemBroken, capture.CapturedMonsterId, capture.Remaining),
+            capture.AtSeconds, capture.ItemName, capture.ItemBroken, capture.CapturedMonsterId, capture.CapturedMonsterName, capture.Remaining),
         EscapeEvent escape => new EscapeEventResponse(escape.AtSeconds),
         _ => throw new ArgumentOutOfRangeException(nameof(battleEvent), battleEvent.GetType().Name, "沒有對應的事件回應"),
     };
@@ -109,6 +111,7 @@ public abstract record BattleEventResponse(double AtSeconds)
 public sealed record EncounterEventResponse(
     double AtSeconds,
     string MonsterId,
+    string MonsterName,
     int MonsterHp,
     int MonsterHpMax,
     int PlayerHp,
@@ -173,6 +176,7 @@ public sealed record MissionProgressEventResponse(
     string MissionId,
     string Title,
     string MonsterId,
+    string MonsterName,
     int Progress,
     int Required,
     bool RequiresDelivery,
@@ -187,8 +191,9 @@ public sealed record PetGuardEventResponse(double AtSeconds, string PetName, int
 public sealed record PetAttackEventResponse(
     double AtSeconds, string PetName, AttackKind Kind, bool Hit, bool Critical, int Damage, int TargetHpAfter) : BattleEventResponse(AtSeconds);
 
-// CapturedMonsterId 為 null 表示沒捕到
-public sealed record CaptureEventResponse(double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, int Remaining)
+// CapturedMonsterId、CapturedMonsterName 為 null 表示沒捕到
+public sealed record CaptureEventResponse(
+    double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, string? CapturedMonsterName, int Remaining)
     : BattleEventResponse(AtSeconds);
 
 public sealed record EscapeEventResponse(double AtSeconds) : BattleEventResponse(AtSeconds);

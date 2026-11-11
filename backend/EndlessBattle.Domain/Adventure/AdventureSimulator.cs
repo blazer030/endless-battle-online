@@ -88,7 +88,7 @@ public static class AdventureSimulator
                 if (keepEvents)
                 {
                     events.Add(new NpcEncounterEvent(cursor, definition.Id, definition.Name, definition.NpcMessage));
-                    events.AddRange(ProgressEvents(met, definition.Id, cursor));
+                    events.AddRange(ProgressEvents(met, definition, cursor));
                 }
 
                 cursor += BattleTiming.FightIntervalSeconds;
@@ -111,7 +111,7 @@ public static class AdventureSimulator
 
             if (keepEvents)
             {
-                events.Add(new EncounterEvent(fightStart, definition.Id, definition.HealthPoints, definition.HealthPoints,
+                events.Add(new EncounterEvent(fightStart, definition.Id, definition.Name, definition.HealthPoints, definition.HealthPoints,
                     player.HealthPoints, player.MaxHealthPoints, player.ManaPoints, player.MaxManaPoints, carriedPet?.Name, carriedPet?.MonsterId));
                 foreach (var battleEvent in outcome.Events)
                 {
@@ -189,7 +189,8 @@ public static class AdventureSimulator
 
                     if (keepEvents && (roll.ItemBroken || roll.Captured is not null))
                     {
-                        events.Add(new CaptureEvent(fightEnd, capture.Name, roll.ItemBroken, roll.Captured?.MonsterId, capture.Quantity));
+                        events.Add(new CaptureEvent(
+                            fightEnd, capture.Name, roll.ItemBroken, roll.Captured?.MonsterId, roll.Captured is null ? null : definition.Name, capture.Quantity));
                     }
                 }
 
@@ -201,7 +202,7 @@ public static class AdventureSimulator
                     missionKills += kill.Advanced.Count;
                     if (keepEvents)
                     {
-                        events.AddRange(ProgressEvents(kill, definition.Id, fightEnd));
+                        events.AddRange(ProgressEvents(kill, definition, fightEnd));
                     }
                 }
 
@@ -227,11 +228,11 @@ public static class AdventureSimulator
             events, summary, character, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
     }
 
-    private static IEnumerable<MissionProgressEvent> ProgressEvents(KillResult result, string monsterId, double atSeconds) =>
+    private static IEnumerable<MissionProgressEvent> ProgressEvents(KillResult result, MonsterDefinition monster, double atSeconds) =>
         result.Advanced.Select(mission =>
         {
-            var target = mission.Targets.First(candidate => candidate.MonsterId == monsterId);
+            var target = mission.Targets.First(candidate => candidate.MonsterId == monster.Id);
             return new MissionProgressEvent(
-                atSeconds, mission.MissionId, mission.Title, target.MonsterId, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull, mission.SkillTooLow);
+                atSeconds, mission.MissionId, mission.Title, target.MonsterId, monster.Name, target.Progress, target.Required, mission.RequiresDelivery, mission.TargetsFull, mission.SkillTooLow);
         });
 }

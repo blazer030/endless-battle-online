@@ -57,6 +57,23 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(character.ToString(), me.ToString());
     }
 
+    // 名稱照內容檔：遭遇的每隻怪物都帶著內容裡的名字
+    [Fact]
+    public async Task Advance_EncounterCarriesMonsterName()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        factory.Clock.Advance(TimeSpan.FromSeconds(20));
+
+        var body = await AdvanceAsync(client);
+
+        var encounters = EventsOfType(body, "encounter");
+        Assert.NotEmpty(encounters);
+        Assert.All(encounters, encounter => Assert.Equal(
+            TestGameContent.Instance.GetMonster(encounter.GetProperty("monsterId").GetString()!).Name,
+            encounter.GetProperty("monsterName").GetString()));
+    }
+
     private static List<JsonElement> EventsOfType(JsonElement body, string type) => body.GetProperty("events").EnumerateArray()
         .Where(battleEvent => battleEvent.GetProperty("type").GetString() == type)
         .ToList();

@@ -35,7 +35,7 @@ public sealed class BattleEventResponsesTests
     public void EventDiscriminators_MatchTheDocumentedNames(string expected)
     {
         BattleEvent battleEvent = expected == "mission"
-            ? new MissionProgressEvent(0, "mission-1", "任務", "monster-1", 1, 3, false, false, false)
+            ? new MissionProgressEvent(0, "mission-1", "任務", "monster-1", "史萊姆", 1, 3, false, false, false)
             : new NpcEncounterEvent(0, "monster-1", "旅人", null);
 
         Assert.Equal(expected, Serialize(battleEvent).GetProperty("type").GetString());

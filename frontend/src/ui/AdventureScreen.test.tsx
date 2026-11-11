@@ -64,6 +64,7 @@ const response: AdvanceResponse = {
       type: "encounter",
       atSeconds: 0,
       monsterId: "test-wolf",
+      monsterName: "測試寒狼",
       monsterHp: 60,
       monsterHpMax: 60,
       playerHp: 100,

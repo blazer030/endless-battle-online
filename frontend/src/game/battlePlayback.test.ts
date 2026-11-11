@@ -11,6 +11,7 @@ function encounter(atSeconds: number): BattleEvent {
     type: "encounter",
     atSeconds,
     monsterId: "test-wolf",
+    monsterName: "測試寒狼",
     monsterHp: 60,
     monsterHpMax: 60,
     playerHp: 120,

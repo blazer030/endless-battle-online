@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import type { ApiClient } from "../api/client"
-import { createMonsterNameResolver, describePlaybackItem, MaxLogLines } from "../game/battleLog"
+import { describePlaybackItem, MaxLogLines } from "../game/battleLog"
 import type { LogEntry, LogLine } from "../game/battleLog"
 import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
@@ -137,7 +137,6 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
   }
 
   const handleItems = (items: PlaybackItem[]) => {
-    const monsterName = createMonsterNameResolver(content ?? emptyContent)
     const added: LogEntry[] = []
     for (const item of items) {
       if (item.kind === "event") {
@@ -145,7 +144,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
         const previousState = stageState.current
         stageState.current = applyToStage(previousState, event)
         if (event.type === "encounter") {
-          currentMonsterName.current = monsterName(event.monsterId)
+          currentMonsterName.current = event.monsterName
           stageHandle.current?.showEncounter(
             event.monsterId,
             currentMonsterName.current,
@@ -160,8 +159,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
       added.push(
         ...describePlaybackItem(
           item,
-          monsterName,
-          stageState.current.monsterId,
+          stageState.current.monsterId === null ? null : currentMonsterName.current,
           playback.displayedCharacter.name,
         ),
       )

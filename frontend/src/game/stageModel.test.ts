@@ -14,6 +14,7 @@ import type {
 const encounter: EncounterEvent = {
   type: "encounter",
   monsterId: "snow-sprite",
+  monsterName: "雪精",
   monsterHp: 90,
   monsterHpMax: 100,
   playerHp: 150,
@@ -139,6 +140,7 @@ describe("stageModel", () => {
       itemName: "捕捉網",
       itemBroken: false,
       capturedMonsterId: "wolf",
+      capturedMonsterName: "野狼",
       remaining: 2,
       atSeconds: 2,
     }
@@ -171,6 +173,7 @@ describe("stageModel", () => {
       itemName: "捕捉網",
       itemBroken: false,
       capturedMonsterId: "wolf",
+      capturedMonsterName: "野狼",
       remaining: 2,
       atSeconds: 2,
       ...overrides,
@@ -178,7 +181,11 @@ describe("stageModel", () => {
     expect(stageEffectsFor(capture({}))).toEqual([
       { type: "plate", text: "捕捉成功", tone: "gold" },
     ])
-    expect(stageEffectsFor(capture({ capturedMonsterId: null, itemBroken: true }))).toEqual([])
+    expect(
+      stageEffectsFor(
+        capture({ capturedMonsterId: null, capturedMonsterName: null, itemBroken: true }),
+      ),
+    ).toEqual([])
   })
 
   it("applyToStage_AttackUpdatesTargetHealth", () => {
@@ -428,6 +435,7 @@ describe("stageModel", () => {
       missionId: "m1",
       title: "清除雪精",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: false,
@@ -469,6 +477,7 @@ describe("stageModel", () => {
       missionId: "m3",
       title: "冒牌傳說",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: false,
@@ -485,6 +494,7 @@ describe("stageModel", () => {
       missionId: "m2",
       title: "幽靈船長的寶藏",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 3,
       required: 3,
       requiresDelivery: true,

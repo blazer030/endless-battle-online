@@ -47,6 +47,7 @@ describe("refreshSignalsFor", () => {
       itemName: "捕獸網",
       itemBroken: true,
       capturedMonsterId: null,
+      capturedMonsterName: null,
       remaining: 2,
     })
     const mercenary: PlaybackItem = {
@@ -83,6 +84,7 @@ describe("refreshSignalsFor", () => {
       missionId: "m1",
       title: "清除雪精",
       monsterId: "slime",
+      monsterName: "史萊姆",
       progress: 1,
       required: 3,
       requiresDelivery: false,
@@ -112,6 +114,7 @@ describe("refreshSignalsFor", () => {
       type: "encounter",
       atSeconds: 0,
       monsterId: "test-wolf",
+      monsterName: "測試寒狼",
       monsterHp: 60,
       monsterHpMax: 60,
       playerHp: 120,

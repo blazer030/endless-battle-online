@@ -8,6 +8,7 @@ public abstract record BattleEvent(double AtSeconds);
 public sealed record EncounterEvent(
     double AtSeconds,
     string MonsterId,
+    string MonsterName,
     int MonsterHealthPoints,
     int MonsterMaxHealthPoints,
     int PlayerHealthPoints,
@@ -39,7 +40,8 @@ public sealed record PetAttackEvent(double AtSeconds, string PetName, AttackKind
     : BattleEvent(AtSeconds);
 
 // 捕捉道具損壞或捕到寵物時才產生，緊接在同一場的 RewardEvent 之後；CapturedMonsterId 為 null 表示沒捕到，Remaining 是擲完後的剩餘數量
-public sealed record CaptureEvent(double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, int Remaining) : BattleEvent(AtSeconds);
+public sealed record CaptureEvent(
+    double AtSeconds, string ItemName, bool ItemBroken, string? CapturedMonsterId, string? CapturedMonsterName, int Remaining) : BattleEvent(AtSeconds);
 
 // Heal、ManaPointsGain 是實際回復的 HP 與 MP，沒有回復時為 0
 // Damage 是對對手造成的傷害（削減 HP、持續傷害），OpponentHealthPointsAfter 是對手剩下的 HP（沒有傷害時為 null）；OpponentManaPointsLoss 是削減對手的 MP；
@@ -76,4 +78,13 @@ public sealed record NpcEncounterEvent(double AtSeconds, string MonsterId, strin
 
 // 擊殺任務目標後的新進度；緊接在同一場的 RewardEvent 之後。RequiresDelivery：擊殺滿了仍要交付才能回報；Completed：所有擊殺目標都滿了；SkillTooLow：擊殺滿了也要技能等級夠才能回報
 public sealed record MissionProgressEvent(
-    double AtSeconds, string MissionId, string Title, string MonsterId, int Progress, int Required, bool RequiresDelivery, bool Completed, bool SkillTooLow) : BattleEvent(AtSeconds);
+    double AtSeconds,
+    string MissionId,
+    string Title,
+    string MonsterId,
+    string MonsterName,
+    int Progress,
+    int Required,
+    bool RequiresDelivery,
+    bool Completed,
+    bool SkillTooLow) : BattleEvent(AtSeconds);
