@@ -25,7 +25,7 @@ import {
   type ForgeOption,
 } from "../game/forge"
 import { canAfford, ForgeTools, itemTitle } from "../game/inventory"
-import type { Recipe } from "../game/types"
+import type { RecipeVo } from "../game/forge"
 import type { InventoryItem, InventoryVo } from "../game/inventory"
 import type { CharacterVo } from "../game/character"
 import { ItemName, QuantityStepper, TabPanel, Tabs, type Mutate, type Outcome } from "./bagWidgets"
@@ -536,7 +536,7 @@ function SocketSection({ api, inventory, busy, run }: SectionProps) {
 }
 
 function SynthesisSection({ api, inventory, busy, run, money }: SectionProps & { money: number }) {
-  const [recipes, setRecipes] = useState<Recipe[] | null>(null)
+  const [recipes, setRecipes] = useState<RecipeVo[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [attempts, setAttempts] = useState<Record<string, number>>({})
 

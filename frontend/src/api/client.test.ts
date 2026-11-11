@@ -39,6 +39,16 @@ const inventoryBodyFor = (path: string): unknown => {
   return anyBody
 }
 
+// 鐵舖的回應依路徑給對應的本體
+const forgeBodyFor = (path: string): unknown => {
+  if (path === "/api/forge/recipes") return []
+  if (path === "/api/forge/synthesize")
+    return { successes: 1, attempts: 2, cost: 100, inventory: makeInventory() }
+  if (path === "/api/forge/unsocket")
+    return { success: true, recovered: false, inventory: makeInventory() }
+  return { success: true, inventory: makeInventory() }
+}
+
 const command: CreateCharacterCommand = {
   name: "青衣",
   sex: 2,
@@ -284,7 +294,9 @@ test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
 })
 
 test("forgeCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) => Promise.resolve(jsonResponse(forgeBodyFor(path))))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.refine(7, 30, true)

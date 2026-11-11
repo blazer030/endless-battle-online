@@ -2,7 +2,7 @@ import { act, cleanup, render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { Recipe } from "../game/types"
+import type { RecipeVo } from "../game/forge"
 import type { DepotVo, InventoryVo } from "../game/inventory"
 import type { CharacterVo } from "../game/character"
 import {
@@ -538,7 +538,7 @@ const forgeItems = [
 const forgeInventory = makeInventory(forgeItems, {
   equipment: [{ slot: "Weapon", quantity: 1, item: wornSword }],
 })
-const ingot: Recipe = {
+const ingot: RecipeVo = {
   id: "iron-ingot",
   resultItemId: "iron-ingot",
   resultName: "鐵錠",
@@ -551,7 +551,7 @@ const ingot: Recipe = {
   costPerAttempt: 1000,
   requiredMission: null,
 }
-const crystal: Recipe = {
+const crystal: RecipeVo = {
   ...ingot,
   id: "crystal",
   resultItemId: "crystal",
@@ -694,7 +694,7 @@ test("BagScreen_ForgeDrillDisabledAtFourHoles", async () => {
 })
 
 const lockedRecipeLine = async (completed: boolean) => {
-  const locked: Recipe = {
+  const locked: RecipeVo = {
     ...ingot,
     id: "recipe-174",
     resultName: "剛龍巨斧．極",

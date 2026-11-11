@@ -22,7 +22,7 @@ import {
   crossMergeMaxPairs,
   crossMergePartners,
 } from "./forge"
-import type { Recipe } from "./types"
+import type { RecipeVo } from "./forge"
 
 const sword = makeItem({ inventoryId: 1, name: "測試劍", refineLevel: 2, refineMax: 4 })
 const helmet = makeItem({ inventoryId: 2, name: "皮帽", category: "Head" })
@@ -50,7 +50,7 @@ const guardStone = makeItem({
   category: "Stone",
 })
 
-const recipe: Recipe = {
+const recipe: RecipeVo = {
   requiredMission: null,
   id: "iron-ingot",
   resultItemId: "iron-ingot",
@@ -192,7 +192,7 @@ describe("synthesis", () => {
   })
 
   it("adds up a material listed more than once", () => {
-    const doubled: Recipe = {
+    const doubled: RecipeVo = {
       ...recipe,
       materials: [
         { itemId: "iron-ore", name: "鐵礦石", quantity: 2 },

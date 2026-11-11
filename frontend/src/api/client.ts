@@ -2,7 +2,6 @@ import type {
   BuffView,
   InnBookResult,
   InnView,
-  ForgeResult,
   HonourShop,
   MercenaryHireResult,
   MercenaryOverview,
@@ -10,13 +9,11 @@ import type {
   MissionCompletion,
   PetFeedResult,
   PetsView,
-  Recipe,
-  SynthesisResult,
-  UnsocketResult,
 } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
+import type { ForgeResultVo, RecipeVo, SynthesisVo, UnsocketVo } from "../game/forge"
 import type {
   DepotMoveVo,
   DepotVo,
@@ -39,6 +36,12 @@ import {
   CharacterConverter,
   CreateCharacterConverter,
 } from "./characterData"
+import {
+  ForgeResultConverter,
+  RecipeConverter,
+  SynthesisConverter,
+  UnsocketConverter,
+} from "./forgeData"
 import {
   DepotConverter,
   DepotMoveConverter,
@@ -100,19 +103,19 @@ export type ApiClient = {
     inventoryId: number,
     stoneInventoryId: number,
     useSafeStone: boolean,
-  ) => Promise<ForgeResult>
+  ) => Promise<ForgeResultVo>
   // hole 從 1 起算
-  socket: (inventoryId: number, hole: number, stoneInventoryId: number) => Promise<ForgeResult>
-  unsocket: (inventoryId: number, hole: number) => Promise<UnsocketResult>
-  drill: (inventoryId: number) => Promise<ForgeResult>
-  mergeStones: (stoneInventoryId: number, quantityPairs: number) => Promise<ForgeResult>
+  socket: (inventoryId: number, hole: number, stoneInventoryId: number) => Promise<ForgeResultVo>
+  unsocket: (inventoryId: number, hole: number) => Promise<UnsocketVo>
+  drill: (inventoryId: number) => Promise<ForgeResultVo>
+  mergeStones: (stoneInventoryId: number, quantityPairs: number) => Promise<ForgeResultVo>
   mergeCrossStones: (
     firstInventoryId: number,
     secondInventoryId: number,
     quantityPairs: number,
-  ) => Promise<ForgeResult>
-  getRecipes: () => Promise<Recipe[]>
-  synthesize: (recipeId: string, attempts: number) => Promise<SynthesisResult>
+  ) => Promise<ForgeResultVo>
+  getRecipes: () => Promise<RecipeVo[]>
+  synthesize: (recipeId: string, attempts: number) => Promise<SynthesisVo>
   getMissions: () => Promise<MissionBoard>
   acceptMission: (missionId: string) => Promise<MissionBoard>
   abandonMission: (missionId: string) => Promise<MissionBoard>
@@ -190,6 +193,9 @@ export const createApiClient = (options: {
 
   const requestCharacter = async (path: string, method: string, body?: unknown) =>
     CharacterConverter.toVo(await requestJson<unknown>(path, method, body))
+
+  const requestForge = async (path: string, method: string, body?: unknown) =>
+    ForgeResultConverter.toVo(await requestJson<unknown>(path, method, body))
 
   const requestInventory = async (path: string, method: string, body?: unknown) =>
     InventoryConverter.toVo(await requestJson<unknown>(path, method, body))
@@ -287,34 +293,41 @@ export const createApiClient = (options: {
     deposit: (amount) => requestCharacter("/api/bank/deposit", "POST", { amount }),
     withdraw: (amount) => requestCharacter("/api/bank/withdraw", "POST", { amount }),
     refine: (inventoryId, stoneInventoryId, useSafeStone) =>
-      requestJson<ForgeResult>("/api/forge/refine", "POST", {
+      requestForge("/api/forge/refine", "POST", {
         inventoryId,
         stoneInventoryId,
         useSafeStone,
       }),
     socket: (inventoryId, hole, stoneInventoryId) =>
-      requestJson<ForgeResult>("/api/forge/socket", "POST", {
+      requestForge("/api/forge/socket", "POST", {
         inventoryId,
         hole,
         stoneInventoryId,
       }),
-    unsocket: (inventoryId, hole) =>
-      requestJson<UnsocketResult>("/api/forge/unsocket", "POST", { inventoryId, hole }),
-    drill: (inventoryId) => requestJson<ForgeResult>("/api/forge/drill", "POST", { inventoryId }),
+    unsocket: async (inventoryId, hole) =>
+      UnsocketConverter.toVo(
+        await requestJson<unknown>("/api/forge/unsocket", "POST", { inventoryId, hole }),
+      ),
+    drill: (inventoryId) => requestForge("/api/forge/drill", "POST", { inventoryId }),
     mergeStones: (stoneInventoryId, quantityPairs) =>
-      requestJson<ForgeResult>("/api/forge/merge-stones", "POST", {
+      requestForge("/api/forge/merge-stones", "POST", {
         stoneInventoryId,
         quantityPairs,
       }),
     mergeCrossStones: (firstInventoryId, secondInventoryId, quantityPairs) =>
-      requestJson<ForgeResult>("/api/forge/merge-cross", "POST", {
+      requestForge("/api/forge/merge-cross", "POST", {
         firstInventoryId,
         secondInventoryId,
         quantityPairs,
       }),
-    getRecipes: () => requestJson<Recipe[]>("/api/forge/recipes", "GET"),
-    synthesize: (recipeId, attempts) =>
-      requestJson<SynthesisResult>("/api/forge/synthesize", "POST", { recipeId, attempts }),
+    getRecipes: async () =>
+      parseArray(await requestJson<unknown>("/api/forge/recipes", "GET"), "recipes", (item, path) =>
+        RecipeConverter.toVo(item, path),
+      ),
+    synthesize: async (recipeId, attempts) =>
+      SynthesisConverter.toVo(
+        await requestJson<unknown>("/api/forge/synthesize", "POST", { recipeId, attempts }),
+      ),
     getMissions: () => requestJson<MissionBoard>("/api/missions", "GET"),
     acceptMission: (missionId) =>
       requestJson<MissionBoard>("/api/missions/accept", "POST", { missionId }),

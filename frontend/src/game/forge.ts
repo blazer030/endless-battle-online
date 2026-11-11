@@ -1,7 +1,117 @@
 import { formatNumber } from "./format"
 import { bagItems, bagSlotsOf, isEquipment } from "./inventory"
-import type { Recipe, SynthesisResult } from "./types"
 import type { InventoryItem, InventoryVo } from "./inventory"
+
+// 鐵舖的回應（來自 /api/forge/...），由 api/forgeData.ts 轉換；inventory 是操作後的背包
+type ForgeResultVoParams = { success: boolean; inventory: InventoryVo }
+
+export class ForgeResultVo {
+  readonly success: boolean
+  readonly inventory: InventoryVo
+
+  private constructor(params: ForgeResultVoParams) {
+    this.success = params.success
+    this.inventory = params.inventory
+  }
+
+  static create(params: ForgeResultVoParams): ForgeResultVo {
+    return new ForgeResultVo(params)
+  }
+}
+
+// recovered 表示拆下的魔石回到背包
+type UnsocketVoParams = { success: boolean; recovered: boolean; inventory: InventoryVo }
+
+export class UnsocketVo {
+  readonly success: boolean
+  readonly recovered: boolean
+  readonly inventory: InventoryVo
+
+  private constructor(params: UnsocketVoParams) {
+    this.success = params.success
+    this.recovered = params.recovered
+    this.inventory = params.inventory
+  }
+
+  static create(params: UnsocketVoParams): UnsocketVo {
+    return new UnsocketVo(params)
+  }
+}
+
+export type RecipeMaterial = {
+  readonly itemId: string
+  readonly name: string
+  readonly quantity: number
+}
+
+// 需要先完成的任務；completed 為 false 時不能合成
+export type RecipeRequiredMission = {
+  readonly id: string
+  readonly title: string
+  readonly completed: boolean
+}
+
+type RecipeVoParams = {
+  id: string
+  resultItemId: string
+  resultName: string
+  resultQuantity: number
+  materials: readonly RecipeMaterial[]
+  successRate: number
+  costPerAttempt: number
+  requiredMission: RecipeRequiredMission | null
+}
+
+export class RecipeVo {
+  readonly id: string
+  readonly resultItemId: string
+  readonly resultName: string
+  readonly resultQuantity: number
+  readonly materials: readonly RecipeMaterial[]
+  readonly successRate: number
+  readonly costPerAttempt: number
+  readonly requiredMission: RecipeRequiredMission | null
+
+  private constructor(params: RecipeVoParams) {
+    this.id = params.id
+    this.resultItemId = params.resultItemId
+    this.resultName = params.resultName
+    this.resultQuantity = params.resultQuantity
+    this.materials = params.materials
+    this.successRate = params.successRate
+    this.costPerAttempt = params.costPerAttempt
+    this.requiredMission = params.requiredMission
+  }
+
+  static create(params: RecipeVoParams): RecipeVo {
+    return new RecipeVo(params)
+  }
+}
+
+type SynthesisVoParams = {
+  successes: number
+  attempts: number
+  cost: number
+  inventory: InventoryVo
+}
+
+export class SynthesisVo {
+  readonly successes: number
+  readonly attempts: number
+  readonly cost: number
+  readonly inventory: InventoryVo
+
+  private constructor(params: SynthesisVoParams) {
+    this.successes = params.successes
+    this.attempts = params.attempts
+    this.cost = params.cost
+    this.inventory = params.inventory
+  }
+
+  static create(params: SynthesisVoParams): SynthesisVo {
+    return new SynthesisVo(params)
+  }
+}
 
 // 與後端 Socket／StoneMerge／Synthesis 的常數一致
 export const MaxHoles = 4
@@ -103,7 +213,7 @@ export const unsocketResultText = (recovered: boolean, stoneName: string) =>
 
 export const drillResultText = (success: boolean) => (success ? "打洞成功！" : "打洞失敗。")
 
-export const recipeText = (recipe: Recipe) => {
+export const recipeText = (recipe: RecipeVo) => {
   const materials = recipe.materials
     .map((material) => `${material.name} ×${material.quantity}`)
     .join("、")
@@ -111,7 +221,7 @@ export const recipeText = (recipe: Recipe) => {
 }
 
 // 材料不論成敗都會用掉，次數上限取最缺的材料能支撐幾次；同種材料出現多次時合併計算
-export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryVo) => {
+export const maxSynthesisAttempts = (recipe: RecipeVo, inventory: InventoryVo) => {
   const required = new Map<string, number>()
   for (const material of recipe.materials)
     required.set(material.itemId, (required.get(material.itemId) ?? 0) + material.quantity)
@@ -127,7 +237,5 @@ export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryVo) => 
 export const synthesisButtonText = (costPerAttempt: number, attempts: number) =>
   `合成（${formatNumber(costPerAttempt * attempts)} 金錢上限）`
 
-export const synthesisResultText = (
-  result: Pick<SynthesisResult, "attempts" | "successes" | "cost">,
-) =>
+export const synthesisResultText = (result: Pick<SynthesisVo, "attempts" | "successes" | "cost">) =>
   `合成 ${result.attempts} 次，成功 ${result.successes} 次，花費 ${formatNumber(result.cost)} 金錢。`
