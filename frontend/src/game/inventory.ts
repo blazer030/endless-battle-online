@@ -1,17 +1,245 @@
 import { formatNumber } from "./format"
-import { buffLabel, durationMinutes } from "./buffs"
+import { buffLabel, durationMinutes, type Buff } from "./buffs"
 import { statLabel } from "./stats"
-import type {
-  BagCategoryView,
-  EquipmentSlot,
-  InventoryItem,
-  InventoryView,
-  ItemCategory,
-  ItemUseResult,
-  ItemRequirement,
-  StatBonusView,
-} from "./types"
 import type { CharacterVo } from "./character"
+
+// 背包、商店、倉庫與道具使用的資料（來自 /api/inventory、/api/shop、/api/depot），由 api/inventoryData.ts 轉換
+export const itemCategoryIds = [
+  "Weapon",
+  "Head",
+  "Body",
+  "Hand",
+  "Foot",
+  "Accessory",
+  "Consumable",
+  "Stone",
+  "RefineStone",
+  "Material",
+  "Medal",
+  "Key",
+] as const
+export type ItemCategory = (typeof itemCategoryIds)[number]
+
+export const consumableKinds = [
+  "None",
+  "Supply",
+  "StatPotion",
+  "BagExpansion",
+  "DepotExpansion",
+  "Capture",
+  "StoneBox",
+  "RefineBox",
+  "PetEgg",
+  "ProficiencyBook",
+  "ExperienceCapsule",
+  "Elixir",
+] as const
+export type ConsumableKind = (typeof consumableKinds)[number]
+
+export const equipmentSlotIds = [
+  "Weapon",
+  "Head",
+  "Body",
+  "Hand",
+  "Foot",
+  "Accessory",
+  "Supply",
+] as const
+export type EquipmentSlot = (typeof equipmentSlotIds)[number]
+
+export type StatBonus = {
+  readonly strength: number
+  readonly intelligence: number
+  readonly life: number
+  readonly vitality: number
+  readonly agility: number
+  readonly charisma: number
+  readonly faith: number
+  readonly attack: number
+  readonly magicAttack: number
+  readonly defense: number
+  readonly magicDefense: number
+  readonly maxHealthPoints: number
+}
+
+// 裝備需求只比對這四項裸點
+export type EquipmentRequirement = {
+  readonly strength: number
+  readonly intelligence: number
+  readonly agility: number
+  readonly charisma: number
+}
+
+export type Socket = {
+  readonly hole: number
+  readonly stoneId: string
+  readonly stoneName: string
+  readonly rolled: StatBonus
+}
+
+export type WeaponSkill = { readonly name: string; readonly level: number; readonly rate: number }
+
+// refineStoneLevel 只有精鍊石才有值；jobId 為 null 表示不限職業
+export type InventoryItem = {
+  readonly inventoryId: number
+  readonly itemId: string
+  readonly name: string
+  readonly category: ItemCategory
+  readonly consumable: ConsumableKind
+  readonly quantity: number
+  readonly bonus: StatBonus
+  readonly requires: EquipmentRequirement
+  readonly jobId: string | null
+  readonly supplyHealthPoints: number
+  readonly supplyManaPoints: number
+  readonly amount: number
+  readonly refineLevel: number
+  readonly refineMax: number
+  readonly refineBonus: StatBonus
+  readonly holes: number
+  readonly sockets: readonly Socket[]
+  readonly price: number
+  readonly bound: boolean
+  readonly refineStoneLevel: number | null
+  readonly enhanced: boolean
+  readonly weaponSkill: WeaponSkill | null
+}
+
+export type BagCategory = {
+  readonly category: ItemCategory
+  readonly capacity: number
+  readonly items: readonly InventoryItem[]
+}
+
+export type EquippedItem = {
+  readonly slot: EquipmentSlot
+  readonly quantity: number
+  readonly item: InventoryItem
+}
+
+type InventoryVoParams = {
+  bag: readonly BagCategory[]
+  equipment: readonly EquippedItem[]
+  bonus: StatBonus
+}
+
+export class InventoryVo {
+  readonly bag: readonly BagCategory[]
+  readonly equipment: readonly EquippedItem[]
+  readonly bonus: StatBonus
+
+  private constructor(params: InventoryVoParams) {
+    this.bag = params.bag
+    this.equipment = params.equipment
+    this.bonus = params.bonus
+  }
+
+  static create(params: InventoryVoParams): InventoryVo {
+    return new InventoryVo(params)
+  }
+}
+
+type ShopItemVoParams = {
+  id: string
+  name: string
+  category: ItemCategory
+  price: number
+  bonus: StatBonus
+  requires: EquipmentRequirement
+  holes: number
+  refineMax: number
+}
+
+export class ShopItemVo {
+  readonly id: string
+  readonly name: string
+  readonly category: ItemCategory
+  readonly price: number
+  readonly bonus: StatBonus
+  readonly requires: EquipmentRequirement
+  readonly holes: number
+  readonly refineMax: number
+
+  private constructor(params: ShopItemVoParams) {
+    this.id = params.id
+    this.name = params.name
+    this.category = params.category
+    this.price = params.price
+    this.bonus = params.bonus
+    this.requires = params.requires
+    this.holes = params.holes
+    this.refineMax = params.refineMax
+  }
+
+  static create(params: ShopItemVoParams): ShopItemVo {
+    return new ShopItemVo(params)
+  }
+}
+
+// 倉庫的一筆的 inventoryId 是倉庫的 id（取出時用）
+type DepotVoParams = { entries: readonly InventoryItem[]; capacity: number }
+
+export class DepotVo {
+  readonly entries: readonly InventoryItem[]
+  readonly capacity: number
+
+  private constructor(params: DepotVoParams) {
+    this.entries = params.entries
+    this.capacity = params.capacity
+  }
+
+  static create(params: DepotVoParams): DepotVo {
+    return new DepotVo(params)
+  }
+}
+
+type DepotMoveVoParams = { inventory: InventoryVo; depot: DepotVo }
+
+export class DepotMoveVo {
+  readonly inventory: InventoryVo
+  readonly depot: DepotVo
+
+  private constructor(params: DepotMoveVoParams) {
+    this.inventory = params.inventory
+    this.depot = params.depot
+  }
+
+  static create(params: DepotMoveVoParams): DepotMoveVo {
+    return new DepotMoveVo(params)
+  }
+}
+
+// obtained 是寶箱抽到的道具名稱；petName 是孵出的寵物；buff 是喝下的密藥
+type ItemUseVoParams = {
+  inventory: InventoryVo
+  obtained: readonly string[]
+  petName: string | null
+  skillPoints: number
+  levelsGained: number
+  buff: Buff | null
+}
+
+export class ItemUseVo {
+  readonly inventory: InventoryVo
+  readonly obtained: readonly string[]
+  readonly petName: string | null
+  readonly skillPoints: number
+  readonly levelsGained: number
+  readonly buff: Buff | null
+
+  private constructor(params: ItemUseVoParams) {
+    this.inventory = params.inventory
+    this.obtained = params.obtained
+    this.petName = params.petName
+    this.skillPoints = params.skillPoints
+    this.levelsGained = params.levelsGained
+    this.buff = params.buff
+  }
+
+  static create(params: ItemUseVoParams): ItemUseVo {
+    return new ItemUseVo(params)
+  }
+}
 
 // 與後端 InventoryRules／Shop／Bank 的常數一致
 export const MaxStackQuantity = 99
@@ -84,7 +312,7 @@ export const isUsable = (item: InventoryItem) => usableKinds.has(item.consumable
 // 使用後的結果行；寶箱沿用 WOG xmas_item 的「恭喜抽到」，名稱以空白分隔
 export const itemUseResultLines = (
   item: Pick<InventoryItem, "consumable" | "amount" | "name">,
-  result: Pick<ItemUseResult, "obtained" | "petName" | "skillPoints" | "levelsGained" | "buff">,
+  result: Pick<ItemUseVo, "obtained" | "petName" | "skillPoints" | "levelsGained" | "buff">,
   now: Date,
 ): string[] => {
   const lines: string[] = []
@@ -100,7 +328,10 @@ export const itemUseResultLines = (
   return lines
 }
 
-export const bagSlotsOf = (inventory: InventoryView, category: ItemCategory): BagCategoryView =>
+export const bagSlotsOf = (
+  inventory: Pick<InventoryVo, "bag">,
+  category: ItemCategory,
+): BagCategory =>
   inventory.bag.find((entry) => entry.category === category) ?? {
     category,
     capacity: 0,
@@ -108,9 +339,9 @@ export const bagSlotsOf = (inventory: InventoryView, category: ItemCategory): Ba
   }
 
 // 每一列佔一格：裝備一件一格，可堆疊的一疊一格
-export const usageText = (slots: BagCategoryView) => `${slots.items.length}/${slots.capacity}`
+export const usageText = (slots: BagCategory) => `${slots.items.length}/${slots.capacity}`
 
-export const bagItems = (inventory: InventoryView) =>
+export const bagItems = (inventory: Pick<InventoryVo, "bag">) =>
   itemCategories.flatMap(({ id }) => bagSlotsOf(inventory, id).items)
 
 export const itemTitle = (item: InventoryItem) =>
@@ -121,7 +352,7 @@ export const itemTitle = (item: InventoryItem) =>
 export const holeMarks = (item: InventoryItem) =>
   "◆".repeat(item.sockets.length) + "◇".repeat(Math.max(0, item.holes - item.sockets.length))
 
-const bonusLabels: { key: keyof StatBonusView; label: string }[] = [
+const bonusLabels: { key: keyof StatBonus; label: string }[] = [
   { key: "attack", label: "物攻" },
   { key: "magicAttack", label: "魔攻" },
   { key: "defense", label: "物防" },
@@ -136,7 +367,7 @@ const bonusLabels: { key: keyof StatBonusView; label: string }[] = [
   { key: "faith", label: "信仰" },
 ]
 
-export const bonusText = (bonus: StatBonusView) =>
+export const bonusText = (bonus: StatBonus) =>
   bonusLabels
     .filter(({ key }) => bonus[key] !== 0)
     .map(({ key, label }) => `${label} +${bonus[key]}`)
@@ -145,19 +376,19 @@ export const bonusText = (bonus: StatBonusView) =>
 export const supplyText = (item: Pick<InventoryItem, "supplyHealthPoints" | "supplyManaPoints">) =>
   `HP +${item.supplyHealthPoints}、SP +${item.supplyManaPoints}`
 
-export const candidatesFor = (inventory: InventoryView, slot: EquipmentSlot) =>
+export const candidatesFor = (inventory: Pick<InventoryVo, "bag">, slot: EquipmentSlot) =>
   slot === "Supply"
     ? bagSlotsOf(inventory, "Consumable").items.filter(isSupply)
     : bagSlotsOf(inventory, slot).items
 
-export const equippedIn = (inventory: InventoryView, slot: EquipmentSlot) =>
+export const equippedIn = (inventory: Pick<InventoryVo, "equipment">, slot: EquipmentSlot) =>
   inventory.equipment.find((entry) => entry.slot === slot) ?? null
 
 export type Requirement = { text: string; met: boolean }
 
 export type JobName = { id: string; name: string }
 
-const requirementStats: (keyof ItemRequirement)[] = [
+const requirementStats: (keyof EquipmentRequirement)[] = [
   "strength",
   "intelligence",
   "agility",

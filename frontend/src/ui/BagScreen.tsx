@@ -29,13 +29,13 @@ import {
   type JobName,
 } from "../game/inventory"
 import type {
-  DepotView,
+  DepotVo,
   EquipmentSlot,
   InventoryItem,
-  InventoryView,
+  InventoryVo,
   ItemCategory,
-  ShopItem,
-} from "../game/types"
+  ShopItemVo,
+} from "../game/inventory"
 import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import "./BagScreen.css"
@@ -110,7 +110,7 @@ export function BagScreen({
 }: Props) {
   const tabsId = useId()
   const [page, setPage] = useState<SubPage>("bag")
-  const [inventory, setInventory] = useState<InventoryView | null>(null)
+  const [inventory, setInventory] = useState<InventoryVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -151,7 +151,7 @@ export function BagScreen({
     }
   }
 
-  const renderPage = (current: InventoryView) => {
+  const renderPage = (current: InventoryVo) => {
     const shared = { character, busy, mutate, jobNames }
     switch (page) {
       case "bag":
@@ -236,7 +236,7 @@ function BagPage({
   busy,
   mutate,
   jobNames,
-}: PageProps & { inventory: InventoryView }) {
+}: PageProps & { inventory: InventoryVo }) {
   const tabsId = useId()
   const [category, setCategory] = useState<ItemCategory>("Weapon")
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -427,7 +427,7 @@ function EquipmentPage({
   busy,
   mutate,
   jobNames,
-}: PageProps & { inventory: InventoryView }) {
+}: PageProps & { inventory: InventoryVo }) {
   const panelId = useId()
   const [slot, setSlot] = useState<EquipmentSlot | null>(null)
   // 每疊補給品各自的數量欄；沒改過時預設整疊（上限 99）
@@ -568,7 +568,7 @@ function ShopPage({ api, character, busy, mutate, jobNames }: PageProps) {
   const levelTabsId = useId()
   const [category, setCategory] = useState<ItemCategory>("Weapon")
   const [level, setLevel] = useState(MinShopLevel)
-  const [items, setItems] = useState<ShopItem[] | null>(null)
+  const [items, setItems] = useState<ShopItemVo[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
@@ -598,7 +598,7 @@ function ShopPage({ api, character, busy, mutate, jobNames }: PageProps) {
     setError(null)
   }
 
-  const buy = async (item: ShopItem, quantity: number) => {
+  const buy = async (item: ShopItemVo, quantity: number) => {
     setError(null)
     const message = await mutate(async () => ({ inventory: await api.buy(item.id, quantity) }))
     if (message === null) setQuantities((current) => ({ ...current, [item.id]: 1 }))
@@ -698,13 +698,13 @@ function DepotPage({
   mutate,
 }: {
   api: BagApi
-  inventory: InventoryView
+  inventory: InventoryVo
   busy: boolean
   mutate: Mutate
 }) {
   const bagId = useId()
   const depotId = useId()
-  const [depot, setDepot] = useState<DepotView | null>(null)
+  const [depot, setDepot] = useState<DepotVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [error, setError] = useState<{ key: string; message: string } | null>(null)

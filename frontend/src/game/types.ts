@@ -8,21 +8,8 @@ type WithCharacter<T extends { character: unknown }> = Omit<T, "character"> & {
   character: CharacterVo
 }
 
-export type InventoryView = Schemas["InventoryResponse"]
-export type BagCategoryView = Schemas["BagCategoryResponse"]
-export type InventoryItem = Schemas["InventoryItemResponse"]
-export type EquippedItem = Schemas["EquippedItemResponse"]
-export type ItemCategory = Schemas["ItemCategory"]
-export type EquipmentSlot = Schemas["EquipmentSlot"]
-export type ItemRequirement = Schemas["EquipmentRequirementResponse"]
-export type StatBonusView = Schemas["StatBonusResponse"]
-export type ShopItem = Schemas["ShopItemResponse"]
-export type DepotView = Schemas["DepotResponse"]
-export type DepotMove = Schemas["DepotMoveResponse"]
 export type ForgeResult = Schemas["ForgeResponse"]
-export type ItemUseResult = Schemas["UseItemResponse"]
 export type BuffView = Schemas["BuffResponse"]
-export type BuffKind = Schemas["BuffKind"]
 export type InnView = Schemas["InnResponse"]
 export type InnRoomView = Schemas["InnRoomResponse"]
 export type LodgingView = Schemas["LodgingResponse"]

@@ -25,7 +25,8 @@ import {
   type ForgeOption,
 } from "../game/forge"
 import { canAfford, ForgeTools, itemTitle } from "../game/inventory"
-import type { InventoryItem, InventoryView, Recipe } from "../game/types"
+import type { Recipe } from "../game/types"
+import type { InventoryItem, InventoryVo } from "../game/inventory"
 import type { CharacterVo } from "../game/character"
 import { ItemName, QuantityStepper, TabPanel, Tabs, type Mutate, type Outcome } from "./bagWidgets"
 import "./ForgePage.css"
@@ -52,7 +53,7 @@ const sections: { id: Section; label: string }[] = [
 
 type Props = {
   api: ForgeApi
-  inventory: InventoryView
+  inventory: InventoryVo
   character: CharacterVo
   busy: boolean
   mutate: Mutate
@@ -63,7 +64,7 @@ type Run = (action: () => Promise<Outcome & { result: string }>) => Promise<void
 
 type SectionProps = {
   api: ForgeApi
-  inventory: InventoryView
+  inventory: InventoryVo
   busy: boolean
   run: Run
 }
@@ -119,7 +120,7 @@ export function ForgePage({ api, inventory, character, busy, mutate }: Props) {
 }
 
 // 選擇的裝備以 inventoryId 記住，背包換成回應內容後仍指向同一件
-const useTarget = (inventory: InventoryView) => {
+const useTarget = (inventory: InventoryVo) => {
   const targets = forgeTargets(inventory)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const target = targets.find((item) => item.inventoryId === selectedId) ?? targets[0] ?? null
@@ -132,7 +133,7 @@ function TargetPicker({
   target,
   onSelect,
 }: {
-  inventory: InventoryView
+  inventory: InventoryVo
   targets: InventoryItem[]
   target: InventoryItem
   onSelect: (inventoryId: number) => void

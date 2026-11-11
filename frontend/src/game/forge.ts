@@ -1,6 +1,7 @@
 import { formatNumber } from "./format"
 import { bagItems, bagSlotsOf, isEquipment } from "./inventory"
-import type { InventoryItem, InventoryView, Recipe, SynthesisResult } from "./types"
+import type { Recipe, SynthesisResult } from "./types"
+import type { InventoryItem, InventoryVo } from "./inventory"
 
 // 與後端 Socket／StoneMerge／Synthesis 的常數一致
 export const MaxHoles = 4
@@ -12,18 +13,17 @@ const StonesPerPair = 2
 export type ForgeOption = { stone: InventoryItem; allowed: boolean }
 
 // 鍛造對象：先列裝備欄（補給欄除外），再列背包裡的裝備
-export const forgeTargets = (inventory: InventoryView): InventoryItem[] => [
+export const forgeTargets = (inventory: InventoryVo): InventoryItem[] => [
   ...inventory.equipment.filter(({ item }) => isEquipment(item.category)).map(({ item }) => item),
   ...bagItems(inventory).filter((item) => isEquipment(item.category)),
 ]
 
-export const countInBag = (inventory: InventoryView, itemId: string) =>
+export const countInBag = (inventory: InventoryVo, itemId: string) =>
   bagItems(inventory)
     .filter((item) => item.itemId === itemId)
     .reduce((total, item) => total + item.quantity, 0)
 
-export const hasTool = (inventory: InventoryView, toolId: string) =>
-  countInBag(inventory, toolId) > 0
+export const hasTool = (inventory: InventoryVo, toolId: string) => countInBag(inventory, toolId) > 0
 
 // 目標等級 n = 目前 + 1，成功率 101 − 10n %
 const refineSuccessPercent = (item: InventoryItem) => 101 - 10 * (item.refineLevel + 1)
@@ -34,10 +34,7 @@ export const refinePreview = (item: InventoryItem) =>
 export const isAtRefineMax = (item: InventoryItem) => item.refineLevel >= item.refineMax
 
 // 精鍊石等級必須等於目標等級（目前 + 1）
-export const refineStoneOptions = (
-  inventory: InventoryView,
-  target: InventoryItem,
-): ForgeOption[] =>
+export const refineStoneOptions = (inventory: InventoryVo, target: InventoryItem): ForgeOption[] =>
   bagSlotsOf(inventory, "RefineStone").items.map((stone) => ({
     stone,
     allowed: stone.refineStoneLevel === target.refineLevel + 1,
@@ -61,11 +58,11 @@ export const mergeablePairs = (stone: InventoryItem) => {
   return Math.floor(stone.quantity / StonesPerPair)
 }
 
-export const mergeableStones = (inventory: InventoryView) =>
+export const mergeableStones = (inventory: InventoryVo) =>
   bagSlotsOf(inventory, "RefineStone").items.filter((stone) => mergeablePairs(stone) > 0)
 
 // 異類合成：同等級、不同種類（每種等級各是一個道具 id）；Lv1 不能異類合成
-export const crossMergePartners = (inventory: InventoryView, first: InventoryItem) => {
+export const crossMergePartners = (inventory: InventoryVo, first: InventoryItem) => {
   const level = first.refineStoneLevel
   if (level === null || level <= 1) return []
   return bagSlotsOf(inventory, "RefineStone").items.filter(
@@ -73,7 +70,7 @@ export const crossMergePartners = (inventory: InventoryView, first: InventoryIte
   )
 }
 
-export const crossMergeableStones = (inventory: InventoryView) =>
+export const crossMergeableStones = (inventory: InventoryVo) =>
   bagSlotsOf(inventory, "RefineStone").items.filter(
     (stone) => crossMergePartners(inventory, stone).length > 0,
   )
@@ -93,10 +90,7 @@ export const holeSlots = (item: InventoryItem): HoleSlot[] =>
   })
 
 // 同一件裝備不能鑲嵌同種魔石（魔石種類 = 道具 id）
-export const socketStoneOptions = (
-  inventory: InventoryView,
-  target: InventoryItem,
-): ForgeOption[] =>
+export const socketStoneOptions = (inventory: InventoryVo, target: InventoryItem): ForgeOption[] =>
   bagSlotsOf(inventory, "Stone").items.map((stone) => ({
     stone,
     allowed: !target.sockets.some((socket) => socket.stoneId === stone.itemId),
@@ -117,7 +111,7 @@ export const recipeText = (recipe: Recipe) => {
 }
 
 // 材料不論成敗都會用掉，次數上限取最缺的材料能支撐幾次；同種材料出現多次時合併計算
-export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryView) => {
+export const maxSynthesisAttempts = (recipe: Recipe, inventory: InventoryVo) => {
   const required = new Map<string, number>()
   for (const material of recipe.materials)
     required.set(material.itemId, (required.get(material.itemId) ?? 0) + material.quantity)

@@ -1,6 +1,7 @@
 import { expect, test } from "vitest"
 import { lodgingLine, replaceHint, roomEffect, stayLength } from "./inn"
-import type { BuffKind, InnRoomView } from "./types"
+import type { InnRoomView } from "./types"
+import type { BuffKind } from "./buffs"
 
 const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
   id: "apprentice-loft",

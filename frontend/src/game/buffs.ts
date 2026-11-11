@@ -1,4 +1,21 @@
-import type { BuffKind, BuffView } from "./types"
+import type { BuffView } from "./types"
+
+// 密藥與旅館房間的加成種類（來自 /api/characters/me/buffs、/api/inn 與道具使用），由 api/lodgingData.ts 轉換
+export const buffKinds = [
+  "Experience",
+  "JobExperience",
+  "Attack",
+  "Magic",
+  "Defense",
+  "MagicDefense",
+] as const
+export type BuffKind = (typeof buffKinds)[number]
+
+export type Buff = {
+  readonly kind: BuffKind
+  readonly multiplier: number
+  readonly endsAt: Date
+}
 
 const buffLabels: Record<BuffKind, string> = {
   Experience: "經驗",
@@ -18,8 +35,8 @@ export const remainingMinutes = (endsAt: string, now: Date) =>
   Math.ceil((Date.parse(endsAt) - now.getTime()) / MillisecondsPerMinute)
 
 // 剛喝下的持續時間四捨五入：裝置時鐘與伺服器差幾秒時，一小時的密藥仍是 60 分
-export const durationMinutes = (endsAt: string, now: Date) =>
-  Math.round((Date.parse(endsAt) - now.getTime()) / MillisecondsPerMinute)
+export const durationMinutes = (endsAt: Date, now: Date) =>
+  Math.round((endsAt.getTime() - now.getTime()) / MillisecondsPerMinute)
 
 // 開打時刻早於到期時刻才有加成，到期那一刻就不再列出
 export const buffLines = (buffs: BuffView[], now: Date): string[] =>

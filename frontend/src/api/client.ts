@@ -2,14 +2,8 @@ import type {
   BuffView,
   InnBookResult,
   InnView,
-  DepotMove,
-  DepotView,
-  EquipmentSlot,
   ForgeResult,
   HonourShop,
-  InventoryView,
-  ItemCategory,
-  ItemUseResult,
   MercenaryHireResult,
   MercenaryOverview,
   MissionBoard,
@@ -17,13 +11,21 @@ import type {
   PetFeedResult,
   PetsView,
   Recipe,
-  ShopItem,
   SynthesisResult,
   UnsocketResult,
 } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
+import type {
+  DepotMoveVo,
+  DepotVo,
+  EquipmentSlot,
+  InventoryVo,
+  ItemCategory,
+  ItemUseVo,
+  ShopItemVo,
+} from "../game/inventory"
 import type { AdventureSettings, CharacterVo, CreateCharacterCommand } from "../game/character"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
@@ -37,6 +39,13 @@ import {
   CharacterConverter,
   CreateCharacterConverter,
 } from "./characterData"
+import {
+  DepotConverter,
+  DepotMoveConverter,
+  InventoryConverter,
+  ItemUseConverter,
+  ShopItemConverter,
+} from "./inventoryData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
 import { WorldConverter } from "./worldData"
@@ -74,17 +83,17 @@ export type ApiClient = {
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverviewVo>
   getWorld: () => Promise<WorldAreaVo[]>
   moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterVo>
-  getInventory: () => Promise<InventoryView>
+  getInventory: () => Promise<InventoryVo>
   // quantity 只用於補給品：從那一格分出幾個放到補給欄
-  equip: (inventoryId: number, quantity?: number) => Promise<InventoryView>
-  unequip: (slot: EquipmentSlot) => Promise<InventoryView>
-  useItem: (inventoryId: number) => Promise<ItemUseResult>
-  getShop: (category: ItemCategory, level: number) => Promise<ShopItem[]>
-  buy: (itemId: string, quantity: number) => Promise<InventoryView>
-  sell: (inventoryId: number, quantity: number) => Promise<InventoryView>
-  getDepot: () => Promise<DepotView>
-  store: (inventoryId: number, quantity: number) => Promise<DepotMove>
-  take: (depotId: number, quantity: number) => Promise<DepotMove>
+  equip: (inventoryId: number, quantity?: number) => Promise<InventoryVo>
+  unequip: (slot: EquipmentSlot) => Promise<InventoryVo>
+  useItem: (inventoryId: number) => Promise<ItemUseVo>
+  getShop: (category: ItemCategory, level: number) => Promise<ShopItemVo[]>
+  buy: (itemId: string, quantity: number) => Promise<InventoryVo>
+  sell: (inventoryId: number, quantity: number) => Promise<InventoryVo>
+  getDepot: () => Promise<DepotVo>
+  store: (inventoryId: number, quantity: number) => Promise<DepotMoveVo>
+  take: (depotId: number, quantity: number) => Promise<DepotMoveVo>
   deposit: (amount: number) => Promise<CharacterVo>
   withdraw: (amount: number) => Promise<CharacterVo>
   refine: (
@@ -182,6 +191,9 @@ export const createApiClient = (options: {
   const requestCharacter = async (path: string, method: string, body?: unknown) =>
     CharacterConverter.toVo(await requestJson<unknown>(path, method, body))
 
+  const requestInventory = async (path: string, method: string, body?: unknown) =>
+    InventoryConverter.toVo(await requestJson<unknown>(path, method, body))
+
   // 回應裡夾帶的角色一律轉成 CharacterVo，其餘欄位還是產生的型別
   const requestWithCharacter = async <T extends { character: unknown }>(
     path: string,
@@ -243,26 +255,35 @@ export const createApiClient = (options: {
       ),
     moveTo: (placeId, subPlace) =>
       requestCharacter("/api/world/location", "PUT", { placeId, subPlace }),
-    getInventory: () => requestJson<InventoryView>("/api/inventory", "GET"),
+    getInventory: () => requestInventory("/api/inventory", "GET"),
     equip: (inventoryId, quantity) =>
-      requestJson<InventoryView>("/api/inventory/equip", "POST", { inventoryId, quantity }),
-    unequip: (slot) => requestJson<InventoryView>("/api/inventory/unequip", "POST", { slot }),
-    useItem: (inventoryId) =>
-      requestJson<ItemUseResult>("/api/inventory/use", "POST", { inventoryId }),
-    getShop: (category, level) =>
-      requestJson<ShopItem[]>(
-        `/api/shop?${new URLSearchParams({ category, level: String(level) }).toString()}`,
-        "GET",
+      requestInventory("/api/inventory/equip", "POST", { inventoryId, quantity }),
+    unequip: (slot) => requestInventory("/api/inventory/unequip", "POST", { slot }),
+    useItem: async (inventoryId) =>
+      ItemUseConverter.toVo(
+        await requestJson<unknown>("/api/inventory/use", "POST", { inventoryId }),
       ),
-    buy: (itemId, quantity) =>
-      requestJson<InventoryView>("/api/shop/buy", "POST", { itemId, quantity }),
+    getShop: async (category, level) =>
+      parseArray(
+        await requestJson<unknown>(
+          `/api/shop?${new URLSearchParams({ category, level: String(level) }).toString()}`,
+          "GET",
+        ),
+        "shop",
+        (item, path) => ShopItemConverter.toVo(item, path),
+      ),
+    buy: (itemId, quantity) => requestInventory("/api/shop/buy", "POST", { itemId, quantity }),
     sell: (inventoryId, quantity) =>
-      requestJson<InventoryView>("/api/shop/sell", "POST", { inventoryId, quantity }),
-    getDepot: () => requestJson<DepotView>("/api/depot", "GET"),
-    store: (inventoryId, quantity) =>
-      requestJson<DepotMove>("/api/depot/store", "POST", { inventoryId, quantity }),
-    take: (depotId, quantity) =>
-      requestJson<DepotMove>("/api/depot/take", "POST", { depotId, quantity }),
+      requestInventory("/api/shop/sell", "POST", { inventoryId, quantity }),
+    getDepot: async () => DepotConverter.toVo(await requestJson<unknown>("/api/depot", "GET")),
+    store: async (inventoryId, quantity) =>
+      DepotMoveConverter.toVo(
+        await requestJson<unknown>("/api/depot/store", "POST", { inventoryId, quantity }),
+      ),
+    take: async (depotId, quantity) =>
+      DepotMoveConverter.toVo(
+        await requestJson<unknown>("/api/depot/take", "POST", { depotId, quantity }),
+      ),
     deposit: (amount) => requestCharacter("/api/bank/deposit", "POST", { amount }),
     withdraw: (amount) => requestCharacter("/api/bank/withdraw", "POST", { amount }),
     refine: (inventoryId, stoneInventoryId, useSafeStone) =>

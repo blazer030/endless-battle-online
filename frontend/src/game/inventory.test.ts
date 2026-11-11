@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { makeCharacter, makeInventory, makeItem } from "../test/fixtures"
-import type { InventoryItem } from "./types"
+import type { InventoryItem } from "./inventory"
 import {
   bagSlotsOf,
   BankMinimumLevel,
@@ -362,7 +362,11 @@ describe("itemUseResultLines", () => {
 
   it("密藥列出效果、倍率與持續分鐘", () => {
     const elixir = makeItem({ category: "Consumable", consumable: "Elixir", name: "經驗密藥" })
-    const buff = { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" } as const
+    const buff = {
+      kind: "Experience",
+      multiplier: 1.5,
+      endsAt: new Date("2026-10-23T04:00:00Z"),
+    } as const
     expect(itemUseResultLines(elixir, { ...nothing, buff }, now)).toEqual([
       "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",
     ])
@@ -370,7 +374,11 @@ describe("itemUseResultLines", () => {
 
   it("裝置時鐘比伺服器慢幾秒時，一小時的密藥仍顯示 60 分鐘", () => {
     const elixir = makeItem({ category: "Consumable", consumable: "Elixir", name: "經驗密藥" })
-    const buff = { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" } as const
+    const buff = {
+      kind: "Experience",
+      multiplier: 1.5,
+      endsAt: new Date("2026-10-23T04:00:00Z"),
+    } as const
     const slowClock = new Date("2026-10-23T02:59:58Z")
     expect(itemUseResultLines(elixir, { ...nothing, buff }, slowClock)).toEqual([
       "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",

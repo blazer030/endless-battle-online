@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
 import type { CreateCharacterCommand } from "../game/character"
-import { makeCharacter, makeSummary } from "../test/fixtures"
+import { makeCharacter, makeInventory, makeItem, makeShopItem, makeSummary } from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -18,6 +18,26 @@ const advanceBody = {
 
 // 只驗證路徑與方法的測試共用：同時可當成角色，也帶著夾帶的角色
 const anyBody = { ...makeCharacter(), character: makeCharacter() }
+
+const depotBody = { entries: [makeItem({ inventoryId: 11 })], capacity: 30 }
+
+// 背包、商店、倉庫的回應依路徑給對應的本體
+const inventoryBodyFor = (path: string): unknown => {
+  if (path.startsWith("/api/shop?")) return [makeShopItem()]
+  if (path === "/api/depot") return depotBody
+  if (path.startsWith("/api/depot/")) return { inventory: makeInventory(), depot: depotBody }
+  if (path === "/api/inventory/use")
+    return {
+      inventory: makeInventory(),
+      obtained: [],
+      petName: null,
+      skillPoints: 0,
+      levelsGained: 0,
+      buff: null,
+    }
+  if (path.startsWith("/api/inventory") || path.startsWith("/api/shop/")) return makeInventory()
+  return anyBody
+}
 
 const command: CreateCharacterCommand = {
   name: "青衣",
@@ -222,7 +242,9 @@ test("updateSettings_PutsTheCommand", async () => {
 })
 
 test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) => Promise.resolve(jsonResponse(inventoryBodyFor(path))))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getInventory()
@@ -361,11 +383,12 @@ test("companionCalls_UseTheirEndpoints", async () => {
 
 test("useItem_ReturnsTheUseResult", async () => {
   const body = {
-    inventory: { bag: [], equipment: [], bonus: {} },
+    inventory: makeInventory(),
     obtained: ["攻擊魔石", "疾風魔石"],
     petName: null,
     skillPoints: 0,
     levelsGained: 0,
+    buff: null,
   }
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(body))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
@@ -373,7 +396,7 @@ test("useItem_ReturnsTheUseResult", async () => {
   const result = await client.useItem(9)
 
   expect(result.obtained).toEqual(["攻擊魔石", "疾風魔石"])
-  expect(result.inventory.bag).toEqual([])
+  expect(result.inventory).toEqual(makeInventory())
 })
 
 test("getBuffs_GetsTheActiveBuffs", async () => {

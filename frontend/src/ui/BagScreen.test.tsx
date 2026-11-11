@@ -2,7 +2,8 @@ import { act, cleanup, render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { DepotView, InventoryView, Recipe } from "../game/types"
+import type { Recipe } from "../game/types"
+import type { DepotVo, InventoryVo } from "../game/inventory"
 import type { CharacterVo } from "../game/character"
 import {
   emptyBonus,
@@ -42,7 +43,7 @@ const strengthPotion = makeItem({
   name: "力量藥水",
   quantity: 2,
 })
-const inventory: InventoryView = makeInventory([sword, heavySword, potion, strengthPotion], {
+const inventory: InventoryVo = makeInventory([sword, heavySword, potion, strengthPotion], {
   equipment: [
     {
       slot: "Weapon",
@@ -60,7 +61,7 @@ const inventory: InventoryView = makeInventory([sword, heavySword, potion, stren
   ],
 })
 
-const depot: DepotView = {
+const depot: DepotVo = {
   capacity: 20,
   entries: [makeItem({ inventoryId: 50, name: "倉庫劍" })],
 }
@@ -1029,7 +1030,7 @@ test("BagScreen_ElixirShowsSixtyMinutesWhenTheClockIsSlightlyBehind", async () =
           petName: null,
           skillPoints: 0,
           levelsGained: 0,
-          buff: { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" },
+          buff: { kind: "Experience", multiplier: 1.5, endsAt: new Date("2026-10-23T04:00:00Z") },
         }),
       }),
     )

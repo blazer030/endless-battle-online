@@ -1,15 +1,12 @@
 import type {
   HonourShop,
-  InventoryItem,
-  InventoryView,
   MercenaryOverview,
   MissionBoard,
   MissionView,
   PetsView,
   PetView,
-  ShopItem,
-  StatBonusView,
 } from "../game/types"
+import { InventoryVo, ShopItemVo, type InventoryItem, type StatBonus } from "../game/inventory"
 import type { WorldAreaVo, WorldPlace } from "../game/world"
 import type { AdvanceSummary } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
@@ -182,7 +179,7 @@ export const makeWorld = (): WorldAreaVo[] => [
   },
 ]
 
-export const emptyBonus: StatBonusView = {
+export const emptyBonus: StatBonus = {
   strength: 0,
   intelligence: 0,
   life: 0,
@@ -226,43 +223,45 @@ export const makeItem = (overrides: Partial<InventoryItem> = {}): InventoryItem 
 // 十一個分類都列出，道具依分類放進對應的格子；容量同後端預設 15
 export const makeInventory = (
   items: InventoryItem[] = [],
-  overrides: Partial<InventoryView> = {},
-): InventoryView => ({
-  bag: (
-    [
-      "Weapon",
-      "Head",
-      "Body",
-      "Hand",
-      "Foot",
-      "Accessory",
-      "Consumable",
-      "Stone",
-      "RefineStone",
-      "Material",
-      "Medal",
-    ] as const
-  ).map((category) => ({
-    category,
-    capacity: 15,
-    items: items.filter((item) => item.category === category),
-  })),
-  equipment: [],
-  bonus: emptyBonus,
-  ...overrides,
-})
+  overrides: Partial<InventoryVo> = {},
+): InventoryVo =>
+  InventoryVo.create({
+    bag: (
+      [
+        "Weapon",
+        "Head",
+        "Body",
+        "Hand",
+        "Foot",
+        "Accessory",
+        "Consumable",
+        "Stone",
+        "RefineStone",
+        "Material",
+        "Medal",
+      ] as const
+    ).map((category) => ({
+      category,
+      capacity: 15,
+      items: items.filter((item) => item.category === category),
+    })),
+    equipment: [],
+    bonus: emptyBonus,
+    ...overrides,
+  })
 
-export const makeShopItem = (overrides: Partial<ShopItem> = {}): ShopItem => ({
-  id: "test-sword",
-  name: "測試劍",
-  category: "Weapon",
-  price: 200,
-  bonus: { ...emptyBonus, attack: 8 },
-  requires: { strength: 10, intelligence: 0, agility: 0, charisma: 0 },
-  holes: 0,
-  refineMax: 4,
-  ...overrides,
-})
+export const makeShopItem = (overrides: Partial<ShopItemVo> = {}): ShopItemVo =>
+  ShopItemVo.create({
+    id: "test-sword",
+    name: "測試劍",
+    category: "Weapon",
+    price: 200,
+    bonus: { ...emptyBonus, attack: 8 },
+    requires: { strength: 10, intelligence: 0, agility: 0, charisma: 0 },
+    holes: 0,
+    refineMax: 4,
+    ...overrides,
+  })
 
 // 中央平原的擊殺任務：草原史萊姆 3/8
 export const makeMission = (overrides: Partial<MissionView> = {}): MissionView => ({
