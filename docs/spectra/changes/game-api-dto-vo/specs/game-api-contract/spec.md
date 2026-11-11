@@ -53,8 +53,8 @@ The same substitution SHALL apply where an abbreviation is part of a longer name
 
 #### Scenario: Item bonuses use complete names
 
-- **WHEN** a signed-in client requests `GET /api/inventory` holding a weapon whose content bonus is 5 attack
-- **THEN** that item's `bonus` object has `attack` 5 and has no `at` field
+- **WHEN** a signed-in client requests `GET /api/inventory` holding a weapon whose content bonus is 8 attack
+- **THEN** that item's `bonus` object has `attack` 8 and has no `at` field
 
 #### Scenario: World level ranges use complete names
 
@@ -109,8 +109,8 @@ Battle events that refer to a monster SHALL carry the monster's display name alo
 
 #### Scenario: Character page names come from public data
 
-- **WHEN** the character page is shown for a character with sex 2, element 3 and birth 1
-- **THEN** it shows the sex, element and birthplace names that `/api/public/settings` lists for ids 2, 3 and 1
+- **WHEN** the character page is shown for a character with sex 2, element 3 and birth 4
+- **THEN** it shows the sex, element and birthplace names that `/api/public/settings` lists for ids 2, 3 and 4
 
 #### Scenario: Mission requirement names the job
 

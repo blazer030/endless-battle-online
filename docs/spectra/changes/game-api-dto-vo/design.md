@@ -52,6 +52,8 @@
 
 複合名稱照同樣規則替換：`PlayerHp`→`PlayerHealthPoints`、`MonsterHpMax`→`MonsterMaxHealthPoints`、`SpAfter`→`ManaPointsAfter`、`TargetHpAfter`→`TargetHealthPointsAfter`、`OpponentHpAfter`→`OpponentHealthPointsAfter`、`HpCost`→`HealthPointsCost`、`SpCost`→`ManaPointsCost`、`OpponentSpLoss`→`OpponentManaPointsLoss`、`SpGain`→`ManaPointsGain`、`PotionHpPercent`→`PotionHealthPointsPercent`（設定的五個百分比同理）、`ExpPenalty`→`ExperiencePenalty`。`AtSeconds` 的 At 是時間，不改。
 
+戰鬥、冒險、成長、角色建立、休息的 Domain 內部型別與區域變數也照這張表改名（`SkillCast`、`BattleModifiers` 的 `At`／`FlatAt`／`EnemyAt` 等改成 `Attack`／`FlatAttack`／`EnemyAttack`、`Rag`→`HitRate`、`SupplyState`、`HotelResult`、`RewardFormulas`、`ExperienceCurve.NextLevelExperienceFor`、`CharacterFactory` 的起始常數）。道具、鐵舖、任務、傭兵、密藥自己的 Domain 縮寫（`ItemDefinition` 與精鍊範圍的 `At`…、`MissionObjective.Exp`、`MercenaryDefinition.ExpPercent`、`BuffKind.Exp`）跟著那些資源留給下一個變更。
+
 替代方案：SP 寫成 `spiritPoints`、保留 SP 縮寫——使用者選了 MP。`SkillPoints` 已經是「學技能用的點數」，不能拿來當 SP。
 
 ### 能力代碼改成 Domain 列舉
@@ -84,7 +86,7 @@ Domain 新增 `BaseStat` 列舉（Strength、Intelligence、Life、Vitality、Ag
 
 ### 前端 Converter 與 Vo 的位置
 
-- `frontend/src/api/<資源>Data.ts` 放 Converter（`CharacterConverter`、`AdvanceConverter`、`SkillOverviewConverter`、`JobChoiceConverter`、`WorldConverter`），只依賴 `parse.ts` 的檢查函式與 `src/game` 的 Vo；`client.ts` 對這些端點一律 `requestJson<unknown>` 再 `toVo`。
+- `frontend/src/api/<資源>Data.ts` 放 Converter（`CharacterConverter`、`CreateCharacterConverter`、`AdventureSettingsConverter`、`AdvanceConverter`、`SkillOverviewConverter`、`JobChoiceConverter`、`SkillSlotsConverter`、`WorldConverter`），只依賴 `parse.ts` 的檢查函式與 `src/game` 的 Vo；`client.ts` 對這些端點一律 `requestJson<unknown>` 再 `toVo`。
 - Vo 放 `src/game`：資源本體用 class（private constructor＋`static create`，與 `JobVo` 相同）；巢狀的唯讀資料（能力值、事件）用 `readonly` 物件型別。戰鬥事件是以 `type` 區分的聯集型別，定義在 `frontend/src/game/battleEvents.ts`。
 - `parse.ts` 補 `parseBoolean`、`parseNullableNumber`、`parseOneOf`（列舉字串）、`parseTimestamp`（ISO 字串）。檢查失敗丟 `ParseError`，路徑從資源名稱開始（例如 `character.stats.strength`）。
 - 送出的請求（建角、冒險設定、技能欄）由 `src/game` 的命令型別經 Converter 的 `toDto` 轉成請求本體。
@@ -115,7 +117,7 @@ Domain 新增 `BaseStat` 列舉（Strength、Intelligence、Life、Vitality、Ag
 **介面／資料形狀**
 
 - 前端 `ApiClient`：`getMyCharacter`、`createCharacter`、`updateSettings`、`changeJob`、`moveTo`、`deposit`、`withdraw` 回傳 `CharacterVo`；`advance` 回傳 `AdvanceVo`；`getSkills`、`learnSkill`、`setSkillSlots` 回傳 `SkillOverviewVo`；`getJobs` 回傳 `JobChoiceVo[]`；`getWorld` 回傳 `WorldAreaVo[]`。`getContent` 移除。
-- 其他回應中夾帶的 `character`（任務完成、寵物餵食、傭兵僱用、旅館入住）在本變更仍是產生型別、但欄位已是完整名稱；下一個變更再轉成 `CharacterVo`。
+- 其他回應中夾帶的 `character`（任務完成、寵物餵食、傭兵僱用、旅館入住）也由 `client.ts` 轉成 `CharacterVo`（`WithCharacter<T>`）：App 只持有一種角色型別，混用產生型別會讓角色狀態兜不起來。這些回應的其餘欄位仍是產生型別，下一個變更再轉。
 
 **失敗模式**
 
