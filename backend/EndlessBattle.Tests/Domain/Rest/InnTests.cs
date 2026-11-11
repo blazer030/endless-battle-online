@@ -11,7 +11,7 @@ public class InnTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 29, 12, 0, 0, TimeSpan.Zero);
 
-    private static readonly InnRoom Loft = new("apprentice-loft", "學徒閣樓", BuffKind.Exp, 1.10, 2);
+    private static readonly InnRoom Loft = new("apprentice-loft", "學徒閣樓", BuffKind.Experience, 1.10, 2);
     private static readonly InnRoom Bunk = new("fighters-bunk", "鬥士通鋪", BuffKind.Attack, 1.05, 1);
     private static readonly InnDefinition Definition = new([Loft, Bunk], 28_800, 50);
 
@@ -103,7 +103,7 @@ public class InnTests
     [Fact]
     public void Combined_MultipliesElixirAndLodging()
     {
-        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Exp, 1.5)], BuffKind.Exp, Now, Stay(BuffKind.Exp, 1.1));
+        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, Stay(BuffKind.Experience, 1.1));
 
         Assert.Equal(1.65, multiplier, 10);
     }
@@ -111,16 +111,16 @@ public class InnTests
     [Fact]
     public void Combined_LodgingOnlyInsideWindow()
     {
-        var lodging = Stay(BuffKind.Exp, 1.1);
+        var lodging = Stay(BuffKind.Experience, 1.1);
 
-        Assert.Equal(1.1, Buffs.Multiplier([], BuffKind.Exp, lodging.StartsAt, lodging));
-        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Exp, lodging.EndsAt, lodging));
-        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Exp, lodging.StartsAt.AddTicks(-1), lodging));
+        Assert.Equal(1.1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt, lodging));
+        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.EndsAt, lodging));
+        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt.AddTicks(-1), lodging));
     }
 
     [Fact]
     public void Combined_OtherKindUnaffected() =>
-        Assert.Equal(1.5, Buffs.Multiplier([Elixir(BuffKind.Exp, 1.5)], BuffKind.Exp, Now, Stay(BuffKind.Attack, 1.05)));
+        Assert.Equal(1.5, Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, Stay(BuffKind.Attack, 1.05)));
 
     [Fact]
     public void ApplyTo_WithLodgingRoundsOnce()

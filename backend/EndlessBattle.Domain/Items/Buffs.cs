@@ -5,8 +5,8 @@ namespace EndlessBattle.Domain.Items;
 
 public enum BuffKind
 {
-    Exp,
-    JobExp,
+    Experience,
+    JobExperience,
     Attack,
     Magic,
     Defense,

@@ -2559,8 +2559,8 @@
       },
       "BuffKind": {
         "enum": [
-          "Exp",
-          "JobExp",
+          "Experience",
+          "JobExperience",
           "Attack",
           "Magic",
           "Defense",

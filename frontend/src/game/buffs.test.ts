@@ -5,7 +5,7 @@ import type { BuffView } from "./types"
 const now = new Date("2026-10-23T03:00:00Z")
 const endingIn = (milliseconds: number) => new Date(now.getTime() + milliseconds).toISOString()
 const buff = (overrides: Partial<BuffView> = {}): BuffView => ({
-  kind: "Exp",
+  kind: "Experience",
   multiplier: 1.5,
   endsAt: endingIn(3_600_000),
   ...overrides,
@@ -14,7 +14,9 @@ const buff = (overrides: Partial<BuffView> = {}): BuffView => ({
 describe("buffLabel", () => {
   it("六種密藥的效果名稱", () => {
     expect(
-      (["Exp", "JobExp", "Attack", "Magic", "Defense", "MagicDefense"] as const).map(buffLabel),
+      (["Experience", "JobExperience", "Attack", "Magic", "Defense", "MagicDefense"] as const).map(
+        buffLabel,
+      ),
     ).toEqual(["經驗", "熟練度", "物攻", "魔攻", "物防", "魔防"])
   })
 })

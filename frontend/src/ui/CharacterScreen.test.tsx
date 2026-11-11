@@ -190,7 +190,7 @@ test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
 test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
   const api = noBuffs()
   api.getBuffs.mockResolvedValue([
-    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
     { kind: "Defense", multiplier: 1.2, endsAt: new Date(Date.now() + 600_000).toISOString() },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
@@ -216,7 +216,7 @@ test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
     vi.setSystemTime(new Date("2026-10-23T03:00:00Z"))
     const api = noBuffs()
     api.getBuffs.mockResolvedValue([
-      { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T03:30:00Z" },
+      { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T03:30:00Z" },
       { kind: "Defense", multiplier: 1.2, endsAt: "2026-10-23T03:01:30Z" },
     ])
     render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
@@ -242,7 +242,7 @@ test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
 const loft = {
   id: "apprentice-loft",
   name: "學徒閣樓",
-  kind: "Exp" as const,
+  kind: "Experience" as const,
   multiplier: 1.1,
   seconds: 28_800,
   price: 600,
@@ -264,7 +264,7 @@ test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
 test("CharacterScreen_HidesTheLodgingLineWithoutLodging", async () => {
   const api = noBuffs()
   api.getBuffs.mockResolvedValue([
-    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 
@@ -278,7 +278,7 @@ test("CharacterScreen_KeepsElixirsWhenTheInnFails", async () => {
   const api = noBuffs()
   api.getInn.mockRejectedValue(new Error("boom"))
   api.getBuffs.mockResolvedValue([
-    { kind: "Exp", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 

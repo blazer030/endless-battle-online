@@ -2031,8 +2031,8 @@ public class JsonGameContentTests
         Assert.Equal(50, inn.PricePerLevel);
         Assert.Equal(
             [
-                new InnRoom("apprentice-loft", "學徒閣樓", BuffKind.Exp, 1.10, 2),
-                new InnRoom("training-chamber", "修練廂房", BuffKind.JobExp, 1.10, 2),
+                new InnRoom("apprentice-loft", "學徒閣樓", BuffKind.Experience, 1.10, 2),
+                new InnRoom("training-chamber", "修練廂房", BuffKind.JobExperience, 1.10, 2),
                 new InnRoom("fighters-bunk", "鬥士通鋪", BuffKind.Attack, 1.05, 1),
                 new InnRoom("stargazer-tower", "星見塔房", BuffKind.Magic, 1.05, 1),
                 new InnRoom("bulwark-room", "鐵壁客房", BuffKind.Defense, 1.05, 1),
@@ -2070,6 +2070,7 @@ public class JsonGameContentTests
     [InlineData("\"seconds\": 28800", "\"seconds\": 59", "seconds")]
     [InlineData("\"seconds\": 28800", "\"seconds\": 86401", "seconds")]
     [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Luck\"", "kind")]
+    [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Experience\"", "kind")]
     public void Inn_RejectsInvalidFields(string valid, string invalid, string expected) =>
         Assert.Contains(expected, InnRejection(Replace(ValidInn, valid, invalid)));
 
@@ -2121,13 +2122,14 @@ public class JsonGameContentTests
     private const string ValidElixir =
         """{ "id": "brew", "name": "密藥", "category": "Consumable", "consumable": "Elixir", "price": 20000, "shopLevel": 6, "shopSellable": true, "elixir": { "kind": "Exp", "multiplier": 1.5, "seconds": 3600 } }""";
 
-    // 密藥必須有 elixir：倍率 1.01～3.00、秒數 60～86 400、kind 是 BuffKind；非密藥不得有 elixir
+    // 密藥必須有 elixir：倍率 1.01～3.00、秒數 60～86 400、kind 是內容檔的儲存代碼（經驗寫 Exp，不接受 Domain 名稱 Experience）；非密藥不得有 elixir
     [Theory]
     [InlineData("\"multiplier\": 1.5", "\"multiplier\": 1", "multiplier")]
     [InlineData("\"multiplier\": 1.5", "\"multiplier\": 3.01", "multiplier")]
     [InlineData("\"seconds\": 3600", "\"seconds\": 59", "seconds")]
     [InlineData("\"seconds\": 3600", "\"seconds\": 86401", "seconds")]
     [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Luck\"", "kind")]
+    [InlineData("\"kind\": \"Exp\"", "\"kind\": \"Experience\"", "kind")]
     [InlineData(", \"elixir\": { \"kind\": \"Exp\", \"multiplier\": 1.5, \"seconds\": 3600 }", "", "elixir")]
     [InlineData("\"consumable\": \"Elixir\"", "\"consumable\": \"StatPotion\", \"bonus\": { \"str\": 1 }", "elixir")]
     public void Items_RejectElixirMultiplierOutOfRange(string validField, string invalidField, string expected)
@@ -2151,7 +2153,7 @@ public class JsonGameContentTests
     public void Items_LoadElixirSpec()
     {
         var content = JsonGameContent.Load(TestContentDirectory);
-        Assert.Equal(new ElixirSpec(BuffKind.Exp, 1.5, 3600), content.GetItem("test-exp-elixir").Elixir);
+        Assert.Equal(new ElixirSpec(BuffKind.Experience, 1.5, 3600), content.GetItem("test-exp-elixir").Elixir);
         Assert.Null(content.GetItem("test-supply").Elixir);
     }
 
@@ -2178,7 +2180,7 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "missions.json"), ValidMissions);
             WriteCompanionContent(directory.FullName);
             Assert.Equal(
-                new ElixirSpec(BuffKind.Exp, multiplier, seconds), JsonGameContent.Load(directory.FullName).GetItem("brew").Elixir);
+                new ElixirSpec(BuffKind.Experience, multiplier, seconds), JsonGameContent.Load(directory.FullName).GetItem("brew").Elixir);
         }
         finally
         {

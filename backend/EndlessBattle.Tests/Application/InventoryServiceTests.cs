@@ -557,11 +557,11 @@ public class InventoryServiceTests
 
         var result = await service.UseAsync(AccountId, elixir, CancellationToken);
 
-        var expected = new CharacterBuff(BuffKind.Exp, 1.5, Now, Now.AddHours(1));
+        var expected = new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddHours(1));
         Assert.Equal(expected, result.Buff);
         Assert.Equal([expected], await buffs.ListAsync(character.Id, CancellationToken));
         Assert.Equal([("test-exp-elixir", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
-        Assert.Equal(["update", "buff:Exp"], log);
+        Assert.Equal(["update", "buff:Experience"], log);
     }
 
     // 測試雪精每場 2.8 秒、擲骰 0.0 時勝場經驗 116，經驗密藥 → 174（見 AdventureServiceTests 上方）；NextExp 很大，不升級。
@@ -585,7 +585,7 @@ public class InventoryServiceTests
     public async Task Use_ElixirSettlesElapsedTimeUnderTheBuffItReplaces()
     {
         var character = await AddCharacterAsync(character => character with { LastSettledAt = Now, NextLevelExperience = 1_000_000_000 });
-        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Exp, 1.5, Now.AddMinutes(-30), Now.AddMinutes(30)), CancellationToken);
+        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Experience, 1.5, Now.AddMinutes(-30), Now.AddMinutes(30)), CancellationToken);
         var elixir = await GiveAsync(character, "test-exp-elixir");
         clock.Advance(TimeSpan.FromSeconds(60));
 
@@ -595,7 +595,7 @@ public class InventoryServiceTests
 
         Assert.Equal(33 * 174, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Experience);
         Assert.Equal(
-            [new CharacterBuff(BuffKind.Exp, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660))], await buffs.ListAsync(character.Id, CancellationToken));
+            [new CharacterBuff(BuffKind.Experience, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660))], await buffs.ListAsync(character.Id, CancellationToken));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

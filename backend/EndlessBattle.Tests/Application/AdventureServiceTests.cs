@@ -93,8 +93,8 @@ public class AdventureServiceTests
     public async Task Advance_LoadsBuffs()
     {
         var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
-        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Exp, 1.5, Start, Start.AddHours(1)), CancellationToken);
-        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.JobExp, 1.5, Start.AddHours(-1), Start), CancellationToken);
+        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.Experience, 1.5, Start, Start.AddHours(1)), CancellationToken);
+        await buffs.SaveAsync(character.Id, new CharacterBuff(BuffKind.JobExperience, 1.5, Start.AddHours(-1), Start), CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);

@@ -5,7 +5,7 @@ import type { BuffKind, InnRoomView } from "./types"
 const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
   id: "apprentice-loft",
   name: "學徒閣樓",
-  kind: "Exp",
+  kind: "Experience",
   multiplier: 1.1,
   seconds: 28_800,
   price: 600,
@@ -17,8 +17,8 @@ const endsIn = (milliseconds: number) => new Date(now.getTime() + milliseconds).
 
 test("roomEffect_LabelsEachOfTheSixKinds", () => {
   const labels: [BuffKind, string][] = [
-    ["Exp", "經驗 ×1.10"],
-    ["JobExp", "熟練度 ×1.10"],
+    ["Experience", "經驗 ×1.10"],
+    ["JobExperience", "熟練度 ×1.10"],
     ["Attack", "物攻 ×1.10"],
     ["Magic", "魔攻 ×1.10"],
     ["Defense", "物防 ×1.10"],

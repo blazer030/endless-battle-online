@@ -1323,7 +1323,7 @@ public sealed class JsonGameContent : IGameContent
             Require(id.Length > 0, "的房型必須有 id");
             Require(ids.Add(id), $"房型 id 重複：{id}");
             Require(!string.IsNullOrWhiteSpace(entry.Name), $"房型 {id} 必須有 name");
-            Require(Enum.TryParse<BuffKind>(entry.Kind, ignoreCase: true, out var kind) && Enum.IsDefined(kind),
+            Require(BuffKindCodes.TryParse(entry.Kind, out var kind),
                 $"房型 {id} 的 kind 無法辨識：{entry.Kind}");
             Require(entry.Multiplier is >= MinimumElixirMultiplier and <= MaximumElixirMultiplier,
                 $"房型 {id} 的 multiplier 必須在 {MinimumElixirMultiplier:0.00}～{MaximumElixirMultiplier:0.00}");
@@ -1565,7 +1565,10 @@ public sealed class JsonGameContent : IGameContent
             stone,
             entry.Key,
             entry.Elixir is { } elixir
-                ? new ElixirSpec(ParseEnum<BuffKind>(elixir.Kind, "elixir.kind"), elixir.Multiplier, elixir.Seconds)
+                ? new ElixirSpec(
+                    BuffKindCodes.TryParse(elixir.Kind, out var kind) ? kind : throw new GameContentException($"道具 {entry.Id} 的 elixir.kind 無法辨識：{elixir.Kind}"),
+                    elixir.Multiplier,
+                    elixir.Seconds)
                 : null) { WeaponSkill = entry.WeaponSkill };
     }
 

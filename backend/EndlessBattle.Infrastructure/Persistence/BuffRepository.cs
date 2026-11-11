@@ -5,7 +5,7 @@ using CharacterBuffRow = EndlessBattle.Infrastructure.Persistence.Models.Charact
 
 namespace EndlessBattle.Infrastructure.Persistence;
 
-// kind 存 BuffKind 名稱；倍率是 DECIMAL(4,2)
+// kind 存 BuffKindCodes 的儲存代碼（經驗是 Exp、職業經驗是 JobExp）；倍率是 DECIMAL(4,2)
 public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffRepository
 {
     public async Task<IReadOnlyList<CharacterBuff>> ListAsync(long characterId, CancellationToken cancellationToken)
@@ -18,7 +18,7 @@ public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffReposi
 
     public async Task SaveAsync(long characterId, CharacterBuff buff, CancellationToken cancellationToken)
     {
-        var kind = buff.Kind.ToString();
+        var kind = BuffKindCodes.Of(buff.Kind);
         var row = await context.CharacterBuffs
             .SingleOrDefaultAsync(candidate => candidate.CharacterId == characterId && candidate.Kind == kind, cancellationToken);
         if (row is null)
@@ -35,7 +35,7 @@ public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffReposi
 
     private static CharacterBuff ToDomain(CharacterBuffRow row) =>
         new(
-            Enum.Parse<BuffKind>(row.Kind),
+            BuffKindCodes.Parse(row.Kind),
             (double)row.Multiplier,
             new DateTimeOffset(DateTime.SpecifyKind(row.StartsAt, DateTimeKind.Utc)),
             new DateTimeOffset(DateTime.SpecifyKind(row.EndsAt, DateTimeKind.Utc)));

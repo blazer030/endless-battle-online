@@ -2500,7 +2500,7 @@ export interface components {
             atSeconds: number;
         };
         /** @enum {unknown} */
-        BuffKind: "Exp" | "JobExp" | "Attack" | "Magic" | "Defense" | "MagicDefense";
+        BuffKind: "Experience" | "JobExperience" | "Attack" | "Magic" | "Defense" | "MagicDefense";
         BuffResponse: {
             kind: components["schemas"]["BuffKind"];
             /** Format: double */

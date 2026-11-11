@@ -184,13 +184,13 @@ public class ConsumableUseTests
     [Fact]
     public void Elixir_StartsNowAndReplacesSameKind()
     {
-        var elixir = TestItems.Consumable("exp-elixir", ConsumableKind.Elixir) with { Elixir = new ElixirSpec(BuffKind.Exp, 1.5, 3600) };
+        var elixir = TestItems.Consumable("exp-elixir", ConsumableKind.Elixir) with { Elixir = new ElixirSpec(BuffKind.Experience, 1.5, 3600) };
         var random = new ScriptedRandom(0.0);
 
         Assert.Empty(ConsumableUse.CanUse(Full(Hero), elixir));
         var outcome = ConsumableUse.Apply(Full(Hero), elixir, Now, random);
 
-        Assert.Equal(new CharacterBuff(BuffKind.Exp, 1.5, Now, Now.AddSeconds(3600)), outcome.Buff);
+        Assert.Equal(new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddSeconds(3600)), outcome.Buff);
         Assert.Equal(Buffs.Start(elixir.Elixir!, Now), outcome.Buff);
         Assert.Equal(Hero, outcome.Character);
         Assert.Equal(0, random.Consumed);

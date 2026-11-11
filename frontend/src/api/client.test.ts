@@ -377,7 +377,7 @@ test("useItem_ReturnsTheUseResult", async () => {
 })
 
 test("getBuffs_GetsTheActiveBuffs", async () => {
-  const buffs = [{ kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" }]
+  const buffs = [{ kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" }]
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(buffs))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 

@@ -579,18 +579,52 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var used = await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = elixir }, CancellationToken);
         used.EnsureSuccessStatusCode();
         var buff = (await used.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("buff");
-        Assert.Equal(("Exp", 1.5), (buff.GetProperty("kind").GetString(), buff.GetProperty("multiplier").GetDouble()));
+        Assert.Equal(("Experience", 1.5), (buff.GetProperty("kind").GetString(), buff.GetProperty("multiplier").GetDouble()));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.True(me.GetProperty("experience").GetInt64() > 0);
 
         var buffs = await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken);
         var active = Assert.Single(buffs.EnumerateArray());
-        Assert.Equal("Exp", active.GetProperty("kind").GetString());
+        Assert.Equal("Experience", active.GetProperty("kind").GetString());
         Assert.Equal(1.5, active.GetProperty("multiplier").GetDouble());
         Assert.Equal(now.AddHours(1), active.GetProperty("endsAt").GetDateTimeOffset());
 
         factory.Clock.Advance(TimeSpan.FromHours(1));
         Assert.Empty((await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken)).EnumerateArray());
+    }
+
+    // 規格 Previously stored buff kind reads back：資料庫裡的舊代碼 Exp 讀成 Experience，再喝經驗密藥仍存 Exp
+    [Fact]
+    public async Task Buffs_StoredExpReadsAsExperience()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("舊密藥");
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        var now = factory.Clock.UtcNow;
+        long characterId;
+        long elixir;
+        await using (var context = database.CreateDbContext())
+        {
+            characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+            context.CharacterBuffs.Add(new EndlessBattle.Infrastructure.Persistence.Models.CharacterBuff
+            {
+                CharacterId = characterId,
+                Kind = "Exp",
+                Multiplier = 1.2m,
+                StartsAt = now.UtcDateTime,
+                EndsAt = now.AddMinutes(10).UtcDateTime,
+            });
+            await context.SaveChangesAsync(CancellationToken);
+            elixir = await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, "test-exp-elixir"), CancellationToken);
+        }
+
+        var buffs = await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken);
+        Assert.Equal("Experience", Assert.Single(buffs.EnumerateArray()).GetProperty("kind").GetString());
+
+        (await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = elixir }, CancellationToken)).EnsureSuccessStatusCode();
+        await using var reader = database.CreateDbContext();
+        Assert.Equal(["Exp"], await reader.CharacterBuffs.Where(row => row.CharacterId == characterId).Select(row => row.Kind).ToListAsync(CancellationToken));
     }
 
     [Fact]

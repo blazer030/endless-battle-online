@@ -1,8 +1,8 @@
 import type { BuffKind, BuffView } from "./types"
 
 const buffLabels: Record<BuffKind, string> = {
-  Exp: "經驗",
-  JobExp: "熟練度",
+  Experience: "經驗",
+  JobExperience: "熟練度",
   Attack: "物攻",
   Magic: "魔攻",
   Defense: "物防",

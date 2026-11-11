@@ -12,7 +12,7 @@ import type { Mutate } from "./bagWidgets"
 const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
   id: "apprentice-loft",
   name: "學徒閣樓",
-  kind: "Exp",
+  kind: "Experience",
   multiplier: 1.1,
   seconds: 28_800,
   price: 600,

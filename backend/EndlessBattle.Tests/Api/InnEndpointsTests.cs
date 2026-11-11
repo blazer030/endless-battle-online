@@ -54,12 +54,25 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
         var loft = rooms[0];
         Assert.Equal("apprentice-loft", loft.GetProperty("id").GetString());
         Assert.Equal("學徒閣樓", loft.GetProperty("name").GetString());
-        Assert.Equal("Exp", loft.GetProperty("kind").GetString());
+        Assert.Equal("Experience", loft.GetProperty("kind").GetString());
         Assert.Equal(1.10, loft.GetProperty("multiplier").GetDouble());
         Assert.Equal(28800, loft.GetProperty("seconds").GetInt32());
         Assert.Equal(100, loft.GetProperty("price").GetInt64());
         Assert.Equal(50, rooms[2].GetProperty("price").GetInt64());
         Assert.Equal(JsonValueKind.Null, inn.GetProperty("lodging").ValueKind);
+    }
+
+    // 規格 Buff kinds use complete names：內容檔仍寫 Exp／JobExp
+    [Fact]
+    public async Task Inn_BuffKindsUseCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, _) = await CreateCharacterAsync(factory);
+
+        var inn = await ReadAsync(await client.GetAsync("/api/inn", CancellationToken));
+
+        var kinds = inn.GetProperty("rooms").EnumerateArray().Select(room => room.GetProperty("kind").GetString()).ToList();
+        Assert.Equal(["Experience", "JobExperience", "Attack", "Magic", "Defense", "MagicDefense"], kinds);
     }
 
     [Fact]

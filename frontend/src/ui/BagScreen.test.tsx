@@ -1029,7 +1029,7 @@ test("BagScreen_ElixirShowsSixtyMinutesWhenTheClockIsSlightlyBehind", async () =
           petName: null,
           skillPoints: 0,
           levelsGained: 0,
-          buff: { kind: "Exp", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" },
+          buff: { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" },
         }),
       }),
     )
@@ -1050,7 +1050,7 @@ test("BagScreen_InnBookingReloadsRoomPrices", async () => {
   const loft = (price: number) => ({
     id: "apprentice-loft",
     name: "學徒閣樓",
-    kind: "Exp" as const,
+    kind: "Experience" as const,
     multiplier: 1.1,
     seconds: 28_800,
     price,

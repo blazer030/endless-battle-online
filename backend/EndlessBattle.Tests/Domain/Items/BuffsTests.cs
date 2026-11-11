@@ -13,21 +13,21 @@ public class BuffsTests
     [Fact]
     public void Multiplier_InsideWindowOnly()
     {
-        IReadOnlyList<CharacterBuff> buffs = [Buff(BuffKind.Exp, 1.5)];
+        IReadOnlyList<CharacterBuff> buffs = [Buff(BuffKind.Experience, 1.5)];
 
-        Assert.Equal(1.5, Buffs.Multiplier(buffs, BuffKind.Exp, StartsAt));
-        Assert.Equal(1.5, Buffs.Multiplier(buffs, BuffKind.Exp, StartsAt.AddMinutes(59)));
-        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.Exp, StartsAt.AddHours(1)));
-        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.Exp, StartsAt.AddTicks(-1)));
-        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.JobExp, StartsAt));
-        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Exp, StartsAt));
+        Assert.Equal(1.5, Buffs.Multiplier(buffs, BuffKind.Experience, StartsAt));
+        Assert.Equal(1.5, Buffs.Multiplier(buffs, BuffKind.Experience, StartsAt.AddMinutes(59)));
+        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.Experience, StartsAt.AddHours(1)));
+        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.Experience, StartsAt.AddTicks(-1)));
+        Assert.Equal(1, Buffs.Multiplier(buffs, BuffKind.JobExperience, StartsAt));
+        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, StartsAt));
     }
 
     // 到期那一刻起算過期；還沒開始的不算過期
     [Fact]
     public void ExpiredAt_FromEndsAtOn()
     {
-        var buff = Buff(BuffKind.Exp, 1.5);
+        var buff = Buff(BuffKind.Experience, 1.5);
 
         Assert.False(buff.ExpiredAt(StartsAt.AddTicks(-1)));
         Assert.False(buff.ExpiredAt(StartsAt.AddHours(1).AddTicks(-1)));
@@ -69,8 +69,8 @@ public class BuffsTests
     [InlineData(BuffKind.Magic, 25, 48, 11, 15)]
     [InlineData(BuffKind.Defense, 25, 40, 13, 15)]
     [InlineData(BuffKind.MagicDefense, 25, 40, 11, 18)]
-    [InlineData(BuffKind.Exp, 25, 40, 11, 15)]
-    [InlineData(BuffKind.JobExp, 25, 40, 11, 15)]
+    [InlineData(BuffKind.Experience, 25, 40, 11, 15)]
+    [InlineData(BuffKind.JobExperience, 25, 40, 11, 15)]
     public void ApplyTo_MultipliesOnlyItsOwnStat(BuffKind kind, int at, int mat, int df, int mdf) =>
         Assert.Equal(Player with { Attack = at, MagicAttack = mat, Defense = df, MagicDefense = mdf }, Buffs.ApplyTo(Player, [Buff(kind, 1.2)], StartsAt));
 }

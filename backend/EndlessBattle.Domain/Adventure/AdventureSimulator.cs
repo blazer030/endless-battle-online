@@ -148,9 +148,9 @@ public static class AdventureSimulator
                     // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
                     experience = Buffs.Scale(
                         RewardFormulas.Experience(definition, definition.HealthPoints, character.Level, killed: true, random),
-                        Buffs.Multiplier(buffs, BuffKind.Exp, fightStartsAt, lodging));
+                        Buffs.Multiplier(buffs, BuffKind.Experience, fightStartsAt, lodging));
                     money = RewardFormulas.Money(definition, random);
-                    jobExperience = Buffs.Scale(RewardFormulas.JobExperience(definition), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt, lodging));
+                    jobExperience = Buffs.Scale(RewardFormulas.JobExperience(definition), Buffs.Multiplier(buffs, BuffKind.JobExperience, fightStartsAt, lodging));
                     // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
                     dropped = DropRoller.Roll(definition.Drops, random);
                     break;

@@ -1046,7 +1046,7 @@ public class AdventureSimulatorTests
     public void Adventure_ElixirAppliesOnlyWithinItsWindow()
     {
         var hero = Hero() with { NextLevelExperience = 1_000_000_000 };
-        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Exp, 1.5, From.AddSeconds(-3570), From.AddSeconds(30))];
+        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Experience, 1.5, From.AddSeconds(-3570), From.AddSeconds(30))];
 
         var plain = RewardsByFightStart(RunWithBuffs(hero, 50, null, new SeededRandom(7)));
         var buffed = RewardsByFightStart(RunWithBuffs(hero, 50, buffs, new SeededRandom(7)));
@@ -1069,8 +1069,8 @@ public class AdventureSimulatorTests
     {
         IReadOnlyList<CharacterBuff> buffs =
         [
-            new(BuffKind.Exp, 1.5, From, From.AddHours(1)),
-            new(BuffKind.JobExp, 1.5, From, From.AddHours(1)),
+            new(BuffKind.Experience, 1.5, From, From.AddHours(1)),
+            new(BuffKind.JobExperience, 1.5, From, From.AddHours(1)),
         ];
 
         var win = RunWithBuffs(Hero(), seconds: 1, buffs, new ScriptedRandom(0.0));
@@ -1100,7 +1100,7 @@ public class AdventureSimulatorTests
     public void Adventure_LodgingBoostsWinExpInsideWindow()
     {
         var hero = Hero() with { NextLevelExperience = 1_000_000_000 };
-        var lodging = new CharacterBuff(BuffKind.Exp, 1.1, From, From.AddSeconds(30));
+        var lodging = new CharacterBuff(BuffKind.Experience, 1.1, From, From.AddSeconds(30));
 
         var plain = RewardsByFightStart(RunWithLodging(hero, 50, null, null, new SeededRandom(7)));
         var boosted = RewardsByFightStart(RunWithLodging(hero, 50, null, lodging, new SeededRandom(7)));
@@ -1120,8 +1120,8 @@ public class AdventureSimulatorTests
     [Fact]
     public void Adventure_LodgingAndElixirMultiply()
     {
-        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Exp, 1.5, From, From.AddHours(1))];
-        var lodging = new CharacterBuff(BuffKind.Exp, 1.1, From, From.AddHours(8));
+        IReadOnlyList<CharacterBuff> buffs = [new(BuffKind.Experience, 1.5, From, From.AddHours(1))];
+        var lodging = new CharacterBuff(BuffKind.Experience, 1.1, From, From.AddHours(8));
 
         var run = RunWithLodging(Hero(), seconds: 1, buffs, lodging, new ScriptedRandom(0.0));
 
