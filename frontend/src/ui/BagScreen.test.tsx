@@ -377,7 +377,7 @@ test("BagScreen_EquipCandidatesShowRequirementsAndCrimsonForUnmet", async () => 
   const light = screen.getByText("測試劍 +0").closest("li")
   if (heavy === null || light === null) throw new Error("找不到候選裝備")
   // 測試角色裸點力量 11
-  expect(within(heavy).getByText("力量 ≥ 30")).toHaveClass("crimson-text")
+  expect(within(heavy).getByText("力量 ≥ 30")).toHaveClass("bag__requirement--unmet")
   expect(within(heavy).getByRole("button", { name: "裝備" })).toBeDisabled()
   await user.click(within(light).getByRole("button", { name: "裝備" }))
 

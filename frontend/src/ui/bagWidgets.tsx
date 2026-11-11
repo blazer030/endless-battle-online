@@ -142,7 +142,10 @@ export function Requirements({ rows }: { rows: Requirement[] }) {
   return (
     <ul className="bag__requirements" aria-label="需求">
       {rows.map(({ text, met }) => (
-        <li key={text} className={met ? "bag__requirement" : "bag__requirement crimson-text"}>
+        <li
+          key={text}
+          className={met ? "bag__requirement" : "bag__requirement bag__requirement--unmet"}
+        >
           {text}
         </li>
       ))}

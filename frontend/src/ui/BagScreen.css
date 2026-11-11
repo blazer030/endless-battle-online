@@ -199,6 +199,11 @@
   color: var(--green);
 }
 
+/* 未達成的需求；寫在 .bag__requirement 之後才蓋得過綠色 */
+.bag__requirement--unmet {
+  color: var(--crimson-text);
+}
+
 .bag__actions {
   display: flex;
   flex-direction: column;
