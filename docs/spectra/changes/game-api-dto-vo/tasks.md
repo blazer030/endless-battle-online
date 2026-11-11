@@ -1,6 +1,6 @@
 ## 1. 儲存格式隔開（結構性，行為不變）
 
-- [ ] 1.1 依「儲存格式用 Infrastructure 的 entry 型別隔開」，讓資料庫裝備強化 JSON 經 Infrastructure 的 `StoredStatBonus`、`StoredSocket` 讀寫（鍵用明確的 `JsonPropertyName`：`str`、`smart`、`life`、`vit`、`agi`、`au`、`be`、`at`、`mat`、`df`、`mdf`、`hpMax`），`EnhancementJson` 不再直接序列化 Domain 的 `StatBonus`／`SocketedStone`。先寫測試 `EnhancementJson_ReadsStoredLegacyKeys`（讀規格「Stored formats stay readable」範例的舊格式字串，得到力量 2、攻擊 3）與 `EnhancementJson_WritesTheSameKeys`（寫出的鍵與舊資料相同），兩條在改動前就該通過，改動後仍然通過；全部後端測試綠，單獨以結構性變更 commit。
+- [x] 1.1 依「儲存格式用 Infrastructure 的 entry 型別隔開」，讓資料庫裝備強化 JSON 經 Infrastructure 的 `StoredStatBonus`、`StoredSocket` 讀寫（鍵用明確的 `JsonPropertyName`：`str`、`smart`、`life`、`vit`、`agi`、`au`、`be`、`at`、`mat`、`df`、`mdf`、`hpMax`），`EnhancementJson` 不再直接序列化 Domain 的 `StatBonus`／`SocketedStone`。先寫測試 `EnhancementJson_ReadsStoredLegacyKeys`（讀規格「Stored formats stay readable」範例的舊格式字串，得到力量 2、攻擊 3）與 `EnhancementJson_WritesTheSameKeys`（寫出的鍵與舊資料相同），兩條在改動前就該通過，改動後仍然通過；全部後端測試綠，單獨以結構性變更 commit。
 - [ ] 1.2 依「儲存格式用 Infrastructure 的 entry 型別隔開」，讓 `JsonGameContent` 經內部 entry 型別讀內容檔：怪物改讀 `MonsterEntry` 再轉 `MonsterDefinition`，道具的 `ItemEntry`／`StoneEntry` 改用內部 `StatBonusEntry`、`StatRequirementEntry`（鍵與內容檔相同）。先寫測試 `JsonGameContent_LoadsMonsterStatsFromContentKeys`（`monsters.json` 第一隻怪物的 hp、sp、at、mat、df、mdf、str、smart、vit、be 與載入後的定義相同）；改動前後都通過，全部後端測試綠，單獨以結構性變更 commit。
 
 ## 2. API 回應與 Domain 脫鉤（結構性，JSON 不變）

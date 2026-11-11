@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
@@ -313,5 +314,48 @@ public class InventoryRepositoriesTests(MySqlDatabaseFixture database)
         Assert.Equal(["test-stone"], listed.Sockets.Select(socket => socket.StoneId));
         var equipped = (await GetLoadoutAsync(characterId)).Equipped[EquipmentSlot.Weapon];
         Assert.Equal(["test-stone"], equipped.Sockets.Select(socket => socket.StoneId));
+    }
+
+    private const string LegacyRefineBonus =
+        "{\"str\":2,\"smart\":0,\"life\":0,\"vit\":0,\"agi\":0,\"au\":0,\"be\":0,\"at\":3,\"mat\":0,\"df\":0,\"mdf\":0,\"hpMax\":0}";
+
+    private const string LegacySockets =
+        "[{\"hole\":1,\"stoneId\":\"test-stone\",\"rolled\":{\"str\":0,\"smart\":0,\"life\":0,\"vit\":0,\"agi\":0,\"au\":0,\"be\":0,\"at\":5,\"mat\":0,\"df\":0,\"mdf\":0,\"hpMax\":30}}]";
+
+    [Fact]
+    public async Task EnhancementJson_ReadsStoredLegacyKeys()
+    {
+        var characterId = await CreateCharacterAsync();
+        var id = await AddInventoryAsync(characterId, Plain("test-sword"));
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "UPDATE character_inventory SET refine_bonus = {0}, sockets = {1} WHERE id = {2}",
+                [LegacyRefineBonus, LegacySockets, id],
+                CancellationToken);
+        }
+
+        var entry = Assert.Single(await ListInventoryAsync(characterId));
+
+        Assert.Equal(new StatBonus(2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0), entry.RefineBonus);
+        var socket = Assert.Single(entry.Sockets);
+        Assert.Equal(1, socket.Hole);
+        Assert.Equal("test-stone", socket.StoneId);
+        Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, HpMax: 30), socket.Rolled);
+    }
+
+    [Fact]
+    public async Task EnhancementJson_WritesTheSameKeys()
+    {
+        var characterId = await CreateCharacterAsync();
+        var entry = new InventoryEntry(
+            0, "test-sword", 1, 1, new StatBonus(2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0),
+            [new SocketedStone(1, "test-stone", new StatBonus(0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, HpMax: 30))], 1);
+
+        var id = await AddInventoryAsync(characterId, entry);
+
+        // MySQL 的 JSON 欄位會重排鍵與空白，比對解析後的內容
+        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(LegacyRefineBonus), JsonNode.Parse(await ReadRawColumnAsync("refine_bonus", id) ?? "null")));
+        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(LegacySockets), JsonNode.Parse(await ReadRawColumnAsync("sockets", id) ?? "null")));
     }
 }
