@@ -21,5 +21,22 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  // 畫面與遊戲狀態只用 Vo；API 產生的型別只在 src/api 的 Converter 裡出現
+  {
+    files: ["src/game/**/*.{ts,tsx}", "src/ui/**/*.{ts,tsx}", "src/render/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "(^|/)api/schema$",
+              message: "畫面與遊戲狀態改用 src/api 的 Converter 轉出的 Vo。",
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslintConfigPrettier,
 ])
