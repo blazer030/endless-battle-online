@@ -69,8 +69,7 @@ export class BattlePlayback {
   enqueue(response: AdvanceVo, receivedAtMilliseconds: number): void {
     const before = this.displayedCharacter
     this.confirmedCharacter = response.character
-    // 產生的型別 type 是選填，伺服器一律會帶
-    const events = response.events as BattleEvent[]
+    const events = response.events
     // 伺服器只回最後一段的事件時，其餘場次由回應的摘要交代
     const showSummary = response.summary.fights > 0 && !response.eventsCoverAll
     const mercenary = response.mercenary
@@ -192,7 +191,7 @@ export class BattlePlayback {
   }
 
   // 摘要涵蓋整段的獎勵與升級，扣掉之後還會逐筆播出的部分，避免重複計算
-  private skippedGain(summary: AdvanceSummary, shownEvents: BattleEvent[]): Gain {
+  private skippedGain(summary: AdvanceSummary, shownEvents: readonly BattleEvent[]): Gain {
     const shown = sumGains(
       shownEvents
         .filter((event) => event.type === "reward" || event.type === "levelUp")

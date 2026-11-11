@@ -14,7 +14,7 @@ const signalsOf = (item: PlaybackItem): RefreshSignals => {
     case "reward":
       return {
         ...none,
-        bag: (event.drops ?? []).some((drop) => !drop.discarded),
+        bag: event.drops.some((drop) => !drop.discarded),
         skills: event.jobExperience > 0,
       }
     case "potion":

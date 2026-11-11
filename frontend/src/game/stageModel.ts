@@ -58,8 +58,8 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
         monsterHpMax: event.monsterMaxHealthPoints,
         playerHp: event.playerHealthPoints,
         playerHpMax: event.playerMaxHealthPoints,
-        petName: event.petName ?? null,
-        petMonsterId: event.petMonsterId ?? null,
+        petName: event.petName,
+        petMonsterId: event.petMonsterId,
         petActive: event.petName != null,
       }
     case "attack":
@@ -79,8 +79,7 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
           : event.caster === "Player"
             ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + change) }
             : { ...state, monsterHp: Math.min(state.monsterHpMax, state.monsterHp + change) }
-      if (event.opponentHealthPointsAfter === null || event.opponentHealthPointsAfter === undefined)
-        return casterChanged
+      if (event.opponentHealthPointsAfter === null) return casterChanged
       return event.caster === "Player"
         ? { ...casterChanged, monsterHp: event.opponentHealthPointsAfter }
         : { ...casterChanged, playerHp: event.opponentHealthPointsAfter }
@@ -164,7 +163,7 @@ export const stageEffectsFor = (event: BattleEvent): StageEffect[] => {
     case "potion":
       return [{ type: "potionFlash" }]
     case "reward":
-      return (event.drops ?? [])
+      return event.drops
         .filter((drop) => !drop.discarded)
         .map((drop) => ({ type: "dropFloat", text: drop.name }))
     case "mission":

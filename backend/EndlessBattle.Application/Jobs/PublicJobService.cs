@@ -54,7 +54,7 @@ public sealed class PublicJobService(IGameContent content)
         job.ParentId,
         job.UnlockLevel,
         job.ProficiencyRequired,
-        job.StatRequirements.Select(requirement => new JobStatRequirementView(FullStatName(requirement.Stat), requirement.Minimum)).ToList(),
+        job.StatRequirements.Select(requirement => new JobStatRequirementView(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
         new JobGrowthView(
             Range(job.Growth.Strength),
             Range(job.Growth.Intelligence),
@@ -76,16 +76,4 @@ public sealed class PublicJobService(IGameContent content)
         skill.Levels.Select(level => new SkillLevelSummaryView(level.Level, SkillSummary.Of(level))).ToList());
 
     private static GrowthRangeView Range(StatRange range) => new(range.Minimum, range.Maximum);
-
-    private static string FullStatName(BaseStat stat) => stat switch
-    {
-        BaseStat.Strength => "strength",
-        BaseStat.Intelligence => "intelligence",
-        BaseStat.Life => "life",
-        BaseStat.Vitality => "vitality",
-        BaseStat.Agility => "agility",
-        BaseStat.Charisma => "charisma",
-        BaseStat.Faith => "faith",
-        _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
-    };
 }

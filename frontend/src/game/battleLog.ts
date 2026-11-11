@@ -110,7 +110,7 @@ const describeReward = (event: RewardEvent): LogEntry[] => [
     text: `獲得經驗 ${formatNumber(event.experience)}、金錢 ${formatNumber(event.money)}、熟練度 ${formatNumber(event.jobExperience)}。`,
     kind: "drop",
   },
-  ...(event.drops ?? []).map(describeDrop),
+  ...event.drops.map(describeDrop),
 ]
 
 const describeMission = (event: MissionProgressEvent, monster: string): LogEntry[] => {
