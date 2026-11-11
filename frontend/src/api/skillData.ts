@@ -5,6 +5,7 @@ import {
   skillTypes,
   type Skill,
   type SkillNextLevel,
+  type SkillSlotCommand,
 } from "../game/skillOverview"
 import {
   parseArray,
@@ -16,6 +17,9 @@ import {
   parseString,
 } from "./parse"
 import { toGrowth, toPrerequisite, toStatRequirements } from "./publicData"
+import type { components } from "./schema"
+
+type SetSkillSlotsDto = components["schemas"]["SetSkillSlotsRequest"]
 
 const toStrings = (value: unknown, path: string): string[] => parseArray(value, path, parseString)
 
@@ -85,5 +89,11 @@ export const JobChoiceConverter = {
       eligible: parseBoolean(dto.eligible, `${path}.eligible`),
       reasons: toStrings(dto.reasons, `${path}.reasons`),
     })
+  },
+}
+
+export const SkillSlotsConverter = {
+  toDto(commands: readonly SkillSlotCommand[]): SetSkillSlotsDto {
+    return { slots: commands.map(({ slot, skillId }) => ({ slot, skillId })) }
   },
 }

@@ -38,7 +38,7 @@ import {
   CreateCharacterConverter,
 } from "./characterData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
-import { JobChoiceConverter, SkillOverviewConverter } from "./skillData"
+import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
 import { WorldConverter } from "./worldData"
 
 export const fallbackDetail = "發生錯誤，請稍後再試"
@@ -235,7 +235,7 @@ export const createApiClient = (options: {
       ),
     setSkillSlots: async (slots) =>
       SkillOverviewConverter.toVo(
-        await requestJson<unknown>("/api/skills/slots", "PUT", { slots }),
+        await requestJson<unknown>("/api/skills/slots", "PUT", SkillSlotsConverter.toDto(slots)),
       ),
     getWorld: async () =>
       parseArray(await requestJson<unknown>("/api/world", "GET"), "world", (item, path) =>

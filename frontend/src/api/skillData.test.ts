@@ -1,6 +1,6 @@
 import { expect, test } from "vitest"
 import { ParseError } from "./parse"
-import { JobChoiceConverter, SkillOverviewConverter } from "./skillData"
+import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
 
 const range = (minimum: number, maximum: number) => ({ minimum, maximum })
 
@@ -96,6 +96,13 @@ test("SkillOverviewConverter_RejectsAnUnknownTiming", () => {
   )
 })
 
+test("SkillOverviewConverter_MissingSkillPointsNamesThePath", () => {
+  const dto: Record<string, unknown> = { ...overviewDto }
+  delete dto.skillPoints
+
+  expect(parseFailure(() => SkillOverviewConverter.toVo(dto)).path).toBe("skills.skillPoints")
+})
+
 test("SkillOverviewConverter_IgnoresUnknownFields", () => {
   const overview = SkillOverviewConverter.toVo({ ...overviewDto, rank: "S" })
 
@@ -109,6 +116,18 @@ test("JobChoiceConverter_ConvertsGrowthAndReasons", () => {
   expect(job.statRequirements).toEqual([{ stat: "strength", minimum: 60 }])
   expect(job.reasons).toEqual(["levelTooLow", "statTooLow:strength"])
   expect(job.parentName).toBe("戰士")
+})
+
+test("JobChoiceConverter_IgnoresUnknownFields", () => {
+  const job = JobChoiceConverter.toVo({ ...jobDto, rank: "S" })
+
+  expect(job).not.toHaveProperty("rank")
+})
+
+test("SkillSlotsConverter_SendsTheSlotsAsTheRequestBody", () => {
+  const commands = [{ slot: 1, skillId: "skill-1" }]
+
+  expect(SkillSlotsConverter.toDto(commands)).toEqual({ slots: [{ slot: 1, skillId: "skill-1" }] })
 })
 
 test("JobChoiceConverter_MissingGrowthNamesThePath", () => {
