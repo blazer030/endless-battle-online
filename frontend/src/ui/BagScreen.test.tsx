@@ -29,8 +29,8 @@ const potion = makeItem({
   consumable: "Supply",
   name: "小藥水",
   quantity: 30,
-  supplyHp: 50,
-  supplySp: 25,
+  supplyHealthPoints: 50,
+  supplyManaPoints: 25,
   price: 25,
   refineMax: 0,
 })

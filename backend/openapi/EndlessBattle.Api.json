@@ -3285,8 +3285,8 @@
           "bonus",
           "requires",
           "jobId",
-          "supplyHp",
-          "supplySp",
+          "supplyHealthPoints",
+          "supplyManaPoints",
           "amount",
           "refineLevel",
           "refineMax",
@@ -3333,11 +3333,11 @@
               "string"
             ]
           },
-          "supplyHp": {
+          "supplyHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "supplySp": {
+          "supplyManaPoints": {
             "type": "integer",
             "format": "int32"
           },

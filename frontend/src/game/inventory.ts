@@ -142,8 +142,8 @@ export const bonusText = (bonus: StatBonusView) =>
     .map(({ key, label }) => `${label} +${bonus[key]}`)
     .join("、")
 
-export const supplyText = (item: Pick<InventoryItem, "supplyHp" | "supplySp">) =>
-  `HP +${item.supplyHp}、SP +${item.supplySp}`
+export const supplyText = (item: Pick<InventoryItem, "supplyHealthPoints" | "supplyManaPoints">) =>
+  `HP +${item.supplyHealthPoints}、SP +${item.supplyManaPoints}`
 
 export const candidatesFor = (inventory: InventoryView, slot: EquipmentSlot) =>
   slot === "Supply"

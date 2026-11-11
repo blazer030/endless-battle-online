@@ -2705,9 +2705,9 @@ export interface components {
             requires: components["schemas"]["EquipmentRequirementResponse"];
             jobId: null | string;
             /** Format: int32 */
-            supplyHp: number;
+            supplyHealthPoints: number;
             /** Format: int32 */
-            supplySp: number;
+            supplyManaPoints: number;
             /** Format: int32 */
             amount: number;
             /** Format: int32 */

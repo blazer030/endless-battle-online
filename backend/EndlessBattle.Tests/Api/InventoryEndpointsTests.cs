@@ -113,6 +113,23 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("測試攻擊魔石", socket.GetProperty("stoneName").GetString());
     }
 
+    // 規格 Supply items use complete names：測試補給藥劑回復 50 HP、25 MP
+    [Fact]
+    public async Task Inventory_SupplyItemUsesCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await GiveAsync(characterId, "test-supply");
+
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+
+        var supply = Category(inventory, "Consumable").GetProperty("items").EnumerateArray().Single(item => item.GetProperty("itemId").GetString() == "test-supply");
+        Assert.Equal(50, supply.GetProperty("supplyHealthPoints").GetInt32());
+        Assert.Equal(25, supply.GetProperty("supplyManaPoints").GetInt32());
+        Assert.False(supply.TryGetProperty("supplyHp", out _));
+        Assert.False(supply.TryGetProperty("supplySp", out _));
+    }
+
     // 測試鐵劍內容：bonus at 8、requires str 10；鑲上的魔石擲出 at 5
     [Fact]
     public async Task Inventory_ItemBonusUsesCompleteNames()
