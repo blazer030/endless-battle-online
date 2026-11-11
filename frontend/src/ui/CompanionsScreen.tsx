@@ -1,5 +1,5 @@
 import { useId, useState } from "react"
-import type { CharacterView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import "./BagScreen.css"
 import "./CompanionsScreen.css"
 import { TabPanel, Tabs } from "./bagWidgets"
@@ -10,7 +10,7 @@ export type CompanionsApi = PetsApi & MercenaryApi
 
 type Props = {
   api: CompanionsApi
-  onCharacterChanged: (character: CharacterView) => void
+  onCharacterChanged: (character: CharacterVo) => void
 }
 
 type SubPage = "pets" | "mercenary"

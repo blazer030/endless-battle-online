@@ -2,7 +2,8 @@ import { act, cleanup, render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { CharacterView, DepotView, InventoryView, Recipe } from "../game/types"
+import type { DepotView, InventoryView, Recipe } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import {
   emptyBonus,
   makeCharacter,
@@ -112,7 +113,7 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
 
 const renderBag = (
   api: BagApi = createFakeApi(),
-  character: CharacterView = makeCharacter({ money: 1000 }),
+  character: CharacterVo = makeCharacter({ money: 1000 }),
 ) => {
   const onCharacterChanged = vi.fn()
   render(<BagScreen api={api} character={character} onCharacterChanged={onCharacterChanged} />)
@@ -559,7 +560,7 @@ const crystal: Recipe = {
 
 const renderForge = async (
   overrides: Partial<BagApi> = {},
-  character: CharacterView = makeCharacter({ money: 5000 }),
+  character: CharacterVo = makeCharacter({ money: 5000 }),
 ) => {
   const rendered = renderBag(
     createFakeApi({

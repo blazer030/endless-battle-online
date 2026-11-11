@@ -1,4 +1,5 @@
-import type { CharacterView, Recommendation, WorldPlace } from "./types"
+import type { Recommendation, WorldPlace } from "./types"
+import type { CharacterVo } from "./character"
 
 export type RecommendationTone = "recommended" | "too-hard" | "too-easy"
 export type RecommendationLabel = { text: string; tone: RecommendationTone }
@@ -26,7 +27,7 @@ export const moveReasonText = (code: string) => moveReasonTexts[code] ?? code
 export const locationTitle = ({
   placeName,
   subPlaceName,
-}: Pick<CharacterView, "placeName" | "subPlaceName">) =>
+}: Pick<CharacterVo, "placeName" | "subPlaceName">) =>
   subPlaceName === null ? placeName : `${placeName}・${subPlaceName}`
 
 const MillisecondsPerMinute = 60_000

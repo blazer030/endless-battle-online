@@ -10,7 +10,8 @@ import {
   petTitle,
 } from "../game/pets"
 import { isNameTooLong, NameLengthError, PetNameMaxLength } from "../game/names"
-import type { CharacterView, PetFood, PetsView, PetView } from "../game/types"
+import type { PetFood, PetsView, PetView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 
 export type PetsApi = Pick<
   ApiClient,
@@ -19,7 +20,7 @@ export type PetsApi = Pick<
 
 type Props = {
   api: PetsApi
-  onCharacterChanged: (character: CharacterView) => void
+  onCharacterChanged: (character: CharacterVo) => void
 }
 
 // setTimeout 的上限（32 位元有號整數）

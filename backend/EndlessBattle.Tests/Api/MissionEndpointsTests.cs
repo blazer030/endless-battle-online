@@ -250,7 +250,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
 
         var character = completion.GetProperty("character");
         Assert.Equal(before.GetProperty("money").GetInt64() + 50, character.GetProperty("money").GetInt64());
-        Assert.Equal(190, character.GetProperty("exp").GetInt64());
+        Assert.Equal(190, character.GetProperty("experience").GetInt64());
         Assert.Equal("謝謝你。", completion.GetProperty("completionMessage").GetString());
         Assert.Equal((190L, 50L, 0), (
             completion.GetProperty("exp").GetInt64(), completion.GetProperty("money").GetInt64(), completion.GetProperty("levelsGained").GetInt32()));

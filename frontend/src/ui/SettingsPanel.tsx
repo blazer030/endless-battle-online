@@ -8,15 +8,15 @@ import {
   type AttackChoice,
   type SettingsForm,
 } from "../game/settings"
-import type { CharacterView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import "./SettingsPanel.css"
 
 export type SettingsApi = Pick<ApiClient, "updateSettings">
 
 type Props = {
   api: SettingsApi
-  character: CharacterView
-  onCharacterChanged: (character: CharacterView) => void
+  character: CharacterVo
+  onCharacterChanged: (character: CharacterVo) => void
   onClose: () => void
 }
 
@@ -97,15 +97,15 @@ export function SettingsPanel({ api, character, onCharacterChanged, onClose }: P
           </select>
         </label>
         <p className="settings__row">
-          HP低於 {percent("potionHpPercent", "恢復道具 HP 門檻")} %，SP低於{" "}
-          {percent("potionSpPercent", "恢復道具 SP 門檻")} %自動使用恢復道具
+          HP低於 {percent("potionHealthPointsPercent", "恢復道具 HP 門檻")} %，SP低於{" "}
+          {percent("potionManaPointsPercent", "恢復道具 SP 門檻")} %自動使用恢復道具
         </p>
         <p className="settings__row">
-          HP低於 {percent("restHpPercent", "住宿 HP 門檻")} % ， SP低於{" "}
-          {percent("restSpPercent", "住宿 SP 門檻")} %自動住宿(-1表示略過條件)
+          HP低於 {percent("restHealthPointsPercent", "住宿 HP 門檻")} % ， SP低於{" "}
+          {percent("restManaPointsPercent", "住宿 SP 門檻")} %自動住宿(-1表示略過條件)
         </p>
         <p className="settings__row">
-          HP低於 {percent("escapeHpPercent", "逃跑 HP 門檻")} %逃離戰鬥
+          HP低於 {percent("escapeHealthPointsPercent", "逃跑 HP 門檻")} %逃離戰鬥
         </p>
         <p className="settings__note">
           恢復道具的 -1 也表示略過條件；SP 預設 100% 時，SP 全滿不會使用恢復道具。

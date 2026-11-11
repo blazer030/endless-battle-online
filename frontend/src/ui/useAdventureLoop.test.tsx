@@ -3,12 +3,13 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { ApiClient } from "../api/client"
 import { BattlePlayback } from "../game/battlePlayback"
-import type { AdvanceResponse, CharacterView } from "../game/types"
+import type { AdvanceResponse } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { PollIntervalMilliseconds, RequestTimeoutMilliseconds } from "../motion/timings"
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { useAdventureLoop } from "./useAdventureLoop"
 
-const character: CharacterView = makeCharacter()
+const character: CharacterVo = makeCharacter()
 
 const emptyResponse: AdvanceResponse = {
   events: [],

@@ -72,7 +72,7 @@ test("CreateScreen_DepartSendsTheCardAndShowsThePassage", async () => {
     birth: 3,
     element: 5,
     jobId: "job-6",
-    allocation: { str: 7, smart: 1, life: 1, agi: 1 },
+    allocation: { strength: 7, intelligence: 1, life: 1, agility: 1 },
   })
   expect(await screen.findByText("踏上旅途")).toBeInTheDocument()
   expect(onCreated).not.toHaveBeenCalled()

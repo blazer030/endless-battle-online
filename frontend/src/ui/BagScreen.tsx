@@ -29,7 +29,6 @@ import {
   type JobName,
 } from "../game/inventory"
 import type {
-  CharacterView,
   DepotView,
   EquipmentSlot,
   InventoryItem,
@@ -37,6 +36,7 @@ import type {
   ItemCategory,
   ShopItem,
 } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import "./BagScreen.css"
 import { ForgePage, type ForgeApi } from "./ForgePage"
@@ -76,8 +76,8 @@ export type BagApi = Pick<
 
 type Props = {
   api: BagApi
-  character: CharacterView
-  onCharacterChanged: (character: CharacterView) => void
+  character: CharacterVo
+  onCharacterChanged: (character: CharacterVo) => void
   jobNames?: JobName[]
   // 戰報有掉落、喝藥水、捕捉或傭兵報告時遞增，開著的背包跟著重新載入
   refreshSignal?: number
@@ -223,7 +223,7 @@ export function BagScreen({
 
 type PageProps = {
   api: BagApi
-  character: CharacterView
+  character: CharacterVo
   busy: boolean
   mutate: Mutate
   jobNames: JobName[]
@@ -841,7 +841,7 @@ function BankPage({
   mutate,
 }: {
   api: BagApi
-  character: CharacterView
+  character: CharacterVo
   busy: boolean
   mutate: Mutate
 }) {
@@ -851,7 +851,7 @@ function BankPage({
   const locked = isBankLocked(character.level)
 
   const submit =
-    (amount: string, send: (value: number) => Promise<CharacterView>, reset: () => void) =>
+    (amount: string, send: (value: number) => Promise<CharacterVo>, reset: () => void) =>
     async (event: FormEvent) => {
       event.preventDefault()
       setError(null)

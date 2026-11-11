@@ -3,24 +3,62 @@ import { baseStatsFromAllocation, deriveStats, describeTopGrowth } from "./stats
 
 describe("deriveStats", () => {
   it("deriveStats_MatchesWogFormulas", () => {
-    const derived = deriveStats({ str: 17, smart: 12, life: 15, vit: 10, agi: 14, au: 10, be: 10 })
+    const derived = deriveStats({
+      strength: 17,
+      intelligence: 12,
+      life: 15,
+      vitality: 10,
+      agility: 14,
+      charisma: 10,
+      faith: 10,
+    })
 
-    expect(derived).toEqual({ at: 17, mat: 12, df: 10, mdf: 10, hpMax: 425, spMax: 91 })
+    expect(derived).toEqual({
+      attack: 17,
+      magicAttack: 12,
+      defense: 10,
+      magicDefense: 10,
+      maxHealthPoints: 425,
+      maxManaPoints: 91,
+    })
   })
 
   // 七項各不相同，換錯欄位就會被抓到
   it("deriveStats_UsesEachStatDistinctly", () => {
-    const derived = deriveStats({ str: 1, smart: 2, life: 3, vit: 4, agi: 5, au: 6, be: 7 })
+    const derived = deriveStats({
+      strength: 1,
+      intelligence: 2,
+      life: 3,
+      vitality: 4,
+      agility: 5,
+      charisma: 6,
+      faith: 7,
+    })
 
-    expect(derived).toEqual({ at: 1, mat: 2, df: 4, mdf: 7, hpMax: 125, spMax: 52 })
+    expect(derived).toEqual({
+      attack: 1,
+      magicAttack: 2,
+      defense: 4,
+      magicDefense: 7,
+      maxHealthPoints: 125,
+      maxManaPoints: 52,
+    })
   })
 })
 
 describe("baseStatsFromAllocation", () => {
   it("baseStatsFromAllocation_AddsStartingBonusAndKeepsUnallocatedAtTen", () => {
-    const base = baseStatsFromAllocation({ str: 4, smart: 1, life: 3, agi: 2 })
+    const base = baseStatsFromAllocation({ strength: 4, intelligence: 1, life: 3, agility: 2 })
 
-    expect(base).toEqual({ str: 14, smart: 11, life: 13, vit: 10, agi: 12, au: 10, be: 10 })
+    expect(base).toEqual({
+      strength: 14,
+      intelligence: 11,
+      life: 13,
+      vitality: 10,
+      agility: 12,
+      charisma: 10,
+      faith: 10,
+    })
   })
 })
 

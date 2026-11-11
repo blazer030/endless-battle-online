@@ -88,7 +88,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.All(casts, cast => Assert.Equal("burst", cast.GetProperty("skillId").GetString()));
         Assert.Equal(casts.Count, body.GetProperty("summary").GetProperty("skillsCast").GetInt32());
         var result = body.GetProperty("character");
-        Assert.True(result.GetProperty("sp").GetInt32() < result.GetProperty("stats").GetProperty("spMax").GetInt32());
+        Assert.True(result.GetProperty("manaPoints").GetInt32() < result.GetProperty("stats").GetProperty("maxManaPoints").GetInt32());
     }
 
     [Fact]
@@ -111,8 +111,8 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         await using var factory = new EndlessBattleApiFactory(database);
         var strong = await factory.CreateAuthenticatedClientAsync();
         var weak = await factory.CreateAuthenticatedClientAsync();
-        (await strong.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"力士{Random.Shared.Next(100000, 999999)}", str: 7, smart: 1, life: 1, agi: 1))).EnsureSuccessStatusCode();
-        (await weak.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"命士{Random.Shared.Next(100000, 999999)}", str: 1, smart: 1, life: 7, agi: 1))).EnsureSuccessStatusCode();
+        (await strong.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"力士{Random.Shared.Next(100000, 999999)}", strength: 7, intelligence: 1, life: 1, agility: 1))).EnsureSuccessStatusCode();
+        (await weak.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody($"命士{Random.Shared.Next(100000, 999999)}", strength: 1, intelligence: 1, life: 7, agility: 1))).EnsureSuccessStatusCode();
         factory.Clock.Advance(TimeSpan.FromSeconds(10));
 
         var strongBody = await AdvanceAsync(strong);
@@ -163,7 +163,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.True(summary.GetProperty("fights").GetInt32() > 1000);
         Assert.True(summary.GetProperty("levelsGained").GetInt32() > 0);
         Assert.True(body.GetProperty("character").GetProperty("level").GetInt32() > 1);
-        string[] baseStats = ["str", "smart", "life", "vit", "agi", "au", "be"];
+        string[] baseStats = ["strength", "intelligence", "life", "vitality", "agility", "charisma", "faith"];
         var statsBefore = created.GetProperty("stats");
         var statsAfter = body.GetProperty("character").GetProperty("stats");
         Assert.Contains(baseStats, stat => statsAfter.GetProperty(stat).GetInt32() > statsBefore.GetProperty(stat).GetInt32());

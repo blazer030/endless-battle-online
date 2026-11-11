@@ -1,17 +1,18 @@
 import { act, render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
-import type { BuffView, CharacterView, ContentNames, InnView } from "../game/types"
+import type { BuffView, ContentNames, InnView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { makeCharacter, makeContent } from "../test/fixtures"
 import { CharacterScreen } from "./CharacterScreen"
 import { user } from "../test/user"
 
-const character: CharacterView = makeCharacter({
+const character: CharacterVo = makeCharacter({
   name: "青衣",
   level: 12,
-  exp: 340,
-  nextExp: 1200,
-  hp: 210,
-  sp: 40,
+  experience: 340,
+  nextLevelExperience: 1200,
+  healthPoints: 210,
+  manaPoints: 40,
   sex: 2,
   element: 3,
   birth: 4,
@@ -22,21 +23,29 @@ const character: CharacterView = makeCharacter({
     { jobId: "sorcerer", proficiency: 1234, skillPoints: 300 },
   ],
   stats: {
-    str: 14,
-    smart: 31,
+    strength: 14,
+    intelligence: 31,
     life: 22,
-    vit: 13,
-    agi: 18,
-    au: 16,
-    be: 27,
-    at: 15,
-    mat: 33,
-    df: 12,
-    mdf: 29,
-    hpMax: 600,
-    spMax: 199,
+    vitality: 13,
+    agility: 18,
+    charisma: 16,
+    faith: 27,
+    attack: 15,
+    magicAttack: 33,
+    defense: 12,
+    magicDefense: 29,
+    maxHealthPoints: 600,
+    maxManaPoints: 199,
   },
-  baseStats: { str: 12, smart: 31, life: 22, vit: 10, agi: 18, au: 16, be: 25 },
+  baseStats: {
+    strength: 12,
+    intelligence: 31,
+    life: 22,
+    vitality: 10,
+    agility: 18,
+    charisma: 16,
+    faith: 25,
+  },
 })
 
 const content: ContentNames = makeContent({

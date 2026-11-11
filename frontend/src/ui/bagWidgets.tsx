@@ -7,10 +7,11 @@ import {
   supplyText,
   type Requirement,
 } from "../game/inventory"
-import type { CharacterView, InventoryItem, InventoryView } from "../game/types"
+import type { InventoryItem, InventoryView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 
 // 變更的結果：背包換成回應內容；有角色就直接用，否則重新讀 /me 同步金錢與能力
-export type Outcome = { inventory?: InventoryView; character?: CharacterView }
+export type Outcome = { inventory?: InventoryView; character?: CharacterVo }
 
 // 回傳錯誤訊息，成功時為 null
 export type Mutate = (action: () => Promise<Outcome>) => Promise<string | null>

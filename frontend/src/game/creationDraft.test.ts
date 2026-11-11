@@ -27,16 +27,19 @@ describe("acceptName", () => {
   })
 })
 
-const allocate = (draft: CreationDraft, stat: "str" | "smart" | "life" | "agi", times: number) =>
-  Array.from({ length: times }).reduce<CreationDraft>((next) => adjustStat(next, stat, 1), draft)
+const allocate = (
+  draft: CreationDraft,
+  stat: "strength" | "intelligence" | "life" | "agility",
+  times: number,
+) => Array.from({ length: times }).reduce<CreationDraft>((next) => adjustStat(next, stat, 1), draft)
 
 test("CreationDraft_StartsWithOnePointEachAndSixLeft", () => {
-  expect(emptyDraft.allocation).toEqual({ str: 1, smart: 1, life: 1, agi: 1 })
+  expect(emptyDraft.allocation).toEqual({ strength: 1, intelligence: 1, life: 1, agility: 1 })
   expect(pointsLeft(emptyDraft)).toBe(6)
 })
 
 test("CreationDraft_StatsConfirmableOnlyWhenAllPointsAllocated", () => {
-  const partial = allocate(emptyDraft, "str", 2)
+  const partial = allocate(emptyDraft, "strength", 2)
   expect(pointsLeft(partial)).toBe(4)
   expect(canConfirmStats(partial)).toBe(false)
   expect(confirmStats(partial).statsConfirmed).toBe(false)
@@ -48,22 +51,22 @@ test("CreationDraft_StatsConfirmableOnlyWhenAllPointsAllocated", () => {
 })
 
 test("CreationDraft_StatsStayWithinOneAndThePointsLeft", () => {
-  expect(adjustStat(emptyDraft, "str", -1).allocation.str).toBe(1)
-  const full = allocate(emptyDraft, "agi", 6)
-  expect(adjustStat(full, "str", 1).allocation).toEqual(full.allocation)
+  expect(adjustStat(emptyDraft, "strength", -1).allocation.strength).toBe(1)
+  const full = allocate(emptyDraft, "agility", 6)
+  expect(adjustStat(full, "strength", 1).allocation).toEqual(full.allocation)
 })
 
 test("CreationDraft_ChangingStatsAfterConfirmingNeedsConfirmingAgain", () => {
-  const confirmed = confirmStats(allocate(emptyDraft, "str", 6))
+  const confirmed = confirmStats(allocate(emptyDraft, "strength", 6))
 
-  const changed = adjustStat(confirmed, "str", -1)
+  const changed = adjustStat(confirmed, "strength", -1)
 
   expect(changed.statsConfirmed).toBe(false)
 })
 
 test("CreationDraft_ReadyOnlyWhenAllSixRowsFilled", () => {
   const filled: CreationDraft = {
-    ...confirmStats(allocate(emptyDraft, "smart", 6)),
+    ...confirmStats(allocate(emptyDraft, "intelligence", 6)),
     name: "艾倫",
     sex: 1,
     birth: 2,
@@ -82,14 +85,18 @@ test("CreationDraft_ReadyOnlyWhenAllSixRowsFilled", () => {
     birth: 2,
     element: 3,
     jobId: "job-7",
-    allocation: { str: 1, smart: 7, life: 1, agi: 1 },
+    allocation: { strength: 1, intelligence: 7, life: 1, agility: 1 },
   })
 })
 
 // 4/2/3/1：生命 13、智力 12 → HP 375、SP 91（同後端 CharacterEndpointsTests 的全貌角色）
 test("CreationDraft_PreviewsHpAndSpWithDeriveStats", () => {
-  const draft = allocate(allocate(allocate(emptyDraft, "str", 3), "smart", 1), "life", 2)
-  expect(draft.allocation).toEqual({ str: 4, smart: 2, life: 3, agi: 1 })
+  const draft = allocate(
+    allocate(allocate(emptyDraft, "strength", 3), "intelligence", 1),
+    "life",
+    2,
+  )
+  expect(draft.allocation).toEqual({ strength: 4, intelligence: 2, life: 3, agility: 1 })
 
-  expect(previewStats(draft)).toEqual({ hpMax: 375, spMax: 91 })
+  expect(previewStats(draft)).toEqual({ maxHealthPoints: 375, maxManaPoints: 91 })
 })

@@ -10,13 +10,8 @@ import {
   resetHoursText,
   rewardLines,
 } from "../game/missions"
-import type {
-  CharacterView,
-  ContentNames,
-  MissionBoard,
-  MissionCompletion,
-  MissionView,
-} from "../game/types"
+import type { ContentNames, MissionBoard, MissionCompletion, MissionView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import "./BagScreen.css"
 import "./MissionsScreen.css"
 import { TabPanel, Tabs } from "./bagWidgets"
@@ -30,7 +25,7 @@ export type MissionsApi = Pick<
 type Props = {
   api: MissionsApi
   content: ContentNames
-  onCharacterChanged: (character: CharacterView) => void
+  onCharacterChanged: (character: CharacterVo) => void
   // 戰報有任務進度時遞增，開著的任務頁跟著重新載入
   refreshSignal?: number
 }

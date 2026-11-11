@@ -20,7 +20,7 @@ import {
 } from "../../game/creationDraft"
 import type { JobVo } from "../../game/jobBook"
 import { baseStatLabels, baseStatsFromAllocation } from "../../game/stats"
-import type { CharacterView } from "../../game/types"
+import type { CharacterVo } from "../../game/character"
 import { PassageMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
 import { Passage } from "../title/Passage"
@@ -37,7 +37,7 @@ type Props = {
   jobs: readonly JobVo[]
   options: CreationOptionsVo
   account: string
-  onCreated: (character: CharacterView) => void
+  onCreated: (character: CharacterVo) => void
   onLeave: () => void
 }
 
@@ -46,7 +46,7 @@ type Step = "idle" | "name" | "sex" | "birth" | "element" | "job" | "stats" | "l
 
 const askingSteps: readonly Step[] = ["name", "sex", "birth", "element", "stats", "leave"]
 
-const allocationStats: readonly AllocationStat[] = ["str", "smart", "life", "agi"]
+const allocationStats: readonly AllocationStat[] = ["strength", "intelligence", "life", "agility"]
 
 // 可分配的四項，名稱與顯示順序同角色頁
 const statRows = baseStatLabels.filter((row): row is { key: AllocationStat; label: string } =>
@@ -67,14 +67,14 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
   const [busy, setBusy] = useState(false)
   // 送出後莉瑟的回覆（400 的訊息、沒有回應）；點任何一欄或再按出發就換掉
   const [notice, setNotice] = useState<string | null>(null)
-  const [created, setCreated] = useState<CharacterView | null>(null)
+  const [created, setCreated] = useState<CharacterVo | null>(null)
   const passageTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => () => clearTimeout(passageTimer.current), [])
 
   const ready = isReady(draft)
   const left = pointsLeft(draft)
-  const { hpMax, spMax } = previewStats(draft)
+  const { maxHealthPoints, maxManaPoints } = previewStats(draft)
   const baseStats = baseStatsFromAllocation(draft.allocation)
   const asking = askingSteps.includes(step)
 
@@ -118,7 +118,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
     if (!ready || busy) return
     setBusy(true)
     setNotice(null)
-    const enter = (character: CharacterView) => {
+    const enter = (character: CharacterVo) => {
       setCreated(character)
       passageTimer.current = setTimeout(() => onCreated(character), PassageMilliseconds)
     }
@@ -397,11 +397,11 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
           <div className="create-hpsp" aria-label="生命與精神上限">
             <span>
               <i>HP</i>
-              {hpMax}
+              {maxHealthPoints}
             </span>
             <span>
               <i>SP</i>
-              {spMax}
+              {maxManaPoints}
             </span>
           </div>
           <Seal

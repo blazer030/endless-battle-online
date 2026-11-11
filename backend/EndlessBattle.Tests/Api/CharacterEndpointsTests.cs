@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
@@ -26,13 +27,86 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal(name, body.GetProperty("name").GetString());
-        Assert.Equal(0, body.GetProperty("exp").GetInt64());
+        Assert.Equal(0, body.GetProperty("experience").GetInt64());
         Assert.Equal(1, body.GetProperty("placeId").GetInt32());
         Assert.Equal(1, body.GetProperty("subPlace").GetInt32());
         Assert.False(body.TryGetProperty("currentStageId", out _));
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(body.ToString(), me.ToString());
+    }
+
+    // 規格範例：配點 4/2/3/1 的新角色
+    [Fact]
+    public async Task GetMe_UsesCompleteFieldNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new
+        {
+            name = UniqueName("全名"),
+            sex = 1,
+            element = 3,
+            birth = 1,
+            jobId = "warrior",
+            allocation = new { strength = 4, intelligence = 2, life = 3, agility = 1 },
+        };
+        Assert.Equal(HttpStatusCode.Created, (await client.CreateCharacterAsync(body)).StatusCode);
+
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+
+        Assert.Equal(50, me.GetProperty("healthPoints").GetInt32());
+        Assert.Equal(25, me.GetProperty("manaPoints").GetInt32());
+        Assert.Equal(0, me.GetProperty("experience").GetInt64());
+        Assert.Equal(1000, me.GetProperty("nextLevelExperience").GetInt64());
+        Assert.True(JsonNode.DeepEquals(
+            JsonNode.Parse("""{"strength":14,"intelligence":12,"life":13,"vitality":10,"agility":11,"charisma":10,"faith":10}"""),
+            JsonNode.Parse(me.GetProperty("baseStats").GetRawText())));
+        var stats = me.GetProperty("stats");
+        foreach (var name in new[]
+                 {
+                     "strength", "intelligence", "life", "vitality", "agility", "charisma", "faith",
+                     "attack", "magicAttack", "defense", "magicDefense", "maxHealthPoints", "maxManaPoints",
+                 })
+        {
+            Assert.True(stats.TryGetProperty(name, out _), name);
+        }
+
+        var settings = me.GetProperty("settings");
+        foreach (var name in new[]
+                 {
+                     "potionHealthPointsPercent", "potionManaPointsPercent", "restHealthPointsPercent", "restManaPointsPercent",
+                     "escapeHealthPointsPercent",
+                 })
+        {
+            Assert.True(settings.TryGetProperty(name, out _), name);
+        }
+
+        var abbreviated = new[] { "hp", "sp", "exp", "nextExp", "str", "smart", "vit", "agi", "au", "be", "at", "mat", "df", "mdf", "hpMax", "spMax" };
+        Assert.DoesNotContain(abbreviated, name => me.TryGetProperty(name, out _) || stats.TryGetProperty(name, out _));
+    }
+
+    [Fact]
+    public async Task Create_TakesCompleteAllocationNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var body = new
+        {
+            name = UniqueName("配點"),
+            sex = 1,
+            element = 3,
+            birth = 1,
+            jobId = "warrior",
+            allocation = new { strength = 1, intelligence = 1, life = 1, agility = 7 },
+        };
+
+        var created = await client.CreateCharacterAsync(body);
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var character = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Equal(11, character.GetProperty("baseStats").GetProperty("strength").GetInt32());
+        Assert.Equal(17, character.GetProperty("baseStats").GetProperty("agility").GetInt32());
     }
 
     [Fact]
@@ -47,7 +121,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             element = 3,
             birth = 1,
             jobId = "warrior",
-            allocation = new { str = 2, smart = 4, life = 2, agi = 2 },
+            allocation = new { strength = 2, intelligence = 4, life = 2, agility = 2 },
         };
 
         var created = await client.CreateCharacterAsync(body);
@@ -65,7 +139,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
         var name = UniqueName("全貌");
 
-        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name, str: 4, smart: 2, life: 3, agi: 1));
+        var created = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name, strength: 4, intelligence: 2, life: 3, agility: 1));
 
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var body = await created.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
@@ -74,13 +148,13 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("測試戰士", body.GetProperty("jobName").GetString());
         Assert.Equal(3, body.GetProperty("element").GetInt32());
         var stats = body.GetProperty("stats");
-        Assert.Equal(14, stats.GetProperty("at").GetInt32());
-        Assert.Equal(12, stats.GetProperty("mat").GetInt32());
-        Assert.Equal(10, stats.GetProperty("df").GetInt32());
-        Assert.Equal(10, stats.GetProperty("mdf").GetInt32());
+        Assert.Equal(14, stats.GetProperty("attack").GetInt32());
+        Assert.Equal(12, stats.GetProperty("magicAttack").GetInt32());
+        Assert.Equal(10, stats.GetProperty("defense").GetInt32());
+        Assert.Equal(10, stats.GetProperty("magicDefense").GetInt32());
         Assert.Equal(13, stats.GetProperty("life").GetInt32());
-        Assert.Equal(375, stats.GetProperty("hpMax").GetInt32());
-        Assert.Equal(91, stats.GetProperty("spMax").GetInt32());
+        Assert.Equal(375, stats.GetProperty("maxHealthPoints").GetInt32());
+        Assert.Equal(91, stats.GetProperty("maxManaPoints").GetInt32());
     }
 
     // TestContent 的起始地：測試大陸・測試平原・甲地（正式內容為 中央大陸・中央平原・香茅綠地）
@@ -191,7 +265,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
 
         // 1/1/1/3 只花了 6 點
-        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點"), str: 1, smart: 1, life: 1, agi: 3));
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點"), strength: 1, intelligence: 1, life: 1, agility: 3));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
@@ -216,7 +290,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
             element,
             birth,
             jobId,
-            allocation = new { str = 2, smart = 4, life = 2, agi = 2 },
+            allocation = new { strength = 2, intelligence = 4, life = 2, agility = 2 },
         };
 
         var response = await client.CreateCharacterAsync(body);
@@ -291,7 +365,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
 
-        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("配點"), str: str, smart: smart, life: life, agi: agi));
+        var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("配點"), strength: str, intelligence: smart, life: life, agility: agi));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(detail, await DetailOf(response));
@@ -374,7 +448,15 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     }
 
     private static object SettingsBody(string? attack = "Magic", int potionHp = 30, int potionSp = -1, int restHp = 20, int restSp = -1, int escapeHp = 10) =>
-        new { attack, potionHpPercent = potionHp, potionSpPercent = potionSp, restHpPercent = restHp, restSpPercent = restSp, escapeHpPercent = escapeHp };
+        new
+        {
+            attack,
+            potionHealthPointsPercent = potionHp,
+            potionManaPointsPercent = potionSp,
+            restHealthPointsPercent = restHp,
+            restManaPointsPercent = restSp,
+            escapeHealthPointsPercent = escapeHp,
+        };
 
     [Fact]
     public async Task Settings_UpdateAndReadBack()
@@ -384,7 +466,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
         var created = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(
-            """{"attack":null,"potionHpPercent":15,"potionSpPercent":100,"restHpPercent":15,"restSpPercent":15,"escapeHpPercent":0}""",
+            """{"attack":null,"potionHealthPointsPercent":15,"potionManaPointsPercent":100,"restHealthPointsPercent":15,"restManaPointsPercent":15,"escapeHealthPointsPercent":0}""",
             created.GetProperty("settings").GetRawText());
 
         var response = await client.PutAsJsonAsync("/api/characters/me/settings", SettingsBody(), CancellationToken);
@@ -393,7 +475,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(
-            """{"attack":"Magic","potionHpPercent":30,"potionSpPercent":-1,"restHpPercent":20,"restSpPercent":-1,"escapeHpPercent":10}""",
+            """{"attack":"Magic","potionHealthPointsPercent":30,"potionManaPointsPercent":-1,"restHealthPointsPercent":20,"restManaPointsPercent":-1,"escapeHealthPointsPercent":10}""",
             me.GetProperty("settings").GetRawText());
         Assert.Equal(body.GetProperty("settings").GetRawText(), me.GetProperty("settings").GetRawText());
     }
@@ -410,7 +492,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
         var body = await saved.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(42, body.GetProperty("settings").GetProperty("potionHpPercent").GetInt32());
+        Assert.Equal(42, body.GetProperty("settings").GetProperty("potionHealthPointsPercent").GetInt32());
         Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
         var problem = await refused.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal("invalidPercent", problem.GetProperty("reasons")[0].GetString());
@@ -425,7 +507,12 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("設定")))).EnsureSuccessStatusCode();
         var oldClientBody = new
         {
-            attack = "Magic", potionHpPercent = 42, potionSpPercent = -1, restHpPercent = 20, restSpPercent = -1, escapeHpPercent = 10,
+            attack = "Magic",
+            potionHealthPointsPercent = 42,
+            potionManaPointsPercent = -1,
+            restHealthPointsPercent = 20,
+            restManaPointsPercent = -1,
+            escapeHealthPointsPercent = 10,
             specialAttackName = "破軍",
         };
 
@@ -494,7 +581,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var buff = (await used.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("buff");
         Assert.Equal(("Exp", 1.5), (buff.GetProperty("kind").GetString(), buff.GetProperty("multiplier").GetDouble()));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.True(me.GetProperty("exp").GetInt64() > 0);
+        Assert.True(me.GetProperty("experience").GetInt64() > 0);
 
         var buffs = await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken);
         var active = Assert.Single(buffs.EnumerateArray());

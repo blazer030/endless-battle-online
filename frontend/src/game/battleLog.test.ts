@@ -93,13 +93,13 @@ const skill = (overrides: Partial<SkillEvent>) =>
   })
 
 const growth = (overrides: Partial<GrowthStats> = {}): GrowthStats => ({
-  str: 0,
-  smart: 0,
+  strength: 0,
+  intelligence: 0,
   life: 0,
-  vit: 0,
-  agi: 0,
-  au: 0,
-  be: 0,
+  vitality: 0,
+  agility: 0,
+  charisma: 0,
+  faith: 0,
   ...overrides,
 })
 
@@ -300,13 +300,21 @@ const cases: [string, PlaybackItem, Line[]][] = [
     event({
       type: "levelUp",
       newLevel: 12,
-      growth: { str: 1, smart: 2, life: 3, vit: 4, agi: 5, au: 6, be: 7 },
+      growth: {
+        strength: 1,
+        intelligence: 2,
+        life: 3,
+        vitality: 4,
+        agility: 5,
+        charisma: 6,
+        faith: 7,
+      },
     }),
     [["升級！Lv 12（力量+1 智力+2 生命+3 體質+4 敏捷+5 魅力+6 信仰+7）", "trigger"]],
   ],
   [
     "level up omits zero growth",
-    event({ type: "levelUp", newLevel: 3, growth: growth({ str: 2, agi: 1 }) }),
+    event({ type: "levelUp", newLevel: 3, growth: growth({ strength: 2, agility: 1 }) }),
     [["升級！Lv 3（力量+2 敏捷+1）", "trigger"]],
   ],
   [

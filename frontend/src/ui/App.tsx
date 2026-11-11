@@ -3,7 +3,7 @@ import { clearAccessToken, readAccessToken } from "../api/authStorage"
 import { ApiError, type ApiClient } from "../api/client"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
-import type { CharacterView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { PassageLeaveMilliseconds, PassageMilliseconds } from "../motion/timings"
 import { AdventureScreen } from "./AdventureScreen"
 import { CreateScreen } from "./create/CreateScreen"
@@ -21,8 +21,8 @@ type Phase =
   | { name: "title"; loading: TitleLoading; account: string }
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
   // fromOpening：接在打開網頁的過場背景後面，背景已經在了
-  | { name: "passage"; character: CharacterView; fromOpening: boolean }
-  | { name: "game"; character: CharacterView }
+  | { name: "passage"; character: CharacterVo; fromOpening: boolean }
+  | { name: "game"; character: CharacterVo }
 
 type Props = {
   api: ApiClient

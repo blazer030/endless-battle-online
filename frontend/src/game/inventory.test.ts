@@ -152,9 +152,17 @@ describe("candidatesFor", () => {
 describe("requirementRows", () => {
   const character = makeCharacter({
     jobId: "warrior",
-    baseStats: { str: 20, smart: 5, life: 10, vit: 10, agi: 12, au: 10, be: 10 },
+    baseStats: {
+      strength: 20,
+      intelligence: 5,
+      life: 10,
+      vitality: 10,
+      agility: 12,
+      charisma: 10,
+      faith: 10,
+    },
     // 有效數值含裝備加成，需求只比對裸點
-    stats: { ...makeCharacter().stats, smart: 50 },
+    stats: { ...makeCharacter().stats, intelligence: 50 },
   })
 
   it("compares bare stats with each nonzero requirement", () => {

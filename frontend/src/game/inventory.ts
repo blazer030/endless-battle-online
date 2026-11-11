@@ -1,9 +1,8 @@
 import { formatNumber } from "./format"
 import { buffLabel, durationMinutes } from "./buffs"
-import { statLabel } from "./stats"
+import { legacyStatCodes, statLabel, type LegacyStatCode } from "./stats"
 import type {
   BagCategoryView,
-  CharacterView,
   EquipmentSlot,
   InventoryItem,
   InventoryView,
@@ -12,6 +11,7 @@ import type {
   ItemRequirement,
   StatBonusView,
 } from "./types"
+import type { CharacterVo } from "./character"
 
 // 與後端 InventoryRules／Shop／Bank 的常數一致
 export const MaxStackQuantity = 99
@@ -157,19 +157,21 @@ export type Requirement = { text: string; met: boolean }
 
 export type JobName = { id: string; name: string }
 
-const requirementStats: (keyof ItemRequirement)[] = ["str", "smart", "agi", "au"]
+// 道具需求還是舊代碼，對到角色裸點的完整名稱
+const requirementStats = ["str", "smart", "agi", "au"] as const satisfies (keyof ItemRequirement &
+  LegacyStatCode)[]
 
 // 能力需求比對裸點（baseStats），不含裝備加成；jobId 為 null 表示不限職業
 export const requirementRows = (
   item: Pick<InventoryItem, "requires" | "jobId">,
-  character: Pick<CharacterView, "baseStats" | "jobId">,
+  character: Pick<CharacterVo, "baseStats" | "jobId">,
   jobNames: JobName[] = [],
 ): Requirement[] => {
   const rows: Requirement[] = requirementStats
     .filter((stat) => item.requires[stat] > 0)
     .map((stat) => ({
       text: `${statLabel(stat)} ≥ ${item.requires[stat]}`,
-      met: character.baseStats[stat] >= item.requires[stat],
+      met: character.baseStats[legacyStatCodes[stat]] >= item.requires[stat],
     }))
   if (item.jobId !== null) {
     const jobId = item.jobId
@@ -181,7 +183,7 @@ export const requirementRows = (
 
 export const meetsRequirements = (
   item: Pick<InventoryItem, "requires" | "jobId">,
-  character: Pick<CharacterView, "baseStats" | "jobId">,
+  character: Pick<CharacterVo, "baseStats" | "jobId">,
 ) => requirementRows(item, character).every((row) => row.met)
 
 export const sellPrice = (price: number, quantity: number) =>

@@ -191,7 +191,7 @@ test("MissionsScreen_DeliveryMissionShowsDeliverButton", async () => {
 })
 
 test("MissionsScreen_CompleteShowsResultAndUpdatesCharacter", async () => {
-  const updated = makeCharacter({ money: 50, exp: 190 })
+  const updated = makeCharacter({ money: 50, experience: 190 })
   const result: MissionCompletion = {
     board: makeMissionBoard({ completed: [delivery] }),
     character: updated,

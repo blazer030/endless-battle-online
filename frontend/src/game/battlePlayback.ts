@@ -1,11 +1,6 @@
 import { RestAfterBatchSeconds } from "../motion/timings"
-import type {
-  AdvanceResponse,
-  AdvanceSummary,
-  BattleEvent,
-  CharacterView,
-  MercenaryReport,
-} from "./types"
+import type { AdvanceResponse, AdvanceSummary, BattleEvent, MercenaryReport } from "./types"
+import type { CharacterVo } from "./character"
 
 export type PlaybackItem =
   | { kind: "event"; event: BattleEvent }
@@ -33,7 +28,7 @@ interface ScheduledItem {
 }
 
 // 升級播出前，等級與經驗條停在升級前的值，期間播出的經驗往上加
-type LevelBaseline = { exp: number; nextExp: number; gainedExp: number }
+type LevelBaseline = { experience: number; nextLevelExperience: number; gainedExperience: number }
 
 const noGain: Gain = { exp: 0, money: 0, levels: 0 }
 
@@ -61,13 +56,13 @@ const sumGains = (gains: Gain[]): Gain =>
   )
 
 export class BattlePlayback {
-  private confirmedCharacter: CharacterView
+  private confirmedCharacter: CharacterVo
   private pending: ScheduledItem[] = []
   private levelBaseline: LevelBaseline | null = null
   private timelineEnd = 0
   private nextOrder = 0
 
-  constructor(character: CharacterView) {
+  constructor(character: CharacterVo) {
     this.confirmedCharacter = character
   }
 
@@ -112,12 +107,16 @@ export class BattlePlayback {
     this.timelineEnd = batchStart + (lastSeconds + RestAfterBatchSeconds) * 1000
 
     if (this.levelBaseline === null && this.pendingGain().levels > 0) {
-      this.levelBaseline = { exp: before.exp, nextExp: before.nextExp, gainedExp: 0 }
+      this.levelBaseline = {
+        experience: before.experience,
+        nextLevelExperience: before.nextLevelExperience,
+        gainedExperience: 0,
+      }
     }
   }
 
   // 戰鬥以外的操作（轉職、學技能）回傳的最新角色資料；尚未播出的增量照樣扣回
-  confirm(character: CharacterView): void {
+  confirm(character: CharacterVo): void {
     this.confirmedCharacter = character
   }
 
@@ -127,7 +126,7 @@ export class BattlePlayback {
       .sort((a, b) => a.dueMilliseconds - b.dueMilliseconds || a.order - b.order)
     this.pending = this.pending.filter((scheduled) => scheduled.dueMilliseconds > nowMilliseconds)
     if (this.levelBaseline !== null) {
-      this.levelBaseline.gainedExp += sumGains(due.map((scheduled) => scheduled.gain)).exp
+      this.levelBaseline.gainedExperience += sumGains(due.map((scheduled) => scheduled.gain)).exp
       if (this.pendingGain().levels === 0) this.levelBaseline = null
     }
     return due.map((scheduled) => scheduled.item)
@@ -143,22 +142,22 @@ export class BattlePlayback {
   }
 
   // 顯示值 = 已確認的角色資料減去尚未播出的增量，數字隨戰報行逐步變化
-  get displayedCharacter(): CharacterView {
+  get displayedCharacter(): CharacterVo {
     const pending = this.pendingGain()
     const confirmed = this.confirmedCharacter
     const money = Math.max(0, confirmed.money - pending.money)
     // 跨等級時經驗會歸零重算，無法單純扣回，改用升級前的經驗條
     if (pending.levels > 0 && this.levelBaseline !== null) {
-      const { exp, nextExp, gainedExp } = this.levelBaseline
+      const { experience, nextLevelExperience, gainedExperience } = this.levelBaseline
       return {
         ...confirmed,
         level: confirmed.level - pending.levels,
-        exp: Math.min(exp + gainedExp, nextExp),
-        nextExp,
+        experience: Math.min(experience + gainedExperience, nextLevelExperience),
+        nextLevelExperience,
         money,
       }
     }
-    return { ...confirmed, exp: Math.max(0, confirmed.exp - pending.exp), money }
+    return { ...confirmed, experience: Math.max(0, confirmed.experience - pending.exp), money }
   }
 
   private pendingGain(): Gain {

@@ -90,7 +90,7 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(100, booked.GetProperty("cost").GetInt64());
         Assert.Equal(1900, booked.GetProperty("character").GetProperty("money").GetInt64());
         var character = booked.GetProperty("character");
-        Assert.Equal(character.GetProperty("stats").GetProperty("hpMax").GetInt32(), character.GetProperty("hp").GetInt32());
+        Assert.Equal(character.GetProperty("stats").GetProperty("maxHealthPoints").GetInt32(), character.GetProperty("healthPoints").GetInt32());
         Assert.Equal("apprentice-loft", booked.GetProperty("lodging").GetProperty("roomId").GetString());
 
         var inn = await ReadAsync(await client.GetAsync("/api/inn", CancellationToken));

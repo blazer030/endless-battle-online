@@ -49,36 +49,36 @@ public sealed record CreateCharacterRequest(
     string? JobId,
     StatAllocationRequest? Allocation);
 
-public sealed record StatAllocationRequest(int? Str, int? Smart, int? Life, int? Agi);
+public sealed record StatAllocationRequest(int? Strength, int? Intelligence, int? Life, int? Agility);
 
 public sealed record StatsResponse(
-    int Str,
-    int Smart,
+    int Strength,
+    int Intelligence,
     int Life,
-    int Vit,
-    int Agi,
-    int Au,
-    int Be,
-    int At,
-    int Mat,
-    int Df,
-    int Mdf,
-    int HpMax,
-    int SpMax);
+    int Vitality,
+    int Agility,
+    int Charisma,
+    int Faith,
+    int Attack,
+    int MagicAttack,
+    int Defense,
+    int MagicDefense,
+    int MaxHealthPoints,
+    int MaxManaPoints);
 
 // 七項裸點；前端顯示「裸點（+裝備）」
-public sealed record BaseStatsResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be);
+public sealed record BaseStatsResponse(int Strength, int Intelligence, int Life, int Vitality, int Agility, int Charisma, int Faith);
 
 // Stats 為有效值（裸點 + 裝備）
 public sealed record CharacterResponse(
     string Name,
     int Level,
-    long Exp,
-    long NextExp,
+    long Experience,
+    long NextLevelExperience,
     long Money,
     long Bank,
-    int Hp,
-    int Sp,
+    int HealthPoints,
+    int ManaPoints,
     int Sex,
     int Element,
     int Birth,
@@ -96,16 +96,21 @@ public sealed record CharacterResponse(
 
 // 冒險設定：Attack null 表示自動；補給與住宿 -1 表示略過該條件；逃跑 0 表示不逃
 public sealed record AdventureSettingsResponse(
-    AttackKind? Attack, int PotionHpPercent, int PotionSpPercent, int RestHpPercent, int RestSpPercent, int EscapeHpPercent);
+    AttackKind? Attack,
+    int PotionHealthPointsPercent,
+    int PotionManaPointsPercent,
+    int RestHealthPointsPercent,
+    int RestManaPointsPercent,
+    int EscapeHealthPointsPercent);
 
 // 範圍由 Domain 驗證；數值欄位缺漏時回 400
 public sealed record AdventureSettingsRequest(
     AttackKind? Attack,
-    int? PotionHpPercent,
-    int? PotionSpPercent,
-    int? RestHpPercent,
-    int? RestSpPercent,
-    int? EscapeHpPercent);
+    int? PotionHealthPointsPercent,
+    int? PotionManaPointsPercent,
+    int? RestHealthPointsPercent,
+    int? RestManaPointsPercent,
+    int? EscapeHealthPointsPercent);
 
 // 道具與魔石的加成
 public sealed record StatBonusResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax)

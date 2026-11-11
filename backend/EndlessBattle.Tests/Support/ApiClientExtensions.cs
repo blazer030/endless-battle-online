@@ -26,17 +26,17 @@ public static class ApiClientExtensions
     public static object ValidCharacterBody(
         string name,
         string jobId = "warrior",
-        int str = 2,
-        int smart = 4,
+        int strength = 2,
+        int intelligence = 4,
         int life = 2,
-        int agi = 2) => new
+        int agility = 2) => new
         {
             name,
             sex = 1,
             element = 3,
             birth = 1,
             jobId,
-            allocation = new { str, smart, life, agi },
+            allocation = new { strength, intelligence, life, agility },
         };
 
     public static async Task<HttpResponseMessage> CreateCharacterAsync(this HttpClient client, object body) =>

@@ -37,14 +37,14 @@ public static class CharacterEndpoints
         {
             if (request is not
                 {
-                    PotionHpPercent: { } potionHp, PotionSpPercent: { } potionSp, RestHpPercent: { } restHp, RestSpPercent: { } restSp,
-                    EscapeHpPercent: { } escapeHp,
+                    PotionHealthPointsPercent: { } potionHealthPoints, PotionManaPointsPercent: { } potionManaPoints, RestHealthPointsPercent: { } restHealthPoints, RestManaPointsPercent: { } restManaPoints,
+                    EscapeHealthPointsPercent: { } escapeHealthPoints,
                 })
             {
                 throw new InputValidationException("設定資料不完整");
             }
 
-            var settings = new AdventureSettings(request.Attack, potionHp, potionSp, restHp, restSp, escapeHp);
+            var settings = new AdventureSettings(request.Attack, potionHealthPoints, potionManaPoints, restHealthPoints, restManaPoints, escapeHealthPoints);
             var profile = await service.UpdateSettingsAsync(user.GetAccountId(), settings, cancellationToken);
             return TypedResults.Ok(ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content));
         });
@@ -61,13 +61,13 @@ public static class CharacterEndpoints
             || request.Element is not { } element
             || request.Birth is not { } birth
             || request.JobId is null
-            || allocation is not { Str: { } str, Smart: { } smart, Life: { } life, Agi: { } agi })
+            || allocation is not { Strength: { } strength, Intelligence: { } intelligence, Life: { } life, Agility: { } agility })
         {
             throw new InputValidationException("創角資料不完整");
         }
 
         return new CreateCharacterCommand(
-            request.Name, sex, element, birth, request.JobId, new StatAllocation(str, smart, life, agi));
+            request.Name, sex, element, birth, request.JobId, new StatAllocation(strength, intelligence, life, agility));
     }
 
     // Stats 是有效值（裸點 + 裝備），BaseStats 是裸點

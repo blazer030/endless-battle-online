@@ -4,7 +4,8 @@ import { formatNumber } from "../game/format"
 import { lodgingLine, replaceHint, roomEffect, stayLength } from "../game/inn"
 import { canAfford } from "../game/inventory"
 import { parseSettings, settingsForm } from "../game/settings"
-import type { CharacterView, InnView } from "../game/types"
+import type { InnView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { BuffTickMilliseconds } from "../motion/timings"
 import type { Mutate } from "./bagWidgets"
 
@@ -12,7 +13,7 @@ export type InnApi = Pick<ApiClient, "getInn" | "bookInn" | "updateSettings">
 
 type Props = {
   api: InnApi
-  character: CharacterView
+  character: CharacterVo
   busy: boolean
   mutate: Mutate
 }
@@ -26,8 +27,8 @@ export function InnPage({ api, character, busy, mutate }: Props) {
   // 剩餘時間定時重算，到期後加成列跟著消失
   const [now, setNow] = useState(() => new Date())
   const [error, setError] = useState<string | null>(null)
-  const [restHp, setRestHp] = useState(String(character.settings.restHpPercent))
-  const [restSp, setRestSp] = useState(String(character.settings.restSpPercent))
+  const [restHp, setRestHp] = useState(String(character.settings.restHealthPointsPercent))
+  const [restSp, setRestSp] = useState(String(character.settings.restManaPointsPercent))
   const [settingsError, setSettingsError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -87,8 +88,8 @@ export function InnPage({ api, character, busy, mutate }: Props) {
   const saveThresholds = async () => {
     const parsed = parseSettings({
       ...settingsForm(character),
-      restHpPercent: restHp,
-      restSpPercent: restSp,
+      restHealthPointsPercent: restHp,
+      restManaPointsPercent: restSp,
     })
     if (!parsed.ok) {
       setSettingsError(parsed.error)

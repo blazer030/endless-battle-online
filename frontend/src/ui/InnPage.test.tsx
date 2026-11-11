@@ -2,7 +2,8 @@ import { render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import { errorMessage } from "../game/inventory"
-import type { CharacterView, InnRoomView, InnView } from "../game/types"
+import type { InnRoomView, InnView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { makeCharacter } from "../test/fixtures"
 import { user } from "../test/user"
 import { InnPage, type InnApi } from "./InnPage"
@@ -40,7 +41,7 @@ const createFakeApi = (inn: InnView = { rooms, lodging: null }): InnApi => {
   }
 }
 
-const renderInn = (api: InnApi, character: CharacterView = makeCharacter({ money: 1300 })) => {
+const renderInn = (api: InnApi, character: CharacterVo = makeCharacter({ money: 1300 })) => {
   const onCharacterChanged = vi.fn()
   const mutate: Mutate = async (action) => {
     try {
@@ -135,11 +136,11 @@ test("InnPage_SavesRestThresholdsWithTheFullSettings", async () => {
     money: 1300,
     settings: {
       attack: "Magic",
-      potionHpPercent: 20,
-      potionSpPercent: 90,
-      restHpPercent: 15,
-      restSpPercent: 15,
-      escapeHpPercent: 5,
+      potionHealthPointsPercent: 20,
+      potionManaPointsPercent: 90,
+      restHealthPointsPercent: 15,
+      restManaPointsPercent: 15,
+      escapeHealthPointsPercent: 5,
     },
   })
   const { onCharacterChanged } = renderInn(api, character)
@@ -151,11 +152,11 @@ test("InnPage_SavesRestThresholdsWithTheFullSettings", async () => {
 
   expect(api.updateSettings).toHaveBeenCalledWith({
     attack: "Magic",
-    potionHpPercent: 20,
-    potionSpPercent: 90,
-    restHpPercent: 40,
-    restSpPercent: 15,
-    escapeHpPercent: 5,
+    potionHealthPointsPercent: 20,
+    potionManaPointsPercent: 90,
+    restHealthPointsPercent: 40,
+    restManaPointsPercent: 15,
+    escapeHealthPointsPercent: 5,
   })
   expect(onCharacterChanged).toHaveBeenCalled()
 })

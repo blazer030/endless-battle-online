@@ -127,14 +127,14 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("Weapon", slot.GetProperty("slot").GetString());
         Assert.Empty(Category(equipped, "Weapon").GetProperty("items").EnumerateArray());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(20, me.GetProperty("stats").GetProperty("at").GetInt32());
+        Assert.Equal(20, me.GetProperty("stats").GetProperty("attack").GetInt32());
 
         await ReadAsync(await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = ring }, CancellationToken));
 
         me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(62, me.GetProperty("stats").GetProperty("str").GetInt32());
-        Assert.Equal(70, me.GetProperty("stats").GetProperty("at").GetInt32());
-        Assert.Equal(12, me.GetProperty("baseStats").GetProperty("str").GetInt32());
+        Assert.Equal(62, me.GetProperty("stats").GetProperty("strength").GetInt32());
+        Assert.Equal(70, me.GetProperty("stats").GetProperty("attack").GetInt32());
+        Assert.Equal(12, me.GetProperty("baseStats").GetProperty("strength").GetInt32());
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         await ReadAsync(await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = potion }, CancellationToken));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(13, me.GetProperty("baseStats").GetProperty("str").GetInt32());
+        Assert.Equal(13, me.GetProperty("baseStats").GetProperty("strength").GetInt32());
     }
 
     // 生命護符 life +20 → hpMax 32×25+50 = 850；在身上時 hp 850，卸下後上限回到 350，hp 不能超過
@@ -189,8 +189,8 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         await ReadAsync(await client.PostAsJsonAsync("/api/inventory/unequip", new { slot = "Accessory" }, CancellationToken));
 
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        Assert.Equal(350, me.GetProperty("stats").GetProperty("hpMax").GetInt32());
-        Assert.Equal(350, me.GetProperty("hp").GetInt32());
+        Assert.Equal(350, me.GetProperty("stats").GetProperty("maxHealthPoints").GetInt32());
+        Assert.Equal(350, me.GetProperty("healthPoints").GetInt32());
     }
 
     [Fact]

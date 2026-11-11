@@ -1675,11 +1675,11 @@
       "AdventureSettingsRequest": {
         "required": [
           "attack",
-          "potionHpPercent",
-          "potionSpPercent",
-          "restHpPercent",
-          "restSpPercent",
-          "escapeHpPercent"
+          "potionHealthPointsPercent",
+          "potionManaPointsPercent",
+          "restHealthPointsPercent",
+          "restManaPointsPercent",
+          "escapeHealthPointsPercent"
         ],
         "type": "object",
         "properties": {
@@ -1693,35 +1693,35 @@
               }
             ]
           },
-          "potionHpPercent": {
+          "potionHealthPointsPercent": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "potionSpPercent": {
+          "potionManaPointsPercent": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "restHpPercent": {
+          "restHealthPointsPercent": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "restSpPercent": {
+          "restManaPointsPercent": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "escapeHpPercent": {
+          "escapeHealthPointsPercent": {
             "type": [
               "null",
               "integer"
@@ -1733,11 +1733,11 @@
       "AdventureSettingsResponse": {
         "required": [
           "attack",
-          "potionHpPercent",
-          "potionSpPercent",
-          "restHpPercent",
-          "restSpPercent",
-          "escapeHpPercent"
+          "potionHealthPointsPercent",
+          "potionManaPointsPercent",
+          "restHealthPointsPercent",
+          "restManaPointsPercent",
+          "escapeHealthPointsPercent"
         ],
         "type": "object",
         "properties": {
@@ -1751,23 +1751,23 @@
               }
             ]
           },
-          "potionHpPercent": {
+          "potionHealthPointsPercent": {
             "type": "integer",
             "format": "int32"
           },
-          "potionSpPercent": {
+          "potionManaPointsPercent": {
             "type": "integer",
             "format": "int32"
           },
-          "restHpPercent": {
+          "restHealthPointsPercent": {
             "type": "integer",
             "format": "int32"
           },
-          "restSpPercent": {
+          "restManaPointsPercent": {
             "type": "integer",
             "format": "int32"
           },
-          "escapeHpPercent": {
+          "escapeHealthPointsPercent": {
             "type": "integer",
             "format": "int32"
           }
@@ -1820,21 +1820,21 @@
       },
       "BaseStatsResponse": {
         "required": [
-          "str",
-          "smart",
+          "strength",
+          "intelligence",
           "life",
-          "vit",
-          "agi",
-          "au",
-          "be"
+          "vitality",
+          "agility",
+          "charisma",
+          "faith"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": "integer",
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": "integer",
             "format": "int32"
           },
@@ -1842,19 +1842,19 @@
             "type": "integer",
             "format": "int32"
           },
-          "vit": {
+          "vitality": {
             "type": "integer",
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": "integer",
             "format": "int32"
           },
-          "au": {
+          "charisma": {
             "type": "integer",
             "format": "int32"
           },
-          "be": {
+          "faith": {
             "type": "integer",
             "format": "int32"
           }
@@ -2632,12 +2632,12 @@
         "required": [
           "name",
           "level",
-          "exp",
-          "nextExp",
+          "experience",
+          "nextLevelExperience",
           "money",
           "bank",
-          "hp",
-          "sp",
+          "healthPoints",
+          "manaPoints",
           "sex",
           "element",
           "birth",
@@ -2662,11 +2662,11 @@
             "type": "integer",
             "format": "int32"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },
-          "nextExp": {
+          "nextLevelExperience": {
             "type": "integer",
             "format": "int64"
           },
@@ -2678,11 +2678,11 @@
             "type": "integer",
             "format": "int64"
           },
-          "hp": {
+          "healthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "sp": {
+          "manaPoints": {
             "type": "integer",
             "format": "int32"
           },
@@ -5454,21 +5454,21 @@
       },
       "StatAllocationRequest": {
         "required": [
-          "str",
-          "smart",
+          "strength",
+          "intelligence",
           "life",
-          "agi"
+          "agility"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": [
               "null",
               "integer"
@@ -5482,7 +5482,7 @@
             ],
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": [
               "null",
               "integer"
@@ -5576,27 +5576,27 @@
       },
       "StatsResponse": {
         "required": [
-          "str",
-          "smart",
+          "strength",
+          "intelligence",
           "life",
-          "vit",
-          "agi",
-          "au",
-          "be",
-          "at",
-          "mat",
-          "df",
-          "mdf",
-          "hpMax",
-          "spMax"
+          "vitality",
+          "agility",
+          "charisma",
+          "faith",
+          "attack",
+          "magicAttack",
+          "defense",
+          "magicDefense",
+          "maxHealthPoints",
+          "maxManaPoints"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": "integer",
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": "integer",
             "format": "int32"
           },
@@ -5604,43 +5604,43 @@
             "type": "integer",
             "format": "int32"
           },
-          "vit": {
+          "vitality": {
             "type": "integer",
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": "integer",
             "format": "int32"
           },
-          "au": {
+          "charisma": {
             "type": "integer",
             "format": "int32"
           },
-          "be": {
+          "faith": {
             "type": "integer",
             "format": "int32"
           },
-          "at": {
+          "attack": {
             "type": "integer",
             "format": "int32"
           },
-          "mat": {
+          "magicAttack": {
             "type": "integer",
             "format": "int32"
           },
-          "df": {
+          "defense": {
             "type": "integer",
             "format": "int32"
           },
-          "mdf": {
+          "magicDefense": {
             "type": "integer",
             "format": "int32"
           },
-          "hpMax": {
+          "maxHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "spMax": {
+          "maxManaPoints": {
             "type": "integer",
             "format": "int32"
           }

@@ -8,12 +8,12 @@ import {
 } from "../game/mercenaries"
 import { isNameTooLong, MercenaryNameMaxLength, NameLengthError } from "../game/names"
 import type {
-  CharacterView,
   MercenaryCatalogueEntry,
   MercenaryContract,
   MercenaryOverview,
   WorldPlace,
 } from "../game/types"
+import type { CharacterVo } from "../game/character"
 
 export type MercenaryApi = Pick<
   ApiClient,
@@ -28,7 +28,7 @@ export type MercenaryApi = Pick<
 
 type Props = {
   api: MercenaryApi
-  onCharacterChanged: (character: CharacterView) => void
+  onCharacterChanged: (character: CharacterVo) => void
 }
 
 const fallbackError = "發生錯誤，請稍後再試"

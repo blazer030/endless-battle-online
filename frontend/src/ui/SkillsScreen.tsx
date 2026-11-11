@@ -18,7 +18,8 @@ import {
 } from "../game/skills"
 import type { SlotDraft, SlotNumber } from "../game/skills"
 import { statLabel } from "../game/stats"
-import type { CharacterView, JobOption, SkillOverview, SkillView } from "../game/types"
+import type { JobOption, SkillOverview, SkillView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import "./SkillsScreen.css"
 import { usePanelRefresh } from "./usePanelRefresh"
@@ -30,8 +31,8 @@ export type SkillsApi = Pick<
 
 type Props = {
   api: SkillsApi
-  character: CharacterView
-  onCharacterChange: (character: CharacterView) => void
+  character: CharacterVo
+  onCharacterChange: (character: CharacterVo) => void
   // 戰報有升級或熟練度時遞增，開著的技能頁跟著重新載入
   refreshSignal?: number
 }

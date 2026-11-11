@@ -1,15 +1,10 @@
 import { describe, expect, it } from "vitest"
-import type {
-  AdvanceResponse,
-  AdvanceSummary,
-  BattleEvent,
-  CharacterView,
-  MercenaryReport,
-} from "./types"
+import type { AdvanceResponse, AdvanceSummary, BattleEvent, MercenaryReport } from "./types"
+import type { CharacterVo } from "./character"
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { BattlePlayback } from "./battlePlayback"
 
-const startCharacter: CharacterView = makeCharacter({ name: "test" })
+const startCharacter: CharacterVo = makeCharacter({ name: "test" })
 
 function encounter(atSeconds: number): BattleEvent {
   return {
@@ -36,7 +31,15 @@ function levelUp(atSeconds: number, newLevel: number): BattleEvent {
     type: "levelUp",
     atSeconds,
     newLevel,
-    growth: { str: 1, smart: 0, life: 0, vit: 0, agi: 0, au: 0, be: 0 },
+    growth: {
+      strength: 1,
+      intelligence: 0,
+      life: 0,
+      vitality: 0,
+      agility: 0,
+      charisma: 0,
+      faith: 0,
+    },
   }
 }
 
@@ -46,7 +49,7 @@ function rest(atSeconds: number, cost: number): BattleEvent {
 
 function response(
   events: BattleEvent[],
-  character: Partial<CharacterView> = {},
+  character: Partial<CharacterVo> = {},
   summary: Partial<AdvanceSummary> = {},
   eventsCoverAll = true,
   mercenary: MercenaryReport | null = null,
@@ -85,12 +88,18 @@ const mercenaryReport: MercenaryReport = {
 describe("BattlePlayback", () => {
   it("confirm_ReplacesCharacterAndKeepsUnplayedGainsPending", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([reward(2, 10, 30)], { exp: 10, money: 30 }), 0)
+    playback.enqueue(response([reward(2, 10, 30)], { experience: 10, money: 30 }), 0)
 
-    playback.confirm({ ...startCharacter, exp: 10, money: 20, jobId: "knight", jobName: "騎士" })
+    playback.confirm({
+      ...startCharacter,
+      experience: 10,
+      money: 20,
+      jobId: "knight",
+      jobName: "騎士",
+    })
 
     expect(playback.displayedCharacter).toMatchObject({
-      exp: 0,
+      experience: 0,
       money: 0,
       jobId: "knight",
       jobName: "騎士",
@@ -100,7 +109,11 @@ describe("BattlePlayback", () => {
   it("discardQueued_DropsUnplayedItemsAndShowsTheConfirmedCharacter", () => {
     const playback = new BattlePlayback(startCharacter)
     playback.enqueue(
-      response([encounter(0), reward(2, 10, 30), levelUp(3, 2)], { level: 2, exp: 5, money: 30 }),
+      response([encounter(0), reward(2, 10, 30), levelUp(3, 2)], {
+        level: 2,
+        experience: 5,
+        money: 30,
+      }),
       0,
     )
     playback.takeDue(0)
@@ -110,7 +123,7 @@ describe("BattlePlayback", () => {
     expect(playback.displayedCharacter).toEqual({
       ...startCharacter,
       level: 2,
-      exp: 5,
+      experience: 5,
       money: 30,
     })
   })
@@ -220,11 +233,11 @@ describe("BattlePlayback", () => {
   it("enqueue_SummaryOnly_WhenNoEventsReturned", () => {
     const playback = new BattlePlayback(startCharacter)
     playback.enqueue(
-      response([], { exp: 50, money: 9 }, { fights: 5, wins: 5, exp: 20, money: 4 }, false),
+      response([], { experience: 50, money: 9 }, { fights: 5, wins: 5, exp: 20, money: 4 }, false),
       1000,
     )
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 30, money: 5 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 30, money: 5 })
     expect(playback.takeDue(999)).toEqual([])
     expect(playback.takeDue(1000)).toEqual([
       {
@@ -238,7 +251,7 @@ describe("BattlePlayback", () => {
         petsCaptured: 0,
       },
     ])
-    expect(playback.displayedCharacter).toMatchObject({ exp: 50, money: 9 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 50, money: 9 })
     const next = encounter(0)
     playback.enqueue(response([next]), 1000)
     expect(playback.takeDue(1999)).toEqual([])
@@ -272,13 +285,13 @@ describe("BattlePlayback", () => {
 
   it("displayedCharacter_ExcludesUnplayedRewards", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([encounter(0), reward(2, 8, 0)], { exp: 13 }), 0)
+    playback.enqueue(response([encounter(0), reward(2, 8, 0)], { experience: 13 }), 0)
 
-    expect(playback.displayedCharacter.exp).toBe(5)
+    expect(playback.displayedCharacter.experience).toBe(5)
 
     playback.takeDue(2000)
 
-    expect(playback.displayedCharacter.exp).toBe(13)
+    expect(playback.displayedCharacter.experience).toBe(13)
   })
 
   it("displayedCharacter_SummaryCountsOnlyTheSkippedPart", () => {
@@ -286,22 +299,22 @@ describe("BattlePlayback", () => {
     playback.enqueue(
       response(
         [encounter(35), reward(40, 3, 2)],
-        { exp: 107, money: 2008 },
+        { experience: 107, money: 2008 },
         { fights: 2, wins: 2, exp: 7, money: 8 },
         false,
       ),
       0,
     )
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 100, money: 2000 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 100, money: 2000 })
 
     playback.takeDue(0)
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 104, money: 2006 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 104, money: 2006 })
 
     playback.takeDue(5000)
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 107, money: 2008 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 107, money: 2008 })
   })
 
   it("displayedCharacter_AddsBackUnplayedRestCost", () => {
@@ -316,70 +329,94 @@ describe("BattlePlayback", () => {
   })
 
   it("displayedCharacter_HoldsLevelAndExpUntilLevelUpPlays", () => {
-    const before = makeCharacter({ level: 1, exp: 990, nextExp: 1000 })
+    const before = makeCharacter({ level: 1, experience: 990, nextLevelExperience: 1000 })
     const playback = new BattlePlayback(before)
     playback.enqueue(
       response([encounter(0), reward(2, 30, 0), levelUp(2, 2)], {
         level: 2,
-        exp: 20,
-        nextExp: 1092,
+        experience: 20,
+        nextLevelExperience: 1092,
       }),
       0,
     )
 
-    expect(playback.displayedCharacter).toMatchObject({ level: 1, exp: 990, nextExp: 1000 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 1,
+      experience: 990,
+      nextLevelExperience: 1000,
+    })
 
     // 獎勵與升級同一時刻；只播到獎勵前一刻時仍是舊等級
     playback.takeDue(1999)
-    expect(playback.displayedCharacter).toMatchObject({ level: 1, exp: 990, nextExp: 1000 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 1,
+      experience: 990,
+      nextLevelExperience: 1000,
+    })
 
     playback.takeDue(2000)
-    expect(playback.displayedCharacter).toMatchObject({ level: 2, exp: 20, nextExp: 1092 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 2,
+      experience: 20,
+      nextLevelExperience: 1092,
+    })
   })
 
   it("displayedCharacter_FillsExpBarBeforePendingLevelUp", () => {
-    const before = makeCharacter({ level: 1, exp: 900, nextExp: 1000 })
+    const before = makeCharacter({ level: 1, experience: 900, nextLevelExperience: 1000 })
     const playback = new BattlePlayback(before)
     playback.enqueue(
       response([reward(0, 50, 0), reward(1, 80, 0), levelUp(1, 2)], {
         level: 2,
-        exp: 30,
-        nextExp: 1092,
+        experience: 30,
+        nextLevelExperience: 1092,
       }),
       0,
     )
 
     playback.takeDue(0)
 
-    expect(playback.displayedCharacter).toMatchObject({ level: 1, exp: 950, nextExp: 1000 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 1,
+      experience: 950,
+      nextLevelExperience: 1000,
+    })
   })
 
   it("displayedCharacter_SummaryLevelsHoldLevelUntilSummaryPlays", () => {
-    const before = makeCharacter({ level: 4, exp: 10, nextExp: 1200 })
+    const before = makeCharacter({ level: 4, experience: 10, nextLevelExperience: 1200 })
     const playback = new BattlePlayback(before)
     playback.enqueue(
       response(
         [encounter(95)],
-        { level: 6, exp: 5, nextExp: 1400 },
+        { level: 6, experience: 5, nextLevelExperience: 1400 },
         { fights: 30, wins: 30, exp: 4000, money: 0, levelsGained: 2 },
         false,
       ),
       0,
     )
 
-    expect(playback.displayedCharacter).toMatchObject({ level: 4, exp: 10, nextExp: 1200 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 4,
+      experience: 10,
+      nextLevelExperience: 1200,
+    })
 
     playback.takeDue(0)
 
-    expect(playback.displayedCharacter).toMatchObject({ level: 6, exp: 5, nextExp: 1400 })
+    expect(playback.displayedCharacter).toMatchObject({
+      level: 6,
+      experience: 5,
+      nextLevelExperience: 1400,
+    })
   })
 
   it("enqueue_EmptyEvents_UpdatesCharacterOnly", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([], { exp: 7, money: 3 }), 0)
+    playback.enqueue(response([], { experience: 7, money: 3 }), 0)
 
     expect(playback.takeDue(100000)).toEqual([])
-    expect(playback.displayedCharacter).toMatchObject({ exp: 7, money: 3 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 7, money: 3 })
   })
 
   it("enqueue_Mercenary_LeadsTheBatchAndHoldsItsGains", () => {
@@ -387,7 +424,7 @@ describe("BattlePlayback", () => {
     playback.enqueue(
       response(
         [encounter(0), reward(2, 10, 30)],
-        { exp: 50, money: 37 },
+        { experience: 50, money: 37 },
         {},
         true,
         mercenaryReport,
@@ -395,21 +432,21 @@ describe("BattlePlayback", () => {
       1000,
     )
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 0, money: 0 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 0, money: 0 })
     const first = playback.takeDue(1000)
     expect(first).toEqual([
       { kind: "mercenary", report: mercenaryReport },
       { kind: "event", event: encounter(0) },
     ])
-    expect(playback.displayedCharacter).toMatchObject({ exp: 40, money: 7 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 40, money: 7 })
   })
 
   it("enqueue_MercenaryOnly_IsScheduledWithoutEvents", () => {
     const playback = new BattlePlayback(startCharacter)
-    playback.enqueue(response([], { exp: 40, money: 7 }, {}, true, mercenaryReport), 500)
+    playback.enqueue(response([], { experience: 40, money: 7 }, {}, true, mercenaryReport), 500)
 
-    expect(playback.displayedCharacter).toMatchObject({ exp: 0, money: 0 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 0, money: 0 })
     expect(playback.takeDue(500)).toEqual([{ kind: "mercenary", report: mercenaryReport }])
-    expect(playback.displayedCharacter).toMatchObject({ exp: 40, money: 7 })
+    expect(playback.displayedCharacter).toMatchObject({ experience: 40, money: 7 })
   })
 })

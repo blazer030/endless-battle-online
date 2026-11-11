@@ -104,7 +104,7 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(3, body.GetProperty("subPlace").GetInt32());
         Assert.Equal("三洞", body.GetProperty("subPlaceName").GetString());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
-        foreach (var field in new[] { "placeId", "subPlace", "exp", "hp" })
+        foreach (var field in new[] { "placeId", "subPlace", "experience", "healthPoints" })
         {
             Assert.Equal(body.GetProperty(field).GetInt64(), me.GetProperty(field).GetInt64());
         }

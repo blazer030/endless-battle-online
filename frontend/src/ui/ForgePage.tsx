@@ -25,7 +25,8 @@ import {
   type ForgeOption,
 } from "../game/forge"
 import { canAfford, ForgeTools, itemTitle } from "../game/inventory"
-import type { CharacterView, InventoryItem, InventoryView, Recipe } from "../game/types"
+import type { InventoryItem, InventoryView, Recipe } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { ItemName, QuantityStepper, TabPanel, Tabs, type Mutate, type Outcome } from "./bagWidgets"
 import "./ForgePage.css"
 
@@ -52,7 +53,7 @@ const sections: { id: Section; label: string }[] = [
 type Props = {
   api: ForgeApi
   inventory: InventoryView
-  character: CharacterView
+  character: CharacterVo
   busy: boolean
   mutate: Mutate
 }

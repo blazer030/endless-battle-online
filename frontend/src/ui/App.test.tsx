@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../api/client"
 import { readAccessToken, saveAccessToken } from "../api/authStorage"
-import type { CharacterView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import {
   PassageLeaveMilliseconds,
   PassageMilliseconds,
@@ -18,7 +18,7 @@ vi.mock("./AdventureScreen", () => ({
     initialCharacter,
     onSignOut,
   }: {
-    initialCharacter: CharacterView
+    initialCharacter: CharacterVo
     onSignOut: () => void
   }) => (
     <>
@@ -255,12 +255,12 @@ test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
 // 讀到角色時不換背景：墨點和歡迎詞在同一個過場元素裡，背景不重畫、不閃
 test("App_StoredTokenWithCharacter_KeepsPassageBackdrop", async () => {
   saveAccessToken("token")
-  let finishLoad: (loaded: CharacterView) => void = () => {}
+  let finishLoad: (loaded: CharacterVo) => void = () => {}
   renderApp(
     createFakeApi({
       getMyCharacter: vi
         .fn()
-        .mockReturnValue(new Promise<CharacterView>((resolve) => (finishLoad = resolve))),
+        .mockReturnValue(new Promise<CharacterVo>((resolve) => (finishLoad = resolve))),
     }),
   )
   const backdrop = screen.getByRole("status", { name: "讀取中" }).parentElement
@@ -435,12 +435,12 @@ test.each([
 // 重試再讀一次角色：登入後讀不到 → 重試時回到讀取中（字條收起、看不到登記證）→ 成功後跟第一次就成功一樣先歡迎回來
 test("App_RetryRepeatsLoad", async () => {
   const user = setupUser()
-  let finishRetry: (loaded: CharacterView) => void = () => {}
+  let finishRetry: (loaded: CharacterVo) => void = () => {}
   const api = createFakeApi({
     getMyCharacter: vi
       .fn()
       .mockRejectedValueOnce(new TypeError("Failed to fetch"))
-      .mockReturnValueOnce(new Promise<CharacterView>((resolve) => (finishRetry = resolve))),
+      .mockReturnValueOnce(new Promise<CharacterVo>((resolve) => (finishRetry = resolve))),
   })
   renderApp(api)
   await signIn(user)

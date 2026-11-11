@@ -58,11 +58,11 @@ test("SettingsPanel_SavesAndReportsTheCharacter", async () => {
 
   expect(api.updateSettings).toHaveBeenCalledWith({
     attack: "Magic",
-    potionHpPercent: 15,
-    potionSpPercent: -1,
-    restHpPercent: 15,
-    restSpPercent: 15,
-    escapeHpPercent: 0,
+    potionHealthPointsPercent: 15,
+    potionManaPointsPercent: -1,
+    restHealthPointsPercent: 15,
+    restManaPointsPercent: 15,
+    escapeHealthPointsPercent: 0,
   })
   expect(onCharacterChanged).toHaveBeenCalledWith(saved)
   expect(onClose).toHaveBeenCalled()

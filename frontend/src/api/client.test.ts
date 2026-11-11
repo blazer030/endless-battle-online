@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
-import type { CreateCharacterCommand } from "../game/types"
+import type { CreateCharacterCommand } from "../game/character"
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
@@ -14,13 +14,16 @@ const advanceBody = {
   character: makeCharacter(),
 }
 
+// 只驗證路徑與方法的測試共用：同時可當成角色，也帶著夾帶的角色
+const anyBody = { ...makeCharacter(), character: makeCharacter() }
+
 const command: CreateCharacterCommand = {
   name: "青衣",
   sex: 2,
   element: 3,
   birth: 4,
   jobId: "sorcerer",
-  allocation: { str: 1, smart: 5, life: 3, agi: 1 },
+  allocation: { strength: 1, intelligence: 5, life: 3, agility: 1 },
 }
 
 beforeEach(() => localStorage.clear())
@@ -117,7 +120,7 @@ test("request_TimesOut_WhenServerNeverResponds", async () => {
 })
 
 test("skillAndJobCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getJobs()
@@ -162,7 +165,7 @@ test("request_HasNoReasons_WhenProblemOmitsThem", async () => {
 })
 
 test("worldCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getWorld()
@@ -182,15 +185,15 @@ test("worldCalls_UseTheirEndpoints", async () => {
 })
 
 test("updateSettings_PutsTheCommand", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
   const command = {
     attack: null,
-    potionHpPercent: 30,
-    potionSpPercent: -1,
-    restHpPercent: 20,
-    restSpPercent: -1,
-    escapeHpPercent: 10,
+    potionHealthPointsPercent: 30,
+    potionManaPointsPercent: -1,
+    restHealthPointsPercent: 20,
+    restManaPointsPercent: -1,
+    escapeHealthPointsPercent: 10,
   }
 
   await client.updateSettings(command)
@@ -204,7 +207,7 @@ test("updateSettings_PutsTheCommand", async () => {
 })
 
 test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getInventory()
@@ -244,7 +247,7 @@ test("itemAndEconomyCalls_UseTheirEndpoints", async () => {
 })
 
 test("forgeCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.refine(7, 30, true)
@@ -278,7 +281,7 @@ test("forgeCalls_UseTheirEndpoints", async () => {
 })
 
 test("missionCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getMissions()
@@ -300,7 +303,7 @@ test("missionCalls_UseTheirEndpoints", async () => {
 })
 
 test("companionCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse({})))
+  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getPets()
@@ -381,7 +384,7 @@ test("getInn_GetsRoomsAndLodging", async () => {
 
 test("bookInn_PostsTheRoomId", async () => {
   const booked = {
-    character: {},
+    character: makeCharacter(),
     lodging: { roomId: "bulwark-room", endsAt: "2026-10-30T08:00:00Z" },
     cost: 300,
   }

@@ -71,7 +71,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         var body = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
         Assert.Equal("thief", body.GetProperty("jobId").GetString());
         Assert.Equal("盜賊", body.GetProperty("jobName").GetString());
-        foreach (var field in new[] { "level", "exp", "money" })
+        foreach (var field in new[] { "level", "experience", "money" })
         {
             Assert.Equal(before.GetProperty(field).GetInt64(), body.GetProperty(field).GetInt64());
         }

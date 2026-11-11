@@ -10,11 +10,11 @@ import type { SettingsForm } from "./settings"
 
 const form = (overrides: Partial<SettingsForm> = {}): SettingsForm => ({
   attack: "auto",
-  potionHpPercent: "15",
-  potionSpPercent: "100",
-  restHpPercent: "15",
-  restSpPercent: "15",
-  escapeHpPercent: "0",
+  potionHealthPointsPercent: "15",
+  potionManaPointsPercent: "100",
+  restHealthPointsPercent: "15",
+  restManaPointsPercent: "15",
+  escapeHealthPointsPercent: "0",
   ...overrides,
 })
 
@@ -23,21 +23,21 @@ describe("settingsForm", () => {
     const character = makeCharacter({
       settings: {
         attack: "Magic",
-        potionHpPercent: 30,
-        potionSpPercent: -1,
-        restHpPercent: 20,
-        restSpPercent: -1,
-        escapeHpPercent: 10,
+        potionHealthPointsPercent: 30,
+        potionManaPointsPercent: -1,
+        restHealthPointsPercent: 20,
+        restManaPointsPercent: -1,
+        escapeHealthPointsPercent: 10,
       },
     })
 
     expect(settingsForm(character)).toEqual({
       attack: "Magic",
-      potionHpPercent: "30",
-      potionSpPercent: "-1",
-      restHpPercent: "20",
-      restSpPercent: "-1",
-      escapeHpPercent: "10",
+      potionHealthPointsPercent: "30",
+      potionManaPointsPercent: "-1",
+      restHealthPointsPercent: "20",
+      restManaPointsPercent: "-1",
+      escapeHealthPointsPercent: "10",
     })
   })
 
@@ -49,16 +49,22 @@ describe("settingsForm", () => {
 describe("parseSettings", () => {
   test("parseSettings_ReturnsCommandWhenValid", () => {
     expect(
-      parseSettings(form({ attack: "Physical", potionSpPercent: " -1 ", escapeHpPercent: "100" })),
+      parseSettings(
+        form({
+          attack: "Physical",
+          potionManaPointsPercent: " -1 ",
+          escapeHealthPointsPercent: "100",
+        }),
+      ),
     ).toEqual({
       ok: true,
       command: {
         attack: "Physical",
-        potionHpPercent: 15,
-        potionSpPercent: -1,
-        restHpPercent: 15,
-        restSpPercent: 15,
-        escapeHpPercent: 100,
+        potionHealthPointsPercent: 15,
+        potionManaPointsPercent: -1,
+        restHealthPointsPercent: 15,
+        restManaPointsPercent: 15,
+        escapeHealthPointsPercent: 100,
       },
     })
   })
@@ -69,13 +75,13 @@ describe("parseSettings", () => {
   })
 
   test.each<[string, Partial<SettingsForm>]>([
-    ["empty", { potionHpPercent: "" }],
-    ["decimal", { restHpPercent: "12.5" }],
-    ["not a number", { restSpPercent: "abc" }],
-    ["below -1", { potionSpPercent: "-2" }],
-    ["above 100", { potionHpPercent: "101" }],
-    ["escape below 0", { escapeHpPercent: "-1" }],
-    ["escape above 100", { escapeHpPercent: "101" }],
+    ["empty", { potionHealthPointsPercent: "" }],
+    ["decimal", { restHealthPointsPercent: "12.5" }],
+    ["not a number", { restManaPointsPercent: "abc" }],
+    ["below -1", { potionManaPointsPercent: "-2" }],
+    ["above 100", { potionHealthPointsPercent: "101" }],
+    ["escape below 0", { escapeHealthPointsPercent: "-1" }],
+    ["escape above 100", { escapeHealthPointsPercent: "101" }],
   ])("parseSettings_RejectsInvalidPercent_%s", (_name, overrides) => {
     expect(parseSettings(form(overrides))).toEqual({ ok: false, error: InvalidPercentMessage })
   })

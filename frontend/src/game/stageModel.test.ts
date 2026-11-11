@@ -215,7 +215,15 @@ describe("stageModel", () => {
       {
         type: "levelUp",
         newLevel: 2,
-        growth: { str: 1, smart: 0, life: 0, vit: 0, agi: 0, au: 0, be: 0 },
+        growth: {
+          strength: 1,
+          intelligence: 0,
+          life: 0,
+          vitality: 0,
+          agility: 0,
+          charisma: 0,
+          faith: 0,
+        },
         atSeconds: 2,
       },
     ]
@@ -397,7 +405,15 @@ describe("stageModel", () => {
     const levelUp: BattleEvent = {
       type: "levelUp",
       newLevel: 2,
-      growth: { str: 1, smart: 0, life: 0, vit: 0, agi: 0, au: 0, be: 0 },
+      growth: {
+        strength: 1,
+        intelligence: 0,
+        life: 0,
+        vitality: 0,
+        agility: 0,
+        charisma: 0,
+        faith: 0,
+      },
       atSeconds: 2,
     }
     expect(stageEffectsFor(levelUp)).toEqual([

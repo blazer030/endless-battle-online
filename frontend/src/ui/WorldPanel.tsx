@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
-import type { CharacterView, WorldArea, WorldPlace } from "../game/types"
+import type { WorldArea, WorldPlace } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { moveReasonText, passActive, placeAccess, recommendationLabel } from "../game/world"
 import "./WorldPanel.css"
 
@@ -8,8 +9,8 @@ export type WorldApi = Pick<ApiClient, "getWorld" | "moveTo">
 
 type Props = {
   api: WorldApi
-  character: CharacterView
-  onCharacterChange: (character: CharacterView) => void
+  character: CharacterVo
+  onCharacterChange: (character: CharacterVo) => void
   onClose: () => void
 }
 
@@ -120,7 +121,7 @@ export function WorldPanel({ api, character, onCharacterChange, onClose }: Props
 
 type AreaProps = {
   area: WorldArea
-  character: CharacterView
+  character: CharacterVo
   expandedPlaceId: number | null
   busy: boolean
   onToggle: (placeId: number) => void
@@ -153,7 +154,7 @@ function AreaSection({ area, character, expandedPlaceId, busy, onToggle, onMove 
 
 type PlaceProps = {
   place: WorldPlace
-  character: CharacterView
+  character: CharacterVo
   expanded: boolean
   busy: boolean
   onToggle: () => void

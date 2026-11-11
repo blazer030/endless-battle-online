@@ -2271,28 +2271,28 @@ export interface components {
         AdventureSettingsRequest: {
             attack: null | components["schemas"]["AttackKind"];
             /** Format: int32 */
-            potionHpPercent: null | number;
+            potionHealthPointsPercent: null | number;
             /** Format: int32 */
-            potionSpPercent: null | number;
+            potionManaPointsPercent: null | number;
             /** Format: int32 */
-            restHpPercent: null | number;
+            restHealthPointsPercent: null | number;
             /** Format: int32 */
-            restSpPercent: null | number;
+            restManaPointsPercent: null | number;
             /** Format: int32 */
-            escapeHpPercent: null | number;
+            escapeHealthPointsPercent: null | number;
         };
         AdventureSettingsResponse: {
             attack: null | components["schemas"]["AttackKind"];
             /** Format: int32 */
-            potionHpPercent: number;
+            potionHealthPointsPercent: number;
             /** Format: int32 */
-            potionSpPercent: number;
+            potionManaPointsPercent: number;
             /** Format: int32 */
-            restHpPercent: number;
+            restHealthPointsPercent: number;
             /** Format: int32 */
-            restSpPercent: number;
+            restManaPointsPercent: number;
             /** Format: int32 */
-            escapeHpPercent: number;
+            escapeHealthPointsPercent: number;
         };
         /** @enum {unknown} */
         AttackKind: "Physical" | "Magic" | null;
@@ -2308,19 +2308,19 @@ export interface components {
         };
         BaseStatsResponse: {
             /** Format: int32 */
-            str: number;
+            strength: number;
             /** Format: int32 */
-            smart: number;
+            intelligence: number;
             /** Format: int32 */
             life: number;
             /** Format: int32 */
-            vit: number;
+            vitality: number;
             /** Format: int32 */
-            agi: number;
+            agility: number;
             /** Format: int32 */
-            au: number;
+            charisma: number;
             /** Format: int32 */
-            be: number;
+            faith: number;
         };
         BattleEventResponse: components["schemas"]["BattleEventResponseEncounterEventResponse"] | components["schemas"]["BattleEventResponseRoundEventResponse"] | components["schemas"]["BattleEventResponseAttackEventResponse"] | components["schemas"]["BattleEventResponseSkillEventResponse"] | components["schemas"]["BattleEventResponsePotionEventResponse"] | components["schemas"]["BattleEventResponseDefeatEventResponse"] | components["schemas"]["BattleEventResponseTimeoutEventResponse"] | components["schemas"]["BattleEventResponseRewardEventResponse"] | components["schemas"]["BattleEventResponseLevelUpEventResponse"] | components["schemas"]["BattleEventResponseRestEventResponse"] | components["schemas"]["BattleEventResponseMissionProgressEventResponse"] | components["schemas"]["BattleEventResponseNpcEncounterEventResponse"] | components["schemas"]["BattleEventResponsePetGuardEventResponse"] | components["schemas"]["BattleEventResponsePetAttackEventResponse"] | components["schemas"]["BattleEventResponseCaptureEventResponse"] | components["schemas"]["BattleEventResponseEscapeEventResponse"];
         BattleEventResponseAttackEventResponse: {
@@ -2553,17 +2553,17 @@ export interface components {
             /** Format: int32 */
             level: number;
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
-            nextExp: number;
+            nextLevelExperience: number;
             /** Format: int64 */
             money: number;
             /** Format: int64 */
             bank: number;
             /** Format: int32 */
-            hp: number;
+            healthPoints: number;
             /** Format: int32 */
-            sp: number;
+            manaPoints: number;
             /** Format: int32 */
             sex: number;
             /** Format: int32 */
@@ -3283,13 +3283,13 @@ export interface components {
         };
         StatAllocationRequest: {
             /** Format: int32 */
-            str: null | number;
+            strength: null | number;
             /** Format: int32 */
-            smart: null | number;
+            intelligence: null | number;
             /** Format: int32 */
             life: null | number;
             /** Format: int32 */
-            agi: null | number;
+            agility: null | number;
         };
         StatBonusResponse: {
             /** Format: int32 */
@@ -3324,31 +3324,31 @@ export interface components {
         };
         StatsResponse: {
             /** Format: int32 */
-            str: number;
+            strength: number;
             /** Format: int32 */
-            smart: number;
+            intelligence: number;
             /** Format: int32 */
             life: number;
             /** Format: int32 */
-            vit: number;
+            vitality: number;
             /** Format: int32 */
-            agi: number;
+            agility: number;
             /** Format: int32 */
-            au: number;
+            charisma: number;
             /** Format: int32 */
-            be: number;
+            faith: number;
             /** Format: int32 */
-            at: number;
+            attack: number;
             /** Format: int32 */
-            mat: number;
+            magicAttack: number;
             /** Format: int32 */
-            df: number;
+            defense: number;
             /** Format: int32 */
-            mdf: number;
+            magicDefense: number;
             /** Format: int32 */
-            hpMax: number;
+            maxHealthPoints: number;
             /** Format: int32 */
-            spMax: number;
+            maxManaPoints: number;
         };
         StoreRequest: {
             /** Format: int64 */

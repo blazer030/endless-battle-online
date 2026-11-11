@@ -6,7 +6,8 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { refreshSignalsFor } from "../game/refreshSignals"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
-import type { AdvanceResponse, CharacterView, ContentNames } from "../game/types"
+import type { AdvanceResponse, ContentNames } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { locationTitle, passStatus } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
@@ -52,12 +53,12 @@ const tabs: { id: Tab; label: string }[] = [
 type AreaPass = {
   expiresAt: string | null
   at: number
-  placeId: CharacterView["placeId"]
-  subPlace: CharacterView["subPlace"]
+  placeId: CharacterVo["placeId"]
+  subPlace: CharacterVo["subPlace"]
 }
 
 // onSignOut：玩家在角色頁按登出
-type Props = { api: ApiClient; initialCharacter: CharacterView; onSignOut: () => void }
+type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
 
 export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
   const [content, setContent] = useState<ContentNames | null>(null)
@@ -121,7 +122,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
   }
 
   // 轉職、學技能、移動回傳的最新角色；轉職與移動時在戰報留一行本地訊息
-  const handleCharacterChange = (updated: CharacterView) => {
+  const handleCharacterChange = (updated: CharacterVo) => {
     const previous = playback.displayedCharacter
     const moved = updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace
     playback.confirm(updated)
@@ -198,8 +199,13 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
         <span className="adventure__money">{`金錢 ${formatNumber(character.money)}`}</span>
         <span className="adventure__exp">
           <span className="adventure__exp-label">EXP</span>
-          <StatBar label="EXP" value={character.exp} max={character.nextExp} tone="exp" />
-          <span className="adventure__exp-value">{`${formatNumber(character.exp)} / ${formatNumber(character.nextExp)}`}</span>
+          <StatBar
+            label="EXP"
+            value={character.experience}
+            max={character.nextLevelExperience}
+            tone="exp"
+          />
+          <span className="adventure__exp-value">{`${formatNumber(character.experience)} / ${formatNumber(character.nextLevelExperience)}`}</span>
         </span>
       </header>
       {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到怪物名字；放在分頁外，連線錯誤在每個分頁都看得到 */}

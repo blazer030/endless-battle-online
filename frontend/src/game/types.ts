@@ -1,13 +1,17 @@
 import type { components } from "../api/schema"
+import type { BaseStats, CharacterVo } from "./character"
 
 type Schemas = components["schemas"]
 
-export type CharacterView = Schemas["CharacterResponse"]
-export type AdvanceResponse = Schemas["AdvanceResponse"]
+// 回應裡的角色已由 CharacterConverter 轉成 CharacterVo
+type WithCharacter<T extends { character: unknown }> = Omit<T, "character"> & {
+  character: CharacterVo
+}
+
+export type AdvanceResponse = WithCharacter<Schemas["AdvanceResponse"]>
 export type AdvanceSummary = Schemas["AdvanceSummaryResponse"]
 export type ContentNames = Schemas["ContentResponse"]
-export type StatsView = Schemas["StatsResponse"]
-export type GrowthStats = Schemas["BaseStatsResponse"]
+export type GrowthStats = BaseStats
 export type JobGrowth = Schemas["JobGrowthContent"]
 export type JobOption = Schemas["JobOptionResponse"]
 export type SkillOverview = Schemas["SkillOverviewResponse"]
@@ -24,7 +28,6 @@ export type ItemCategory = Schemas["ItemCategory"]
 export type EquipmentSlot = Schemas["EquipmentSlot"]
 export type ItemRequirement = Schemas["EquipmentRequirementResponse"]
 export type StatBonusView = Schemas["StatBonusResponse"]
-export type BaseStatsView = Schemas["BaseStatsResponse"]
 export type ShopItem = Schemas["ShopItemResponse"]
 export type DepotView = Schemas["DepotResponse"]
 export type DepotMove = Schemas["DepotMoveResponse"]
@@ -35,23 +38,23 @@ export type BuffKind = Schemas["BuffKind"]
 export type InnView = Schemas["InnResponse"]
 export type InnRoomView = Schemas["InnRoomResponse"]
 export type LodgingView = Schemas["LodgingResponse"]
-export type InnBookResult = Schemas["InnBookResponse"]
+export type InnBookResult = WithCharacter<Schemas["InnBookResponse"]>
 export type UnsocketResult = Schemas["UnsocketResponse"]
 export type Recipe = Schemas["RecipeResponse"]
 export type SynthesisResult = Schemas["SynthesisResponse"]
 export type MissionBoard = Schemas["MissionBoardResponse"]
 export type MissionView = Schemas["MissionResponse"]
 export type MissionRewardView = Schemas["MissionRewardResponse"]
-export type MissionCompletion = Schemas["MissionCompleteResponse"]
+export type MissionCompletion = WithCharacter<Schemas["MissionCompleteResponse"]>
 export type PetsView = Schemas["PetsResponse"]
 export type PetView = Schemas["PetResponse"]
 export type PetFood = Schemas["PetFoodResponse"]
 export type PetPersonality = Schemas["PetPersonality"]
-export type PetFeedResult = Schemas["PetFeedResponse"]
+export type PetFeedResult = WithCharacter<Schemas["PetFeedResponse"]>
 export type MercenaryOverview = Schemas["MercenaryOverviewResponse"]
 export type MercenaryCatalogueEntry = Schemas["MercenaryCatalogueResponse"]
 export type MercenaryContract = Schemas["MercenaryContractResponse"]
-export type MercenaryHireResult = Schemas["MercenaryHireResponse"]
+export type MercenaryHireResult = WithCharacter<Schemas["MercenaryHireResponse"]>
 export type MercenaryReport = Schemas["MercenaryReportResponse"]
 export type HonourShop = Schemas["HonourShopResponse"]
 export type HonourExchange = Schemas["HonourExchangeResponse"]
@@ -59,21 +62,7 @@ export type HonourCost = Schemas["HonourCostResponse"]
 
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }
-export type StatAllocation = FilledFields<Schemas["StatAllocationRequest"]>
-export type CreateCharacterCommand = Omit<
-  FilledFields<Schemas["CreateCharacterRequest"]>,
-  "allocation"
-> & { allocation: StatAllocation }
 export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>
-export type AttackKind = NonNullable<Schemas["AttackKind"]>
-export type AdventureSettingsView = Schemas["AdventureSettingsResponse"]
-// attack 為 null 表示自動
-export type AdventureSettingsCommand = Omit<
-  FilledFields<Schemas["AdventureSettingsRequest"]>,
-  "attack"
-> & {
-  attack: AttackKind | null
-}
 
 // 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
 // 寵物欄位只在帶寵物出戰時才有，維持選填

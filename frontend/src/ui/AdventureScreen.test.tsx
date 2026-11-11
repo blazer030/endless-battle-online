@@ -2,13 +2,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
-import type {
-  AdvanceResponse,
-  CharacterView,
-  ContentNames,
-  JobOption,
-  SkillOverview,
-} from "../game/types"
+import type { AdvanceResponse, ContentNames, JobOption, SkillOverview } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
 import {
@@ -57,7 +52,7 @@ vi.mock("../render/PixiStage", async () => {
   }
 })
 
-const character: CharacterView = makeCharacter({ name: "青衣" })
+const character: CharacterVo = makeCharacter({ name: "青衣" })
 
 const content: ContentNames = makeContent({
   monsters: [{ id: "test-wolf", name: "測試寒狼" }],
@@ -82,7 +77,7 @@ const response: AdvanceResponse = {
   ],
   summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
   eventsCoverAll: true,
-  character: { ...character, exp: 8, money: 3 },
+  character: { ...character, experience: 8, money: 3 },
   mercenary: null,
   areaPassExpiresAt: null,
 }
@@ -94,12 +89,20 @@ const levelUpResponse: AdvanceResponse = {
       type: "levelUp",
       atSeconds: 0,
       newLevel: 2,
-      growth: { str: 1, smart: 0, life: 0, vit: 0, agi: 0, au: 0, be: 0 },
+      growth: {
+        strength: 1,
+        intelligence: 0,
+        life: 0,
+        vitality: 0,
+        agility: 0,
+        charisma: 0,
+        faith: 0,
+      },
     },
   ],
   summary: makeSummary({ fights: 1, wins: 1, exp: 1200, money: 3, jobExp: 2, levelsGained: 1 }),
   eventsCoverAll: true,
-  character: { ...character, level: 2, exp: 200, nextExp: 1092, money: 3 },
+  character: { ...character, level: 2, experience: 200, nextLevelExperience: 1092, money: 3 },
   mercenary: null,
   areaPassExpiresAt: null,
 }
@@ -255,7 +258,7 @@ test("AdventureScreen_TopBarExpBarIsProportional", () => {
   render(
     <AdventureScreen
       api={createFakeApi()}
-      initialCharacter={{ ...character, level: 7, exp: 250, nextExp: 1000 }}
+      initialCharacter={{ ...character, level: 7, experience: 250, nextLevelExperience: 1000 }}
       onSignOut={vi.fn()}
     />,
   )
@@ -461,7 +464,7 @@ test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
 test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
   const api = createFakeApi({
     ...response,
-    character: { ...response.character, exp: 48, money: 10 },
+    character: { ...response.character, experience: 48, money: 10 },
     mercenary: {
       name: "阿福",
       fights: 1,

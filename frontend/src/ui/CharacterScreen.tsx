@@ -4,7 +4,8 @@ import { buffLines } from "../game/buffs"
 import { lodgingLine } from "../game/inn"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
-import type { BuffView, CharacterView, ContentNames, InnView } from "../game/types"
+import type { BuffView, ContentNames, InnView } from "../game/types"
+import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import { BuffTickMilliseconds } from "../motion/timings"
 import { StatBar } from "./StatBar"
@@ -12,25 +13,25 @@ import "./CharacterScreen.css"
 
 type Props = {
   api: Pick<ApiClient, "getBuffs" | "getInn">
-  character: CharacterView
+  character: CharacterVo
   content: Pick<ContentNames, "elements" | "births" | "sexes">
   onSignOut: () => void
 }
 
 const derivedStats: { key: keyof DerivedStats; label: string }[] = [
-  { key: "at", label: "物攻" },
-  { key: "mat", label: "魔攻" },
-  { key: "df", label: "物防" },
-  { key: "mdf", label: "魔防" },
-  { key: "hpMax", label: "HP 上限" },
-  { key: "spMax", label: "SP 上限" },
+  { key: "attack", label: "物攻" },
+  { key: "magicAttack", label: "魔攻" },
+  { key: "defense", label: "物防" },
+  { key: "magicDefense", label: "魔防" },
+  { key: "maxHealthPoints", label: "HP 上限" },
+  { key: "maxManaPoints", label: "SP 上限" },
 ]
 
 // 內容的 id 是字串 "1"～"N"；名稱表沒載到時直接顯示 id
 const nameOf = (options: { id: string; name: string }[], id: number) =>
   options.find((option) => option.id === String(id))?.name ?? String(id)
 
-const currentJobProficiency = (character: CharacterView) =>
+const currentJobProficiency = (character: CharacterVo) =>
   character.jobProficiency.find((entry) => entry.jobId === character.jobId)?.proficiency ?? 0
 
 const describeProficiency = (value: number) =>
@@ -93,9 +94,9 @@ export function CharacterScreen({ api, character, content, onSignOut }: Props) {
     { label: "職業熟練度", value: describeProficiency(currentJobProficiency(character)) },
   ]
   const bars = [
-    { label: "HP", value: character.hp, max: stats.hpMax, tone: "hp" },
-    { label: "SP", value: character.sp, max: stats.spMax, tone: "sp" },
-    { label: "EXP", value: character.exp, max: character.nextExp, tone: "exp" },
+    { label: "HP", value: character.healthPoints, max: stats.maxHealthPoints, tone: "hp" },
+    { label: "SP", value: character.manaPoints, max: stats.maxManaPoints, tone: "sp" },
+    { label: "EXP", value: character.experience, max: character.nextLevelExperience, tone: "exp" },
   ] as const
 
   return (

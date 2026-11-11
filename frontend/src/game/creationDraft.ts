@@ -5,7 +5,7 @@ import {
   baseStatsFromAllocation,
   deriveStats,
 } from "./stats"
-import type { CreateCharacterCommand, StatAllocation } from "./types"
+import type { CreateCharacterCommand, StatAllocation } from "./character"
 
 export const CharacterNameMinLength = 2
 
@@ -28,7 +28,7 @@ export const emptyDraft: CreationDraft = {
   birth: null,
   element: null,
   jobId: null,
-  allocation: { str: 1, smart: 1, life: 1, agi: 1 },
+  allocation: { strength: 1, intelligence: 1, life: 1, agility: 1 },
   statsConfirmed: false,
 }
 
@@ -41,7 +41,11 @@ export const acceptName = (draft: CreationDraft, input: string): CreationDraft |
 }
 
 export const pointsLeft = ({ allocation }: CreationDraft) =>
-  AllocationTotalPoints - allocation.str - allocation.smart - allocation.life - allocation.agi
+  AllocationTotalPoints -
+  allocation.strength -
+  allocation.intelligence -
+  allocation.life -
+  allocation.agility
 
 // 每項至少 1 點、總和不超過 10；改了配點就要重新確定
 export const adjustStat = (draft: CreationDraft, stat: AllocationStat, delta: 1 | -1) => {
@@ -66,8 +70,8 @@ export const isReady = (draft: CreationDraft) =>
   canConfirmStats(draft)
 
 export const previewStats = ({ allocation }: CreationDraft) => {
-  const { hpMax, spMax } = deriveStats(baseStatsFromAllocation(allocation))
-  return { hpMax, spMax }
+  const { maxHealthPoints, maxManaPoints } = deriveStats(baseStatsFromAllocation(allocation))
+  return { maxHealthPoints, maxManaPoints }
 }
 
 export const toCommand = (draft: CreationDraft): CreateCharacterCommand => {

@@ -1,12 +1,9 @@
 import type {
   AdvanceResponse,
-  AdventureSettingsCommand,
   BuffView,
   InnBookResult,
   InnView,
-  CharacterView,
   ContentNames,
-  CreateCharacterCommand,
   DepotMove,
   DepotView,
   EquipmentSlot,
@@ -30,11 +27,18 @@ import type {
   UnsocketResult,
   WorldArea,
 } from "../game/types"
+import type { AdventureSettings, CharacterVo, CreateCharacterCommand } from "../game/character"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 import { parseArray } from "./parse"
+import type { components } from "./schema"
+import {
+  AdventureSettingsConverter,
+  CharacterConverter,
+  CreateCharacterConverter,
+} from "./characterData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 
 export const fallbackDetail = "發生錯誤，請稍後再試"
@@ -57,20 +61,20 @@ export class ApiError extends Error {
 export type ApiClient = {
   register: (username: string, password: string) => Promise<void>
   login: (username: string, password: string) => Promise<void>
-  getMyCharacter: () => Promise<CharacterView | null>
-  createCharacter: (command: CreateCharacterCommand) => Promise<CharacterView>
+  getMyCharacter: () => Promise<CharacterVo | null>
+  createCharacter: (command: CreateCharacterCommand) => Promise<CharacterVo>
   advance: () => Promise<AdvanceResponse>
   getContent: () => Promise<ContentNames>
   // 不用登入的公開資料
   getPublicJobs: () => Promise<JobVo[]>
   getCreationOptions: () => Promise<CreationOptionsVo>
   getJobs: () => Promise<JobOption[]>
-  changeJob: (jobId: string) => Promise<CharacterView>
+  changeJob: (jobId: string) => Promise<CharacterVo>
   getSkills: () => Promise<SkillOverview>
   learnSkill: (skillId: string) => Promise<SkillOverview>
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverview>
   getWorld: () => Promise<WorldArea[]>
-  moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterView>
+  moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterVo>
   getInventory: () => Promise<InventoryView>
   // quantity 只用於補給品：從那一格分出幾個放到補給欄
   equip: (inventoryId: number, quantity?: number) => Promise<InventoryView>
@@ -82,8 +86,8 @@ export type ApiClient = {
   getDepot: () => Promise<DepotView>
   store: (inventoryId: number, quantity: number) => Promise<DepotMove>
   take: (depotId: number, quantity: number) => Promise<DepotMove>
-  deposit: (amount: number) => Promise<CharacterView>
-  withdraw: (amount: number) => Promise<CharacterView>
+  deposit: (amount: number) => Promise<CharacterVo>
+  withdraw: (amount: number) => Promise<CharacterVo>
   refine: (
     inventoryId: number,
     stoneInventoryId: number,
@@ -119,7 +123,7 @@ export type ApiClient = {
   dismissMercenary: () => Promise<MercenaryOverview>
   getHonourShop: () => Promise<HonourShop>
   exchangeHonour: (exchangeId: string) => Promise<HonourShop>
-  updateSettings: (command: AdventureSettingsCommand) => Promise<CharacterView>
+  updateSettings: (settings: AdventureSettings) => Promise<CharacterVo>
   // 只含還沒到期的密藥
   getBuffs: () => Promise<BuffView[]>
   getInn: () => Promise<InnView>
@@ -176,6 +180,19 @@ export const createApiClient = (options: {
   const requestJson = async <T>(path: string, method: string, body?: unknown): Promise<T> =>
     (await send(path, method, body)).json() as Promise<T>
 
+  const requestCharacter = async (path: string, method: string, body?: unknown) =>
+    CharacterConverter.toVo(await requestJson<unknown>(path, method, body))
+
+  // 回應裡夾帶的角色一律轉成 CharacterVo，其餘欄位還是產生的型別
+  const requestWithCharacter = async <T extends { character: unknown }>(
+    path: string,
+    method: string,
+    body?: unknown,
+  ): Promise<Omit<T, "character"> & { character: CharacterVo }> => {
+    const response = await requestJson<T>(path, method, body)
+    return { ...response, character: CharacterConverter.toVo(response.character) }
+  }
+
   return {
     register: async (username, password) => {
       await send("/api/accounts/register", "POST", { username, password })
@@ -190,14 +207,19 @@ export const createApiClient = (options: {
     },
     getMyCharacter: async () => {
       try {
-        return await requestJson<CharacterView>("/api/characters/me", "GET")
+        return await requestCharacter("/api/characters/me", "GET")
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) return null
         throw error
       }
     },
-    createCharacter: (command) => requestJson<CharacterView>("/api/characters", "POST", command),
-    advance: () => requestJson<AdvanceResponse>("/api/adventure/advance", "POST"),
+    createCharacter: (command) =>
+      requestCharacter("/api/characters", "POST", CreateCharacterConverter.toDto(command)),
+    advance: () =>
+      requestWithCharacter<components["schemas"]["AdvanceResponse"]>(
+        "/api/adventure/advance",
+        "POST",
+      ),
     getContent: () => requestJson<ContentNames>("/api/content", "GET"),
     getPublicJobs: async () =>
       parseArray(await requestJson<unknown>("/api/public/jobs", "GET"), "jobs", (item, path) =>
@@ -206,13 +228,13 @@ export const createApiClient = (options: {
     getCreationOptions: async () =>
       CreationOptionsConverter.toVo(await requestJson<unknown>("/api/public/settings", "GET")),
     getJobs: () => requestJson<JobOption[]>("/api/jobs", "GET"),
-    changeJob: (jobId) => requestJson<CharacterView>("/api/jobs/change", "POST", { jobId }),
+    changeJob: (jobId) => requestCharacter("/api/jobs/change", "POST", { jobId }),
     getSkills: () => requestJson<SkillOverview>("/api/skills", "GET"),
     learnSkill: (skillId) => requestJson<SkillOverview>("/api/skills/learn", "POST", { skillId }),
     setSkillSlots: (slots) => requestJson<SkillOverview>("/api/skills/slots", "PUT", { slots }),
     getWorld: () => requestJson<WorldArea[]>("/api/world", "GET"),
     moveTo: (placeId, subPlace) =>
-      requestJson<CharacterView>("/api/world/location", "PUT", { placeId, subPlace }),
+      requestCharacter("/api/world/location", "PUT", { placeId, subPlace }),
     getInventory: () => requestJson<InventoryView>("/api/inventory", "GET"),
     equip: (inventoryId, quantity) =>
       requestJson<InventoryView>("/api/inventory/equip", "POST", { inventoryId, quantity }),
@@ -233,8 +255,8 @@ export const createApiClient = (options: {
       requestJson<DepotMove>("/api/depot/store", "POST", { inventoryId, quantity }),
     take: (depotId, quantity) =>
       requestJson<DepotMove>("/api/depot/take", "POST", { depotId, quantity }),
-    deposit: (amount) => requestJson<CharacterView>("/api/bank/deposit", "POST", { amount }),
-    withdraw: (amount) => requestJson<CharacterView>("/api/bank/withdraw", "POST", { amount }),
+    deposit: (amount) => requestCharacter("/api/bank/deposit", "POST", { amount }),
+    withdraw: (amount) => requestCharacter("/api/bank/withdraw", "POST", { amount }),
     refine: (inventoryId, stoneInventoryId, useSafeStone) =>
       requestJson<ForgeResult>("/api/forge/refine", "POST", {
         inventoryId,
@@ -270,17 +292,28 @@ export const createApiClient = (options: {
     abandonMission: (missionId) =>
       requestJson<MissionBoard>("/api/missions/abandon", "POST", { missionId }),
     completeMission: (missionId) =>
-      requestJson<MissionCompletion>("/api/missions/complete", "POST", { missionId }),
+      requestWithCharacter<components["schemas"]["MissionCompleteResponse"]>(
+        "/api/missions/complete",
+        "POST",
+        { missionId },
+      ),
     getPets: () => requestJson<PetsView>("/api/pets", "GET"),
     carryPet: (petId) => requestJson<PetsView>("/api/pets/carry", "POST", { petId }),
     storePet: (petId) => requestJson<PetsView>("/api/pets/store", "POST", { petId }),
     releasePet: (petId) => requestJson<PetsView>("/api/pets/release", "POST", { petId }),
     renamePet: (petId, name) => requestJson<PetsView>("/api/pets/rename", "POST", { petId, name }),
     feedPet: (petId, foodId) =>
-      requestJson<PetFeedResult>("/api/pets/feed", "POST", { petId, foodId }),
+      requestWithCharacter<components["schemas"]["PetFeedResponse"]>("/api/pets/feed", "POST", {
+        petId,
+        foodId,
+      }),
     getMercenaries: () => requestJson<MercenaryOverview>("/api/mercenaries", "GET"),
     hireMercenary: (mercenaryId) =>
-      requestJson<MercenaryHireResult>("/api/mercenaries/hire", "POST", { mercenaryId }),
+      requestWithCharacter<components["schemas"]["MercenaryHireResponse"]>(
+        "/api/mercenaries/hire",
+        "POST",
+        { mercenaryId },
+      ),
     deployMercenary: (placeId) =>
       requestJson<MercenaryOverview>("/api/mercenaries/deploy", "POST", { placeId }),
     restMercenary: () => requestJson<MercenaryOverview>("/api/mercenaries/rest", "POST"),
@@ -292,8 +325,15 @@ export const createApiClient = (options: {
       requestJson<HonourShop>("/api/honour/exchange", "POST", { exchangeId }),
     getBuffs: () => requestJson<BuffView[]>("/api/characters/me/buffs", "GET"),
     getInn: () => requestJson<InnView>("/api/inn", "GET"),
-    bookInn: (roomId) => requestJson<InnBookResult>("/api/inn/book", "POST", { roomId }),
-    updateSettings: (command) =>
-      requestJson<CharacterView>("/api/characters/me/settings", "PUT", command),
+    bookInn: (roomId) =>
+      requestWithCharacter<components["schemas"]["InnBookResponse"]>("/api/inn/book", "POST", {
+        roomId,
+      }),
+    updateSettings: (settings) =>
+      requestCharacter(
+        "/api/characters/me/settings",
+        "PUT",
+        AdventureSettingsConverter.toDto(settings),
+      ),
   }
 }
