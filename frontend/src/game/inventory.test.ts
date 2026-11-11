@@ -166,7 +166,7 @@ describe("requirementRows", () => {
   })
 
   it("compares bare stats with each nonzero requirement", () => {
-    const item = makeItem({ requires: { str: 20, smart: 18, agi: 0, au: 0 } })
+    const item = makeItem({ requires: { strength: 20, intelligence: 18, agility: 0, charisma: 0 } })
 
     expect(requirementRows(item, character)).toEqual([
       { text: "力量 ≥ 20", met: true },
@@ -193,7 +193,10 @@ describe("requirementRows", () => {
   it("meetsRequirements only when every row is met", () => {
     expect(meetsRequirements(makeItem(), character)).toBe(true)
     expect(
-      meetsRequirements(makeItem({ requires: { str: 21, smart: 0, agi: 0, au: 0 } }), character),
+      meetsRequirements(
+        makeItem({ requires: { strength: 21, intelligence: 0, agility: 0, charisma: 0 } }),
+        character,
+      ),
     ).toBe(false)
     expect(meetsRequirements(makeItem({ jobId: "mage" }), character)).toBe(false)
   })

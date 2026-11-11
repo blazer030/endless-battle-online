@@ -2986,26 +2986,26 @@
       },
       "EquipmentRequirementResponse": {
         "required": [
-          "str",
-          "smart",
-          "agi",
-          "au"
+          "strength",
+          "intelligence",
+          "agility",
+          "charisma"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": "integer",
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": "integer",
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": "integer",
             "format": "int32"
           },
-          "au": {
+          "charisma": {
             "type": "integer",
             "format": "int32"
           }
@@ -5493,26 +5493,26 @@
       },
       "StatBonusResponse": {
         "required": [
-          "str",
-          "smart",
+          "strength",
+          "intelligence",
           "life",
-          "vit",
-          "agi",
-          "au",
-          "be",
-          "at",
-          "mat",
-          "df",
-          "mdf",
-          "hpMax"
+          "vitality",
+          "agility",
+          "charisma",
+          "faith",
+          "attack",
+          "magicAttack",
+          "defense",
+          "magicDefense",
+          "maxHealthPoints"
         ],
         "type": "object",
         "properties": {
-          "str": {
+          "strength": {
             "type": "integer",
             "format": "int32"
           },
-          "smart": {
+          "intelligence": {
             "type": "integer",
             "format": "int32"
           },
@@ -5520,39 +5520,39 @@
             "type": "integer",
             "format": "int32"
           },
-          "vit": {
+          "vitality": {
             "type": "integer",
             "format": "int32"
           },
-          "agi": {
+          "agility": {
             "type": "integer",
             "format": "int32"
           },
-          "au": {
+          "charisma": {
             "type": "integer",
             "format": "int32"
           },
-          "be": {
+          "faith": {
             "type": "integer",
             "format": "int32"
           },
-          "at": {
+          "attack": {
             "type": "integer",
             "format": "int32"
           },
-          "mat": {
+          "magicAttack": {
             "type": "integer",
             "format": "int32"
           },
-          "df": {
+          "defense": {
             "type": "integer",
             "format": "int32"
           },
-          "mdf": {
+          "magicDefense": {
             "type": "integer",
             "format": "int32"
           },
-          "hpMax": {
+          "maxHealthPoints": {
             "type": "integer",
             "format": "int32"
           }

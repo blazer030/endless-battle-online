@@ -70,11 +70,11 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         var item = Assert.Single(weapons.GetProperty("items").EnumerateArray());
         Assert.Equal(sword, item.GetProperty("inventoryId").GetInt64());
         Assert.Equal("測試鐵劍", item.GetProperty("name").GetString());
-        Assert.Equal(8, item.GetProperty("bonus").GetProperty("at").GetInt32());
-        Assert.Equal(10, item.GetProperty("requires").GetProperty("str").GetInt32());
+        Assert.Equal(8, item.GetProperty("bonus").GetProperty("attack").GetInt32());
+        Assert.Equal(10, item.GetProperty("requires").GetProperty("strength").GetInt32());
         Assert.Equal(5, Category(inventory, "Consumable").GetProperty("items")[0].GetProperty("quantity").GetInt32());
         Assert.Empty(inventory.GetProperty("equipment").EnumerateArray());
-        Assert.Equal(0, inventory.GetProperty("bonus").GetProperty("at").GetInt32());
+        Assert.Equal(0, inventory.GetProperty("bonus").GetProperty("attack").GetInt32());
     }
 
     [Fact]
@@ -111,6 +111,32 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         var socket = Assert.Single(item.GetProperty("sockets").EnumerateArray());
         Assert.Equal("test-stone", socket.GetProperty("stoneId").GetString());
         Assert.Equal("測試攻擊魔石", socket.GetProperty("stoneName").GetString());
+    }
+
+    // 測試鐵劍內容：bonus at 8、requires str 10；鑲上的魔石擲出 at 5
+    [Fact]
+    public async Task Inventory_ItemBonusUsesCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var sword = await GiveAsync(characterId, "test-sword");
+        await using (var context = database.CreateDbContext())
+        {
+            await new InventoryRepository(context, TestGameContent.Instance).UpdateEnhancementAsync(
+                characterId, sword, 0, StatBonus.Zero, [new SocketedStone(1, "test-stone", StatBonus.Zero with { Attack = 5 })], 1, CancellationToken);
+        }
+
+        var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
+
+        var item = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
+        Assert.Equal(8, item.GetProperty("bonus").GetProperty("attack").GetInt32());
+        Assert.False(item.GetProperty("bonus").TryGetProperty("at", out _));
+        Assert.Equal(10, item.GetProperty("requires").GetProperty("strength").GetInt32());
+        Assert.False(item.GetProperty("requires").TryGetProperty("str", out _));
+        Assert.True(item.GetProperty("refineBonus").TryGetProperty("maxHealthPoints", out _));
+        var socket = Assert.Single(item.GetProperty("sockets").EnumerateArray());
+        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("attack").GetInt32());
+        Assert.True(inventory.GetProperty("bonus").TryGetProperty("magicDefense", out _));
     }
 
     // 鐵劍 at 8 → at 20；怪力戒指 str +50 → 有效 str 62、at 8 + 62 = 70；裸點仍是 12

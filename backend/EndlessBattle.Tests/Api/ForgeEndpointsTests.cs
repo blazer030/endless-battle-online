@@ -81,7 +81,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(["test-refine-stone-2"], Items(inventory, "RefineStone").EnumerateArray().Select(item => item.GetProperty("itemId").GetString()));
         var weapon = Assert.Single(Items(inventory, "Weapon").EnumerateArray());
         Assert.Equal(success ? 1 : 0, weapon.GetProperty("refineLevel").GetInt32());
-        Assert.Equal(success, weapon.GetProperty("refineBonus").GetProperty("at").GetInt32() > 0);
+        Assert.Equal(success, weapon.GetProperty("refineBonus").GetProperty("attack").GetInt32() > 0);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         var socket = Assert.Single(Assert.Single(Items(inventory, "Weapon").EnumerateArray()).GetProperty("sockets").EnumerateArray());
         Assert.Equal(1, socket.GetProperty("hole").GetInt32());
         Assert.Equal("test-stone", socket.GetProperty("stoneId").GetString());
-        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("at").GetInt32());
+        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("attack").GetInt32());
         Assert.Equal(1, Items(inventory, "Stone")[0].GetProperty("quantity").GetInt32());
 
         Assert.Equal(

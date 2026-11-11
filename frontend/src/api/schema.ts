@@ -2641,13 +2641,13 @@ export interface components {
         };
         EquipmentRequirementResponse: {
             /** Format: int32 */
-            str: number;
+            strength: number;
             /** Format: int32 */
-            smart: number;
+            intelligence: number;
             /** Format: int32 */
-            agi: number;
+            agility: number;
             /** Format: int32 */
-            au: number;
+            charisma: number;
         };
         /** @enum {unknown} */
         EquipmentSlot: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Supply";
@@ -3293,29 +3293,29 @@ export interface components {
         };
         StatBonusResponse: {
             /** Format: int32 */
-            str: number;
+            strength: number;
             /** Format: int32 */
-            smart: number;
+            intelligence: number;
             /** Format: int32 */
             life: number;
             /** Format: int32 */
-            vit: number;
+            vitality: number;
             /** Format: int32 */
-            agi: number;
+            agility: number;
             /** Format: int32 */
-            au: number;
+            charisma: number;
             /** Format: int32 */
-            be: number;
+            faith: number;
             /** Format: int32 */
-            at: number;
+            attack: number;
             /** Format: int32 */
-            mat: number;
+            magicAttack: number;
             /** Format: int32 */
-            df: number;
+            defense: number;
             /** Format: int32 */
-            mdf: number;
+            magicDefense: number;
             /** Format: int32 */
-            hpMax: number;
+            maxHealthPoints: number;
         };
         StatRequirementContent: {
             stat: string;

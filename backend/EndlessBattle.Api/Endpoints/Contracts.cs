@@ -113,14 +113,26 @@ public sealed record AdventureSettingsRequest(
     int? EscapeHealthPointsPercent);
 
 // 道具與魔石的加成
-public sealed record StatBonusResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax)
+public sealed record StatBonusResponse(
+    int Strength,
+    int Intelligence,
+    int Life,
+    int Vitality,
+    int Agility,
+    int Charisma,
+    int Faith,
+    int Attack,
+    int MagicAttack,
+    int Defense,
+    int MagicDefense,
+    int MaxHealthPoints)
 {
     internal static StatBonusResponse From(StatBonus bonus) =>
         new(bonus.Strength, bonus.Intelligence, bonus.Life, bonus.Vitality, bonus.Agility, bonus.Charisma, bonus.Faith, bonus.Attack, bonus.MagicAttack, bonus.Defense, bonus.MagicDefense, bonus.MaxHealthPoints);
 }
 
 // 裝備需求只比對這四項裸點
-public sealed record EquipmentRequirementResponse(int Str, int Smart, int Agi, int Au)
+public sealed record EquipmentRequirementResponse(int Strength, int Intelligence, int Agility, int Charisma)
 {
     internal static EquipmentRequirementResponse From(EquipmentRequirement requirement) =>
         new(requirement.Strength, requirement.Intelligence, requirement.Agility, requirement.Charisma);

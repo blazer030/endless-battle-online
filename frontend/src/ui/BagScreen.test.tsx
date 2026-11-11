@@ -20,7 +20,7 @@ const sword = makeItem({ inventoryId: 1, name: "測試劍" })
 const heavySword = makeItem({
   inventoryId: 2,
   name: "巨劍",
-  requires: { str: 30, smart: 0, agi: 0, au: 0 },
+  requires: { strength: 30, intelligence: 0, agility: 0, charisma: 0 },
 })
 const potion = makeItem({
   inventoryId: 3,

@@ -1,6 +1,6 @@
 import { formatNumber } from "./format"
 import { buffLabel, durationMinutes } from "./buffs"
-import { legacyStatCodes, statLabel, type LegacyStatCode } from "./stats"
+import { statLabel } from "./stats"
 import type {
   BagCategoryView,
   EquipmentSlot,
@@ -122,18 +122,18 @@ export const holeMarks = (item: InventoryItem) =>
   "◆".repeat(item.sockets.length) + "◇".repeat(Math.max(0, item.holes - item.sockets.length))
 
 const bonusLabels: { key: keyof StatBonusView; label: string }[] = [
-  { key: "at", label: "物攻" },
-  { key: "mat", label: "魔攻" },
-  { key: "df", label: "物防" },
-  { key: "mdf", label: "魔防" },
-  { key: "hpMax", label: "HP 上限" },
-  { key: "str", label: "力量" },
-  { key: "smart", label: "智力" },
+  { key: "attack", label: "物攻" },
+  { key: "magicAttack", label: "魔攻" },
+  { key: "defense", label: "物防" },
+  { key: "magicDefense", label: "魔防" },
+  { key: "maxHealthPoints", label: "HP 上限" },
+  { key: "strength", label: "力量" },
+  { key: "intelligence", label: "智力" },
   { key: "life", label: "生命" },
-  { key: "vit", label: "體質" },
-  { key: "agi", label: "敏捷" },
-  { key: "au", label: "魅力" },
-  { key: "be", label: "信仰" },
+  { key: "vitality", label: "體質" },
+  { key: "agility", label: "敏捷" },
+  { key: "charisma", label: "魅力" },
+  { key: "faith", label: "信仰" },
 ]
 
 export const bonusText = (bonus: StatBonusView) =>
@@ -157,9 +157,12 @@ export type Requirement = { text: string; met: boolean }
 
 export type JobName = { id: string; name: string }
 
-// 道具需求還是舊代碼，對到角色裸點的完整名稱
-const requirementStats = ["str", "smart", "agi", "au"] as const satisfies (keyof ItemRequirement &
-  LegacyStatCode)[]
+const requirementStats: (keyof ItemRequirement)[] = [
+  "strength",
+  "intelligence",
+  "agility",
+  "charisma",
+]
 
 // 能力需求比對裸點（baseStats），不含裝備加成；jobId 為 null 表示不限職業
 export const requirementRows = (
@@ -171,7 +174,7 @@ export const requirementRows = (
     .filter((stat) => item.requires[stat] > 0)
     .map((stat) => ({
       text: `${statLabel(stat)} ≥ ${item.requires[stat]}`,
-      met: character.baseStats[legacyStatCodes[stat]] >= item.requires[stat],
+      met: character.baseStats[stat] >= item.requires[stat],
     }))
   if (item.jobId !== null) {
     const jobId = item.jobId

@@ -65,7 +65,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         var item = Assert.Single(level1.EnumerateArray());
         Assert.Equal("test-sword", item.GetProperty("id").GetString());
         Assert.Equal(200, item.GetProperty("price").GetInt64());
-        Assert.Equal(8, item.GetProperty("bonus").GetProperty("at").GetInt32());
+        Assert.Equal(8, item.GetProperty("bonus").GetProperty("attack").GetInt32());
         Assert.Empty((await client.GetFromJsonAsync<JsonElement>("/api/shop?category=Weapon&level=2", CancellationToken)).EnumerateArray());
 
         var notForSale = await client.PostAsJsonAsync("/api/shop/buy", new { itemId = "test-axe", quantity = 1 }, CancellationToken);
@@ -165,11 +165,11 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         var inventory = await client.GetFromJsonAsync<JsonElement>("/api/inventory", CancellationToken);
         var item = Assert.Single(Category(inventory, "Weapon").GetProperty("items").EnumerateArray());
         Assert.Equal(2, item.GetProperty("refineLevel").GetInt32());
-        Assert.Equal(3, item.GetProperty("refineBonus").GetProperty("at").GetInt32());
+        Assert.Equal(3, item.GetProperty("refineBonus").GetProperty("attack").GetInt32());
         Assert.Equal(1, item.GetProperty("holes").GetInt32());
         var socket = Assert.Single(item.GetProperty("sockets").EnumerateArray());
         Assert.Equal("test-stone", socket.GetProperty("stoneId").GetString());
-        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("at").GetInt32());
+        Assert.Equal(5, socket.GetProperty("rolled").GetProperty("attack").GetInt32());
     }
 
     [Fact]
