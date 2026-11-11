@@ -44,7 +44,7 @@ public sealed record MissionDefinition(
     public RequiredSkill? RequiredSkill { get; init; }
 
     // WOG wog_mission_tool.php：經驗 = m_lv × 190
-    public const long ExpPerLevel = 190;
+    public const long ExperiencePerLevel = 190;
 
-    public long Exp => Level * ExpPerLevel;
+    public long Experience => Level * ExperiencePerLevel;
 }

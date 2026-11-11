@@ -157,7 +157,7 @@ public sealed class MissionService(
             return new MissionCompletion(
                 await BoardAsync(updated, now, cancellationToken),
                 mission.CompletionMessage,
-                objective.Exp,
+                objective.Experience,
                 reward.Money,
                 reward.Items,
                 reward.Skill,

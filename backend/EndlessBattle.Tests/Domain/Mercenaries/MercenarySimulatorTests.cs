@@ -23,7 +23,7 @@ public class MercenarySimulatorTests
         "warrior", "戰士", Tier: 1, ParentId: null, UnlockLevel: 1, ProficiencyRequired: 0, StatRequirements: [],
         new JobGrowth(new(2, 3), new(0, 1), new(1, 2), new(1, 2), new(1, 2), new(0, 1), new(0, 1)));
 
-    private static readonly MercenaryDefinition Full = new("test", "測試傭兵", Price: 100, Fights: 10, MoneyPercent: 100, DropPercent: 100, ExpPercent: 100, DeathCost: 2);
+    private static readonly MercenaryDefinition Full = new("test", "測試傭兵", Price: 100, Fights: 10, MoneyPercent: 100, DropPercent: 100, ExperiencePercent: 100, DeathCost: 2);
 
     private static MonsterDefinition Monster(string id, int hp = 100, int at = 10, int df = 1, int placeId = 1) =>
         new(id, id, Level: 5, hp, ManaPoints: 5, at, MagicAttack: 0, df, MagicDefense: 1, Agility: 12, Charisma: 10, Element: 0, JobExperience: 12, Meet: 0, placeId);
@@ -57,27 +57,27 @@ public class MercenarySimulatorTests
 
         Assert.Equal([start, start.AddSeconds(100), start.AddSeconds(200)], run.Fights.Select(fight => fight.At));
         Assert.Equal(Contract(7, start.AddSeconds(300)), run.Contract);
-        Assert.All(run.Fights, fight => Assert.Equal(("dummy", MercenaryFightResult.Won, 146L, 2L), (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
+        Assert.All(run.Fights, fight => Assert.Equal(("dummy", MercenaryFightResult.Won, 146L, 2L), (fight.MonsterId, fight.Result, fight.Experience, fight.Money)));
         Assert.Equal(3 * 146, run.Character.Experience);
         Assert.Equal(2000 + 3 * 2, run.Character.Money);
-        Assert.Equal(3 * 12, run.JobExp);
+        Assert.Equal(3 * 12, run.JobExperience);
     }
 
     [Fact]
     public void Mercenary_DiscountsExpAndMoney()
     {
-        var half = Full with { ExpPercent = 50, MoneyPercent = 50 };
+        var half = Full with { ExperiencePercent = 50, MoneyPercent = 50 };
 
         var full = Run(Hero(), Contract(10, Now.AddSeconds(-500)), Full, random: new SeededRandom(7));
         var discounted = Run(Hero(), Contract(10, Now.AddSeconds(-500)), half, random: new SeededRandom(7));
 
         Assert.Equal(6, full.Fights.Count);
-        Assert.Contains(full.Fights, fight => fight.Exp > 0);
+        Assert.Contains(full.Fights, fight => fight.Experience > 0);
         Assert.Equal(
-            full.Fights.Select(fight => (fight.MonsterId, fight.Result, MercenaryRules.Discount(fight.Exp, 50), MercenaryRules.Discount(fight.Money, 50))),
-            discounted.Fights.Select(fight => (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
-        Assert.Equal(full.JobExp, discounted.JobExp);
-        Assert.Equal(full.Fights.Sum(fight => MercenaryRules.Discount(fight.Exp, 50)), discounted.Character.Experience);
+            full.Fights.Select(fight => (fight.MonsterId, fight.Result, MercenaryRules.Discount(fight.Experience, 50), MercenaryRules.Discount(fight.Money, 50))),
+            discounted.Fights.Select(fight => (fight.MonsterId, fight.Result, fight.Experience, fight.Money)));
+        Assert.Equal(full.JobExperience, discounted.JobExperience);
+        Assert.Equal(full.Fights.Sum(fight => MercenaryRules.Discount(fight.Experience, 50)), discounted.Character.Experience);
     }
 
     // hornet（hp 300）：玩家第 1 回合 210 點打不死，怪物還手；Hp 1 的角色會倒下，傭兵以滿血開打所以第 2 回合擊倒。
@@ -109,7 +109,7 @@ public class MercenarySimulatorTests
         Assert.Equal(3, run.Fights.Count);
         Assert.All(run.Fights, fight => Assert.NotEqual(MercenaryFightResult.Won, fight.Result));
         Assert.Equal(4, run.Contract!.Remaining);
-        Assert.Equal(0, run.JobExp);
+        Assert.Equal(0, run.JobExperience);
         Assert.Empty(run.DroppedItemIds);
     }
 
@@ -119,13 +119,13 @@ public class MercenarySimulatorTests
     {
         var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 } };
         var rock = Monster("rock", hp: 60, at: 40, df: 1000);
-        var half = Full with { ExpPercent = 50 };
+        var half = Full with { ExperiencePercent = 50 };
 
         var run = Run(tough, Contract(10, Now), half, monsters: [rock]);
 
         var fight = Assert.Single(run.Fights);
-        Assert.Equal((MercenaryFightResult.Timeout, 22L, 0L), (fight.Result, fight.Exp, fight.Money));
-        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExperience(rock, 40, 1, new ScriptedRandom(0.0)), 50), fight.Exp);
+        Assert.Equal((MercenaryFightResult.Timeout, 22L, 0L), (fight.Result, fight.Experience, fight.Money));
+        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExperience(rock, 40, 1, new ScriptedRandom(0.0)), 50), fight.Experience);
         Assert.Equal(8, run.Contract!.Remaining);
     }
 

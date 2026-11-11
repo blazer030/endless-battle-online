@@ -34,7 +34,7 @@ public static class AdventureEndpoints
         report.Name,
         report.Fights.Count,
         report.Fights.Count(fight => fight.Result == MercenaryFightResult.Won),
-        report.Exp,
+        report.Experience,
         report.Money,
         report.LevelsGained,
         report.Remaining,
@@ -44,6 +44,6 @@ public static class AdventureEndpoints
             fight.MonsterId,
             content.AllMonsters.FirstOrDefault(monster => monster.Id == fight.MonsterId)?.Name ?? fight.MonsterId,
             fight.Result == MercenaryFightResult.Won,
-            fight.Exp,
+            fight.Experience,
             fight.Money)).ToList());
 }

@@ -73,7 +73,7 @@ public static class Socket
 
     private static bool InRange(InventoryEntry equipment, int hole) => hole >= 1 && hole <= Math.Min(equipment.Holes, MaxHoles);
 
-    // 固定魔石不擲骰；隨機魔石依 StatBonus 的欄位順序（Str…Be、At、Mat、Df、Mdf、HpMax）各擲一次，範圍 [0, 0] 也照擲
+    // 固定魔石不擲骰；隨機魔石依 StatBonus 的欄位順序（Strength…Faith、Attack、MagicAttack、Defense、MagicDefense、MaxHealthPoints）各擲一次，範圍 [0, 0] 也照擲
     private static StatBonus Roll(StatBonus min, StatBonus max, IRandomSource random) => new(
         PhpRandom.Between(random, min.Strength, max.Strength),
         PhpRandom.Between(random, min.Intelligence, max.Intelligence),

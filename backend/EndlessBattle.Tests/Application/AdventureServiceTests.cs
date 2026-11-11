@@ -855,8 +855,8 @@ public class AdventureServiceTests
         Assert.Equal("阿傭", report.Name);
         Assert.Equal([now.AddSeconds(-200), now.AddSeconds(-100), now], report.Fights.Select(fight => fight.At));
         Assert.All(report.Fights, fight => Assert.Equal(
-            ("test-sprite", MercenaryFightResult.Won, 58L, 0L), (fight.MonsterId, fight.Result, fight.Exp, fight.Money)));
-        Assert.Equal((174L, 0L, 0, 7, false), (report.Exp, report.Money, report.LevelsGained, report.Remaining, report.Dismissed));
+            ("test-sprite", MercenaryFightResult.Won, 58L, 0L), (fight.MonsterId, fight.Result, fight.Experience, fight.Money)));
+        Assert.Equal((174L, 0L, 0, 7, false), (report.Experience, report.Money, report.LevelsGained, report.Remaining, report.Dismissed));
         Assert.Equal((8, 928L, 0, 8), (result.Summary.Wins, result.Summary.Experience, result.Summary.MissionKills, result.Summary.Drops));
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal(174 + 928, stored!.Experience);

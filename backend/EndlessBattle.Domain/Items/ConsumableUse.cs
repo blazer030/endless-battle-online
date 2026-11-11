@@ -47,7 +47,7 @@ public static class ConsumableUse
             ConsumableKind.PetEgg => new UseOutcome(character, [], Hatch(context.EggMonsters, item.Amount, now, random), 0, 0),
             // 熟練度不變，只加技能點
             ConsumableKind.ProficiencyBook => new UseOutcome(character, [], null, item.Amount, 0),
-            ConsumableKind.ExperienceCapsule => GainExp(context, item.Amount, random),
+            ConsumableKind.ExperienceCapsule => GainExperience(context, item.Amount, random),
             ConsumableKind.Elixir when item.Elixir is { } elixir => new UseOutcome(character, [], null, 0, 0, Buffs.Start(elixir, now)),
             _ => throw new InvalidOperationException($"道具 {item.Id} 不能使用"),
         };
@@ -88,9 +88,9 @@ public static class ConsumableUse
     }
 
     // 加經驗後立刻升級
-    private static UseOutcome GainExp(UseContext context, int exp, IRandomSource random)
+    private static UseOutcome GainExperience(UseContext context, int experience, IRandomSource random)
     {
-        var levelUp = LevelUp.Apply(context.Character with { Experience = context.Character.Experience + exp }, context.Job, random, atSeconds: 0);
+        var levelUp = LevelUp.Apply(context.Character with { Experience = context.Character.Experience + experience }, context.Job, random, atSeconds: 0);
         return new UseOutcome(levelUp.Character, [], null, 0, levelUp.Events.Count);
     }
 }

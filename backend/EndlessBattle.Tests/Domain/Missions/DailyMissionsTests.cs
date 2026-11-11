@@ -66,7 +66,7 @@ public class DailyMissionsTests
         Assert.Equal(Delivery.Kills, objective.Kills);
         Assert.Equal(Delivery.Deliver, objective.Deliver);
         Assert.Equal(Delivery.Rewards, objective.Reward);
-        Assert.Equal(4 * 190, objective.Exp);
+        Assert.Equal(4 * 190, objective.Experience);
     }
 
     [Fact]

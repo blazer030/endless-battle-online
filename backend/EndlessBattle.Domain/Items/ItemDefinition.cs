@@ -54,17 +54,17 @@ public sealed record EquipmentRequirement(int Strength, int Intelligence, int Ag
 public sealed record RefineStoneSpec(
     int Level,
     int Kind,
-    StatRange? At,
-    StatRange? Mat,
-    StatRange? Df,
-    StatRange? Mdf,
-    StatRange? Str,
-    StatRange? Smart,
+    StatRange? Attack,
+    StatRange? MagicAttack,
+    StatRange? Defense,
+    StatRange? MagicDefense,
+    StatRange? Strength,
+    StatRange? Intelligence,
     StatRange? Life,
-    StatRange? Vit,
-    StatRange? Agi,
-    StatRange? Au,
-    StatRange? Be);
+    StatRange? Vitality,
+    StatRange? Agility,
+    StatRange? Charisma,
+    StatRange? Faith);
 
 // 固定魔石取 Fixed；隨機魔石鑲嵌當下各能力在 [Min, Max] 擲骰。BoxClass 1～3 是魔石寶箱的等級，0 不會從寶箱出現
 public sealed record StoneSpec(bool Random, StatBonus Fixed, StatBonus? Min, StatBonus? Max, int BoxClass = 0);
@@ -84,8 +84,8 @@ public sealed record ItemDefinition(
     ItemCategory Category,
     ConsumableKind Consumable,
     StatBonus Bonus,
-    int SupplyHp,
-    int SupplySp,
+    int SupplyHealthPoints,
+    int SupplyManaPoints,
     int Amount, // 消耗品的數值，意義依 ConsumableKind
     EquipmentRequirement Requires,
     string? JobId,

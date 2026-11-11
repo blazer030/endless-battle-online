@@ -39,7 +39,7 @@ public static class MissionEndpoints
                 ToResponse(completion.Board, content),
                 CharacterEndpoints.ToResponse(profile.Character, profile.JobProficiency, profile.Equipment, content),
                 completion.CompletionMessage,
-                completion.Exp,
+                completion.Experience,
                 completion.Money,
                 completion.Items.Select(item => ToResponse(item, content)).ToList(),
                 completion.Skill is { } skill ? ToResponse(skill, content) : null,
@@ -89,7 +89,7 @@ public static class MissionEndpoints
                 requirements.PrerequisiteId,
                 requirements.PrerequisiteId is { } prerequisiteId ? content.GetMission(prerequisiteId).Title : null),
             new MissionRewardResponse(
-                objective.Exp,
+                objective.Experience,
                 reward.Money,
                 reward.Items.Select(item => ToResponse(item, content)).ToList(),
                 reward.Skill is { } skill ? ToResponse(skill, content) : null,

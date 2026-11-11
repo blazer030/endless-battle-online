@@ -245,7 +245,7 @@ public class MissionServiceTests
         Assert.Equal((MissionState.Completed, (DateTimeOffset?)Now), (record.State, record.CompletedAt));
         var after = await CurrentAsync();
         Assert.Equal((character.Money + 50, character.Experience + 190), (after.Money, after.Experience));
-        Assert.Equal(("謝謝你。", 190L, 50L, 0), (completion.CompletionMessage, completion.Exp, completion.Money, completion.LevelsGained));
+        Assert.Equal(("謝謝你。", 190L, 50L, 0), (completion.CompletionMessage, completion.Experience, completion.Money, completion.LevelsGained));
         Assert.Empty(completion.Items);
         Assert.Null(completion.Skill);
         Assert.False(completion.SkillGranted);

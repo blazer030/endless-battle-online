@@ -769,7 +769,7 @@ public sealed class JsonGameContent : IGameContent
 
         if (item.IsEquipment)
         {
-            Require(item.Consumable == ConsumableKind.None && item.SupplyHp == 0 && item.SupplySp == 0 && item.Amount == 0
+            Require(item.Consumable == ConsumableKind.None && item.SupplyHealthPoints == 0 && item.SupplyManaPoints == 0 && item.Amount == 0
                     && item.Refine is null && item.Stone is null && item.Key is null && item.Elixir is null,
                 $"裝備 {id} 不能有 consumable、supplyHp、supplySp、amount、refine、stone、key、elixir");
             return;
@@ -794,7 +794,7 @@ public sealed class JsonGameContent : IGameContent
         // 先檢查該種消耗品自己需要的欄位，再檢查用不到的欄位為 0
         if (item.Consumable == ConsumableKind.Supply)
         {
-            Require(item.SupplyHp >= 0 && item.SupplySp >= 0 && item.SupplyHp + item.SupplySp > 0,
+            Require(item.SupplyHealthPoints >= 0 && item.SupplyManaPoints >= 0 && item.SupplyHealthPoints + item.SupplyManaPoints > 0,
                 $"補給品 {id} 的 supplyHp、supplySp 不可為負，且至少一項大於 0");
         }
         else if (item.Consumable == ConsumableKind.StatPotion)
@@ -809,7 +809,7 @@ public sealed class JsonGameContent : IGameContent
                 $"魔石寶箱 {id} 的 amount 必須在 1～{MaximumStonesPerBox}");
         }
 
-        Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHp == 0 && item.SupplySp == 0),
+        Require(item.Consumable == ConsumableKind.Supply || (item.SupplyHealthPoints == 0 && item.SupplyManaPoints == 0),
             $"道具 {id} 不是補給品，supplyHp 與 supplySp 必須為 0");
         Require(usesAmount || item.Amount == 0, $"道具 {id} 的 amount 只用於擴充、捕捉道具、寶箱、寵物蛋、心得書與經驗膠囊");
         Require(item.Consumable == ConsumableKind.StatPotion || item.Bonus == StatBonus.Zero,
@@ -926,8 +926,8 @@ public sealed class JsonGameContent : IGameContent
 
         StatRange?[] ranges =
         [
-            refine.At, refine.Mat, refine.Df, refine.Mdf, refine.Str, refine.Smart, refine.Life, refine.Vit,
-            refine.Agi, refine.Au, refine.Be,
+            refine.Attack, refine.MagicAttack, refine.Defense, refine.MagicDefense, refine.Strength, refine.Intelligence, refine.Life, refine.Vitality,
+            refine.Agility, refine.Charisma, refine.Faith,
         ];
         if (ranges.All(range => range is null))
         {
@@ -1251,7 +1251,7 @@ public sealed class JsonGameContent : IGameContent
         Require(mercenary.Fights >= 1, "的 fights 必須至少 1");
         (string Field, int Value)[] percents =
         [
-            ("moneyPercent", mercenary.MoneyPercent), ("dropPercent", mercenary.DropPercent), ("expPercent", mercenary.ExpPercent),
+            ("moneyPercent", mercenary.MoneyPercent), ("dropPercent", mercenary.DropPercent), ("expPercent", mercenary.ExperiencePercent),
         ];
         foreach (var (field, value) in percents)
         {

@@ -18,6 +18,6 @@ public sealed record AdvanceResult(
     MercenaryReport? Mercenary = null,
     DateTimeOffset? AreaPassExpiresAt = null);
 
-// Remaining 在解除僱用時為 0；Exp、Money 是打折後的合計
+// Remaining 在解除僱用時為 0；Experience、Money 是打折後的合計
 public sealed record MercenaryReport(
-    string Name, IReadOnlyList<MercenaryFight> Fights, long Exp, long Money, int LevelsGained, int Remaining, bool Dismissed);
+    string Name, IReadOnlyList<MercenaryFight> Fights, long Experience, long Money, int LevelsGained, int Remaining, bool Dismissed);

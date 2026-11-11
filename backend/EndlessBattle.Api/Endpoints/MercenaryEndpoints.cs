@@ -52,7 +52,7 @@ public static class MercenaryEndpoints
     private static MercenaryOverviewResponse ToResponse(MercenaryOverview overview, IGameContent content) => new(
         overview.Catalogue.Select(mercenary => new MercenaryCatalogueResponse(
             mercenary.Id, mercenary.Name, mercenary.Price, mercenary.Fights, mercenary.MoneyPercent, mercenary.DropPercent,
-            mercenary.ExpPercent, mercenary.DeathCost)).ToList(),
+            mercenary.ExperiencePercent, mercenary.DeathCost)).ToList(),
         overview.Contract is not { } contract
             ? null
             : new MercenaryContractResponse(

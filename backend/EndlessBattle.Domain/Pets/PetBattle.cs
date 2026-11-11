@@ -30,8 +30,8 @@ public static class PetBattle
         var magic = pet.Personality == PetPersonality.Cold ? pet.Magic * PersonalityBonus : pet.Magic;
         var guard = pet.Personality == PetPersonality.Ironwall ? DerivedStats.RoundLikePhp(pet.Defense * PersonalityBonus) : pet.Defense;
 
-        var monsterAu = monster.Charisma == 0 ? 1 : monster.Charisma;
-        var activation = Activation(pet, DerivedStats.RoundLikePhp((double)player.Charisma / monsterAu));
+        var monsterCharisma = monster.Charisma == 0 ? 1 : monster.Charisma;
+        var activation = Activation(pet, DerivedStats.RoundLikePhp((double)player.Charisma / monsterCharisma));
         return new PetCombatant(pet.Name, attack, magic, guard, activation);
     }
 

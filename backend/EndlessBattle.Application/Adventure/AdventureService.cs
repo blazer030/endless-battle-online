@@ -126,7 +126,7 @@ public sealed class AdventureService(
                 cancellationToken);
 
             // 角色以版本檢查寫入成功後才記熟練度，衝突的推進不會重複累加
-            foreach (var gain in MergeJobGains(job.Id, mercenaryRun?.JobExp ?? 0, run.JobGains))
+            foreach (var gain in MergeJobGains(job.Id, mercenaryRun?.JobExperience ?? 0, run.JobGains))
             {
                 await proficiencies.AddAsync(updated.Id, gain.JobId, gain.Proficiency, gain.SkillPoints, cancellationToken);
             }
@@ -155,15 +155,15 @@ public sealed class AdventureService(
     }
 
     // 兩條時間軸都是同一個職業，熟練度合併成一筆寫入
-    private static IReadOnlyList<JobGain> MergeJobGains(string jobId, long mercenaryJobExp, IReadOnlyList<JobGain> adventure)
+    private static IReadOnlyList<JobGain> MergeJobGains(string jobId, long mercenaryJobExperience, IReadOnlyList<JobGain> adventure)
     {
-        if (mercenaryJobExp == 0)
+        if (mercenaryJobExperience == 0)
         {
             return adventure;
         }
 
-        var proficiency = mercenaryJobExp + adventure.Sum(gain => gain.Proficiency);
-        var skillPoints = mercenaryJobExp + adventure.Sum(gain => gain.SkillPoints);
+        var proficiency = mercenaryJobExperience + adventure.Sum(gain => gain.Proficiency);
+        var skillPoints = mercenaryJobExperience + adventure.Sum(gain => gain.SkillPoints);
         return [new JobGain(jobId, proficiency, skillPoints)];
     }
 
@@ -188,7 +188,7 @@ public sealed class AdventureService(
         return new MercenaryReport(
             before.Name,
             run.Fights,
-            run.Fights.Sum(fight => fight.Exp),
+            run.Fights.Sum(fight => fight.Experience),
             run.Fights.Sum(fight => fight.Money),
             run.LevelsGained,
             run.Contract?.Remaining ?? 0,
@@ -216,7 +216,7 @@ public sealed class AdventureService(
         var item = content.GetItem(entry.ItemId);
         return item.Consumable == ConsumableKind.Capture
             ? (null, new CaptureState(item.Id, item.Name, item.Amount, equipped.SupplyQuantity))
-            : (new SupplyState(item.Id, item.Name, item.SupplyHp, item.SupplySp, equipped.SupplyQuantity)
+            : (new SupplyState(item.Id, item.Name, item.SupplyHealthPoints, item.SupplyManaPoints, equipped.SupplyQuantity)
             {
                 HealthPointsPercent = settings.PotionHealthPointsPercent,
                 ManaPointsPercent = settings.PotionManaPointsPercent,

@@ -52,17 +52,17 @@ public static class Refine
 
     // 依 StatBonus 的欄位順序擲骰（引數由左至右求值），沒有範圍的能力不擲
     private static StatBonus Roll(RefineStoneSpec spec, IRandomSource random) => new(
-        Roll(spec.Str, random),
-        Roll(spec.Smart, random),
+        Roll(spec.Strength, random),
+        Roll(spec.Intelligence, random),
         Roll(spec.Life, random),
-        Roll(spec.Vit, random),
-        Roll(spec.Agi, random),
-        Roll(spec.Au, random),
-        Roll(spec.Be, random),
-        Roll(spec.At, random),
-        Roll(spec.Mat, random),
-        Roll(spec.Df, random),
-        Roll(spec.Mdf, random));
+        Roll(spec.Vitality, random),
+        Roll(spec.Agility, random),
+        Roll(spec.Charisma, random),
+        Roll(spec.Faith, random),
+        Roll(spec.Attack, random),
+        Roll(spec.MagicAttack, random),
+        Roll(spec.Defense, random),
+        Roll(spec.MagicDefense, random));
 
     private static int Roll(StatRange? range, IRandomSource random) =>
         range is null ? 0 : PhpRandom.Between(random, range.Minimum, range.Maximum);

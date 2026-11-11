@@ -32,7 +32,7 @@ public class MissionTableTests
         Assert.All(Regular, mission =>
         {
             Assert.False(CustomContent.IsCustom(mission.Id));
-            Assert.Equal(MissionDefinition.ExpPerLevel * mission.Level, mission.Exp);
+            Assert.Equal(MissionDefinition.ExperiencePerLevel * mission.Level, mission.Experience);
             foreach (var kill in mission.Kills)
             {
                 Assert.Equal(Content.GetMonster(kill.MonsterId).PlaceId, mission.PlaceId);

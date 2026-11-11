@@ -6,7 +6,7 @@ namespace EndlessBattle.Domain.Missions;
 
 // 擲骰後的實際目標與報酬；一般任務就是定義本身。DeliverPet：完成時攜帶中的寵物必須是這個物種（交出後刪除）
 public sealed record MissionObjective(
-    string MissionId, IReadOnlyList<KillTarget> Kills, IReadOnlyList<ItemQuantity> Deliver, MissionReward Reward, long Exp, string? DeliverPet = null);
+    string MissionId, IReadOnlyList<KillTarget> Kills, IReadOnlyList<ItemQuantity> Deliver, MissionReward Reward, long Experience, string? DeliverPet = null);
 
 public static class DailyMissions
 {
@@ -47,7 +47,7 @@ public static class DailyMissions
     {
         if (!mission.Daily)
         {
-            return new MissionObjective(mission.Id, mission.Kills, mission.Deliver, mission.Rewards, mission.Exp, mission.DeliverPet);
+            return new MissionObjective(mission.Id, mission.Kills, mission.Deliver, mission.Rewards, mission.Experience, mission.DeliverPet);
         }
 
         if (period is not { } day)
@@ -61,11 +61,11 @@ public static class DailyMissions
         {
             var species = mission.DailyPets[random.NextInt(mission.DailyPets.Count)];
             var petReward = mission.DailyRewards[random.NextInt(mission.DailyRewards.Count)];
-            return new MissionObjective(mission.Id, [], [], petReward, mission.Exp, species);
+            return new MissionObjective(mission.Id, [], [], petReward, mission.Experience, species);
         }
 
         var kill = mission.DailyKills[random.NextInt(mission.DailyKills.Count)];
         var reward = mission.DailyRewards[random.NextInt(mission.DailyRewards.Count)];
-        return new MissionObjective(mission.Id, [kill], [], reward, mission.Exp);
+        return new MissionObjective(mission.Id, [kill], [], reward, mission.Experience);
     }
 }

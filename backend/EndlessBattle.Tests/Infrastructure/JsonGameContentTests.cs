@@ -841,13 +841,13 @@ public class JsonGameContentTests
         Assert.False(sword.Stackable);
 
         var supply = content.GetItem("test-supply");
-        Assert.Equal((ConsumableKind.Supply, 50, 25), (supply.Consumable, supply.SupplyHp, supply.SupplySp));
+        Assert.Equal((ConsumableKind.Supply, 50, 25), (supply.Consumable, supply.SupplyHealthPoints, supply.SupplyManaPoints));
         Assert.True(supply.Stackable);
 
         var refine = content.GetItem("test-refine-stone").Refine!;
         Assert.Equal((1, 1), (refine.Level, refine.Kind));
-        Assert.Equal(new StatRange(1, 2), refine.At);
-        Assert.Null(refine.Mat);
+        Assert.Equal(new StatRange(1, 2), refine.Attack);
+        Assert.Null(refine.MagicAttack);
 
         var stone = content.GetItem("test-stone").Stone!;
         Assert.False(stone.Random);
@@ -1101,7 +1101,7 @@ public class JsonGameContentTests
                 DailyKills: [], DailyRewards: []),
             content.GetMission("test-delivery"),
             strict: true);
-        Assert.Equal(190, content.GetMission("test-hunt").Exp);
+        Assert.Equal(190, content.GetMission("test-hunt").Experience);
 
         var skillReward = content.GetMission("test-skill-reward");
         Assert.Equal(new MissionRequirements(JobId: "warrior", PrerequisiteId: "test-hunt"), skillReward.Requirements);

@@ -19,7 +19,7 @@ public enum MercenaryFightResult
     Timeout,
 }
 
-public sealed record MercenaryFight(DateTimeOffset At, string MonsterId, MercenaryFightResult Result, long Exp, long Money, IReadOnlyList<string> Drops);
+public sealed record MercenaryFight(DateTimeOffset At, string MonsterId, MercenaryFightResult Result, long Experience, long Money, IReadOnlyList<string> Drops);
 
 // Contract 為 null：次數用完、已解除僱用。DroppedItemIds 依場次順序，尚未套用到背包；Missions 是結算後各擊殺任務的狀態
 public sealed record MercenaryRun(
@@ -27,7 +27,7 @@ public sealed record MercenaryRun(
     int LevelsGained,
     MercenaryContract? Contract,
     IReadOnlyList<MercenaryFight> Fights,
-    long JobExp,
+    long JobExperience,
     IReadOnlyList<string> DroppedItemIds,
     IReadOnlyList<ActiveMission> Missions);
 
@@ -61,7 +61,7 @@ public static class MercenarySimulator
         var droppedItemIds = new List<string>();
         var remaining = contract.Remaining;
         var levelsGained = 0;
-        long jobExpTotal = 0;
+        long jobExperienceTotal = 0;
 
         // 補算最多回溯 MaxSimulatedSeconds，更早的場次跳過：推到第一個不早於該時刻的格點
         var earliest = now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds);
@@ -89,18 +89,18 @@ public static class MercenarySimulator
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, opponent);
             var outcome = WogBattle.Run(player, opponent, playerPreferred: null, skills, supply: null, random, pet, monsterSkills: monster.Skills);
 
-            long exp = 0, money = 0;
+            long experience = 0, money = 0;
             IReadOnlyList<string> dropped = [];
             MercenaryFightResult result;
             switch (outcome.Winner)
             {
                 case CombatSide.Player:
                     result = MercenaryFightResult.Won;
-                    exp = MercenaryRules.Discount(
-                        RewardFormulas.Experience(monster, monster.HealthPoints, character.Level, killed: true, random), definition.ExpPercent);
+                    experience = MercenaryRules.Discount(
+                        RewardFormulas.Experience(monster, monster.HealthPoints, character.Level, killed: true, random), definition.ExperiencePercent);
                     money = MercenaryRules.Discount(RewardFormulas.Money(monster, random), definition.MoneyPercent);
                     // 熟練度不打折（PHP win_check）
-                    jobExpTotal += RewardFormulas.JobExperience(monster);
+                    jobExperienceTotal += RewardFormulas.JobExperience(monster);
                     dropped = DropRoller.Roll(monster.Drops, random, dropFactor);
                     missions = KillCounter.Apply(missions, monster.Id, fightAt).Missions;
                     remaining--;
@@ -112,21 +112,21 @@ public static class MercenarySimulator
                 default:
                     // PHP 超限 win=0 一律算敗，但仍給部分經驗
                     result = MercenaryFightResult.Timeout;
-                    exp = MercenaryRules.Discount(
-                        RewardFormulas.TimeoutExperience(monster, outcome.DamageDealtToMonster, character.Level, random), definition.ExpPercent);
+                    experience = MercenaryRules.Discount(
+                        RewardFormulas.TimeoutExperience(monster, outcome.DamageDealtToMonster, character.Level, random), definition.ExperiencePercent);
                     remaining -= definition.DeathCost;
                     break;
             }
 
-            fights.Add(new MercenaryFight(fightAt, monster.Id, result, exp, money, dropped));
+            fights.Add(new MercenaryFight(fightAt, monster.Id, result, experience, money, dropped));
             droppedItemIds.AddRange(dropped);
-            character = character with { Experience = character.Experience + exp, Money = character.Money + money };
+            character = character with { Experience = character.Experience + experience, Money = character.Money + money };
             var levelUp = LevelUp.Apply(character, job, random, atSeconds: 0);
             character = levelUp.Character;
             levelsGained += levelUp.Events.Count;
         }
 
         var next = remaining > 0 ? contract with { Remaining = remaining, NextFightAt = fightAt } : null;
-        return new MercenaryRun(character, levelsGained, next, fights, jobExpTotal, droppedItemIds, missions);
+        return new MercenaryRun(character, levelsGained, next, fights, jobExperienceTotal, droppedItemIds, missions);
     }
 }

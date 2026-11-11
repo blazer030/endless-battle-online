@@ -15,7 +15,7 @@ public static class TestItems
         Item(id, category) with { Bonus = bonus ?? StatBonus.Zero, Requires = requires ?? EquipmentRequirement.None, JobId = jobId, Holes = holes, RefineMax = 4 };
 
     public static ItemDefinition Consumable(string id, ConsumableKind kind = ConsumableKind.Supply) =>
-        Item(id, ItemCategory.Consumable) with { Consumable = kind, SupplyHp = kind == ConsumableKind.Supply ? 50 : 0 };
+        Item(id, ItemCategory.Consumable) with { Consumable = kind, SupplyHealthPoints = kind == ConsumableKind.Supply ? 50 : 0 };
 
     public static ItemDefinition Item(string id, ItemCategory category) => new(
         Id: id,
@@ -23,8 +23,8 @@ public static class TestItems
         Category: category,
         Consumable: ConsumableKind.None,
         Bonus: StatBonus.Zero,
-        SupplyHp: 0,
-        SupplySp: 0,
+        SupplyHealthPoints: 0,
+        SupplyManaPoints: 0,
         Amount: 0,
         Requires: EquipmentRequirement.None,
         JobId: null,
