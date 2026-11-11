@@ -17,6 +17,30 @@ public class JsonGameContentTests
 {
     private static readonly string ShippedContentDirectory = Path.Combine(BackendPaths.BackendDirectory, "content");
 
+    // 數值照抄 backend/content 的 monsters.json 與 items.json：內容檔的鍵是儲存格式，Domain 改名後也要讀出同樣的值
+    [Fact]
+    public void JsonGameContent_LoadsMonsterStatsFromContentKeys()
+    {
+        var content = JsonGameContent.Load(ShippedContentDirectory);
+
+        var slime = content.GetMonster("monster-1");
+        Assert.Equal(
+            (32, 100, 19, 15, 8, 5, 2, 10, 12, 10, 6, 10),
+            (slime.Hp, slime.Sp, slime.At, slime.Mat, slime.Df, slime.Mdf, slime.Agi, slime.Au, slime.Str, slime.Smart, slime.Vit, slime.Be));
+        Assert.Equal(1L, slime.JobExp);
+
+        var staff = content.GetItem("item-6");
+        Assert.Equal(new StatBonus(0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0), staff.Bonus);
+        Assert.Equal(new StatRequirement7(8, 8, 8, 0), staff.Requires);
+
+        var lifeStone = content.GetItem("item-589").Stone!;
+        Assert.Equal(new StatBonus(0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 15), lifeStone.Fixed);
+
+        var randomStone = content.GetItem("item-2265").Stone!;
+        Assert.Equal(new StatBonus(25, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 700), randomStone.Min);
+        Assert.Equal(new StatBonus(40, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 1900), randomStone.Max);
+    }
+
     private const string ValidMonster =
         """{ "id": "sprite", "name": "雪精", "level": 3, "hp": 60, "sp": 10, "at": 14, "mat": 8, "df": 6, "mdf": 4, "agi": 9, "au": 6, "element": 2, "jobExp": 12, "meet": 0, "placeId": 0 }""";
 

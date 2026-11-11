@@ -1338,13 +1338,39 @@ public sealed class JsonGameContent : IGameContent
     // 漏寫 placeId 不能默默變成全域怪：全域怪必須明寫 0
     private static MonsterDefinition ToMonsterDefinition(JsonElement element)
     {
-        var monster = element.Deserialize<MonsterDefinition>(SerializerOptions) ?? throw new GameContentException("怪物不可為 null");
+        var entry = element.Deserialize<MonsterEntry>(SerializerOptions) ?? throw new GameContentException("怪物不可為 null");
         if (!element.TryGetProperty("placeId", out _))
         {
-            throw new GameContentException($"怪物 {monster.Id} 必須寫明 placeId（全域怪寫 0）");
+            throw new GameContentException($"怪物 {entry.Id} 必須寫明 placeId（全域怪寫 0）");
         }
 
-        return monster;
+        return new MonsterDefinition(
+            entry.Id,
+            entry.Name,
+            entry.Level,
+            entry.Hp,
+            entry.Sp,
+            entry.At,
+            entry.Mat,
+            entry.Df,
+            entry.Mdf,
+            entry.Agi,
+            entry.Au,
+            entry.Element,
+            entry.JobExp,
+            entry.Meet,
+            entry.PlaceId,
+            entry.SubPlaces,
+            entry.Drops,
+            entry.MissionId,
+            entry.Str,
+            entry.Smart,
+            entry.Vit,
+            entry.Be)
+        {
+            Npc = entry.Npc,
+            NpcMessage = entry.NpcMessage,
+        };
     }
 
     // 巢狀物件裡漏寫的必填字串在這裡擋下，之後的驗證才不會拿 null 去查表（ArgumentNullException）
@@ -1504,7 +1530,8 @@ public sealed class JsonGameContent : IGameContent
                 ToRange(spec.Agi), ToRange(spec.Au), ToRange(spec.Be))
             : null;
         var stone = entry.Stone is { } stoneEntry
-            ? new StoneSpec(stoneEntry.Random, stoneEntry.Fixed ?? StatBonus.Zero, stoneEntry.Min, stoneEntry.Max, stoneEntry.BoxClass)
+            ? new StoneSpec(
+                stoneEntry.Random, stoneEntry.Fixed?.ToDomain() ?? StatBonus.Zero, stoneEntry.Min?.ToDomain(), stoneEntry.Max?.ToDomain(), stoneEntry.BoxClass)
             : null;
 
         return new ItemDefinition(
@@ -1512,11 +1539,11 @@ public sealed class JsonGameContent : IGameContent
             entry.Name,
             ParseEnum<ItemCategory>(entry.Category, "category"),
             ParseEnum<ConsumableKind>(entry.Consumable ?? nameof(ConsumableKind.None), "consumable"),
-            entry.Bonus ?? StatBonus.Zero,
+            entry.Bonus?.ToDomain() ?? StatBonus.Zero,
             entry.SupplyHp,
             entry.SupplySp,
             entry.Amount,
-            entry.Requires ?? StatRequirement7.None,
+            entry.Requires?.ToDomain() ?? StatRequirement7.None,
             entry.JobId,
             entry.Element,
             entry.Holes,
@@ -1547,6 +1574,33 @@ public sealed class JsonGameContent : IGameContent
 
     // 逐筆讀成 JsonElement，才能分辨 placeId 是漏寫還是寫 0
     private sealed record MonsterFile(IReadOnlyList<JsonElement> Monsters);
+
+    // 省略的能力為 0；Str、Smart、Vit、Be 只給技能條件比較用
+    private sealed record MonsterEntry(
+        string Id,
+        string Name,
+        int Level,
+        int Hp,
+        int Sp,
+        int At,
+        int Mat,
+        int Df,
+        int Mdf,
+        int Agi,
+        int Au,
+        int Element,
+        long JobExp,
+        int Meet,
+        int PlaceId,
+        IReadOnlyList<int>? SubPlaces,
+        IReadOnlyList<DropEntry>? Drops,
+        string? MissionId,
+        int Str,
+        int Smart,
+        int Vit,
+        int Be,
+        bool Npc,
+        string? NpcMessage);
 
     private sealed record WorldFile(
         int StartingPlaceId, int? StartingSubPlace, IReadOnlyList<AreaEntry> Areas, IReadOnlyList<PlaceEntry> Places);
@@ -1609,11 +1663,11 @@ public sealed class JsonGameContent : IGameContent
         string Name,
         string Category,
         string? Consumable,
-        StatBonus? Bonus,
+        StatBonusEntry? Bonus,
         int SupplyHp,
         int SupplySp,
         int Amount,
-        StatRequirement7? Requires,
+        StatRequirementEntry? Requires,
         string? JobId,
         int Element,
         int Holes,
@@ -1646,7 +1700,18 @@ public sealed class JsonGameContent : IGameContent
         int[]? Au,
         int[]? Be);
 
-    private sealed record StoneEntry(bool Random, StatBonus? Fixed, StatBonus? Min, StatBonus? Max, int BoxClass = 0);
+    private sealed record StoneEntry(bool Random, StatBonusEntry? Fixed, StatBonusEntry? Min, StatBonusEntry? Max, int BoxClass = 0);
+
+    // 內容檔的能力鍵是儲存格式，與 Domain 的命名脫鉤；省略的能力為 0
+    private sealed record StatBonusEntry(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax)
+    {
+        public StatBonus ToDomain() => new(Str, Smart, Life, Vit, Agi, Au, Be, At, Mat, Df, Mdf, HpMax);
+    }
+
+    private sealed record StatRequirementEntry(int Str, int Smart, int Agi, int Au)
+    {
+        public StatRequirement7 ToDomain() => new(Str, Smart, Agi, Au);
+    }
 
     private sealed record RecipeFile(IReadOnlyList<RecipeEntry> Recipes);
 
