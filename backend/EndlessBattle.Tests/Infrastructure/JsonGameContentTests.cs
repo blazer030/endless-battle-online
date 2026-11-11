@@ -689,7 +689,7 @@ public class JsonGameContentTests
         {
             Assert.Equal(place.Id != 20 ? 4 : 0, place.SubPlaces.Count);
             Assert.Equal(place.Id is >= 17 and <= 20, place.Restricted);
-            Assert.InRange(place.Recommended.Min, 1, place.Recommended.Max);
+            Assert.InRange(place.Recommended.Minimum, 1, place.Recommended.Maximum);
             Assert.Equal(content.AllAreas.Single(area => area.PlaceIds.Contains(place.Id)).Id, place.AreaId);
         });
         Assert.False(content.GetPlace(20).HasSubPlaces);

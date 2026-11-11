@@ -39,7 +39,7 @@ public static class WorldEndpoints
             place.Id,
             place.Name,
             place.SubPlaces.Select(subPlace => new SubPlaceResponse(subPlace.Index, subPlace.Name)).ToList(),
-            new LevelRangeResponse(place.Recommended.Min, place.Recommended.Max),
+            new LevelRangeResponse(place.Recommended.Minimum, place.Recommended.Maximum),
             place.Restricted,
             place.Current,
             place.Recommendation,

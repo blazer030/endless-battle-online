@@ -93,7 +93,7 @@ public sealed class BalanceReportService
                 continue;
             }
 
-            var level = Math.Max(1, place.Recommended.Min);
+            var level = Math.Max(1, place.Recommended.Minimum);
             foreach (var job in jobs)
             {
                 var character = ReferenceAt(content, job, place, level);
