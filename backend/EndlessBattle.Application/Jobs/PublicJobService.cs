@@ -1,3 +1,4 @@
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Content;
@@ -76,15 +77,15 @@ public sealed class PublicJobService(IGameContent content)
 
     private static GrowthRangeView Range(StatRange range) => new(range.Minimum, range.Maximum);
 
-    private static string FullStatName(string stat) => stat switch
+    private static string FullStatName(BaseStat stat) => stat switch
     {
-        "str" => "strength",
-        "smart" => "intelligence",
-        "life" => "life",
-        "vit" => "vitality",
-        "agi" => "agility",
-        "au" => "charisma",
-        "be" => "faith",
+        BaseStat.Strength => "strength",
+        BaseStat.Intelligence => "intelligence",
+        BaseStat.Life => "life",
+        BaseStat.Vitality => "vitality",
+        BaseStat.Agility => "agility",
+        BaseStat.Charisma => "charisma",
+        BaseStat.Faith => "faith",
         _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
     };
 }

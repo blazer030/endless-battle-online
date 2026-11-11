@@ -23,15 +23,15 @@ public static class EquipmentRules
         var required = item.Requires;
         foreach (var (stat, have, need) in new[]
                  {
-                     ("str", bare.Strength, required.Strength),
-                     ("smart", bare.Intelligence, required.Intelligence),
-                     ("agi", bare.Agility, required.Agility),
-                     ("au", bare.Charisma, required.Charisma),
+                     (BaseStat.Strength, bare.Strength, required.Strength),
+                     (BaseStat.Intelligence, bare.Intelligence, required.Intelligence),
+                     (BaseStat.Agility, bare.Agility, required.Agility),
+                     (BaseStat.Charisma, bare.Charisma, required.Charisma),
                  })
         {
             if (have < need)
             {
-                reasons.Add($"statTooLow:{stat}");
+                reasons.Add(BaseStatCode.StatTooLow(stat));
             }
         }
 

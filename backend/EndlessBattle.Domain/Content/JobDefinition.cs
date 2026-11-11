@@ -1,3 +1,5 @@
+using EndlessBattle.Domain.Characters;
+
 namespace EndlessBattle.Domain.Content;
 
 public sealed record StatRange(int Minimum, int Maximum);
@@ -11,8 +13,7 @@ public sealed record JobGrowth(
     StatRange Charisma,
     StatRange Faith);
 
-// Stat 是 str、smart、life、vit、agi、au、be 之一
-public sealed record StatRequirement(string Stat, int Minimum);
+public sealed record StatRequirement(BaseStat Stat, int Minimum);
 
 public sealed record JobDefinition(
     string Id,

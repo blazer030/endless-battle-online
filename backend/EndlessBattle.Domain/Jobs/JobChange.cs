@@ -33,23 +33,11 @@ public static class JobChange
 
         // 與 WOG 一致：比的是未含加成的 Base 能力值
         reasons.AddRange(target.StatRequirements
-            .Where(requirement => BaseStatOf(character.Base, requirement.Stat) < requirement.Minimum)
-            .Select(requirement => $"statTooLow:{requirement.Stat}"));
+            .Where(requirement => character.Base.Of(requirement.Stat) < requirement.Minimum)
+            .Select(requirement => BaseStatCode.StatTooLow(requirement.Stat)));
 
         return new JobChangeCheck(reasons.Count == 0, reasons);
     }
 
     public static Character Apply(Character character, JobDefinition target) => character with { JobId = target.Id };
-
-    private static int BaseStatOf(BaseStats stats, string stat) => stat switch
-    {
-        "str" => stats.Strength,
-        "smart" => stats.Intelligence,
-        "life" => stats.Life,
-        "vit" => stats.Vitality,
-        "agi" => stats.Agility,
-        "au" => stats.Charisma,
-        "be" => stats.Faith,
-        _ => throw new ArgumentException($"未知的能力值：{stat}", nameof(stat)),
-    };
 }

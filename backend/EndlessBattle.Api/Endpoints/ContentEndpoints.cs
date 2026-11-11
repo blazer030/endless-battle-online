@@ -26,7 +26,7 @@ public static class ContentEndpoints
                     job.ParentId,
                     job.UnlockLevel,
                     job.ProficiencyRequired,
-                    job.StatRequirements.Select(requirement => new StatRequirementContent(requirement.Stat, requirement.Minimum)).ToList(),
+                    job.StatRequirements.Select(requirement => new StatRequirementContent(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
                     ToGrowthContent(job.Growth))).ToList(),
                 Elements,
                 Births,

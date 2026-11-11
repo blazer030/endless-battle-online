@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
@@ -121,7 +122,7 @@ public class JsonGameContentTests
         Assert.Equal(7, content.AllJobs.Count);
         var berserker = content.GetJob("berserker");
         Assert.Equal("warrior", berserker.ParentId);
-        Assert.Equal(new StatRequirement("str", 60), berserker.StatRequirements[0]);
+        Assert.Equal(new StatRequirement(BaseStat.Strength, 60), berserker.StatRequirements[0]);
         Assert.Equal(new StatRange(3, 4), berserker.Growth.Strength);
     }
 
@@ -444,6 +445,32 @@ public class JsonGameContentTests
             File.WriteAllText(Path.Combine(directory.FullName, "job-skills.json"), $$"""{ "jobSkills": [{{jobSkills}}] }""");
             var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
             Assert.Contains(offendingText, exception.Message);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void JsonGameContent_RejectsUnknownStatCode()
+    {
+        var directory = Directory.CreateTempSubdirectory("ebo-content-");
+        try
+        {
+            foreach (var file in Directory.GetFiles(TestContentDirectory))
+            {
+                File.Copy(file, Path.Combine(directory.FullName, Path.GetFileName(file)));
+            }
+
+            var jobsPath = Path.Combine(directory.FullName, "jobs.json");
+            var jobs = File.ReadAllText(jobsPath);
+            Assert.Contains("""{"stat": "str", "minimum": 60}""", jobs);
+            File.WriteAllText(jobsPath, jobs.Replace("""{"stat": "str", "minimum": 60}""", """{"stat": "strong", "minimum": 60}""", StringComparison.Ordinal));
+
+            var exception = Assert.Throws<GameContentException>(() => JsonGameContent.Load(directory.FullName));
+            Assert.Contains("berserker", exception.Message);
+            Assert.Contains("strong", exception.Message);
         }
         finally
         {

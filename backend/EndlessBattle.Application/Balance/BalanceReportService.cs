@@ -26,12 +26,12 @@ public sealed class BalanceReportService
 
     private static readonly DateTimeOffset Start = new(2026, 11, 4, 0, 0, 0, TimeSpan.Zero);
 
-    private static readonly (string Stat, Func<BaseStats, int> Have, Func<EquipmentRequirement, int> Need)[] RequirementStats =
+    private static readonly (BaseStat Stat, Func<BaseStats, int> Have, Func<EquipmentRequirement, int> Need)[] RequirementStats =
     [
-        ("str", stats => stats.Strength, requires => requires.Strength),
-        ("smart", stats => stats.Intelligence, requires => requires.Intelligence),
-        ("agi", stats => stats.Agility, requires => requires.Agility),
-        ("au", stats => stats.Charisma, requires => requires.Charisma),
+        (BaseStat.Strength, stats => stats.Strength, requires => requires.Strength),
+        (BaseStat.Intelligence, stats => stats.Intelligence, requires => requires.Intelligence),
+        (BaseStat.Agility, stats => stats.Agility, requires => requires.Agility),
+        (BaseStat.Charisma, stats => stats.Charisma, requires => requires.Charisma),
     ];
 
     public BalanceReport Build(IGameContent content, BalanceReportOptions options)
@@ -74,7 +74,7 @@ public sealed class BalanceReportService
                         .FirstOrDefault(candidate => have(StatsAt(start, job.Growth, candidate!.Value)) >= required);
                     return new WearLevelCell(shopLevel, required, level);
                 }).ToList();
-                rows.Add(new WearLevelRow(job.Id, job.Name, stat, cells));
+                rows.Add(new WearLevelRow(job.Id, job.Name, BaseStatCode.Of(stat), cells));
             }
         }
 

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Honour;
 using EndlessBattle.Domain.Items;
@@ -47,7 +48,16 @@ public sealed class JsonGameContent : IGameContent
     private const int MinimumElixirSeconds = 60;
     private const int MaximumElixirSeconds = 86_400;
 
-    private static readonly HashSet<string> StatNames = ["str", "smart", "life", "vit", "agi", "au", "be"];
+    private static readonly Dictionary<string, BaseStat> BaseStatsByCode = new()
+    {
+        ["str"] = BaseStat.Strength,
+        ["smart"] = BaseStat.Intelligence,
+        ["life"] = BaseStat.Life,
+        ["vit"] = BaseStat.Vitality,
+        ["agi"] = BaseStat.Agility,
+        ["au"] = BaseStat.Charisma,
+        ["be"] = BaseStat.Faith,
+    };
 
     private readonly Dictionary<string, MonsterDefinition> monsters;
     private readonly Dictionary<string, JobDefinition> jobs;
@@ -628,11 +638,6 @@ public sealed class JsonGameContent : IGameContent
             throw new GameContentException($"職業 {job.Id} 的成長範圍必須 0 ≤ min ≤ max");
         }
 
-        var unknownStat = job.StatRequirements.FirstOrDefault(requirement => !StatNames.Contains(requirement.Stat));
-        if (unknownStat is not null)
-        {
-            throw new GameContentException($"職業 {job.Id} 的能力需求引用了不存在的能力值：{unknownStat.Stat}");
-        }
     }
 
     private static void ValidateSkill(SkillDefinition skill)
@@ -1485,6 +1490,10 @@ public sealed class JsonGameContent : IGameContent
     // 成長在內容檔裡寫成 [min, max]
     private static JobDefinition ToJobDefinition(JobEntry entry)
     {
+        BaseStat ToBaseStat(string code) => BaseStatsByCode.TryGetValue(code, out var stat)
+            ? stat
+            : throw new GameContentException($"職業 {entry.Id} 的能力需求引用了不存在的能力值：{code}");
+
         StatRange ToRange(int[]? range) => range is [var min, var max]
             ? new StatRange(min, max)
             : throw new GameContentException($"職業 {entry.Id} 的成長範圍必須是 [min, max]");
@@ -1497,7 +1506,7 @@ public sealed class JsonGameContent : IGameContent
             entry.ParentId,
             entry.UnlockLevel,
             entry.ProficiencyRequired,
-            entry.StatRequirements,
+            entry.StatRequirements.Select(requirement => new StatRequirement(ToBaseStat(requirement.Stat), requirement.Minimum)).ToList(),
             new JobGrowth(
                 ToRange(growth.Str),
                 ToRange(growth.Smart),
@@ -1651,8 +1660,11 @@ public sealed class JsonGameContent : IGameContent
         string? ParentId,
         int UnlockLevel,
         int ProficiencyRequired,
-        IReadOnlyList<StatRequirement> StatRequirements,
+        IReadOnlyList<StatRequirementCodeEntry> StatRequirements,
         GrowthEntry Growth);
+
+    // 職業需求的能力在內容檔裡寫成代碼（str、smart…）
+    private sealed record StatRequirementCodeEntry(string Stat, int Minimum);
 
     private sealed record GrowthEntry(int[]? Str, int[]? Smart, int[]? Life, int[]? Vit, int[]? Agi, int[]? Au, int[]? Be);
 

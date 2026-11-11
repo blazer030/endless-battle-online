@@ -17,7 +17,7 @@ public class CharacterFactoryTests
     private static readonly StatRange Flat = new(1, 1);
     private static readonly JobGrowth Growth = new(Flat, Flat, Flat, Flat, Flat, Flat, Flat);
     private static readonly JobDefinition Warrior = new("warrior", "戰士", 1, null, 1, 0, [], Growth);
-    private static readonly JobDefinition Berserker = new("berserker", "狂戰士", 2, "warrior", 30, 3500, [new StatRequirement("str", 60)], Growth);
+    private static readonly JobDefinition Berserker = new("berserker", "狂戰士", 2, "warrior", 30, 3500, [new StatRequirement(BaseStat.Strength, 60)], Growth);
 
     private static CreateCharacterCommand Command(
         StatAllocation? allocation = null,

@@ -3,6 +3,7 @@ using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Jobs;
+using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -40,7 +41,7 @@ public static class JobEndpoints
         option.ParentName,
         option.UnlockLevel,
         option.ProficiencyRequired,
-        option.StatRequirements.Select(requirement => new StatRequirementContent(requirement.Stat, requirement.Minimum)).ToList(),
+        option.StatRequirements.Select(requirement => new StatRequirementContent(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
         ContentEndpoints.ToGrowthContent(option.Growth),
         option.Current,
         option.ProficiencyPercent,

@@ -12,7 +12,7 @@ public class JobChangeTests
     private static readonly JobGrowth Growth = new(new(0, 1), new(0, 1), new(0, 1), new(0, 1), new(0, 1), new(0, 1), new(0, 1));
 
     private static readonly JobDefinition Thief = new("thief", "盜賊", 1, null, 1, 0, [], Growth);
-    private static readonly JobDefinition Berserker = new("berserker", "狂戰士", 2, "warrior", 30, 3500, [new StatRequirement("str", 60)], Growth);
+    private static readonly JobDefinition Berserker = new("berserker", "狂戰士", 2, "warrior", 30, 3500, [new StatRequirement(BaseStat.Strength, 60)], Growth);
 
     private static Character Warrior(int level = 30, int str = 60) =>
         TestCharacters.Default(1, "測試者", 1, 1, Now) with { Level = level, Base = new BaseStats(str, 12, 12, 10, 12, 10, 10) };
@@ -43,19 +43,19 @@ public class JobChangeTests
 
     // 七個能力名稱各自對應 Base 的欄位：minimum 比該能力高 1 點就不足
     [Theory]
-    [InlineData("str", 13)]
-    [InlineData("smart", 13)]
-    [InlineData("life", 13)]
-    [InlineData("vit", 11)]
-    [InlineData("agi", 13)]
-    [InlineData("au", 11)]
-    [InlineData("be", 11)]
-    public void Evaluate_ComparesEachBaseStatByName(string stat, int minimum)
+    [InlineData(BaseStat.Strength, "str", 13)]
+    [InlineData(BaseStat.Intelligence, "smart", 13)]
+    [InlineData(BaseStat.Life, "life", 13)]
+    [InlineData(BaseStat.Vitality, "vit", 11)]
+    [InlineData(BaseStat.Agility, "agi", 13)]
+    [InlineData(BaseStat.Charisma, "au", 11)]
+    [InlineData(BaseStat.Faith, "be", 11)]
+    public void Evaluate_ComparesEachBaseStatByName(BaseStat stat, string code, int minimum)
     {
         var target = Thief with { Id = "other", StatRequirements = [new StatRequirement(stat, minimum)] };
         var character = Warrior(level: 1, str: 12);
 
-        Assert.Equal([$"statTooLow:{stat}"], JobChange.Evaluate(character, target, []).Reasons);
+        Assert.Equal([$"statTooLow:{code}"], JobChange.Evaluate(character, target, []).Reasons);
         Assert.True(JobChange.Evaluate(character, target with { StatRequirements = [new StatRequirement(stat, minimum - 1)] }, []).Eligible);
     }
 
