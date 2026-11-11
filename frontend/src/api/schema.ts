@@ -2230,7 +2230,7 @@ export interface components {
             username: string;
         };
         AdvanceResponse: {
-            events: components["schemas"]["BattleEvent"][];
+            events: components["schemas"]["BattleEventResponse"][];
             summary: components["schemas"]["AdvanceSummaryResponse"];
             eventsCoverAll: boolean;
             character: components["schemas"]["CharacterResponse"];
@@ -2306,22 +2306,6 @@ export interface components {
             /** Format: int64 */
             amount: null | number;
         };
-        BaseStats: {
-            /** Format: int32 */
-            str: number;
-            /** Format: int32 */
-            smart: number;
-            /** Format: int32 */
-            life: number;
-            /** Format: int32 */
-            vit: number;
-            /** Format: int32 */
-            agi: number;
-            /** Format: int32 */
-            au: number;
-            /** Format: int32 */
-            be: number;
-        };
         BaseStatsResponse: {
             /** Format: int32 */
             str: number;
@@ -2338,8 +2322,8 @@ export interface components {
             /** Format: int32 */
             be: number;
         };
-        BattleEvent: components["schemas"]["BattleEventEncounterEvent"] | components["schemas"]["BattleEventRoundEvent"] | components["schemas"]["BattleEventAttackEvent"] | components["schemas"]["BattleEventSkillEvent"] | components["schemas"]["BattleEventPotionEvent"] | components["schemas"]["BattleEventDefeatEvent"] | components["schemas"]["BattleEventTimeoutEvent"] | components["schemas"]["BattleEventRewardEvent"] | components["schemas"]["BattleEventLevelUpEvent"] | components["schemas"]["BattleEventRestEvent"] | components["schemas"]["BattleEventMissionProgressEvent"] | components["schemas"]["BattleEventNpcEncounterEvent"] | components["schemas"]["BattleEventPetGuardEvent"] | components["schemas"]["BattleEventPetAttackEvent"] | components["schemas"]["BattleEventCaptureEvent"] | components["schemas"]["BattleEventEscapeEvent"];
-        BattleEventAttackEvent: {
+        BattleEventResponse: components["schemas"]["BattleEventResponseEncounterEventResponse"] | components["schemas"]["BattleEventResponseRoundEventResponse"] | components["schemas"]["BattleEventResponseAttackEventResponse"] | components["schemas"]["BattleEventResponseSkillEventResponse"] | components["schemas"]["BattleEventResponsePotionEventResponse"] | components["schemas"]["BattleEventResponseDefeatEventResponse"] | components["schemas"]["BattleEventResponseTimeoutEventResponse"] | components["schemas"]["BattleEventResponseRewardEventResponse"] | components["schemas"]["BattleEventResponseLevelUpEventResponse"] | components["schemas"]["BattleEventResponseRestEventResponse"] | components["schemas"]["BattleEventResponseMissionProgressEventResponse"] | components["schemas"]["BattleEventResponseNpcEncounterEventResponse"] | components["schemas"]["BattleEventResponsePetGuardEventResponse"] | components["schemas"]["BattleEventResponsePetAttackEventResponse"] | components["schemas"]["BattleEventResponseCaptureEventResponse"] | components["schemas"]["BattleEventResponseEscapeEventResponse"];
+        BattleEventResponseAttackEventResponse: {
             /** @enum {string} */
             type?: "attack";
             attacker: components["schemas"]["CombatSide"];
@@ -2352,12 +2336,11 @@ export interface components {
             elementMultiplier: number;
             /** Format: int32 */
             targetHpAfter: number;
-            /** @default false */
             stunned: boolean;
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventCaptureEvent: {
+        BattleEventResponseCaptureEventResponse: {
             /** @enum {string} */
             type?: "capture";
             itemName: string;
@@ -2368,14 +2351,14 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventDefeatEvent: {
+        BattleEventResponseDefeatEventResponse: {
             /** @enum {string} */
             type?: "defeat";
             loser: components["schemas"]["CombatSide"];
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventEncounterEvent: {
+        BattleEventResponseEncounterEventResponse: {
             /** @enum {string} */
             type?: "encounter";
             monsterId: string;
@@ -2391,27 +2374,27 @@ export interface components {
             playerSp: number;
             /** Format: int32 */
             playerSpMax: number;
-            petName?: null | string;
-            petMonsterId?: null | string;
+            petName: null | string;
+            petMonsterId: null | string;
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventEscapeEvent: {
+        BattleEventResponseEscapeEventResponse: {
             /** @enum {string} */
             type?: "escape";
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventLevelUpEvent: {
+        BattleEventResponseLevelUpEventResponse: {
             /** @enum {string} */
             type?: "levelUp";
             /** Format: int32 */
             newLevel: number;
-            growth: components["schemas"]["BaseStats"];
+            growth: components["schemas"]["BaseStatsResponse"];
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventMissionProgressEvent: {
+        BattleEventResponseMissionProgressEventResponse: {
             /** @enum {string} */
             type?: "mission";
             missionId: string;
@@ -2427,7 +2410,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventNpcEncounterEvent: {
+        BattleEventResponseNpcEncounterEventResponse: {
             /** @enum {string} */
             type?: "npc";
             monsterId: string;
@@ -2436,7 +2419,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventPetAttackEvent: {
+        BattleEventResponsePetAttackEventResponse: {
             /** @enum {string} */
             type?: "petAttack";
             petName: string;
@@ -2450,7 +2433,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventPetGuardEvent: {
+        BattleEventResponsePetGuardEventResponse: {
             /** @enum {string} */
             type?: "petGuard";
             petName: string;
@@ -2462,7 +2445,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventPotionEvent: {
+        BattleEventResponsePotionEventResponse: {
             /** @enum {string} */
             type?: "potion";
             itemId: string;
@@ -2476,7 +2459,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventRestEvent: {
+        BattleEventResponseRestEventResponse: {
             /** @enum {string} */
             type?: "rest";
             /** Format: int64 */
@@ -2487,7 +2470,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventRewardEvent: {
+        BattleEventResponseRewardEventResponse: {
             /** @enum {string} */
             type?: "reward";
             /** Format: int64 */
@@ -2496,11 +2479,11 @@ export interface components {
             money: number;
             /** Format: int64 */
             jobExp: number;
-            drops?: null | components["schemas"]["DropResult"][];
+            drops: components["schemas"]["DropResponse"][];
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventRoundEvent: {
+        BattleEventResponseRoundEventResponse: {
             /** @enum {string} */
             type?: "round";
             /** Format: int32 */
@@ -2508,7 +2491,7 @@ export interface components {
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventSkillEvent: {
+        BattleEventResponseSkillEventResponse: {
             /** @enum {string} */
             type?: "skill";
             caster: components["schemas"]["CombatSide"];
@@ -2520,44 +2503,25 @@ export interface components {
             spAfter: number;
             /** Format: int32 */
             heal: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             damage: number;
             /** Format: int32 */
-            opponentHpAfter?: null | number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            opponentHpAfter: null | number;
+            /** Format: int32 */
             hpCost: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             spCost: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             moneyCost: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             opponentSpLoss: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             spGain: number;
-            /** @default false */
             lasting: boolean;
             /** Format: double */
             atSeconds: number;
         };
-        BattleEventTimeoutEvent: {
+        BattleEventResponseTimeoutEventResponse: {
             /** @enum {string} */
             type?: "timeout";
             /** Format: int32 */
@@ -2659,7 +2623,7 @@ export interface components {
             /** Format: int64 */
             inventoryId: null | number;
         };
-        DropResult: {
+        DropResponse: {
             itemId: string;
             name: string;
             /** Format: int32 */

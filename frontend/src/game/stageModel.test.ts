@@ -20,6 +20,8 @@ const encounter: EncounterEvent = {
   playerHpMax: 200,
   playerSp: 10,
   playerSpMax: 20,
+  petName: null,
+  petMonsterId: null,
   atSeconds: 0,
 }
 
@@ -299,7 +301,7 @@ describe("stageModel", () => {
       { type: "dropFloat", text: "鐵礦石" },
       { type: "dropFloat", text: "魔法粉塵" },
     ])
-    expect(stageEffectsFor({ ...reward, drops: null })).toEqual([])
+    expect(stageEffectsFor({ ...reward, drops: [] })).toEqual([])
   })
 
   it("stageEffectsFor_PlayerSkill_FlashesCyanWithSkillPlate", () => {

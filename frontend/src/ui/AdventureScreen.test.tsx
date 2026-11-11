@@ -75,8 +75,10 @@ const response: AdvanceResponse = {
       playerHpMax: 120,
       playerSp: 10,
       playerSpMax: 10,
+      petName: null,
+      petMonsterId: null,
     },
-    { type: "reward", atSeconds: 0, exp: 8, money: 3, jobExp: 2 },
+    { type: "reward", atSeconds: 0, exp: 8, money: 3, jobExp: 2, drops: [] },
   ],
   summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
   eventsCoverAll: true,
@@ -87,7 +89,7 @@ const response: AdvanceResponse = {
 
 const levelUpResponse: AdvanceResponse = {
   events: [
-    { type: "reward", atSeconds: 0, exp: 1200, money: 3, jobExp: 2 },
+    { type: "reward", atSeconds: 0, exp: 1200, money: 3, jobExp: 2, drops: [] },
     {
       type: "levelUp",
       atSeconds: 0,
@@ -623,7 +625,10 @@ test("AdventureScreen_OpeningTheCharacterTabReloadsBuffs", async () => {
 test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
   const api = createFakeApi({
     ...response,
-    events: [response.events[0], { type: "reward", atSeconds: 5, exp: 8, money: 3, jobExp: 2 }],
+    events: [
+      response.events[0],
+      { type: "reward", atSeconds: 5, exp: 8, money: 3, jobExp: 2, drops: [] },
+    ],
   })
   render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
   await advanceTime(0)

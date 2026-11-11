@@ -6,7 +6,7 @@
 ## 2. API 回應與 Domain 脫鉤（結構性，JSON 不變）
 
 - [x] 2.1 依「API 回應不再序列化 Domain 型別」，新增 API 自己的 `StatBonusResponse`、`EquipmentRequirementResponse`、`AdvanceSummaryResponse`、`DropResponse`，`LevelUpEvent` 的成長改用 `BaseStatsResponse`；欄位名稱暫時與現在相同。所有回傳道具加成、裝備需求、推進摘要的 endpoint 改成在 endpoint 轉換。驗證：`dotnet build` 後 `backend/openapi/EndlessBattle.Api.json` 的屬性名稱與改動前相同（只有 schema 名稱變，人工比對 diff），既有 API 測試全部不改就通過；單獨以結構性變更 commit。
-- [ ] 2.2 依「API 回應不再序列化 Domain 型別」，新增 API 的 `BattleEventResponse` 階層（鑑別值 `type` 與現在相同：`encounter`、`round`、`attack`、`skill`、`potion`、`defeat`、`timeout`、`reward`、`levelUp`、`missionProgress`、`npcEncounter`、`rest`、`petGuard`、`petAttack`、`capture`、`escape`），`[JsonDerivedType]` 從 Domain 的 `BattleEvent` 移到 API；欄位名稱暫時與現在相同。驗證：`AdventureEndpointsTests` 不改就通過、OpenAPI 屬性名稱不變（人工比對 diff）、`pnpm generate:api` 後 `frontend` 的 `tsc -b` 通過；單獨以結構性變更 commit。[after: 2.1]
+- [x] 2.2 依「API 回應不再序列化 Domain 型別」，新增 API 的 `BattleEventResponse` 階層（鑑別值 `type` 與現在相同：`encounter`、`round`、`attack`、`skill`、`potion`、`defeat`、`timeout`、`reward`、`levelUp`、`rest`、`mission`、`npc`、`petGuard`、`petAttack`、`capture`、`escape`），`[JsonDerivedType]` 從 Domain 的 `BattleEvent` 移到 API；欄位名稱暫時與現在相同。驗證：`AdventureEndpointsTests` 不改就通過、OpenAPI 屬性名稱不變（人工比對 diff）、`pnpm generate:api` 後 `frontend` 的 `tsc -b` 通過；單獨以結構性變更 commit。[after: 2.1]
 
 ## 3. Domain 改名（結構性，行為不變）
 

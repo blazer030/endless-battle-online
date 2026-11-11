@@ -169,7 +169,9 @@ public class SkillEffectTests
         new(Hp: 3000, HpMax: 3000, Sp: 0, SpMax: 0, At: 120, Mat: 0, Df: 50, Mdf: 50, Agi: 15, Au: 10, Element: 0, Str: 0, Smart: 0);
 
     private static string BattleWith(SkillDefinition skill, int level, int slot = 1) =>
-        JsonSerializer.Serialize(WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(skill, level, slot)], new SeededRandom(7)).Events);
+        // 以執行期型別序列化，才會寫出各事件自己的欄位
+        JsonSerializer.Serialize(
+            WogBattle.Run(Player(), Monster(), AttackKind.Physical, [new EquippedSkill(skill, level, slot)], new SeededRandom(7)).Events.Cast<object>().ToList());
 
     private static SkillLevel AttackLevel(int level, double percent) =>
         Level(level, [Chance(60)], [AttackPercent(percent)], costs: [new SkillCost(SkillCostKind.SkillPoints, 5)]);

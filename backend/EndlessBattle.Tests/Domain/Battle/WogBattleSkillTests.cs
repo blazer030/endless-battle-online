@@ -1,4 +1,3 @@
-using System.Text.Json;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Randomness;
 using EndlessBattle.Domain.Skills;
@@ -440,15 +439,5 @@ public class WogBattleSkillTests
             (legacy.Events.Count, legacy.Winner, legacy.Rounds, legacy.DamageDealtToMonster, legacy.Player.Hp, legacy.Monster.Hp, legacy.Player.Sp));
         Assert.Equal((30, 3, 1, 13), (attacks.Count, attacks.Count(attack => attack.Critical), attacks.Count(attack => !attack.Hit), attacks.Count(attack => attack.Kind == AttackKind.Magic)));
         Assert.Equal(new DefeatEvent(attacks[^1].AtSeconds, CombatSide.Player), legacy.Events[^1]);
-    }
-
-    [Fact]
-    public void SkillEvent_SerializesWithSkillDiscriminator()
-    {
-        BattleEvent skillEvent = new SkillEvent(0, CombatSide.Player, "burst", "爆氣", Level: 1, SpAfter: 10, Heal: 0);
-
-        var json = JsonSerializer.Serialize(skillEvent, JsonSerializerOptions.Web);
-
-        Assert.Contains("\"type\":\"skill\"", json);
     }
 }

@@ -22,6 +22,8 @@ function encounter(atSeconds: number): BattleEvent {
     playerHpMax: 120,
     playerSp: 10,
     playerSpMax: 10,
+    petName: null,
+    petMonsterId: null,
   }
 }
 

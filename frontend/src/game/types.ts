@@ -7,7 +7,7 @@ export type AdvanceResponse = Schemas["AdvanceResponse"]
 export type AdvanceSummary = Schemas["AdvanceSummaryResponse"]
 export type ContentNames = Schemas["ContentResponse"]
 export type StatsView = Schemas["StatsResponse"]
-export type GrowthStats = Schemas["BaseStats"]
+export type GrowthStats = Schemas["BaseStatsResponse"]
 export type JobGrowth = Schemas["JobGrowthContent"]
 export type JobOption = Schemas["JobOptionResponse"]
 export type SkillOverview = Schemas["SkillOverviewResponse"]
@@ -78,25 +78,27 @@ export type AdventureSettingsCommand = Omit<
 // 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
 // 寵物欄位只在帶寵物出戰時才有，維持選填
 export type EncounterEvent = Required<
-  Omit<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
+  Omit<Schemas["BattleEventResponseEncounterEventResponse"], "petName" | "petMonsterId">
 > &
-  Pick<Schemas["BattleEventEncounterEvent"], "petName" | "petMonsterId">
-export type RoundEvent = Required<Schemas["BattleEventRoundEvent"]>
-export type AttackEvent = Required<Schemas["BattleEventAttackEvent"]>
-export type SkillEvent = Required<Schemas["BattleEventSkillEvent"]>
-export type PotionEvent = Required<Schemas["BattleEventPotionEvent"]>
-export type DefeatEvent = Required<Schemas["BattleEventDefeatEvent"]>
-export type TimeoutEvent = Required<Schemas["BattleEventTimeoutEvent"]>
-export type RewardEvent = Required<Schemas["BattleEventRewardEvent"]>
-export type DropResult = Schemas["DropResult"]
-export type LevelUpEvent = Required<Schemas["BattleEventLevelUpEvent"]>
-export type MissionProgressEvent = Required<Schemas["BattleEventMissionProgressEvent"]>
-export type NpcEncounterEvent = Required<Schemas["BattleEventNpcEncounterEvent"]>
-export type RestEvent = Required<Schemas["BattleEventRestEvent"]>
-export type PetGuardEvent = Required<Schemas["BattleEventPetGuardEvent"]>
-export type PetAttackEvent = Required<Schemas["BattleEventPetAttackEvent"]>
-export type CaptureEvent = Required<Schemas["BattleEventCaptureEvent"]>
-export type EscapeEvent = Required<Schemas["BattleEventEscapeEvent"]>
+  Pick<Schemas["BattleEventResponseEncounterEventResponse"], "petName" | "petMonsterId">
+export type RoundEvent = Required<Schemas["BattleEventResponseRoundEventResponse"]>
+export type AttackEvent = Required<Schemas["BattleEventResponseAttackEventResponse"]>
+export type SkillEvent = Required<Schemas["BattleEventResponseSkillEventResponse"]>
+export type PotionEvent = Required<Schemas["BattleEventResponsePotionEventResponse"]>
+export type DefeatEvent = Required<Schemas["BattleEventResponseDefeatEventResponse"]>
+export type TimeoutEvent = Required<Schemas["BattleEventResponseTimeoutEventResponse"]>
+export type RewardEvent = Required<Schemas["BattleEventResponseRewardEventResponse"]>
+export type DropResult = Schemas["DropResponse"]
+export type LevelUpEvent = Required<Schemas["BattleEventResponseLevelUpEventResponse"]>
+export type MissionProgressEvent = Required<
+  Schemas["BattleEventResponseMissionProgressEventResponse"]
+>
+export type NpcEncounterEvent = Required<Schemas["BattleEventResponseNpcEncounterEventResponse"]>
+export type RestEvent = Required<Schemas["BattleEventResponseRestEventResponse"]>
+export type PetGuardEvent = Required<Schemas["BattleEventResponsePetGuardEventResponse"]>
+export type PetAttackEvent = Required<Schemas["BattleEventResponsePetAttackEventResponse"]>
+export type CaptureEvent = Required<Schemas["BattleEventResponseCaptureEventResponse"]>
+export type EscapeEvent = Required<Schemas["BattleEventResponseEscapeEventResponse"]>
 export type BattleEvent =
   | EncounterEvent
   | RoundEvent

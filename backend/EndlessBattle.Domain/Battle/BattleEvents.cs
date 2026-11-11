@@ -1,26 +1,8 @@
-using System.Text.Json.Serialization;
 using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.Battle;
 
-// 前端用同一串事件同時驅動對戰舞台與戰報；AtSeconds 是相對於這批事件起點的秒數
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(EncounterEvent), "encounter")]
-[JsonDerivedType(typeof(RoundEvent), "round")]
-[JsonDerivedType(typeof(AttackEvent), "attack")]
-[JsonDerivedType(typeof(SkillEvent), "skill")]
-[JsonDerivedType(typeof(PotionEvent), "potion")]
-[JsonDerivedType(typeof(DefeatEvent), "defeat")]
-[JsonDerivedType(typeof(TimeoutEvent), "timeout")]
-[JsonDerivedType(typeof(RewardEvent), "reward")]
-[JsonDerivedType(typeof(LevelUpEvent), "levelUp")]
-[JsonDerivedType(typeof(RestEvent), "rest")]
-[JsonDerivedType(typeof(MissionProgressEvent), "mission")]
-[JsonDerivedType(typeof(NpcEncounterEvent), "npc")]
-[JsonDerivedType(typeof(PetGuardEvent), "petGuard")]
-[JsonDerivedType(typeof(PetAttackEvent), "petAttack")]
-[JsonDerivedType(typeof(CaptureEvent), "capture")]
-[JsonDerivedType(typeof(EscapeEvent), "escape")]
+// AtSeconds 是相對於這批事件起點的秒數；API 的回應型別另外定義
 public abstract record BattleEvent(double AtSeconds);
 
 public sealed record EncounterEvent(

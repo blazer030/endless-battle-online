@@ -1564,7 +1564,7 @@
           "events": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BattleEvent"
+              "$ref": "#/components/schemas/BattleEventResponse"
             }
           },
           "summary": {
@@ -1818,48 +1818,6 @@
           }
         }
       },
-      "BaseStats": {
-        "required": [
-          "str",
-          "smart",
-          "life",
-          "vit",
-          "agi",
-          "au",
-          "be"
-        ],
-        "type": "object",
-        "properties": {
-          "str": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "smart": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "life": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "vit": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "agi": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "au": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "be": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "BaseStatsResponse": {
         "required": [
           "str",
@@ -1902,84 +1860,84 @@
           }
         }
       },
-      "BattleEvent": {
+      "BattleEventResponse": {
         "required": [
           "type"
         ],
         "type": "object",
         "anyOf": [
           {
-            "$ref": "#/components/schemas/BattleEventEncounterEvent"
+            "$ref": "#/components/schemas/BattleEventResponseEncounterEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventRoundEvent"
+            "$ref": "#/components/schemas/BattleEventResponseRoundEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventAttackEvent"
+            "$ref": "#/components/schemas/BattleEventResponseAttackEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventSkillEvent"
+            "$ref": "#/components/schemas/BattleEventResponseSkillEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventPotionEvent"
+            "$ref": "#/components/schemas/BattleEventResponsePotionEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventDefeatEvent"
+            "$ref": "#/components/schemas/BattleEventResponseDefeatEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventTimeoutEvent"
+            "$ref": "#/components/schemas/BattleEventResponseTimeoutEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventRewardEvent"
+            "$ref": "#/components/schemas/BattleEventResponseRewardEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventLevelUpEvent"
+            "$ref": "#/components/schemas/BattleEventResponseLevelUpEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventRestEvent"
+            "$ref": "#/components/schemas/BattleEventResponseRestEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventMissionProgressEvent"
+            "$ref": "#/components/schemas/BattleEventResponseMissionProgressEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventNpcEncounterEvent"
+            "$ref": "#/components/schemas/BattleEventResponseNpcEncounterEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventPetGuardEvent"
+            "$ref": "#/components/schemas/BattleEventResponsePetGuardEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventPetAttackEvent"
+            "$ref": "#/components/schemas/BattleEventResponsePetAttackEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventCaptureEvent"
+            "$ref": "#/components/schemas/BattleEventResponseCaptureEventResponse"
           },
           {
-            "$ref": "#/components/schemas/BattleEventEscapeEvent"
+            "$ref": "#/components/schemas/BattleEventResponseEscapeEventResponse"
           }
         ],
         "discriminator": {
           "propertyName": "type",
           "mapping": {
-            "encounter": "#/components/schemas/BattleEventEncounterEvent",
-            "round": "#/components/schemas/BattleEventRoundEvent",
-            "attack": "#/components/schemas/BattleEventAttackEvent",
-            "skill": "#/components/schemas/BattleEventSkillEvent",
-            "potion": "#/components/schemas/BattleEventPotionEvent",
-            "defeat": "#/components/schemas/BattleEventDefeatEvent",
-            "timeout": "#/components/schemas/BattleEventTimeoutEvent",
-            "reward": "#/components/schemas/BattleEventRewardEvent",
-            "levelUp": "#/components/schemas/BattleEventLevelUpEvent",
-            "rest": "#/components/schemas/BattleEventRestEvent",
-            "mission": "#/components/schemas/BattleEventMissionProgressEvent",
-            "npc": "#/components/schemas/BattleEventNpcEncounterEvent",
-            "petGuard": "#/components/schemas/BattleEventPetGuardEvent",
-            "petAttack": "#/components/schemas/BattleEventPetAttackEvent",
-            "capture": "#/components/schemas/BattleEventCaptureEvent",
-            "escape": "#/components/schemas/BattleEventEscapeEvent"
+            "encounter": "#/components/schemas/BattleEventResponseEncounterEventResponse",
+            "round": "#/components/schemas/BattleEventResponseRoundEventResponse",
+            "attack": "#/components/schemas/BattleEventResponseAttackEventResponse",
+            "skill": "#/components/schemas/BattleEventResponseSkillEventResponse",
+            "potion": "#/components/schemas/BattleEventResponsePotionEventResponse",
+            "defeat": "#/components/schemas/BattleEventResponseDefeatEventResponse",
+            "timeout": "#/components/schemas/BattleEventResponseTimeoutEventResponse",
+            "reward": "#/components/schemas/BattleEventResponseRewardEventResponse",
+            "levelUp": "#/components/schemas/BattleEventResponseLevelUpEventResponse",
+            "rest": "#/components/schemas/BattleEventResponseRestEventResponse",
+            "mission": "#/components/schemas/BattleEventResponseMissionProgressEventResponse",
+            "npc": "#/components/schemas/BattleEventResponseNpcEncounterEventResponse",
+            "petGuard": "#/components/schemas/BattleEventResponsePetGuardEventResponse",
+            "petAttack": "#/components/schemas/BattleEventResponsePetAttackEventResponse",
+            "capture": "#/components/schemas/BattleEventResponseCaptureEventResponse",
+            "escape": "#/components/schemas/BattleEventResponseEscapeEventResponse"
           }
         }
       },
-      "BattleEventAttackEvent": {
+      "BattleEventResponseAttackEventResponse": {
         "required": [
           "attacker",
           "kind",
@@ -1988,6 +1946,7 @@
           "damage",
           "elementMultiplier",
           "targetHpAfter",
+          "stunned",
           "atSeconds"
         ],
         "properties": {
@@ -2022,8 +1981,7 @@
             "format": "int32"
           },
           "stunned": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "atSeconds": {
             "type": "number",
@@ -2031,7 +1989,7 @@
           }
         }
       },
-      "BattleEventCaptureEvent": {
+      "BattleEventResponseCaptureEventResponse": {
         "required": [
           "itemName",
           "itemBroken",
@@ -2068,7 +2026,7 @@
           }
         }
       },
-      "BattleEventDefeatEvent": {
+      "BattleEventResponseDefeatEventResponse": {
         "required": [
           "loser",
           "atSeconds"
@@ -2089,7 +2047,7 @@
           }
         }
       },
-      "BattleEventEncounterEvent": {
+      "BattleEventResponseEncounterEventResponse": {
         "required": [
           "monsterId",
           "monsterHp",
@@ -2098,6 +2056,8 @@
           "playerHpMax",
           "playerSp",
           "playerSpMax",
+          "petName",
+          "petMonsterId",
           "atSeconds"
         ],
         "properties": {
@@ -2152,7 +2112,7 @@
           }
         }
       },
-      "BattleEventEscapeEvent": {
+      "BattleEventResponseEscapeEventResponse": {
         "required": [
           "atSeconds"
         ],
@@ -2169,7 +2129,7 @@
           }
         }
       },
-      "BattleEventLevelUpEvent": {
+      "BattleEventResponseLevelUpEventResponse": {
         "required": [
           "newLevel",
           "growth",
@@ -2187,7 +2147,7 @@
             "format": "int32"
           },
           "growth": {
-            "$ref": "#/components/schemas/BaseStats"
+            "$ref": "#/components/schemas/BaseStatsResponse"
           },
           "atSeconds": {
             "type": "number",
@@ -2195,7 +2155,7 @@
           }
         }
       },
-      "BattleEventMissionProgressEvent": {
+      "BattleEventResponseMissionProgressEventResponse": {
         "required": [
           "missionId",
           "title",
@@ -2246,7 +2206,7 @@
           }
         }
       },
-      "BattleEventNpcEncounterEvent": {
+      "BattleEventResponseNpcEncounterEventResponse": {
         "required": [
           "monsterId",
           "name",
@@ -2278,7 +2238,7 @@
           }
         }
       },
-      "BattleEventPetAttackEvent": {
+      "BattleEventResponsePetAttackEventResponse": {
         "required": [
           "petName",
           "kind",
@@ -2321,7 +2281,7 @@
           }
         }
       },
-      "BattleEventPetGuardEvent": {
+      "BattleEventResponsePetGuardEventResponse": {
         "required": [
           "petName",
           "damage",
@@ -2356,7 +2316,7 @@
           }
         }
       },
-      "BattleEventPotionEvent": {
+      "BattleEventResponsePotionEventResponse": {
         "required": [
           "itemId",
           "name",
@@ -2396,7 +2356,7 @@
           }
         }
       },
-      "BattleEventRestEvent": {
+      "BattleEventResponseRestEventResponse": {
         "required": [
           "cost",
           "expPenalty",
@@ -2427,11 +2387,12 @@
           }
         }
       },
-      "BattleEventRewardEvent": {
+      "BattleEventResponseRewardEventResponse": {
         "required": [
           "exp",
           "money",
           "jobExp",
+          "drops",
           "atSeconds"
         ],
         "properties": {
@@ -2454,12 +2415,9 @@
             "format": "int64"
           },
           "drops": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DropResult"
+              "$ref": "#/components/schemas/DropResponse"
             }
           },
           "atSeconds": {
@@ -2468,7 +2426,7 @@
           }
         }
       },
-      "BattleEventRoundEvent": {
+      "BattleEventResponseRoundEventResponse": {
         "required": [
           "round",
           "atSeconds"
@@ -2490,7 +2448,7 @@
           }
         }
       },
-      "BattleEventSkillEvent": {
+      "BattleEventResponseSkillEventResponse": {
         "required": [
           "caster",
           "skillId",
@@ -2498,6 +2456,14 @@
           "level",
           "spAfter",
           "heal",
+          "damage",
+          "opponentHpAfter",
+          "hpCost",
+          "spCost",
+          "moneyCost",
+          "opponentSpLoss",
+          "spGain",
+          "lasting",
           "atSeconds"
         ],
         "properties": {
@@ -2530,8 +2496,7 @@
           },
           "damage": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "opponentHpAfter": {
             "type": [
@@ -2542,32 +2507,26 @@
           },
           "hpCost": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "spCost": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "moneyCost": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "opponentSpLoss": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "spGain": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "lasting": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "atSeconds": {
             "type": "number",
@@ -2575,7 +2534,7 @@
           }
         }
       },
-      "BattleEventTimeoutEvent": {
+      "BattleEventResponseTimeoutEventResponse": {
         "required": [
           "rounds",
           "damageDealt",
@@ -2975,7 +2934,7 @@
           }
         }
       },
-      "DropResult": {
+      "DropResponse": {
         "required": [
           "itemId",
           "name",

@@ -159,7 +159,7 @@ public sealed record JobProficiencyResponse(string JobId, long Proficiency, long
 // Events 只含最後 30 秒開始的場次與住宿，其餘只計入 Summary；EventsCoverAll 為 false 表示有戰鬥被略去（只略去住宿仍為 true）
 // Mercenary 只在這次推進有傭兵戰鬥時才有值；AreaPassExpiresAt 只在目前地區是禁區且有通行證時有值（可能已過期）
 public sealed record AdvanceResponse(
-    IReadOnlyList<BattleEvent> Events,
+    IReadOnlyList<BattleEventResponse> Events,
     AdvanceSummaryResponse Summary,
     bool EventsCoverAll,
     CharacterResponse Character,

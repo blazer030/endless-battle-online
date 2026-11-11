@@ -38,6 +38,8 @@ const encounter = (overrides: Partial<EncounterEvent> = {}) =>
     playerHpMax: 20,
     playerSp: 5,
     playerSpMax: 5,
+    petName: null,
+    petMonsterId: null,
     ...overrides,
   })
 
@@ -284,8 +286,8 @@ const cases: [string, PlaybackItem, Line[]][] = [
     ],
   ],
   [
-    "reward without drop list",
-    event({ type: "reward", exp: 10, money: 2, jobExp: 1, drops: null }),
+    "reward with an empty drop list",
+    event({ type: "reward", exp: 10, money: 2, jobExp: 1, drops: [] }),
     [["獲得經驗 10、金錢 2、熟練度 1。", "drop"]],
   ],
   [

@@ -18,7 +18,7 @@ public static class AdventureEndpoints
         {
             var result = await service.AdvanceAsync(user.GetAccountId(), cancellationToken);
             return TypedResults.Ok(new AdvanceResponse(
-                result.Events,
+                result.Events.Select(BattleEventResponse.From).ToList(),
                 AdvanceSummaryResponse.From(result.Summary),
                 result.EventsCoverAll,
                 CharacterEndpoints.ToResponse(result.Character, result.JobProficiency, result.Equipment, content),
