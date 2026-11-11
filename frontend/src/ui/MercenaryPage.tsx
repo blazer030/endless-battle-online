@@ -175,7 +175,7 @@ function CatalogueCard({
     { label: "戰鬥次數", value: row.fights },
     { label: "金錢", value: row.money },
     { label: "寶物", value: row.drop },
-    { label: "經驗", value: row.exp },
+    { label: "經驗", value: row.experience },
     { label: "死亡消耗", value: row.deathCost },
   ]
   return (

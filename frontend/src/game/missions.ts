@@ -34,7 +34,7 @@ export const objectiveLines = (mission: MissionView): string[] => [
 ]
 
 export const rewardLines = (rewards: MissionRewardView): string[] => [
-  ...(rewards.exp > 0 ? [`經驗 ${formatNumber(rewards.exp)}`] : []),
+  ...(rewards.experience > 0 ? [`經驗 ${formatNumber(rewards.experience)}`] : []),
   ...(rewards.money > 0 ? [`金錢 ${formatNumber(rewards.money)}`] : []),
   ...rewards.items.map((item) => `${item.name} ×${formatNumber(item.quantity)}`),
   ...(rewards.skill === null ? [] : [`技能 ${rewards.skill.name} Lv${rewards.skill.level}`]),
@@ -102,7 +102,7 @@ export const missionErrorMessage = (reasons: string[], fallback: string): string
 export const completionLines = (result: MissionCompletion): string[] => {
   const lines = [
     result.completionMessage,
-    `獲得經驗 ${formatNumber(result.exp)}、金錢 ${formatNumber(result.money)}`,
+    `獲得經驗 ${formatNumber(result.experience)}、金錢 ${formatNumber(result.money)}`,
     ...result.items.map((item) => `獲得 ${item.name} ×${formatNumber(item.quantity)}`),
   ]
   if (result.skill !== null)

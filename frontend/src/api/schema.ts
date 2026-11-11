@@ -2811,7 +2811,7 @@ export interface components {
             /** Format: int32 */
             dropPercent: number;
             /** Format: int32 */
-            expPercent: number;
+            experiencePercent: number;
             /** Format: int32 */
             deathCost: number;
         };
@@ -2897,7 +2897,7 @@ export interface components {
             character: components["schemas"]["CharacterResponse"];
             completionMessage: string;
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
             items: components["schemas"]["MissionRewardItemResponse"][];
@@ -2985,7 +2985,7 @@ export interface components {
         };
         MissionRewardResponse: {
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
             items: components["schemas"]["MissionRewardItemResponse"][];

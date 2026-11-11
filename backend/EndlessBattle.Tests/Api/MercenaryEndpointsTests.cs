@@ -87,6 +87,21 @@ public class MercenaryEndpointsTests(MySqlDatabaseFixture database)
             report.GetProperty("recent").EnumerateArray().Select(fight => fight.GetProperty("at").GetDateTimeOffset()));
     }
 
+    // 規格 Mercenary catalogue uses complete names：TestContent 的 test-mercenary expPercent 50、test-honour-mercenary 100
+    [Fact]
+    public async Task Mercenaries_CatalogueUsesExperiencePercent()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var catalogue = (await ReadOkAsync(await client.GetAsync("/api/mercenaries", CancellationToken))).GetProperty("catalogue").EnumerateArray().ToList();
+
+        Assert.Equal(
+            [("test-mercenary", 50), ("test-honour-mercenary", 100)],
+            catalogue.Select(entry => (entry.GetProperty("id").GetString(), entry.GetProperty("experiencePercent").GetInt32())).ToList());
+        Assert.All(catalogue, entry => Assert.False(entry.TryGetProperty("expPercent", out _)));
+    }
+
     [Fact]
     public async Task Mercenaries_SecondHireReturnsReason()
     {

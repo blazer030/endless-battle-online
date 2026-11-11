@@ -165,7 +165,7 @@ describe("rewardLines", () => {
   it("lists exp, money, items and skill", () => {
     expect(
       rewardLines({
-        exp: 19000,
+        experience: 19000,
         money: 1500,
         items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
         skill: { skillId: "steal", name: "偷竊", level: 2 },
@@ -177,7 +177,7 @@ describe("rewardLines", () => {
   it("lists a pet reward", () => {
     expect(
       rewardLines({
-        exp: 0,
+        experience: 0,
         money: 50,
         items: [],
         skill: null,
@@ -187,7 +187,7 @@ describe("rewardLines", () => {
   })
 
   it("skips zero exp and money", () => {
-    expect(rewardLines({ exp: 0, money: 0, items: [], skill: null, pet: null })).toEqual([])
+    expect(rewardLines({ experience: 0, money: 0, items: [], skill: null, pet: null })).toEqual([])
   })
 })
 
@@ -342,7 +342,7 @@ describe("completionLines", () => {
     board: makeMissionBoard(),
     character: makeCharacter(),
     completionMessage: "謝謝你，綠地又恢復平靜了。",
-    exp: 1900,
+    experience: 1900,
     money: 50,
     items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
     skill: { skillId: "steal", name: "偷竊", level: 1 },

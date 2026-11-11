@@ -398,7 +398,7 @@ public sealed record MissionDeliverResponse(string ItemId, string Name, int Quan
 public sealed record MissionRequirementsResponse(string? JobId, int? Sex, int? Birth, string? PrerequisiteId, string? PrerequisiteTitle);
 
 public sealed record MissionRewardResponse(
-    long Exp, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill, MissionRewardPetResponse? Pet);
+    long Experience, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill, MissionRewardPetResponse? Pet);
 
 public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity);
 
@@ -407,12 +407,12 @@ public sealed record MissionRewardSkillResponse(string SkillId, string Name, int
 // Level 是能力倍率
 public sealed record MissionRewardPetResponse(string MonsterId, string Name, int Level);
 
-// Exp、Money、Items、Skill、Pet 是這次任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能；Character 已含獎勵
+// Experience、Money、Items、Skill、Pet 是這次任務的報酬；SkillGranted 為 false 表示沒有技能獎勵或已會該技能；Character 已含獎勵
 public sealed record MissionCompleteResponse(
     MissionBoardResponse Board,
     CharacterResponse Character,
     string CompletionMessage,
-    long Exp,
+    long Experience,
     long Money,
     IReadOnlyList<MissionRewardItemResponse> Items,
     MissionRewardSkillResponse? Skill,
@@ -456,7 +456,7 @@ public sealed record MercenaryOverviewResponse(IReadOnlyList<MercenaryCatalogueR
 
 // Price 為 null：只能在勳章所兌換
 public sealed record MercenaryCatalogueResponse(
-    string Id, string Name, long? Price, int Fights, int MoneyPercent, int DropPercent, int ExpPercent, int DeathCost);
+    string Id, string Name, long? Price, int Fights, int MoneyPercent, int DropPercent, int ExperiencePercent, int DeathCost);
 
 // PlaceId／PlaceName／NextFightAt 只在出擊中有值
 public sealed record MercenaryContractResponse(

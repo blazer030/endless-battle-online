@@ -3691,7 +3691,7 @@
           "fights",
           "moneyPercent",
           "dropPercent",
-          "expPercent",
+          "experiencePercent",
           "deathCost"
         ],
         "type": "object",
@@ -3721,7 +3721,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "expPercent": {
+          "experiencePercent": {
             "type": "integer",
             "format": "int32"
           },
@@ -4030,7 +4030,7 @@
           "board",
           "character",
           "completionMessage",
-          "exp",
+          "experience",
           "money",
           "items",
           "skill",
@@ -4049,7 +4049,7 @@
           "completionMessage": {
             "type": "string"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },
@@ -4397,7 +4397,7 @@
       },
       "MissionRewardResponse": {
         "required": [
-          "exp",
+          "experience",
           "money",
           "items",
           "skill",
@@ -4405,7 +4405,7 @@
         ],
         "type": "object",
         "properties": {
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },

@@ -9,7 +9,7 @@ export type CatalogueRow = {
   fights: string
   money: string
   drop: string
-  exp: string
+  experience: string
   deathCost: string
   // 價格為 null 的傭兵只能在勳章所兌換
   hireable: boolean
@@ -21,7 +21,7 @@ export const catalogueRow = (entry: MercenaryCatalogueEntry): CatalogueRow => ({
   fights: formatNumber(entry.fights),
   money: `${entry.moneyPercent}%`,
   drop: `${entry.dropPercent}%`,
-  exp: `${entry.expPercent}%`,
+  experience: `${entry.experiencePercent}%`,
   deathCost: formatNumber(entry.deathCost),
   hireable: entry.price !== null,
 })

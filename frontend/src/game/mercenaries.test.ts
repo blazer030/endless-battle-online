@@ -28,7 +28,7 @@ describe("catalogueRow", () => {
       fights: "100",
       money: "30%",
       drop: "30%",
-      exp: "65%",
+      experience: "65%",
       deathCost: "5",
       hireable: true,
     })

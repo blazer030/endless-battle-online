@@ -79,7 +79,38 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(("測試雪精", "測試平原", 3, 0), (
             kill.GetProperty("monsterName").GetString(), kill.GetProperty("placeName").GetString(),
             kill.GetProperty("count").GetInt32(), kill.GetProperty("progress").GetInt32()));
-        Assert.Equal(190, hunt.GetProperty("rewards").GetProperty("exp").GetInt64());
+        Assert.Equal(190, hunt.GetProperty("rewards").GetProperty("experience").GetInt64());
+    }
+
+    // 規格 Mission rewards use complete names
+    [Fact]
+    public async Task Missions_RewardUsesCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+
+        var board = await ReadAsync(await client.GetAsync("/api/missions", CancellationToken));
+
+        Assert.All(board.GetProperty("available").EnumerateArray(), mission =>
+        {
+            var rewards = mission.GetProperty("rewards");
+            Assert.True(rewards.TryGetProperty("experience", out _));
+            Assert.False(rewards.TryGetProperty("exp", out _));
+        });
+    }
+
+    [Fact]
+    public async Task Complete_ResponseUsesExperience()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        (await PostAsync(client, "accept", "test-hunt")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-hunt", 3);
+
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-hunt"));
+
+        Assert.Equal(190, completion.GetProperty("experience").GetInt64());
+        Assert.False(completion.TryGetProperty("exp", out _));
     }
 
     [Fact]
@@ -253,7 +284,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(190, character.GetProperty("experience").GetInt64());
         Assert.Equal("謝謝你。", completion.GetProperty("completionMessage").GetString());
         Assert.Equal((190L, 50L, 0), (
-            completion.GetProperty("exp").GetInt64(), completion.GetProperty("money").GetInt64(), completion.GetProperty("levelsGained").GetInt32()));
+            completion.GetProperty("experience").GetInt64(), completion.GetProperty("money").GetInt64(), completion.GetProperty("levelsGained").GetInt32()));
         Assert.Empty(completion.GetProperty("items").EnumerateArray());
         Assert.Equal(JsonValueKind.Null, completion.GetProperty("skill").ValueKind);
         Assert.False(completion.GetProperty("skillGranted").GetBoolean());
