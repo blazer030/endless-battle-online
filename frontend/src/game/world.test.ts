@@ -96,12 +96,12 @@ describe("passStatus", () => {
   })
 
   it("counts the remaining minutes up", () => {
-    expect(passStatus("2026-10-21T00:30:00Z", now)).toBe("禁區通行剩 30 分")
-    expect(passStatus("2026-10-21T00:00:30Z", now)).toBe("禁區通行剩 1 分")
+    expect(passStatus(new Date("2026-10-21T00:30:00Z"), now)).toBe("禁區通行剩 30 分")
+    expect(passStatus(new Date("2026-10-21T00:00:30Z"), now)).toBe("禁區通行剩 1 分")
   })
 
   it("tells the player to come back with a key once it expires", () => {
-    expect(passStatus("2026-10-21T00:00:00Z", now)).toBe(
+    expect(passStatus(new Date("2026-10-21T00:00:00Z"), now)).toBe(
       "禁區通行時間已結束，請到地圖用鑰匙再次進入",
     )
   })

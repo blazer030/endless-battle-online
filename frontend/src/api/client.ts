@@ -1,5 +1,4 @@
 import type {
-  AdvanceResponse,
   BuffView,
   InnBookResult,
   InnView,
@@ -27,6 +26,7 @@ import type {
   UnsocketResult,
   WorldArea,
 } from "../game/types"
+import type { AdvanceVo } from "../game/battleEvents"
 import type { AdventureSettings, CharacterVo, CreateCharacterCommand } from "../game/character"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
@@ -34,6 +34,7 @@ import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 import { parseArray } from "./parse"
 import type { components } from "./schema"
+import { AdvanceConverter } from "./adventureData"
 import {
   AdventureSettingsConverter,
   CharacterConverter,
@@ -63,7 +64,7 @@ export type ApiClient = {
   login: (username: string, password: string) => Promise<void>
   getMyCharacter: () => Promise<CharacterVo | null>
   createCharacter: (command: CreateCharacterCommand) => Promise<CharacterVo>
-  advance: () => Promise<AdvanceResponse>
+  advance: () => Promise<AdvanceVo>
   getContent: () => Promise<ContentNames>
   // 不用登入的公開資料
   getPublicJobs: () => Promise<JobVo[]>
@@ -215,11 +216,8 @@ export const createApiClient = (options: {
     },
     createCharacter: (command) =>
       requestCharacter("/api/characters", "POST", CreateCharacterConverter.toDto(command)),
-    advance: () =>
-      requestWithCharacter<components["schemas"]["AdvanceResponse"]>(
-        "/api/adventure/advance",
-        "POST",
-      ),
+    advance: async () =>
+      AdvanceConverter.toVo(await requestJson<unknown>("/api/adventure/advance", "POST")),
     getContent: () => requestJson<ContentNames>("/api/content", "GET"),
     getPublicJobs: async () =>
       parseArray(await requestJson<unknown>("/api/public/jobs", "GET"), "jobs", (item, path) =>

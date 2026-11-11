@@ -1,5 +1,4 @@
 import type {
-  AdvanceSummary,
   ContentNames,
   HonourShop,
   InventoryItem,
@@ -14,6 +13,7 @@ import type {
   WorldArea,
   WorldPlace,
 } from "../game/types"
+import type { AdvanceSummary } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { CreationOptionsVo } from "../game/creationOptions"
 import { JobVo } from "../game/jobBook"
@@ -80,9 +80,9 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   wins: 0,
   losses: 0,
   timeouts: 0,
-  exp: 0,
+  experience: 0,
   money: 0,
-  jobExp: 0,
+  jobExperience: 0,
   levelsGained: 0,
   missionKills: 0,
   petsCaptured: 0,

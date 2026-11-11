@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { ApiClient } from "../api/client"
 import { BattlePlayback } from "../game/battlePlayback"
-import type { AdvanceResponse } from "../game/types"
+import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { PollIntervalMilliseconds, RequestTimeoutMilliseconds } from "../motion/timings"
 import { makeCharacter, makeSummary } from "../test/fixtures"
@@ -11,7 +11,7 @@ import { useAdventureLoop } from "./useAdventureLoop"
 
 const character: CharacterVo = makeCharacter()
 
-const emptyResponse: AdvanceResponse = {
+const emptyResponse: AdvanceVo = {
   events: [],
   summary: makeSummary(),
   eventsCoverAll: true,
@@ -191,7 +191,7 @@ test("adventureLoop_DoesNotPollWhileHidden", async () => {
 })
 
 test("adventureLoop_HandsDueItemsToOnItems", async () => {
-  const response: AdvanceResponse = {
+  const response: AdvanceVo = {
     ...emptyResponse,
     events: [
       {
@@ -199,12 +199,12 @@ test("adventureLoop_HandsDueItemsToOnItems", async () => {
         atSeconds: 0,
         monsterId: "test-wolf",
         monsterName: "測試寒狼",
-        monsterHp: 60,
-        monsterHpMax: 60,
-        playerHp: 120,
-        playerHpMax: 120,
-        playerSp: 10,
-        playerSpMax: 10,
+        monsterHealthPoints: 60,
+        monsterMaxHealthPoints: 60,
+        playerHealthPoints: 120,
+        playerMaxHealthPoints: 120,
+        playerManaPoints: 10,
+        playerMaxManaPoints: 10,
         petName: null,
         petMonsterId: null,
       },

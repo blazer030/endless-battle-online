@@ -9,18 +9,18 @@ import type {
   PetAttackEvent,
   PetGuardEvent,
   SkillEvent,
-} from "./types"
+} from "./battleEvents"
 
 const encounter: EncounterEvent = {
   type: "encounter",
   monsterId: "snow-sprite",
   monsterName: "雪精",
-  monsterHp: 90,
-  monsterHpMax: 100,
-  playerHp: 150,
-  playerHpMax: 200,
-  playerSp: 10,
-  playerSpMax: 20,
+  monsterHealthPoints: 90,
+  monsterMaxHealthPoints: 100,
+  playerHealthPoints: 150,
+  playerMaxHealthPoints: 200,
+  playerManaPoints: 10,
+  playerMaxManaPoints: 20,
   petName: null,
   petMonsterId: null,
   atSeconds: 0,
@@ -34,7 +34,7 @@ const attack = (overrides: Partial<AttackEvent> = {}): BattleEvent => ({
   critical: false,
   damage: 30,
   elementMultiplier: 1,
-  targetHpAfter: 70,
+  targetHealthPointsAfter: 70,
   stunned: false,
   atSeconds: 1,
   ...overrides,
@@ -46,15 +46,15 @@ const skill = (overrides: Partial<SkillEvent> = {}): BattleEvent => ({
   skillId: "burst",
   skillName: "爆氣",
   level: 1,
-  spAfter: 3,
+  manaPointsAfter: 3,
   heal: 0,
   damage: 0,
-  opponentHpAfter: null,
-  hpCost: 0,
-  spCost: 0,
+  opponentHealthPointsAfter: null,
+  healthPointsCost: 0,
+  manaPointsCost: 0,
   moneyCost: 0,
-  opponentSpLoss: 0,
-  spGain: 0,
+  opponentManaPointsLoss: 0,
+  manaPointsGain: 0,
   lasting: false,
   atSeconds: 1,
   ...overrides,
@@ -94,7 +94,7 @@ const petAttack = (overrides: Partial<PetAttackEvent> = {}): BattleEvent => ({
   hit: true,
   critical: false,
   damage: 20,
-  targetHpAfter: 60,
+  targetHealthPointsAfter: 60,
   atSeconds: 1,
   ...overrides,
 })
@@ -205,7 +205,7 @@ describe("stageModel", () => {
     const rest: BattleEvent = {
       type: "rest",
       cost: 0,
-      expPenalty: false,
+      experiencePenalty: false,
       waitSeconds: 15,
       atSeconds: 3,
     }
@@ -240,8 +240,8 @@ describe("stageModel", () => {
   it.each([
     [{ heal: 50 }, 150, 800],
     [{ heal: 450 }, 500, 800],
-    [{ hpCost: 10 }, 90, 800],
-    [{ opponentHpAfter: 700 }, 100, 700],
+    [{ healthPointsCost: 10 }, 90, 800],
+    [{ opponentHealthPointsAfter: 700 }, 100, 700],
   ])("applyToStage_MonsterSkill_UpdatesBothSides %o", (overrides, monsterHp, playerHp) => {
     const state: StageState = {
       ...midFight,
@@ -259,7 +259,7 @@ describe("stageModel", () => {
   it("applyToStage_PlayerHpCostLowersPlayerHealth", () => {
     const state: StageState = { ...midFight, playerHp: 800, playerHpMax: 1000 }
 
-    expect(applyToStage(state, skill({ hpCost: 10 })).playerHp).toBe(790)
+    expect(applyToStage(state, skill({ healthPointsCost: 10 })).playerHp).toBe(790)
   })
 
   it("applyToStage_HealSkillRaisesPlayerHealthUpToMax", () => {
@@ -269,16 +269,18 @@ describe("stageModel", () => {
   })
 
   it("applyToStage_DamagingSkillSetsMonsterHealth", () => {
-    expect(applyToStage(midFight, skill({ damage: 50, opponentHpAfter: 10 })).monsterHp).toBe(10)
+    expect(
+      applyToStage(midFight, skill({ damage: 50, opponentHealthPointsAfter: 10 })).monsterHp,
+    ).toBe(10)
   })
 
   it("applyToStage_PotionRaisesPlayerHealthUpToMax", () => {
-    const potion = (hp: number): BattleEvent => ({
+    const potion = (healthPoints: number): BattleEvent => ({
       type: "potion",
       itemId: "small-potion",
       name: "小藥水",
-      hp,
-      sp: 25,
+      healthPoints,
+      manaPoints: 25,
       remaining: 8,
       atSeconds: 1,
     })
@@ -291,8 +293,8 @@ describe("stageModel", () => {
       type: "potion",
       itemId: "small-potion",
       name: "小藥水",
-      hp: 50,
-      sp: 25,
+      healthPoints: 50,
+      manaPoints: 25,
       remaining: 8,
       atSeconds: 1,
     }
@@ -302,9 +304,9 @@ describe("stageModel", () => {
   it("stageEffectsFor_RewardDrops_FloatEachAcceptedItemName", () => {
     const reward: BattleEvent = {
       type: "reward",
-      exp: 5,
+      experience: 5,
       money: 3,
-      jobExp: 1,
+      jobExperience: 1,
       drops: [
         { itemId: "iron-ore", name: "鐵礦石", quantity: 2, discarded: false },
         { itemId: "beast-hide", name: "野獸毛皮", quantity: 1, discarded: true },
@@ -327,7 +329,9 @@ describe("stageModel", () => {
   })
 
   it("stageEffectsFor_LastingSkillDamage_HasNoCastEffects", () => {
-    expect(stageEffectsFor(skill({ damage: 50, opponentHpAfter: 10, lasting: true }))).toEqual([])
+    expect(
+      stageEffectsFor(skill({ damage: 50, opponentHealthPointsAfter: 10, lasting: true })),
+    ).toEqual([])
   })
 
   it("stageEffectsFor_StunnedMonster_ShowsMutedPlateOverMonster", () => {
@@ -509,7 +513,7 @@ describe("stageModel", () => {
     const rest: BattleEvent = {
       type: "rest",
       cost: 0,
-      expPenalty: false,
+      experiencePenalty: false,
       waitSeconds: 15,
       atSeconds: 3,
     }
@@ -519,9 +523,9 @@ describe("stageModel", () => {
   it("stageEffectsFor_EncounterRoundReward_HaveNoEffects", () => {
     const reward: BattleEvent = {
       type: "reward",
-      exp: 5,
+      experience: 5,
       money: 3,
-      jobExp: 1,
+      jobExperience: 1,
       drops: [],
       atSeconds: 2,
     }
@@ -538,7 +542,7 @@ describe("stageModel", () => {
   it("stageEffectsFor_MonsterLastingSkill_ShowsNothing", () => {
     expect(
       stageEffectsFor(
-        skill({ caster: "Monster", lasting: true, damage: 25, opponentHpAfter: 700 }),
+        skill({ caster: "Monster", lasting: true, damage: 25, opponentHealthPointsAfter: 700 }),
       ),
     ).toEqual([])
   })

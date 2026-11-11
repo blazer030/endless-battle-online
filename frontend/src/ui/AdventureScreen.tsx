@@ -6,7 +6,8 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { refreshSignalsFor } from "../game/refreshSignals"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
-import type { AdvanceResponse, ContentNames } from "../game/types"
+import type { ContentNames } from "../game/types"
+import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { locationTitle, passStatus } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
@@ -51,7 +52,7 @@ const tabs: { id: Tab; label: string }[] = [
 ]
 
 type AreaPass = {
-  expiresAt: string | null
+  expiresAt: Date | null
   at: number
   placeId: CharacterVo["placeId"]
   subPlace: CharacterVo["subPlace"]
@@ -212,7 +213,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
           api={api}
           playback={playback}
           onItems={handleItems}
-          onResponse={(response: AdvanceResponse) =>
+          onResponse={(response: AdvanceVo) =>
             setAreaPass({
               expiresAt: response.areaPassExpiresAt,
               at: Date.now(),
@@ -343,7 +344,7 @@ type LoopProps = {
   api: ApiClient
   playback: BattlePlayback
   onItems: (items: PlaybackItem[]) => void
-  onResponse: (response: AdvanceResponse) => void
+  onResponse: (response: AdvanceVo) => void
 }
 
 function AdventureLoop({ api, playback, onItems, onResponse }: LoopProps) {

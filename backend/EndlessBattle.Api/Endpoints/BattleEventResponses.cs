@@ -112,12 +112,12 @@ public sealed record EncounterEventResponse(
     double AtSeconds,
     string MonsterId,
     string MonsterName,
-    int MonsterHp,
-    int MonsterHpMax,
-    int PlayerHp,
-    int PlayerHpMax,
-    int PlayerSp,
-    int PlayerSpMax,
+    int MonsterHealthPoints,
+    int MonsterMaxHealthPoints,
+    int PlayerHealthPoints,
+    int PlayerMaxHealthPoints,
+    int PlayerManaPoints,
+    int PlayerMaxManaPoints,
     string? PetName,
     string? PetMonsterId) : BattleEventResponse(AtSeconds);
 
@@ -132,43 +132,43 @@ public sealed record AttackEventResponse(
     bool Critical,
     int Damage,
     double ElementMultiplier,
-    int TargetHpAfter,
+    int TargetHealthPointsAfter,
     bool Stunned) : BattleEventResponse(AtSeconds);
 
-// Heal、SpGain 是實際回復量；Damage 是對對手造成的傷害，OpponentHpAfter 沒有傷害時為 null；Lasting 表示持續傷害的結算
+// Heal、ManaPointsGain 是實際回復量；Damage 是對對手造成的傷害，OpponentHealthPointsAfter 沒有傷害時為 null；Lasting 表示持續傷害的結算
 public sealed record SkillEventResponse(
     double AtSeconds,
     CombatSide Caster,
     string SkillId,
     string SkillName,
     int Level,
-    int SpAfter,
+    int ManaPointsAfter,
     int Heal,
     int Damage,
-    int? OpponentHpAfter,
-    int HpCost,
-    int SpCost,
+    int? OpponentHealthPointsAfter,
+    int HealthPointsCost,
+    int ManaPointsCost,
     int MoneyCost,
-    int OpponentSpLoss,
-    int SpGain,
+    int OpponentManaPointsLoss,
+    int ManaPointsGain,
     bool Lasting) : BattleEventResponse(AtSeconds);
 
-// Hp／Sp 是實際回復量；Remaining 是喝完後的剩餘數量
-public sealed record PotionEventResponse(double AtSeconds, string ItemId, string Name, int Hp, int Sp, int Remaining) : BattleEventResponse(AtSeconds);
+// HealthPoints／ManaPoints 是實際回復量；Remaining 是喝完後的剩餘數量
+public sealed record PotionEventResponse(double AtSeconds, string ItemId, string Name, int HealthPoints, int ManaPoints, int Remaining) : BattleEventResponse(AtSeconds);
 
 public sealed record DefeatEventResponse(double AtSeconds, CombatSide Loser) : BattleEventResponse(AtSeconds);
 
 public sealed record TimeoutEventResponse(double AtSeconds, int Rounds, int DamageDealt) : BattleEventResponse(AtSeconds);
 
 // Drops 依擲骰順序；Discarded 表示背包該分類已滿而被丟棄
-public sealed record RewardEventResponse(double AtSeconds, long Exp, long Money, long JobExp, IReadOnlyList<DropResponse> Drops)
+public sealed record RewardEventResponse(double AtSeconds, long Experience, long Money, long JobExperience, IReadOnlyList<DropResponse> Drops)
     : BattleEventResponse(AtSeconds);
 
 public sealed record DropResponse(string ItemId, string Name, int Quantity, bool Discarded);
 
 public sealed record LevelUpEventResponse(double AtSeconds, int NewLevel, BaseStatsResponse Growth) : BattleEventResponse(AtSeconds);
 
-public sealed record RestEventResponse(double AtSeconds, long Cost, bool ExpPenalty, double WaitSeconds) : BattleEventResponse(AtSeconds);
+public sealed record RestEventResponse(double AtSeconds, long Cost, bool ExperiencePenalty, double WaitSeconds) : BattleEventResponse(AtSeconds);
 
 // RequiresDelivery：擊殺滿了仍要交付；Completed：擊殺目標都滿了；SkillTooLow：技能等級不夠還不能回報
 public sealed record MissionProgressEventResponse(
@@ -189,7 +189,7 @@ public sealed record NpcEncounterEventResponse(double AtSeconds, string MonsterI
 public sealed record PetGuardEventResponse(double AtSeconds, string PetName, int Damage, int GuardAfter, bool Retired) : BattleEventResponse(AtSeconds);
 
 public sealed record PetAttackEventResponse(
-    double AtSeconds, string PetName, AttackKind Kind, bool Hit, bool Critical, int Damage, int TargetHpAfter) : BattleEventResponse(AtSeconds);
+    double AtSeconds, string PetName, AttackKind Kind, bool Hit, bool Critical, int Damage, int TargetHealthPointsAfter) : BattleEventResponse(AtSeconds);
 
 // CapturedMonsterId、CapturedMonsterName 為 null 表示沒捕到
 public sealed record CaptureEventResponse(

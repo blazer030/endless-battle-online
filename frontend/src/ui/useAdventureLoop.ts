@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { ApiError } from "../api/client"
 import type { ApiClient } from "../api/client"
 import type { BattlePlayback, PlaybackItem } from "../game/battlePlayback"
-import type { AdvanceResponse } from "../game/types"
+import type { AdvanceVo } from "../game/battleEvents"
 import { PollIntervalMilliseconds } from "../motion/timings"
 
 const RetryMessage = "連線不穩，稍後自動重試"
@@ -12,7 +12,7 @@ type Options = {
   playback: BattlePlayback
   onItems: (items: PlaybackItem[]) => void
   // 每次推進回應都會呼叫，用來取播放佇列以外的資訊（例如禁區通行證）
-  onResponse?: (response: AdvanceResponse) => void
+  onResponse?: (response: AdvanceVo) => void
   now?: () => number
 }
 

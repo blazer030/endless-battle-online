@@ -12,6 +12,8 @@ const advanceBody = {
   summary: makeSummary(),
   eventsCoverAll: true,
   character: makeCharacter(),
+  mercenary: null,
+  areaPassExpiresAt: null,
 }
 
 // 只驗證路徑與方法的測試共用：同時可當成角色，也帶著夾帶的角色

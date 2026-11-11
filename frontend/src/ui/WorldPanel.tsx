@@ -167,7 +167,9 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
   const now = new Date()
   const access = placeAccess(place, now)
   // 禁區通行證到期後，目前所在的子地區也能用鑰匙再次進入
-  const reentry = place.restricted && !passActive(place.passExpiresAt, now)
+  const reentry =
+    place.restricted &&
+    !passActive(place.passExpiresAt === null ? null : new Date(place.passExpiresAt), now)
   const isHere = (subPlace: number | null) =>
     character.placeId === place.id && character.subPlace === subPlace
   return (

@@ -1601,9 +1601,9 @@
           "wins",
           "losses",
           "timeouts",
-          "exp",
+          "experience",
           "money",
-          "jobExp",
+          "jobExperience",
           "levelsGained",
           "skillsCast",
           "drops",
@@ -1630,7 +1630,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },
@@ -1638,7 +1638,7 @@
             "type": "integer",
             "format": "int64"
           },
-          "jobExp": {
+          "jobExperience": {
             "type": "integer",
             "format": "int64"
           },
@@ -1945,7 +1945,7 @@
           "critical",
           "damage",
           "elementMultiplier",
-          "targetHpAfter",
+          "targetHealthPointsAfter",
           "stunned",
           "atSeconds"
         ],
@@ -1976,7 +1976,7 @@
             "type": "number",
             "format": "double"
           },
-          "targetHpAfter": {
+          "targetHealthPointsAfter": {
             "type": "integer",
             "format": "int32"
           },
@@ -2058,12 +2058,12 @@
         "required": [
           "monsterId",
           "monsterName",
-          "monsterHp",
-          "monsterHpMax",
-          "playerHp",
-          "playerHpMax",
-          "playerSp",
-          "playerSpMax",
+          "monsterHealthPoints",
+          "monsterMaxHealthPoints",
+          "playerHealthPoints",
+          "playerMaxHealthPoints",
+          "playerManaPoints",
+          "playerMaxManaPoints",
           "petName",
           "petMonsterId",
           "atSeconds"
@@ -2081,27 +2081,27 @@
           "monsterName": {
             "type": "string"
           },
-          "monsterHp": {
+          "monsterHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "monsterHpMax": {
+          "monsterMaxHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "playerHp": {
+          "playerHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "playerHpMax": {
+          "playerMaxHealthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "playerSp": {
+          "playerManaPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "playerSpMax": {
+          "playerMaxManaPoints": {
             "type": "integer",
             "format": "int32"
           },
@@ -2260,7 +2260,7 @@
           "hit",
           "critical",
           "damage",
-          "targetHpAfter",
+          "targetHealthPointsAfter",
           "atSeconds"
         ],
         "properties": {
@@ -2286,7 +2286,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "targetHpAfter": {
+          "targetHealthPointsAfter": {
             "type": "integer",
             "format": "int32"
           },
@@ -2335,8 +2335,8 @@
         "required": [
           "itemId",
           "name",
-          "hp",
-          "sp",
+          "healthPoints",
+          "manaPoints",
           "remaining",
           "atSeconds"
         ],
@@ -2353,11 +2353,11 @@
           "name": {
             "type": "string"
           },
-          "hp": {
+          "healthPoints": {
             "type": "integer",
             "format": "int32"
           },
-          "sp": {
+          "manaPoints": {
             "type": "integer",
             "format": "int32"
           },
@@ -2374,7 +2374,7 @@
       "BattleEventResponseRestEventResponse": {
         "required": [
           "cost",
-          "expPenalty",
+          "experiencePenalty",
           "waitSeconds",
           "atSeconds"
         ],
@@ -2389,7 +2389,7 @@
             "type": "integer",
             "format": "int64"
           },
-          "expPenalty": {
+          "experiencePenalty": {
             "type": "boolean"
           },
           "waitSeconds": {
@@ -2404,9 +2404,9 @@
       },
       "BattleEventResponseRewardEventResponse": {
         "required": [
-          "exp",
+          "experience",
           "money",
-          "jobExp",
+          "jobExperience",
           "drops",
           "atSeconds"
         ],
@@ -2417,7 +2417,7 @@
             ],
             "type": "string"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },
@@ -2425,7 +2425,7 @@
             "type": "integer",
             "format": "int64"
           },
-          "jobExp": {
+          "jobExperience": {
             "type": "integer",
             "format": "int64"
           },
@@ -2469,15 +2469,15 @@
           "skillId",
           "skillName",
           "level",
-          "spAfter",
+          "manaPointsAfter",
           "heal",
           "damage",
-          "opponentHpAfter",
-          "hpCost",
-          "spCost",
+          "opponentHealthPointsAfter",
+          "healthPointsCost",
+          "manaPointsCost",
           "moneyCost",
-          "opponentSpLoss",
-          "spGain",
+          "opponentManaPointsLoss",
+          "manaPointsGain",
           "lasting",
           "atSeconds"
         ],
@@ -2501,7 +2501,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "spAfter": {
+          "manaPointsAfter": {
             "type": "integer",
             "format": "int32"
           },
@@ -2513,18 +2513,18 @@
             "type": "integer",
             "format": "int32"
           },
-          "opponentHpAfter": {
+          "opponentHealthPointsAfter": {
             "type": [
               "null",
               "integer"
             ],
             "format": "int32"
           },
-          "hpCost": {
+          "healthPointsCost": {
             "type": "integer",
             "format": "int32"
           },
-          "spCost": {
+          "manaPointsCost": {
             "type": "integer",
             "format": "int32"
           },
@@ -2532,11 +2532,11 @@
             "type": "integer",
             "format": "int32"
           },
-          "opponentSpLoss": {
+          "opponentManaPointsLoss": {
             "type": "integer",
             "format": "int32"
           },
-          "spGain": {
+          "manaPointsGain": {
             "type": "integer",
             "format": "int32"
           },
@@ -3956,7 +3956,7 @@
           "monsterId",
           "monsterName",
           "won",
-          "exp",
+          "experience",
           "money"
         ],
         "type": "object",
@@ -3974,7 +3974,7 @@
           "won": {
             "type": "boolean"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },
@@ -4029,7 +4029,7 @@
           "name",
           "fights",
           "wins",
-          "exp",
+          "experience",
           "money",
           "levelsGained",
           "remaining",
@@ -4049,7 +4049,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "exp": {
+          "experience": {
             "type": "integer",
             "format": "int64"
           },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { AdvanceResponse, AdvanceSummary, BattleEvent, MercenaryReport } from "./types"
+import type { AdvanceSummary, AdvanceVo, BattleEvent, MercenaryReport } from "./battleEvents"
 import type { CharacterVo } from "./character"
 import { makeCharacter, makeSummary } from "../test/fixtures"
 import { BattlePlayback } from "./battlePlayback"
@@ -12,19 +12,19 @@ function encounter(atSeconds: number): BattleEvent {
     atSeconds,
     monsterId: "test-wolf",
     monsterName: "測試寒狼",
-    monsterHp: 60,
-    monsterHpMax: 60,
-    playerHp: 120,
-    playerHpMax: 120,
-    playerSp: 10,
-    playerSpMax: 10,
+    monsterHealthPoints: 60,
+    monsterMaxHealthPoints: 60,
+    playerHealthPoints: 120,
+    playerMaxHealthPoints: 120,
+    playerManaPoints: 10,
+    playerMaxManaPoints: 10,
     petName: null,
     petMonsterId: null,
   }
 }
 
-function reward(atSeconds: number, exp: number, money: number): BattleEvent {
-  return { type: "reward", atSeconds, exp, money, jobExp: 1, drops: [] }
+function reward(atSeconds: number, experience: number, money: number): BattleEvent {
+  return { type: "reward", atSeconds, experience, money, jobExperience: 1, drops: [] }
 }
 
 function levelUp(atSeconds: number, newLevel: number): BattleEvent {
@@ -45,7 +45,7 @@ function levelUp(atSeconds: number, newLevel: number): BattleEvent {
 }
 
 function rest(atSeconds: number, cost: number): BattleEvent {
-  return { type: "rest", atSeconds, cost, expPenalty: false, waitSeconds: 15 }
+  return { type: "rest", atSeconds, cost, experiencePenalty: false, waitSeconds: 15 }
 }
 
 function response(
@@ -54,7 +54,7 @@ function response(
   summary: Partial<AdvanceSummary> = {},
   eventsCoverAll = true,
   mercenary: MercenaryReport | null = null,
-): AdvanceResponse {
+): AdvanceVo {
   return {
     events,
     summary: makeSummary(summary),
@@ -69,18 +69,18 @@ const mercenaryReport: MercenaryReport = {
   name: "阿福",
   fights: 1,
   wins: 1,
-  exp: 40,
+  experience: 40,
   money: 7,
   levelsGained: 0,
   remaining: 99,
   dismissed: false,
   recent: [
     {
-      at: "2026-10-21T00:00:00Z",
+      at: new Date("2026-10-21T00:00:00Z"),
       monsterId: "test-wolf",
       monsterName: "測試寒狼",
       won: true,
-      exp: 40,
+      experience: 40,
       money: 7,
     },
   ],
@@ -183,7 +183,7 @@ describe("BattlePlayback", () => {
         {
           fights: 43,
           wins: 42,
-          exp: 215,
+          experience: 215,
           money: 86,
           levelsGained: 1,
           missionKills: 3,
@@ -199,7 +199,7 @@ describe("BattlePlayback", () => {
         kind: "summary",
         fights: 43,
         wins: 42,
-        exp: 215,
+        experience: 215,
         money: 86,
         levels: 1,
         missionKills: 3,
@@ -234,7 +234,12 @@ describe("BattlePlayback", () => {
   it("enqueue_SummaryOnly_WhenNoEventsReturned", () => {
     const playback = new BattlePlayback(startCharacter)
     playback.enqueue(
-      response([], { experience: 50, money: 9 }, { fights: 5, wins: 5, exp: 20, money: 4 }, false),
+      response(
+        [],
+        { experience: 50, money: 9 },
+        { fights: 5, wins: 5, experience: 20, money: 4 },
+        false,
+      ),
       1000,
     )
 
@@ -245,7 +250,7 @@ describe("BattlePlayback", () => {
         kind: "summary",
         fights: 5,
         wins: 5,
-        exp: 20,
+        experience: 20,
         money: 4,
         levels: 0,
         missionKills: 0,
@@ -265,7 +270,10 @@ describe("BattlePlayback", () => {
     const lastOfFirstBatch = reward(9, 1, 1)
     playback.enqueue(response([firstEvent, lastOfFirstBatch]), 0)
     const tail = encounter(35)
-    playback.enqueue(response([tail], {}, { fights: 2, wins: 1, exp: 1, money: 1 }, false), 5000)
+    playback.enqueue(
+      response([tail], {}, { fights: 2, wins: 1, experience: 1, money: 1 }, false),
+      5000,
+    )
 
     expect(playback.takeDue(5000)).toEqual([{ kind: "event", event: firstEvent }])
     expect(playback.takeDue(9000)).toEqual([{ kind: "event", event: lastOfFirstBatch }])
@@ -274,7 +282,7 @@ describe("BattlePlayback", () => {
         kind: "summary",
         fights: 2,
         wins: 1,
-        exp: 1,
+        experience: 1,
         money: 1,
         levels: 0,
         missionKills: 0,
@@ -301,7 +309,7 @@ describe("BattlePlayback", () => {
       response(
         [encounter(35), reward(40, 3, 2)],
         { experience: 107, money: 2008 },
-        { fights: 2, wins: 2, exp: 7, money: 8 },
+        { fights: 2, wins: 2, experience: 7, money: 8 },
         false,
       ),
       0,
@@ -391,7 +399,7 @@ describe("BattlePlayback", () => {
       response(
         [encounter(95)],
         { level: 6, experience: 5, nextLevelExperience: 1400 },
-        { fights: 30, wins: 30, exp: 4000, money: 0, levelsGained: 2 },
+        { fights: 30, wins: 30, experience: 4000, money: 0, levelsGained: 2 },
         false,
       ),
       0,

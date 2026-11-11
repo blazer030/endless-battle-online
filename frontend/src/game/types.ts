@@ -1,5 +1,5 @@
 import type { components } from "../api/schema"
-import type { BaseStats, CharacterVo } from "./character"
+import type { CharacterVo } from "./character"
 
 type Schemas = components["schemas"]
 
@@ -8,10 +8,7 @@ type WithCharacter<T extends { character: unknown }> = Omit<T, "character"> & {
   character: CharacterVo
 }
 
-export type AdvanceResponse = WithCharacter<Schemas["AdvanceResponse"]>
-export type AdvanceSummary = Schemas["AdvanceSummaryResponse"]
 export type ContentNames = Schemas["ContentResponse"]
-export type GrowthStats = BaseStats
 export type JobGrowth = Schemas["JobGrowthContent"]
 export type JobOption = Schemas["JobOptionResponse"]
 export type SkillOverview = Schemas["SkillOverviewResponse"]
@@ -55,7 +52,6 @@ export type MercenaryOverview = Schemas["MercenaryOverviewResponse"]
 export type MercenaryCatalogueEntry = Schemas["MercenaryCatalogueResponse"]
 export type MercenaryContract = Schemas["MercenaryContractResponse"]
 export type MercenaryHireResult = WithCharacter<Schemas["MercenaryHireResponse"]>
-export type MercenaryReport = Schemas["MercenaryReportResponse"]
 export type HonourShop = Schemas["HonourShopResponse"]
 export type HonourExchange = Schemas["HonourExchangeResponse"]
 export type HonourCost = Schemas["HonourCostResponse"]
@@ -63,45 +59,3 @@ export type HonourCost = Schemas["HonourCostResponse"]
 // 產生的請求欄位允許 null（缺欄位由後端回 400）；前端送出時一律填滿
 type FilledFields<T> = { [K in keyof T]-?: NonNullable<T[K]> }
 export type SkillSlotCommand = FilledFields<Schemas["SkillSlotRequest"]>
-
-// 產生的 type 欄位是選填；事件一律帶 type，所以改成必填以便縮小型別
-// 寵物欄位只在帶寵物出戰時才有，維持選填
-export type EncounterEvent = Required<
-  Omit<Schemas["BattleEventResponseEncounterEventResponse"], "petName" | "petMonsterId">
-> &
-  Pick<Schemas["BattleEventResponseEncounterEventResponse"], "petName" | "petMonsterId">
-export type RoundEvent = Required<Schemas["BattleEventResponseRoundEventResponse"]>
-export type AttackEvent = Required<Schemas["BattleEventResponseAttackEventResponse"]>
-export type SkillEvent = Required<Schemas["BattleEventResponseSkillEventResponse"]>
-export type PotionEvent = Required<Schemas["BattleEventResponsePotionEventResponse"]>
-export type DefeatEvent = Required<Schemas["BattleEventResponseDefeatEventResponse"]>
-export type TimeoutEvent = Required<Schemas["BattleEventResponseTimeoutEventResponse"]>
-export type RewardEvent = Required<Schemas["BattleEventResponseRewardEventResponse"]>
-export type DropResult = Schemas["DropResponse"]
-export type LevelUpEvent = Required<Schemas["BattleEventResponseLevelUpEventResponse"]>
-export type MissionProgressEvent = Required<
-  Schemas["BattleEventResponseMissionProgressEventResponse"]
->
-export type NpcEncounterEvent = Required<Schemas["BattleEventResponseNpcEncounterEventResponse"]>
-export type RestEvent = Required<Schemas["BattleEventResponseRestEventResponse"]>
-export type PetGuardEvent = Required<Schemas["BattleEventResponsePetGuardEventResponse"]>
-export type PetAttackEvent = Required<Schemas["BattleEventResponsePetAttackEventResponse"]>
-export type CaptureEvent = Required<Schemas["BattleEventResponseCaptureEventResponse"]>
-export type EscapeEvent = Required<Schemas["BattleEventResponseEscapeEventResponse"]>
-export type BattleEvent =
-  | EncounterEvent
-  | RoundEvent
-  | AttackEvent
-  | SkillEvent
-  | PotionEvent
-  | DefeatEvent
-  | TimeoutEvent
-  | RewardEvent
-  | LevelUpEvent
-  | MissionProgressEvent
-  | NpcEncounterEvent
-  | RestEvent
-  | PetGuardEvent
-  | PetAttackEvent
-  | CaptureEvent
-  | EscapeEvent

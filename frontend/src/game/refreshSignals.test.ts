@@ -1,21 +1,21 @@
 import { describe, expect, it } from "vitest"
 import type { PlaybackItem } from "./battlePlayback"
-import type { BattleEvent, DropResult } from "./types"
+import type { BattleEvent, Drop } from "./battleEvents"
 import { refreshSignalsFor } from "./refreshSignals"
 
 const none = { bag: false, missions: false, skills: false }
 
 const event = (value: BattleEvent): PlaybackItem => ({ kind: "event", event: value })
 
-const drop = (discarded: boolean): DropResult => ({
+const drop = (discarded: boolean): Drop => ({
   itemId: "wolf-fang",
   name: "狼牙",
   quantity: 1,
   discarded,
 })
 
-const reward = (jobExp: number, drops: DropResult[] = []) =>
-  event({ type: "reward", atSeconds: 0, exp: 1, money: 1, jobExp, drops })
+const reward = (jobExperience: number, drops: Drop[] = []) =>
+  event({ type: "reward", atSeconds: 0, experience: 1, money: 1, jobExperience, drops })
 
 describe("refreshSignalsFor", () => {
   it("沒有項目時都不重載", () => {
@@ -37,8 +37,8 @@ describe("refreshSignalsFor", () => {
       atSeconds: 0,
       itemId: "small-potion",
       name: "小藥水",
-      hp: 50,
-      sp: 0,
+      healthPoints: 50,
+      manaPoints: 0,
       remaining: 8,
     })
     const capture = event({
@@ -56,7 +56,7 @@ describe("refreshSignalsFor", () => {
         name: "阿福",
         fights: 1,
         wins: 1,
-        exp: 40,
+        experience: 40,
         money: 7,
         levelsGained: 0,
         remaining: 99,
@@ -115,12 +115,12 @@ describe("refreshSignalsFor", () => {
       atSeconds: 0,
       monsterId: "test-wolf",
       monsterName: "測試寒狼",
-      monsterHp: 60,
-      monsterHpMax: 60,
-      playerHp: 120,
-      playerHpMax: 120,
-      playerSp: 10,
-      playerSpMax: 10,
+      monsterHealthPoints: 60,
+      monsterMaxHealthPoints: 60,
+      playerHealthPoints: 120,
+      playerMaxHealthPoints: 120,
+      playerManaPoints: 10,
+      playerMaxManaPoints: 10,
       petName: null,
       petMonsterId: null,
     })
@@ -136,7 +136,7 @@ describe("refreshSignalsFor", () => {
       kind: "summary",
       fights: 30,
       wins: 28,
-      exp: 900,
+      experience: 900,
       money: 300,
       levels: 0,
       missionKills: 0,

@@ -32,8 +32,8 @@ export const locationTitle = ({
 
 const MillisecondsPerMinute = 60_000
 
-export const passActive = (passExpiresAt: string | null, now: Date) =>
-  passExpiresAt !== null && new Date(passExpiresAt).getTime() > now.getTime()
+export const passActive = (passExpiresAt: Date | null, now: Date) =>
+  passExpiresAt !== null && passExpiresAt.getTime() > now.getTime()
 
 const twoDigits = (value: number) => String(value).padStart(2, "0")
 
@@ -43,8 +43,8 @@ export const placeAccess = (
   now: Date,
 ): { open: boolean; label: string | null } => {
   if (!place.restricted) return { open: true, label: null }
-  if (place.passExpiresAt !== null && passActive(place.passExpiresAt, now)) {
-    const until = new Date(place.passExpiresAt)
+  const until = place.passExpiresAt === null ? null : new Date(place.passExpiresAt)
+  if (until !== null && passActive(until, now)) {
     return {
       open: true,
       label: `通行至 ${twoDigits(until.getHours())}:${twoDigits(until.getMinutes())}`,
@@ -56,9 +56,9 @@ export const placeAccess = (
 }
 
 // 冒險頁地點標題下的禁區通行狀態；剩餘分鐘無條件進位
-export const passStatus = (areaPassExpiresAt: string | null, now: Date): string | null => {
+export const passStatus = (areaPassExpiresAt: Date | null, now: Date): string | null => {
   if (areaPassExpiresAt === null) return null
   if (!passActive(areaPassExpiresAt, now)) return "禁區通行時間已結束，請到地圖用鑰匙再次進入"
-  const remaining = new Date(areaPassExpiresAt).getTime() - now.getTime()
+  const remaining = areaPassExpiresAt.getTime() - now.getTime()
   return `禁區通行剩 ${Math.ceil(remaining / MillisecondsPerMinute)} 分`
 }

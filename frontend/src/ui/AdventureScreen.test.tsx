@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
-import type { AdvanceResponse, ContentNames, JobOption, SkillOverview } from "../game/types"
+import type { ContentNames, JobOption, SkillOverview } from "../game/types"
+import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
@@ -58,34 +59,34 @@ const content: ContentNames = makeContent({
   monsters: [{ id: "test-wolf", name: "測試寒狼" }],
 })
 
-const response: AdvanceResponse = {
+const response: AdvanceVo = {
   events: [
     {
       type: "encounter",
       atSeconds: 0,
       monsterId: "test-wolf",
       monsterName: "測試寒狼",
-      monsterHp: 60,
-      monsterHpMax: 60,
-      playerHp: 100,
-      playerHpMax: 120,
-      playerSp: 10,
-      playerSpMax: 10,
+      monsterHealthPoints: 60,
+      monsterMaxHealthPoints: 60,
+      playerHealthPoints: 100,
+      playerMaxHealthPoints: 120,
+      playerManaPoints: 10,
+      playerMaxManaPoints: 10,
       petName: null,
       petMonsterId: null,
     },
-    { type: "reward", atSeconds: 0, exp: 8, money: 3, jobExp: 2, drops: [] },
+    { type: "reward", atSeconds: 0, experience: 8, money: 3, jobExperience: 2, drops: [] },
   ],
-  summary: makeSummary({ fights: 1, wins: 1, exp: 8, money: 3, jobExp: 2 }),
+  summary: makeSummary({ fights: 1, wins: 1, experience: 8, money: 3, jobExperience: 2 }),
   eventsCoverAll: true,
   character: { ...character, experience: 8, money: 3 },
   mercenary: null,
   areaPassExpiresAt: null,
 }
 
-const levelUpResponse: AdvanceResponse = {
+const levelUpResponse: AdvanceVo = {
   events: [
-    { type: "reward", atSeconds: 0, exp: 1200, money: 3, jobExp: 2, drops: [] },
+    { type: "reward", atSeconds: 0, experience: 1200, money: 3, jobExperience: 2, drops: [] },
     {
       type: "levelUp",
       atSeconds: 0,
@@ -101,7 +102,14 @@ const levelUpResponse: AdvanceResponse = {
       },
     },
   ],
-  summary: makeSummary({ fights: 1, wins: 1, exp: 1200, money: 3, jobExp: 2, levelsGained: 1 }),
+  summary: makeSummary({
+    fights: 1,
+    wins: 1,
+    experience: 1200,
+    money: 3,
+    jobExperience: 2,
+    levelsGained: 1,
+  }),
   eventsCoverAll: true,
   character: { ...character, level: 2, experience: 200, nextLevelExperience: 1092, money: 3 },
   mercenary: null,
@@ -124,7 +132,7 @@ const skillOverview: SkillOverview = {
   slots: [],
 }
 
-const createFakeApi = (advanceResponse: AdvanceResponse = response): ApiClient => ({
+const createFakeApi = (advanceResponse: AdvanceVo = response): ApiClient => ({
   register: vi.fn(),
   login: vi.fn(),
   getMyCharacter: vi.fn(),
@@ -327,7 +335,7 @@ test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
 })
 
 test("AdventureScreen_RestRefillsStageHealth", async () => {
-  const restResponse: AdvanceResponse = {
+  const restResponse: AdvanceVo = {
     ...response,
     events: [
       response.events[0],
@@ -340,11 +348,11 @@ test("AdventureScreen_RestRefillsStageHealth", async () => {
         critical: false,
         damage: 100,
         elementMultiplier: 1,
-        targetHpAfter: 0,
+        targetHealthPointsAfter: 0,
         stunned: false,
       },
       { type: "defeat", atSeconds: 0.4, loser: "Player" },
-      { type: "rest", atSeconds: 2, cost: 0, expPenalty: false, waitSeconds: 15 },
+      { type: "rest", atSeconds: 2, cost: 0, experiencePenalty: false, waitSeconds: 15 },
     ],
   }
   render(
@@ -470,18 +478,18 @@ test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
       name: "阿福",
       fights: 1,
       wins: 1,
-      exp: 40,
+      experience: 40,
       money: 7,
       levelsGained: 0,
       remaining: 99,
       dismissed: false,
       recent: [
         {
-          at: "2026-10-20T23:58:20Z",
+          at: new Date("2026-10-20T23:58:20Z"),
           monsterId: "test-wolf",
           monsterName: "測試寒狼",
           won: true,
-          exp: 40,
+          experience: 40,
           money: 7,
         },
       ],
@@ -582,7 +590,7 @@ test("AdventureScreen_MovingToAPlaceWithoutSubPlacesLogsOnlyThePlace", async () 
 test("AdventureScreen_ShowsTheRemainingAreaPassTime", async () => {
   render(
     <AdventureScreen
-      api={createFakeApi({ ...response, areaPassExpiresAt: "2026-10-21T00:30:00Z" })}
+      api={createFakeApi({ ...response, areaPassExpiresAt: new Date("2026-10-21T00:30:00Z") })}
       initialCharacter={character}
       onSignOut={vi.fn()}
     />,
@@ -597,7 +605,7 @@ test("AdventureScreen_ShowsTheRemainingAreaPassTime", async () => {
 test("AdventureScreen_TellsWhenTheAreaPassHasEnded", async () => {
   render(
     <AdventureScreen
-      api={createFakeApi({ ...response, areaPassExpiresAt: "2026-10-20T23:00:00Z" })}
+      api={createFakeApi({ ...response, areaPassExpiresAt: new Date("2026-10-20T23:00:00Z") })}
       initialCharacter={character}
       onSignOut={vi.fn()}
     />,
@@ -631,7 +639,7 @@ test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
     ...response,
     events: [
       response.events[0],
-      { type: "reward", atSeconds: 5, exp: 8, money: 3, jobExp: 2, drops: [] },
+      { type: "reward", atSeconds: 5, experience: 8, money: 3, jobExperience: 2, drops: [] },
     ],
   })
   render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
@@ -653,9 +661,9 @@ test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
 // 移動前送出的輪詢在移動之後才回來：回應裡是舊地區，不顯示它的通行倒數
 test("AdventureScreen_StaleResponseFromTheOldPlaceShowsNoPassCountdown", async () => {
   const api = createFakeApi()
-  let resolveAdvance: (value: AdvanceResponse) => void = () => {}
+  let resolveAdvance: (value: AdvanceVo) => void = () => {}
   vi.mocked(api.advance).mockReturnValue(
-    new Promise<AdvanceResponse>((resolve) => {
+    new Promise<AdvanceVo>((resolve) => {
       resolveAdvance = resolve
     }),
   )
@@ -673,7 +681,7 @@ test("AdventureScreen_StaleResponseFromTheOldPlaceShowsNoPassCountdown", async (
       events: [],
       summary: makeSummary(),
       character,
-      areaPassExpiresAt: "2026-10-21T00:30:00Z",
+      areaPassExpiresAt: new Date("2026-10-21T00:30:00Z"),
     })
   })
   await advanceTime(100)
@@ -690,9 +698,9 @@ test("AdventureScreen_OpenBagReloadsWhenADropPlays", async () => {
       {
         type: "reward",
         atSeconds: 1,
-        exp: 8,
+        experience: 8,
         money: 3,
-        jobExp: 2,
+        jobExperience: 2,
         drops: [{ itemId: "wolf-fang", name: "狼牙", quantity: 1, discarded: false }],
       },
     ],
@@ -713,7 +721,7 @@ test("AdventureScreen_OpenBagReloadsAfterASummary", async () => {
   const api = createFakeApi({
     ...response,
     events: [],
-    summary: makeSummary({ fights: 30, wins: 30, exp: 240, money: 90 }),
+    summary: makeSummary({ fights: 30, wins: 30, experience: 240, money: 90 }),
     eventsCoverAll: false,
   })
   render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)

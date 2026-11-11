@@ -4,13 +4,13 @@ import type { LogLineKind } from "./battleLog"
 import type { PlaybackItem } from "./battlePlayback"
 import type {
   AttackEvent,
-  PetAttackEvent,
   BattleEvent,
   EncounterEvent,
-  GrowthStats,
   MercenaryReport,
+  PetAttackEvent,
   SkillEvent,
-} from "./types"
+} from "./battleEvents"
+import type { BaseStats } from "./character"
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
@@ -24,12 +24,12 @@ const encounter = (overrides: Partial<EncounterEvent> = {}) =>
     type: "encounter",
     monsterId: "slime",
     monsterName: "史萊姆",
-    monsterHp: 10,
-    monsterHpMax: 10,
-    playerHp: 20,
-    playerHpMax: 20,
-    playerSp: 5,
-    playerSpMax: 5,
+    monsterHealthPoints: 10,
+    monsterMaxHealthPoints: 10,
+    playerHealthPoints: 20,
+    playerMaxHealthPoints: 20,
+    playerManaPoints: 5,
+    playerMaxManaPoints: 5,
     petName: null,
     petMonsterId: null,
     ...overrides,
@@ -44,7 +44,7 @@ const attack = (overrides: Partial<AttackEvent>) =>
     critical: false,
     damage: 1234,
     elementMultiplier: 1,
-    targetHpAfter: 5,
+    targetHealthPointsAfter: 5,
     stunned: false,
     ...overrides,
   })
@@ -58,7 +58,7 @@ const petAttack = (overrides: Partial<PetAttackEvent & { atSeconds: number }>) =
     hit: true,
     critical: false,
     damage: 77,
-    targetHpAfter: 5,
+    targetHealthPointsAfter: 5,
     ...rest,
   })
   return base.kind === "event" ? { ...base, event: { ...base.event, atSeconds } } : base
@@ -71,20 +71,20 @@ const skill = (overrides: Partial<SkillEvent>) =>
     skillId: "burst",
     skillName: "爆氣",
     level: 1,
-    spAfter: 3,
+    manaPointsAfter: 3,
     heal: 0,
     damage: 0,
-    opponentHpAfter: null,
-    hpCost: 0,
-    spCost: 0,
+    opponentHealthPointsAfter: null,
+    healthPointsCost: 0,
+    manaPointsCost: 0,
     moneyCost: 0,
-    opponentSpLoss: 0,
-    spGain: 0,
+    opponentManaPointsLoss: 0,
+    manaPointsGain: 0,
     lasting: false,
     ...overrides,
   })
 
-const growth = (overrides: Partial<GrowthStats> = {}): GrowthStats => ({
+const growth = (overrides: Partial<BaseStats> = {}): BaseStats => ({
   strength: 0,
   intelligence: 0,
   life: 0,
@@ -148,7 +148,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "player damaging skill",
-    skill({ skillId: "poison", skillName: "施毒", damage: 50, opponentHpAfter: 10 }),
+    skill({ skillId: "poison", skillName: "施毒", damage: 50, opponentHealthPointsAfter: 10 }),
     [
       ["你施展了施毒！", "trigger"],
       ["史萊姆受到 50 點傷害。", "normal"],
@@ -156,7 +156,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "player skill with costs",
-    skill({ skillName: "滅世", hpCost: 450, spCost: 5 }),
+    skill({ skillName: "滅世", healthPointsCost: 450, manaPointsCost: 5 }),
     [
       ["你施展了滅世！", "trigger"],
       ["消耗了 HP 450、SP 5。", "muted"],
@@ -164,12 +164,18 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "lasting skill damage",
-    skill({ skillId: "poison", skillName: "施毒", damage: 50, opponentHpAfter: 10, lasting: true }),
+    skill({
+      skillId: "poison",
+      skillName: "施毒",
+      damage: 50,
+      opponentHealthPointsAfter: 10,
+      lasting: true,
+    }),
     [["施毒持續作用，史萊姆受到 50 點傷害。", "normal"]],
   ],
   [
     "player skill draining monster sp",
-    skill({ skillId: "burn-mana", skillName: "燃燒魔力", opponentSpLoss: 20 }),
+    skill({ skillId: "burn-mana", skillName: "燃燒魔力", opponentManaPointsLoss: 20 }),
     [
       ["你施展了燃燒魔力！", "trigger"],
       ["史萊姆失去 20 點 SP。", "normal"],
@@ -177,7 +183,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "player skill restoring sp",
-    skill({ skillId: "mana-absorb", skillName: "魔力吸收", spGain: 10 }),
+    skill({ skillId: "mana-absorb", skillName: "魔力吸收", manaPointsGain: 10 }),
     [
       ["你施展了魔力吸收！", "trigger"],
       ["回復了 10 點 SP。", "normal"],
@@ -198,7 +204,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "describeSkill_MonsterCaster_WritesExpectedLines sp gain",
-    skill({ caster: "Monster", skillName: "魔力吸收", spGain: 30 }),
+    skill({ caster: "Monster", skillName: "魔力吸收", manaPointsGain: 30 }),
     [
       ["史萊姆施展了魔力吸收！", "trigger"],
       ["史萊姆回復了 30 點 SP。", "normal"],
@@ -206,7 +212,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "describeSkill_MonsterCaster_WritesExpectedLines damage",
-    skill({ caster: "Monster", skillName: "星芒", damage: 120, opponentHpAfter: 700 }),
+    skill({ caster: "Monster", skillName: "星芒", damage: 120, opponentHealthPointsAfter: 700 }),
     [
       ["史萊姆施展了星芒！", "trigger"],
       ["你受到 120 點傷害。", "normal"],
@@ -214,7 +220,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "describeSkill_MonsterCaster_WritesExpectedLines opponent sp loss",
-    skill({ caster: "Monster", skillName: "燃燒魔力", opponentSpLoss: 40 }),
+    skill({ caster: "Monster", skillName: "燃燒魔力", opponentManaPointsLoss: 40 }),
     [
       ["史萊姆施展了燃燒魔力！", "trigger"],
       ["你失去 40 點 SP。", "normal"],
@@ -227,13 +233,13 @@ const cases: [string, PlaybackItem, Line[]][] = [
       skillName: "施毒",
       lasting: true,
       damage: 25,
-      opponentHpAfter: 700,
+      opponentHealthPointsAfter: 700,
     }),
     [["施毒持續作用，你受到 25 點傷害。", "normal"]],
   ],
   [
     "describeSkill_MonsterCaster_WritesExpectedLines costs are not written",
-    skill({ caster: "Monster", spCost: 4, hpCost: 10 }),
+    skill({ caster: "Monster", manaPointsCost: 4, healthPointsCost: 10 }),
     [["史萊姆施展了爆氣！", "trigger"]],
   ],
   [
@@ -256,16 +262,16 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "reward",
-    event({ type: "reward", exp: 12000, money: 3, jobExp: 1500, drops: [] }),
+    event({ type: "reward", experience: 12000, money: 3, jobExperience: 1500, drops: [] }),
     [["獲得經驗 12,000、金錢 3、熟練度 1,500。", "drop"]],
   ],
   [
     "reward with drops",
     event({
       type: "reward",
-      exp: 10,
+      experience: 10,
       money: 2,
-      jobExp: 1,
+      jobExperience: 1,
       drops: [
         { itemId: "iron-ore", name: "鐵礦石", quantity: 2, discarded: false },
         { itemId: "beast-hide", name: "野獸毛皮", quantity: 1, discarded: true },
@@ -279,12 +285,19 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "reward with an empty drop list",
-    event({ type: "reward", exp: 10, money: 2, jobExp: 1, drops: [] }),
+    event({ type: "reward", experience: 10, money: 2, jobExperience: 1, drops: [] }),
     [["獲得經驗 10、金錢 2、熟練度 1。", "drop"]],
   ],
   [
     "potion",
-    event({ type: "potion", itemId: "small-potion", name: "小藥水", hp: 50, sp: 25, remaining: 8 }),
+    event({
+      type: "potion",
+      itemId: "small-potion",
+      name: "小藥水",
+      healthPoints: 50,
+      manaPoints: 25,
+      remaining: 8,
+    }),
     [["使用了小藥水，恢復 50 HP／25 SP。", "normal"]],
   ],
   [
@@ -316,12 +329,12 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "free rest",
-    event({ type: "rest", cost: 0, expPenalty: false, waitSeconds: 15 }),
+    event({ type: "rest", cost: 0, experiencePenalty: false, waitSeconds: 15 }),
     [["你在旅館休息，恢復了體力。", "muted"]],
   ],
   [
     "paid rest",
-    event({ type: "rest", cost: 2100, expPenalty: false, waitSeconds: 15 }),
+    event({ type: "rest", cost: 2100, experiencePenalty: false, waitSeconds: 15 }),
     [
       ["你在旅館休息，恢復了體力。", "muted"],
       ["付了 2,100 金錢住宿。", "muted"],
@@ -329,7 +342,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
   ],
   [
     "rest with exp penalty",
-    event({ type: "rest", cost: 0, expPenalty: true, waitSeconds: 15 }),
+    event({ type: "rest", cost: 0, experiencePenalty: true, waitSeconds: 15 }),
     [
       ["你在旅館休息，恢復了體力。", "muted"],
       ["付不起住宿費，經驗減少了。", "muted"],
@@ -341,7 +354,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       kind: "summary",
       fights: 1500,
       wins: 1498,
-      exp: 20000,
+      experience: 20000,
       money: 4,
       levels: 2,
       missionKills: 0,
@@ -355,7 +368,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       kind: "summary",
       fights: 12,
       wins: 10,
-      exp: 300,
+      experience: 300,
       money: 0,
       levels: 1,
       missionKills: 3,
@@ -487,7 +500,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       kind: "summary",
       fights: 12,
       wins: 10,
-      exp: 300,
+      experience: 300,
       money: 0,
       levels: 1,
       missionKills: 3,
@@ -557,7 +570,7 @@ const cases: [string, PlaybackItem, Line[]][] = [
       kind: "summary",
       fights: 12,
       wins: 10,
-      exp: 300,
+      experience: 300,
       money: 40,
       levels: 0,
       missionKills: 0,
@@ -591,26 +604,26 @@ const mercenaryReport = (overrides: Partial<MercenaryReport> = {}): MercenaryRep
   name: "阿福",
   fights: 2,
   wins: 1,
-  exp: 1300,
+  experience: 1300,
   money: 45,
   levelsGained: 0,
   remaining: 95,
   dismissed: false,
   recent: [
     {
-      at: "2026-10-21T00:00:00Z",
+      at: new Date("2026-10-21T00:00:00Z"),
       monsterId: "slime",
       monsterName: "史萊姆",
       won: true,
-      exp: 1300,
+      experience: 1300,
       money: 45,
     },
     {
-      at: "2026-10-21T00:01:40Z",
+      at: new Date("2026-10-21T00:01:40Z"),
       monsterId: "wolf",
       monsterName: "寒狼",
       won: false,
-      exp: 0,
+      experience: 0,
       money: 0,
     },
   ],
@@ -627,7 +640,9 @@ describe("describeMercenaryReport", () => {
 
   test("describeMercenaryReport_SummarisesMoreThanFiveFights", () => {
     expect(
-      describeMercenaryReport(mercenaryReport({ fights: 6, wins: 4, exp: 5000, money: 120 })),
+      describeMercenaryReport(
+        mercenaryReport({ fights: 6, wins: 4, experience: 5000, money: 120 }),
+      ),
     ).toEqual([
       {
         text: "【傭兵】阿福 離開期間戰鬥 6 場（勝 4），獲得金錢 120，經驗值 5,000",

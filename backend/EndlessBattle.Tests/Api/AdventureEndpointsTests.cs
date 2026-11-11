@@ -57,6 +57,39 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(character.ToString(), me.ToString());
     }
 
+    [Fact]
+    public async Task Advance_EventsUseCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        factory.Clock.Advance(TimeSpan.FromSeconds(30));
+
+        var body = await AdvanceAsync(client);
+
+        var encounter = EventsOfType(body, "encounter")[0];
+        foreach (var name in new[]
+                 {
+                     "monsterHealthPoints", "monsterMaxHealthPoints", "playerHealthPoints", "playerMaxHealthPoints", "playerManaPoints",
+                     "playerMaxManaPoints",
+                 })
+        {
+            Assert.True(encounter.TryGetProperty(name, out _), name);
+        }
+
+        Assert.All(EventsOfType(body, "attack"), attack => Assert.True(attack.TryGetProperty("targetHealthPointsAfter", out _)));
+        var reward = EventsOfType(body, "reward")[0];
+        Assert.True(reward.TryGetProperty("experience", out _));
+        Assert.True(reward.TryGetProperty("jobExperience", out _));
+        Assert.True(EventsOfType(body, "rest")[0].TryGetProperty("experiencePenalty", out _));
+        var summary = body.GetProperty("summary");
+        Assert.True(summary.TryGetProperty("experience", out _));
+        Assert.True(summary.TryGetProperty("jobExperience", out _));
+        var abbreviated = new[] { "monsterHp", "playerHp", "playerSp", "targetHpAfter", "exp", "jobExp", "expPenalty" };
+        Assert.All(
+            body.GetProperty("events").EnumerateArray().Append(summary),
+            element => Assert.DoesNotContain(abbreviated, name => element.TryGetProperty(name, out _)));
+    }
+
     // 名稱照內容檔：遭遇的每隻怪物都帶著內容裡的名字
     [Fact]
     public async Task Advance_EncounterCarriesMonsterName()
@@ -154,7 +187,7 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Empty(body.GetProperty("events").EnumerateArray());
         Assert.Equal(0, body.GetProperty("summary").GetProperty("fights").GetInt32());
-        Assert.Equal(0, body.GetProperty("summary").GetProperty("exp").GetInt64());
+        Assert.Equal(0, body.GetProperty("summary").GetProperty("experience").GetInt64());
     }
 
     // 離線 6 小時：上萬場一次算完；事件只含最後 30 秒開始的場次，結算到最後一場打完，馬上再推進是空的
@@ -202,13 +235,13 @@ public class AdventureEndpointsTests(MySqlDatabaseFixture database)
 
         var body = await AdvanceAsync(client);
 
-        var jobExp = body.GetProperty("summary").GetProperty("jobExp").GetInt64();
-        Assert.True(jobExp > 0);
+        var jobExperience = body.GetProperty("summary").GetProperty("jobExperience").GetInt64();
+        Assert.True(jobExperience > 0);
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         var proficiency = me.GetProperty("jobProficiency").EnumerateArray().Single();
         Assert.Equal("warrior", proficiency.GetProperty("jobId").GetString());
-        Assert.Equal(jobExp, proficiency.GetProperty("proficiency").GetInt64());
-        Assert.Equal(jobExp, proficiency.GetProperty("skillPoints").GetInt64());
+        Assert.Equal(jobExperience, proficiency.GetProperty("proficiency").GetInt64());
+        Assert.Equal(jobExperience, proficiency.GetProperty("skillPoints").GetInt64());
     }
 
     // 接取 test-hunt（擊敗測試雪精 ×3）後推進 20 秒：進度事件以 "mission" 為 discriminator 序列化，摘要帶 missionKills

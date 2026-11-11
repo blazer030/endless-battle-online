@@ -1,5 +1,5 @@
 import { RestAfterBatchSeconds } from "../motion/timings"
-import type { AdvanceResponse, AdvanceSummary, BattleEvent, MercenaryReport } from "./types"
+import type { AdvanceSummary, AdvanceVo, BattleEvent, MercenaryReport } from "./battleEvents"
 import type { CharacterVo } from "./character"
 
 export type PlaybackItem =
@@ -10,7 +10,7 @@ export type PlaybackItem =
       kind: "summary"
       fights: number
       wins: number
-      exp: number
+      experience: number
       money: number
       levels: number
       missionKills: number
@@ -18,7 +18,7 @@ export type PlaybackItem =
     }
 
 // 項目播出時角色數值的增量；尚未播出的增量從已確認的角色資料扣回
-type Gain = { exp: number; money: number; levels: number }
+type Gain = { experience: number; money: number; levels: number }
 
 interface ScheduledItem {
   item: PlaybackItem
@@ -30,16 +30,16 @@ interface ScheduledItem {
 // 升級播出前，等級與經驗條停在升級前的值，期間播出的經驗往上加
 type LevelBaseline = { experience: number; nextLevelExperience: number; gainedExperience: number }
 
-const noGain: Gain = { exp: 0, money: 0, levels: 0 }
+const noGain: Gain = { experience: 0, money: 0, levels: 0 }
 
 const gainOf = (event: BattleEvent): Gain => {
   switch (event.type) {
     case "reward":
-      return { exp: event.exp, money: event.money, levels: 0 }
+      return { experience: event.experience, money: event.money, levels: 0 }
     case "rest":
-      return { exp: 0, money: -event.cost, levels: 0 }
+      return { experience: 0, money: -event.cost, levels: 0 }
     case "levelUp":
-      return { exp: 0, money: 0, levels: 1 }
+      return { experience: 0, money: 0, levels: 1 }
     default:
       return noGain
   }
@@ -48,7 +48,7 @@ const gainOf = (event: BattleEvent): Gain => {
 const sumGains = (gains: Gain[]): Gain =>
   gains.reduce(
     (total, gain) => ({
-      exp: total.exp + gain.exp,
+      experience: total.experience + gain.experience,
       money: total.money + gain.money,
       levels: total.levels + gain.levels,
     }),
@@ -66,7 +66,7 @@ export class BattlePlayback {
     this.confirmedCharacter = character
   }
 
-  enqueue(response: AdvanceResponse, receivedAtMilliseconds: number): void {
+  enqueue(response: AdvanceVo, receivedAtMilliseconds: number): void {
     const before = this.displayedCharacter
     this.confirmedCharacter = response.character
     // 產生的型別 type 是選填，伺服器一律會帶
@@ -81,7 +81,11 @@ export class BattlePlayback {
     if (mercenary !== null) {
       this.schedule(
         { kind: "mercenary", report: mercenary },
-        { exp: mercenary.exp, money: mercenary.money, levels: mercenary.levelsGained },
+        {
+          experience: mercenary.experience,
+          money: mercenary.money,
+          levels: mercenary.levelsGained,
+        },
         batchStart,
       )
     }
@@ -126,7 +130,9 @@ export class BattlePlayback {
       .sort((a, b) => a.dueMilliseconds - b.dueMilliseconds || a.order - b.order)
     this.pending = this.pending.filter((scheduled) => scheduled.dueMilliseconds > nowMilliseconds)
     if (this.levelBaseline !== null) {
-      this.levelBaseline.gainedExperience += sumGains(due.map((scheduled) => scheduled.gain)).exp
+      this.levelBaseline.gainedExperience += sumGains(
+        due.map((scheduled) => scheduled.gain),
+      ).experience
       if (this.pendingGain().levels === 0) this.levelBaseline = null
     }
     return due.map((scheduled) => scheduled.item)
@@ -157,7 +163,11 @@ export class BattlePlayback {
         money,
       }
     }
-    return { ...confirmed, experience: Math.max(0, confirmed.experience - pending.exp), money }
+    return {
+      ...confirmed,
+      experience: Math.max(0, confirmed.experience - pending.experience),
+      money,
+    }
   }
 
   private pendingGain(): Gain {
@@ -173,7 +183,7 @@ export class BattlePlayback {
       kind: "summary",
       fights: summary.fights,
       wins: summary.wins,
-      exp: summary.exp,
+      experience: summary.experience,
       money: summary.money,
       levels: summary.levelsGained,
       missionKills: summary.missionKills,
@@ -189,7 +199,7 @@ export class BattlePlayback {
         .map(gainOf),
     )
     return {
-      exp: summary.exp - shown.exp,
+      experience: summary.experience - shown.experience,
       money: summary.money - shown.money,
       levels: summary.levelsGained - shown.levels,
     }

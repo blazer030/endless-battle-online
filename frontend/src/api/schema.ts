@@ -2248,11 +2248,11 @@ export interface components {
             /** Format: int32 */
             timeouts: number;
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
             /** Format: int64 */
-            jobExp: number;
+            jobExperience: number;
             /** Format: int32 */
             levelsGained: number;
             /** Format: int32 */
@@ -2335,7 +2335,7 @@ export interface components {
             /** Format: double */
             elementMultiplier: number;
             /** Format: int32 */
-            targetHpAfter: number;
+            targetHealthPointsAfter: number;
             stunned: boolean;
             /** Format: double */
             atSeconds: number;
@@ -2365,17 +2365,17 @@ export interface components {
             monsterId: string;
             monsterName: string;
             /** Format: int32 */
-            monsterHp: number;
+            monsterHealthPoints: number;
             /** Format: int32 */
-            monsterHpMax: number;
+            monsterMaxHealthPoints: number;
             /** Format: int32 */
-            playerHp: number;
+            playerHealthPoints: number;
             /** Format: int32 */
-            playerHpMax: number;
+            playerMaxHealthPoints: number;
             /** Format: int32 */
-            playerSp: number;
+            playerManaPoints: number;
             /** Format: int32 */
-            playerSpMax: number;
+            playerMaxManaPoints: number;
             petName: null | string;
             petMonsterId: null | string;
             /** Format: double */
@@ -2432,7 +2432,7 @@ export interface components {
             /** Format: int32 */
             damage: number;
             /** Format: int32 */
-            targetHpAfter: number;
+            targetHealthPointsAfter: number;
             /** Format: double */
             atSeconds: number;
         };
@@ -2454,9 +2454,9 @@ export interface components {
             itemId: string;
             name: string;
             /** Format: int32 */
-            hp: number;
+            healthPoints: number;
             /** Format: int32 */
-            sp: number;
+            manaPoints: number;
             /** Format: int32 */
             remaining: number;
             /** Format: double */
@@ -2467,7 +2467,7 @@ export interface components {
             type?: "rest";
             /** Format: int64 */
             cost: number;
-            expPenalty: boolean;
+            experiencePenalty: boolean;
             /** Format: double */
             waitSeconds: number;
             /** Format: double */
@@ -2477,11 +2477,11 @@ export interface components {
             /** @enum {string} */
             type?: "reward";
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
             /** Format: int64 */
-            jobExp: number;
+            jobExperience: number;
             drops: components["schemas"]["DropResponse"][];
             /** Format: double */
             atSeconds: number;
@@ -2503,23 +2503,23 @@ export interface components {
             /** Format: int32 */
             level: number;
             /** Format: int32 */
-            spAfter: number;
+            manaPointsAfter: number;
             /** Format: int32 */
             heal: number;
             /** Format: int32 */
             damage: number;
             /** Format: int32 */
-            opponentHpAfter: null | number;
+            opponentHealthPointsAfter: null | number;
             /** Format: int32 */
-            hpCost: number;
+            healthPointsCost: number;
             /** Format: int32 */
-            spCost: number;
+            manaPointsCost: number;
             /** Format: int32 */
             moneyCost: number;
             /** Format: int32 */
-            opponentSpLoss: number;
+            opponentManaPointsLoss: number;
             /** Format: int32 */
-            spGain: number;
+            manaPointsGain: number;
             lasting: boolean;
             /** Format: double */
             atSeconds: number;
@@ -2898,7 +2898,7 @@ export interface components {
             monsterName: string;
             won: boolean;
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
         };
@@ -2917,7 +2917,7 @@ export interface components {
             /** Format: int32 */
             wins: number;
             /** Format: int64 */
-            exp: number;
+            experience: number;
             /** Format: int64 */
             money: number;
             /** Format: int32 */

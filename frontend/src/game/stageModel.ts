@@ -1,4 +1,4 @@
-import type { AttackEvent, BattleEvent, PetAttackEvent, PetGuardEvent } from "./types"
+import type { AttackEvent, BattleEvent, PetAttackEvent, PetGuardEvent } from "./battleEvents"
 
 export type StageState = {
   monsterId: string | null
@@ -54,39 +54,42 @@ export const applyToStage = (state: StageState, event: BattleEvent): StageState 
     case "encounter":
       return {
         monsterId: event.monsterId,
-        monsterHp: event.monsterHp,
-        monsterHpMax: event.monsterHpMax,
-        playerHp: event.playerHp,
-        playerHpMax: event.playerHpMax,
+        monsterHp: event.monsterHealthPoints,
+        monsterHpMax: event.monsterMaxHealthPoints,
+        playerHp: event.playerHealthPoints,
+        playerHpMax: event.playerMaxHealthPoints,
         petName: event.petName ?? null,
         petMonsterId: event.petMonsterId ?? null,
         petActive: event.petName != null,
       }
     case "attack":
       return event.attacker === "Player"
-        ? { ...state, monsterHp: event.targetHpAfter }
-        : { ...state, playerHp: event.targetHpAfter }
+        ? { ...state, monsterHp: event.targetHealthPointsAfter }
+        : { ...state, playerHp: event.targetHealthPointsAfter }
     case "petGuard":
       return event.retired ? { ...state, petActive: false } : state
     case "petAttack":
-      return { ...state, monsterHp: event.targetHpAfter }
+      return { ...state, monsterHp: event.targetHealthPointsAfter }
     case "skill": {
       // 施放者扣消耗、加回復；削減 HP、持續傷害時對手改成剩下的 HP
-      const change = event.heal - event.hpCost
+      const change = event.heal - event.healthPointsCost
       const casterChanged =
         change === 0
           ? state
           : event.caster === "Player"
             ? { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + change) }
             : { ...state, monsterHp: Math.min(state.monsterHpMax, state.monsterHp + change) }
-      if (event.opponentHpAfter === null || event.opponentHpAfter === undefined)
+      if (event.opponentHealthPointsAfter === null || event.opponentHealthPointsAfter === undefined)
         return casterChanged
       return event.caster === "Player"
-        ? { ...casterChanged, monsterHp: event.opponentHpAfter }
-        : { ...casterChanged, playerHp: event.opponentHpAfter }
+        ? { ...casterChanged, monsterHp: event.opponentHealthPointsAfter }
+        : { ...casterChanged, playerHp: event.opponentHealthPointsAfter }
     }
     case "potion":
-      return { ...state, playerHp: Math.min(state.playerHpMax, state.playerHp + event.hp) }
+      return {
+        ...state,
+        playerHp: Math.min(state.playerHpMax, state.playerHp + event.healthPoints),
+      }
     case "rest":
       return { ...state, playerHp: state.playerHpMax }
     case "round":

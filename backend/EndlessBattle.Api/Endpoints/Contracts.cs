@@ -143,9 +143,9 @@ public sealed record AdvanceSummaryResponse(
     int Wins,
     int Losses,
     int Timeouts,
-    long Exp,
+    long Experience,
     long Money,
-    long JobExp,
+    long JobExperience,
     int LevelsGained,
     int SkillsCast,
     int Drops,
@@ -188,14 +188,14 @@ public sealed record MercenaryReportResponse(
     string Name,
     int Fights,
     int Wins,
-    long Exp,
+    long Experience,
     long Money,
     int LevelsGained,
     int Remaining,
     bool Dismissed,
     IReadOnlyList<MercenaryFightResponse> Recent);
 
-public sealed record MercenaryFightResponse(DateTimeOffset At, string MonsterId, string MonsterName, bool Won, long Exp, long Money);
+public sealed record MercenaryFightResponse(DateTimeOffset At, string MonsterId, string MonsterName, bool Won, long Experience, long Money);
 
 public sealed record LearnSkillRequest(string? SkillId);
 
