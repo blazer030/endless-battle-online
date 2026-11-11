@@ -88,7 +88,7 @@ Infrastructure 新增一個密藥種類代碼對照（`Exp`↔`Experience`、`Jo
 **Behavior:**
 
 - 遊戲 OpenAPI 文件裡不再有 `supplyHp`、`supplySp`、`expPercent` 與任務的 `exp` 欄位，改成 `supplyHealthPoints`、`supplyManaPoints`、`experiencePercent`、`experience`；`BuffKind` 的值是 `Experience`、`JobExperience`、`Attack`、`Magic`、`Defense`、`MagicDefense`。
-- 已存在資料庫、`kind` 為 `Exp` 的密藥，`GET /api/buffs` 回 `kind: "Experience"`；喝下經驗密藥後資料庫存的 `kind` 仍是 `Exp`。
+- 已存在資料庫、`kind` 為 `Exp` 的密藥，`GET /api/characters/me/buffs` 回 `kind: "Experience"`；喝下經驗密藥後資料庫存的 `kind` 仍是 `Exp`。
 - 內容檔不改，啟動時道具補給量、精鍊石範圍、密藥與旅館房間的種類、傭兵的經驗比例都與改名前相同。
 - 前端：上述所有遊戲 API 的回應都先轉成 Vo；缺必要欄位或型別錯誤時請求失敗並丟出帶路徑的 `ParseError`，畫面照一般請求失敗處理；不認識的欄位忽略。各畫面的顯示與操作和改名前相同。
 - 背包裡未達成的裝備需求顯示緋紅色（`--crimson-text`），已達成的仍是綠色。

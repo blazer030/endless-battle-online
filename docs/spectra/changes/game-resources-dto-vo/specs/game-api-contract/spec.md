@@ -97,7 +97,7 @@ Renaming fields SHALL NOT change the format of stored data. Content files under 
 #### Scenario: Previously stored buff kind reads back
 
 - **WHEN** a character has a stored buff whose kind is `Exp`
-- **THEN** `GET /api/buffs` returns that buff with `kind` `Experience`, and drinking another experience elixir stores the kind as `Exp`
+- **THEN** `GET /api/characters/me/buffs` returns that buff with `kind` `Experience`, and drinking another experience elixir stores the kind as `Exp`
 
 ### Requirement: Client converts responses before use
 
@@ -120,5 +120,5 @@ The game client SHALL convert each response of every game endpoint under `/api/`
 
 #### Scenario: Buff end time becomes a date
 
-- **WHEN** `GET /api/buffs` responds with a buff whose `endsAt` is `2026-11-12T08:30:00Z`
+- **WHEN** `GET /api/characters/me/buffs` responds with a buff whose `endsAt` is `2026-11-12T08:30:00Z`
 - **THEN** the converted buff's end time is the date 2026-11-12 08:30 UTC
