@@ -3,7 +3,7 @@ import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import { makeCharacter, makePlace, makeWorld } from "../test/fixtures"
-import type { WorldArea } from "../game/types"
+import type { WorldAreaVo } from "../game/world"
 import { WorldPanel, type WorldApi } from "./WorldPanel"
 
 const character = makeCharacter()
@@ -64,7 +64,7 @@ test("WorldPanel_DisablesRestrictedPlaces", async () => {
   expect(abandoned).toHaveTextContent("需要鑰匙")
 })
 
-const forbiddenWorld = (place: Partial<WorldArea["places"][number]>): WorldArea[] => [
+const forbiddenWorld = (place: Partial<WorldAreaVo["places"][number]>): WorldAreaVo[] => [
   {
     id: "forbidden",
     name: "禁區",
@@ -74,7 +74,7 @@ const forbiddenWorld = (place: Partial<WorldArea["places"][number]>): WorldArea[
         name: "廢棄洞窟",
         restricted: true,
         subPlaces: [],
-        recommended: { min: 60, max: 80 },
+        recommended: { minimum: 60, maximum: 80 },
         ...place,
       }),
     ],
@@ -104,7 +104,7 @@ test("WorldPanel_ReentersTheCurrentRestrictedPlaceWithAKeyAfterThePassEnds", asy
     subPlace: null,
     subPlaceName: null,
   })
-  const passExpiresAt = new Date(Date.now() - 1000).toISOString()
+  const passExpiresAt = new Date(Date.now() - 1000)
   const { api } = renderPanel(
     createApi({
       getWorld: vi
@@ -129,7 +129,7 @@ test("WorldPanel_KeepsTheCurrentRestrictedPlaceWhileThePassLasts", async () => {
     subPlace: null,
     subPlaceName: null,
   })
-  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
   renderPanel(
     createApi({
       getWorld: vi
@@ -145,7 +145,7 @@ test("WorldPanel_KeepsTheCurrentRestrictedPlaceWhileThePassLasts", async () => {
 })
 
 test("WorldPanel_RestrictedPlaceWithAPassShowsUntil", async () => {
-  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  const passExpiresAt = new Date(Date.now() + 60 * 60 * 1000)
   renderPanel(createApi({ getWorld: vi.fn().mockResolvedValue(forbiddenWorld({ passExpiresAt })) }))
 
   const abandoned = await placeButton("廢棄洞窟")

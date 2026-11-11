@@ -68,7 +68,7 @@ describe("placeAccess", () => {
   })
 
   it("shows until when an unexpired pass lasts", () => {
-    const passExpiresAt = new Date(2026, 9, 21, 9, 5).toISOString()
+    const passExpiresAt = new Date(2026, 9, 21, 9, 5)
     expect(placeAccess({ ...forbidden, passExpiresAt, keys: 1 }, now)).toEqual({
       open: true,
       label: "通行至 09:05",
@@ -76,7 +76,7 @@ describe("placeAccess", () => {
   })
 
   it("opens with a held key once the pass has expired", () => {
-    const passExpiresAt = now.toISOString()
+    const passExpiresAt = new Date(now)
     expect(placeAccess({ ...forbidden, passExpiresAt, keys: 2 }, now)).toEqual({
       open: true,
       label: "需要鑰匙（持有 2）",

@@ -7,12 +7,8 @@ import {
   mercenaryErrorMessage,
 } from "../game/mercenaries"
 import { isNameTooLong, MercenaryNameMaxLength, NameLengthError } from "../game/names"
-import type {
-  MercenaryCatalogueEntry,
-  MercenaryContract,
-  MercenaryOverview,
-  WorldPlace,
-} from "../game/types"
+import type { MercenaryCatalogueEntry, MercenaryContract, MercenaryOverview } from "../game/types"
+import type { WorldPlace } from "../game/world"
 import type { CharacterVo } from "../game/character"
 
 export type MercenaryApi = Pick<

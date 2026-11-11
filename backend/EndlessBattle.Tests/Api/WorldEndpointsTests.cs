@@ -39,6 +39,20 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
             .SelectMany(area => area.GetProperty("places").EnumerateArray())
             .Single(place => place.GetProperty("id").GetInt32() == placeId);
 
+    // 測試平原的建議等級是 1～10
+    [Fact]
+    public async Task World_RecommendedRangeUsesCompleteNames()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+
+        var areas = (await client.GetFromJsonAsync<JsonElement>("/api/world", CancellationToken)).EnumerateArray();
+
+        var recommended = areas.First().GetProperty("places")[0].GetProperty("recommended");
+        Assert.Equal((1, 10), (recommended.GetProperty("minimum").GetInt32(), recommended.GetProperty("maximum").GetInt32()));
+        Assert.False(recommended.TryGetProperty("min", out _));
+    }
+
     [Fact]
     public async Task World_ListsAreasWithCurrentAndRecommendation()
     {
@@ -55,8 +69,8 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("測試平原", plain.GetProperty("name").GetString());
         Assert.True(plain.GetProperty("current").GetBoolean());
         Assert.Equal("Recommended", plain.GetProperty("recommendation").GetString());
-        Assert.Equal(1, plain.GetProperty("recommended").GetProperty("min").GetInt32());
-        Assert.Equal(10, plain.GetProperty("recommended").GetProperty("max").GetInt32());
+        Assert.Equal(1, plain.GetProperty("recommended").GetProperty("minimum").GetInt32());
+        Assert.Equal(10, plain.GetProperty("recommended").GetProperty("maximum").GetInt32());
         Assert.Equal(1, plain.GetProperty("subPlaces")[0].GetProperty("index").GetInt32());
         Assert.Equal("甲地", plain.GetProperty("subPlaces")[0].GetProperty("name").GetString());
         Assert.False(places[1].GetProperty("current").GetBoolean());

@@ -176,7 +176,11 @@ test("request_HasNoReasons_WhenProblemOmitsThem", async () => {
 })
 
 test("worldCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) =>
+      Promise.resolve(jsonResponse(path === "/api/world" ? [] : anyBody)),
+    )
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getWorld()

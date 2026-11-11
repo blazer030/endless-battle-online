@@ -1,5 +1,44 @@
-import type { Recommendation, WorldPlace } from "./types"
 import type { CharacterVo } from "./character"
+
+// 世界地圖（來自 /api/world），由 api/worldData.ts 轉換
+export const recommendations = ["Recommended", "TooHard", "TooEasy", "None"] as const
+// 只是提示，移動不看等級；禁區為 None
+export type Recommendation = (typeof recommendations)[number]
+
+export type SubPlace = { readonly index: number; readonly name: string }
+
+export type LevelRange = { readonly minimum: number; readonly maximum: number }
+
+// keys 是背包裡這個地區的鑰匙數，passExpiresAt 是通行證到期時刻（可能已過期），兩者只有禁區才有意義
+export type WorldPlace = {
+  readonly id: number
+  readonly name: string
+  readonly subPlaces: readonly SubPlace[]
+  readonly recommended: LevelRange
+  readonly restricted: boolean
+  readonly current: boolean
+  readonly recommendation: Recommendation
+  readonly keys: number
+  readonly passExpiresAt: Date | null
+}
+
+type WorldAreaVoParams = { id: string; name: string; places: WorldPlace[] }
+
+export class WorldAreaVo {
+  readonly id: string
+  readonly name: string
+  readonly places: readonly WorldPlace[]
+
+  private constructor(params: WorldAreaVoParams) {
+    this.id = params.id
+    this.name = params.name
+    this.places = params.places
+  }
+
+  static create(params: WorldAreaVoParams): WorldAreaVo {
+    return new WorldAreaVo(params)
+  }
+}
 
 export type RecommendationTone = "recommended" | "too-hard" | "too-easy"
 export type RecommendationLabel = { text: string; tone: RecommendationTone }
@@ -43,7 +82,7 @@ export const placeAccess = (
   now: Date,
 ): { open: boolean; label: string | null } => {
   if (!place.restricted) return { open: true, label: null }
-  const until = place.passExpiresAt === null ? null : new Date(place.passExpiresAt)
+  const until = place.passExpiresAt
   if (until !== null && passActive(until, now)) {
     return {
       open: true,

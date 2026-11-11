@@ -21,10 +21,10 @@ import type {
   ShopItem,
   SynthesisResult,
   UnsocketResult,
-  WorldArea,
 } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
+import type { WorldAreaVo } from "../game/world"
 import type { AdventureSettings, CharacterVo, CreateCharacterCommand } from "../game/character"
 import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
@@ -40,6 +40,7 @@ import {
 } from "./characterData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter } from "./skillData"
+import { WorldConverter } from "./worldData"
 
 export const fallbackDetail = "發生錯誤，請稍後再試"
 
@@ -73,7 +74,7 @@ export type ApiClient = {
   getSkills: () => Promise<SkillOverviewVo>
   learnSkill: (skillId: string) => Promise<SkillOverviewVo>
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverviewVo>
-  getWorld: () => Promise<WorldArea[]>
+  getWorld: () => Promise<WorldAreaVo[]>
   moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterVo>
   getInventory: () => Promise<InventoryView>
   // quantity 只用於補給品：從那一格分出幾個放到補給欄
@@ -239,7 +240,10 @@ export const createApiClient = (options: {
       SkillOverviewConverter.toVo(
         await requestJson<unknown>("/api/skills/slots", "PUT", { slots }),
       ),
-    getWorld: () => requestJson<WorldArea[]>("/api/world", "GET"),
+    getWorld: async () =>
+      parseArray(await requestJson<unknown>("/api/world", "GET"), "world", (item, path) =>
+        WorldConverter.toVo(item, path),
+      ),
     moveTo: (placeId, subPlace) =>
       requestCharacter("/api/world/location", "PUT", { placeId, subPlace }),
     getInventory: () => requestJson<InventoryView>("/api/inventory", "GET"),

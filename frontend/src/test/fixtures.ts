@@ -10,9 +10,8 @@ import type {
   PetView,
   ShopItem,
   StatBonusView,
-  WorldArea,
-  WorldPlace,
 } from "../game/types"
+import type { WorldAreaVo, WorldPlace } from "../game/world"
 import type { AdvanceSummary } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { CreationOptionsVo } from "../game/creationOptions"
@@ -162,7 +161,7 @@ export const makePlace = (overrides: Partial<WorldPlace> & Pick<WorldPlace, "id"
       index: index + 1,
       name,
     })),
-    recommended: { min: 1, max: 10 },
+    recommended: { minimum: 1, maximum: 10 },
     restricted: false,
     current: false,
     recommendation: "None",
@@ -174,7 +173,7 @@ export const makePlace = (overrides: Partial<WorldPlace> & Pick<WorldPlace, "id"
 }
 
 // 中央大陸、魔法王國、禁區各取幾個地區；黑曜神廟當成一般地區，方便測沒有子地區的移動
-export const makeWorld = (): WorldArea[] => [
+export const makeWorld = (): WorldAreaVo[] => [
   {
     id: "central",
     name: "中央大陸",
@@ -183,7 +182,7 @@ export const makeWorld = (): WorldArea[] => [
       makePlace({
         id: 3,
         name: "黑暗沼澤",
-        recommended: { min: 10, max: 20 },
+        recommended: { minimum: 10, maximum: 20 },
         recommendation: "TooHard",
       }),
     ],
@@ -195,7 +194,7 @@ export const makeWorld = (): WorldArea[] => [
       makePlace({
         id: 2,
         name: "試鍊洞窟",
-        recommended: { min: 6, max: 15 },
+        recommended: { minimum: 6, maximum: 15 },
         recommendation: "TooEasy",
       }),
     ],
@@ -204,8 +203,13 @@ export const makeWorld = (): WorldArea[] => [
     id: "forbidden",
     name: "禁區",
     places: [
-      makePlace({ id: 17, name: "廢棄洞窟", recommended: { min: 60, max: 80 }, restricted: true }),
-      makePlace({ id: 20, name: "黑曜神廟", recommended: { min: 130, max: 160 } }),
+      makePlace({
+        id: 17,
+        name: "廢棄洞窟",
+        recommended: { minimum: 60, maximum: 80 },
+        restricted: true,
+      }),
+      makePlace({ id: 20, name: "黑曜神廟", recommended: { minimum: 130, maximum: 160 } }),
     ],
   },
 ]

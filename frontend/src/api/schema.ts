@@ -2851,9 +2851,9 @@ export interface components {
         };
         LevelRangeResponse: {
             /** Format: int32 */
-            min: number;
+            minimum: number;
             /** Format: int32 */
-            max: number;
+            maximum: number;
         };
         LodgingResponse: {
             roomId: string;

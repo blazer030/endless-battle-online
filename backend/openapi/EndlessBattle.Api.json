@@ -3813,16 +3813,16 @@
       },
       "LevelRangeResponse": {
         "required": [
-          "min",
-          "max"
+          "minimum",
+          "maximum"
         ],
         "type": "object",
         "properties": {
-          "min": {
+          "minimum": {
             "type": "integer",
             "format": "int32"
           },
-          "max": {
+          "maximum": {
             "type": "integer",
             "format": "int32"
           }

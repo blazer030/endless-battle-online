@@ -1,6 +1,7 @@
 import { formatNumber } from "./format"
 import { translateReasons } from "./reasons"
-import type { MercenaryCatalogueEntry, MercenaryContract, WorldArea, WorldPlace } from "./types"
+import type { MercenaryCatalogueEntry, MercenaryContract } from "./types"
+import type { WorldAreaVo, WorldPlace } from "./world"
 
 export type CatalogueRow = {
   name: string
@@ -32,7 +33,7 @@ export const contractStatus = (contract: MercenaryContract): string[] => [
 ]
 
 // 禁區（restricted）不能派傭兵
-export const deployablePlaces = (areas: WorldArea[]): WorldPlace[] =>
+export const deployablePlaces = (areas: WorldAreaVo[]): WorldPlace[] =>
   areas.flatMap((area) => area.places).filter((place) => !place.restricted)
 
 const reasonTexts: Record<string, string> = {

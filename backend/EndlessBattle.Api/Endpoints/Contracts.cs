@@ -264,7 +264,7 @@ public sealed record WorldPlaceResponse(
 
 public sealed record SubPlaceResponse(int Index, string Name);
 
-public sealed record LevelRangeResponse(int Min, int Max);
+public sealed record LevelRangeResponse(int Minimum, int Maximum);
 
 // 沒有子地區的地區 SubPlace 必須為 null
 public sealed record MoveRequest(int? PlaceId, int? SubPlace);

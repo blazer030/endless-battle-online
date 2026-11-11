@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
-import type { WorldArea, WorldPlace } from "../game/types"
+import type { WorldAreaVo, WorldPlace } from "../game/world"
 import type { CharacterVo } from "../game/character"
 import { moveReasonText, passActive, placeAccess, recommendationLabel } from "../game/world"
 import "./WorldPanel.css"
@@ -25,13 +25,13 @@ const describeMoveError = (error: unknown): string[] => {
 
 export function WorldPanel({ api, character, onCharacterChange, onClose }: Props) {
   const titleId = useId()
-  const [areas, setAreas] = useState<WorldArea[] | null>(null)
+  const [areas, setAreas] = useState<WorldAreaVo[] | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [expandedPlaceId, setExpandedPlaceId] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [moveErrors, setMoveErrors] = useState<string[]>([])
 
-  const show = useCallback((loaded: WorldArea[]) => {
+  const show = useCallback((loaded: WorldAreaVo[]) => {
     setAreas(loaded)
     setLoadError(false)
   }, [])
@@ -120,7 +120,7 @@ export function WorldPanel({ api, character, onCharacterChange, onClose }: Props
 }
 
 type AreaProps = {
-  area: WorldArea
+  area: WorldAreaVo
   character: CharacterVo
   expandedPlaceId: number | null
   busy: boolean
@@ -167,9 +167,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
   const now = new Date()
   const access = placeAccess(place, now)
   // 禁區通行證到期後，目前所在的子地區也能用鑰匙再次進入
-  const reentry =
-    place.restricted &&
-    !passActive(place.passExpiresAt === null ? null : new Date(place.passExpiresAt), now)
+  const reentry = place.restricted && !passActive(place.passExpiresAt, now)
   const isHere = (subPlace: number | null) =>
     character.placeId === place.id && character.subPlace === subPlace
   return (
@@ -183,7 +181,7 @@ function PlaceRow({ place, character, expanded, busy, onToggle, onMove }: PlaceP
         onClick={onToggle}
       >
         <span className="world__place-name">{place.name}</span>
-        <span className="world__place-level">{`Lv ${place.recommended.min}–${place.recommended.max}`}</span>
+        <span className="world__place-level">{`Lv ${place.recommended.minimum}–${place.recommended.maximum}`}</span>
         {label !== null && (
           <span className="world__tag" data-tone={label.tone}>
             {label.text}
