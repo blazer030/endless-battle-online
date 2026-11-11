@@ -10,10 +10,10 @@ public static class RewardFormulas
     private const double TimeoutLevelFactor = 0.6;
     private const double TimeoutDamageDivisor = 1.5;
 
-    public static long Exp(
+    public static long Experience(
         MonsterDefinition m,
         // 擊殺時忽略；超限時傳 round(min(累計傷害, hpmax)/1.5)，愈高經驗愈多
-        int monsterHpValue,
+        int monsterHealthPointsValue,
         int playerLevel,
         bool killed,
         IRandomSource random,
@@ -21,8 +21,8 @@ public static class RewardFormulas
     {
         // 超過回合上限時呼叫端傳 m.Level × 0.6
         var monsterLevel = levelOverride ?? m.Level;
-        var expBase = (m.Attack + m.MagicAttack) / 2.0;
-        double e = PhpRandom.Between(random, expBase, expBase + monsterLevel);
+        var experienceBase = (m.Attack + m.MagicAttack) / 2.0;
+        double e = PhpRandom.Between(random, experienceBase, experienceBase + monsterLevel);
         if (playerLevel <= 100)
         {
             e *= 1.3;
@@ -34,11 +34,11 @@ public static class RewardFormulas
         }
 
         // 擊殺時 WOG 傳入 m_hp = m_hpmax，比值為 1；未擊殺時比值乘兩次
-        var hpRatio = killed ? 1.0 : monsterHpValue / (double)m.HealthPoints;
-        e = monsterLevel * e * (monsterLevel / playerLevel) * hpRatio * 0.18;
+        var healthPointsRatio = killed ? 1.0 : monsterHealthPointsValue / (double)m.HealthPoints;
+        e = monsterLevel * e * (monsterLevel / playerLevel) * healthPointsRatio * 0.18;
         if (!killed)
         {
-            e *= hpRatio;
+            e *= healthPointsRatio;
         }
 
         if (playerLevel <= 15)
@@ -50,10 +50,10 @@ public static class RewardFormulas
     }
 
     // 超限時 WOG 以怪物等級 × 0.6、round(min(累計傷害, hpmax) / 1.5) 計算部分經驗
-    public static long TimeoutExp(MonsterDefinition monster, int damageDealt, int playerLevel, IRandomSource random)
+    public static long TimeoutExperience(MonsterDefinition monster, int damageDealt, int playerLevel, IRandomSource random)
     {
         var damageValue = (int)Math.Round(Math.Min(damageDealt, monster.HealthPoints) / TimeoutDamageDivisor, MidpointRounding.AwayFromZero);
-        return Exp(monster, damageValue, playerLevel, killed: false, random, levelOverride: monster.Level * TimeoutLevelFactor);
+        return Experience(monster, damageValue, playerLevel, killed: false, random, levelOverride: monster.Level * TimeoutLevelFactor);
     }
 
     public static long Money(MonsterDefinition m, IRandomSource random)
@@ -72,5 +72,5 @@ public static class RewardFormulas
     }
 
     // 每次擊殺的職業熟練度與技能點增量（WOG wog_fight_select.php 用 floor）
-    public static long JobExp(MonsterDefinition m) => m.JobExperience;
+    public static long JobExperience(MonsterDefinition m) => m.JobExperience;
 }

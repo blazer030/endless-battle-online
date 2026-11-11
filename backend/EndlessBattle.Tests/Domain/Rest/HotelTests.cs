@@ -32,7 +32,7 @@ public class HotelTests
 
         Assert.Equal(hero with { HealthPoints = 1000, ManaPoints = 91 }, result.Character);
         Assert.Equal(0, result.Cost);
-        Assert.False(result.ExpPenalty);
+        Assert.False(result.ExperiencePenalty);
         Assert.Equal(5.0, result.WaitSeconds);
     }
 
@@ -47,7 +47,7 @@ public class HotelTests
         Assert.Equal(1000, result.Character.HealthPoints);
         Assert.Equal(91, result.Character.ManaPoints);
         Assert.Equal(500, result.Character.Experience);
-        Assert.False(result.ExpPenalty);
+        Assert.False(result.ExperiencePenalty);
         Assert.Equal(5.0, result.WaitSeconds);
     }
 
@@ -79,7 +79,7 @@ public class HotelTests
         var result = Hotel.Rest(Hero(120, hp: 30, money: 2159));
 
         Assert.Equal(0, result.Cost);
-        Assert.True(result.ExpPenalty);
+        Assert.True(result.ExperiencePenalty);
         Assert.Equal(2159, result.Character.Money);
         Assert.Equal(400, result.Character.Experience);
         Assert.Equal(1000, result.Character.HealthPoints);
@@ -101,7 +101,7 @@ public class HotelTests
     {
         var result = Hotel.Rest(Hero(120, hp: 30, money: 0, exp: 2));
 
-        Assert.True(result.ExpPenalty);
+        Assert.True(result.ExperiencePenalty);
         Assert.Equal(2, result.Character.Experience);
         Assert.Equal(1000, result.Character.HealthPoints);
         Assert.Equal(0, result.Character.Money);
@@ -138,7 +138,7 @@ public class HotelTests
 
         Assert.Equal(2160, result.Cost);
         Assert.Equal(0, result.Character.Money);
-        Assert.False(result.ExpPenalty);
+        Assert.False(result.ExperiencePenalty);
         Assert.Equal(500, result.Character.Experience);
     }
 

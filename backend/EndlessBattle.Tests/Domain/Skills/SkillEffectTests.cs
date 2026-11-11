@@ -64,7 +64,7 @@ public class SkillEffectTests
 
         caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0));
 
-        Assert.Equal((45, -70), (caster.Current.BonusDamageFor(AttackKind.Physical), caster.Current.Rag));
+        Assert.Equal((45, -70), (caster.Current.BonusDamageFor(AttackKind.Physical), caster.Current.HitRate));
         Assert.Equal(0, caster.Current.BonusDamageFor(AttackKind.Magic));
     }
 
@@ -226,7 +226,7 @@ public class SkillEffectTests
         var outcome = WogBattle.Run(Player(), Monster(), AttackKind.Physical,
             [new EquippedSkill(Skill(SkillType.Passive, Level(1, [], [Change(SkillStat.Evasion, amount: 70)])), 1, 4)], new SeededRandom(3));
 
-        Assert.Equal(-70, caster.Current.EnemyRag);
+        Assert.Equal(-70, caster.Current.EnemyHitRate);
         Assert.DoesNotContain(outcome.Events.OfType<AttackEvent>(), attack => attack.Attacker == CombatSide.Monster && attack.Hit);
     }
 
@@ -323,7 +323,7 @@ public class SkillEffectTests
     {
         var caster = Active(Player(), new PercentDamageEffect(Percent: 10, Rounds: 0));
 
-        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 500));
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHealthPoints: 500));
 
         Assert.Equal(50, cast.OpponentDamage);
     }
@@ -396,7 +396,7 @@ public class SkillEffectTests
 
         caster.CastBeforeAttack(1000, 100, new ScriptedRandom(Roll(20)));
 
-        Assert.Equal((0.92, 5), (Math.Round(caster.Current.EnemyAt, 10), caster.DamageOverTime()));
+        Assert.Equal((0.92, 5), (Math.Round(caster.Current.EnemyAttack, 10), caster.DamageOverTime()));
     }
 
     [Fact]
@@ -415,7 +415,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(caster.CastBeforeAttack(1000, 50, new ScriptedRandom(0.0)));
 
-        Assert.Equal((60, 10), (cast.SpAfter, cast.SpGain));
+        Assert.Equal((60, 10), (cast.ManaPointsAfter, cast.ManaPointsGain));
     }
 
     [Fact]
@@ -445,9 +445,9 @@ public class SkillEffectTests
     {
         var caster = Active(Player(), new ReduceSkillPointsEffect(Amount: 20, PercentOfMaximum: null, Rounds: 0));
 
-        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentSp: 100));
+        var cast = Assert.Single(caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentManaPoints: 100));
 
-        Assert.Equal(20, cast.OpponentSpLoss);
+        Assert.Equal(20, cast.OpponentManaPointsLoss);
     }
 
     // 假死：比基礎能力，高就加、其餘（含相等）就減，不大於 0 不會暈眩（spec skill-effects）
@@ -532,9 +532,9 @@ public class SkillEffectTests
     {
         var caster = AlwaysOn(Player(), new PercentDamageEffect(Percent: 10, Rounds: 0));
 
-        var first = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 500);
+        var first = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHealthPoints: 500);
         caster.ExpireAtRoundStart();
-        var second = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHp: 450);
+        var second = caster.CastBeforeAttack(1000, 100, new ScriptedRandom(0.0), opponentHealthPoints: 450);
 
         Assert.Equal([50, 45], first.Concat(second).Select(cast => cast.OpponentDamage));
     }
@@ -564,7 +564,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(new SkillCaster(Player(hp: 1000), [new EquippedSkill(skill, 1, 1)]).CastBeforeAttack(1000, 100, new ScriptedRandom(0.0)));
 
-        Assert.Equal((550, 450), (cast.HpAfter, cast.HpCost));
+        Assert.Equal((550, 450), (cast.HealthPointsAfter, cast.HealthPointsCost));
     }
 
     [Fact]
@@ -590,7 +590,7 @@ public class SkillEffectTests
 
         var cast = Assert.Single(caster.CastBeforeAttack(1000, 300, new ScriptedRandom(0.0)));
 
-        Assert.Equal((130, 0, 300), (caster.Current.ApplyToCaster(player).MagicAttack, cast.SpAfter, cast.SpCost));
+        Assert.Equal((130, 0, 300), (caster.Current.ApplyToCaster(player).MagicAttack, cast.ManaPointsAfter, cast.ManaPointsCost));
     }
 
     [Fact]
@@ -627,7 +627,7 @@ public class SkillEffectTests
         var caster = new SkillCaster(Player(hp: 500), [new EquippedSkill(skill, 1, 1)]);
 
         Assert.Empty(caster.CastBeforeAttack(500, 100, new ScriptedRandom(0.0)));
-        Assert.Equal(550, Assert.Single(caster.CastAtRoundEnd(500, 100, new ScriptedRandom(0.0))).HpAfter);
+        Assert.Equal(550, Assert.Single(caster.CastAtRoundEnd(500, 100, new ScriptedRandom(0.0))).HealthPointsAfter);
     }
 }
 

@@ -10,7 +10,7 @@ public class WogBattlePotionTests
         new(hp, hpMax, sp, spMax, at, MagicAttack: 0, df, MagicDefense: 50, Agility: 20, Charisma: 10, Element: 0, Strength: 100, Intelligence: 0);
 
     private static SupplyState Supply(int hp = 50, int sp = 25, int quantity = 5, int hpPercent = 15, int spPercent = 100) =>
-        new("test-supply", "測試補給藥劑", hp, sp, quantity) { HpPercent = hpPercent, SpPercent = spPercent };
+        new("test-supply", "測試補給藥劑", hp, sp, quantity) { HealthPointsPercent = hpPercent, ManaPointsPercent = spPercent };
 
     // 門檻 100 × 15% = 15：14 才喝，剛好 15 不喝
     [Theory]

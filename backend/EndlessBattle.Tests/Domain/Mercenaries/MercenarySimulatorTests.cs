@@ -125,7 +125,7 @@ public class MercenarySimulatorTests
 
         var fight = Assert.Single(run.Fights);
         Assert.Equal((MercenaryFightResult.Timeout, 22L, 0L), (fight.Result, fight.Exp, fight.Money));
-        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExp(rock, 40, 1, new ScriptedRandom(0.0)), 50), fight.Exp);
+        Assert.Equal(MercenaryRules.Discount(RewardFormulas.TimeoutExperience(rock, 40, 1, new ScriptedRandom(0.0)), 50), fight.Exp);
         Assert.Equal(8, run.Contract!.Remaining);
     }
 

@@ -253,7 +253,7 @@ public class AdventureSimulatorTests
 
         Assert.Equal(new TimeoutEvent(32, 40, 40), run.Events.OfType<TimeoutEvent>().Single());
         Assert.Equal(new RewardEvent(32, Experience: 43, Money: 0, JobExperience: 0), run.Events.OfType<RewardEvent>().Single());
-        Assert.Equal(43, RewardFormulas.Exp(rock, 27, playerLevel: 1, killed: false, new ScriptedRandom(0.0), levelOverride: 3));
+        Assert.Equal(43, RewardFormulas.Experience(rock, 27, playerLevel: 1, killed: false, new ScriptedRandom(0.0), levelOverride: 3));
         Assert.Equal(new AdvanceSummary(1, Wins: 0, Losses: 0, Timeouts: 1, Experience: 43, Money: 0, JobExperience: 0, LevelsGained: 0, SkillsCast: 0), run.Summary);
         Assert.Equal(20, run.Character.HealthPoints);
         Assert.Empty(run.JobGains);
@@ -415,7 +415,7 @@ public class AdventureSimulatorTests
     {
         var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, HealthPoints = 53 };
         var pebble = Monster("pebble", hp: 2, at: 40, df: 1000);
-        var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 1);
+        var supply = new SupplyState("tonic", "補給", HealthPoints: 1, ManaPoints: 0, Quantity: 1);
 
         var run = AdventureSimulator.Run(
             tough, Warrior, Place, [pebble], ItemOf, [], From, From.AddSeconds(4), new ScriptedRandom(0.0), supply: supply);
@@ -434,7 +434,7 @@ public class AdventureSimulatorTests
     {
         var tough = Hero() with { Base = Hero().Base with { Vitality = 1000 }, HealthPoints = 53 };
         var pebble = Monster("pebble", hp: 10, at: 40, df: 1000);
-        var supply = new SupplyState("tonic", "補給", Hp: 1, Sp: 0, Quantity: 20);
+        var supply = new SupplyState("tonic", "補給", HealthPoints: 1, ManaPoints: 0, Quantity: 20);
 
         var run = AdventureSimulator.Run(
             tough, Warrior, Place, [pebble], ItemOf, [], From, From.AddSeconds(11), new ScriptedRandom(0.0), supply: supply);

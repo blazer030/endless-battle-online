@@ -50,7 +50,7 @@ public static class AdventureSimulator
         var droppedItemIds = new List<string>();
         var eventsCoverAll = true;
         int fights = 0, wins = 0, losses = 0, timeouts = 0, escapes = 0, levelsGained = 0, skillsCast = 0, potionsUsed = 0, missionKills = 0;
-        long expTotal = 0, moneyTotal = 0, jobExpTotal = 0;
+        long experienceTotal = 0, moneyTotal = 0, jobExperienceTotal = 0;
         var cursor = 0.0;
 
         // 只要還有可用時間就開新的一場，開打的戰鬥一律打完（可能超過可用時間）
@@ -67,7 +67,7 @@ public static class AdventureSimulator
                 character = rest.Character;
                 if (keepEvents)
                 {
-                    events.Add(new RestEvent(cursor, rest.Cost, rest.ExpPenalty, rest.WaitSeconds));
+                    events.Add(new RestEvent(cursor, rest.Cost, rest.ExperiencePenalty, rest.WaitSeconds));
                 }
 
                 cursor += rest.WaitSeconds;
@@ -134,7 +134,7 @@ public static class AdventureSimulator
 
             character = character with { HealthPoints = outcome.Player.HealthPoints, ManaPoints = outcome.Player.ManaPoints, Money = character.Money - outcome.MoneySpent };
 
-            long exp = 0, money = 0, jobExp = 0;
+            long experience = 0, money = 0, jobExperience = 0;
             IReadOnlyList<string> dropped = [];
             switch (outcome.Winner)
             {
@@ -146,11 +146,11 @@ public static class AdventureSimulator
                 case CombatSide.Player:
                     wins++;
                     // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
-                    exp = Buffs.Scale(
-                        RewardFormulas.Exp(definition, definition.HealthPoints, character.Level, killed: true, random),
+                    experience = Buffs.Scale(
+                        RewardFormulas.Experience(definition, definition.HealthPoints, character.Level, killed: true, random),
                         Buffs.Multiplier(buffs, BuffKind.Exp, fightStartsAt, lodging));
                     money = RewardFormulas.Money(definition, random);
-                    jobExp = Buffs.Scale(RewardFormulas.JobExp(definition), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt, lodging));
+                    jobExperience = Buffs.Scale(RewardFormulas.JobExperience(definition), Buffs.Multiplier(buffs, BuffKind.JobExp, fightStartsAt, lodging));
                     // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
                     dropped = DropRoller.Roll(definition.Drops, random);
                     break;
@@ -161,18 +161,18 @@ public static class AdventureSimulator
                 default:
                     // 超限：部分經驗，沒有金錢與熟練度，不計敗場
                     timeouts++;
-                    exp = RewardFormulas.TimeoutExp(definition, outcome.DamageDealtToMonster, character.Level, random);
+                    experience = RewardFormulas.TimeoutExperience(definition, outcome.DamageDealtToMonster, character.Level, random);
                     break;
             }
 
-            if (outcome.Winner == CombatSide.Player || exp > 0)
+            if (outcome.Winner == CombatSide.Player || experience > 0)
             {
                 if (keepEvents)
                 {
                     IReadOnlyList<DropResult> results = dropped.Count == 0
                         ? Array.Empty<DropResult>()
                         : dropped.Select(itemId => new DropResult(itemId, items(itemId).Name, 1, Discarded: false)).ToList();
-                    events.Add(new RewardEvent(fightEnd, exp, money, jobExp, results));
+                    events.Add(new RewardEvent(fightEnd, experience, money, jobExperience, results));
                 }
 
                 droppedItemIds.AddRange(dropped);
@@ -206,10 +206,10 @@ public static class AdventureSimulator
                     }
                 }
 
-                expTotal += exp;
+                experienceTotal += experience;
                 moneyTotal += money;
-                jobExpTotal += jobExp;
-                character = character with { Experience = character.Experience + exp, Money = character.Money + money };
+                jobExperienceTotal += jobExperience;
+                character = character with { Experience = character.Experience + experience, Money = character.Money + money };
                 var levelUp = LevelUp.Apply(character, job, random, fightEnd);
                 character = levelUp.Character;
                 levelsGained += levelUp.Events.Count;
@@ -222,8 +222,8 @@ public static class AdventureSimulator
             cursor += outcome.Rounds * BattleTiming.SecondsPerRound + BattleTiming.FightIntervalSeconds;
         }
 
-        var summary = new AdvanceSummary(fights, wins, losses, timeouts, expTotal, moneyTotal, jobExpTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count, Escapes: escapes);
-        IReadOnlyList<JobGain> jobGains = jobExpTotal > 0 ? [new JobGain(job.Id, jobExpTotal, jobExpTotal)] : [];
+        var summary = new AdvanceSummary(fights, wins, losses, timeouts, experienceTotal, moneyTotal, jobExperienceTotal, levelsGained, skillsCast, PotionsUsed: potionsUsed, MissionKills: missionKills, PetsCaptured: captured.Count, Escapes: escapes);
+        IReadOnlyList<JobGain> jobGains = jobExperienceTotal > 0 ? [new JobGain(job.Id, jobExperienceTotal, jobExperienceTotal)] : [];
         return new AdventureRun(
             events, summary, character, jobGains, cursor, eventsCoverAll, droppedItemIds, supply?.Quantity ?? capture?.Quantity, missions, captured);
     }

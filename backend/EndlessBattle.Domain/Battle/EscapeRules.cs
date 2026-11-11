@@ -8,8 +8,8 @@ public static class EscapeRules
     public const int Chance = 10;
 
     // 門檻 0 不逃
-    public static bool ShouldTry(int hp, int hpMax, int escapeHpPercent) =>
-        escapeHpPercent > 0 && (long)hp * 100 < (long)escapeHpPercent * hpMax;
+    public static bool ShouldTry(int healthPoints, int maxHealthPoints, int escapeHealthPointsPercent) =>
+        escapeHealthPointsPercent > 0 && (long)healthPoints * 100 < (long)escapeHealthPointsPercent * maxHealthPoints;
 
     // bonus 是技能加的逃跑率（百分點）
     public static bool Succeeds(IRandomSource random, int bonus = 0) => PhpRandom.Between(random, 1, 100) <= Chance + bonus;

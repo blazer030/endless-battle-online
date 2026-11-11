@@ -180,7 +180,7 @@ public sealed class BalanceReportService
         return character with
         {
             Level = level,
-            NextLevelExperience = level == 1 ? character.NextLevelExperience : ExperienceCurve.NextExpFor(level),
+            NextLevelExperience = level == 1 ? character.NextLevelExperience : ExperienceCurve.NextLevelExperienceFor(level),
             Base = StatsAt(character.Base, job.Growth, level),
             Money = 0,
             PlaceId = place.Id,

@@ -169,8 +169,8 @@ public class WogBattleTests
 
     private static ScriptedRandom EscapeRoll(double roll) => new(0.0, [.. Enumerable.Repeat(0.0, 7), roll]);
 
-    private static BattleOutcome RunFleeing(IRandomSource random, int escapeHpPercent) =>
-        WogBattle.Run(Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHpPercent);
+    private static BattleOutcome RunFleeing(IRandomSource random, int escapeHealthPointsPercent) =>
+        WogBattle.Run(Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHealthPointsPercent);
 
     // 0.095 → rand(1,100) = 10 ≤ 10 成功：這場在第 2 回合開頭結束，之後沒有任何出手
     [Fact]
@@ -178,7 +178,7 @@ public class WogBattleTests
     {
         var random = EscapeRoll(0.095);
 
-        var outcome = RunFleeing(random, escapeHpPercent: 30);
+        var outcome = RunFleeing(random, escapeHealthPointsPercent: 30);
 
         var escapeIndex = outcome.Events.ToList().IndexOf(new EscapeEvent(0.8));
         Assert.Equal(outcome.Events.Count - 1, escapeIndex);
@@ -194,7 +194,7 @@ public class WogBattleTests
     [Fact]
     public void Battle_EscapeRollFailsAt11()
     {
-        var outcome = RunFleeing(EscapeRoll(0.105), escapeHpPercent: 30);
+        var outcome = RunFleeing(EscapeRoll(0.105), escapeHealthPointsPercent: 30);
 
         var events = outcome.Events.ToList();
         var roundTwo = events.IndexOf(new RoundEvent(0.8, 2));
@@ -220,7 +220,7 @@ public class WogBattleTests
         var random = new ScriptedRandom(0.0, [.. Enumerable.Repeat(0.0, 8), 0.145]);
 
         var outcome = WogBattle.Run(
-            Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [new EquippedSkill(smokeScreen, 1, 1)], supply: null, random, pet: null, escapeHpPercent: 30);
+            Fleeing(), Monster(hp: 1000, at: 10, agi: 10), null, [new EquippedSkill(smokeScreen, 1, 1)], supply: null, random, pet: null, escapeHealthPointsPercent: 30);
 
         Assert.Equal(new EscapeEvent(escapeAt), outcome.Events.OfType<EscapeEvent>().Single());
     }
@@ -232,7 +232,7 @@ public class WogBattleTests
     {
         var random = new ScriptedRandom(0.0);
 
-        var outcome = RunFleeing(random, escapeHpPercent: 0);
+        var outcome = RunFleeing(random, escapeHealthPointsPercent: 0);
 
         Assert.Equal(20, outcome.Rounds);
         Assert.Equal(61, outcome.Events.Count);
@@ -249,7 +249,7 @@ public class WogBattleTests
         var random = new ScriptedRandom(0.0);
 
         var outcome = WogBattle.Run(
-            Fleeing() with { HealthPoints = 100 }, Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHpPercent: 30);
+            Fleeing() with { HealthPoints = 100 }, Monster(hp: 1000, at: 10, agi: 10), null, [], supply: null, random, pet: null, escapeHealthPointsPercent: 30);
 
         Assert.Empty(outcome.Events.OfType<EscapeEvent>());
         Assert.False(outcome.Escaped);

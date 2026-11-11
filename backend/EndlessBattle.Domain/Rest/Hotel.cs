@@ -4,7 +4,7 @@ using EndlessBattle.Domain.Equipment;
 
 namespace EndlessBattle.Domain.Rest;
 
-public sealed record HotelResult(Character Character, long Cost, bool ExpPenalty, double WaitSeconds);
+public sealed record HotelResult(Character Character, long Cost, bool ExperiencePenalty, double WaitSeconds);
 
 public static class Hotel
 {
@@ -24,7 +24,7 @@ public static class Hotel
             return new HotelResult(healed, 0, false, wait);
         }
 
-        // hp 夾回上限，缺血比例才不會變負（不變量：係數 ≥ 0）
+        // healthPoints 夾回上限，缺血比例才不會變負（不變量：係數 ≥ 0）
         var cost = Math.Max(
             (long)Math.Round(10.0 * c.Level * Coefficient(Math.Min(c.HealthPoints, stats.MaxHealthPoints), stats.MaxHealthPoints), MidpointRounding.AwayFromZero),
             10L * c.Level);
@@ -34,13 +34,13 @@ public static class Hotel
             : new HotelResult(healed with { Experience = (long)Math.Round(c.Experience * 0.8, MidpointRounding.AwayFromZero) }, 0, true, wait);
     }
 
-    private static double Coefficient(int hp, int hpMax)
+    private static double Coefficient(int healthPoints, int maxHealthPoints)
     {
-        if (hp <= 0)
+        if (healthPoints <= 0)
         {
             return 2.1;
         }
 
-        return hpMax / 10.0 > hp ? 1.8 : 1.4 * (hpMax - hp) / hpMax;
+        return maxHealthPoints / 10.0 > healthPoints ? 1.8 : 1.4 * (maxHealthPoints - healthPoints) / maxHealthPoints;
     }
 }

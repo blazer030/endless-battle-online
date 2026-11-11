@@ -12,6 +12,6 @@ public class ExperienceCurveTests
     [InlineData(100, 168000)]
     public void NextExp_MatchesCurve(int level, long expected)
     {
-        Assert.Equal(expected, ExperienceCurve.NextExpFor(level));
+        Assert.Equal(expected, ExperienceCurve.NextLevelExperienceFor(level));
     }
 }

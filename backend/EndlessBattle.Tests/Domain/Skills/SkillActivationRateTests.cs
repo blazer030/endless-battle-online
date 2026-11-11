@@ -60,7 +60,7 @@ public class SkillActivationRateTests
         // 燃燒魔力常駐沒有條件，發動率 12：擲 12 發動、擲 13 不發動
         var skill = Skill([], new ReduceSkillPointsEffect(40, null, Rounds: 0)).WithActivationRate(12);
 
-        var casts = Caster(skill, Combatant()).CastBeforeAttack(1000, 100, new ScriptedRandom(roll), opponentSp: 100);
+        var casts = Caster(skill, Combatant()).CastBeforeAttack(1000, 100, new ScriptedRandom(roll), opponentManaPoints: 100);
 
         Assert.False(skill.IsAlwaysOn);
         Assert.Equal(expectedCasts, casts.Count);
@@ -127,6 +127,6 @@ public class SkillActivationRateTests
 
         var cast = Assert.Single(new SkillCaster(Combatant(), skills).CastBeforeAttack(1000, 0, new ScriptedRandom(0.11)));
 
-        Assert.Equal((2, 0, 0), (cast.Equipped.Level, cast.SpCost, cast.SpAfter));
+        Assert.Equal((2, 0, 0), (cast.Equipped.Level, cast.ManaPointsCost, cast.ManaPointsAfter));
     }
 }

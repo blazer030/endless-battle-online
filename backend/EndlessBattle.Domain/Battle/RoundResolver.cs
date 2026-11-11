@@ -23,8 +23,8 @@ public static class RoundResolver
         return PhpRandom.Between(random, 1, 10) <= 8 ? AttackKind.Magic : AttackKind.Physical;
     }
 
-    public static bool PlayerStrikesFirst(int playerAgi, int monsterAgi, IRandomSource random) =>
-        PhpRandom.Between(random, 1, 100) <= (playerAgi > monsterAgi ? 70 : 30);
+    public static bool PlayerStrikesFirst(int playerAgility, int monsterAgility, IRandomSource random) =>
+        PhpRandom.Between(random, 1, 100) <= (playerAgility > monsterAgility ? 70 : 30);
 
     // rag、暴擊率加成（這次攻擊方式的）、附加傷害、暴擊倍率上限加成來自技能（BattleModifiers）
     public static AttackResult Strike(
@@ -76,6 +76,6 @@ public static class RoundResolver
     }
 
     // agi/(agi+敵agi)×100 + rag + 20 > rand(1,100)；rag 目前只有技能（戰神之怒）會改，裝備加成在計畫 7
-    private static bool PhysicalHits(int attackerAgi, int defenderAgi, int rag, IRandomSource random) =>
-        (double)attackerAgi / (attackerAgi + defenderAgi) * 100 + rag + 20 > PhpRandom.Between(random, 1, 100);
+    private static bool PhysicalHits(int attackerAgility, int defenderAgility, int rag, IRandomSource random) =>
+        (double)attackerAgility / (attackerAgility + defenderAgility) * 100 + rag + 20 > PhpRandom.Between(random, 1, 100);
 }

@@ -29,14 +29,14 @@ public class SkillCasterTests
             new EquippedSkill(ManaSurge, Level: 2, Slot: 2),
         ]);
 
-        var casts = caster.CastBeforeAttack(hp: 100, sp: 20, random);
+        var casts = caster.CastBeforeAttack(healthPoints: 100, manaPoints: 20, random);
 
         Assert.Equal(["burst", "mana-surge"], casts.Select(cast => cast.Equipped.Skill.Id));
-        Assert.Equal([15, 7], casts.Select(cast => cast.SpAfter));
+        Assert.Equal([15, 7], casts.Select(cast => cast.ManaPointsAfter));
         Assert.Equal(2, random.Consumed);
-        Assert.Equal(1.01, caster.Current.At, 10);
-        Assert.Equal(1.02, caster.Current.Mat, 10);
-        Assert.Equal(new BattleModifiers(), caster.Current with { At = 1, Mat = 1 });
+        Assert.Equal(1.01, caster.Current.Attack, 10);
+        Assert.Equal(1.02, caster.Current.MagicAttack, 10);
+        Assert.Equal(new BattleModifiers(), caster.Current with { Attack = 1, MagicAttack = 1 });
     }
 
     // 被動常駐：裝上就生效、不擲骰、不扣 SP，回合開頭也不會失效
@@ -46,13 +46,13 @@ public class SkillCasterTests
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(IronSkin, Level: 2, Slot: 4)]);
 
-        Assert.Equal(1.02, caster.Current.Df, 10);
-        Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 0, random));
+        Assert.Equal(1.02, caster.Current.Defense, 10);
+        Assert.Empty(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 0, random));
         caster.ExpireAtRoundStart();
         caster.ExpireAtRoundStart();
 
         Assert.Equal(0, random.Consumed);
-        Assert.Equal(1.02, caster.Current.Df, 10);
+        Assert.Equal(1.02, caster.Current.Defense, 10);
     }
 
     // 攻擊後的被動（嗜血 lv5：傷害 ×0.1）每次物理命中都回復，不擲骰、不扣 SP
@@ -63,11 +63,11 @@ public class SkillCasterTests
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(bloodthirst, Level: 5, Slot: 4)]);
 
-        var first = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, hp: 50, sp: 0, random));
-        var second = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, hp: 65, sp: 0, random));
+        var first = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, healthPoints: 50, manaPoints: 0, random));
+        var second = Assert.Single(caster.CastAfterPhysicalHit(damage: 150, healthPoints: 65, manaPoints: 0, random));
 
-        Assert.Equal((65, 0, 15), (first.HpAfter, first.SpAfter, first.Heal));
-        Assert.Equal((80, 0, 15), (second.HpAfter, second.SpAfter, second.Heal));
+        Assert.Equal((65, 0, 15), (first.HealthPointsAfter, first.ManaPointsAfter, first.Heal));
+        Assert.Equal((80, 0, 15), (second.HealthPointsAfter, second.ManaPointsAfter, second.Heal));
         Assert.Equal(0, random.Consumed);
     }
 
@@ -78,7 +78,7 @@ public class SkillCasterTests
         for (var round = 1; round <= rounds; round++)
         {
             caster.ExpireAtRoundStart();
-            if (caster.CastBeforeAttack(hp, sp: 100, random).Count > 0)
+            if (caster.CastBeforeAttack(hp, manaPoints: 100, random).Count > 0)
             {
                 castRounds.Add(round);
             }
@@ -109,9 +109,9 @@ public class SkillCasterTests
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(strike, Level: 1, Slot: 1)]);
 
         caster.ExpireAtRoundStart();
-        Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 4, random));
+        Assert.Empty(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 4, random));
         caster.ExpireAtRoundStart();
-        Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, random));
+        Assert.Single(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 5, random));
 
         Assert.Equal(1, random.Consumed);
     }
@@ -146,9 +146,9 @@ public class SkillCasterTests
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 100) with { Intelligence = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
-        var casts = caster.CastBeforeAttack(hp, sp: 100, random);
+        var casts = caster.CastBeforeAttack(hp, manaPoints: 100, random);
 
-        Assert.Equal(fires ? [(hp + 20, 95)] : [], casts.Select(cast => (cast.HpAfter, cast.SpAfter)));
+        Assert.Equal(fires ? [(hp + 20, 95)] : [], casts.Select(cast => (cast.HealthPointsAfter, cast.ManaPointsAfter)));
         Assert.Equal(0, random.Consumed);
     }
 
@@ -159,7 +159,7 @@ public class SkillCasterTests
         var heal = TestSkills.Battle("heal", "治癒", SkillPreset.Heal, rounds: 1, trigger: TestTrigger.HpBelow(99));
         var caster = new SkillCaster(Player(sp: 100) with { Intelligence = 20 }, [new EquippedSkill(heal, Level: 1, Slot: 1)]);
 
-        Assert.Empty(caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0)));
+        Assert.Empty(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 100, new ScriptedRandom(0.0)));
     }
 
     // hpBelow 也吃冷卻：冷卻 4、HP 一直低於門檻，第 1 回合發動後第 2～5 回合不發，第 6 回合再發
@@ -180,12 +180,12 @@ public class SkillCasterTests
         var random = new ScriptedRandom(0.99);
         var caster = new SkillCaster(Player(sp: 0), [new EquippedSkill(lastStand, Level: 2, Slot: 4)]);
 
-        Assert.Equal(1.0, caster.Current.Df);
-        Assert.Empty(caster.CastBeforeAttack(hp: 30, sp: 0, random));
-        var cast = Assert.Single(caster.CastBeforeAttack(hp: 29, sp: 0, random));
+        Assert.Equal(1.0, caster.Current.Defense);
+        Assert.Empty(caster.CastBeforeAttack(healthPoints: 30, manaPoints: 0, random));
+        var cast = Assert.Single(caster.CastBeforeAttack(healthPoints: 29, manaPoints: 0, random));
 
-        Assert.Equal(0, cast.SpAfter);
-        Assert.Equal(1.02, caster.Current.Df, 10);
+        Assert.Equal(0, cast.ManaPointsAfter);
+        Assert.Equal(1.02, caster.Current.Defense, 10);
         Assert.Equal(0, random.Consumed);
     }
 
@@ -202,8 +202,8 @@ public class SkillCasterTests
         for (var round = 1; round <= 5; round++)
         {
             caster.ExpireAtRoundStart();
-            Assert.All(caster.CastBeforeAttack(hp: 100, sp: 0, random), cast => Assert.Equal(0, cast.SpAfter));
-            dfByRound.Add(Math.Round(caster.Current.Df, 10));
+            Assert.All(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 0, random), cast => Assert.Equal(0, cast.ManaPointsAfter));
+            dfByRound.Add(Math.Round(caster.Current.Defense, 10));
         }
 
         Assert.Equal([1.0, 1.05, 1.05, 1.05, 1.05], dfByRound);
@@ -222,8 +222,8 @@ public class SkillCasterTests
         for (var round = 1; round <= 3; round++)
         {
             caster.ExpireAtRoundStart();
-            heals.Add(caster.CastAfterPhysicalHit(damage: 150, hp: 10, sp: 0, random).Sum(cast => cast.Heal));
-            heals.Add(caster.CastAfterPhysicalHit(damage: 150, hp: 10, sp: 0, random).Sum(cast => cast.Heal));
+            heals.Add(caster.CastAfterPhysicalHit(damage: 150, healthPoints: 10, manaPoints: 0, random).Sum(cast => cast.Heal));
+            heals.Add(caster.CastAfterPhysicalHit(damage: 150, healthPoints: 10, manaPoints: 0, random).Sum(cast => cast.Heal));
         }
 
         Assert.Equal([15, 0, 0, 0, 15, 0], heals);
@@ -236,26 +236,26 @@ public class SkillCasterTests
     {
         var caster = new SkillCaster(Player(sp: 5), [new EquippedSkill(Burst, Level: 1, Slot: 1)]);
 
-        var cast = Assert.Single(caster.CastBeforeAttack(hp: 100, sp: 5, new ScriptedRandom(0.0)));
+        var cast = Assert.Single(caster.CastBeforeAttack(healthPoints: 100, manaPoints: 5, new ScriptedRandom(0.0)));
 
-        Assert.Equal(0, cast.SpAfter);
+        Assert.Equal(0, cast.ManaPointsAfter);
     }
 
     // 技能表的公式（value = lv）；玩家 str 100、au 25
     public static TheoryData<SkillPreset, int, BattleModifiers> EffectFormulas => new()
     {
-        { SkillPreset.AtMultiplier, 5, new BattleModifiers(At: 1.05) },
-        { SkillPreset.MatMultiplier, 5, new BattleModifiers(Mat: 1.05) },
-        { SkillPreset.DfMultiplier, 5, new BattleModifiers(Df: 1.05) },
-        { SkillPreset.MdfMultiplier, 5, new BattleModifiers(Mdf: 1.05) },
-        { SkillPreset.AgiMultiplier, 5, new BattleModifiers(Agi: 1.05) },
-        { SkillPreset.MultiHit, 3, new BattleModifiers(At: 0.97, PhysicalHits: 4) },
+        { SkillPreset.AtMultiplier, 5, new BattleModifiers(Attack: 1.05) },
+        { SkillPreset.MatMultiplier, 5, new BattleModifiers(MagicAttack: 1.05) },
+        { SkillPreset.DfMultiplier, 5, new BattleModifiers(Defense: 1.05) },
+        { SkillPreset.MdfMultiplier, 5, new BattleModifiers(MagicDefense: 1.05) },
+        { SkillPreset.AgiMultiplier, 5, new BattleModifiers(Agility: 1.05) },
+        { SkillPreset.MultiHit, 3, new BattleModifiers(Attack: 0.97, PhysicalHits: 4) },
         { SkillPreset.MagicMultiHit, 3, new BattleModifiers(MagicHits: 4) },
-        { SkillPreset.EnemyAgiDown, 5, new BattleModifiers(EnemyAgi: 0.95) },
-        { SkillPreset.EnemyAttackDown, 5, new BattleModifiers(EnemyAt: 0.9, EnemyMat: 0.9) },
+        { SkillPreset.EnemyAgiDown, 5, new BattleModifiers(EnemyAgility: 0.95) },
+        { SkillPreset.EnemyAttackDown, 5, new BattleModifiers(EnemyAttack: 0.9, EnemyMagicAttack: 0.9) },
         { SkillPreset.Heal, 5, new BattleModifiers() },
-        { SkillPreset.WarGodWrath, 1, new BattleModifiers(FlatAt: 45, Rag: -70) },
-        { SkillPreset.Counter, 5, new BattleModifiers(At: 1.05, PhysicalTaken: 0.82) },
+        { SkillPreset.WarGodWrath, 1, new BattleModifiers(FlatAttack: 45, HitRate: -70) },
+        { SkillPreset.Counter, 5, new BattleModifiers(Attack: 1.05, PhysicalTaken: 0.82) },
         { SkillPreset.CritChanceUp, 5, new BattleModifiers(CritChanceBonus: 10) },
         { SkillPreset.Bloodthirst, 5, new BattleModifiers() },
         { SkillPreset.BonusDamage, 5, new BattleModifiers(BonusDamage: 10) },
@@ -268,21 +268,21 @@ public class SkillCasterTests
     {
         var caster = new SkillCaster(Player(sp: 100), [new EquippedSkill(TestSkills.Battle("skill", "技能", effect), level, Slot: 1)]);
 
-        caster.CastBeforeAttack(hp: 100, sp: 100, new ScriptedRandom(0.0));
+        caster.CastBeforeAttack(healthPoints: 100, manaPoints: 100, new ScriptedRandom(0.0));
 
         Assert.Equal(Normalize(expected), Normalize(caster.Current));
     }
 
     private static BattleModifiers Normalize(BattleModifiers modifiers) => modifiers with
     {
-        At = Math.Round(modifiers.At, 10),
-        Mat = Math.Round(modifiers.Mat, 10),
-        Df = Math.Round(modifiers.Df, 10),
-        Mdf = Math.Round(modifiers.Mdf, 10),
-        Agi = Math.Round(modifiers.Agi, 10),
+        Attack = Math.Round(modifiers.Attack, 10),
+        MagicAttack = Math.Round(modifiers.MagicAttack, 10),
+        Defense = Math.Round(modifiers.Defense, 10),
+        MagicDefense = Math.Round(modifiers.MagicDefense, 10),
+        Agility = Math.Round(modifiers.Agility, 10),
         PhysicalTaken = Math.Round(modifiers.PhysicalTaken, 10),
-        EnemyAgi = Math.Round(modifiers.EnemyAgi, 10),
-        EnemyAt = Math.Round(modifiers.EnemyAt, 10),
-        EnemyMat = Math.Round(modifiers.EnemyMat, 10),
+        EnemyAgility = Math.Round(modifiers.EnemyAgility, 10),
+        EnemyAttack = Math.Round(modifiers.EnemyAttack, 10),
+        EnemyMagicAttack = Math.Round(modifiers.EnemyMagicAttack, 10),
     };
 }

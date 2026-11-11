@@ -15,7 +15,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_KilledSnowSpriteAtLevelOne()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 0, playerLevel: 1, killed: true, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(SnowSprite, monsterHealthPointsValue: 0, playerLevel: 1, killed: true, new ScriptedRandom(0.0));
 
         Assert.Equal(116, exp);
     }
@@ -26,7 +26,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_UnkilledScalesByHpValueRatio()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 30, playerLevel: 1, killed: false, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(SnowSprite, monsterHealthPointsValue: 30, playerLevel: 1, killed: false, new ScriptedRandom(0.0));
 
         Assert.Equal(29, exp);
     }
@@ -38,7 +38,7 @@ public class RewardFormulasTests
     [Fact]
     public void Exp_UsesLevelOverride()
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 40, playerLevel: 1, killed: false, new ScriptedRandom(0.99), levelOverride: 1.8);
+        var exp = RewardFormulas.Experience(SnowSprite, monsterHealthPointsValue: 40, playerLevel: 1, killed: false, new ScriptedRandom(0.99), levelOverride: 1.8);
 
         Assert.Equal(20, exp);
     }
@@ -51,7 +51,7 @@ public class RewardFormulasTests
     {
         var dragon = SnowSprite with { Level = 450, HealthPoints = 1000, Attack = 100, MagicAttack = 100 };
 
-        var exp = RewardFormulas.Exp(dragon, monsterHpValue: 0, playerLevel: 200, killed: true, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(dragon, monsterHealthPointsValue: 0, playerLevel: 200, killed: true, new ScriptedRandom(0.0));
 
         Assert.Equal(21870, exp);
     }
@@ -66,7 +66,7 @@ public class RewardFormulasTests
     {
         var ogre = SnowSprite with { Level = 100, HealthPoints = 1000, Attack = 100, MagicAttack = 100 };
 
-        var exp = RewardFormulas.Exp(ogre, monsterHpValue: 0, playerLevel, killed: true, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(ogre, monsterHealthPointsValue: 0, playerLevel, killed: true, new ScriptedRandom(0.0));
 
         Assert.Equal(expected, exp);
     }
@@ -79,7 +79,7 @@ public class RewardFormulasTests
     [InlineData(16, 3)]
     public void Exp_AppliesNoviceBonusUpToPlayerLevelFifteen(int playerLevel, long expected)
     {
-        var exp = RewardFormulas.Exp(SnowSprite, monsterHpValue: 0, playerLevel, killed: true, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(SnowSprite, monsterHealthPointsValue: 0, playerLevel, killed: true, new ScriptedRandom(0.0));
 
         Assert.Equal(expected, exp);
     }
@@ -91,7 +91,7 @@ public class RewardFormulasTests
     {
         var dragon = SnowSprite with { Level = 449, HealthPoints = 1000, Attack = 100, MagicAttack = 100 };
 
-        var exp = RewardFormulas.Exp(dragon, monsterHpValue: 0, playerLevel: 200, killed: true, new ScriptedRandom(0.0));
+        var exp = RewardFormulas.Experience(dragon, monsterHealthPointsValue: 0, playerLevel: 200, killed: true, new ScriptedRandom(0.0));
 
         Assert.Equal(36288, exp);
     }
@@ -142,6 +142,6 @@ public class RewardFormulasTests
     [Fact]
     public void JobExp_IsTheMonsterJobExp()
     {
-        Assert.Equal(13, RewardFormulas.JobExp(SnowSprite with { JobExperience = 13 }));
+        Assert.Equal(13, RewardFormulas.JobExperience(SnowSprite with { JobExperience = 13 }));
     }
 }

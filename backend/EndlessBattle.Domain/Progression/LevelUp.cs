@@ -7,7 +7,7 @@ namespace EndlessBattle.Domain.Progression;
 
 public sealed record LevelUpResult(Character Character, IReadOnlyList<LevelUpEvent> Events);
 
-// WOG lv_up：exp 嚴格大於 nextExp 才升級；成長取當時職業的範圍；不回滿 HP／SP；沒有等級上限
+// WOG lv_up：experience 嚴格大於 nextLevelExperience 才升級；成長取當時職業的範圍；不回滿 HP／SP；沒有等級上限
 public static class LevelUp
 {
     public static LevelUpResult Apply(Character character, JobDefinition job, IRandomSource random, double atSeconds)
@@ -21,7 +21,7 @@ public static class LevelUp
             {
                 Level = level,
                 Experience = character.Experience - character.NextLevelExperience,
-                NextLevelExperience = ExperienceCurve.NextExpFor(level),
+                NextLevelExperience = ExperienceCurve.NextLevelExperienceFor(level),
                 Base = Add(character.Base, growth),
             };
             events.Add(new LevelUpEvent(atSeconds, level, growth));

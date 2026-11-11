@@ -3,11 +3,11 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Domain.Battle;
 
-// Heal、SpGain 是實際回復的 HP 與 SP（已扣掉超過上限的部分）；OpponentDamage、OpponentSpLoss 是這次發動對對手造成的傷害與削減的 SP
-// HpCost、SpCost、MoneyCost 是這次發動扣掉的消耗；SilenceRounds 是對手要被封鎖的回合數（含目前回合），沒擲中或沒有封鎖效果時為 0
+// Heal、ManaPointsGain 是實際回復的 HP 與 SP（已扣掉超過上限的部分）；OpponentDamage、OpponentManaPointsLoss 是這次發動對對手造成的傷害與削減的 SP
+// HealthPointsCost、ManaPointsCost、MoneyCost 是這次發動扣掉的消耗；SilenceRounds 是對手要被封鎖的回合數（含目前回合），沒擲中或沒有封鎖效果時為 0
 public sealed record SkillCast(
-    EquippedSkill Equipped, int HpAfter, int SpAfter, int Heal, int OpponentDamage = 0, int OpponentSpLoss = 0,
-    int HpCost = 0, int SpCost = 0, int MoneyCost = 0, int SpGain = 0, int SilenceRounds = 0);
+    EquippedSkill Equipped, int HealthPointsAfter, int ManaPointsAfter, int Heal, int OpponentDamage = 0, int OpponentManaPointsLoss = 0,
+    int HealthPointsCost = 0, int ManaPointsCost = 0, int MoneyCost = 0, int ManaPointsGain = 0, int SilenceRounds = 0);
 
 // 技能的施放與持續（研究 §3.3），玩家與怪物共用。主動與被動規則相同，只看每級的條件、消耗與效果：
 // 沒有發動條件的技能常駐：裝上就生效、不擲骰、不扣消耗；攻擊後時機的常駐技能（嗜血）每次命中都觸發。
@@ -104,22 +104,22 @@ public sealed class SkillCaster
 
     // 出手前，依欄位順序嘗試施放；opponent* 是對手目前的 HP、SP 與 SP 上限，用在削減 HP、SP 的效果
     public IReadOnlyList<SkillCast> CastBeforeAttack(
-        int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
-        Cast(SkillTiming.BeforeAttack, hp, sp, random, damage: 0, new Opponent(opponentHp, opponentSp, opponentSpMax));
+        int healthPoints, int manaPoints, IRandomSource random, int opponentHealthPoints = 0, int opponentManaPoints = 0, int opponentMaxManaPoints = 0) =>
+        Cast(SkillTiming.BeforeAttack, healthPoints, manaPoints, random, damage: 0, new Opponent(opponentHealthPoints, opponentManaPoints, opponentMaxManaPoints));
 
     // 物理命中後（嗜血）；主動技能施放後本回合持續中，同一回合不會再發動
     public IReadOnlyList<SkillCast> CastAfterPhysicalHit(
-        int damage, int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
-        Cast(SkillTiming.AfterHit, hp, sp, random, damage, new Opponent(opponentHp, opponentSp, opponentSpMax));
+        int damage, int healthPoints, int manaPoints, IRandomSource random, int opponentHealthPoints = 0, int opponentManaPoints = 0, int opponentMaxManaPoints = 0) =>
+        Cast(SkillTiming.AfterHit, healthPoints, manaPoints, random, damage, new Opponent(opponentHealthPoints, opponentManaPoints, opponentMaxManaPoints));
 
-    private readonly record struct Opponent(int Hp, int Sp, int SpMax);
+    private readonly record struct Opponent(int HealthPoints, int ManaPoints, int MaxManaPoints);
 
     // 回合結束時嘗試施放
     public IReadOnlyList<SkillCast> CastAtRoundEnd(
-        int hp, int sp, IRandomSource random, int opponentHp = 0, int opponentSp = 0, int opponentSpMax = 0) =>
-        Cast(SkillTiming.RoundEnd, hp, sp, random, damage: 0, new Opponent(opponentHp, opponentSp, opponentSpMax));
+        int healthPoints, int manaPoints, IRandomSource random, int opponentHealthPoints = 0, int opponentManaPoints = 0, int opponentMaxManaPoints = 0) =>
+        Cast(SkillTiming.RoundEnd, healthPoints, manaPoints, random, damage: 0, new Opponent(opponentHealthPoints, opponentManaPoints, opponentMaxManaPoints));
 
-    private List<SkillCast> Cast(SkillTiming timing, int hp, int sp, IRandomSource random, int damage, Opponent opponent)
+    private List<SkillCast> Cast(SkillTiming timing, int healthPoints, int manaPoints, IRandomSource random, int damage, Opponent opponent)
     {
         var casts = new List<SkillCast>();
         var recompute = false;
@@ -143,14 +143,14 @@ public sealed class SkillCaster
             {
                 // 常駐不擲骰、不扣消耗；一次性效果（回復、削減）每到時機都生效，有作用才留下紀錄
                 //（滿血時沒有事件、耗用的亂數也和沒有技能時相同）
-                var passive = Instant(equipped, damage, hp, sp, opponent);
-                if (passive.Heal > 0 || passive.SpGain > 0 || passive.OpponentDamage > 0 || passive.OpponentSpLoss > 0)
+                var passive = Instant(equipped, damage, healthPoints, manaPoints, opponent);
+                if (passive.Heal > 0 || passive.ManaPointsGain > 0 || passive.OpponentDamage > 0 || passive.OpponentManaPointsLoss > 0)
                 {
-                    hp += passive.Heal;
-                    sp += passive.SpGain;
-                    opponent = opponent with { Hp = opponent.Hp - passive.OpponentDamage, Sp = opponent.Sp - passive.OpponentSpLoss };
+                    healthPoints += passive.Heal;
+                    manaPoints += passive.ManaPointsGain;
+                    opponent = opponent with { HealthPoints = opponent.HealthPoints - passive.OpponentDamage, ManaPoints = opponent.ManaPoints - passive.OpponentManaPointsLoss };
                     StartCooldown(equipped, level);
-                    casts.Add(new SkillCast(equipped, hp, sp, passive.Heal, passive.OpponentDamage, passive.OpponentSpLoss, SpGain: passive.SpGain));
+                    casts.Add(new SkillCast(equipped, healthPoints, manaPoints, passive.Heal, passive.OpponentDamage, passive.OpponentManaPointsLoss, ManaPointsGain: passive.ManaPointsGain));
                 }
 
                 continue;
@@ -158,31 +158,31 @@ public sealed class SkillCaster
 
             // 持續中、不擲骰的條件不成立、消耗不夠或滿血時的回復技能都不擲 Chance：SP 只在住宿回復，不浪費在回復 0 上；
             // 這些情況耗用的亂數與沒有技能時相同
-            var (hpCost, spCost, moneyCost) = CostsOf(level, sp);
-            if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(level, hp, opponent.Hp) || !CanPay(level, hp, sp, hpCost, spCost, moneyCost)
-                || RestoresOnlyFullResources(level, hp, sp) || !ChanceConditionsHold(level, random))
+            var (healthPointsCost, manaPointsCost, moneyCost) = CostsOf(level, manaPoints);
+            if (remainingRounds.ContainsKey(equipped) || !ConditionsWithoutRollHold(level, healthPoints, opponent.HealthPoints) || !CanPay(level, healthPoints, manaPoints, healthPointsCost, manaPointsCost, moneyCost)
+                || RestoresOnlyFullResources(level, healthPoints, manaPoints) || !ChanceConditionsHold(level, random))
             {
                 continue;
             }
 
             // 效果的數值用扣消耗前的 SP 算，再扣消耗、套用效果
-            castSkillPoints[equipped] = sp;
-            hp -= hpCost;
-            sp -= spCost;
+            castSkillPoints[equipped] = manaPoints;
+            healthPoints -= healthPointsCost;
+            manaPoints -= manaPointsCost;
             Money -= Money is null ? null : moneyCost;
 
-            var instant = Instant(equipped, damage, hp, sp, opponent);
-            hp += instant.Heal;
-            sp += instant.SpGain;
-            opponent = opponent with { Hp = opponent.Hp - instant.OpponentDamage, Sp = opponent.Sp - instant.OpponentSpLoss };
+            var instant = Instant(equipped, damage, healthPoints, manaPoints, opponent);
+            healthPoints += instant.Heal;
+            manaPoints += instant.ManaPointsGain;
+            opponent = opponent with { HealthPoints = opponent.HealthPoints - instant.OpponentDamage, ManaPoints = opponent.ManaPoints - instant.OpponentManaPointsLoss };
             remainingRounds[equipped] = LastingRounds(level);
             ages[equipped] = 0;
             missedEffects[equipped] = RollEffectChances(level, random);
             var silenceRounds = RollSilence(level, random);
             StartCooldown(equipped, level);
             recompute = true;
-            casts.Add(new SkillCast(equipped, hp, sp, instant.Heal, instant.OpponentDamage, instant.OpponentSpLoss,
-                hpCost, spCost, Money is null ? 0 : moneyCost, instant.SpGain, silenceRounds));
+            casts.Add(new SkillCast(equipped, healthPoints, manaPoints, instant.Heal, instant.OpponentDamage, instant.OpponentManaPointsLoss,
+                healthPointsCost, manaPointsCost, Money is null ? 0 : moneyCost, instant.ManaPointsGain, silenceRounds));
         }
 
         if (recompute)
@@ -193,11 +193,11 @@ public sealed class SkillCaster
         return casts;
     }
 
-    private bool ConditionsWithoutRollHold(SkillLevel level, int hp, int opponentHp) =>
+    private bool ConditionsWithoutRollHold(SkillLevel level, int healthPoints, int opponentHealthPoints) =>
         level.Conditions.All(condition => condition.Kind switch
         {
-            SkillConditionKind.HitPointsBelow => (long)hp * 100 < (long)condition.Percent * caster.MaxHealthPoints,
-            SkillConditionKind.HitPointsBelowOpponent => hp < opponentHp,
+            SkillConditionKind.HitPointsBelow => (long)healthPoints * 100 < (long)condition.Percent * caster.MaxHealthPoints,
+            SkillConditionKind.HitPointsBelowOpponent => healthPoints < opponentHealthPoints,
             SkillConditionKind.StatAbove => StatOf(condition.Stat!.Value, caster) > StatOf(condition.Stat.Value, opponentStats),
             _ => true,
         });
@@ -208,10 +208,10 @@ public sealed class SkillCaster
             .All(condition => PhpRandom.Between(random, 1, 100) <= condition.Percent);
 
     // 百分比一律以最大值為基準；All 是目前全部的 SP
-    private (int Hp, int Sp, int Money) CostsOf(SkillLevel level, int sp)
+    private (int HealthPoints, int ManaPoints, int Money) CostsOf(SkillLevel level, int manaPoints)
     {
         int AmountOf(SkillCost cost, int maximum) =>
-            cost.All ? sp : cost.Percent is { } percent ? BattleModifiers.Round(maximum * percent / 100) : cost.Amount;
+            cost.All ? manaPoints : cost.Percent is { } percent ? BattleModifiers.Round(maximum * percent / 100) : cost.Amount;
 
         return (
             level.Costs.Where(cost => cost.Kind == SkillCostKind.HitPoints).Sum(cost => AmountOf(cost, caster.MaxHealthPoints)),
@@ -220,17 +220,17 @@ public sealed class SkillCaster
     }
 
     // 不夠扣就不能發動：HP 扣完至少剩 1；SP、金錢要夠；「全部 SP」至少要有 1 點
-    private bool CanPay(SkillLevel level, int hp, int sp, int hpCost, int spCost, int moneyCost) =>
-        (hpCost == 0 || hp > hpCost) && sp >= spCost && (sp > 0 || !level.Costs.Any(cost => cost.All))
+    private bool CanPay(SkillLevel level, int healthPoints, int manaPoints, int healthPointsCost, int manaPointsCost, int moneyCost) =>
+        (healthPointsCost == 0 || healthPoints > healthPointsCost) && manaPoints >= manaPointsCost && (manaPoints > 0 || !level.Costs.Any(cost => cost.All))
         && (Money is null || Money >= moneyCost);
 
     // 持續中不重複發動：直到最長的效果結束；只在發動回合生效的效果也擋住同一回合
     private static int LastingRounds(SkillLevel level) => level.Effects.Max(effect => Math.Max(1, effect.Rounds));
 
-    private readonly record struct InstantResult(int Heal, int SpGain, int OpponentDamage, int OpponentSpLoss);
+    private readonly record struct InstantResult(int Heal, int ManaPointsGain, int OpponentDamage, int OpponentManaPointsLoss);
 
     // 發動當下生效一次的效果：回復 HP／SP、削減對手 HP 與 SP；都不超過可回復或可削減的量
-    private InstantResult Instant(EquippedSkill equipped, int damage, int hp, int sp, Opponent opponent)
+    private InstantResult Instant(EquippedSkill equipped, int damage, int healthPoints, int manaPoints, Opponent opponent)
     {
         var effects = equipped.Skill.LevelAt(equipped.Level).Effects;
         int RestoreOf(SkillResource resource, int maximum) => effects.OfType<RestoreEffect>().Where(effect => effect.Resource == resource)
@@ -238,14 +238,14 @@ public sealed class SkillCaster
                 : effect.PercentOfMaximum is { } percent ? BattleModifiers.Round(maximum * percent / 100)
                 : BattleModifiers.Round(damage * effect.PercentOfDamage!.Value / 100));
 
-        var opponentDamage = effects.OfType<PercentDamageEffect>().Sum(effect => BattleModifiers.Round(opponent.Hp * effect.Percent / 100));
-        var opponentSpLoss = effects.OfType<ReduceSkillPointsEffect>()
-            .Sum(effect => effect.Amount ?? BattleModifiers.Round(opponent.SpMax * effect.PercentOfMaximum!.Value / 100));
+        var opponentDamage = effects.OfType<PercentDamageEffect>().Sum(effect => BattleModifiers.Round(opponent.HealthPoints * effect.Percent / 100));
+        var opponentManaPointsLoss = effects.OfType<ReduceSkillPointsEffect>()
+            .Sum(effect => effect.Amount ?? BattleModifiers.Round(opponent.MaxManaPoints * effect.PercentOfMaximum!.Value / 100));
         return new InstantResult(
-            Math.Min(RestoreOf(SkillResource.HitPoints, caster.MaxHealthPoints), caster.MaxHealthPoints - hp),
-            Math.Max(0, Math.Min(RestoreOf(SkillResource.SkillPoints, caster.MaxManaPoints), caster.MaxManaPoints - sp)),
-            Math.Min(opponentDamage, Math.Max(0, opponent.Hp)),
-            Math.Min(opponentSpLoss, Math.Max(0, opponent.Sp)));
+            Math.Min(RestoreOf(SkillResource.HitPoints, caster.MaxHealthPoints), caster.MaxHealthPoints - healthPoints),
+            Math.Max(0, Math.Min(RestoreOf(SkillResource.SkillPoints, caster.MaxManaPoints), caster.MaxManaPoints - manaPoints)),
+            Math.Min(opponentDamage, Math.Max(0, opponent.HealthPoints)),
+            Math.Min(opponentManaPointsLoss, Math.Max(0, opponent.ManaPoints)));
     }
 
     // 有自己機率的效果在發動後依序擲；回傳沒擲中的效果
@@ -308,9 +308,9 @@ public sealed class SkillCaster
     }
 
     // 效果全部是回復的技能，在要回復的資源都已滿時不發動
-    private bool RestoresOnlyFullResources(SkillLevel level, int hp, int sp) =>
+    private bool RestoresOnlyFullResources(SkillLevel level, int healthPoints, int manaPoints) =>
         level.Effects.All(effect => effect is RestoreEffect restore
-            && (restore.Resource == SkillResource.HitPoints ? hp >= caster.MaxHealthPoints : sp >= caster.MaxManaPoints));
+            && (restore.Resource == SkillResource.HitPoints ? healthPoints >= caster.MaxHealthPoints : manaPoints >= caster.MaxManaPoints));
 
     private bool IsInEffect(EquippedSkill equipped) =>
         equipped.Skill.IsAlwaysOn || remainingRounds.ContainsKey(equipped);
@@ -385,18 +385,18 @@ public sealed class SkillCaster
             var multiplier = 1 + percent / 100;
             modifiers = (target, stat) switch
             {
-                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { At = modifiers.At * multiplier },
-                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { Mat = modifiers.Mat * multiplier },
-                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { Df = modifiers.Df * multiplier },
-                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { Mdf = modifiers.Mdf * multiplier },
-                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { Agi = modifiers.Agi * multiplier },
-                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { Au = modifiers.Au * multiplier },
-                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyAt = modifiers.EnemyAt * multiplier },
-                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyMat = modifiers.EnemyMat * multiplier },
-                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyDf = modifiers.EnemyDf * multiplier },
-                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyMdf = modifiers.EnemyMdf * multiplier },
-                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyAgi = modifiers.EnemyAgi * multiplier },
-                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyAu = modifiers.EnemyAu * multiplier },
+                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { Attack = modifiers.Attack * multiplier },
+                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { MagicAttack = modifiers.MagicAttack * multiplier },
+                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { Defense = modifiers.Defense * multiplier },
+                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { MagicDefense = modifiers.MagicDefense * multiplier },
+                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { Agility = modifiers.Agility * multiplier },
+                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { Charisma = modifiers.Charisma * multiplier },
+                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyAttack = modifiers.EnemyAttack * multiplier },
+                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyMagicAttack = modifiers.EnemyMagicAttack * multiplier },
+                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyDefense = modifiers.EnemyDefense * multiplier },
+                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyMagicDefense = modifiers.EnemyMagicDefense * multiplier },
+                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyAgility = modifiers.EnemyAgility * multiplier },
+                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyCharisma = modifiers.EnemyCharisma * multiplier },
                 _ => throw new ArgumentOutOfRangeException(nameof(equipped), (target, stat), "這項能力不能用百分比增減"),
             };
         }
@@ -407,26 +407,26 @@ public sealed class SkillCaster
             var whole = BattleModifiers.Round(flat);
             modifiers = (target, stat) switch
             {
-                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { FlatAt = modifiers.FlatAt + whole },
-                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { FlatMat = modifiers.FlatMat + whole },
-                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { FlatDf = modifiers.FlatDf + whole },
-                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { FlatMdf = modifiers.FlatMdf + whole },
-                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { FlatAgi = modifiers.FlatAgi + whole },
-                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { FlatAu = modifiers.FlatAu + whole },
-                (SkillTarget.Caster, SkillStat.HitRate) => modifiers with { Rag = modifiers.Rag + whole },
-                (SkillTarget.Caster, SkillStat.Evasion) => modifiers with { EnemyRag = modifiers.EnemyRag - whole },
+                (SkillTarget.Caster, SkillStat.Attack) => modifiers with { FlatAttack = modifiers.FlatAttack + whole },
+                (SkillTarget.Caster, SkillStat.MagicAttack) => modifiers with { FlatMagicAttack = modifiers.FlatMagicAttack + whole },
+                (SkillTarget.Caster, SkillStat.Defense) => modifiers with { FlatDefense = modifiers.FlatDefense + whole },
+                (SkillTarget.Caster, SkillStat.MagicDefense) => modifiers with { FlatMagicDefense = modifiers.FlatMagicDefense + whole },
+                (SkillTarget.Caster, SkillStat.Agility) => modifiers with { FlatAgility = modifiers.FlatAgility + whole },
+                (SkillTarget.Caster, SkillStat.Charisma) => modifiers with { FlatCharisma = modifiers.FlatCharisma + whole },
+                (SkillTarget.Caster, SkillStat.HitRate) => modifiers with { HitRate = modifiers.HitRate + whole },
+                (SkillTarget.Caster, SkillStat.Evasion) => modifiers with { EnemyHitRate = modifiers.EnemyHitRate - whole },
                 (SkillTarget.Caster, SkillStat.PhysicalCriticalChance) => modifiers with { CritChanceBonus = modifiers.CritChanceBonus + flat },
                 (SkillTarget.Caster, SkillStat.MagicCriticalChance) => modifiers with { MagicCritChanceBonus = modifiers.MagicCritChanceBonus + flat },
                 (SkillTarget.Caster, SkillStat.PhysicalCriticalCap) => modifiers with { PhysicalCritCapBonus = modifiers.PhysicalCritCapBonus + flat },
                 (SkillTarget.Caster, SkillStat.MagicCriticalCap) => modifiers with { MagicCritCapBonus = modifiers.MagicCritCapBonus + flat },
                 (SkillTarget.Caster, SkillStat.EscapeRate) => modifiers with { EscapeBonus = modifiers.EscapeBonus + whole },
-                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyFlatAt = modifiers.EnemyFlatAt + whole },
-                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyFlatMat = modifiers.EnemyFlatMat + whole },
-                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyFlatDf = modifiers.EnemyFlatDf + whole },
-                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyFlatMdf = modifiers.EnemyFlatMdf + whole },
-                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyFlatAgi = modifiers.EnemyFlatAgi + whole },
-                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyFlatAu = modifiers.EnemyFlatAu + whole },
-                (SkillTarget.Opponent, SkillStat.HitRate) => modifiers with { EnemyRag = modifiers.EnemyRag + whole },
+                (SkillTarget.Opponent, SkillStat.Attack) => modifiers with { EnemyFlatAttack = modifiers.EnemyFlatAttack + whole },
+                (SkillTarget.Opponent, SkillStat.MagicAttack) => modifiers with { EnemyFlatMagicAttack = modifiers.EnemyFlatMagicAttack + whole },
+                (SkillTarget.Opponent, SkillStat.Defense) => modifiers with { EnemyFlatDefense = modifiers.EnemyFlatDefense + whole },
+                (SkillTarget.Opponent, SkillStat.MagicDefense) => modifiers with { EnemyFlatMagicDefense = modifiers.EnemyFlatMagicDefense + whole },
+                (SkillTarget.Opponent, SkillStat.Agility) => modifiers with { EnemyFlatAgility = modifiers.EnemyFlatAgility + whole },
+                (SkillTarget.Opponent, SkillStat.Charisma) => modifiers with { EnemyFlatCharisma = modifiers.EnemyFlatCharisma + whole },
+                (SkillTarget.Opponent, SkillStat.HitRate) => modifiers with { EnemyHitRate = modifiers.EnemyHitRate + whole },
                 _ => throw new ArgumentOutOfRangeException(nameof(equipped), (target, stat), "這項能力不能用固定值增減"),
             };
         }

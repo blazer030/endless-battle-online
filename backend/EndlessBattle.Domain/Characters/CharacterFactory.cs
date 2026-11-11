@@ -7,11 +7,11 @@ public static class CharacterFactory
     public const int TotalPoints = 10;
     public const int StartingBonus = 10;
     public const int UnallocatedStatValue = 10;
-    public const int StartingHp = 50;
-    public const int StartingSp = 25;
+    public const int StartingHealthPoints = 50;
+    public const int StartingManaPoints = 25;
     public const long StartingMoney = 2000;
     public const int StartingLevel = 1;
-    public const long StartingNextExp = 1000;
+    public const long StartingNextLevelExperience = 1000;
     public const int StartingJobTier = 1;
 
     // 違反規則時丟 CharacterCreationException
@@ -39,7 +39,7 @@ public static class CharacterFactory
             Name: command.Name,
             Level: StartingLevel,
             Experience: 0,
-            NextLevelExperience: StartingNextExp,
+            NextLevelExperience: StartingNextLevelExperience,
             Money: StartingMoney,
             Sex: command.Sex,
             Element: command.Element,
@@ -53,8 +53,8 @@ public static class CharacterFactory
                 Agility: allocation.Agility + StartingBonus,
                 Charisma: UnallocatedStatValue,
                 Faith: UnallocatedStatValue),
-            HealthPoints: StartingHp,
-            ManaPoints: StartingSp,
+            HealthPoints: StartingHealthPoints,
+            ManaPoints: StartingManaPoints,
             PlaceId: startingPlaceId,
             SubPlace: startingSubPlace,
             LastSettledAt: now,

@@ -97,10 +97,10 @@ public static class MercenarySimulator
                 case CombatSide.Player:
                     result = MercenaryFightResult.Won;
                     exp = MercenaryRules.Discount(
-                        RewardFormulas.Exp(monster, monster.HealthPoints, character.Level, killed: true, random), definition.ExpPercent);
+                        RewardFormulas.Experience(monster, monster.HealthPoints, character.Level, killed: true, random), definition.ExpPercent);
                     money = MercenaryRules.Discount(RewardFormulas.Money(monster, random), definition.MoneyPercent);
                     // 熟練度不打折（PHP win_check）
-                    jobExpTotal += RewardFormulas.JobExp(monster);
+                    jobExpTotal += RewardFormulas.JobExperience(monster);
                     dropped = DropRoller.Roll(monster.Drops, random, dropFactor);
                     missions = KillCounter.Apply(missions, monster.Id, fightAt).Missions;
                     remaining--;
@@ -113,7 +113,7 @@ public static class MercenarySimulator
                     // PHP 超限 win=0 一律算敗，但仍給部分經驗
                     result = MercenaryFightResult.Timeout;
                     exp = MercenaryRules.Discount(
-                        RewardFormulas.TimeoutExp(monster, outcome.DamageDealtToMonster, character.Level, random), definition.ExpPercent);
+                        RewardFormulas.TimeoutExperience(monster, outcome.DamageDealtToMonster, character.Level, random), definition.ExpPercent);
                     remaining -= definition.DeathCost;
                     break;
             }
