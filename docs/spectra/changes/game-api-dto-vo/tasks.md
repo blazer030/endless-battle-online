@@ -28,7 +28,7 @@
 ## 5. 拿掉 /api/content
 
 - [x] 5.1 依「拿掉 /api/content」，角色頁的性別、屬性、出生地改用 `getCreationOptions()`，任務頁的職業名改用 `getPublicJobs()`、性別與出生地用 `getCreationOptions()`，查不到時顯示原始 id。先寫失敗測試：`CharacterScreen` 顯示 `/api/public/settings` 對應的名稱、`missions.test.ts` 的 `requirementLines` 顯示 `job-6` 在公開職業裡的名稱；冒險頁不再呼叫 `getContent`。[after: 4.6]
-- [ ] 5.2 依規格 Content catalogue endpoint removed 刪除 `ContentEndpoints` 與 `ContentResponse`、`NamedContent`、`JobContent`、`StatRequirementContent`、`JobGrowthContent`，前端刪除 `getContent`、`ContentNames` 與 `src/game/types.ts` 裡五類資源的別名，`src/test/fixtures.ts` 改成產生 Vo；依 accounts 的 Sign in 與 public-game-data 的 Public data prefix 修改，匿名端點只剩註冊、登入、health 與 `/api/public/`。`ContentEndpointsTests` 改成 `GetContent_RespondsNotFound`（404）。驗證：`grep -rn "getContent\|ContentNames" frontend/src` 沒有結果、`src/ui` 與 `src/game` 不再 import 角色、冒險、技能、轉職、世界的產生型別；遵守「硬規則」一節（不改內容檔、不新增 migration、產生檔只靠指令產生）。[after: 4.7, 4.8, 5.1]
+- [x] 5.2 依規格 Content catalogue endpoint removed 刪除 `ContentEndpoints` 與 `ContentResponse`、`NamedContent`、`JobContent`、`StatRequirementContent`、`JobGrowthContent`，前端刪除 `getContent`、`ContentNames` 與 `src/game/types.ts` 裡五類資源的別名，`src/test/fixtures.ts` 改成產生 Vo；依 accounts 的 Sign in 與 public-game-data 的 Public data prefix 修改，匿名端點只剩註冊、登入、health 與 `/api/public/`。`ContentEndpointsTests` 改成 `GetContent_RespondsNotFound`（404）。驗證：`grep -rn "getContent\|ContentNames" frontend/src` 沒有結果、`src/ui` 與 `src/game` 不再 import 角色、冒險、技能、轉職、世界的產生型別；遵守「硬規則」一節（不改內容檔、不新增 migration、產生檔只靠指令產生）。[after: 4.7, 4.8, 5.1]
 
 ## 6. 收尾
 

@@ -15,7 +15,7 @@ public class ApiHostStartupTests(MySqlDatabaseFixture database)
         var responses = await Task.WhenAll(Enumerable.Range(0, ConcurrentHosts).Select(_ => Task.Run(async () =>
         {
             await using var factory = new EndlessBattleApiFactory(database);
-            return (await factory.CreateClient().GetAsync("/api/content", CancellationToken)).IsSuccessStatusCode;
+            return (await factory.CreateClient().GetAsync("/api/public/settings", CancellationToken)).IsSuccessStatusCode;
         }, CancellationToken)));
 
         Assert.All(responses, Assert.True);

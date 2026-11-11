@@ -2,7 +2,6 @@ import type {
   BuffView,
   InnBookResult,
   InnView,
-  ContentNames,
   DepotMove,
   DepotView,
   EquipmentSlot,
@@ -65,7 +64,6 @@ export type ApiClient = {
   getMyCharacter: () => Promise<CharacterVo | null>
   createCharacter: (command: CreateCharacterCommand) => Promise<CharacterVo>
   advance: () => Promise<AdvanceVo>
-  getContent: () => Promise<ContentNames>
   // 不用登入的公開資料
   getPublicJobs: () => Promise<JobVo[]>
   getCreationOptions: () => Promise<CreationOptionsVo>
@@ -218,7 +216,6 @@ export const createApiClient = (options: {
       requestCharacter("/api/characters", "POST", CreateCharacterConverter.toDto(command)),
     advance: async () =>
       AdvanceConverter.toVo(await requestJson<unknown>("/api/adventure/advance", "POST")),
-    getContent: () => requestJson<ContentNames>("/api/content", "GET"),
     getPublicJobs: async () =>
       parseArray(await requestJson<unknown>("/api/public/jobs", "GET"), "jobs", (item, path) =>
         JobConverter.toVo(item, path),

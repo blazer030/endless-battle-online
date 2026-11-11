@@ -43,8 +43,8 @@ if [[ "$index_html" != *'<div id="root">'* ]]; then
     exit 1
 fi
 
-if ! curl -fsS -o /dev/null "$base_url/api/content"; then
-    echo "smoke failed: $base_url/api/content did not return 200" >&2
+if ! curl -fsS -o /dev/null "$base_url/api/public/settings"; then
+    echo "smoke failed: $base_url/api/public/settings did not return 200" >&2
     exit 1
 fi
 

@@ -8,8 +8,6 @@ type WithCharacter<T extends { character: unknown }> = Omit<T, "character"> & {
   character: CharacterVo
 }
 
-export type ContentNames = Schemas["ContentResponse"]
-export type JobGrowth = Schemas["JobGrowthContent"]
 export type InventoryView = Schemas["InventoryResponse"]
 export type BagCategoryView = Schemas["BagCategoryResponse"]
 export type InventoryItem = Schemas["InventoryItemResponse"]

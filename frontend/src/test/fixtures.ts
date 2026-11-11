@@ -1,5 +1,4 @@
 import type {
-  ContentNames,
   HonourShop,
   InventoryItem,
   InventoryView,
@@ -17,8 +16,6 @@ import type { CharacterVo } from "../game/character"
 import { CreationOptionsVo } from "../game/creationOptions"
 import { JobVo } from "../game/jobBook"
 import type { JobChoiceVo } from "../game/skillOverview"
-
-type JobContent = ContentNames["jobs"][number]
 
 export const makeCharacter = (overrides: Partial<CharacterVo> = {}): CharacterVo => ({
   name: "測試",
@@ -90,35 +87,6 @@ export const makeSummary = (overrides: Partial<AdvanceSummary> = {}): AdvanceSum
   drops: 0,
   potionsUsed: 0,
   escapes: 0,
-  ...overrides,
-})
-
-export const makeContent = (overrides: Partial<ContentNames> = {}): ContentNames => ({
-  monsters: [],
-  jobs: [],
-  elements: [],
-  births: [],
-  sexes: [],
-  ...overrides,
-})
-
-export const makeJob = (overrides: Partial<JobContent> = {}): JobContent => ({
-  id: "warrior",
-  name: "戰士",
-  tier: 1,
-  parentId: null,
-  unlockLevel: 1,
-  proficiencyRequired: 0,
-  statRequirements: [],
-  growth: {
-    str: [1, 2],
-    smart: [0, 1],
-    life: [1, 1],
-    vit: [1, 2],
-    agi: [0, 1],
-    au: [0, 1],
-    be: [0, 1],
-  },
   ...overrides,
 })
 

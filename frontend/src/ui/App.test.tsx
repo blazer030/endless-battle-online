@@ -49,7 +49,6 @@ const createFakeApi = (overrides: Partial<ApiClient> = {}): ApiClient => ({
   getMyCharacter: vi.fn().mockResolvedValue(null),
   createCharacter: vi.fn(),
   advance: vi.fn(),
-  getContent: vi.fn(),
   getPublicJobs: vi.fn().mockResolvedValue(makePublicJobs()),
   getCreationOptions: vi.fn().mockResolvedValue(makeCreationOptions()),
   getJobs: vi.fn(),

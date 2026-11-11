@@ -17,30 +17,6 @@ public sealed record LoginResponse(string AccessToken);
 
 public sealed record AccountResponse(long AccountId, string Username);
 
-public sealed record NamedContent(string Id, string Name);
-
-public sealed record JobContent(
-    string Id,
-    string Name,
-    int Tier,
-    string? ParentId,
-    int UnlockLevel,
-    int ProficiencyRequired,
-    IReadOnlyList<StatRequirementContent> StatRequirements,
-    JobGrowthContent Growth);
-
-public sealed record StatRequirementContent(string Stat, int Minimum);
-
-// 每項為 [min, max]
-public sealed record JobGrowthContent(int[] Str, int[] Smart, int[] Life, int[] Vit, int[] Agi, int[] Au, int[] Be);
-
-public sealed record ContentResponse(
-    IReadOnlyList<NamedContent> Monsters,
-    IReadOnlyList<JobContent> Jobs,
-    IReadOnlyList<NamedContent> Elements,
-    IReadOnlyList<NamedContent> Births,
-    IReadOnlyList<NamedContent> Sexes);
-
 public sealed record CreateCharacterRequest(
     string? Name,
     int? Sex,

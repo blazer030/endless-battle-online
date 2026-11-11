@@ -129,8 +129,8 @@ if [[ "$(curl -fsS --max-time 10 "$base_url/")" != *'<div id="root">'* ]]; then
     exit 1
 fi
 
-if ! curl -fsS --max-time 30 -o /dev/null "$base_url/api/content"; then
-    echo "部署失敗：$base_url/api/content 沒有回傳 200" >&2
+if ! curl -fsS --max-time 30 -o /dev/null "$base_url/api/public/settings"; then
+    echo "部署失敗：$base_url/api/public/settings 沒有回傳 200" >&2
     exit 1
 fi
 

@@ -2,7 +2,6 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import type { Ref } from "react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
-import type { ContentNames } from "../game/types"
 import type { JobChoiceVo, SkillOverviewVo } from "../game/skillOverview"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
@@ -10,7 +9,6 @@ import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/tim
 import type { StageHandle } from "../render/StageRenderer"
 import {
   makeCharacter,
-  makeContent,
   makeCreationOptions,
   makeHonourShop,
   makeInventory,
@@ -57,10 +55,6 @@ vi.mock("../render/PixiStage", async () => {
 })
 
 const character: CharacterVo = makeCharacter({ name: "青衣" })
-
-const content: ContentNames = makeContent({
-  monsters: [{ id: "test-wolf", name: "測試寒狼" }],
-})
 
 const response: AdvanceVo = {
   events: [
@@ -134,7 +128,6 @@ const createFakeApi = (advanceResponse: AdvanceVo = response): ApiClient => ({
   getMyCharacter: vi.fn(),
   createCharacter: vi.fn(),
   advance: vi.fn().mockResolvedValue(advanceResponse),
-  getContent: vi.fn().mockResolvedValue(content),
   getPublicJobs: vi.fn().mockResolvedValue(makePublicJobs()),
   getCreationOptions: vi.fn().mockResolvedValue(makeCreationOptions()),
   getJobs: vi.fn().mockResolvedValue([thiefOption]),

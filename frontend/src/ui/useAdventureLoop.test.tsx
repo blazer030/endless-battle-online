@@ -26,7 +26,6 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   getMyCharacter: vi.fn(),
   createCharacter: vi.fn(),
   advance,
-  getContent: vi.fn(),
   getPublicJobs: vi.fn(),
   getCreationOptions: vi.fn(),
   getJobs: vi.fn(),

@@ -39,41 +39,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/content": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ContentResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/public/jobs": {
         parameters: {
             query?: never;
@@ -2591,13 +2556,6 @@ export interface components {
         CombatSide: "Player" | "Monster";
         /** @enum {unknown} */
         ConsumableKind: "None" | "Supply" | "StatPotion" | "BagExpansion" | "DepotExpansion" | "Capture" | "StoneBox" | "RefineBox" | "PetEgg" | "ProficiencyBook" | "ExperienceCapsule" | "Elixir";
-        ContentResponse: {
-            monsters: components["schemas"]["NamedContent"][];
-            jobs: components["schemas"]["JobContent"][];
-            elements: components["schemas"]["NamedContent"][];
-            births: components["schemas"]["NamedContent"][];
-            sexes: components["schemas"]["NamedContent"][];
-        };
         CreateCharacterRequest: {
             name: null | string;
             /** Format: int32 */
@@ -2775,28 +2733,6 @@ export interface components {
         };
         /** @enum {unknown} */
         ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal" | "Key";
-        JobContent: {
-            id: string;
-            name: string;
-            /** Format: int32 */
-            tier: number;
-            parentId: null | string;
-            /** Format: int32 */
-            unlockLevel: number;
-            /** Format: int32 */
-            proficiencyRequired: number;
-            statRequirements: components["schemas"]["StatRequirementContent"][];
-            growth: components["schemas"]["JobGrowthContent"];
-        };
-        JobGrowthContent: {
-            str: number[];
-            smart: number[];
-            life: number[];
-            vit: number[];
-            agi: number[];
-            au: number[];
-            be: number[];
-        };
         JobGrowthResponse: {
             strength: components["schemas"]["GrowthRangeResponse"];
             intelligence: components["schemas"]["GrowthRangeResponse"];
@@ -3068,10 +3004,6 @@ export interface components {
             /** Format: int32 */
             subPlace: null | number;
         };
-        NamedContent: {
-            id: string;
-            name: string;
-        };
         OptionResponse: {
             /** Format: int32 */
             id: number;
@@ -3319,11 +3251,6 @@ export interface components {
             magicDefense: number;
             /** Format: int32 */
             maxHealthPoints: number;
-        };
-        StatRequirementContent: {
-            stat: string;
-            /** Format: int32 */
-            minimum: number;
         };
         StatsResponse: {
             /** Format: int32 */

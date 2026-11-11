@@ -24,25 +24,6 @@
         }
       }
     },
-    "/api/content": {
-      "get": {
-        "tags": [
-          "Content"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/public/jobs": {
       "get": {
         "tags": [
@@ -2781,48 +2762,6 @@
           "Elixir"
         ]
       },
-      "ContentResponse": {
-        "required": [
-          "monsters",
-          "jobs",
-          "elements",
-          "births",
-          "sexes"
-        ],
-        "type": "object",
-        "properties": {
-          "monsters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NamedContent"
-            }
-          },
-          "jobs": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JobContent"
-            }
-          },
-          "elements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NamedContent"
-            }
-          },
-          "births": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NamedContent"
-            }
-          },
-          "sexes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NamedContent"
-            }
-          }
-        }
-      },
       "CreateCharacterRequest": {
         "required": [
           "name",
@@ -3496,117 +3435,6 @@
           "Medal",
           "Key"
         ]
-      },
-      "JobContent": {
-        "required": [
-          "id",
-          "name",
-          "tier",
-          "parentId",
-          "unlockLevel",
-          "proficiencyRequired",
-          "statRequirements",
-          "growth"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "tier": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "parentId": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "unlockLevel": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "proficiencyRequired": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "statRequirements": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StatRequirementContent"
-            }
-          },
-          "growth": {
-            "$ref": "#/components/schemas/JobGrowthContent"
-          }
-        }
-      },
-      "JobGrowthContent": {
-        "required": [
-          "str",
-          "smart",
-          "life",
-          "vit",
-          "agi",
-          "au",
-          "be"
-        ],
-        "type": "object",
-        "properties": {
-          "str": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "smart": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "life": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "vit": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "agi": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "au": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          "be": {
-            "type": "array",
-            "items": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        }
       },
       "JobGrowthResponse": {
         "required": [
@@ -4656,21 +4484,6 @@
           }
         }
       },
-      "NamedContent": {
-        "required": [
-          "id",
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
       "OptionResponse": {
         "required": [
           "id",
@@ -5573,22 +5386,6 @@
           }
         }
       },
-      "StatRequirementContent": {
-        "required": [
-          "stat",
-          "minimum"
-        ],
-        "type": "object",
-        "properties": {
-          "stat": {
-            "type": "string"
-          },
-          "minimum": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "StatsResponse": {
         "required": [
           "strength",
@@ -5992,9 +5789,6 @@
   "tags": [
     {
       "name": "Health"
-    },
-    {
-      "name": "Content"
     },
     {
       "name": "Public"
