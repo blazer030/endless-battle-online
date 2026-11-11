@@ -10,7 +10,8 @@ import {
   resetHoursText,
   rewardLines,
 } from "../game/missions"
-import type { ContentNames, MissionBoard, MissionCompletion, MissionView } from "../game/types"
+import type { MissionBoard, MissionCompletion, MissionView } from "../game/types"
+import type { PublicNames } from "../game/publicNames"
 import type { CharacterVo } from "../game/character"
 import "./BagScreen.css"
 import "./MissionsScreen.css"
@@ -24,7 +25,7 @@ export type MissionsApi = Pick<
 
 type Props = {
   api: MissionsApi
-  content: ContentNames
+  names: PublicNames
   onCharacterChanged: (character: CharacterVo) => void
   // 戰報有任務進度時遞增，開著的任務頁跟著重新載入
   refreshSignal?: number
@@ -43,7 +44,7 @@ const fallbackError = "發生錯誤，請稍後再試"
 const describeError = (error: unknown) =>
   error instanceof ApiError ? missionErrorMessage(error.reasons, error.detail) : fallbackError
 
-export function MissionsScreen({ api, content, onCharacterChanged, refreshSignal = 0 }: Props) {
+export function MissionsScreen({ api, names, onCharacterChanged, refreshSignal = 0 }: Props) {
   const tabsId = useId()
   const [page, setPage] = useState<SubPage>("available")
   const [board, setBoard] = useState<MissionBoard | null>(null)
@@ -113,7 +114,7 @@ export function MissionsScreen({ api, content, onCharacterChanged, refreshSignal
         key={mission.id}
         mission={mission}
         reset={mission.daily ? resetHoursText(current.nextDailyReset, now) : null}
-        requirements={accepted ? [] : requirementLines(mission, content)}
+        requirements={accepted ? [] : requirementLines(mission, names)}
         progress={accepted}
       >
         {actions}

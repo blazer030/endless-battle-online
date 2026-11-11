@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest"
-import {
-  makeCharacter,
-  makeContent,
-  makeJob,
-  makeMission,
-  makeMissionBoard,
-} from "../test/fixtures"
+import { makeCharacter, makeMission, makeMissionBoard } from "../test/fixtures"
 import {
   actionLabel,
   completionLines,
@@ -18,18 +12,21 @@ import {
   rewardLines,
 } from "./missions"
 import type { MissionCompletion } from "./types"
+import { emptyPublicNames, type PublicNames } from "./publicNames"
 
-const content = makeContent({
-  jobs: [makeJob({ id: "thief", name: "盜賊" })],
+// 名稱來自 /api/public/jobs 與 /api/public/settings
+const names: PublicNames = {
+  ...emptyPublicNames,
+  jobs: [{ id: "job-6", name: "盜賊" }],
   sexes: [
-    { id: "1", name: "男" },
-    { id: "2", name: "女" },
+    { id: 1, name: "男" },
+    { id: 2, name: "女" },
   ],
   births: [
-    { id: "1", name: "中央大陸" },
-    { id: "2", name: "魔法王國" },
+    { id: 1, name: "中央大陸" },
+    { id: 2, name: "魔法王國" },
   ],
-})
+}
 
 const delivery = makeMission({
   id: "test-delivery",
@@ -48,14 +45,14 @@ describe("MaxActiveMissions", () => {
 
 describe("requirementLines", () => {
   it("lists only the level when nothing else is required", () => {
-    expect(requirementLines(makeMission({ level: 5 }), content)).toEqual(["Lv 5"])
+    expect(requirementLines(makeMission({ level: 5 }), names)).toEqual(["Lv 5"])
   })
 
   it("names the job, sex, birth and prerequisite", () => {
     const mission = makeMission({
       level: 20,
       requirements: {
-        jobId: "thief",
+        jobId: "job-6",
         sex: 2,
         birth: 2,
         prerequisiteId: "test-hunt",
@@ -63,7 +60,7 @@ describe("requirementLines", () => {
       },
     })
 
-    expect(requirementLines(mission, content)).toEqual([
+    expect(requirementLines(mission, names)).toEqual([
       "Lv 20",
       "限 盜賊",
       "限 女性",
@@ -83,7 +80,7 @@ describe("requirementLines", () => {
       },
     })
 
-    expect(requirementLines(mission, makeContent())).toEqual([
+    expect(requirementLines(mission, emptyPublicNames)).toEqual([
       "Lv 1",
       "限 ninja",
       "限 1性",

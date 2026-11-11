@@ -1,20 +1,21 @@
 import { formatNumber } from "./format"
-import type { ContentNames, MissionCompletion, MissionRewardView, MissionView } from "./types"
+import { nameOf, type PublicNames } from "./publicNames"
+import type { MissionCompletion, MissionRewardView, MissionView } from "./types"
 
 export const MaxActiveMissions = 3
 
 const MillisecondsPerHour = 60 * 60 * 1000
 
-// 內容的 id 是字串；名稱表沒載到時直接顯示 id
-const nameOf = (options: { id: string; name: string }[], id: string) =>
-  options.find((option) => option.id === id)?.name ?? id
-
-export const requirementLines = (mission: MissionView, content: ContentNames): string[] => {
+// 名稱表沒載到時直接顯示 id
+export const requirementLines = (
+  mission: MissionView,
+  names: Pick<PublicNames, "jobs" | "sexes" | "births">,
+): string[] => {
   const { jobId, sex, birth, prerequisiteId, prerequisiteTitle } = mission.requirements
   const lines = [`Lv ${mission.level}`]
-  if (jobId !== null) lines.push(`限 ${nameOf(content.jobs, jobId)}`)
-  if (sex !== null) lines.push(`限 ${nameOf(content.sexes, String(sex))}性`)
-  if (birth !== null) lines.push(`限 ${nameOf(content.births, String(birth))}出身`)
+  if (jobId !== null) lines.push(`限 ${nameOf(names.jobs, jobId)}`)
+  if (sex !== null) lines.push(`限 ${nameOf(names.sexes, sex)}性`)
+  if (birth !== null) lines.push(`限 ${nameOf(names.births, birth)}出身`)
   if (prerequisiteId !== null) lines.push(`需先完成「${prerequisiteTitle ?? prerequisiteId}」`)
   return lines
 }

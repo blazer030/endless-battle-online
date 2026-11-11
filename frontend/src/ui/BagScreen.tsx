@@ -78,7 +78,7 @@ type Props = {
   api: BagApi
   character: CharacterVo
   onCharacterChanged: (character: CharacterVo) => void
-  jobNames?: JobName[]
+  jobNames?: readonly JobName[]
   // 戰報有掉落、喝藥水、捕捉或傭兵報告時遞增，開著的背包跟著重新載入
   refreshSignal?: number
 }
@@ -226,7 +226,7 @@ type PageProps = {
   character: CharacterVo
   busy: boolean
   mutate: Mutate
-  jobNames: JobName[]
+  jobNames: readonly JobName[]
 }
 
 function BagPage({

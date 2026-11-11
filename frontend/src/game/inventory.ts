@@ -168,7 +168,7 @@ const requirementStats: (keyof ItemRequirement)[] = [
 export const requirementRows = (
   item: Pick<InventoryItem, "requires" | "jobId">,
   character: Pick<CharacterVo, "baseStats" | "jobId">,
-  jobNames: JobName[] = [],
+  jobNames: readonly JobName[] = [],
 ): Requirement[] => {
   const rows: Requirement[] = requirementStats
     .filter((stat) => item.requires[stat] > 0)

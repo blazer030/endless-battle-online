@@ -6,7 +6,7 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { refreshSignalsFor } from "../game/refreshSignals"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
-import type { ContentNames } from "../game/types"
+import { emptyPublicNames, type PublicNames } from "../game/publicNames"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { locationTitle, passStatus } from "../game/world"
@@ -32,14 +32,6 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-const emptyContent: ContentNames = {
-  monsters: [],
-  jobs: [],
-  elements: [],
-  births: [],
-  sexes: [],
-}
-
 type Tab = "adventure" | "character" | "skills" | "bag" | "missions" | "companions"
 
 const tabs: { id: Tab; label: string }[] = [
@@ -62,7 +54,7 @@ type AreaPass = {
 type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
 
 export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
-  const [content, setContent] = useState<ContentNames | null>(null)
+  const [names, setNames] = useState<PublicNames>(emptyPublicNames)
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
@@ -97,14 +89,18 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
 
   useEffect(() => {
     let isCurrent = true
-    api.getContent().then(
-      (loaded) => {
-        if (isCurrent) setContent(loaded)
+    // 名稱表載入失敗時以 id 顯示，不擋住冒險
+    Promise.all([api.getPublicJobs(), api.getCreationOptions()]).then(
+      ([jobs, options]) => {
+        if (isCurrent)
+          setNames({
+            jobs: jobs.map(({ id, name }) => ({ id, name })),
+            sexes: options.sexes,
+            elements: options.elements,
+            births: options.births,
+          })
       },
-      () => {
-        // 名稱表載入失敗時以 id 顯示，不擋住冒險
-        if (isCurrent) setContent(emptyContent)
-      },
+      () => undefined,
     )
     return () => {
       isCurrent = false
@@ -207,22 +203,20 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
           <span className="adventure__exp-value">{`${formatNumber(character.experience)} / ${formatNumber(character.nextLevelExperience)}`}</span>
         </span>
       </header>
-      {/* 名稱表就緒才開始輪詢，戰報與舞台才拿得到怪物名字；放在分頁外，連線錯誤在每個分頁都看得到 */}
-      {content !== null && (
-        <AdventureLoop
-          api={api}
-          playback={playback}
-          onItems={handleItems}
-          onResponse={(response: AdvanceVo) =>
-            setAreaPass({
-              expiresAt: response.areaPassExpiresAt,
-              at: Date.now(),
-              placeId: response.character.placeId,
-              subPlace: response.character.subPlace,
-            })
-          }
-        />
-      )}
+      {/* 放在分頁外，連線錯誤在每個分頁都看得到 */}
+      <AdventureLoop
+        api={api}
+        playback={playback}
+        onItems={handleItems}
+        onResponse={(response: AdvanceVo) =>
+          setAreaPass({
+            expiresAt: response.areaPassExpiresAt,
+            at: Date.now(),
+            placeId: response.character.placeId,
+            subPlace: response.character.subPlace,
+          })
+        }
+      />
       <main className="adventure__main">
         {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
         <div className="adventure__panel" hidden={tab !== "adventure"}>
@@ -274,12 +268,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
         {/* 角色分頁每次打開才載入密藥效果，剩餘時間是最新的 */}
         {tab === "character" && (
           <div className="adventure__sheet">
-            <CharacterScreen
-              api={api}
-              character={character}
-              content={content ?? emptyContent}
-              onSignOut={onSignOut}
-            />
+            <CharacterScreen api={api} character={character} names={names} onSignOut={onSignOut} />
           </div>
         )}
         {/* 技能分頁每次打開才載入，轉職條件與熟練度都是最新的 */}
@@ -300,7 +289,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
               api={api}
               character={character}
               onCharacterChanged={handleCharacterChange}
-              jobNames={content?.jobs ?? []}
+              jobNames={names.jobs}
               refreshSignal={refreshSignals.bag}
             />
           </div>
@@ -310,7 +299,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
           <div className="adventure__sheet">
             <MissionsScreen
               api={api}
-              content={content ?? emptyContent}
+              names={names}
               onCharacterChanged={handleCharacterChange}
               refreshSignal={refreshSignals.missions}
             />

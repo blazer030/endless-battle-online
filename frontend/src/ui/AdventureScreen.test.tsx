@@ -11,6 +11,7 @@ import type { StageHandle } from "../render/StageRenderer"
 import {
   makeCharacter,
   makeContent,
+  makeCreationOptions,
   makeHonourShop,
   makeInventory,
   makeItem,
@@ -20,6 +21,7 @@ import {
   makeMissionBoard,
   makePet,
   makePets,
+  makePublicJobs,
   makeSummary,
   makeWorld,
 } from "../test/fixtures"
@@ -133,8 +135,8 @@ const createFakeApi = (advanceResponse: AdvanceVo = response): ApiClient => ({
   createCharacter: vi.fn(),
   advance: vi.fn().mockResolvedValue(advanceResponse),
   getContent: vi.fn().mockResolvedValue(content),
-  getPublicJobs: vi.fn(),
-  getCreationOptions: vi.fn(),
+  getPublicJobs: vi.fn().mockResolvedValue(makePublicJobs()),
+  getCreationOptions: vi.fn().mockResolvedValue(makeCreationOptions()),
   getJobs: vi.fn().mockResolvedValue([thiefOption]),
   changeJob: vi.fn().mockResolvedValue({ ...character, jobId: "thief", jobName: "盜賊" }),
   getSkills: vi.fn().mockResolvedValue(skillOverview),

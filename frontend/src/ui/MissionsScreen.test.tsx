@@ -4,7 +4,8 @@ import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import type { MissionBoard, MissionCompletion } from "../game/types"
-import { makeCharacter, makeContent, makeMission, makeMissionBoard } from "../test/fixtures"
+import { makeCharacter, makeMission, makeMissionBoard } from "../test/fixtures"
+import { emptyPublicNames } from "../game/publicNames"
 import { MissionsScreen, type MissionsApi } from "./MissionsScreen"
 
 const hunt = makeMission()
@@ -36,7 +37,7 @@ const createFakeApi = (overrides: Partial<MissionsApi> = {}): MissionsApi => ({
 const renderMissions = (api: MissionsApi = createFakeApi()) => {
   const onCharacterChanged = vi.fn()
   render(
-    <MissionsScreen api={api} content={makeContent()} onCharacterChanged={onCharacterChanged} />,
+    <MissionsScreen api={api} names={emptyPublicNames} onCharacterChanged={onCharacterChanged} />,
   )
   return { api, onCharacterChanged }
 }
@@ -321,7 +322,7 @@ test("MissionsScreen_ReloadsWhenAMissionEventPlays", async () => {
   vi.useFakeTimers()
   try {
     const api = createFakeApi()
-    const props = { api, content: makeContent(), onCharacterChanged: vi.fn() }
+    const props = { api, names: emptyPublicNames, onCharacterChanged: vi.fn() }
     const { rerender } = render(<MissionsScreen {...props} refreshSignal={0} />)
     await act(async () => {
       await vi.advanceTimersByTimeAsync(PanelRefreshMilliseconds)

@@ -4,7 +4,8 @@ import { buffLines } from "../game/buffs"
 import { lodgingLine } from "../game/inn"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
-import type { BuffView, ContentNames, InnView } from "../game/types"
+import type { BuffView, InnView } from "../game/types"
+import { nameOf, type PublicNames } from "../game/publicNames"
 import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import { BuffTickMilliseconds } from "../motion/timings"
@@ -14,7 +15,7 @@ import "./CharacterScreen.css"
 type Props = {
   api: Pick<ApiClient, "getBuffs" | "getInn">
   character: CharacterVo
-  content: Pick<ContentNames, "elements" | "births" | "sexes">
+  names: Pick<PublicNames, "elements" | "births" | "sexes">
   onSignOut: () => void
 }
 
@@ -27,10 +28,6 @@ const derivedStats: { key: keyof DerivedStats; label: string }[] = [
   { key: "maxManaPoints", label: "SP 上限" },
 ]
 
-// 內容的 id 是字串 "1"～"N"；名稱表沒載到時直接顯示 id
-const nameOf = (options: { id: string; name: string }[], id: number) =>
-  options.find((option) => option.id === String(id))?.name ?? String(id)
-
 const currentJobProficiency = (character: CharacterVo) =>
   character.jobProficiency.find((entry) => entry.jobId === character.jobId)?.proficiency ?? 0
 
@@ -39,7 +36,7 @@ const describeProficiency = (value: number) =>
 
 const signed = (value: number) => (value > 0 ? `+${formatNumber(value)}` : formatNumber(value))
 
-export function CharacterScreen({ api, character, content, onSignOut }: Props) {
+export function CharacterScreen({ api, character, names, onSignOut }: Props) {
   const profileId = useId()
   const baseStatsId = useId()
   const derivedStatsId = useId()
@@ -88,9 +85,9 @@ export function CharacterScreen({ api, character, content, onSignOut }: Props) {
   const lodging = inn === null ? null : lodgingLine(inn.lodging, inn.rooms, now)
   const { stats, baseStats } = character
   const profile = [
-    { label: "性別", value: nameOf(content.sexes, character.sex) },
-    { label: "屬性", value: nameOf(content.elements, character.element) },
-    { label: "出生地", value: nameOf(content.births, character.birth) },
+    { label: "性別", value: nameOf(names.sexes, character.sex) },
+    { label: "屬性", value: nameOf(names.elements, character.element) },
+    { label: "出生地", value: nameOf(names.births, character.birth) },
     { label: "職業熟練度", value: describeProficiency(currentJobProficiency(character)) },
   ]
   const bars = [
