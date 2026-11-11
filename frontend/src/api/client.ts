@@ -5,14 +5,13 @@ import type {
   HonourShop,
   MercenaryHireResult,
   MercenaryOverview,
-  MissionBoard,
-  MissionCompletion,
   PetFeedResult,
   PetsView,
 } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
+import type { MissionBoardVo, MissionCompletionVo } from "../game/missions"
 import type { ForgeResultVo, RecipeVo, SynthesisVo, UnsocketVo } from "../game/forge"
 import type {
   DepotMoveVo,
@@ -49,6 +48,7 @@ import {
   ItemUseConverter,
   ShopItemConverter,
 } from "./inventoryData"
+import { MissionBoardConverter, MissionCompletionConverter } from "./missionData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
 import { WorldConverter } from "./worldData"
@@ -116,10 +116,10 @@ export type ApiClient = {
   ) => Promise<ForgeResultVo>
   getRecipes: () => Promise<RecipeVo[]>
   synthesize: (recipeId: string, attempts: number) => Promise<SynthesisVo>
-  getMissions: () => Promise<MissionBoard>
-  acceptMission: (missionId: string) => Promise<MissionBoard>
-  abandonMission: (missionId: string) => Promise<MissionBoard>
-  completeMission: (missionId: string) => Promise<MissionCompletion>
+  getMissions: () => Promise<MissionBoardVo>
+  acceptMission: (missionId: string) => Promise<MissionBoardVo>
+  abandonMission: (missionId: string) => Promise<MissionBoardVo>
+  completeMission: (missionId: string) => Promise<MissionCompletionVo>
   getPets: () => Promise<PetsView>
   carryPet: (petId: number) => Promise<PetsView>
   storePet: (petId: number) => Promise<PetsView>
@@ -193,6 +193,9 @@ export const createApiClient = (options: {
 
   const requestCharacter = async (path: string, method: string, body?: unknown) =>
     CharacterConverter.toVo(await requestJson<unknown>(path, method, body))
+
+  const requestMissions = async (path: string, method: string, body?: unknown) =>
+    MissionBoardConverter.toVo(await requestJson<unknown>(path, method, body))
 
   const requestForge = async (path: string, method: string, body?: unknown) =>
     ForgeResultConverter.toVo(await requestJson<unknown>(path, method, body))
@@ -328,16 +331,12 @@ export const createApiClient = (options: {
       SynthesisConverter.toVo(
         await requestJson<unknown>("/api/forge/synthesize", "POST", { recipeId, attempts }),
       ),
-    getMissions: () => requestJson<MissionBoard>("/api/missions", "GET"),
-    acceptMission: (missionId) =>
-      requestJson<MissionBoard>("/api/missions/accept", "POST", { missionId }),
-    abandonMission: (missionId) =>
-      requestJson<MissionBoard>("/api/missions/abandon", "POST", { missionId }),
-    completeMission: (missionId) =>
-      requestWithCharacter<components["schemas"]["MissionCompleteResponse"]>(
-        "/api/missions/complete",
-        "POST",
-        { missionId },
+    getMissions: () => requestMissions("/api/missions", "GET"),
+    acceptMission: (missionId) => requestMissions("/api/missions/accept", "POST", { missionId }),
+    abandonMission: (missionId) => requestMissions("/api/missions/abandon", "POST", { missionId }),
+    completeMission: async (missionId) =>
+      MissionCompletionConverter.toVo(
+        await requestJson<unknown>("/api/missions/complete", "POST", { missionId }),
       ),
     getPets: () => requestJson<PetsView>("/api/pets", "GET"),
     carryPet: (petId) => requestJson<PetsView>("/api/pets/carry", "POST", { petId }),

@@ -1,6 +1,163 @@
 import { formatNumber } from "./format"
 import { nameOf, type PublicNames } from "./publicNames"
-import type { MissionCompletion, MissionRewardView, MissionView } from "./types"
+import type { CharacterVo } from "./character"
+
+// 任務板與任務完成的資料（來自 /api/missions），由 api/missionData.ts 轉換
+export type MissionKill = {
+  readonly monsterId: string
+  readonly monsterName: string
+  readonly placeId: number
+  readonly placeName: string
+  readonly count: number
+  readonly progress: number
+}
+
+// owned 是背包裡目前持有的數量
+export type MissionDeliver = {
+  readonly itemId: string
+  readonly name: string
+  readonly quantity: number
+  readonly owned: number
+}
+
+// 各條件為 null 表示不限
+export type MissionRequirements = {
+  readonly jobId: string | null
+  readonly sex: number | null
+  readonly birth: number | null
+  readonly prerequisiteId: string | null
+  readonly prerequisiteTitle: string | null
+}
+
+export type MissionRewardItem = {
+  readonly itemId: string
+  readonly name: string
+  readonly quantity: number
+}
+export type MissionRewardSkill = {
+  readonly skillId: string
+  readonly name: string
+  readonly level: number
+}
+export type MissionRewardPet = {
+  readonly monsterId: string
+  readonly name: string
+  readonly level: number
+}
+
+export type MissionReward = {
+  readonly experience: number
+  readonly money: number
+  readonly items: readonly MissionRewardItem[]
+  readonly skill: MissionRewardSkill | null
+  readonly pet: MissionRewardPet | null
+}
+
+// carried 表示指定的寵物正跟在身邊
+export type MissionPet = {
+  readonly monsterId: string
+  readonly name: string
+  readonly carried: boolean
+}
+
+export type MissionRequiredSkill = {
+  readonly skillId: string
+  readonly name: string
+  readonly level: number
+  readonly met: boolean
+}
+
+// expiresAt 是每日任務的期限，一般任務為 null
+export type Mission = {
+  readonly id: string
+  readonly giver: string
+  readonly title: string
+  readonly description: string
+  readonly level: number
+  readonly placeId: number | null
+  readonly placeName: string | null
+  readonly daily: boolean
+  readonly kills: readonly MissionKill[]
+  readonly deliver: readonly MissionDeliver[]
+  readonly requirements: MissionRequirements
+  readonly rewards: MissionReward
+  readonly ready: boolean
+  readonly expiresAt: Date | null
+  readonly deliverPet: MissionPet | null
+  readonly requiredSkill: MissionRequiredSkill | null
+}
+
+type MissionBoardVoParams = {
+  available: readonly Mission[]
+  active: readonly Mission[]
+  completed: readonly Mission[]
+  activeLimit: number
+  nextDailyReset: Date
+}
+
+export class MissionBoardVo {
+  readonly available: readonly Mission[]
+  readonly active: readonly Mission[]
+  readonly completed: readonly Mission[]
+  readonly activeLimit: number
+  readonly nextDailyReset: Date
+
+  private constructor(params: MissionBoardVoParams) {
+    this.available = params.available
+    this.active = params.active
+    this.completed = params.completed
+    this.activeLimit = params.activeLimit
+    this.nextDailyReset = params.nextDailyReset
+  }
+
+  static create(params: MissionBoardVoParams): MissionBoardVo {
+    return new MissionBoardVo(params)
+  }
+}
+
+// experience、money、items、skill、pet 是這次的報酬；skillGranted 為 false 表示沒有技能獎勵或已會該技能；character 已含獎勵
+type MissionCompletionVoParams = {
+  board: MissionBoardVo
+  character: CharacterVo
+  completionMessage: string
+  experience: number
+  money: number
+  items: readonly MissionRewardItem[]
+  skill: MissionRewardSkill | null
+  skillGranted: boolean
+  levelsGained: number
+  pet: MissionRewardPet | null
+}
+
+export class MissionCompletionVo {
+  readonly board: MissionBoardVo
+  readonly character: CharacterVo
+  readonly completionMessage: string
+  readonly experience: number
+  readonly money: number
+  readonly items: readonly MissionRewardItem[]
+  readonly skill: MissionRewardSkill | null
+  readonly skillGranted: boolean
+  readonly levelsGained: number
+  readonly pet: MissionRewardPet | null
+
+  private constructor(params: MissionCompletionVoParams) {
+    this.board = params.board
+    this.character = params.character
+    this.completionMessage = params.completionMessage
+    this.experience = params.experience
+    this.money = params.money
+    this.items = params.items
+    this.skill = params.skill
+    this.skillGranted = params.skillGranted
+    this.levelsGained = params.levelsGained
+    this.pet = params.pet
+  }
+
+  static create(params: MissionCompletionVoParams): MissionCompletionVo {
+    return new MissionCompletionVo(params)
+  }
+}
 
 export const MaxActiveMissions = 3
 
@@ -8,7 +165,7 @@ const MillisecondsPerHour = 60 * 60 * 1000
 
 // 名稱表沒載到時直接顯示 id
 export const requirementLines = (
-  mission: MissionView,
+  mission: Mission,
   names: Pick<PublicNames, "jobs" | "sexes" | "births">,
 ): string[] => {
   const { jobId, sex, birth, prerequisiteId, prerequisiteTitle } = mission.requirements
@@ -20,7 +177,7 @@ export const requirementLines = (
   return lines
 }
 
-export const objectiveLines = (mission: MissionView): string[] => [
+export const objectiveLines = (mission: Mission): string[] => [
   ...mission.kills.map(
     (kill) => `擊敗 ${kill.monsterName}（${kill.placeName}） ${kill.progress}/${kill.count}`,
   ),
@@ -33,7 +190,7 @@ export const objectiveLines = (mission: MissionView): string[] => [
       ]),
 ]
 
-export const rewardLines = (rewards: MissionRewardView): string[] => [
+export const rewardLines = (rewards: MissionReward): string[] => [
   ...(rewards.experience > 0 ? [`經驗 ${formatNumber(rewards.experience)}`] : []),
   ...(rewards.money > 0 ? [`金錢 ${formatNumber(rewards.money)}`] : []),
   ...rewards.items.map((item) => `${item.name} ×${formatNumber(item.quantity)}`),
@@ -43,7 +200,7 @@ export const rewardLines = (rewards: MissionRewardView): string[] => [
 
 const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
 
-export const progressRatio = (mission: MissionView): number => {
+export const progressRatio = (mission: Mission): number => {
   const conditions = [
     ...(mission.deliverPet === null ? [] : [mission.deliverPet.carried]),
     ...(mission.requiredSkill === null ? [] : [mission.requiredSkill.met]),
@@ -61,15 +218,12 @@ export const progressRatio = (mission: MissionView): number => {
   return clampRatio(done / total)
 }
 
-export const actionLabel = (mission: MissionView): "交付" | "完成" =>
+export const actionLabel = (mission: Mission): "交付" | "完成" =>
   mission.deliver.length > 0 || mission.deliverPet !== null ? "交付" : "完成"
 
 // 同 WOG 的「剩餘時間 N 小時」：不足一小時也算一小時
-export const resetHoursText = (nextReset: string, now: Date): string => {
-  const hours = Math.max(
-    0,
-    Math.ceil((new Date(nextReset).getTime() - now.getTime()) / MillisecondsPerHour),
-  )
+export const resetHoursText = (nextReset: Date, now: Date): string => {
+  const hours = Math.max(0, Math.ceil((nextReset.getTime() - now.getTime()) / MillisecondsPerHour))
   return `※ 每日任務將在 ${hours} 小時後重置`
 }
 
@@ -99,7 +253,7 @@ export const missionErrorMessage = (reasons: string[], fallback: string): string
     ? fallback
     : reasons.map((code) => reasonTexts[code]).join("、")
 
-export const completionLines = (result: MissionCompletion): string[] => {
+export const completionLines = (result: MissionCompletionVo): string[] => {
   const lines = [
     result.completionMessage,
     `獲得經驗 ${formatNumber(result.experience)}、金錢 ${formatNumber(result.money)}`,

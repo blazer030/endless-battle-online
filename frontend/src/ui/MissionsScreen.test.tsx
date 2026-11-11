@@ -3,7 +3,7 @@ import { PanelRefreshMilliseconds } from "../motion/timings"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { MissionBoard, MissionCompletion } from "../game/types"
+import type { MissionBoardVo, MissionCompletionVo } from "../game/missions"
 import { makeCharacter, makeMission, makeMissionBoard } from "../test/fixtures"
 import { emptyPublicNames } from "../game/publicNames"
 import { MissionsScreen, type MissionsApi } from "./MissionsScreen"
@@ -48,7 +48,7 @@ const openSubPage = async (name: string) => {
 
 const card = (title: string) => screen.getByRole("article", { name: title })
 
-const boardWith = (board: Partial<MissionBoard>) =>
+const boardWith = (board: Partial<MissionBoardVo>) =>
   createFakeApi({ getMissions: vi.fn().mockResolvedValue(makeMissionBoard(board)) })
 
 test("MissionsScreen_ShowsThreeSubPages", async () => {
@@ -193,7 +193,7 @@ test("MissionsScreen_DeliveryMissionShowsDeliverButton", async () => {
 
 test("MissionsScreen_CompleteShowsResultAndUpdatesCharacter", async () => {
   const updated = makeCharacter({ money: 50, experience: 190 })
-  const result: MissionCompletion = {
+  const result: MissionCompletionVo = {
     board: makeMissionBoard({ completed: [delivery] }),
     character: updated,
     completionMessage: "謝謝你，藥草夠用了。",
@@ -268,7 +268,7 @@ test("MissionsScreen_PetDeliveryAsksForTheCarriedPetAndAnnouncesPetRewards", asy
     },
     ready: true,
   })
-  const result: MissionCompletion = {
+  const result: MissionCompletionVo = {
     board: makeMissionBoard({ completed: [petDelivery] }),
     character: makeCharacter({ money: 50 }),
     completionMessage: "牠很健康。",

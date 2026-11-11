@@ -11,7 +11,7 @@ import {
   resetHoursText,
   rewardLines,
 } from "./missions"
-import type { MissionCompletion } from "./types"
+import type { MissionCompletionVo } from "./missions"
 import { emptyPublicNames, type PublicNames } from "./publicNames"
 
 // 名稱來自 /api/public/jobs 與 /api/public/settings
@@ -290,13 +290,13 @@ describe("actionLabel", () => {
 
 describe("resetHoursText", () => {
   it("rounds the remaining time up to whole hours", () => {
-    expect(resetHoursText("2026-10-23T01:00:00Z", new Date("2026-10-22T22:30:00Z"))).toBe(
+    expect(resetHoursText(new Date("2026-10-23T01:00:00Z"), new Date("2026-10-22T22:30:00Z"))).toBe(
       "※ 每日任務將在 3 小時後重置",
     )
   })
 
   it("never counts below zero", () => {
-    expect(resetHoursText("2026-10-23T01:00:00Z", new Date("2026-10-23T02:00:00Z"))).toBe(
+    expect(resetHoursText(new Date("2026-10-23T01:00:00Z"), new Date("2026-10-23T02:00:00Z"))).toBe(
       "※ 每日任務將在 0 小時後重置",
     )
   })
@@ -338,7 +338,7 @@ describe("missionErrorMessage", () => {
 })
 
 describe("completionLines", () => {
-  const result: MissionCompletion = {
+  const result: MissionCompletionVo = {
     board: makeMissionBoard(),
     character: makeCharacter(),
     completionMessage: "謝謝你，綠地又恢復平靜了。",

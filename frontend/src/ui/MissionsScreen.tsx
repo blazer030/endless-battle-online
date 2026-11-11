@@ -10,7 +10,7 @@ import {
   resetHoursText,
   rewardLines,
 } from "../game/missions"
-import type { MissionBoard, MissionCompletion, MissionView } from "../game/types"
+import type { Mission, MissionBoardVo, MissionCompletionVo } from "../game/missions"
 import type { PublicNames } from "../game/publicNames"
 import type { CharacterVo } from "../game/character"
 import "./BagScreen.css"
@@ -47,11 +47,11 @@ const describeError = (error: unknown) =>
 export function MissionsScreen({ api, names, onCharacterChanged, refreshSignal = 0 }: Props) {
   const tabsId = useId()
   const [page, setPage] = useState<SubPage>("available")
-  const [board, setBoard] = useState<MissionBoard | null>(null)
+  const [board, setBoard] = useState<MissionBoardVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<{ missionId: string; message: string } | null>(null)
-  const [completion, setCompletion] = useState<MissionCompletion | null>(null)
+  const [completion, setCompletion] = useState<MissionCompletionVo | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   // 分頁每次打開都重新掛載，重置倒數以打開時為準
   const [now] = useState(() => new Date())
@@ -78,7 +78,7 @@ export function MissionsScreen({ api, names, onCharacterChanged, refreshSignal =
   })
 
   // 同一時間只送一個請求；畫面一律換成回應裡的任務板
-  const run = async (missionId: string, action: () => Promise<MissionBoard>) => {
+  const run = async (missionId: string, action: () => Promise<MissionBoardVo>) => {
     setBusy(true)
     setError(null)
     setCompletion(null)
@@ -100,16 +100,16 @@ export function MissionsScreen({ api, names, onCharacterChanged, refreshSignal =
       return result.board
     })
 
-  const errorFor = (mission: MissionView) =>
+  const errorFor = (mission: Mission) =>
     error?.missionId === mission.id ? (
       <p className="error" role="alert">
         {error.message}
       </p>
     ) : null
 
-  const renderPage = (current: MissionBoard) => {
+  const renderPage = (current: MissionBoardVo) => {
     // 可接的卡片列出條件；進行中的卡片改顯示進度條
-    const card = (mission: MissionView, accepted: boolean, actions: ReactNode) => (
+    const card = (mission: Mission, accepted: boolean, actions: ReactNode) => (
       <MissionCard
         key={mission.id}
         mission={mission}
@@ -125,7 +125,7 @@ export function MissionsScreen({ api, names, onCharacterChanged, refreshSignal =
     switch (page) {
       case "available": {
         const full = current.active.length >= current.activeLimit
-        const accept = (mission: MissionView) =>
+        const accept = (mission: Mission) =>
           card(
             mission,
             false,
@@ -292,7 +292,7 @@ function MissionCard({
   progress,
   children,
 }: {
-  mission: MissionView
+  mission: Mission
   reset: string | null
   requirements: string[]
   progress: boolean
@@ -354,7 +354,7 @@ function MissionCard({
   )
 }
 
-function CompletedMission({ mission }: { mission: MissionView }) {
+function CompletedMission({ mission }: { mission: Mission }) {
   const titleId = useId()
   return (
     <li>

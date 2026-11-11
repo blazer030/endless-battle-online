@@ -1,11 +1,5 @@
-import type {
-  HonourShop,
-  MercenaryOverview,
-  MissionBoard,
-  MissionView,
-  PetsView,
-  PetView,
-} from "../game/types"
+import type { HonourShop, MercenaryOverview, PetsView, PetView } from "../game/types"
+import { MissionBoardVo, type Mission } from "../game/missions"
 import { InventoryVo, ShopItemVo, type InventoryItem, type StatBonus } from "../game/inventory"
 import type { WorldAreaVo, WorldPlace } from "../game/world"
 import type { AdvanceSummary } from "../game/battleEvents"
@@ -264,7 +258,7 @@ export const makeShopItem = (overrides: Partial<ShopItemVo> = {}): ShopItemVo =>
   })
 
 // 中央平原的擊殺任務：草原史萊姆 3/8
-export const makeMission = (overrides: Partial<MissionView> = {}): MissionView => ({
+export const makeMission = (overrides: Partial<Mission> = {}): Mission => ({
   id: "test-hunt",
   giver: "村長",
   title: "綠地上的黏液",
@@ -299,14 +293,15 @@ export const makeMission = (overrides: Partial<MissionView> = {}): MissionView =
   ...overrides,
 })
 
-export const makeMissionBoard = (overrides: Partial<MissionBoard> = {}): MissionBoard => ({
-  available: [],
-  active: [],
-  completed: [],
-  activeLimit: 3,
-  nextDailyReset: "2026-10-23T01:00:00Z",
-  ...overrides,
-})
+export const makeMissionBoard = (overrides: Partial<MissionBoardVo> = {}): MissionBoardVo =>
+  MissionBoardVo.create({
+    available: [],
+    active: [],
+    completed: [],
+    activeLimit: 3,
+    nextDailyReset: new Date("2026-10-23T01:00:00Z"),
+    ...overrides,
+  })
 
 export const makePet = (overrides: Partial<PetView> = {}): PetView => ({
   id: 1,

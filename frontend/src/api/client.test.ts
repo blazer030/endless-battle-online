@@ -1,7 +1,14 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
 import type { CreateCharacterCommand } from "../game/character"
-import { makeCharacter, makeInventory, makeItem, makeShopItem, makeSummary } from "../test/fixtures"
+import {
+  makeCharacter,
+  makeInventory,
+  makeItem,
+  makeMissionBoard,
+  makeShopItem,
+  makeSummary,
+} from "../test/fixtures"
 import { ApiError, createApiClient } from "./client"
 
 const jsonResponse = (body: unknown, status = 200) =>
@@ -37,6 +44,19 @@ const inventoryBodyFor = (path: string): unknown => {
     }
   if (path.startsWith("/api/inventory") || path.startsWith("/api/shop/")) return makeInventory()
   return anyBody
+}
+
+const missionCompletionBody = {
+  board: makeMissionBoard(),
+  character: makeCharacter(),
+  completionMessage: "謝謝你。",
+  experience: 190,
+  money: 50,
+  items: [],
+  skill: null,
+  skillGranted: false,
+  levelsGained: 0,
+  pet: null,
 }
 
 // 鐵舖的回應依路徑給對應的本體
@@ -330,7 +350,13 @@ test("forgeCalls_UseTheirEndpoints", async () => {
 })
 
 test("missionCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) =>
+      Promise.resolve(
+        jsonResponse(path.endsWith("/complete") ? missionCompletionBody : makeMissionBoard()),
+      ),
+    )
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getMissions()
