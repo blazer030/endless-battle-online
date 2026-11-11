@@ -50,7 +50,7 @@ public class BalanceReportServiceTests
     {
         var report = Service.Build(TestGameContent.Instance, new BalanceReportOptions());
 
-        var agility = report.WearLevels.Single(row => row.JobId == "warrior" && row.Stat == "agi");
+        var agility = report.WearLevels.Single(row => row.JobId == "warrior" && row.Stat == "agility");
         Assert.All(agility.Cells, cell => Assert.Null(cell.Required));
     }
 
@@ -119,5 +119,5 @@ public class BalanceReportServiceTests
     private static IReadOnlyList<AdventureRow> Warrior(BalanceReport report) => report.Adventures.Where(row => row.JobId == "warrior").ToList();
 
     private static IReadOnlyList<int?> StrengthLevels(BalanceReport report, string jobId) =>
-        report.WearLevels.Single(row => row.JobId == jobId && row.Stat == "str").Cells.Select(cell => cell.Level).ToList();
+        report.WearLevels.Single(row => row.JobId == jobId && row.Stat == "strength").Cells.Select(cell => cell.Level).ToList();
 }

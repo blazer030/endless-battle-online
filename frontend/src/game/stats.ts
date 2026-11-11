@@ -42,7 +42,7 @@ export const baseStatLabels: { key: keyof BaseStats; label: string }[] = [
   { key: "faith", label: "信仰" },
 ]
 
-// 道具需求、原因代碼與轉職需求改名前仍用舊代碼
+// /api/content 的職業成長還是舊代碼
 export const legacyStatCodes = {
   str: "strength",
   smart: "intelligence",
@@ -55,12 +55,8 @@ export const legacyStatCodes = {
 
 export type LegacyStatCode = keyof typeof legacyStatCodes
 
-const isLegacyStatCode = (stat: string): stat is LegacyStatCode => stat in legacyStatCodes
-
-export const statLabel = (stat: string) => {
-  const key = isLegacyStatCode(stat) ? legacyStatCodes[stat] : stat
-  return baseStatLabels.find((row) => row.key === key)?.label ?? stat
-}
+export const statLabel = (stat: string) =>
+  baseStatLabels.find((row) => row.key === stat)?.label ?? stat
 
 const averageOf = (range: number[]) => range.reduce((sum, value) => sum + value, 0) / range.length
 
@@ -68,7 +64,7 @@ const averageOf = (range: number[]) => range.reduce((sum, value) => sum + value,
 // 成長範圍來自 /api/content 的職業，還是舊代碼
 const growthRows = (Object.keys(legacyStatCodes) as LegacyStatCode[]).map((code) => ({
   code,
-  label: statLabel(code),
+  label: statLabel(legacyStatCodes[code]),
 }))
 
 export const describeTopGrowth = (growth: JobGrowth) => {

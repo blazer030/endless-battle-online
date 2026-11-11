@@ -250,13 +250,13 @@ describe("reasonText", () => {
     ["notUsable", "這個道具不能直接使用"],
     ["slotEmpty", "這一欄沒有裝備"],
     ["stackLimit", "已達堆疊上限"],
-    ["statTooLow:str", "力量不足"],
-    ["statTooLow:smart", "智力不足"],
-    ["statTooLow:agi", "敏捷不足"],
-    ["statTooLow:au", "魅力不足"],
+    ["statTooLow:strength", "力量不足"],
+    ["statTooLow:intelligence", "智力不足"],
+    ["statTooLow:agility", "敏捷不足"],
+    ["statTooLow:charisma", "魅力不足"],
     ["statTooLow:life", "生命不足"],
-    ["statTooLow:vit", "體質不足"],
-    ["statTooLow:be", "信仰不足"],
+    ["statTooLow:vitality", "體質不足"],
+    ["statTooLow:faith", "信仰不足"],
     ["wrongStoneLevel", "精鍊石等級不符"],
     ["atRefineMax", "已達精鍊上限"],
     ["notRefineStone", "這不是精鍊石"],
@@ -284,7 +284,9 @@ describe("reasonText", () => {
 
 describe("errorMessage", () => {
   it("joins the translated reasons", () => {
-    expect(errorMessage("無法裝備", ["jobMismatch", "statTooLow:str"])).toBe("職業不符、力量不足")
+    expect(errorMessage("無法裝備", ["jobMismatch", "statTooLow:strength"])).toBe(
+      "職業不符、力量不足",
+    )
   })
 
   it("uses the detail when there are no reasons", () => {

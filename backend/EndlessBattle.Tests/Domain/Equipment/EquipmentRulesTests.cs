@@ -16,7 +16,7 @@ public class EquipmentRulesTests
     {
         var heavy = TestItems.Equipment("heavy", requires: new EquipmentRequirement(Strength: 60, Intelligence: 0, Agility: 13, Charisma: 10));
 
-        Assert.Equal(["statTooLow:str", "statTooLow:agi"], EquipmentRules.CanEquip(Warrior, heavy));
+        Assert.Equal(["statTooLow:strength", "statTooLow:agility"], EquipmentRules.CanEquip(Warrior, heavy));
     }
 
     [Fact]

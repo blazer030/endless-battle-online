@@ -16,7 +16,12 @@ const metricLabels: Record<(typeof adventureMetrics)[number], string> = {
   nextTierHours: "下一階（時）",
 }
 
-const statLabels: Record<string, string> = { str: "力量", smart: "智力", agi: "敏捷", au: "魅力" }
+const statLabels: Record<string, string> = {
+  strength: "力量",
+  intelligence: "智力",
+  agility: "敏捷",
+  charisma: "魅力",
+}
 
 function Cell({ row, cellKey }: { row: ComparedRow; cellKey: string }) {
   const cell = row.cells.find((candidate) => candidate.key === cellKey)

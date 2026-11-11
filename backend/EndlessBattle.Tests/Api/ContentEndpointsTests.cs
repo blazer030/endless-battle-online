@@ -45,7 +45,7 @@ public class ContentEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("warrior", berserker.GetProperty("parentId").GetString());
         Assert.Equal(30, berserker.GetProperty("unlockLevel").GetInt32());
         var requirement = Assert.Single(berserker.GetProperty("statRequirements").EnumerateArray());
-        Assert.Equal("str", requirement.GetProperty("stat").GetString());
+        Assert.Equal("strength", requirement.GetProperty("stat").GetString());
         Assert.Equal(60, requirement.GetProperty("minimum").GetInt32());
 
         var elements = content.GetProperty("elements").EnumerateArray().ToList();

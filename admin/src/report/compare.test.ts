@@ -29,7 +29,7 @@ const official: BalanceReport = {
     {
       jobId: "warrior",
       jobName: "戰士",
-      stat: "str",
+      stat: "strength",
       cells: [
         { shopLevel: 1, required: 10, level: 1 },
         { shopLevel: 2, required: 30, level: 8 },

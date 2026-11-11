@@ -169,7 +169,7 @@ describe("skills", () => {
     expect(jobReasonText("sameJob")).toBe("已是目前職業")
     expect(jobReasonText("levelTooLow")).toBe("等級不足")
     expect(jobReasonText("parentProficiencyTooLow")).toBe("前置職業熟練度不足")
-    expect(jobReasonText("statTooLow:vit")).toBe("體質不足")
+    expect(jobReasonText("statTooLow:vitality")).toBe("體質不足")
     expect(learnReasonText("wrongJob")).toBe("不是目前職業的技能")
     expect(learnReasonText("maxLevel")).toBe("已達最高等級")
     expect(learnReasonText("notEnoughProficiency")).toBe("技能熟練度不足")

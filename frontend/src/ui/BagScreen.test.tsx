@@ -473,7 +473,7 @@ test("BagScreen_BankDepositsAtLevel15", async () => {
 test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
   const api = createFakeApi({
     buy: vi.fn().mockRejectedValue(new ApiError(400, "無法購買", ["bagFull"])),
-    equip: vi.fn().mockRejectedValue(new ApiError(400, "無法裝備", ["statTooLow:str"])),
+    equip: vi.fn().mockRejectedValue(new ApiError(400, "無法裝備", ["statTooLow:strength"])),
   })
   renderBag(api)
 

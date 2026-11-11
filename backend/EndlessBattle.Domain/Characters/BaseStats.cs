@@ -32,13 +32,13 @@ public static class BaseStatCode
 {
     public static string Of(BaseStat stat) => stat switch
     {
-        BaseStat.Strength => "str",
-        BaseStat.Intelligence => "smart",
+        BaseStat.Strength => "strength",
+        BaseStat.Intelligence => "intelligence",
         BaseStat.Life => "life",
-        BaseStat.Vitality => "vit",
-        BaseStat.Agility => "agi",
-        BaseStat.Charisma => "au",
-        BaseStat.Faith => "be",
+        BaseStat.Vitality => "vitality",
+        BaseStat.Agility => "agility",
+        BaseStat.Charisma => "charisma",
+        BaseStat.Faith => "faith",
         _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
     };
 

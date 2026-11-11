@@ -826,7 +826,7 @@ public class JsonGameContentTests
                 "test-refine-stone-2", "item-1378", "item-3361", "safe-refine-stone",
                 "test-armor", "test-gloves", "test-boots", "test-medal-a", "test-medal-b", "test-capture-net", "test-key",
                 "test-arcane-refine-stone-2", "test-vigor-refine-stone", "test-stone-box", "test-pet-egg", "test-job-notes",
-                "test-exp-elixir",
+                "test-exp-elixir", "test-charm",
             ],
             content.AllItems.Select(item => item.Id));
         Assert.Equal((ItemCategory.Key, new AreaKeySpec(17, 3600)), (content.GetItem("test-key").Category, content.GetItem("test-key").Key));

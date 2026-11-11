@@ -174,7 +174,22 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["statTooLow:str"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["statTooLow:strength"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+    }
+
+    // 測試魅力護符要求魅力 99，新角色的魅力是 10
+    [Fact]
+    public async Task Equip_StatReasonNamesTheStatInFull()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var charm = await GiveAsync(characterId, "test-charm");
+
+        var response = await client.PostAsJsonAsync("/api/inventory/equip", new { inventoryId = charm }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
+        Assert.Contains("statTooLow:charisma", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     // 補給欄裝 3、卸下後疊回背包；用掉一瓶力量藥水 → 裸點 str 13

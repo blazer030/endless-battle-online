@@ -31,6 +31,7 @@
     {"id": "test-stone-box", "name": "測試魔石寶箱", "category": "Consumable", "consumable": "StoneBox", "amount": 1, "price": 1000, "shopLevel": 1, "shopSellable": false},
     {"id": "test-pet-egg", "name": "測試寵物蛋", "category": "Consumable", "consumable": "PetEgg", "amount": 280, "price": 10000, "shopLevel": 1, "shopSellable": false},
     {"id": "test-job-notes", "name": "測試心得書", "category": "Consumable", "consumable": "ProficiencyBook", "amount": 300, "price": 2000, "shopLevel": 1, "shopSellable": false},
-    {"id": "test-exp-elixir", "name": "測試經驗密藥", "category": "Consumable", "consumable": "Elixir", "price": 20000, "shopLevel": 6, "shopSellable": false, "elixir": {"kind": "Exp", "multiplier": 1.5, "seconds": 3600}}
+    {"id": "test-exp-elixir", "name": "測試經驗密藥", "category": "Consumable", "consumable": "Elixir", "price": 20000, "shopLevel": 6, "shopSellable": false, "elixir": {"kind": "Exp", "multiplier": 1.5, "seconds": 3600}},
+    {"id": "test-charm", "name": "測試魅力護符", "category": "Accessory", "bonus": {"be": 1}, "requires": {"au": 99}, "holes": 0, "refineMax": 4, "price": 200, "shopLevel": 1, "shopSellable": false}
   ]
 }

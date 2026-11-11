@@ -36,11 +36,11 @@ const jobs: JobOption[] = [
     unlockLevel: 30,
     proficiencyRequired: 3500,
     statRequirements: [
-      { stat: "vit", minimum: 60 },
-      { stat: "str", minimum: 20 },
+      { stat: "vitality", minimum: 60 },
+      { stat: "strength", minimum: 20 },
     ],
     eligible: false,
-    reasons: ["levelTooLow", "parentProficiencyTooLow", "statTooLow:vit"],
+    reasons: ["levelTooLow", "parentProficiencyTooLow", "statTooLow:vitality"],
   }),
 ]
 

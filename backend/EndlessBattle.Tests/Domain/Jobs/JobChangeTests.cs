@@ -31,8 +31,8 @@ public class JobChangeTests
     [Theory]
     [InlineData(29, 3500, 60, new[] { "levelTooLow" })]
     [InlineData(30, 3499, 60, new[] { "parentProficiencyTooLow" })]
-    [InlineData(30, 3500, 59, new[] { "statTooLow:str" })]
-    [InlineData(1, 0, 1, new[] { "levelTooLow", "parentProficiencyTooLow", "statTooLow:str" })]
+    [InlineData(30, 3500, 59, new[] { "statTooLow:strength" })]
+    [InlineData(1, 0, 1, new[] { "levelTooLow", "parentProficiencyTooLow", "statTooLow:strength" })]
     public void Evaluate_RequiresLevelParentProficiencyAndStats(int level, long proficiency, int str, string[] expected)
     {
         var check = JobChange.Evaluate(Warrior(level, str), Berserker, Ch(proficiency));
@@ -43,13 +43,13 @@ public class JobChangeTests
 
     // 七個能力名稱各自對應 Base 的欄位：minimum 比該能力高 1 點就不足
     [Theory]
-    [InlineData(BaseStat.Strength, "str", 13)]
-    [InlineData(BaseStat.Intelligence, "smart", 13)]
+    [InlineData(BaseStat.Strength, "strength", 13)]
+    [InlineData(BaseStat.Intelligence, "intelligence", 13)]
     [InlineData(BaseStat.Life, "life", 13)]
-    [InlineData(BaseStat.Vitality, "vit", 11)]
-    [InlineData(BaseStat.Agility, "agi", 13)]
-    [InlineData(BaseStat.Charisma, "au", 11)]
-    [InlineData(BaseStat.Faith, "be", 11)]
+    [InlineData(BaseStat.Vitality, "vitality", 11)]
+    [InlineData(BaseStat.Agility, "agility", 13)]
+    [InlineData(BaseStat.Charisma, "charisma", 11)]
+    [InlineData(BaseStat.Faith, "faith", 11)]
     public void Evaluate_ComparesEachBaseStatByName(BaseStat stat, string code, int minimum)
     {
         var target = Thief with { Id = "other", StatRequirements = [new StatRequirement(stat, minimum)] };

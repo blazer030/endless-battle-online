@@ -118,7 +118,7 @@ public class InventoryServiceTests
         await service.EquipAsync(AccountId, await GiveAsync(character, "test-power-ring"), null, CancellationToken);
         var heavy = await GiveAsync(character, "test-heavy-sword");
 
-        Assert.Equal(["statTooLow:str"], await ReasonsAsync(() => service.EquipAsync(AccountId, heavy, null, CancellationToken)));
+        Assert.Equal(["statTooLow:strength"], await ReasonsAsync(() => service.EquipAsync(AccountId, heavy, null, CancellationToken)));
     }
 
     [Fact]
