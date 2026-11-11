@@ -1,6 +1,8 @@
 import { beforeEach, expect, test, vi } from "vitest"
 import { readAccessToken, saveAccessToken } from "./authStorage"
 import type { CreateCharacterCommand } from "../game/character"
+import { BuffVo } from "../game/buffs"
+import { InnBookVo } from "../game/inn"
 import {
   makeCharacter,
   makeInventory,
@@ -457,7 +459,13 @@ test("getBuffs_GetsTheActiveBuffs", async () => {
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(buffs))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
-  await expect(client.getBuffs()).resolves.toEqual(buffs)
+  await expect(client.getBuffs()).resolves.toEqual([
+    BuffVo.create({
+      kind: "Experience",
+      multiplier: 1.5,
+      endsAt: new Date("2026-10-23T04:00:00Z"),
+    }),
+  ])
   expect(fetchMock).toHaveBeenCalledWith(
     "/api/characters/me/buffs",
     expect.objectContaining({ method: "GET" }),
@@ -482,7 +490,13 @@ test("bookInn_PostsTheRoomId", async () => {
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(booked))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
-  await expect(client.bookInn("bulwark-room")).resolves.toEqual(booked)
+  await expect(client.bookInn("bulwark-room")).resolves.toEqual(
+    InnBookVo.create({
+      character: makeCharacter(),
+      lodging: { roomId: "bulwark-room", endsAt: new Date("2026-10-30T08:00:00Z") },
+      cost: 300,
+    }),
+  )
   expect(fetchMock).toHaveBeenCalledWith(
     "/api/inn/book",
     expect.objectContaining({ method: "POST", body: JSON.stringify({ roomId: "bulwark-room" }) }),

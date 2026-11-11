@@ -15,7 +15,7 @@ import {
   type StatBonus,
   type WeaponSkill,
 } from "../game/inventory"
-import { toBuff } from "./lodgingData"
+import { BuffConverter } from "./lodgingData"
 import {
   parseArray,
   parseBoolean,
@@ -179,7 +179,7 @@ export const ItemUseConverter = {
       petName: parseNullableString(dto.petName, `${path}.petName`),
       skillPoints: parseNumber(dto.skillPoints, `${path}.skillPoints`),
       levelsGained: parseNumber(dto.levelsGained, `${path}.levelsGained`),
-      buff: dto.buff === null ? null : toBuff(dto.buff, `${path}.buff`),
+      buff: dto.buff === null ? null : BuffConverter.toVo(dto.buff, `${path}.buff`),
     })
   },
 }

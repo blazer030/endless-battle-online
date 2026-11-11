@@ -2,14 +2,14 @@ import { render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
 import { errorMessage } from "../game/inventory"
-import type { InnRoomView, InnView } from "../game/types"
+import type { InnRoom, InnVo } from "../game/inn"
 import type { CharacterVo } from "../game/character"
 import { makeCharacter } from "../test/fixtures"
 import { user } from "../test/user"
 import { InnPage, type InnApi } from "./InnPage"
 import type { Mutate } from "./bagWidgets"
 
-const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
+const room = (overrides: Partial<InnRoom> = {}): InnRoom => ({
   id: "apprentice-loft",
   name: "學徒閣樓",
   kind: "Experience",
@@ -25,11 +25,11 @@ const rooms = [
 ]
 
 // 跟伺服器一樣：入住之後再讀旅館會看到新的住宿
-const createFakeApi = (inn: InnView = { rooms, lodging: null }): InnApi => {
+const createFakeApi = (inn: InnVo = { rooms, lodging: null }): InnApi => {
   let current = inn
   const lodging = {
     roomId: "apprentice-loft",
-    endsAt: new Date(Date.now() + 28_800_000).toISOString(),
+    endsAt: new Date(Date.now() + 28_800_000),
   }
   return {
     getInn: vi.fn().mockImplementation(() => Promise.resolve(current)),
@@ -111,7 +111,7 @@ test("InnPage_ReloadsInnAfterBooking", async () => {
 test("InnPage_ShowsReplaceHintForOtherRooms", async () => {
   const lodging = {
     roomId: "apprentice-loft",
-    endsAt: new Date(Date.now() + 3_600_000).toISOString(),
+    endsAt: new Date(Date.now() + 3_600_000),
   }
   renderInn(createFakeApi({ rooms, lodging }))
 

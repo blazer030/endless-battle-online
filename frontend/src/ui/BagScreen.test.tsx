@@ -1058,7 +1058,7 @@ test("BagScreen_InnBookingReloadsRoomPrices", async () => {
   })
   const lodging = {
     roomId: "apprentice-loft",
-    endsAt: new Date(Date.now() + 28_800_000).toISOString(),
+    endsAt: new Date(Date.now() + 28_800_000),
   }
   renderBag(
     createFakeApi({

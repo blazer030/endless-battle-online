@@ -1,5 +1,5 @@
 import { formatNumber } from "./format"
-import { buffLabel, durationMinutes, type Buff } from "./buffs"
+import { buffLabel, durationMinutes, type BuffVo } from "./buffs"
 import { statLabel } from "./stats"
 import type { CharacterVo } from "./character"
 
@@ -216,7 +216,7 @@ type ItemUseVoParams = {
   petName: string | null
   skillPoints: number
   levelsGained: number
-  buff: Buff | null
+  buff: BuffVo | null
 }
 
 export class ItemUseVo {
@@ -225,7 +225,7 @@ export class ItemUseVo {
   readonly petName: string | null
   readonly skillPoints: number
   readonly levelsGained: number
-  readonly buff: Buff | null
+  readonly buff: BuffVo | null
 
   private constructor(params: ItemUseVoParams) {
     this.inventory = params.inventory

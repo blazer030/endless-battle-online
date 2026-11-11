@@ -4,7 +4,7 @@ import { formatNumber } from "../game/format"
 import { lodgingLine, replaceHint, roomEffect, stayLength } from "../game/inn"
 import { canAfford } from "../game/inventory"
 import { parseSettings, settingsForm } from "../game/settings"
-import type { InnView } from "../game/types"
+import type { InnVo } from "../game/inn"
 import type { CharacterVo } from "../game/character"
 import { BuffTickMilliseconds } from "../motion/timings"
 import type { Mutate } from "./bagWidgets"
@@ -21,7 +21,7 @@ type Props = {
 export function InnPage({ api, character, busy, mutate }: Props) {
   const roomsId = useId()
   const autoId = useId()
-  const [inn, setInn] = useState<InnView | null>(null)
+  const [inn, setInn] = useState<InnVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [attempt, setAttempt] = useState(0)
   // 剩餘時間定時重算，到期後加成列跟著消失

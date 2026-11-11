@@ -1,7 +1,8 @@
-import type { BuffView, InnBookResult, InnView } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
+import type { BuffVo } from "../game/buffs"
+import type { InnBookVo, InnVo } from "../game/inn"
 import type { HonourShopVo } from "../game/honour"
 import type { MercenaryHireVo, MercenaryOverviewVo } from "../game/mercenaries"
 import type { PetFeedVo, PetsVo } from "../game/pets"
@@ -22,7 +23,6 @@ import type { JobVo } from "../game/jobBook"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 import { parseArray } from "./parse"
-import type { components } from "./schema"
 import { AdvanceConverter } from "./adventureData"
 import {
   AdventureSettingsConverter,
@@ -49,6 +49,7 @@ import {
   PetFeedConverter,
   PetsConverter,
 } from "./companionData"
+import { BuffConverter, InnBookConverter, InnConverter } from "./lodgingData"
 import { MissionBoardConverter, MissionCompletionConverter } from "./missionData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
@@ -137,9 +138,9 @@ export type ApiClient = {
   exchangeHonour: (exchangeId: string) => Promise<HonourShopVo>
   updateSettings: (settings: AdventureSettings) => Promise<CharacterVo>
   // 只含還沒到期的密藥
-  getBuffs: () => Promise<BuffView[]>
-  getInn: () => Promise<InnView>
-  bookInn: (roomId: string) => Promise<InnBookResult>
+  getBuffs: () => Promise<BuffVo[]>
+  getInn: () => Promise<InnVo>
+  bookInn: (roomId: string) => Promise<InnBookVo>
 }
 
 type Problem = { detail: string; reasons: string[] }
@@ -209,16 +210,6 @@ export const createApiClient = (options: {
 
   const requestInventory = async (path: string, method: string, body?: unknown) =>
     InventoryConverter.toVo(await requestJson<unknown>(path, method, body))
-
-  // 回應裡夾帶的角色一律轉成 CharacterVo，其餘欄位還是產生的型別
-  const requestWithCharacter = async <T extends { character: unknown }>(
-    path: string,
-    method: string,
-    body?: unknown,
-  ): Promise<Omit<T, "character"> & { character: CharacterVo }> => {
-    const response = await requestJson<T>(path, method, body)
-    return { ...response, character: CharacterConverter.toVo(response.character) }
-  }
 
   return {
     register: async (username, password) => {
@@ -370,12 +361,15 @@ export const createApiClient = (options: {
       HonourShopConverter.toVo(
         await requestJson<unknown>("/api/honour/exchange", "POST", { exchangeId }),
       ),
-    getBuffs: () => requestJson<BuffView[]>("/api/characters/me/buffs", "GET"),
-    getInn: () => requestJson<InnView>("/api/inn", "GET"),
-    bookInn: (roomId) =>
-      requestWithCharacter<components["schemas"]["InnBookResponse"]>("/api/inn/book", "POST", {
-        roomId,
-      }),
+    getBuffs: async () =>
+      parseArray(
+        await requestJson<unknown>("/api/characters/me/buffs", "GET"),
+        "buffs",
+        (item, path) => BuffConverter.toVo(item, path),
+      ),
+    getInn: async () => InnConverter.toVo(await requestJson<unknown>("/api/inn", "GET")),
+    bookInn: async (roomId) =>
+      InnBookConverter.toVo(await requestJson<unknown>("/api/inn/book", "POST", { roomId })),
     updateSettings: (settings) =>
       requestCharacter(
         "/api/characters/me/settings",

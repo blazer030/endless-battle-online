@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest"
 import { buffLabel, buffLines, remainingMinutes } from "./buffs"
-import type { BuffView } from "./types"
+import type { BuffVo } from "./buffs"
 
 const now = new Date("2026-10-23T03:00:00Z")
-const endingIn = (milliseconds: number) => new Date(now.getTime() + milliseconds).toISOString()
-const buff = (overrides: Partial<BuffView> = {}): BuffView => ({
+const endingIn = (milliseconds: number) => new Date(now.getTime() + milliseconds)
+const buff = (overrides: Partial<BuffVo> = {}): BuffVo => ({
   kind: "Experience",
   multiplier: 1.5,
   endsAt: endingIn(3_600_000),

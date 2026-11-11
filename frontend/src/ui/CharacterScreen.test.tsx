@@ -1,6 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react"
 import { expect, test, vi } from "vitest"
-import type { BuffView, InnView } from "../game/types"
+import type { InnVo } from "../game/inn"
+import type { BuffVo } from "../game/buffs"
 import { emptyPublicNames, type PublicNames } from "../game/publicNames"
 import type { CharacterVo } from "../game/character"
 import { makeCharacter } from "../test/fixtures"
@@ -64,8 +65,8 @@ const names: PublicNames = {
 }
 
 const noBuffs = () => ({
-  getBuffs: vi.fn<() => Promise<BuffView[]>>().mockResolvedValue([]),
-  getInn: vi.fn<() => Promise<InnView>>().mockResolvedValue({ rooms: [], lodging: null }),
+  getBuffs: vi.fn<() => Promise<BuffVo[]>>().mockResolvedValue([]),
+  getInn: vi.fn<() => Promise<InnVo>>().mockResolvedValue({ rooms: [], lodging: null }),
 })
 
 const valueOf = (term: string, container: HTMLElement = document.body) => {
@@ -190,8 +191,8 @@ test("CharacterScreen_CapsProficiencyPercentAtHundred", () => {
 test("CharacterScreen_LoadsBuffsWhenOpened", async () => {
   const api = noBuffs()
   api.getBuffs.mockResolvedValue([
-    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
-    { kind: "Defense", multiplier: 1.2, endsAt: new Date(Date.now() + 600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000) },
+    { kind: "Defense", multiplier: 1.2, endsAt: new Date(Date.now() + 600_000) },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 
@@ -216,8 +217,8 @@ test("CharacterScreen_BuffMinutesTickAndExpiredRowsDrop", async () => {
     vi.setSystemTime(new Date("2026-10-23T03:00:00Z"))
     const api = noBuffs()
     api.getBuffs.mockResolvedValue([
-      { kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T03:30:00Z" },
-      { kind: "Defense", multiplier: 1.2, endsAt: "2026-10-23T03:01:30Z" },
+      { kind: "Experience", multiplier: 1.5, endsAt: new Date("2026-10-23T03:30:00Z") },
+      { kind: "Defense", multiplier: 1.2, endsAt: new Date("2026-10-23T03:01:30Z") },
     ])
     render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
     await act(async () => {
@@ -252,7 +253,7 @@ test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
   const api = noBuffs()
   api.getInn.mockResolvedValue({
     rooms: [loft],
-    lodging: { roomId: "apprentice-loft", endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    lodging: { roomId: "apprentice-loft", endsAt: new Date(Date.now() + 3_600_000) },
   })
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 
@@ -264,7 +265,7 @@ test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
 test("CharacterScreen_HidesTheLodgingLineWithoutLodging", async () => {
   const api = noBuffs()
   api.getBuffs.mockResolvedValue([
-    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000) },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 
@@ -278,7 +279,7 @@ test("CharacterScreen_KeepsElixirsWhenTheInnFails", async () => {
   const api = noBuffs()
   api.getInn.mockRejectedValue(new Error("boom"))
   api.getBuffs.mockResolvedValue([
-    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000).toISOString() },
+    { kind: "Experience", multiplier: 1.5, endsAt: new Date(Date.now() + 3_600_000) },
   ])
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 

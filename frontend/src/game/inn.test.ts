@@ -1,9 +1,9 @@
 import { expect, test } from "vitest"
 import { lodgingLine, replaceHint, roomEffect, stayLength } from "./inn"
-import type { InnRoomView } from "./types"
+import type { InnRoom } from "./inn"
 import type { BuffKind } from "./buffs"
 
-const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
+const room = (overrides: Partial<InnRoom> = {}): InnRoom => ({
   id: "apprentice-loft",
   name: "學徒閣樓",
   kind: "Experience",
@@ -14,7 +14,7 @@ const room = (overrides: Partial<InnRoomView> = {}): InnRoomView => ({
 })
 
 const now = new Date("2026-10-30T00:00:00Z")
-const endsIn = (milliseconds: number) => new Date(now.getTime() + milliseconds).toISOString()
+const endsIn = (milliseconds: number) => new Date(now.getTime() + milliseconds)
 
 test("roomEffect_LabelsEachOfTheSixKinds", () => {
   const labels: [BuffKind, string][] = [

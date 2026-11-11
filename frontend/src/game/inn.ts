@@ -1,7 +1,55 @@
-import { buffLabel, remainingMinutes } from "./buffs"
-import type { InnRoomView, LodgingView } from "./types"
+import { buffLabel, remainingMinutes, type BuffKind } from "./buffs"
+import type { CharacterVo } from "./character"
 
-export const roomEffect = (room: InnRoomView) =>
+// 旅館的資料（來自 /api/inn），由 api/lodgingData.ts 轉換
+// seconds 是住宿時長，price 已依角色等級算好
+export type InnRoom = {
+  readonly id: string
+  readonly name: string
+  readonly kind: BuffKind
+  readonly multiplier: number
+  readonly seconds: number
+  readonly price: number
+}
+
+export type Lodging = { readonly roomId: string; readonly endsAt: Date }
+
+type InnVoParams = { rooms: readonly InnRoom[]; lodging: Lodging | null }
+
+export class InnVo {
+  readonly rooms: readonly InnRoom[]
+  readonly lodging: Lodging | null
+
+  private constructor(params: InnVoParams) {
+    this.rooms = params.rooms
+    this.lodging = params.lodging
+  }
+
+  static create(params: InnVoParams): InnVo {
+    return new InnVo(params)
+  }
+}
+
+// 入住會扣錢，回應帶著更新後的角色
+type InnBookVoParams = { character: CharacterVo; lodging: Lodging; cost: number }
+
+export class InnBookVo {
+  readonly character: CharacterVo
+  readonly lodging: Lodging
+  readonly cost: number
+
+  private constructor(params: InnBookVoParams) {
+    this.character = params.character
+    this.lodging = params.lodging
+    this.cost = params.cost
+  }
+
+  static create(params: InnBookVoParams): InnBookVo {
+    return new InnBookVo(params)
+  }
+}
+
+export const roomEffect = (room: InnRoom) =>
   `${buffLabel(room.kind)} ×${room.multiplier.toFixed(2)}`
 
 // 內容規定 seconds 為 60～86400：不到 60 分顯示分鐘（四捨五入），否則小時到小數一位，整數小時不帶小數
@@ -11,14 +59,14 @@ export function stayLength(seconds: number): string {
 }
 
 // 到期或房型已被移除都視為沒有住宿加成
-const activeRoom = (lodging: LodgingView | null, rooms: InnRoomView[], now: Date) =>
-  lodging !== null && Date.parse(lodging.endsAt) > now.getTime()
+const activeRoom = (lodging: Lodging | null, rooms: readonly InnRoom[], now: Date) =>
+  lodging !== null && lodging.endsAt.getTime() > now.getTime()
     ? rooms.find((room) => room.id === lodging.roomId)
     : undefined
 
 export function lodgingLine(
-  lodging: LodgingView | null,
-  rooms: InnRoomView[],
+  lodging: Lodging | null,
+  rooms: readonly InnRoom[],
   now: Date,
 ): string | null {
   const room = activeRoom(lodging, rooms, now)
@@ -29,8 +77,8 @@ export function lodgingLine(
 }
 
 export function replaceHint(
-  lodging: LodgingView | null,
-  rooms: InnRoomView[],
+  lodging: Lodging | null,
+  rooms: readonly InnRoom[],
   roomId: string,
   now: Date,
 ): string | null {

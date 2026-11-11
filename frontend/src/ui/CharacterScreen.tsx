@@ -4,7 +4,8 @@ import { buffLines } from "../game/buffs"
 import { lodgingLine } from "../game/inn"
 import { proficiencyPercent } from "../game/skills"
 import { baseStatLabels, type DerivedStats } from "../game/stats"
-import type { BuffView, InnView } from "../game/types"
+import type { InnVo } from "../game/inn"
+import type { BuffVo } from "../game/buffs"
 import { nameOf, type PublicNames } from "../game/publicNames"
 import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
@@ -43,10 +44,10 @@ export function CharacterScreen({ api, character, names, onSignOut }: Props) {
   const buffsId = useId()
   // 剩餘分鐘定時重算，到期的效果跟著消失
   const [now, setNow] = useState(() => new Date())
-  const [buffs, setBuffs] = useState<BuffView[] | null>(null)
+  const [buffs, setBuffs] = useState<BuffVo[] | null>(null)
   const [buffsFailed, setBuffsFailed] = useState(false)
   // 讀不到旅館資料就不顯示住宿那一行，不影響密藥
-  const [inn, setInn] = useState<InnView | null>(null)
+  const [inn, setInn] = useState<InnVo | null>(null)
 
   useEffect(() => {
     let active = true
