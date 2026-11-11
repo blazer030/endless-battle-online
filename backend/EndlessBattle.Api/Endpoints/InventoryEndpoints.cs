@@ -48,7 +48,7 @@ public static class InventoryEndpoints
     internal static InventoryResponse ToResponse(InventoryView view) => new(
         view.Bag.Select(category => new BagCategoryResponse(category.Category, category.Capacity, category.Items.Select(ToItem).ToList())).ToList(),
         view.Equipped.Select(equipped => new EquippedItemResponse(equipped.Slot, equipped.Quantity, ToItem(equipped.Item))).ToList(),
-        view.Bonus.Total);
+        StatBonusResponse.From(view.Bonus.Total));
 
     internal static InventoryItemResponse ToItem(InventoryItem item) => new(
         item.Entry.Id,
@@ -57,17 +57,17 @@ public static class InventoryEndpoints
         item.Item.Category,
         item.Item.Consumable,
         item.Entry.Quantity,
-        item.Item.Bonus,
-        item.Item.Requires,
+        StatBonusResponse.From(item.Item.Bonus),
+        EquipmentRequirementResponse.From(item.Item.Requires),
         item.Item.JobId,
         item.Item.SupplyHp,
         item.Item.SupplySp,
         item.Item.Amount,
         item.Entry.RefineLevel,
         item.Item.RefineMax,
-        item.Entry.RefineBonus,
+        StatBonusResponse.From(item.Entry.RefineBonus),
         item.Entry.Holes,
-        item.Sockets.Select(view => new SocketResponse(view.Socket.Hole, view.Socket.StoneId, view.StoneName, view.Socket.Rolled)).ToList(),
+        item.Sockets.Select(view => new SocketResponse(view.Socket.Hole, view.Socket.StoneId, view.StoneName, StatBonusResponse.From(view.Socket.Rolled))).ToList(),
         item.Item.Price,
         item.Item.Bound,
         item.Item.Refine?.Level,

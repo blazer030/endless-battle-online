@@ -1568,7 +1568,7 @@
             }
           },
           "summary": {
-            "$ref": "#/components/schemas/AdvanceSummary"
+            "$ref": "#/components/schemas/AdvanceSummaryResponse"
           },
           "eventsCoverAll": {
             "type": "boolean"
@@ -1595,7 +1595,7 @@
           }
         }
       },
-      "AdvanceSummary": {
+      "AdvanceSummaryResponse": {
         "required": [
           "fights",
           "wins",
@@ -1605,7 +1605,12 @@
           "money",
           "jobExp",
           "levelsGained",
-          "skillsCast"
+          "skillsCast",
+          "drops",
+          "potionsUsed",
+          "missionKills",
+          "petsCaptured",
+          "escapes"
         ],
         "type": "object",
         "properties": {
@@ -1647,28 +1652,23 @@
           },
           "drops": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "potionsUsed": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "missionKills": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "petsCaptured": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           },
           "escapes": {
             "type": "integer",
-            "format": "int32",
-            "default": 0
+            "format": "int32"
           }
         }
       },
@@ -3025,6 +3025,33 @@
           }
         }
       },
+      "EquipmentRequirementResponse": {
+        "required": [
+          "str",
+          "smart",
+          "agi",
+          "au"
+        ],
+        "type": "object",
+        "properties": {
+          "str": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "smart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agi": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "au": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "EquipmentSlot": {
         "enum": [
           "Weapon",
@@ -3382,10 +3409,10 @@
             "format": "int32"
           },
           "bonus": {
-            "$ref": "#/components/schemas/StatBonus"
+            "$ref": "#/components/schemas/StatBonusResponse"
           },
           "requires": {
-            "$ref": "#/components/schemas/StatRequirement7"
+            "$ref": "#/components/schemas/EquipmentRequirementResponse"
           },
           "jobId": {
             "type": [
@@ -3414,7 +3441,7 @@
             "format": "int32"
           },
           "refineBonus": {
-            "$ref": "#/components/schemas/StatBonus"
+            "$ref": "#/components/schemas/StatBonusResponse"
           },
           "holes": {
             "type": "integer",
@@ -3476,7 +3503,7 @@
             }
           },
           "bonus": {
-            "$ref": "#/components/schemas/StatBonus"
+            "$ref": "#/components/schemas/StatBonusResponse"
           }
         }
       },
@@ -5169,10 +5196,10 @@
             "format": "int64"
           },
           "bonus": {
-            "$ref": "#/components/schemas/StatBonus"
+            "$ref": "#/components/schemas/StatBonusResponse"
           },
           "requires": {
-            "$ref": "#/components/schemas/StatRequirement7"
+            "$ref": "#/components/schemas/EquipmentRequirementResponse"
           },
           "holes": {
             "type": "integer",
@@ -5462,7 +5489,7 @@
             "type": "string"
           },
           "rolled": {
-            "$ref": "#/components/schemas/StatBonus"
+            "$ref": "#/components/schemas/StatBonusResponse"
           }
         }
       },
@@ -5505,7 +5532,7 @@
           }
         }
       },
-      "StatBonus": {
+      "StatBonusResponse": {
         "required": [
           "str",
           "smart",
@@ -5517,7 +5544,8 @@
           "at",
           "mat",
           "df",
-          "mdf"
+          "mdf",
+          "hpMax"
         ],
         "type": "object",
         "properties": {
@@ -5566,34 +5594,6 @@
             "format": "int32"
           },
           "hpMax": {
-            "type": "integer",
-            "format": "int32",
-            "default": 0
-          }
-        }
-      },
-      "StatRequirement7": {
-        "required": [
-          "str",
-          "smart",
-          "agi",
-          "au"
-        ],
-        "type": "object",
-        "properties": {
-          "str": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "smart": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "agi": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "au": {
             "type": "integer",
             "format": "int32"
           }

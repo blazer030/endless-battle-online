@@ -107,13 +107,60 @@ public sealed record AdventureSettingsRequest(
     int? RestSpPercent,
     int? EscapeHpPercent);
 
+// 道具與魔石的加成
+public sealed record StatBonusResponse(int Str, int Smart, int Life, int Vit, int Agi, int Au, int Be, int At, int Mat, int Df, int Mdf, int HpMax)
+{
+    internal static StatBonusResponse From(StatBonus bonus) =>
+        new(bonus.Str, bonus.Smart, bonus.Life, bonus.Vit, bonus.Agi, bonus.Au, bonus.Be, bonus.At, bonus.Mat, bonus.Df, bonus.Mdf, bonus.HpMax);
+}
+
+// 裝備需求只比對這四項裸點
+public sealed record EquipmentRequirementResponse(int Str, int Smart, int Agi, int Au)
+{
+    internal static EquipmentRequirementResponse From(StatRequirement7 requirement) =>
+        new(requirement.Str, requirement.Smart, requirement.Agi, requirement.Au);
+}
+
+public sealed record AdvanceSummaryResponse(
+    int Fights,
+    int Wins,
+    int Losses,
+    int Timeouts,
+    long Exp,
+    long Money,
+    long JobExp,
+    int LevelsGained,
+    int SkillsCast,
+    int Drops,
+    int PotionsUsed,
+    int MissionKills,
+    int PetsCaptured,
+    int Escapes)
+{
+    internal static AdvanceSummaryResponse From(AdvanceSummary summary) => new(
+        summary.Fights,
+        summary.Wins,
+        summary.Losses,
+        summary.Timeouts,
+        summary.Exp,
+        summary.Money,
+        summary.JobExp,
+        summary.LevelsGained,
+        summary.SkillsCast,
+        summary.Drops,
+        summary.PotionsUsed,
+        summary.MissionKills,
+        summary.PetsCaptured,
+        summary.Escapes);
+}
+
 public sealed record JobProficiencyResponse(string JobId, long Proficiency, long SkillPoints);
 
 // Events 只含最後 30 秒開始的場次與住宿，其餘只計入 Summary；EventsCoverAll 為 false 表示有戰鬥被略去（只略去住宿仍為 true）
 // Mercenary 只在這次推進有傭兵戰鬥時才有值；AreaPassExpiresAt 只在目前地區是禁區且有通行證時有值（可能已過期）
 public sealed record AdvanceResponse(
     IReadOnlyList<BattleEvent> Events,
-    AdvanceSummary Summary,
+    AdvanceSummaryResponse Summary,
     bool EventsCoverAll,
     CharacterResponse Character,
     MercenaryReportResponse? Mercenary,
@@ -209,7 +256,7 @@ public sealed record MoveRequest(int? PlaceId, int? SubPlace);
 public sealed record InventoryResponse(
     IReadOnlyList<BagCategoryResponse> Bag,
     IReadOnlyList<EquippedItemResponse> Equipment,
-    StatBonus Bonus);
+    StatBonusResponse Bonus);
 
 public sealed record BagCategoryResponse(ItemCategory Category, int Capacity, IReadOnlyList<InventoryItemResponse> Items);
 
@@ -222,15 +269,15 @@ public sealed record InventoryItemResponse(
     ItemCategory Category,
     ConsumableKind Consumable,
     int Quantity,
-    StatBonus Bonus,
-    StatRequirement7 Requires,
+    StatBonusResponse Bonus,
+    EquipmentRequirementResponse Requires,
     string? JobId,
     int SupplyHp,
     int SupplySp,
     int Amount,
     int RefineLevel,
     int RefineMax,
-    StatBonus RefineBonus,
+    StatBonusResponse RefineBonus,
     int Holes,
     IReadOnlyList<SocketResponse> Sockets,
     long Price,
@@ -241,7 +288,7 @@ public sealed record InventoryItemResponse(
 
 public sealed record WeaponSkillResponse(string Name, int Level, int Rate);
 
-public sealed record SocketResponse(int Hole, string StoneId, string StoneName, StatBonus Rolled);
+public sealed record SocketResponse(int Hole, string StoneId, string StoneName, StatBonusResponse Rolled);
 
 // Quantity 只用於補給品，省略時整格裝上
 public sealed record EquipRequest(long? InventoryId, int? Quantity);
@@ -259,7 +306,7 @@ public sealed record UseItemResponse(
 public sealed record BuffResponse(BuffKind Kind, double Multiplier, DateTimeOffset EndsAt);
 
 public sealed record ShopItemResponse(
-    string Id, string Name, ItemCategory Category, long Price, StatBonus Bonus, StatRequirement7 Requires, int Holes, int RefineMax);
+    string Id, string Name, ItemCategory Category, long Price, StatBonusResponse Bonus, EquipmentRequirementResponse Requires, int Holes, int RefineMax);
 
 public sealed record BuyRequest(string? ItemId, int? Quantity);
 

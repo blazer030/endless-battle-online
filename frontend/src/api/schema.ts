@@ -2231,14 +2231,14 @@ export interface components {
         };
         AdvanceResponse: {
             events: components["schemas"]["BattleEvent"][];
-            summary: components["schemas"]["AdvanceSummary"];
+            summary: components["schemas"]["AdvanceSummaryResponse"];
             eventsCoverAll: boolean;
             character: components["schemas"]["CharacterResponse"];
             mercenary: null | components["schemas"]["MercenaryReportResponse"];
             /** Format: date-time */
             areaPassExpiresAt: null | string;
         };
-        AdvanceSummary: {
+        AdvanceSummaryResponse: {
             /** Format: int32 */
             fights: number;
             /** Format: int32 */
@@ -2257,30 +2257,15 @@ export interface components {
             levelsGained: number;
             /** Format: int32 */
             skillsCast: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             drops: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             potionsUsed: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             missionKills: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             petsCaptured: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             escapes: number;
         };
         AdventureSettingsRequest: {
@@ -2690,6 +2675,16 @@ export interface components {
             /** Format: int32 */
             weakAgainst: number;
         };
+        EquipmentRequirementResponse: {
+            /** Format: int32 */
+            str: number;
+            /** Format: int32 */
+            smart: number;
+            /** Format: int32 */
+            agi: number;
+            /** Format: int32 */
+            au: number;
+        };
         /** @enum {unknown} */
         EquipmentSlot: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Supply";
         EquippedItemResponse: {
@@ -2781,8 +2776,8 @@ export interface components {
             consumable: components["schemas"]["ConsumableKind"];
             /** Format: int32 */
             quantity: number;
-            bonus: components["schemas"]["StatBonus"];
-            requires: components["schemas"]["StatRequirement7"];
+            bonus: components["schemas"]["StatBonusResponse"];
+            requires: components["schemas"]["EquipmentRequirementResponse"];
             jobId: null | string;
             /** Format: int32 */
             supplyHp: number;
@@ -2794,7 +2789,7 @@ export interface components {
             refineLevel: number;
             /** Format: int32 */
             refineMax: number;
-            refineBonus: components["schemas"]["StatBonus"];
+            refineBonus: components["schemas"]["StatBonusResponse"];
             /** Format: int32 */
             holes: number;
             sockets: components["schemas"]["SocketResponse"][];
@@ -2809,7 +2804,7 @@ export interface components {
         InventoryResponse: {
             bag: components["schemas"]["BagCategoryResponse"][];
             equipment: components["schemas"]["EquippedItemResponse"][];
-            bonus: components["schemas"]["StatBonus"];
+            bonus: components["schemas"]["StatBonusResponse"];
         };
         /** @enum {unknown} */
         ItemCategory: "Weapon" | "Head" | "Body" | "Hand" | "Foot" | "Accessory" | "Consumable" | "Stone" | "RefineStone" | "Material" | "Medal" | "Key";
@@ -3242,8 +3237,8 @@ export interface components {
             category: components["schemas"]["ItemCategory"];
             /** Format: int64 */
             price: number;
-            bonus: components["schemas"]["StatBonus"];
-            requires: components["schemas"]["StatRequirement7"];
+            bonus: components["schemas"]["StatBonusResponse"];
+            requires: components["schemas"]["EquipmentRequirementResponse"];
             /** Format: int32 */
             holes: number;
             /** Format: int32 */
@@ -3320,7 +3315,7 @@ export interface components {
             hole: number;
             stoneId: string;
             stoneName: string;
-            rolled: components["schemas"]["StatBonus"];
+            rolled: components["schemas"]["StatBonusResponse"];
         };
         StatAllocationRequest: {
             /** Format: int32 */
@@ -3332,7 +3327,7 @@ export interface components {
             /** Format: int32 */
             agi: null | number;
         };
-        StatBonus: {
+        StatBonusResponse: {
             /** Format: int32 */
             str: number;
             /** Format: int32 */
@@ -3355,21 +3350,8 @@ export interface components {
             df: number;
             /** Format: int32 */
             mdf: number;
-            /**
-             * Format: int32
-             * @default 0
-             */
+            /** Format: int32 */
             hpMax: number;
-        };
-        StatRequirement7: {
-            /** Format: int32 */
-            str: number;
-            /** Format: int32 */
-            smart: number;
-            /** Format: int32 */
-            agi: number;
-            /** Format: int32 */
-            au: number;
         };
         StatRequirementContent: {
             stat: string;

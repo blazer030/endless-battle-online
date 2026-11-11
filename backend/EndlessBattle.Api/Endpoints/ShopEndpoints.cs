@@ -18,7 +18,7 @@ public static class ShopEndpoints
                 category ?? throw new InputValidationException("缺少分類"),
                 level ?? throw new InputValidationException("缺少商店等級"));
             return TypedResults.Ok(items.Select(item => new ShopItemResponse(
-                item.Id, item.Name, item.Category, item.Price, item.Bonus, item.Requires, item.Holes, item.RefineMax)).ToList());
+                item.Id, item.Name, item.Category, item.Price, StatBonusResponse.From(item.Bonus), EquipmentRequirementResponse.From(item.Requires), item.Holes, item.RefineMax)).ToList());
         });
 
         shop.MapPost("/buy", async (BuyRequest request, ClaimsPrincipal user, ShopService service, CancellationToken cancellationToken) =>
