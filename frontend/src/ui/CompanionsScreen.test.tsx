@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react"
 import { user } from "../test/user"
 import { expect, test, vi } from "vitest"
 import { ApiError } from "../api/client"
-import type { MercenaryContract } from "../game/types"
+import type { MercenaryContract } from "../game/mercenaries"
 import {
   makeCharacter,
   makeMercenaryOverview,
@@ -12,8 +12,8 @@ import {
 } from "../test/fixtures"
 import { CompanionsScreen, type CompanionsApi } from "./CompanionsScreen"
 
-const past = "2000-01-01T00:00:00Z"
-const future = "2099-01-01T00:00:00Z"
+const past = new Date("2000-01-01T00:00:00Z")
+const future = new Date("2099-01-01T00:00:00Z")
 
 const slime = makePet({ id: 1, name: "小黏", species: "草原史萊姆", age: 2, carried: true })
 const wolf = makePet({
@@ -47,7 +47,7 @@ const fighting: MercenaryContract = {
   placeId: 1,
   placeName: "中央平原",
   fighting: true,
-  nextFightAt: "2026-10-21T00:01:40Z",
+  nextFightAt: new Date("2026-10-21T00:01:40Z"),
 }
 
 const createFakeApi = (overrides: Partial<CompanionsApi> = {}): CompanionsApi => ({

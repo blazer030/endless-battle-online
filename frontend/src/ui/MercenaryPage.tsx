@@ -7,7 +7,11 @@ import {
   mercenaryErrorMessage,
 } from "../game/mercenaries"
 import { isNameTooLong, MercenaryNameMaxLength, NameLengthError } from "../game/names"
-import type { MercenaryCatalogueEntry, MercenaryContract, MercenaryOverview } from "../game/types"
+import type {
+  MercenaryCatalogueEntry,
+  MercenaryContract,
+  MercenaryOverviewVo,
+} from "../game/mercenaries"
 import type { WorldPlace } from "../game/world"
 import type { CharacterVo } from "../game/character"
 
@@ -34,7 +38,7 @@ const describeError = (error: unknown) =>
   error instanceof ApiError ? mercenaryErrorMessage(error.reasons, error.detail) : fallbackError
 
 export function MercenaryPage({ api, onCharacterChanged }: Props) {
-  const [overview, setOverview] = useState<MercenaryOverview | null>(null)
+  const [overview, setOverview] = useState<MercenaryOverviewVo | null>(null)
   const [places, setPlaces] = useState<WorldPlace[] | null>(null)
   const [placesError, setPlacesError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -76,7 +80,7 @@ export function MercenaryPage({ api, onCharacterChanged }: Props) {
   }, [loadPlaces])
 
   // 同一時間只送一個請求；畫面一律換成回應裡的傭兵資料
-  const run = async (key: string, action: () => Promise<MercenaryOverview>) => {
+  const run = async (key: string, action: () => Promise<MercenaryOverviewVo>) => {
     setBusy(true)
     setError(null)
     try {

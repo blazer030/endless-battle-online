@@ -10,7 +10,7 @@ import {
   petTitle,
 } from "../game/pets"
 import { isNameTooLong, NameLengthError, PetNameMaxLength } from "../game/names"
-import type { PetFood, PetsView, PetView } from "../game/types"
+import type { Pet, PetFood, PetsVo } from "../game/pets"
 import type { CharacterVo } from "../game/character"
 
 export type PetsApi = Pick<
@@ -31,7 +31,7 @@ const describeError = (error: unknown) =>
   error instanceof ApiError ? petErrorMessage(error.reasons, error.detail) : fallbackError
 
 export function PetsPage({ api, onCharacterChanged }: Props) {
-  const [view, setView] = useState<PetsView | null>(null)
+  const [view, setView] = useState<PetsVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<{ petId: number; message: string } | null>(null)
@@ -57,7 +57,7 @@ export function PetsPage({ api, onCharacterChanged }: Props) {
   useEffect(() => {
     if (view === null) return
     const waits = view.pets
-      .map((pet) => new Date(pet.nextFeedAt).getTime() - now.getTime())
+      .map((pet) => pet.nextFeedAt.getTime() - now.getTime())
       .filter((wait) => wait > 0)
     if (waits.length === 0) return
     const timer = setTimeout(() => setNow(new Date()), Math.min(...waits, MaxTimerMilliseconds))
@@ -65,7 +65,7 @@ export function PetsPage({ api, onCharacterChanged }: Props) {
   }, [view, now])
 
   // 同一時間只送一個請求；畫面一律換成回應裡的寵物清單
-  const run = async (petId: number, action: () => Promise<PetsView>) => {
+  const run = async (petId: number, action: () => Promise<PetsVo>) => {
     setBusy(true)
     setError(null)
     try {
@@ -134,8 +134,8 @@ export function PetsPage({ api, onCharacterChanged }: Props) {
 }
 
 type CardProps = {
-  pet: PetView
-  foods: PetFood[]
+  pet: Pet
+  foods: readonly PetFood[]
   now: Date
   busy: boolean
   error: string | null

@@ -1,4 +1,6 @@
-import type { HonourShop, MercenaryOverview, PetsView, PetView } from "../game/types"
+import { HonourShopVo } from "../game/honour"
+import { MercenaryOverviewVo } from "../game/mercenaries"
+import { PetsVo, type Pet } from "../game/pets"
 import { MissionBoardVo, type Mission } from "../game/missions"
 import { InventoryVo, ShopItemVo, type InventoryItem, type StatBonus } from "../game/inventory"
 import type { WorldAreaVo, WorldPlace } from "../game/world"
@@ -303,7 +305,7 @@ export const makeMissionBoard = (overrides: Partial<MissionBoardVo> = {}): Missi
     ...overrides,
   })
 
-export const makePet = (overrides: Partial<PetView> = {}): PetView => ({
+export const makePet = (overrides: Partial<Pet> = {}): Pet => ({
   id: 1,
   monsterId: "grass-slime",
   species: "草原史萊姆",
@@ -317,92 +319,95 @@ export const makePet = (overrides: Partial<PetView> = {}): PetView => ({
   intimacy: 3,
   carried: false,
   age: 2,
-  nextFeedAt: "2026-10-21T00:00:00Z",
+  nextFeedAt: new Date("2026-10-21T00:00:00Z"),
   activationPercent: 1.2,
   ...overrides,
 })
 
 // WOG 的八種果實，順序同後端 PetCare.Foods
-export const makePets = (pets: PetView[] = [], overrides: Partial<PetsView> = {}): PetsView => ({
-  pets,
-  maxPets: 3,
-  foods: [
-    { id: "fruit-vigor-small", name: "初級活力果實", stat: "Attack", amount: 2, cost: 20 },
-    { id: "fruit-aroma-small", name: "初級香氣果實", stat: "Magic", amount: 2, cost: 20 },
-    { id: "fruit-sweet-small", name: "初級甜味果實", stat: "Defense", amount: 2, cost: 20 },
-    { id: "fruit-wild-small", name: "初級野性果實", stat: "Spirit", amount: 2, cost: 20 },
-    { id: "fruit-vigor-medium", name: "中級活力果實", stat: "Attack", amount: 4, cost: 50 },
-    { id: "fruit-aroma-medium", name: "中級香氣果實", stat: "Magic", amount: 4, cost: 50 },
-    { id: "fruit-sweet-medium", name: "中級甜味果實", stat: "Defense", amount: 4, cost: 50 },
-    { id: "fruit-wild-medium", name: "中級野性果實", stat: "Spirit", amount: 4, cost: 50 },
-  ],
-  ...overrides,
-})
+export const makePets = (pets: Pet[] = [], overrides: Partial<PetsVo> = {}): PetsVo =>
+  PetsVo.create({
+    pets,
+    maxPets: 3,
+    foods: [
+      { id: "fruit-vigor-small", name: "初級活力果實", stat: "Attack", amount: 2, cost: 20 },
+      { id: "fruit-aroma-small", name: "初級香氣果實", stat: "Magic", amount: 2, cost: 20 },
+      { id: "fruit-sweet-small", name: "初級甜味果實", stat: "Defense", amount: 2, cost: 20 },
+      { id: "fruit-wild-small", name: "初級野性果實", stat: "Spirit", amount: 2, cost: 20 },
+      { id: "fruit-vigor-medium", name: "中級活力果實", stat: "Attack", amount: 4, cost: 50 },
+      { id: "fruit-aroma-medium", name: "中級香氣果實", stat: "Magic", amount: 4, cost: 50 },
+      { id: "fruit-sweet-medium", name: "中級甜味果實", stat: "Defense", amount: 4, cost: 50 },
+      { id: "fruit-wild-medium", name: "中級野性果實", stat: "Spirit", amount: 4, cost: 50 },
+    ],
+    ...overrides,
+  })
 
 // F 級可直接僱用，A 級只能在勳章所兌換
 export const makeMercenaryOverview = (
-  overrides: Partial<MercenaryOverview> = {},
-): MercenaryOverview => ({
-  catalogue: [
-    {
-      id: "mercenary-f",
-      name: "F級傭兵",
-      price: 3000,
-      fights: 100,
-      moneyPercent: 30,
-      dropPercent: 30,
-      experiencePercent: 65,
-      deathCost: 5,
-    },
-    {
-      id: "mercenary-a",
-      name: "A級傭兵",
-      price: null,
-      fights: 500,
-      moneyPercent: 80,
-      dropPercent: 80,
-      experiencePercent: 90,
-      deathCost: 1,
-    },
-  ],
-  contract: null,
-  ...overrides,
-})
+  overrides: Partial<MercenaryOverviewVo> = {},
+): MercenaryOverviewVo =>
+  MercenaryOverviewVo.create({
+    catalogue: [
+      {
+        id: "mercenary-f",
+        name: "F級傭兵",
+        price: 3000,
+        fights: 100,
+        moneyPercent: 30,
+        dropPercent: 30,
+        experiencePercent: 65,
+        deathCost: 5,
+      },
+      {
+        id: "mercenary-a",
+        name: "A級傭兵",
+        price: null,
+        fights: 500,
+        moneyPercent: 80,
+        dropPercent: 80,
+        experiencePercent: 90,
+        deathCost: 1,
+      },
+    ],
+    contract: null,
+    ...overrides,
+  })
 
 // 持有大陸勳章 2、白銀勳章 0：魔石換得起，B 級傭兵換不起
-export const makeHonourShop = (overrides: Partial<HonourShop> = {}): HonourShop => ({
-  medals: [
-    { itemId: "silver-medal", name: "白銀勳章", owned: 0 },
-    { itemId: "continent-medal", name: "大陸勳章", owned: 2 },
-    { itemId: "kingdom-medal", name: "王國勳章", owned: 0 },
-    { itemId: "rainforest-medal", name: "雨林勳章", owned: 0 },
-    { itemId: "royal-city-medal", name: "王城勳章", owned: 0 },
-  ],
-  exchanges: [
-    {
-      id: "honour-mercenary-b",
-      kind: "mercenary",
-      rewardId: "mercenary-b",
-      rewardName: "B級傭兵",
-      quantity: 1,
-      cost: [
-        { itemId: "continent-medal", name: "大陸勳章", quantity: 3, owned: 2 },
-        { itemId: "kingdom-medal", name: "王國勳章", quantity: 3, owned: 0 },
-      ],
-      affordable: false,
-    },
-    {
-      id: "honour-attack-stone",
-      kind: "item",
-      rewardId: "attack-stone",
-      rewardName: "攻擊魔石",
-      quantity: 1,
-      cost: [{ itemId: "continent-medal", name: "大陸勳章", quantity: 2, owned: 2 }],
-      affordable: true,
-    },
-  ],
-  ...overrides,
-})
+export const makeHonourShop = (overrides: Partial<HonourShopVo> = {}): HonourShopVo =>
+  HonourShopVo.create({
+    medals: [
+      { itemId: "silver-medal", name: "白銀勳章", owned: 0 },
+      { itemId: "continent-medal", name: "大陸勳章", owned: 2 },
+      { itemId: "kingdom-medal", name: "王國勳章", owned: 0 },
+      { itemId: "rainforest-medal", name: "雨林勳章", owned: 0 },
+      { itemId: "royal-city-medal", name: "王城勳章", owned: 0 },
+    ],
+    exchanges: [
+      {
+        id: "honour-mercenary-b",
+        kind: "mercenary",
+        rewardId: "mercenary-b",
+        rewardName: "B級傭兵",
+        quantity: 1,
+        cost: [
+          { itemId: "continent-medal", name: "大陸勳章", quantity: 3, owned: 2 },
+          { itemId: "kingdom-medal", name: "王國勳章", quantity: 3, owned: 0 },
+        ],
+        affordable: false,
+      },
+      {
+        id: "honour-attack-stone",
+        kind: "item",
+        rewardId: "attack-stone",
+        rewardName: "攻擊魔石",
+        quantity: 1,
+        cost: [{ itemId: "continent-medal", name: "大陸勳章", quantity: 2, owned: 2 }],
+        affordable: true,
+      },
+    ],
+    ...overrides,
+  })
 
 // 公開 API 的初階職業與建角選項（轉換後的 VO）
 export const makePublicJob = (overrides: Partial<Parameters<typeof JobVo.create>[0]> = {}) =>

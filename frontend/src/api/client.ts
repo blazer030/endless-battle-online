@@ -1,16 +1,10 @@
-import type {
-  BuffView,
-  InnBookResult,
-  InnView,
-  HonourShop,
-  MercenaryHireResult,
-  MercenaryOverview,
-  PetFeedResult,
-  PetsView,
-} from "../game/types"
+import type { BuffView, InnBookResult, InnView } from "../game/types"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
+import type { HonourShopVo } from "../game/honour"
+import type { MercenaryHireVo, MercenaryOverviewVo } from "../game/mercenaries"
+import type { PetFeedVo, PetsVo } from "../game/pets"
 import type { MissionBoardVo, MissionCompletionVo } from "../game/missions"
 import type { ForgeResultVo, RecipeVo, SynthesisVo, UnsocketVo } from "../game/forge"
 import type {
@@ -48,6 +42,13 @@ import {
   ItemUseConverter,
   ShopItemConverter,
 } from "./inventoryData"
+import {
+  HonourShopConverter,
+  MercenaryHireConverter,
+  MercenaryOverviewConverter,
+  PetFeedConverter,
+  PetsConverter,
+} from "./companionData"
 import { MissionBoardConverter, MissionCompletionConverter } from "./missionData"
 import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
@@ -120,20 +121,20 @@ export type ApiClient = {
   acceptMission: (missionId: string) => Promise<MissionBoardVo>
   abandonMission: (missionId: string) => Promise<MissionBoardVo>
   completeMission: (missionId: string) => Promise<MissionCompletionVo>
-  getPets: () => Promise<PetsView>
-  carryPet: (petId: number) => Promise<PetsView>
-  storePet: (petId: number) => Promise<PetsView>
-  releasePet: (petId: number) => Promise<PetsView>
-  renamePet: (petId: number, name: string) => Promise<PetsView>
-  feedPet: (petId: number, foodId: string) => Promise<PetFeedResult>
-  getMercenaries: () => Promise<MercenaryOverview>
-  hireMercenary: (mercenaryId: string) => Promise<MercenaryHireResult>
-  deployMercenary: (placeId: number) => Promise<MercenaryOverview>
-  restMercenary: () => Promise<MercenaryOverview>
-  renameMercenary: (name: string) => Promise<MercenaryOverview>
-  dismissMercenary: () => Promise<MercenaryOverview>
-  getHonourShop: () => Promise<HonourShop>
-  exchangeHonour: (exchangeId: string) => Promise<HonourShop>
+  getPets: () => Promise<PetsVo>
+  carryPet: (petId: number) => Promise<PetsVo>
+  storePet: (petId: number) => Promise<PetsVo>
+  releasePet: (petId: number) => Promise<PetsVo>
+  renamePet: (petId: number, name: string) => Promise<PetsVo>
+  feedPet: (petId: number, foodId: string) => Promise<PetFeedVo>
+  getMercenaries: () => Promise<MercenaryOverviewVo>
+  hireMercenary: (mercenaryId: string) => Promise<MercenaryHireVo>
+  deployMercenary: (placeId: number) => Promise<MercenaryOverviewVo>
+  restMercenary: () => Promise<MercenaryOverviewVo>
+  renameMercenary: (name: string) => Promise<MercenaryOverviewVo>
+  dismissMercenary: () => Promise<MercenaryOverviewVo>
+  getHonourShop: () => Promise<HonourShopVo>
+  exchangeHonour: (exchangeId: string) => Promise<HonourShopVo>
   updateSettings: (settings: AdventureSettings) => Promise<CharacterVo>
   // 只含還沒到期的密藥
   getBuffs: () => Promise<BuffView[]>
@@ -193,6 +194,12 @@ export const createApiClient = (options: {
 
   const requestCharacter = async (path: string, method: string, body?: unknown) =>
     CharacterConverter.toVo(await requestJson<unknown>(path, method, body))
+
+  const requestPets = async (path: string, method: string, body?: unknown) =>
+    PetsConverter.toVo(await requestJson<unknown>(path, method, body))
+
+  const requestMercenaries = async (path: string, method: string, body?: unknown) =>
+    MercenaryOverviewConverter.toVo(await requestJson<unknown>(path, method, body))
 
   const requestMissions = async (path: string, method: string, body?: unknown) =>
     MissionBoardConverter.toVo(await requestJson<unknown>(path, method, body))
@@ -338,32 +345,31 @@ export const createApiClient = (options: {
       MissionCompletionConverter.toVo(
         await requestJson<unknown>("/api/missions/complete", "POST", { missionId }),
       ),
-    getPets: () => requestJson<PetsView>("/api/pets", "GET"),
-    carryPet: (petId) => requestJson<PetsView>("/api/pets/carry", "POST", { petId }),
-    storePet: (petId) => requestJson<PetsView>("/api/pets/store", "POST", { petId }),
-    releasePet: (petId) => requestJson<PetsView>("/api/pets/release", "POST", { petId }),
-    renamePet: (petId, name) => requestJson<PetsView>("/api/pets/rename", "POST", { petId, name }),
-    feedPet: (petId, foodId) =>
-      requestWithCharacter<components["schemas"]["PetFeedResponse"]>("/api/pets/feed", "POST", {
-        petId,
-        foodId,
-      }),
-    getMercenaries: () => requestJson<MercenaryOverview>("/api/mercenaries", "GET"),
-    hireMercenary: (mercenaryId) =>
-      requestWithCharacter<components["schemas"]["MercenaryHireResponse"]>(
-        "/api/mercenaries/hire",
-        "POST",
-        { mercenaryId },
+    getPets: () => requestPets("/api/pets", "GET"),
+    carryPet: (petId) => requestPets("/api/pets/carry", "POST", { petId }),
+    storePet: (petId) => requestPets("/api/pets/store", "POST", { petId }),
+    releasePet: (petId) => requestPets("/api/pets/release", "POST", { petId }),
+    renamePet: (petId, name) => requestPets("/api/pets/rename", "POST", { petId, name }),
+    feedPet: async (petId, foodId) =>
+      PetFeedConverter.toVo(
+        await requestJson<unknown>("/api/pets/feed", "POST", { petId, foodId }),
+      ),
+    getMercenaries: () => requestMercenaries("/api/mercenaries", "GET"),
+    hireMercenary: async (mercenaryId) =>
+      MercenaryHireConverter.toVo(
+        await requestJson<unknown>("/api/mercenaries/hire", "POST", { mercenaryId }),
       ),
     deployMercenary: (placeId) =>
-      requestJson<MercenaryOverview>("/api/mercenaries/deploy", "POST", { placeId }),
-    restMercenary: () => requestJson<MercenaryOverview>("/api/mercenaries/rest", "POST"),
-    renameMercenary: (name) =>
-      requestJson<MercenaryOverview>("/api/mercenaries/rename", "POST", { name }),
-    dismissMercenary: () => requestJson<MercenaryOverview>("/api/mercenaries/dismiss", "POST"),
-    getHonourShop: () => requestJson<HonourShop>("/api/honour", "GET"),
-    exchangeHonour: (exchangeId) =>
-      requestJson<HonourShop>("/api/honour/exchange", "POST", { exchangeId }),
+      requestMercenaries("/api/mercenaries/deploy", "POST", { placeId }),
+    restMercenary: () => requestMercenaries("/api/mercenaries/rest", "POST"),
+    renameMercenary: (name) => requestMercenaries("/api/mercenaries/rename", "POST", { name }),
+    dismissMercenary: () => requestMercenaries("/api/mercenaries/dismiss", "POST"),
+    getHonourShop: async () =>
+      HonourShopConverter.toVo(await requestJson<unknown>("/api/honour", "GET")),
+    exchangeHonour: async (exchangeId) =>
+      HonourShopConverter.toVo(
+        await requestJson<unknown>("/api/honour/exchange", "POST", { exchangeId }),
+      ),
     getBuffs: () => requestJson<BuffView[]>("/api/characters/me/buffs", "GET"),
     getInn: () => requestJson<InnView>("/api/inn", "GET"),
     bookInn: (roomId) =>

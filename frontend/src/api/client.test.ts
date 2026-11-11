@@ -5,7 +5,10 @@ import {
   makeCharacter,
   makeInventory,
   makeItem,
+  makeHonourShop,
+  makeMercenaryOverview,
   makeMissionBoard,
+  makePets,
   makeShopItem,
   makeSummary,
 } from "../test/fixtures"
@@ -57,6 +60,16 @@ const missionCompletionBody = {
   skillGranted: false,
   levelsGained: 0,
   pet: null,
+}
+
+// 寵物、傭兵、勳章的回應依路徑給對應的本體
+const companionBodyFor = (path: string): unknown => {
+  if (path === "/api/pets/feed") return { pets: makePets(), character: makeCharacter() }
+  if (path.startsWith("/api/pets")) return makePets()
+  if (path === "/api/mercenaries/hire")
+    return { mercenaries: makeMercenaryOverview(), character: makeCharacter() }
+  if (path.startsWith("/api/mercenaries")) return makeMercenaryOverview()
+  return makeHonourShop()
 }
 
 // 鐵舖的回應依路徑給對應的本體
@@ -378,7 +391,9 @@ test("missionCalls_UseTheirEndpoints", async () => {
 })
 
 test("companionCalls_UseTheirEndpoints", async () => {
-  const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(jsonResponse(anyBody)))
+  const fetchMock = vi
+    .fn()
+    .mockImplementation((path: string) => Promise.resolve(jsonResponse(companionBodyFor(path))))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   await client.getPets()

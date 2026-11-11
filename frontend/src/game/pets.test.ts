@@ -50,7 +50,7 @@ describe("feedOptionLabel", () => {
 
 describe("canFeed", () => {
   it("waits until the next feed time", () => {
-    const pet = makePet({ nextFeedAt: "2026-10-21T00:00:10Z" })
+    const pet = makePet({ nextFeedAt: new Date("2026-10-21T00:00:10Z") })
     expect(canFeed(pet, new Date("2026-10-21T00:00:09Z"))).toBe(false)
     expect(canFeed(pet, new Date("2026-10-21T00:00:10Z"))).toBe(true)
   })

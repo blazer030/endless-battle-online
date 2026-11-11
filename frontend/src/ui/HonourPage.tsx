@@ -8,7 +8,7 @@ import {
   medalText,
   rewardText,
 } from "../game/honour"
-import type { HonourExchange, HonourShop } from "../game/types"
+import type { HonourExchange, HonourShopVo } from "../game/honour"
 import "./CompanionsScreen.css"
 
 export type HonourApi = Pick<ApiClient, "getHonourShop" | "getMercenaries" | "exchangeHonour">
@@ -25,7 +25,7 @@ const describeError = (error: unknown) =>
   error instanceof ApiError ? honourErrorMessage(error.reasons, error.detail) : fallbackError
 
 export function HonourPage({ api, onExchanged }: Props) {
-  const [shop, setShop] = useState<HonourShop | null>(null)
+  const [shop, setShop] = useState<HonourShopVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)
   // 已僱用傭兵時，傭兵兌換不能用

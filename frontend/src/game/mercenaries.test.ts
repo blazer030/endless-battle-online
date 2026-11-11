@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { makeMercenaryOverview, makeWorld } from "../test/fixtures"
-import type { MercenaryContract } from "./types"
+import type { MercenaryContract } from "./mercenaries"
 import {
   catalogueRow,
   contractStatus,
