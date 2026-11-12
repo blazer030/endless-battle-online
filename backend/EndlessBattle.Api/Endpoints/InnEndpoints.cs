@@ -39,5 +39,5 @@ public static class InnEndpoints
         return app;
     }
 
-    private static LodgingResponse ToResponse(Lodging lodging) => new(lodging.RoomId, lodging.EndsAt);
+    private static LodgingResponse ToResponse(Lodging lodging) => new(lodging.RoomId, lodging.StartsAt, lodging.EndsAt);
 }

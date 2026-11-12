@@ -40,19 +40,23 @@ test("stayLength_UsesMinutesUnderAnHour", () => {
 })
 
 test("lodgingLine_ShowsRemainingHoursAndMinutes", () => {
-  const lodging = { roomId: "apprentice-loft", endsAt: endsIn(7 * 3_600_000 + 5 * 60_000) }
+  const lodging = {
+    roomId: "apprentice-loft",
+    startsAt: now,
+    endsAt: endsIn(7 * 3_600_000 + 5 * 60_000),
+  }
 
   expect(lodgingLine(lodging, [room()], now)).toBe("學徒閣樓・經驗 ×1.10（剩 7:05）")
 })
 
 test("lodgingLine_RoundsRemainingMinutesUp", () => {
-  const lodging = { roomId: "apprentice-loft", endsAt: endsIn(59 * 60_000 + 1) }
+  const lodging = { roomId: "apprentice-loft", startsAt: now, endsAt: endsIn(59 * 60_000 + 1) }
 
   expect(lodgingLine(lodging, [room()], now)).toBe("學徒閣樓・經驗 ×1.10（剩 1:00）")
 })
 
 test("lodgingLine_IsNullWithoutLodgingExpiredOrUnknownRoom", () => {
-  const live = { roomId: "apprentice-loft", endsAt: endsIn(60_000) }
+  const live = { roomId: "apprentice-loft", startsAt: now, endsAt: endsIn(60_000) }
 
   expect(lodgingLine(null, [room()], now)).toBeNull()
   expect(lodgingLine({ ...live, endsAt: endsIn(0) }, [room()], now)).toBeNull()
@@ -60,7 +64,7 @@ test("lodgingLine_IsNullWithoutLodgingExpiredOrUnknownRoom", () => {
 })
 
 test("replaceHint_NamesTheRoomBeingReplaced", () => {
-  const lodging = { roomId: "apprentice-loft", endsAt: endsIn(60_000) }
+  const lodging = { roomId: "apprentice-loft", startsAt: now, endsAt: endsIn(60_000) }
   const rooms = [room(), room({ id: "bulwark-room", name: "鐵壁客房" })]
 
   expect(replaceHint(lodging, rooms, "bulwark-room", now)).toBe("會取代目前的學徒閣樓")

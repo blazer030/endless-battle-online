@@ -12,7 +12,7 @@ namespace EndlessBattle.Application.Inventory;
 
 // GrantedItemIds 依抽出順序；PetName 是寵物蛋孵出的寵物名；SkillPoints 加在目前職業；Buff 是喝下的密藥
 public sealed record ItemUseResult(
-    InventoryView Inventory, IReadOnlyList<string> GrantedItemIds, string? PetName, long SkillPoints, int LevelsGained, CharacterBuff? Buff = null);
+    InventoryView Inventory, IReadOnlyList<string> GrantedItemIds, string? PetName, long SkillPoints, int LevelsGained, BuffView? Buff = null);
 
 // 裝備欄引用背包表的列：裝上 = 欄位指向該列，卸下 = 清空欄位。已裝備的列不算在背包裡，也不佔背包格數
 public sealed class InventoryService(
@@ -165,7 +165,7 @@ public sealed class InventoryService(
 
             return new ItemUseResult(
                 await ViewAsync(updated, cancellationToken), outcome.GrantedItemIds, outcome.Pet?.Name, outcome.SkillPoints, outcome.LevelsGained,
-                outcome.Buff);
+                outcome.Buff is { } drunk ? BuffView.Of(drunk, content) : null);
         }, cancellationToken);
 
     // 從背包那一格分出 quantity 個放到補給欄（整格裝上時直接引用該列）；原本的補給品先算好能放回背包才動手

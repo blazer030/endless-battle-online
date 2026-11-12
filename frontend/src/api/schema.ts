@@ -2506,7 +2506,11 @@ export interface components {
             /** Format: double */
             multiplier: number;
             /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
             endsAt: string;
+            itemId: null | string;
+            itemName: null | string;
         };
         BuyRequest: {
             itemId: null | string;
@@ -2793,6 +2797,8 @@ export interface components {
         };
         LodgingResponse: {
             roomId: string;
+            /** Format: date-time */
+            startsAt: string;
             /** Format: date-time */
             endsAt: string;
         };

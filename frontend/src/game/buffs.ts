@@ -9,18 +9,31 @@ export const buffKinds = [
 ] as const
 export type BuffKind = (typeof buffKinds)[number]
 
-// endsAt 之前開打的場次才有加成
-type BuffVoParams = { kind: BuffKind; multiplier: number; endsAt: Date }
+// [startsAt, endsAt) 之間開打的場次才有加成；itemId、itemName 是最後喝的道具，舊資料或內容已移除時為 null
+type BuffVoParams = {
+  kind: BuffKind
+  multiplier: number
+  startsAt: Date
+  endsAt: Date
+  itemId: string | null
+  itemName: string | null
+}
 
 export class BuffVo {
   readonly kind: BuffKind
   readonly multiplier: number
+  readonly startsAt: Date
   readonly endsAt: Date
+  readonly itemId: string | null
+  readonly itemName: string | null
 
   private constructor(params: BuffVoParams) {
     this.kind = params.kind
     this.multiplier = params.multiplier
+    this.startsAt = params.startsAt
     this.endsAt = params.endsAt
+    this.itemId = params.itemId
+    this.itemName = params.itemName
   }
 
   static create(params: BuffVoParams): BuffVo {

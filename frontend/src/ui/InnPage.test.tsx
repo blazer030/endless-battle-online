@@ -29,6 +29,7 @@ const createFakeApi = (inn: InnVo = { rooms, lodging: null }): InnApi => {
   let current = inn
   const lodging = {
     roomId: "apprentice-loft",
+    startsAt: new Date(),
     endsAt: new Date(Date.now() + 28_800_000),
   }
   return {
@@ -111,6 +112,7 @@ test("InnPage_ReloadsInnAfterBooking", async () => {
 test("InnPage_ShowsReplaceHintForOtherRooms", async () => {
   const lodging = {
     roomId: "apprentice-loft",
+    startsAt: new Date(),
     endsAt: new Date(Date.now() + 3_600_000),
   }
   renderInn(createFakeApi({ rooms, lodging }))

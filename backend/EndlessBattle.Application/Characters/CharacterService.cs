@@ -70,11 +70,11 @@ public sealed class CharacterService(
     }
 
     // 只列還沒到期的密藥（now < EndsAt），依種類
-    public async Task<IReadOnlyList<CharacterBuff>> ListBuffsAsync(long accountId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<BuffView>> ListBuffsAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var now = clock.UtcNow;
-        return (await buffs.ListAsync(character.Id, cancellationToken)).Where(buff => !buff.ExpiredAt(now)).ToList();
+        return (await buffs.ListAsync(character.Id, cancellationToken)).Where(buff => !buff.ExpiredAt(now)).Select(buff => BuffView.Of(buff, content)).ToList();
     }
 
     // 先以舊設定把經過的時間結算到現在（新設定不回溯），再以結算後的版本寫入新設定；推進或寫入撞版本都丟 ConflictException

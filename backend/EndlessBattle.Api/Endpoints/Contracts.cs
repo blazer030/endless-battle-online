@@ -296,7 +296,7 @@ public sealed record UseItemResponse(
     InventoryResponse Inventory, IReadOnlyList<string> Obtained, string? PetName, long SkillPoints, int LevelsGained, BuffResponse? Buff);
 
 // 生效中的密藥：開打時刻早於 EndsAt 的場次乘上 Multiplier
-public sealed record BuffResponse(BuffKind Kind, double Multiplier, DateTimeOffset EndsAt);
+public sealed record BuffResponse(BuffKind Kind, double Multiplier, DateTimeOffset StartsAt, DateTimeOffset EndsAt, string? ItemId, string? ItemName);
 
 public sealed record ShopItemResponse(
     string Id, string Name, ItemCategory Category, long Price, StatBonusResponse Bonus, EquipmentRequirementResponse Requires, int Holes, int RefineMax);
@@ -485,7 +485,7 @@ public sealed record HealthResponse(string Status);
 public sealed record InnRoomResponse(string Id, string Name, BuffKind Kind, double Multiplier, int Seconds, long Price);
 
 // 入住中的房型；開打時刻早於 EndsAt 的場次乘上房型倍率
-public sealed record LodgingResponse(string RoomId, DateTimeOffset EndsAt);
+public sealed record LodgingResponse(string RoomId, DateTimeOffset StartsAt, DateTimeOffset EndsAt);
 
 public sealed record InnResponse(IReadOnlyList<InnRoomResponse> Rooms, LodgingResponse? Lodging);
 

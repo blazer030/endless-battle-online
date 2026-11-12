@@ -35,6 +35,22 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         return await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
     }
 
+    // 使用密藥的回應帶出道具與開始時刻，形狀同密藥清單
+    [Fact]
+    public async Task Use_ElixirResponseCarriesTheItem()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        var elixir = await GiveAsync(characterId, "test-exp-elixir");
+        var now = factory.Clock.UtcNow;
+
+        var buff = (await ReadAsync(await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = elixir }, CancellationToken))).GetProperty("buff");
+
+        Assert.Equal("test-exp-elixir", buff.GetProperty("itemId").GetString());
+        Assert.Equal("測試經驗密藥", buff.GetProperty("itemName").GetString());
+        Assert.Equal(now, buff.GetProperty("startsAt").GetDateTimeOffset());
+    }
+
     [Fact]
     public async Task Inventory_WeaponWithSkill_ReturnsWeaponSkill()
     {

@@ -7,7 +7,10 @@ const endingIn = (milliseconds: number) => new Date(now.getTime() + milliseconds
 const buff = (overrides: Partial<BuffVo> = {}): BuffVo => ({
   kind: "Experience",
   multiplier: 1.5,
+  startsAt: now,
   endsAt: endingIn(3_600_000),
+  itemId: null,
+  itemName: null,
   ...overrides,
 })
 

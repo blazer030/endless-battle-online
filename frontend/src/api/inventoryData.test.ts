@@ -149,7 +149,14 @@ const useDto = {
   petName: null,
   skillPoints: 0,
   levelsGained: 0,
-  buff: { kind: "Experience", multiplier: 1.5, endsAt: "2026-11-12T08:30:00Z" },
+  buff: {
+    kind: "Experience",
+    multiplier: 1.5,
+    startsAt: "2026-11-12T06:30:00Z",
+    endsAt: "2026-11-12T08:30:00Z",
+    itemId: "item-2255",
+    itemName: "戰鬥熟練手冊LV1",
+  },
 }
 
 test("ItemUseConverter_ConvertsTheBuffEndToADate", () => {
@@ -159,7 +166,10 @@ test("ItemUseConverter_ConvertsTheBuffEndToADate", () => {
   expect(used.buff).toEqual({
     kind: "Experience",
     multiplier: 1.5,
+    startsAt: new Date(Date.UTC(2026, 10, 12, 6, 30)),
     endsAt: new Date(Date.UTC(2026, 10, 12, 8, 30)),
+    itemId: "item-2255",
+    itemName: "戰鬥熟練手冊LV1",
   })
 })
 

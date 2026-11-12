@@ -365,7 +365,10 @@ describe("itemUseResultLines", () => {
     const buff = {
       kind: "Experience",
       multiplier: 1.5,
+      startsAt: new Date("2026-10-23T03:00:00Z"),
       endsAt: new Date("2026-10-23T04:00:00Z"),
+      itemId: null,
+      itemName: null,
     } as const
     expect(itemUseResultLines(elixir, { ...nothing, buff }, now)).toEqual([
       "經驗密藥生效：經驗 ×1.5，持續 60 分鐘",
@@ -377,7 +380,10 @@ describe("itemUseResultLines", () => {
     const buff = {
       kind: "Experience",
       multiplier: 1.5,
+      startsAt: new Date("2026-10-23T03:00:00Z"),
       endsAt: new Date("2026-10-23T04:00:00Z"),
+      itemId: null,
+      itemName: null,
     } as const
     const slowClock = new Date("2026-10-23T02:59:58Z")
     expect(itemUseResultLines(elixir, { ...nothing, buff }, slowClock)).toEqual([

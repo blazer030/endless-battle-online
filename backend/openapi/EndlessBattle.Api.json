@@ -2571,7 +2571,10 @@
         "required": [
           "kind",
           "multiplier",
-          "endsAt"
+          "startsAt",
+          "endsAt",
+          "itemId",
+          "itemName"
         ],
         "type": "object",
         "properties": {
@@ -2582,9 +2585,25 @@
             "type": "number",
             "format": "double"
           },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "endsAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "itemId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "itemName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3659,12 +3678,17 @@
       "LodgingResponse": {
         "required": [
           "roomId",
+          "startsAt",
           "endsAt"
         ],
         "type": "object",
         "properties": {
           "roomId": {
             "type": "string"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
           },
           "endsAt": {
             "type": "string",

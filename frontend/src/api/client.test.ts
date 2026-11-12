@@ -455,7 +455,16 @@ test("useItem_ReturnsTheUseResult", async () => {
 })
 
 test("getBuffs_GetsTheActiveBuffs", async () => {
-  const buffs = [{ kind: "Experience", multiplier: 1.5, endsAt: "2026-10-23T04:00:00Z" }]
+  const buffs = [
+    {
+      kind: "Experience",
+      multiplier: 1.5,
+      startsAt: "2026-10-23T03:00:00Z",
+      endsAt: "2026-10-23T04:00:00Z",
+      itemId: null,
+      itemName: null,
+    },
+  ]
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(buffs))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
@@ -463,7 +472,10 @@ test("getBuffs_GetsTheActiveBuffs", async () => {
     BuffVo.create({
       kind: "Experience",
       multiplier: 1.5,
+      startsAt: new Date("2026-10-23T03:00:00Z"),
       endsAt: new Date("2026-10-23T04:00:00Z"),
+      itemId: null,
+      itemName: null,
     }),
   ])
   expect(fetchMock).toHaveBeenCalledWith(
@@ -484,7 +496,11 @@ test("getInn_GetsRoomsAndLodging", async () => {
 test("bookInn_PostsTheRoomId", async () => {
   const booked = {
     character: makeCharacter(),
-    lodging: { roomId: "bulwark-room", endsAt: "2026-10-30T08:00:00Z" },
+    lodging: {
+      roomId: "bulwark-room",
+      startsAt: "2026-10-30T00:00:00Z",
+      endsAt: "2026-10-30T08:00:00Z",
+    },
     cost: 300,
   }
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(booked))
@@ -493,7 +509,11 @@ test("bookInn_PostsTheRoomId", async () => {
   await expect(client.bookInn("bulwark-room")).resolves.toEqual(
     InnBookVo.create({
       character: makeCharacter(),
-      lodging: { roomId: "bulwark-room", endsAt: new Date("2026-10-30T08:00:00Z") },
+      lodging: {
+        roomId: "bulwark-room",
+        startsAt: new Date("2026-10-30T00:00:00Z"),
+        endsAt: new Date("2026-10-30T08:00:00Z"),
+      },
       cost: 300,
     }),
   )

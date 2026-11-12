@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Application.Items;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
@@ -558,7 +559,7 @@ public class InventoryServiceTests
         var result = await service.UseAsync(AccountId, elixir, CancellationToken);
 
         var expected = new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddHours(1), "test-exp-elixir");
-        Assert.Equal(expected, result.Buff);
+        Assert.Equal(new BuffView(BuffKind.Experience, 1.5, Now, Now.AddHours(1), "test-exp-elixir", "測試經驗密藥"), result.Buff);
         Assert.Equal([expected], await buffs.ListAsync(character.Id, CancellationToken));
         Assert.Equal([("test-exp-elixir", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
         Assert.Equal(["update", "buff:Experience"], log);

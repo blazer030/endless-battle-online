@@ -3,6 +3,7 @@ using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Application.Items;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Progression;
@@ -30,7 +31,7 @@ public static class CharacterEndpoints
         characters.MapGet("/me/buffs", async (ClaimsPrincipal user, CharacterService service, CancellationToken cancellationToken) =>
         {
             var buffs = await service.ListBuffsAsync(user.GetAccountId(), cancellationToken);
-            return TypedResults.Ok(buffs.Select(buff => new BuffResponse(buff.Kind, buff.Multiplier, buff.EndsAt)).ToList());
+            return TypedResults.Ok(buffs.Select(ToResponse).ToList());
         });
 
         characters.MapPut("/me/settings", async (AdventureSettingsRequest request, ClaimsPrincipal user, CharacterService service, IGameContent content, CancellationToken cancellationToken) =>
@@ -111,4 +112,7 @@ public static class CharacterEndpoints
                 character.Settings.RestManaPointsPercent,
                 character.Settings.EscapeHealthPointsPercent));
     }
+
+    public static BuffResponse ToResponse(BuffView buff) =>
+        new(buff.Kind, buff.Multiplier, buff.StartsAt, buff.EndsAt, buff.ItemId, buff.ItemName);
 }

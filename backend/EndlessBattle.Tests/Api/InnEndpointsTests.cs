@@ -113,6 +113,24 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
             inn.GetProperty("lodging").GetProperty("endsAt").GetDateTimeOffset());
     }
 
+    // 規格 Lodging start and end：住宿帶出開始與結束時刻（8 小時）
+    [Fact]
+    public async Task Inn_LodgingCarriesStartAndEnd()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, _) = await CreateCharacterAsync(factory);
+        var now = factory.Clock.UtcNow;
+
+        var booked = await ReadAsync(await client.PostAsJsonAsync("/api/inn/book", new { roomId = "apprentice-loft" }, CancellationToken));
+        var inn = await ReadAsync(await client.GetAsync("/api/inn", CancellationToken));
+
+        foreach (var lodging in new[] { booked.GetProperty("lodging"), inn.GetProperty("lodging") })
+        {
+            Assert.Equal(now, lodging.GetProperty("startsAt").GetDateTimeOffset());
+            Assert.Equal(now.AddHours(8), lodging.GetProperty("endsAt").GetDateTimeOffset());
+        }
+    }
+
     [Theory]
     [InlineData("GET", "/api/inn")]
     [InlineData("POST", "/api/inn/book")]

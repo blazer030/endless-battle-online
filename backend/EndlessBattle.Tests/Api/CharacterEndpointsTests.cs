@@ -627,6 +627,53 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(["Exp"], await reader.CharacterBuffs.Where(row => row.CharacterId == characterId).Select(row => row.Kind).ToListAsync(CancellationToken));
     }
 
+    // 規格 Entry carries the item：喝下的密藥列出道具 id、名稱與開始、結束時刻
+    [Fact]
+    public async Task Buffs_EntryCarriesTheItem()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("道具密藥");
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        var now = factory.Clock.UtcNow;
+        long elixir;
+        await using (var context = database.CreateDbContext())
+        {
+            var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+            elixir = await new InventoryRepository(context, TestGameContent.Instance).AddAsync(characterId, TestItems.Entry(0, "test-exp-elixir"), CancellationToken);
+        }
+        (await client.PostAsJsonAsync("/api/inventory/use", new { inventoryId = elixir }, CancellationToken)).EnsureSuccessStatusCode();
+
+        var buffs = await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken);
+
+        var entry = Assert.Single(buffs.EnumerateArray());
+        Assert.Equal("test-exp-elixir", entry.GetProperty("itemId").GetString());
+        Assert.Equal("測試經驗密藥", entry.GetProperty("itemName").GetString());
+        Assert.Equal(now, entry.GetProperty("startsAt").GetDateTimeOffset());
+        Assert.Equal(now.AddHours(1), entry.GetProperty("endsAt").GetDateTimeOffset());
+    }
+
+    // 規格 Bonus without a recorded item：舊資料沒有道具，itemId、itemName 都是 null
+    [Fact]
+    public async Task Buffs_EntryWithoutRecordedItemIsNull()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("無名密藥");
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        var now = factory.Clock.UtcNow;
+        await using (var context = database.CreateDbContext())
+        {
+            var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+            await new BuffRepository(context).SaveAsync(characterId, new CharacterBuff(BuffKind.Experience, 1.2, now, now.AddMinutes(10)), CancellationToken);
+        }
+
+        var entry = Assert.Single((await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken)).EnumerateArray());
+
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("itemId").ValueKind);
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("itemName").ValueKind);
+    }
+
     [Fact]
     public async Task Buffs_Returns404WithoutCharacter()
     {

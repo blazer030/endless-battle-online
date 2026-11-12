@@ -12,7 +12,7 @@ export type InnRoom = {
   readonly price: number
 }
 
-export type Lodging = { readonly roomId: string; readonly endsAt: Date }
+export type Lodging = { readonly roomId: string; readonly startsAt: Date; readonly endsAt: Date }
 
 type InnVoParams = { rooms: readonly InnRoom[]; lodging: Lodging | null }
 

@@ -15,7 +15,14 @@ const parseFailure = (convert: () => unknown) => {
   throw new Error("沒有丟出 ParseError")
 }
 
-const buffDto = { kind: "Experience", multiplier: 1.5, endsAt: "2026-11-12T08:30:00Z" }
+const buffDto = {
+  kind: "Experience",
+  multiplier: 1.5,
+  startsAt: "2026-11-12T06:30:00Z",
+  endsAt: "2026-11-12T08:30:00Z",
+  itemId: "item-2255",
+  itemName: "戰鬥熟練手冊LV1",
+}
 
 // 規格 Buff end time becomes a date
 test("BuffConverter_ConvertsTheEndTimeToADate", () => {
@@ -27,10 +34,30 @@ test("BuffConverter_ConvertsTheEndTimeToADate", () => {
   expect(buff.endsAt).toEqual(new Date(Date.UTC(2026, 10, 12, 8, 30)))
 })
 
+test("BuffConverter_ConvertsTheStartAndItem", () => {
+  const buff = BuffConverter.toVo(buffDto)
+
+  expect(buff.startsAt).toEqual(new Date(Date.UTC(2026, 10, 12, 6, 30)))
+  expect(buff.itemId).toBe("item-2255")
+  expect(buff.itemName).toBe("戰鬥熟練手冊LV1")
+})
+
+test("BuffConverter_KeepsAMissingItemAsNull", () => {
+  const buff = BuffConverter.toVo({ ...buffDto, itemId: null, itemName: null })
+
+  expect(buff.itemId).toBeNull()
+  expect(buff.itemName).toBeNull()
+})
+
+test("BuffConverter_MissingStartNamesThePath", () => {
+  expect(parseFailure(() => BuffConverter.toVo({ ...buffDto, startsAt: undefined })).path).toBe(
+    "buffs.startsAt",
+  )
+})
+
 test("BuffConverter_MissingMultiplierNamesThePath", () => {
   expect(
-    parseFailure(() => BuffConverter.toVo({ kind: "Attack", endsAt: buffDto.endsAt }, "buffs[1]"))
-      .path,
+    parseFailure(() => BuffConverter.toVo({ ...buffDto, multiplier: undefined }, "buffs[1]")).path,
   ).toBe("buffs[1].multiplier")
 })
 
@@ -55,7 +82,11 @@ const innDto = {
       price: 100,
     },
   ],
-  lodging: { roomId: "apprentice-loft", endsAt: "2026-11-12T16:00:00Z" },
+  lodging: {
+    roomId: "apprentice-loft",
+    startsAt: "2026-11-12T08:00:00Z",
+    endsAt: "2026-11-12T16:00:00Z",
+  },
 }
 
 test("InnConverter_ConvertsTheWholeResponse", () => {
@@ -65,9 +96,19 @@ test("InnConverter_ConvertsTheWholeResponse", () => {
   expect(inn.rooms).toEqual(innDto.rooms)
   expect(inn.lodging).toEqual({
     roomId: "apprentice-loft",
+    startsAt: new Date(Date.UTC(2026, 10, 12, 8)),
     endsAt: new Date(Date.UTC(2026, 10, 12, 16)),
   })
   expect(InnConverter.toVo({ ...innDto, lodging: null }).lodging).toBeNull()
+})
+
+test("InnConverter_ConvertsTheLodgingStart", () => {
+  expect(InnConverter.toVo(innDto).lodging?.startsAt).toEqual(new Date(Date.UTC(2026, 10, 12, 8)))
+  expect(
+    parseFailure(() =>
+      InnConverter.toVo({ ...innDto, lodging: { ...innDto.lodging, startsAt: undefined } }),
+    ).path,
+  ).toBe("inn.lodging.startsAt")
 })
 
 test("InnConverter_MissingRoomPriceNamesThePath", () => {

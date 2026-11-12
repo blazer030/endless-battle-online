@@ -39,7 +39,7 @@ public static class InventoryEndpoints
                 result.PetName,
                 result.SkillPoints,
                 result.LevelsGained,
-                result.Buff is { } buff ? new BuffResponse(buff.Kind, buff.Multiplier, buff.EndsAt) : null));
+                result.Buff is { } buff ? CharacterEndpoints.ToResponse(buff) : null));
         });
 
         return app;

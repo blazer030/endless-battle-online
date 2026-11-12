@@ -3,6 +3,7 @@ import { InnBookVo, InnVo, type InnRoom, type Lodging } from "../game/inn"
 import { CharacterConverter } from "./characterData"
 import {
   parseArray,
+  parseNullableString,
   parseNumber,
   parseObject,
   parseOneOf,
@@ -17,7 +18,10 @@ export const BuffConverter = {
     return BuffVo.create({
       kind: parseOneOf(dto.kind, buffKinds, `${path}.kind`),
       multiplier: parseNumber(dto.multiplier, `${path}.multiplier`),
+      startsAt: parseTimestamp(dto.startsAt, `${path}.startsAt`),
       endsAt: parseTimestamp(dto.endsAt, `${path}.endsAt`),
+      itemId: parseNullableString(dto.itemId, `${path}.itemId`),
+      itemName: parseNullableString(dto.itemName, `${path}.itemName`),
     })
   },
 }
@@ -38,6 +42,7 @@ const toLodging = (value: unknown, path: string): Lodging => {
   const dto = parseObject(value, path)
   return {
     roomId: parseString(dto.roomId, `${path}.roomId`),
+    startsAt: parseTimestamp(dto.startsAt, `${path}.startsAt`),
     endsAt: parseTimestamp(dto.endsAt, `${path}.endsAt`),
   }
 }
