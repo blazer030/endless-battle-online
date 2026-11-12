@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
 import type { TownFacility } from "../game/town"
@@ -20,26 +20,31 @@ const facilityViews: Record<TownFacility, { tab: Tab; bagPage: SubPage }> = {
   missions: { tab: "missions", bagPage: "bag" },
 }
 
-type View = { name: "town" } | { name: "shell"; tab: Tab; bagPage: SubPage }
+type View = { name: "town" } | { name: "shell"; tab: Tab; bagPage: SubPage; shell: number }
 
 type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
 
 // 進遊戲後先在城鎮（不連線）；點設施打開舊外殼開始掛機，回城鎮時舊外殼卸載、輪詢停止
+// 卸載前送出的請求回來時仍會交出角色，城鎮跟著更新
 export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
   const [character, setCharacter] = useState(initialCharacter)
   const [view, setView] = useState<View>({ name: "town" })
+  // 每打開一次舊外殼加一；回城鎮後才回來的回應只收最後打開的那次，較早的不蓋掉較新的角色
+  const latestShell = useRef(0)
+
+  const open = (facility: TownFacility) => {
+    latestShell.current += 1
+    setView({ name: "shell", ...facilityViews[facility], shell: latestShell.current })
+  }
 
   if (view.name === "town")
     return (
       <StageFrame>
-        <TownScreen
-          api={api}
-          character={character}
-          onOpen={(facility) => setView({ name: "shell", ...facilityViews[facility] })}
-        />
+        <TownScreen api={api} character={character} onOpen={open} />
       </StageFrame>
     )
 
+  const { shell } = view
   return (
     <AdventureScreen
       api={api}
@@ -50,6 +55,9 @@ export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
       onReturnToTown={(latest) => {
         setCharacter(latest)
         setView({ name: "town" })
+      }}
+      onConfirmedCharacter={(confirmed) => {
+        if (shell === latestShell.current) setCharacter(confirmed)
       }}
     />
   )

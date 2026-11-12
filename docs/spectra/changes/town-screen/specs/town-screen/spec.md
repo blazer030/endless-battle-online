@@ -88,6 +88,11 @@ While the town is shown the client SHALL NOT send adventure advance requests. Op
 - **WHEN** the player opens the adventure tab from the town, then presses "回城鎮"
 - **THEN** no further adventure requests are sent and the town shows the character from the last adventure response
 
+#### Scenario: A response arriving after returning to the town
+
+- **WHEN** an adventure advance or a facility action was sent before the player pressed "回城鎮" and its response arrives while the town is shown
+- **THEN** the town shows the character from that response, unless the player has opened the old tabbed screen again since; a response from an earlier opening never replaces the character from a later one
+
 ### Requirement: Facilities open the old tabbed screen
 
 Each facility in the town SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment.
@@ -111,8 +116,8 @@ Each facility in the town SHALL open the old tabbed screen at the following tab 
 
 #### Scenario: Return to the town
 
-- **WHEN** the player presses "回城鎮" on the skills tab
-- **THEN** the town is shown at the gate segment
+- **WHEN** the player opens "商店街" from the market, then presses "回城鎮"
+- **THEN** the town is shown at the gate segment with the character handed back by the old tabbed screen
 
 ### Requirement: Bonus row and list
 

@@ -787,3 +787,56 @@ test("AdventureScreen_ReturnToTownStopsPolling", async () => {
 
   expect(api.advance).toHaveBeenCalledTimes(calls)
 })
+
+// 回城鎮後才回來的推進回應，角色仍交給城鎮（規格 A response arriving after returning to the town）
+test("AdventureScreen_ResponseAfterReturnToTownStillReportsTheCharacter", async () => {
+  const api = createFakeApi()
+  let resolveAdvance: (value: AdvanceVo) => void = () => undefined
+  vi.mocked(api.advance).mockReturnValue(
+    new Promise<AdvanceVo>((resolve) => {
+      resolveAdvance = resolve
+    }),
+  )
+  const onConfirmedCharacter = vi.fn()
+  const { unmount } = render(
+    <AdventureScreen
+      api={api}
+      initialCharacter={character}
+      onSignOut={vi.fn()}
+      onReturnToTown={vi.fn()}
+      onConfirmedCharacter={onConfirmedCharacter}
+    />,
+  )
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "回城鎮" }))
+  unmount()
+  await act(async () => {
+    resolveAdvance(response)
+  })
+
+  expect(onConfirmedCharacter).toHaveBeenLastCalledWith(response.character)
+})
+
+// 轉職、移動、背包操作回傳的角色也交出去
+test("AdventureScreen_CharacterChangeIsReported", async () => {
+  const onConfirmedCharacter = vi.fn()
+  render(
+    <AdventureScreen
+      api={createFakeApi()}
+      initialCharacter={character}
+      onSignOut={vi.fn()}
+      onConfirmedCharacter={onConfirmedCharacter}
+    />,
+  )
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
+  await advanceTime(0)
+  fireEvent.click(screen.getByRole("button", { name: "轉職" }))
+  await advanceTime(0)
+
+  expect(onConfirmedCharacter).toHaveBeenLastCalledWith(
+    expect.objectContaining({ jobId: "thief", jobName: "盜賊" }),
+  )
+})

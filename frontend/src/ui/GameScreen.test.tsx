@@ -7,25 +7,33 @@ import { makeCharacter } from "../test/fixtures"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
+// 每個舊外殼交出的「之後才回來的角色」記在這裡，測試在回城鎮後再送
+const lateReports: ((character: CharacterVo) => void)[] = []
+
 vi.mock("./AdventureScreen", () => ({
   AdventureScreen: ({
     initialCharacter,
     initialTab,
     initialBagPage,
     onReturnToTown,
+    onConfirmedCharacter,
   }: {
     initialCharacter: CharacterVo
     initialTab: string
     initialBagPage: string
     onReturnToTown: (character: CharacterVo) => void
-  }) => (
-    <>
-      <p>{`舊外殼：${initialTab}／${initialBagPage}／Lv ${initialCharacter.level}`}</p>
-      <button type="button" onClick={() => onReturnToTown({ ...initialCharacter, level: 7 })}>
-        回城鎮
-      </button>
-    </>
-  ),
+    onConfirmedCharacter: (character: CharacterVo) => void
+  }) => {
+    lateReports.push(onConfirmedCharacter)
+    return (
+      <>
+        <p>{`舊外殼：${initialTab}／${initialBagPage}／Lv ${initialCharacter.level}`}</p>
+        <button type="button" onClick={() => onReturnToTown({ ...initialCharacter, level: 7 })}>
+          回城鎮
+        </button>
+      </>
+    )
+  },
 }))
 
 const character = makeCharacter({ name: "收尾者", level: 6 })
@@ -46,6 +54,7 @@ const segmentOf = () => screen.getByTestId("town-world").dataset.segment
 const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }))
 
 beforeEach(() => {
+  lateReports.length = 0
   vi.useFakeTimers()
 })
 
@@ -105,5 +114,31 @@ test("GameScreen_ReturnToTownShowsTheGateWithTheLatestCharacter", () => {
   click("回城鎮")
 
   expect(segmentOf()).toBe("0")
+  expect(screen.getByRole("button", { name: "角色 Lv 7" })).toBeInTheDocument()
+})
+
+// 規格 A response arriving after returning to the town
+test("GameScreen_LateResponseAfterReturnUpdatesTheTown", () => {
+  renderGame()
+  click("出發 中央平原")
+  const report = lateReports[lateReports.length - 1]
+  click("回城鎮")
+
+  act(() => report({ ...character, level: 19 }))
+
+  expect(screen.getByRole("button", { name: "角色 Lv 19" })).toBeInTheDocument()
+})
+
+// 比較早打開的舊外殼回應較晚到時，不蓋掉之後那次的角色
+test("GameScreen_IgnoresResponsesFromAnEarlierShell", () => {
+  renderGame()
+  click("出發 中央平原")
+  const earlier = lateReports[lateReports.length - 1]
+  click("回城鎮")
+  click("背包")
+  click("回城鎮")
+
+  act(() => earlier({ ...character, level: 3 }))
+
   expect(screen.getByRole("button", { name: "角色 Lv 7" })).toBeInTheDocument()
 })

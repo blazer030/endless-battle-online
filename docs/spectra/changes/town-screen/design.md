@@ -89,7 +89,7 @@ GameScreen 保管目前的角色。打開舊外殼時把角色傳進去。按「
 | 勳章所 | `bag` | `honour` |
 | 任務板 | `missions` | — |
 
-`AdventureScreen` 新增 `initialTab`、`initialBagPage`、`onReturnToTown(character)` 三個 props。`BagScreen` 新增 `initialPage`。「回城鎮」放在舊上方欄最左邊，每個分頁都看得到。舊畫面沿用 375×667 版面，不放進 `StageFrame`。
+`AdventureScreen` 新增 `initialTab`、`initialBagPage`、`onReturnToTown(character)`、`onConfirmedCharacter(character)` 四個 props。`onConfirmedCharacter` 在每次收到伺服器的角色（推進回應、轉職、移動、背包操作）時呼叫，卸載後才回來的回應也會呼叫；`GameScreen` 只收最後打開的那次舊外殼交出的角色，回城鎮後城鎮仍會更新成最新的角色。`BagScreen` 新增 `initialPage`。「回城鎮」放在舊上方欄最左邊，每個分頁都看得到。舊畫面沿用 375×667 版面，不放進 `StageFrame`。
 
 ### 密藥記下最後喝的道具
 
@@ -144,8 +144,8 @@ GameScreen 保管目前的角色。打開舊外殼時把角色傳進去。按「
 
 - `GET /api/characters/me/buffs` → `[{ kind, multiplier, startsAt, endsAt, itemId: string|null, itemName: string|null }]`；`POST /api/inventory/use` 的 `buff` 欄位形狀相同。
 - `GET /api/inn` 的 `lodging` → `{ roomId, startsAt, endsAt }`。
-- `AdventureScreen` props：`initialTab?: Tab`、`initialBagPage?: SubPage`、`onReturnToTown: (character: CharacterVo) => void`。
-- `src/game/town.ts`：`townSegments`、`swipeTarget(segment, deltaX, deltaY) → segment`、`timeOfDay(date)`、`panoramaOffsets(stageHeight)`、`remainingText(endsAt, now)`、`isEndingSoon(endsAt, now)`。
+- `AdventureScreen` props：`initialTab?: Tab`、`initialBagPage?: SubPage`、`onReturnToTown?: (character: CharacterVo) => void`、`onConfirmedCharacter?: (character: CharacterVo) => void`。兩個都是選填：既有的 `AdventureScreen` 測試不從城鎮打開，沒傳 `onReturnToTown` 時不顯示「回城鎮」。
+- `src/game/town.ts`：`townSegments`、`swipeTarget(segment, deltaX, deltaY) → segment`、`panoramaOffsets(stageHeight)`、`remainingText(endsAt, now)`、`isEndingSoon(endsAt, now)`。時段沿用既有的 `src/game/timeOfDay.ts`（`timeOfDay(hour)`，與標題頁同一組界線），不在 `town.ts` 另寫。
 
 **Failure modes：**
 

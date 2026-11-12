@@ -59,6 +59,8 @@ type Props = {
   initialTab?: Tab
   initialBagPage?: SubPage
   onReturnToTown?: (character: CharacterVo) => void
+  // 伺服器回傳的角色（推進回應、轉職、移動、背包操作）；卸載後才回來的回應也會交出
+  onConfirmedCharacter?: (character: CharacterVo) => void
 }
 
 export function AdventureScreen({
@@ -68,6 +70,7 @@ export function AdventureScreen({
   initialTab = "adventure",
   initialBagPage = "bag",
   onReturnToTown,
+  onConfirmedCharacter,
 }: Props) {
   const [names, setNames] = useState<PublicNames>(emptyPublicNames)
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
@@ -138,6 +141,7 @@ export function AdventureScreen({
     const previous = playback.displayedCharacter
     const moved = updated.placeId !== previous.placeId || updated.subPlace !== previous.subPlace
     playback.confirm(updated)
+    onConfirmedCharacter?.(updated)
     // 舊地區還沒播的戰鬥不再接在「你前往」後面
     if (moved) playback.discardQueued()
     setCharacter(playback.displayedCharacter)
@@ -236,14 +240,15 @@ export function AdventureScreen({
         api={api}
         playback={playback}
         onItems={handleItems}
-        onResponse={(response: AdvanceVo) =>
+        onResponse={(response: AdvanceVo) => {
+          onConfirmedCharacter?.(response.character)
           setAreaPass({
             expiresAt: response.areaPassExpiresAt,
             at: Date.now(),
             placeId: response.character.placeId,
             subPlace: response.character.subPlace,
           })
-        }
+        }}
       />
       <main className="adventure__main">
         {/* 切到其他分頁時只隱藏不卸載：輪詢、舞台與戰報都繼續跑 */}
