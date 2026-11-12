@@ -27,8 +27,12 @@ const PlateFontFamily = [Fonts.latin, Fonts.title]
 
 const degrees = (value: number) => (value * Math.PI) / 180
 
+export const stopTweens = (targets: readonly object[]) => {
+  gsap.killTweensOf(targets)
+}
+
 const dispose = (target: Container) => {
-  gsap.killTweensOf([target, target.scale])
+  stopTweens([target, target.scale])
   target.destroy({ children: true })
 }
 

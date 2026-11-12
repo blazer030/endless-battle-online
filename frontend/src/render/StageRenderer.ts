@@ -21,6 +21,7 @@ import {
   playPlate,
   playSlash,
   playStandOff,
+  stopTweens,
 } from "./effects"
 import { Palette } from "./palette"
 import { PetBox, StageHeight } from "./stageLayout"
@@ -279,8 +280,11 @@ export class StageRenderer {
       this.monster.body,
       ...this.effects.children,
     ]
-    gsap.killTweensOf(animated.flatMap((target) => [target, target.scale]))
-    gsap.killTweensOf([this.pet.slot, this.monster.slot])
+    stopTweens([
+      ...animated.flatMap((target) => [target, target.scale]),
+      this.pet.slot,
+      this.monster.slot,
+    ])
     this.app.renderer.off("resize", this.onResize)
     this.app.destroy({ removeView: true }, { children: true })
   }
