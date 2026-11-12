@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react"
 import { afterEach, expect, test } from "vitest"
 import { StageFrame } from "./StageFrame"
+import { useStage } from "./stageContext"
 
 const originalWidth = window.innerWidth
 const originalHeight = window.innerHeight
@@ -59,4 +60,21 @@ test("StageFrame_IgnoresZoomAndKeyboard", () => {
   } finally {
     Object.defineProperty(window, "visualViewport", { configurable: true, value: null })
   }
+})
+
+// 舞台裡的畫面拿得到舞台高與縮放倍率（城鎮換段、滑動要用）
+test("StageFrame_ProvidesTheStageHeightAndScale", () => {
+  resizeWindow(780, 1248)
+  const Probe = () => {
+    const { height, scale } = useStage()
+    return <p>{`${height}×${scale}`}</p>
+  }
+
+  render(
+    <StageFrame>
+      <Probe />
+    </StageFrame>,
+  )
+
+  expect(screen.getByText("624×2")).toBeInTheDocument()
 })

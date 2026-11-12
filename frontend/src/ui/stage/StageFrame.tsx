@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
 import { fitStage } from "./fitStage"
+import { StageContext } from "./stageContext"
 import "./StageFrame.css"
 
 // 用版面視窗（innerWidth／innerHeight）：網址列伸縮、旋轉會變；雙指放大、鍵盤彈出不會變，舞台才不會跟著縮
@@ -26,7 +27,9 @@ export const StageFrame = ({ children }: { children: ReactNode }) => {
   return (
     <div className="stage-frame">
       <div className="stage" style={style}>
-        {children}
+        <StageContext value={{ height: fit.stageHeight, scale: fit.scale }}>
+          {children}
+        </StageContext>
       </div>
     </div>
   )
