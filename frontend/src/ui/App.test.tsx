@@ -31,11 +31,20 @@ vi.mock("./AdventureScreen", () => ({
 }))
 
 vi.mock("./create/CreateScreen", () => ({
-  CreateScreen: ({ onLeave }: { onLeave: () => void }) => (
+  CreateScreen: ({
+    onLeave,
+    onCreated,
+  }: {
+    onLeave: () => void
+    onCreated: (character: CharacterVo) => void
+  }) => (
     <>
       <p>建立角色</p>
       <button type="button" onClick={onLeave}>
         先離開
+      </button>
+      <button type="button" onClick={() => onCreated(makeCharacter({ name: "新人", level: 1 }))}>
+        建好了
       </button>
     </>
   ),
@@ -122,11 +131,13 @@ const renderApp = (
 const ownCard = () => within(screen.getByRole("region", { name: "我的冒險者登記證" }))
 const blankCard = () => within(screen.getByRole("region", { name: "空白登記證" }))
 
-// 過場的計時器在 effect 裡設，可能比畫面晚一步；推進到真的進遊戲為止
+const townStatus = () => screen.queryByRole("region", { name: "角色狀態" })
+
+// 過場的計時器在 effect 裡設，可能比畫面晚一步；推進到真的進遊戲（城鎮）為止
 const finishPassage = () =>
   vi.waitFor(() => {
     act(() => vi.advanceTimersByTime(PassageMilliseconds))
-    expect(screen.getByText("冒險中：青衣")).toBeInTheDocument()
+    expect(within(townStatus()!).getByText("青衣")).toBeInTheDocument()
   })
 
 // 有角色時先播歡迎回來過場，播完才進遊戲
@@ -161,7 +172,7 @@ test("App_SignInWithCharacter_WelcomesBackThenOpensGame", async () => {
   expect(await screen.findByText("歡迎回來")).toBeInTheDocument()
   expect(screen.getByText("青衣")).toBeInTheDocument()
   expect(screen.queryByText("ethan")).not.toBeInTheDocument()
-  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+  expect(townStatus()).not.toBeInTheDocument()
 
   await finishPassage()
 })
@@ -246,7 +257,7 @@ test("App_StoredTokenWithCharacter_WelcomesBackThenOpensGame", async () => {
   expect(
     screen.queryByRole("heading", { name: "無盡戰記 Endless Battle Online" }),
   ).not.toBeInTheDocument()
-  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+  expect(townStatus()).not.toBeInTheDocument()
 
   await finishPassage()
 })
@@ -281,10 +292,10 @@ test("App_WelcomePassage_LastsPassageMilliseconds", async () => {
   expect(screen.getByText("歡迎回來")).toBeInTheDocument()
 
   act(() => vi.advanceTimersByTime(PassageMilliseconds - 1))
-  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+  expect(townStatus()).not.toBeInTheDocument()
 
   act(() => vi.advanceTimersByTime(1))
-  expect(screen.getByText("冒險中：青衣")).toBeInTheDocument()
+  expect(townStatus()).toBeInTheDocument()
 })
 
 // 已登入打開網頁、沒角色 → 建角
@@ -499,9 +510,38 @@ test("App_SignOut_ClearsTokenAndReturnsToRegistryCards", async () => {
   renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
   await passIntoGame()
 
+  await user.click(screen.getByRole("button", { name: "角色 Lv 1" }))
   await user.click(screen.getByRole("button", { name: "登出" }))
 
   expect(readAccessToken()).toBeNull()
   expect(ownCard().getByLabelText("帳號")).toHaveValue("")
   expect(ownCard().getByRole("button", { name: "入城" })).toBeInTheDocument()
+})
+
+// 規格 Opening the game with a character：進遊戲先在城門口，沒有推進請求
+test("App_OpeningWithACharacterShowsTheTown", async () => {
+  saveAccessToken("token")
+  const api = createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) })
+  renderApp(api)
+
+  await passIntoGame()
+
+  expect(screen.getByTestId("town-world").dataset.segment).toBe("0")
+  expect(screen.queryByText("冒險中：青衣")).not.toBeInTheDocument()
+  expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 規格 Character created：建好角色直接進城鎮
+test("App_CreatedCharacterEntersTheTown", async () => {
+  const user = setupUser()
+  saveAccessToken("token")
+  renderApp(createFakeApi())
+  await screen.findByText("建立角色")
+
+  await user.click(screen.getByRole("button", { name: "建好了" }))
+
+  const status = within(screen.getByRole("region", { name: "角色狀態" }))
+  expect(status.getByText("新人")).toBeInTheDocument()
+  expect(status.getByText("Lv 1")).toBeInTheDocument()
+  expect(screen.getByTestId("town-world").dataset.segment).toBe("0")
 })

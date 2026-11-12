@@ -5,7 +5,7 @@ import type { CreationOptionsVo } from "../game/creationOptions"
 import type { JobVo } from "../game/jobBook"
 import type { CharacterVo } from "../game/character"
 import { PassageLeaveMilliseconds, PassageMilliseconds } from "../motion/timings"
-import { AdventureScreen } from "./AdventureScreen"
+import { GameScreen } from "./GameScreen"
 import { CreateScreen } from "./create/CreateScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { Passage } from "./title/Passage"
@@ -169,7 +169,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
       )
     case "game":
       return (
-        <AdventureScreen
+        <GameScreen
           api={api}
           initialCharacter={phase.character}
           onSignOut={() => {
