@@ -75,6 +75,46 @@ public class BuffRepositoryTests(MySqlDatabaseFixture database)
             await new BuffRepository(reader).ListAsync(characterId, CancellationToken));
     }
 
+    // 同種再喝一瓶：道具換成新的那瓶
+    [Fact]
+    public async Task Buffs_SaveReplacesTheItem()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using (var context = database.CreateDbContext())
+        {
+            var repository = new BuffRepository(context);
+            await repository.SaveAsync(characterId, new CharacterBuff(BuffKind.Attack, 1.05, Moment, Moment.AddHours(2), "item-2257"), CancellationToken);
+            await repository.SaveAsync(characterId, new CharacterBuff(BuffKind.Attack, 1.2, Moment.AddHours(1), Moment.AddHours(3), "item-9999"), CancellationToken);
+        }
+
+        await using var reader = database.CreateDbContext();
+        Assert.Equal(
+            [new CharacterBuff(BuffKind.Attack, 1.2, Moment.AddHours(1), Moment.AddHours(3), "item-9999")],
+            await new BuffRepository(reader).ListAsync(characterId, CancellationToken));
+    }
+
+    // 加欄位前的舊資料沒有道具：讀回 null
+    [Fact]
+    public async Task Buffs_ReadLegacyRowWithoutItem()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using (var context = database.CreateDbContext())
+        {
+            context.CharacterBuffs.Add(new EndlessBattle.Infrastructure.Persistence.Models.CharacterBuff
+            {
+                CharacterId = characterId,
+                Kind = "Defense",
+                Multiplier = 1.05m,
+                StartsAt = Moment.UtcDateTime,
+                EndsAt = Moment.AddHours(1).UtcDateTime,
+            });
+            await context.SaveChangesAsync(CancellationToken);
+        }
+
+        await using var reader = database.CreateDbContext();
+        Assert.Null(Assert.Single(await new BuffRepository(reader).ListAsync(characterId, CancellationToken)).ItemId);
+    }
+
     // 資料庫裡不認識的代碼是資料損毀，讀取時丟例外，不靜默略過
     [Fact]
     public async Task Buffs_UnknownStoredKindThrows()

@@ -16,8 +16,8 @@ public enum BuffKind
 // 密藥：喝下後 Seconds 秒內，指定項目乘上 Multiplier
 public sealed record ElixirSpec(BuffKind Kind, double Multiplier, int Seconds);
 
-// 開打時刻落在 [StartsAt, EndsAt) 的場次才生效；每個角色每種至多一筆
-public sealed record CharacterBuff(BuffKind Kind, double Multiplier, DateTimeOffset StartsAt, DateTimeOffset EndsAt)
+// 開打時刻落在 [StartsAt, EndsAt) 的場次才生效；每個角色每種至多一筆。ItemId 是最後喝的道具，住宿與舊資料為 null
+public sealed record CharacterBuff(BuffKind Kind, double Multiplier, DateTimeOffset StartsAt, DateTimeOffset EndsAt, string? ItemId = null)
 {
     public bool ActiveAt(DateTimeOffset at) => StartsAt <= at && at < EndsAt;
 
@@ -51,8 +51,8 @@ public static class Buffs
         MagicDefense = Scale(player.MagicDefense, Multiplier(buffs, BuffKind.MagicDefense, at, lodging)),
     };
 
-    public static CharacterBuff Start(ElixirSpec elixir, DateTimeOffset now) =>
-        new(elixir.Kind, elixir.Multiplier, now, now.AddSeconds(elixir.Seconds));
+    public static CharacterBuff Start(string itemId, ElixirSpec elixir, DateTimeOffset now) =>
+        new(elixir.Kind, elixir.Multiplier, now, now.AddSeconds(elixir.Seconds), itemId);
 
     // 經驗與熟練度用：倍率 1 時原值不動
     public static long Scale(long value, double multiplier) =>

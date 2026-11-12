@@ -557,7 +557,7 @@ public class InventoryServiceTests
 
         var result = await service.UseAsync(AccountId, elixir, CancellationToken);
 
-        var expected = new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddHours(1));
+        var expected = new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddHours(1), "test-exp-elixir");
         Assert.Equal(expected, result.Buff);
         Assert.Equal([expected], await buffs.ListAsync(character.Id, CancellationToken));
         Assert.Equal([("test-exp-elixir", 1)], BagOf(result.Inventory, ItemCategory.Consumable));
@@ -595,7 +595,7 @@ public class InventoryServiceTests
 
         Assert.Equal(33 * 174, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Experience);
         Assert.Equal(
-            [new CharacterBuff(BuffKind.Experience, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660))], await buffs.ListAsync(character.Id, CancellationToken));
+            [new CharacterBuff(BuffKind.Experience, 1.5, Now.AddSeconds(60), Now.AddSeconds(3660), "test-exp-elixir")], await buffs.ListAsync(character.Id, CancellationToken));
     }
 
     private sealed class ScriptedRandomFactory : IRandomSourceFactory

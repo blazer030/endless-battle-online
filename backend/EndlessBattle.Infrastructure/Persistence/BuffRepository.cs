@@ -5,7 +5,7 @@ using CharacterBuffRow = EndlessBattle.Infrastructure.Persistence.Models.Charact
 
 namespace EndlessBattle.Infrastructure.Persistence;
 
-// kind 存 BuffKindCodes 的儲存代碼（經驗是 Exp、職業經驗是 JobExp）；倍率是 DECIMAL(4,2)
+// kind 存 BuffKindCodes 的儲存代碼（經驗是 Exp、職業經驗是 JobExp）；倍率是 DECIMAL(4,2)；item_id 是最後喝的道具，舊資料為 NULL
 // 讀取代碼不分大小寫：kind 欄位的定序（utf8mb4_0900_ai_ci）本來就不分，主鍵與查詢也是
 public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffRepository
 {
@@ -28,6 +28,7 @@ public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffReposi
             context.CharacterBuffs.Add(row);
         }
 
+        row.ItemId = buff.ItemId;
         row.Multiplier = (decimal)buff.Multiplier;
         row.StartsAt = buff.StartsAt.UtcDateTime;
         row.EndsAt = buff.EndsAt.UtcDateTime;
@@ -39,5 +40,6 @@ public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffReposi
             BuffKindCodes.Parse(row.Kind),
             (double)row.Multiplier,
             new DateTimeOffset(DateTime.SpecifyKind(row.StartsAt, DateTimeKind.Utc)),
-            new DateTimeOffset(DateTime.SpecifyKind(row.EndsAt, DateTimeKind.Utc)));
+            new DateTimeOffset(DateTime.SpecifyKind(row.EndsAt, DateTimeKind.Utc)),
+            row.ItemId);
 }

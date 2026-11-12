@@ -48,7 +48,7 @@ public static class ConsumableUse
             // 熟練度不變，只加技能點
             ConsumableKind.ProficiencyBook => new UseOutcome(character, [], null, item.Amount, 0),
             ConsumableKind.ExperienceCapsule => GainExperience(context, item.Amount, random),
-            ConsumableKind.Elixir when item.Elixir is { } elixir => new UseOutcome(character, [], null, 0, 0, Buffs.Start(elixir, now)),
+            ConsumableKind.Elixir when item.Elixir is { } elixir => new UseOutcome(character, [], null, 0, 0, Buffs.Start(item.Id, elixir, now)),
             _ => throw new InvalidOperationException($"道具 {item.Id} 不能使用"),
         };
     }

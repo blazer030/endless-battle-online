@@ -190,9 +190,20 @@ public class ConsumableUseTests
         Assert.Empty(ConsumableUse.CanUse(Full(Hero), elixir));
         var outcome = ConsumableUse.Apply(Full(Hero), elixir, Now, random);
 
-        Assert.Equal(new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddSeconds(3600)), outcome.Buff);
-        Assert.Equal(Buffs.Start(elixir.Elixir!, Now), outcome.Buff);
+        Assert.Equal(new CharacterBuff(BuffKind.Experience, 1.5, Now, Now.AddSeconds(3600), "exp-elixir"), outcome.Buff);
+        Assert.Equal(Buffs.Start("exp-elixir", elixir.Elixir!, Now), outcome.Buff);
         Assert.Equal(Hero, outcome.Character);
         Assert.Equal(0, random.Consumed);
+    }
+
+    // 規格範例：喝下 item-2257（物攻 ×1.05、7200 秒）記下道具
+    [Fact]
+    public void Elixir_RecordsTheItem()
+    {
+        var elixir = TestItems.Consumable("item-2257", ConsumableKind.Elixir) with { Elixir = new ElixirSpec(BuffKind.Attack, 1.05, 7200) };
+
+        var outcome = ConsumableUse.Apply(Full(Hero), elixir, Now, new ScriptedRandom(0.0));
+
+        Assert.Equal(new CharacterBuff(BuffKind.Attack, 1.05, Now, Now.AddSeconds(7200), "item-2257"), outcome.Buff);
     }
 }
