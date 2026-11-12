@@ -48,3 +48,5 @@
     - 物防到期後只重新讀了一次 buffs 與 inn，圓章消失。
     - 未解決：一次「進冒險後很快回城鎮」後，主控台出現約 50 個 `Cannot read properties of null (reading 'y')`（GSAP 補間讀已銷毀的 Pixi 物件）；之後多次重試（含同樣的停留時間）都無法重現，修正無法驗證，沒有改程式，另外回報。
 - [x] 7.2 `./scripts/check.sh` exit code 0。[after: 7.1]
+- [x] 7.3 review 補修：回城鎮時推進或背包操作還沒回應，回應到了城鎮仍顯示舊角色（規格 A response arriving after returning to the town）。`AdventureScreen` 加 `onConfirmedCharacter`，推進回應與 `handleCharacterChange` 都呼叫；`GameScreen` 每次打開舊外殼編號，只收最後一次的。先寫失敗測試：`AdventureScreen_ResponseAfterReturnToTownStillReportsTheCharacter`、`AdventureScreen_CharacterChangeIsReported`、`GameScreen_LateResponseAfterReturnUpdatesTheTown`、`GameScreen_IgnoresResponsesFromAnEarlierShell`。同時補 verify 指出的缺口：`CharacterEndpointsTests.Buffs_EntryWithRemovedItemIsNull`（規格 Recorded item removed from the content）、`App_CreatedCharacterEntersTheTown` 檢查職業名稱；規格例子改成測試實際用的數值（`test-exp-elixir`、20 秒、30 小時、商店街回城鎮）。驗證：`./scripts/check.sh` exit code 0。
+  - 完成紀錄（2026-11-12）：`./scripts/check.sh` exit 0；後端 1892、前端 853、admin 144、tools/assets 62 全過。

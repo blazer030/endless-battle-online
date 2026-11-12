@@ -52,12 +52,17 @@ For a battle starting at time t, the multiplier of a kind SHALL be the active el
 
 #### Scenario: Entry carries the item
 
-- **WHEN** a character drank `item-2255` (戰鬥熟練手冊LV1) and requests the list
-- **THEN** the Experience entry has `itemId` `item-2255`, `itemName` `戰鬥熟練手冊LV1` and its `startsAt` and `endsAt`
+- **WHEN** a character drank the Experience elixir `test-exp-elixir` (測試經驗密藥 in the test content) and requests the list
+- **THEN** the Experience entry has `itemId` `test-exp-elixir`, `itemName` `測試經驗密藥` and its `startsAt` and `endsAt`
 
 #### Scenario: Bonus without a recorded item
 
 - **WHEN** a stored Experience bonus has no recorded item
+- **THEN** its entry has `itemId` null and `itemName` null
+
+#### Scenario: Recorded item removed from the content
+
+- **WHEN** a stored Experience bonus records `removed-item`, which the game content no longer has
 - **THEN** its entry has `itemId` null and `itemName` null
 
 ### Requirement: Lodging response carries its start

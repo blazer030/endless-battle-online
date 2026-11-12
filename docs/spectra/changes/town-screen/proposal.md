@@ -34,9 +34,9 @@
 ## Impact
 
 - db：新增 `backend/db/ddl/V000000020__add_character_buff_item.sql`（`character_buffs` 加 `item_id`），重新 scaffold `backend/EndlessBattle.Infrastructure/Persistence/Models/CharacterBuff.cs`。
-- Domain：`backend/EndlessBattle.Domain/Items/Buffs.cs` 的 `CharacterBuff` 與 `ElixirSpec` 帶道具 id；`ConsumableUse` 喝密藥時寫入。
+- Domain：`backend/EndlessBattle.Domain/Items/Buffs.cs` 的 `CharacterBuff` 帶道具 id，`Buffs.Start` 收道具 id；`ConsumableUse` 喝密藥時傳入。
 - Application：密藥清單回傳道具名稱（從遊戲內容查）。
-- Infrastructure：`BuffRepository` 讀寫 `item_id`；`JsonGameContent` 的密藥規格帶道具 id。
+- Infrastructure：`BuffRepository` 讀寫 `item_id`。
 - Api：`backend/EndlessBattle.Api/Endpoints/Contracts.cs` 的 `BuffResponse` 加欄位；`backend/openapi/` 重新產生。
 - Tests：`backend/EndlessBattle.Tests` 密藥與離線補算的規格測試、補缺的測試。
 - frontend：

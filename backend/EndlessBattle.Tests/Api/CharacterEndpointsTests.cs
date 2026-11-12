@@ -674,6 +674,27 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, entry.GetProperty("itemName").ValueKind);
     }
 
+    // 規格 Recorded item removed from the content：記下的道具已不在內容檔，itemId、itemName 都是 null
+    [Fact]
+    public async Task Buffs_EntryWithRemovedItemIsNull()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        var name = UniqueName("下架密藥");
+        (await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name))).EnsureSuccessStatusCode();
+        var now = factory.Clock.UtcNow;
+        await using (var context = database.CreateDbContext())
+        {
+            var characterId = await context.Characters.Where(character => character.Name == name).Select(character => character.Id).SingleAsync(CancellationToken);
+            await new BuffRepository(context).SaveAsync(characterId, new CharacterBuff(BuffKind.Experience, 1.2, now, now.AddMinutes(10), "removed-item"), CancellationToken);
+        }
+
+        var entry = Assert.Single((await client.GetFromJsonAsync<JsonElement>("/api/characters/me/buffs", CancellationToken)).EnumerateArray());
+
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("itemId").ValueKind);
+        Assert.Equal(JsonValueKind.Null, entry.GetProperty("itemName").ValueKind);
+    }
+
     [Fact]
     public async Task Buffs_Returns404WithoutCharacter()
     {

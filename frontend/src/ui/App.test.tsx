@@ -43,7 +43,10 @@ vi.mock("./create/CreateScreen", () => ({
       <button type="button" onClick={onLeave}>
         先離開
       </button>
-      <button type="button" onClick={() => onCreated(makeCharacter({ name: "新人", level: 1 }))}>
+      <button
+        type="button"
+        onClick={() => onCreated(makeCharacter({ name: "新人", jobName: "見習魔法師", level: 1 }))}
+      >
         建好了
       </button>
     </>
@@ -542,6 +545,7 @@ test("App_CreatedCharacterEntersTheTown", async () => {
 
   const status = within(screen.getByRole("region", { name: "角色狀態" }))
   expect(status.getByText("新人")).toBeInTheDocument()
+  expect(status.getByText("見習魔法師")).toBeInTheDocument()
   expect(status.getByText("Lv 1")).toBeInTheDocument()
   expect(screen.getByTestId("town-world").dataset.segment).toBe("0")
 })

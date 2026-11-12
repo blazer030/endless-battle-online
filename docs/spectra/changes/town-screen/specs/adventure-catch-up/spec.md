@@ -10,8 +10,8 @@ The adventure runs on the server whether or not a client is watching: each advan
 
 #### Scenario: Advance after a pause
 
-- **WHEN** a character last settled 600 seconds ago requests an advance
-- **THEN** the battles of those 600 seconds are applied to the character and the settled time moves to the end of the last started battle
+- **WHEN** a character last settled 20 seconds ago requests an advance
+- **THEN** the battles of those 20 seconds are applied to the character and the settled time moves to the end of the last started battle
 
 #### Scenario: No time elapsed
 
@@ -22,9 +22,9 @@ The adventure runs on the server whether or not a client is watching: each advan
 
 When more than 86400 seconds have elapsed since the last settled time, the advance SHALL simulate only the last 86400 seconds and SHALL discard the time before them.
 
-#### Scenario: Two days offline
+#### Scenario: Thirty hours offline
 
-- **WHEN** a character last settled 172800 seconds ago requests an advance
+- **WHEN** a character last settled 108000 seconds ago requests an advance
 - **THEN** only the last 86400 seconds are simulated
 
 ### Requirement: Only the last 30 seconds are reported as events
