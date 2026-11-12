@@ -18,7 +18,7 @@
 
 ## 4. 城鎮的純模型
 
-- [ ] 4.1 依「換段的狀態放在 `src/game/`」，新增 `frontend/src/game/town.ts`：`panoramaOffsets(stageHeight)`、`swipeTarget(segment, deltaX, deltaY)`、`timeOfDay(date)`、`remainingText(endsAt, now)`、`isEndingSoon(endsAt, now)`，以及加成列的 `bonusRows(buffs, lodging, rooms, now)`。`bonusRows` 的規則：住宿排第一、密藥依種類排序；名稱用道具名或「種類 ×倍率」，有道具時才有第二行；剩餘比例；已到期的不列出；`hasExpired` 表示要不要重新讀取。先寫失敗測試，用規格的 Example 表當測資：Town panorama segments 的偏移（624 → 452／728、780 → 614／1002）、Change segment by sign or swipe 的滑動結果表、Bonus row and list 的剩餘時間表、Town background follows the time of day 的時刻表、`BonusRows_NamesTheItemOrTheKind`（`神力秘藥LV1`＋`物攻 ×1.05`；舊資料 `物防 ×1.05` 沒有第二行）、`BonusRows_PutsLodgingFirstThenKindOrder`。驗證：`town.test.ts` 全綠、`pnpm check` 全綠。
+- [x] 4.1 依「換段的狀態放在 `src/game/`」，新增 `frontend/src/game/town.ts`：`panoramaOffsets(stageHeight)`、`swipeTarget(segment, deltaX, deltaY)`、`timeOfDay(date)`、`remainingText(endsAt, now)`、`isEndingSoon(endsAt, now)`，以及加成列的 `bonusRows(buffs, lodging, rooms, now)`。`bonusRows` 的規則：住宿排第一、密藥依種類排序；名稱用道具名或「種類 ×倍率」，有道具時才有第二行；剩餘比例；已到期的不列出；`hasExpired` 表示要不要重新讀取。先寫失敗測試，用規格的 Example 表當測資：Town panorama segments 的偏移（624 → 452／728、780 → 614／1002）、Change segment by sign or swipe 的滑動結果表、Bonus row and list 的剩餘時間表、Town background follows the time of day 的時刻表、`BonusRows_NamesTheItemOrTheKind`（`神力秘藥LV1`＋`物攻 ×1.05`；舊資料 `物防 ×1.05` 沒有第二行）、`BonusRows_PutsLodgingFirstThenKindOrder`。驗證：`town.test.ts` 全綠、`pnpm check` 全綠。
 
 ## 5. 立繪與設計素材
 
