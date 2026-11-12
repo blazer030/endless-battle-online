@@ -8,7 +8,7 @@ The game API contract defines how the game client and the API exchange player da
 
 ### Requirement: Complete field names in the game API
 
-Responses and requests of the character, adventure, skill, job and world endpoints, and every stat or stat-bonus object returned by any game endpoint, SHALL use complete words for field names. The following names SHALL replace the abbreviated names, and the abbreviated names SHALL NOT appear in those responses:
+Responses and requests of every game endpoint under `/api/` SHALL use complete words for field names and enumeration values. The following names SHALL replace the abbreviated names, and the abbreviated names SHALL NOT appear in those responses:
 
 | Abbreviated | Complete |
 | --- | --- |
@@ -29,8 +29,11 @@ Responses and requests of the character, adventure, skill, job and world endpoin
 | `exp` | `experience` |
 | `jobExp` | `jobExperience` |
 | `nextExp` | `nextLevelExperience` |
+| `supplyHp` | `supplyHealthPoints` |
+| `supplySp` | `supplyManaPoints` |
+| `expPercent` | `experiencePercent` |
 
-The same substitution SHALL apply where an abbreviation is part of a longer name (for example `playerHp` becomes `playerHealthPoints`, `potionHpPercent` becomes `potionHealthPointsPercent`, `spCost` becomes `manaPointsCost`). Level ranges SHALL use `minimum` and `maximum` instead of `min` and `max`. `life` SHALL stay `life`.
+The same substitution SHALL apply where an abbreviation is part of a longer name (for example `playerHp` becomes `playerHealthPoints`, `potionHpPercent` becomes `potionHealthPointsPercent`, `spCost` becomes `manaPointsCost`). Level ranges SHALL use `minimum` and `maximum` instead of `min` and `max`. `life` SHALL stay `life`. Buff kinds SHALL be `Experience`, `JobExperience`, `Attack`, `Magic`, `Defense` and `MagicDefense`; `Exp` and `JobExp` SHALL NOT appear. Field names that denote a time (`atSeconds`, `at`, `endsAt`, `expiresAt`) are not abbreviations and SHALL stay as they are.
 
 #### Scenario: Character stats use complete names
 
@@ -63,214 +66,121 @@ The same substitution SHALL apply where an abbreviation is part of a longer name
 - **WHEN** a signed-in client requests `GET /api/world`
 - **THEN** each place's `recommended` object has `minimum` and `maximum`
 
+#### Scenario: Supply items use complete names
+
+- **WHEN** a signed-in client requests `GET /api/inventory` holding a supply item that restores 50 health points and 25 mana points
+- **THEN** that item has `supplyHealthPoints` 50 and `supplyManaPoints` 25, and has no `supplyHp` or `supplySp` field
+
+#### Scenario: Mission rewards use complete names
+
+- **WHEN** a signed-in client requests `GET /api/missions` and when it completes a mission
+- **THEN** each mission's `rewards` object and the completion response have `experience` and no `exp` field
+
+#### Scenario: Mercenary catalogue uses complete names
+
+- **WHEN** a signed-in client requests `GET /api/mercenaries`
+- **THEN** each catalogue entry has `experiencePercent` equal to the mercenary's experience share in `mercenaries.json`, and has no `expPercent` field
+
+#### Scenario: Buff kinds use complete names
+
+- **WHEN** a signed-in client requests `GET /api/inn`
+- **THEN** the room that grants experience has `kind` `Experience` and the room that grants job experience has `kind` `JobExperience`
+
 
 <!-- @trace
-source: game-api-dto-vo
+source: game-resources-dto-vo
 updated: 2026-11-12
 code:
-  - backend/EndlessBattle.Api/Program.cs
-  - backend/EndlessBattle.Tests/Api/JobEndpointsTests.cs
-  - frontend/src/game/creationDraft.ts
-  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
-  - frontend/src/game/skills.ts
-  - backend/EndlessBattle.Domain/Characters/Character.cs
-  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/game/inventory.ts
-  - backend/EndlessBattle.Tests/Domain/World/MonsterFormulaTests.cs
-  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/HotelTests.cs
-  - frontend/src/ui/App.tsx
-  - frontend/src/ui/CharacterScreen.tsx
-  - backend/EndlessBattle.Tests/Api/ForgeEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/SocketTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCaptureTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/RefineTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - frontend/src/ui/CompanionsScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/BaseStats.cs
-  - backend/EndlessBattle.Tests/Api/ApiHostStartupTests.cs
-  - backend/EndlessBattle.Tests/Application/EconomyServiceTests.cs
-  - frontend/src/game/missions.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentBonusTests.cs
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/JobEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/api/worldData.ts
-  - frontend/src/game/character.ts
-  - backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs
-  - frontend/src/game/world.ts
-  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/ExperienceCurveTests.cs
-  - backend/EndlessBattle.Domain/Forge/Socket.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/RewardFormulasTests.cs
-  - frontend/src/api/client.ts
-  - backend/EndlessBattle.Domain/Rest/Inn.cs
-  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/WorldEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/World/MonsterPoolTests.cs
-  - backend/EndlessBattle.Domain/World/LevelRange.cs
-  - backend/EndlessBattle.Tests/Domain/AdventureSettingsTests.cs
-  - frontend/src/ui/ForgePage.tsx
-  - backend/EndlessBattle.Domain/Forge/Refine.cs
-  - frontend/src/ui/MissionsScreen.tsx
-  - frontend/src/ui/WorldPanel.tsx
-  - frontend/src/ui/SettingsPanel.tsx
-  - backend/EndlessBattle.Domain/Pets/PetCare.cs
-  - backend/EndlessBattle.Tests/TestContent/items.json
-  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
-  - backend/EndlessBattle.Domain/World/MonsterFormula.cs
-  - scripts/smoke-compose.sh
-  - backend/EndlessBattle.Domain/Jobs/JobChange.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/DeliveryTests.cs
-  - frontend/src/ui/useAdventureLoop.ts
-  - backend/EndlessBattle.Domain/Characters/DerivedStats.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/BattleEventsTests.cs
-  - backend/EndlessBattle.Tests/Api/BattleEventResponsesTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
-  - backend/EndlessBattle.Domain/Items/Buffs.cs
-  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/api/parse.ts
-  - frontend/src/ui/MercenaryPage.tsx
-  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
-  - backend/openapi/EndlessBattle.Api_admin.json
-  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
-  - backend/EndlessBattle.Domain/Content/JobDefinition.cs
-  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
-  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
-  - frontend/src/api/characterData.ts
-  - frontend/src/ui/PetsPage.tsx
-  - backend/EndlessBattle.Domain/Equipment/EquipmentRules.cs
-  - frontend/src/game/stats.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
-  - frontend/src/api/adventureData.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/BagScreen.tsx
-  - backend/EndlessBattle.Infrastructure/Persistence/EnhancementJson.cs
-  - backend/EndlessBattle.Domain/World/Recommendation.cs
-  - backend/EndlessBattle.Api/Endpoints/BattleEventResponses.cs
-  - backend/EndlessBattle.Api/Endpoints/ShopEndpoints.cs
-  - frontend/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestCharacters.cs
-  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
-  - frontend/src/game/battleEvents.ts
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Tests/Domain/Economy/DepotRulesTests.cs
-  - backend/EndlessBattle.Tests/Api/ContentEndpointsTests.cs
-  - frontend/src/game/skillOverview.ts
-  - backend/EndlessBattle.Domain/Battle/PotionRules.cs
-  - backend/EndlessBattle.Tests/Application/WorldServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/WorldEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/InventoryRepositoriesTests.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestItems.cs
-  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
-  - admin/src/report/ReportPage.tsx
-  - admin/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - backend/EndlessBattle.Domain/Progression/RewardFormulas.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
-  - frontend/src/game/battlePlayback.ts
-  - frontend/src/game/publicNames.ts
-  - frontend/src/game/stageModel.ts
-  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenaryDefinition.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/BuffRepository.cs
   - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Domain/Rest/Hotel.cs
-  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Jobs/JobChangeTests.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Tests/Api/EconomyEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/LevelUpTests.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/RestRulesTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Domain/Characters/CreateCharacterCommand.cs
-  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/game/battleLog.ts
-  - frontend/src/ui/InnPage.tsx
-  - frontend/src/ui/SkillsScreen.tsx
-  - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
-  - backend/EndlessBattle.Tests/Domain/DerivedStatsTests.cs
-  - backend/EndlessBattle.Tests/Application/InnServiceTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureRun.cs
-  - backend/EndlessBattle.Tests/Application/CharacterServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
+  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
+  - backend/EndlessBattle.Tests/Support/TestItems.cs
+  - backend/EndlessBattle.Domain/Forge/Refine.cs
+  - frontend/src/ui/ForgePage.tsx
+  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
+  - frontend/src/game/pets.ts
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - frontend/src/api/companionData.ts
+  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MissionEndpoints.cs
+  - backend/EndlessBattle.Domain/Items/Buffs.cs
+  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
   - backend/EndlessBattle.Domain/Items/ConsumableUse.cs
-  - frontend/src/ui/bagWidgets.tsx
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
-  - scripts/deploy-nas.sh
-  - CLAUDE.md
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePotionTests.cs
-  - frontend/src/game/types.ts
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/game/settings.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentRulesTests.cs
-  - backend/EndlessBattle.Domain/Progression/LevelUp.cs
-  - backend/EndlessBattle.Tests/Api/AdventureEndpointsTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
-  - backend/EndlessBattle.Domain/Adventure/RestRules.cs
+  - backend/EndlessBattle.Tests/Domain/Missions/DailyMissionsTests.cs
+  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
+  - frontend/src/game/forge.ts
+  - frontend/src/game/inn.ts
+  - frontend/src/ui/BagScreen.css
+  - frontend/src/ui/InnPage.tsx
+  - frontend/src/ui/MercenaryPage.tsx
+  - frontend/src/ui/MissionsScreen.tsx
+  - frontend/src/api/forgeData.ts
+  - frontend/src/api/missionData.ts
   - frontend/src/game/mercenaries.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - frontend/src/game/refreshSignals.ts
-  - backend/EndlessBattle.Domain/Characters/AdventureSettings.cs
-  - frontend/src/ui/AdventureScreen.tsx
-  - frontend/src/api/skillData.ts
-  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
-  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Domain/Progression/ExperienceCurve.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdvanceResult.cs
+  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - backend/EndlessBattle.Application/Missions/MissionCompletion.cs
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Domain/Missions/DailyMissions.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
+  - frontend/src/ui/PetsPage.tsx
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MercenaryEndpoints.cs
+  - backend/openapi/EndlessBattle.Api.json
+  - frontend/eslint.config.js
+  - backend/EndlessBattle.Domain/Forge/Socket.cs
+  - frontend/src/game/inventory.ts
+  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - frontend/src/ui/HonourPage.tsx
+  - frontend/src/ui/CharacterScreen.tsx
+  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - frontend/src/game/honour.ts
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Infrastructure/BuffKindCodes.cs
+  - backend/EndlessBattle.Tests/Api/MercenaryEndpointsTests.cs
+  - frontend/src/game/buffs.ts
+  - backend/EndlessBattle.Domain/Missions/MissionDefinition.cs
+  - backend/EndlessBattle.Tests/Infrastructure/BuffRepositoryTests.cs
+  - frontend/src/game/types.ts
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - frontend/src/api/inventoryData.ts
+  - frontend/src/api/client.ts
+  - frontend/src/api/schema.ts
+  - frontend/src/api/lodgingData.ts
+  - frontend/src/game/missions.ts
+  - backend/EndlessBattle.Application/Missions/MissionService.cs
+  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
 tests:
-  - frontend/src/ui/WorldPanel.test.tsx
-  - admin/src/report/ReportPage.test.tsx
-  - frontend/src/game/stats.test.ts
-  - frontend/src/game/refreshSignals.test.ts
-  - frontend/src/ui/MissionsScreen.test.tsx
-  - frontend/src/ui/SkillsScreen.test.tsx
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/ui/InnPage.test.tsx
-  - frontend/src/ui/App.test.tsx
   - frontend/src/api/client.test.ts
-  - frontend/src/api/parse.test.ts
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/api/characterData.test.ts
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/api/adventureData.test.ts
-  - frontend/src/game/inventory.test.ts
-  - frontend/src/game/battlePlayback.test.ts
-  - frontend/src/game/skills.test.ts
-  - frontend/src/game/world.test.ts
-  - frontend/src/game/stageModel.test.ts
-  - frontend/src/ui/SettingsPanel.test.tsx
-  - frontend/src/game/settings.test.ts
-  - frontend/src/api/worldData.test.ts
+  - frontend/src/game/mercenaries.test.ts
+  - frontend/src/game/pets.test.ts
+  - frontend/src/api/lodgingData.test.ts
+  - frontend/src/api/forgeData.test.ts
+  - frontend/src/api/inventoryData.test.ts
+  - frontend/src/api/missionData.test.ts
+  - frontend/src/game/forge.test.ts
+  - frontend/src/game/buffs.test.ts
+  - frontend/src/ui/CompanionsScreen.test.tsx
   - frontend/src/game/missions.test.ts
-  - admin/src/report/compare.test.ts
+  - frontend/src/api/companionData.test.ts
+  - frontend/src/game/inn.test.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/ui/MissionsScreen.test.tsx
   - frontend/src/test/fixtures.ts
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/game/battleLog.test.ts
-  - frontend/src/ui/create/CreateSubmit.test.tsx
-  - frontend/src/api/skillData.test.ts
+  - frontend/src/game/inventory.test.ts
+  - frontend/src/ui/InnPage.test.tsx
+  - frontend/src/ui/CharacterScreen.test.tsx
 -->
 
 ---
@@ -501,7 +411,7 @@ tests:
 ---
 ### Requirement: Stored formats stay readable
 
-Renaming fields SHALL NOT change the format of stored data. Content files under `backend/content/` SHALL keep their existing keys and SHALL load with the same values as before. Enhancement data already stored for a player's items SHALL read back with the same values, and newly written enhancement data SHALL use the same keys as data written before this change.
+Renaming fields SHALL NOT change the format of stored data. Content files under `backend/content/` SHALL keep their existing keys and SHALL load with the same values as before. Enhancement data and buff kinds already stored for a player SHALL read back with the same values, and newly written enhancement data and buff kinds SHALL use the same keys and codes as data written before this change.
 
 #### Scenario: Existing content loads unchanged
 
@@ -513,214 +423,106 @@ Renaming fields SHALL NOT change the format of stored data. Content files under 
 - **WHEN** an inventory row's stored refine bonus is `{"str":2,"smart":0,"life":0,"vit":0,"agi":0,"au":0,"be":0,"at":3,"mat":0,"df":0,"mdf":0,"hpMax":0}`
 - **THEN** that item's refine bonus reads back as strength 2 and attack 3, and writing it back stores the same keys
 
+#### Scenario: Previously stored buff kind reads back
+
+- **WHEN** a character has a stored buff whose kind is `Exp`
+- **THEN** `GET /api/characters/me/buffs` returns that buff with `kind` `Experience`, and drinking another experience elixir stores the kind as `Exp`
+
 
 <!-- @trace
-source: game-api-dto-vo
+source: game-resources-dto-vo
 updated: 2026-11-12
 code:
-  - backend/EndlessBattle.Api/Program.cs
-  - backend/EndlessBattle.Tests/Api/JobEndpointsTests.cs
-  - frontend/src/game/creationDraft.ts
-  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
-  - frontend/src/game/skills.ts
-  - backend/EndlessBattle.Domain/Characters/Character.cs
-  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/game/inventory.ts
-  - backend/EndlessBattle.Tests/Domain/World/MonsterFormulaTests.cs
-  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/HotelTests.cs
-  - frontend/src/ui/App.tsx
-  - frontend/src/ui/CharacterScreen.tsx
-  - backend/EndlessBattle.Tests/Api/ForgeEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/SocketTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCaptureTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/RefineTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - frontend/src/ui/CompanionsScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/BaseStats.cs
-  - backend/EndlessBattle.Tests/Api/ApiHostStartupTests.cs
-  - backend/EndlessBattle.Tests/Application/EconomyServiceTests.cs
-  - frontend/src/game/missions.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentBonusTests.cs
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/JobEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/api/worldData.ts
-  - frontend/src/game/character.ts
-  - backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs
-  - frontend/src/game/world.ts
-  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/ExperienceCurveTests.cs
-  - backend/EndlessBattle.Domain/Forge/Socket.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/RewardFormulasTests.cs
-  - frontend/src/api/client.ts
-  - backend/EndlessBattle.Domain/Rest/Inn.cs
-  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/WorldEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/World/MonsterPoolTests.cs
-  - backend/EndlessBattle.Domain/World/LevelRange.cs
-  - backend/EndlessBattle.Tests/Domain/AdventureSettingsTests.cs
-  - frontend/src/ui/ForgePage.tsx
-  - backend/EndlessBattle.Domain/Forge/Refine.cs
-  - frontend/src/ui/MissionsScreen.tsx
-  - frontend/src/ui/WorldPanel.tsx
-  - frontend/src/ui/SettingsPanel.tsx
-  - backend/EndlessBattle.Domain/Pets/PetCare.cs
-  - backend/EndlessBattle.Tests/TestContent/items.json
-  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
-  - backend/EndlessBattle.Domain/World/MonsterFormula.cs
-  - scripts/smoke-compose.sh
-  - backend/EndlessBattle.Domain/Jobs/JobChange.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/DeliveryTests.cs
-  - frontend/src/ui/useAdventureLoop.ts
-  - backend/EndlessBattle.Domain/Characters/DerivedStats.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/BattleEventsTests.cs
-  - backend/EndlessBattle.Tests/Api/BattleEventResponsesTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
-  - backend/EndlessBattle.Domain/Items/Buffs.cs
-  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/api/parse.ts
-  - frontend/src/ui/MercenaryPage.tsx
-  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
-  - backend/openapi/EndlessBattle.Api_admin.json
-  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
-  - backend/EndlessBattle.Domain/Content/JobDefinition.cs
-  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
-  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
-  - frontend/src/api/characterData.ts
-  - frontend/src/ui/PetsPage.tsx
-  - backend/EndlessBattle.Domain/Equipment/EquipmentRules.cs
-  - frontend/src/game/stats.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
-  - frontend/src/api/adventureData.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/BagScreen.tsx
-  - backend/EndlessBattle.Infrastructure/Persistence/EnhancementJson.cs
-  - backend/EndlessBattle.Domain/World/Recommendation.cs
-  - backend/EndlessBattle.Api/Endpoints/BattleEventResponses.cs
-  - backend/EndlessBattle.Api/Endpoints/ShopEndpoints.cs
-  - frontend/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestCharacters.cs
-  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
-  - frontend/src/game/battleEvents.ts
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Tests/Domain/Economy/DepotRulesTests.cs
-  - backend/EndlessBattle.Tests/Api/ContentEndpointsTests.cs
-  - frontend/src/game/skillOverview.ts
-  - backend/EndlessBattle.Domain/Battle/PotionRules.cs
-  - backend/EndlessBattle.Tests/Application/WorldServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/WorldEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/InventoryRepositoriesTests.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestItems.cs
-  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
-  - admin/src/report/ReportPage.tsx
-  - admin/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - backend/EndlessBattle.Domain/Progression/RewardFormulas.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
-  - frontend/src/game/battlePlayback.ts
-  - frontend/src/game/publicNames.ts
-  - frontend/src/game/stageModel.ts
-  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenaryDefinition.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/BuffRepository.cs
   - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Domain/Rest/Hotel.cs
-  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Jobs/JobChangeTests.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Tests/Api/EconomyEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/LevelUpTests.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/RestRulesTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Domain/Characters/CreateCharacterCommand.cs
-  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/game/battleLog.ts
-  - frontend/src/ui/InnPage.tsx
-  - frontend/src/ui/SkillsScreen.tsx
-  - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
-  - backend/EndlessBattle.Tests/Domain/DerivedStatsTests.cs
-  - backend/EndlessBattle.Tests/Application/InnServiceTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureRun.cs
-  - backend/EndlessBattle.Tests/Application/CharacterServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
+  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
+  - backend/EndlessBattle.Tests/Support/TestItems.cs
+  - backend/EndlessBattle.Domain/Forge/Refine.cs
+  - frontend/src/ui/ForgePage.tsx
+  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
+  - frontend/src/game/pets.ts
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - frontend/src/api/companionData.ts
+  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MissionEndpoints.cs
+  - backend/EndlessBattle.Domain/Items/Buffs.cs
+  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
   - backend/EndlessBattle.Domain/Items/ConsumableUse.cs
-  - frontend/src/ui/bagWidgets.tsx
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
-  - scripts/deploy-nas.sh
-  - CLAUDE.md
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePotionTests.cs
-  - frontend/src/game/types.ts
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/game/settings.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentRulesTests.cs
-  - backend/EndlessBattle.Domain/Progression/LevelUp.cs
-  - backend/EndlessBattle.Tests/Api/AdventureEndpointsTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
-  - backend/EndlessBattle.Domain/Adventure/RestRules.cs
+  - backend/EndlessBattle.Tests/Domain/Missions/DailyMissionsTests.cs
+  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
+  - frontend/src/game/forge.ts
+  - frontend/src/game/inn.ts
+  - frontend/src/ui/BagScreen.css
+  - frontend/src/ui/InnPage.tsx
+  - frontend/src/ui/MercenaryPage.tsx
+  - frontend/src/ui/MissionsScreen.tsx
+  - frontend/src/api/forgeData.ts
+  - frontend/src/api/missionData.ts
   - frontend/src/game/mercenaries.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - frontend/src/game/refreshSignals.ts
-  - backend/EndlessBattle.Domain/Characters/AdventureSettings.cs
-  - frontend/src/ui/AdventureScreen.tsx
-  - frontend/src/api/skillData.ts
-  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
-  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Domain/Progression/ExperienceCurve.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdvanceResult.cs
+  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - backend/EndlessBattle.Application/Missions/MissionCompletion.cs
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Domain/Missions/DailyMissions.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
+  - frontend/src/ui/PetsPage.tsx
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MercenaryEndpoints.cs
+  - backend/openapi/EndlessBattle.Api.json
+  - frontend/eslint.config.js
+  - backend/EndlessBattle.Domain/Forge/Socket.cs
+  - frontend/src/game/inventory.ts
+  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - frontend/src/ui/HonourPage.tsx
+  - frontend/src/ui/CharacterScreen.tsx
+  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - frontend/src/game/honour.ts
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Infrastructure/BuffKindCodes.cs
+  - backend/EndlessBattle.Tests/Api/MercenaryEndpointsTests.cs
+  - frontend/src/game/buffs.ts
+  - backend/EndlessBattle.Domain/Missions/MissionDefinition.cs
+  - backend/EndlessBattle.Tests/Infrastructure/BuffRepositoryTests.cs
+  - frontend/src/game/types.ts
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - frontend/src/api/inventoryData.ts
+  - frontend/src/api/client.ts
+  - frontend/src/api/schema.ts
+  - frontend/src/api/lodgingData.ts
+  - frontend/src/game/missions.ts
+  - backend/EndlessBattle.Application/Missions/MissionService.cs
+  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
 tests:
-  - frontend/src/ui/WorldPanel.test.tsx
-  - admin/src/report/ReportPage.test.tsx
-  - frontend/src/game/stats.test.ts
-  - frontend/src/game/refreshSignals.test.ts
-  - frontend/src/ui/MissionsScreen.test.tsx
-  - frontend/src/ui/SkillsScreen.test.tsx
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/ui/InnPage.test.tsx
-  - frontend/src/ui/App.test.tsx
   - frontend/src/api/client.test.ts
-  - frontend/src/api/parse.test.ts
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/api/characterData.test.ts
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/api/adventureData.test.ts
-  - frontend/src/game/inventory.test.ts
-  - frontend/src/game/battlePlayback.test.ts
-  - frontend/src/game/skills.test.ts
-  - frontend/src/game/world.test.ts
-  - frontend/src/game/stageModel.test.ts
-  - frontend/src/ui/SettingsPanel.test.tsx
-  - frontend/src/game/settings.test.ts
-  - frontend/src/api/worldData.test.ts
+  - frontend/src/game/mercenaries.test.ts
+  - frontend/src/game/pets.test.ts
+  - frontend/src/api/lodgingData.test.ts
+  - frontend/src/api/forgeData.test.ts
+  - frontend/src/api/inventoryData.test.ts
+  - frontend/src/api/missionData.test.ts
+  - frontend/src/game/forge.test.ts
+  - frontend/src/game/buffs.test.ts
+  - frontend/src/ui/CompanionsScreen.test.tsx
   - frontend/src/game/missions.test.ts
-  - admin/src/report/compare.test.ts
+  - frontend/src/api/companionData.test.ts
+  - frontend/src/game/inn.test.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/ui/MissionsScreen.test.tsx
   - frontend/src/test/fixtures.ts
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/game/battleLog.test.ts
-  - frontend/src/ui/create/CreateSubmit.test.tsx
-  - frontend/src/api/skillData.test.ts
+  - frontend/src/game/inventory.test.ts
+  - frontend/src/ui/InnPage.test.tsx
+  - frontend/src/ui/CharacterScreen.test.tsx
 -->
 
 ---
@@ -1176,7 +978,7 @@ tests:
 ---
 ### Requirement: Client converts responses before use
 
-The game client SHALL convert each response of the character, adventure, skill, job and world endpoints into its own value objects before any screen or game-state code reads it. A response missing a required field, or holding a value of the wrong type, SHALL reject the request with a parse error that names the field's path; the screen SHALL treat it like any other failed request. Fields the client does not know SHALL be ignored.
+The game client SHALL convert each response of every game endpoint under `/api/` into its own value objects before any screen or game-state code reads it. Screens and game-state code SHALL NOT use the types generated from the OpenAPI document. Time values SHALL be converted to dates. A response missing a required field, or holding a value of the wrong type, SHALL reject the request with a parse error that names the field's path; the screen SHALL treat it like any other failed request. Fields the client does not know SHALL be ignored.
 
 #### Scenario: Missing field is reported with its path
 
@@ -1188,211 +990,108 @@ The game client SHALL convert each response of the character, adventure, skill, 
 - **WHEN** `GET /api/world` responds 200 with an extra field on a place that the client does not know
 - **THEN** the client returns the world map and the extra field does not appear on the converted place
 
+#### Scenario: Missing field in an embedded inventory names its path
+
+- **WHEN** `POST /api/forge/refine` responds 200 with a body whose `inventory.bag[0]` lacks `capacity`
+- **THEN** the client rejects the request with a parse error whose path is `forge.inventory.bag[0].capacity`
+
+#### Scenario: Buff end time becomes a date
+
+- **WHEN** `GET /api/characters/me/buffs` responds with a buff whose `endsAt` is `2026-11-12T08:30:00Z`
+- **THEN** the converted buff's end time is the date 2026-11-12 08:30 UTC
+
 <!-- @trace
-source: game-api-dto-vo
+source: game-resources-dto-vo
 updated: 2026-11-12
 code:
-  - backend/EndlessBattle.Api/Program.cs
-  - backend/EndlessBattle.Tests/Api/JobEndpointsTests.cs
-  - frontend/src/game/creationDraft.ts
-  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
-  - frontend/src/game/skills.ts
-  - backend/EndlessBattle.Domain/Characters/Character.cs
-  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/game/inventory.ts
-  - backend/EndlessBattle.Tests/Domain/World/MonsterFormulaTests.cs
-  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/HotelTests.cs
-  - frontend/src/ui/App.tsx
-  - frontend/src/ui/CharacterScreen.tsx
-  - backend/EndlessBattle.Tests/Api/ForgeEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/SocketTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCaptureTests.cs
-  - backend/EndlessBattle.Tests/Domain/Forge/RefineTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - frontend/src/ui/CompanionsScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/BaseStats.cs
-  - backend/EndlessBattle.Tests/Api/ApiHostStartupTests.cs
-  - backend/EndlessBattle.Tests/Application/EconomyServiceTests.cs
-  - frontend/src/game/missions.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentBonusTests.cs
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/JobEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/api/worldData.ts
-  - frontend/src/game/character.ts
-  - backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs
-  - frontend/src/game/world.ts
-  - backend/EndlessBattle.Domain/Battle/SkillCaster.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/ExperienceCurveTests.cs
-  - backend/EndlessBattle.Domain/Forge/Socket.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/RewardFormulasTests.cs
-  - frontend/src/api/client.ts
-  - backend/EndlessBattle.Domain/Rest/Inn.cs
-  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Api/WorldEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/World/MonsterPoolTests.cs
-  - backend/EndlessBattle.Domain/World/LevelRange.cs
-  - backend/EndlessBattle.Tests/Domain/AdventureSettingsTests.cs
-  - frontend/src/ui/ForgePage.tsx
-  - backend/EndlessBattle.Domain/Forge/Refine.cs
-  - frontend/src/ui/MissionsScreen.tsx
-  - frontend/src/ui/WorldPanel.tsx
-  - frontend/src/ui/SettingsPanel.tsx
-  - backend/EndlessBattle.Domain/Pets/PetCare.cs
-  - backend/EndlessBattle.Tests/TestContent/items.json
-  - backend/EndlessBattle.Domain/Battle/EscapeRules.cs
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
-  - backend/EndlessBattle.Domain/World/MonsterFormula.cs
-  - scripts/smoke-compose.sh
-  - backend/EndlessBattle.Domain/Jobs/JobChange.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/DeliveryTests.cs
-  - frontend/src/ui/useAdventureLoop.ts
-  - backend/EndlessBattle.Domain/Characters/DerivedStats.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/BattleEventsTests.cs
-  - backend/EndlessBattle.Tests/Api/BattleEventResponsesTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleMonsterSkillTests.cs
-  - backend/EndlessBattle.Domain/Items/Buffs.cs
-  - backend/EndlessBattle.Tests/Application/ForgeServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/api/parse.ts
-  - frontend/src/ui/MercenaryPage.tsx
-  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
-  - backend/openapi/EndlessBattle.Api_admin.json
-  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
-  - backend/EndlessBattle.Domain/Content/JobDefinition.cs
-  - backend/EndlessBattle.Domain/Battle/RoundResolver.cs
-  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
-  - frontend/src/api/characterData.ts
-  - frontend/src/ui/PetsPage.tsx
-  - backend/EndlessBattle.Domain/Equipment/EquipmentRules.cs
-  - frontend/src/game/stats.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillActivationRateTests.cs
-  - frontend/src/api/adventureData.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/BagScreen.tsx
-  - backend/EndlessBattle.Infrastructure/Persistence/EnhancementJson.cs
-  - backend/EndlessBattle.Domain/World/Recommendation.cs
-  - backend/EndlessBattle.Api/Endpoints/BattleEventResponses.cs
-  - backend/EndlessBattle.Api/Endpoints/ShopEndpoints.cs
-  - frontend/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestCharacters.cs
-  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
-  - frontend/src/game/battleEvents.ts
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Tests/Domain/Economy/DepotRulesTests.cs
-  - backend/EndlessBattle.Tests/Api/ContentEndpointsTests.cs
-  - frontend/src/game/skillOverview.ts
-  - backend/EndlessBattle.Domain/Battle/PotionRules.cs
-  - backend/EndlessBattle.Tests/Application/WorldServiceTests.cs
-  - backend/EndlessBattle.Api/Endpoints/WorldEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/InventoryRepositoriesTests.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Application/BalanceReportServiceTests.cs
-  - backend/EndlessBattle.Tests/Support/TestItems.cs
-  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
-  - admin/src/report/ReportPage.tsx
-  - admin/src/api/schema.ts
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - backend/EndlessBattle.Domain/Progression/RewardFormulas.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
-  - frontend/src/game/battlePlayback.ts
-  - frontend/src/game/publicNames.ts
-  - frontend/src/game/stageModel.ts
-  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenaryDefinition.cs
+  - backend/EndlessBattle.Infrastructure/Persistence/BuffRepository.cs
   - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Domain/Rest/Hotel.cs
-  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Jobs/JobChangeTests.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Tests/Api/EconomyEndpointsTests.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetBattleTests.cs
-  - backend/EndlessBattle.Tests/Domain/Progression/LevelUpTests.cs
-  - backend/EndlessBattle.Tests/Domain/Adventure/RestRulesTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Domain/Characters/CreateCharacterCommand.cs
-  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/game/battleLog.ts
-  - frontend/src/ui/InnPage.tsx
-  - frontend/src/ui/SkillsScreen.tsx
-  - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
-  - backend/EndlessBattle.Tests/Domain/DerivedStatsTests.cs
-  - backend/EndlessBattle.Tests/Application/InnServiceTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureRun.cs
-  - backend/EndlessBattle.Tests/Application/CharacterServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/AdventureEndpoints.cs
+  - backend/EndlessBattle.Tests/Application/MissionServiceTests.cs
+  - backend/EndlessBattle.Tests/Support/TestItems.cs
+  - backend/EndlessBattle.Domain/Forge/Refine.cs
+  - frontend/src/ui/ForgePage.tsx
+  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
+  - frontend/src/game/pets.ts
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdventureService.cs
+  - frontend/src/api/companionData.ts
+  - backend/EndlessBattle.Tests/Api/MissionEndpointsTests.cs
+  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MissionEndpoints.cs
+  - backend/EndlessBattle.Domain/Items/Buffs.cs
+  - backend/EndlessBattle.Tests/Domain/Items/ConsumableUseTests.cs
   - backend/EndlessBattle.Domain/Items/ConsumableUse.cs
-  - frontend/src/ui/bagWidgets.tsx
-  - backend/EndlessBattle.Tests/Api/Admin/AdminContentReadTests.cs
-  - scripts/deploy-nas.sh
-  - CLAUDE.md
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePotionTests.cs
-  - frontend/src/game/types.ts
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/game/settings.ts
-  - backend/EndlessBattle.Tests/Domain/Equipment/EquipmentRulesTests.cs
-  - backend/EndlessBattle.Domain/Progression/LevelUp.cs
-  - backend/EndlessBattle.Tests/Api/AdventureEndpointsTests.cs
-  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
-  - backend/EndlessBattle.Domain/Adventure/RestRules.cs
+  - backend/EndlessBattle.Tests/Domain/Missions/DailyMissionsTests.cs
+  - backend/EndlessBattle.Tests/Api/InnEndpointsTests.cs
+  - frontend/src/game/forge.ts
+  - frontend/src/game/inn.ts
+  - frontend/src/ui/BagScreen.css
+  - frontend/src/ui/InnPage.tsx
+  - frontend/src/ui/MercenaryPage.tsx
+  - frontend/src/ui/MissionsScreen.tsx
+  - frontend/src/api/forgeData.ts
+  - frontend/src/api/missionData.ts
   - frontend/src/game/mercenaries.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - frontend/src/game/refreshSignals.ts
-  - backend/EndlessBattle.Domain/Characters/AdventureSettings.cs
-  - frontend/src/ui/AdventureScreen.tsx
-  - frontend/src/api/skillData.ts
-  - backend/EndlessBattle.Domain/Battle/BattleModifiers.cs
-  - backend/EndlessBattle.Domain/Content/MonsterDefinition.cs
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Domain/Progression/ExperienceCurve.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/EndlessBattle.Tests/Domain/Missions/MissionRewardsTests.cs
+  - backend/EndlessBattle.Application/Adventure/AdvanceResult.cs
+  - backend/EndlessBattle.Tests/Content/MissionTableTests.cs
+  - backend/EndlessBattle.Tests/Domain/Adventure/AdventureSimulatorTests.cs
+  - backend/EndlessBattle.Application/Missions/MissionCompletion.cs
+  - frontend/src/ui/bagWidgets.tsx
+  - backend/EndlessBattle.Domain/Missions/DailyMissions.cs
+  - backend/EndlessBattle.Domain/Adventure/AdventureSimulator.cs
+  - backend/EndlessBattle.Domain/Missions/MissionRewards.cs
+  - frontend/src/ui/BagScreen.tsx
+  - backend/EndlessBattle.Domain/Pets/PetBattle.cs
+  - frontend/src/ui/PetsPage.tsx
+  - backend/EndlessBattle.Tests/Application/AdventureServiceTests.cs
+  - backend/EndlessBattle.Api/Endpoints/MercenaryEndpoints.cs
+  - backend/openapi/EndlessBattle.Api.json
+  - frontend/eslint.config.js
+  - backend/EndlessBattle.Domain/Forge/Socket.cs
+  - frontend/src/game/inventory.ts
+  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
+  - backend/EndlessBattle.Infrastructure/Content/JsonGameContent.cs
+  - backend/EndlessBattle.Api/Endpoints/InventoryEndpoints.cs
+  - frontend/src/ui/HonourPage.tsx
+  - frontend/src/ui/CharacterScreen.tsx
+  - backend/EndlessBattle.Tests/Application/InventoryServiceTests.cs
+  - frontend/src/game/honour.ts
+  - backend/EndlessBattle.Tests/Infrastructure/JsonGameContentTests.cs
+  - backend/EndlessBattle.Infrastructure/BuffKindCodes.cs
+  - backend/EndlessBattle.Tests/Api/MercenaryEndpointsTests.cs
+  - frontend/src/game/buffs.ts
+  - backend/EndlessBattle.Domain/Missions/MissionDefinition.cs
+  - backend/EndlessBattle.Tests/Infrastructure/BuffRepositoryTests.cs
+  - frontend/src/game/types.ts
+  - backend/EndlessBattle.Domain/Items/ItemDefinition.cs
+  - frontend/src/api/inventoryData.ts
+  - frontend/src/api/client.ts
+  - frontend/src/api/schema.ts
+  - frontend/src/api/lodgingData.ts
+  - frontend/src/game/missions.ts
+  - backend/EndlessBattle.Application/Missions/MissionService.cs
+  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
+  - backend/EndlessBattle.Domain/Mercenaries/MercenarySimulator.cs
 tests:
-  - frontend/src/ui/WorldPanel.test.tsx
-  - admin/src/report/ReportPage.test.tsx
-  - frontend/src/game/stats.test.ts
-  - frontend/src/game/refreshSignals.test.ts
-  - frontend/src/ui/MissionsScreen.test.tsx
-  - frontend/src/ui/SkillsScreen.test.tsx
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/ui/InnPage.test.tsx
-  - frontend/src/ui/App.test.tsx
   - frontend/src/api/client.test.ts
-  - frontend/src/api/parse.test.ts
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/api/characterData.test.ts
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/api/adventureData.test.ts
-  - frontend/src/game/inventory.test.ts
-  - frontend/src/game/battlePlayback.test.ts
-  - frontend/src/game/skills.test.ts
-  - frontend/src/game/world.test.ts
-  - frontend/src/game/stageModel.test.ts
-  - frontend/src/ui/SettingsPanel.test.tsx
-  - frontend/src/game/settings.test.ts
-  - frontend/src/api/worldData.test.ts
+  - frontend/src/game/mercenaries.test.ts
+  - frontend/src/game/pets.test.ts
+  - frontend/src/api/lodgingData.test.ts
+  - frontend/src/api/forgeData.test.ts
+  - frontend/src/api/inventoryData.test.ts
+  - frontend/src/api/missionData.test.ts
+  - frontend/src/game/forge.test.ts
+  - frontend/src/game/buffs.test.ts
+  - frontend/src/ui/CompanionsScreen.test.tsx
   - frontend/src/game/missions.test.ts
-  - admin/src/report/compare.test.ts
+  - frontend/src/api/companionData.test.ts
+  - frontend/src/game/inn.test.ts
+  - frontend/src/ui/BagScreen.test.tsx
+  - frontend/src/ui/MissionsScreen.test.tsx
   - frontend/src/test/fixtures.ts
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/game/battleLog.test.ts
-  - frontend/src/ui/create/CreateSubmit.test.tsx
-  - frontend/src/api/skillData.test.ts
+  - frontend/src/game/inventory.test.ts
+  - frontend/src/ui/InnPage.test.tsx
+  - frontend/src/ui/CharacterScreen.test.tsx
 -->
