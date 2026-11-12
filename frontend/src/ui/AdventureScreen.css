@@ -16,6 +16,29 @@
   border-bottom: 1px solid var(--border);
 }
 
+.adventure__top:has(.adventure__town) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.adventure__town {
+  padding: 1px 8px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  background: none;
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.adventure__town:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 .adventure__identity {
   display: flex;
   align-items: baseline;

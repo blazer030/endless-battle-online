@@ -81,9 +81,11 @@ type Props = {
   jobNames?: readonly JobName[]
   // 戰報有掉落、喝藥水、捕捉或傭兵報告時遞增，開著的背包跟著重新載入
   refreshSignal?: number
+  // 從城鎮直接打開某個子頁（例如旅館）
+  initialPage?: SubPage
 }
 
-type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour" | "inn"
+export type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour" | "inn"
 
 const subPages: { id: SubPage; label: string }[] = [
   { id: "bag", label: "背包" },
@@ -107,9 +109,10 @@ export function BagScreen({
   onCharacterChanged,
   jobNames = [],
   refreshSignal = 0,
+  initialPage = "bag",
 }: Props) {
   const tabsId = useId()
-  const [page, setPage] = useState<SubPage>("bag")
+  const [page, setPage] = useState<SubPage>(initialPage)
   const [inventory, setInventory] = useState<InventoryVo | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [busy, setBusy] = useState(false)

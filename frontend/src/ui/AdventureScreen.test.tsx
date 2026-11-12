@@ -5,7 +5,11 @@ import type { ApiClient } from "../api/client"
 import type { JobChoiceVo, SkillOverviewVo } from "../game/skillOverview"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
-import { LevelUpHintMilliseconds, PanelRefreshMilliseconds } from "../motion/timings"
+import {
+  LevelUpHintMilliseconds,
+  PanelRefreshMilliseconds,
+  PollIntervalMilliseconds,
+} from "../motion/timings"
 import type { StageHandle } from "../render/StageRenderer"
 import {
   makeCharacter,
@@ -722,4 +726,64 @@ test("AdventureScreen_OpenBagReloadsAfterASummary", async () => {
   await advanceTime(PanelRefreshMilliseconds + 1_000)
 
   expect(api.getInventory).toHaveBeenCalledTimes(2)
+})
+
+// 從城鎮點旅館：停在背包分頁的旅館子頁
+test("AdventureScreen_OpensAtTheGivenTabAndBagPage", async () => {
+  render(
+    <AdventureScreen
+      api={createFakeApi()}
+      initialCharacter={character}
+      initialTab="bag"
+      initialBagPage="inn"
+      onSignOut={vi.fn()}
+      onReturnToTown={vi.fn()}
+    />,
+  )
+  await advanceTime(0)
+
+  expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("aria-current", "page")
+  expect(screen.getByRole("tab", { name: "旅館" })).toHaveAttribute("aria-selected", "true")
+})
+
+// 回城鎮：還沒播的戰鬥丟掉，交回伺服器最新的角色
+test("AdventureScreen_ReturnToTownHandsBackTheLatestCharacter", async () => {
+  const onReturnToTown = vi.fn()
+  render(
+    <AdventureScreen
+      api={createFakeApi()}
+      initialCharacter={character}
+      onSignOut={vi.fn()}
+      onReturnToTown={onReturnToTown}
+    />,
+  )
+  // 推進回應已收到、還沒播完（第二段只過 0 毫秒）
+  await advanceTime(0)
+  await advanceTime(0)
+
+  fireEvent.click(screen.getByRole("button", { name: "回城鎮" }))
+
+  expect(onReturnToTown).toHaveBeenCalledTimes(1)
+  expect(onReturnToTown.mock.calls[0][0]).toMatchObject({ experience: 8, money: 3 })
+})
+
+// 卸載（回到城鎮）後不再推進
+test("AdventureScreen_ReturnToTownStopsPolling", async () => {
+  const api = createFakeApi()
+  const { unmount } = render(
+    <AdventureScreen
+      api={api}
+      initialCharacter={character}
+      onSignOut={vi.fn()}
+      onReturnToTown={vi.fn()}
+    />,
+  )
+  await advanceTime(0)
+  const calls = vi.mocked(api.advance).mock.calls.length
+  expect(calls).toBeGreaterThan(0)
+
+  unmount()
+  await advanceTime(PollIntervalMilliseconds * 3)
+
+  expect(api.advance).toHaveBeenCalledTimes(calls)
 })

@@ -13,7 +13,8 @@
 
 ## 3. 舊外殼從城鎮打開
 
-- [ ] 3.1 依「點設施對應的舊分頁」與「城鎮不連線，靠卸載舊外殼停止輪詢」，`AdventureScreen` 加 `initialTab`、`initialBagPage`、`onReturnToTown`，`BagScreen` 加 `initialPage`。舊上方欄最左邊加「回城鎮」按鈕：按下時先 `discardQueued`，再把顯示中的角色交給 `onReturnToTown`。這是 Facilities open the old tabbed screen 的舊外殼部分，以及 Town makes no adventure requests 的「回城鎮停止輪詢」。先寫失敗測試：`AdventureScreen.test.tsx` 的 `OpensAtTheGivenTabAndBagPage`（`bag`＋`inn` 顯示旅館子頁）、`ReturnToTownHandsBackTheLatestCharacter`、`ReturnToTownStopsPolling`（卸載後推進 mock 不再被呼叫）。驗證：前端 `pnpm check` 全綠；360 寬時上方欄不換行（瀏覽器確認，排除：樣式不寫自動測試）。
+- [x] 3.1 依「點設施對應的舊分頁」與「城鎮不連線，靠卸載舊外殼停止輪詢」，`AdventureScreen` 加 `initialTab`、`initialBagPage`、`onReturnToTown`，`BagScreen` 加 `initialPage`。舊上方欄最左邊加「回城鎮」按鈕：按下時先 `discardQueued`，再把顯示中的角色交給 `onReturnToTown`。這是 Facilities open the old tabbed screen 的舊外殼部分，以及 Town makes no adventure requests 的「回城鎮停止輪詢」。先寫失敗測試：`AdventureScreen.test.tsx` 的 `OpensAtTheGivenTabAndBagPage`（`bag`＋`inn` 顯示旅館子頁）、`ReturnToTownHandsBackTheLatestCharacter`、`ReturnToTownStopsPolling`（卸載後推進 mock 不再被呼叫）。驗證：前端 `pnpm check` 全綠；360 寬時上方欄不換行（瀏覽器確認，排除：樣式不寫自動測試）。
+  - 實作紀錄：`onReturnToTown` 是選填，沒傳時不顯示「回城鎮」（6.3 之前 App 還直接開舊外殼，不放沒作用的按鈕）；GameScreen 一律會傳。`ReturnToTownStopsPolling` 一跑就過（既有的卸載清理已會停止輪詢）。360 寬的確認併入 7.1。
 
 ## 4. 城鎮的純模型
 

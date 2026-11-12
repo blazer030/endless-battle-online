@@ -13,7 +13,7 @@ import { locationTitle, passStatus } from "../game/world"
 import { LevelUpHintMilliseconds } from "../motion/timings"
 import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
-import { BagScreen } from "./BagScreen"
+import { BagScreen, type SubPage } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
 import { CompanionsScreen } from "./CompanionsScreen"
@@ -32,7 +32,7 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-type Tab = "adventure" | "character" | "skills" | "bag" | "missions" | "companions"
+export type Tab = "adventure" | "character" | "skills" | "bag" | "missions" | "companions"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
@@ -50,15 +50,30 @@ type AreaPass = {
   subPlace: CharacterVo["subPlace"]
 }
 
-// onSignOut：玩家在角色頁按登出
-type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
+// onSignOut：玩家在角色頁按登出；從城鎮打開時停在 initialTab（背包分頁再停在 initialBagPage），
+// onReturnToTown 交回伺服器最新的角色
+type Props = {
+  api: ApiClient
+  initialCharacter: CharacterVo
+  onSignOut: () => void
+  initialTab?: Tab
+  initialBagPage?: SubPage
+  onReturnToTown?: (character: CharacterVo) => void
+}
 
-export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
+export function AdventureScreen({
+  api,
+  initialCharacter,
+  onSignOut,
+  initialTab = "adventure",
+  initialBagPage = "bag",
+  onReturnToTown,
+}: Props) {
   const [names, setNames] = useState<PublicNames>(emptyPublicNames)
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
-  const [tab, setTab] = useState<Tab>("adventure")
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [worldOpen, setWorldOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   // 升級事件播出時在頂欄短暫顯示提示，值是剛升上的等級
@@ -181,6 +196,19 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
   return (
     <div className="adventure">
       <header className="adventure__top">
+        {onReturnToTown !== undefined && (
+          <button
+            type="button"
+            className="adventure__town"
+            onClick={() => {
+              // 還沒播的戰鬥不再播，顯示值就等於伺服器最新的角色
+              playback.discardQueued()
+              onReturnToTown(playback.displayedCharacter)
+            }}
+          >
+            回城鎮
+          </button>
+        )}
         <span className="adventure__identity">
           <span className="adventure__name">{character.name}</span>
           <span className="adventure__job">{character.jobName}</span>
@@ -291,6 +319,7 @@ export function AdventureScreen({ api, initialCharacter, onSignOut }: Props) {
               onCharacterChanged={handleCharacterChange}
               jobNames={names.jobs}
               refreshSignal={refreshSignals.bag}
+              initialPage={initialBagPage}
             />
           </div>
         )}
