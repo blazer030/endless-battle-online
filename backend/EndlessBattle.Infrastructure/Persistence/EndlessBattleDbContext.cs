@@ -194,6 +194,9 @@ public partial class EndlessBattleDbContext : DbContext
             entity.Property(e => e.EndsAt)
                 .HasMaxLength(6)
                 .HasColumnName("ends_at");
+            entity.Property(e => e.ItemId)
+                .HasMaxLength(64)
+                .HasColumnName("item_id");
             entity.Property(e => e.Multiplier)
                 .HasPrecision(4)
                 .HasColumnName("multiplier");

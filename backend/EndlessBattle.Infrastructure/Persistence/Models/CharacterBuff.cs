@@ -9,6 +9,8 @@ public partial class CharacterBuff
 
     public string Kind { get; set; } = null!;
 
+    public string? ItemId { get; set; }
+
     public decimal Multiplier { get; set; }
 
     public DateTime StartsAt { get; set; }

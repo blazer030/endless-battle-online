@@ -270,6 +270,21 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
     }
 
+    // 密藥記下最後喝的道具；舊資料沒有道具，所以可以是 NULL
+    [Fact]
+    public async Task Schema_CharacterBuffHasNullableItemId()
+    {
+        await using var context = database.CreateDbContext();
+
+        var columns = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT(COLUMN_TYPE, ' ', IS_NULLABLE) AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'character_buffs' AND COLUMN_NAME = 'item_id'
+            """).ToListAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(["varchar(64) YES"], columns);
+    }
+
     // 每個角色一列目前的入住；時刻 DATETIME(6) 保留到微秒
     [Fact]
     public async Task Schema_HasCharacterLodgingTable()
