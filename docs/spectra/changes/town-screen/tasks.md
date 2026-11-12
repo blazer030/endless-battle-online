@@ -22,7 +22,7 @@
 
 ## 5. 立繪與設計素材
 
-- [ ] 5.1 依「立繪與設計素材」，用 `cd tools/assets && pnpm cli import items item-2257 <來源圖>`、`import items item-2255 <來源圖>` 匯入神力秘藥（`.design-work/assets/8a7c67f613bdcf739873435319f65458.*`）與戰鬥熟練手冊（`e233c86386e9d40d3c0218ed34953c76.*`）的圖；立繪 `portraits/job-6～9-male|female` 已在 R2，不重新匯入。上傳需要 repo 根目錄的 `.env.r2`。驗證：`pnpm cli missing items` 不再列出 item-2255、item-2257；`content-manifest.json` 多出這兩個 items；`frontend` 的 `validateManifest` 測試通過。
+- [x] 5.1 依「立繪與設計素材」，用 `cd tools/assets && pnpm cli import items item-2257 <來源圖>`、`import items item-2255 <來源圖>` 匯入神力秘藥（`.design-work/assets/8a7c67f613bdcf739873435319f65458.*`）與戰鬥熟練手冊（`e233c86386e9d40d3c0218ed34953c76.*`）的圖；立繪 `portraits/job-6～9-male|female` 已在 R2，不重新匯入。上傳需要 repo 根目錄的 `.env.r2`。驗證：`pnpm cli missing items` 不再列出 item-2255、item-2257；`content-manifest.json` 多出這兩個 items；`frontend` 的 `validateManifest` 測試通過。
 - [ ] 5.2 用 `pnpm cli design town <名稱> <來源圖>` 把城鎮素材轉成 `frontend/src/assets/town/*.webp`：四時段全景（`b1b11a9c`、`cbcc9c3b`、`75b36d0b`、`44221259`）、紙條 `35548540`、羅盤 `d55573c6`、錢袋 `c85813b2`、角色／背包／同伴圖示（`1b66a6085`、`4ca152c1`、`e0b38181`）、六個房型徽章。`docs/art/README.md` 的設計素材清單加上這些。驗證：檔案存在且被畫面 import（tsc 不報錯）；README 清單與檔案一致（內容檢查）。
 
 ## 6. 城鎮畫面
