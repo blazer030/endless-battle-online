@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest"
 import type { BuffVo } from "./buffs"
 import type { InnRoom, Lodging } from "./inn"
+import { timeOfDay } from "./timeOfDay"
 import {
   bonusRows,
   expiredSince,
@@ -8,7 +9,6 @@ import {
   panoramaOffsets,
   remainingText,
   swipeTarget,
-  timeOfDay,
   type TownSegment,
 } from "./town"
 
@@ -49,7 +49,7 @@ test.each([
   expect(isEndingSoon(later(seconds), now)).toBe(endingSoon)
 })
 
-// 規格 Town background follows the time of day（本機時間）
+// 規格 Town background follows the time of day：沿用標題的 timeOfDay（本機小時）
 test.each([
   [4, 59, "night"],
   [5, 0, "dawn"],
@@ -58,7 +58,7 @@ test.each([
   [17, 0, "dusk"],
   [19, 0, "night"],
 ])("TimeOfDay_At%i:%i", (hours, minutes, expected) => {
-  expect(timeOfDay(new Date(2026, 10, 12, hours, minutes))).toBe(expected)
+  expect(timeOfDay(new Date(2026, 10, 12, hours, minutes).getHours())).toBe(expected)
 })
 
 const elixir = (overrides: Partial<BuffVo>): BuffVo => ({

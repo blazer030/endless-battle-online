@@ -5,8 +5,6 @@ import { roomEffect, type InnRoom, type Lodging } from "./inn"
 export type TownSegment = 0 | 1 | 2
 export const townSegments: readonly TownSegment[] = [0, 1, 2]
 
-export type TimeOfDay = "dawn" | "day" | "dusk" | "night"
-
 // 全景原圖排成 1512×844，以舞台高等比縮放
 const PanoramaHeight = 844
 const PanoramaWidth = 1512
@@ -32,15 +30,6 @@ export const swipeTarget = (segment: TownSegment, deltaX: number, deltaY: number
   if (Math.abs(deltaX) < SwipeThreshold || Math.abs(deltaX) <= Math.abs(deltaY)) return segment
   const next = segment + (deltaX < 0 ? 1 : -1)
   return next < 0 || next > 2 ? segment : (next as TownSegment)
-}
-
-// 本機時間：清晨 5–8、白天 8–17、黃昏 17–19、其餘夜晚
-export const timeOfDay = (date: Date): TimeOfDay => {
-  const hour = date.getHours()
-  if (hour >= 5 && hour < 8) return "dawn"
-  if (hour >= 8 && hour < 17) return "day"
-  if (hour >= 17 && hour < 19) return "dusk"
-  return "night"
 }
 
 const secondsLeft = (endsAt: Date, now: Date) => (endsAt.getTime() - now.getTime()) / 1000
