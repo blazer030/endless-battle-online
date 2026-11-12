@@ -41,6 +41,31 @@
   --glow-rgb: 255 244 222;
   --ink-rgb: 42 26 12;
   --night-rgb: 24 32 60;
+  /* 城鎮（TownFit）：紙籤字、換段的青綠、狀態牌、HP／SP 條、羅盤、圖釘 */
+  --town-text: #3a2c1c;
+  --town-teal: #2f5f5a;
+  --town-muted: #8a7356;
+  --town-job: #7a6648;
+  --town-money: #4a3412;
+  --town-hp-label: #a2463c;
+  --town-sp-label: #2f6a8a;
+  --town-hp-light: #f2a08e;
+  --town-hp: #c9473a;
+  --town-sp-light: #9ed0e8;
+  --town-sp: #3e86b0;
+  --town-compass-text: #4a3416;
+  --town-compass-place: #6a5434;
+  --town-pin-light: #f08a7a;
+  --town-pin: #b0322a;
+  --town-wash-rgb: 255 252 244;
+  --town-fade-rgb: 250 246 236;
+  --town-night-rgb: 28 36 64;
+  --town-shadow-rgb: 70 50 20;
+  --town-bar-rgb: 80 60 30;
+  --town-hero-shadow-rgb: 60 40 20;
+  --town-compass-shadow-rgb: 80 60 20;
+  --town-compass-glow-rgb: 230 180 80;
+  --town-pin-shadow-rgb: 0 0 0;
   /* 舞台外的空間：所有新畫面共用，之後換成靜態大圖只改這裡 */
   --stage-backdrop: var(--ink);
   --font-serif: "Noto Serif TC", serif;

@@ -5,6 +5,18 @@ import { roomEffect, type InnRoom, type Lodging } from "./inn"
 export type TownSegment = 0 | 1 | 2
 export const townSegments: readonly TownSegment[] = [0, 1, 2]
 
+// 城鎮上可以點的設施；點了接到舊外殼的對應分頁
+export type TownFacility =
+  | "character"
+  | "bag"
+  | "companions"
+  | "adventure"
+  | "inn"
+  | "shop"
+  | "forge"
+  | "honour"
+  | "missions"
+
 // 全景原圖排成 1512×844，以舞台高等比縮放
 const PanoramaHeight = 844
 const PanoramaWidth = 1512
@@ -26,8 +38,11 @@ export const panoramaOffsets = (stageHeight: number): readonly [number, number, 
 // 水平距離（舞台 px）至少 40 且大於垂直距離才算滑動；往左滑到下一段，兩端不動
 const SwipeThreshold = 40
 
+export const isSwipe = (deltaX: number, deltaY: number) =>
+  Math.abs(deltaX) >= SwipeThreshold && Math.abs(deltaX) > Math.abs(deltaY)
+
 export const swipeTarget = (segment: TownSegment, deltaX: number, deltaY: number): TownSegment => {
-  if (Math.abs(deltaX) < SwipeThreshold || Math.abs(deltaX) <= Math.abs(deltaY)) return segment
+  if (!isSwipe(deltaX, deltaY)) return segment
   const next = segment + (deltaX < 0 ? 1 : -1)
   return next < 0 || next > 2 ? segment : (next as TownSegment)
 }

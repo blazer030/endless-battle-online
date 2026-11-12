@@ -1,0 +1,442 @@
+/* 城鎮（設計板 TownFit）：舞台寬 390、高 624～780；全景以 k＝舞台高 / 844 縮放 */
+.town {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  color: var(--town-text);
+  background: var(--paper);
+  /* 水平手勢交給城鎮換段，垂直仍可捲動 */
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.town-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(1512px * var(--k));
+  height: 100%;
+  background: url("../../assets/town/panorama-day.webp") left top / 100% 100% no-repeat;
+  transition: transform 0.75s cubic-bezier(0.65, 0, 0.25, 1);
+}
+
+.town-world--dawn {
+  background-image: url("../../assets/town/panorama-dawn.webp");
+}
+
+.town-world--dusk {
+  background-image: url("../../assets/town/panorama-dusk.webp");
+}
+
+.town-world--night {
+  background-image: url("../../assets/town/panorama-night.webp");
+}
+
+/* 上下各一層暖白，讓字和人物浮出來；夜晚改成淡藍 */
+.town-world__fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--town-wash-rgb) / 0.6) 0%,
+    rgb(var(--town-wash-rgb) / 0) 20%,
+    rgb(var(--town-wash-rgb) / 0) 70%,
+    rgb(var(--town-fade-rgb) / 0.7) 100%
+  );
+}
+
+.town-world--night .town-world__fade {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--town-night-rgb) / 0.45) 0%,
+    rgb(var(--town-night-rgb) / 0) 22%,
+    rgb(var(--town-night-rgb) / 0) 68%,
+    rgb(var(--town-night-rgb) / 0.5) 100%
+  );
+}
+
+/* 不在這一段的紙籤與名牌淡出（城門口的紙籤跟著全景滑出畫面，不淡出） */
+.town-fade {
+  transition:
+    opacity 0.25s,
+    transform 0.2s ease;
+}
+
+.town-segment--away .town-fade {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 立繪：跟著全景縮放，框寬固定成戰士立繪的寬，較窄的立繪自動置中 */
+.town-hero {
+  position: absolute;
+  z-index: 25;
+  left: calc(-40px * var(--k));
+  bottom: calc(40px * var(--k));
+  width: calc(368px * var(--k));
+  height: calc(560px * var(--k));
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.town-hero__image {
+  flex: none;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 10px 16px rgb(var(--town-hero-shadow-rgb) / 0.25));
+  animation: town-sway 5s ease-in-out infinite;
+}
+
+/* 手撕和紙條 */
+.town-paper {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--town-text);
+  white-space: nowrap;
+  cursor: pointer;
+  background: url("../../assets/town/paper.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 4px rgb(var(--town-shadow-rgb) / 0.28));
+  transform: rotate(var(--r, 0deg));
+}
+
+.town-paper:focus-visible {
+  outline: 2px solid var(--town-teal);
+  outline-offset: 2px;
+}
+
+.town-menu {
+  z-index: 26;
+  width: 178px;
+  height: 50px;
+  padding: 0 24px 0 18px;
+}
+
+.town-menu:hover {
+  transform: translateX(-6px) rotate(var(--r, 0deg));
+}
+
+.town-menu img {
+  width: 46px;
+  height: 46px;
+  margin-left: -26px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgb(var(--town-shadow-rgb) / 0.3));
+}
+
+.town-menu b {
+  font-size: 19px;
+  letter-spacing: 0.2em;
+}
+
+.town-menu small {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--town-muted);
+}
+
+/* 換段紙籤：貼著該段左右緣，箭頭輕推提示旁邊還有一段 */
+.town-turn {
+  height: 44px;
+  color: var(--town-teal);
+}
+
+.town-turn b {
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+
+.town-turn--to-market {
+  left: 286px;
+  top: 372px;
+  width: 118px;
+  padding: 0 22px 0 18px;
+}
+
+.town-turn--to-market b {
+  font-size: 17px;
+  letter-spacing: 0.14em;
+}
+
+.town-turn--to-gate {
+  left: calc(var(--p1) - 16px);
+  top: calc(446px * var(--k));
+  width: 140px;
+  padding: 0 18px 0 24px;
+  justify-content: flex-end;
+}
+
+.town-turn--to-guild {
+  left: calc(var(--p1) + 286px);
+  top: calc(560px * var(--k));
+  width: 118px;
+  padding: 0 20px 0 16px;
+}
+
+.town-turn--to-market-back {
+  left: calc(var(--p2) - 12px);
+  top: calc(700px * var(--k));
+  width: 106px;
+  padding: 0 16px 0 24px;
+  justify-content: flex-end;
+}
+
+.town-arrow--right {
+  animation: town-nudge 1.6s ease-in-out infinite;
+}
+
+/* 設施名牌：以圖釘（名牌上緣中點）釘在全景上，名牌本身不縮放 */
+.town-sign {
+  height: 38px;
+  padding: 0 16px 0 14px;
+  justify-content: center;
+  font-size: 16px;
+  letter-spacing: 0.16em;
+  transform: translateX(-50%) rotate(var(--r, 0deg));
+}
+
+.town-sign:hover {
+  transform: translateX(-50%) translateY(-3px) rotate(var(--r, 0deg));
+}
+
+.town-sign::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--town-pin-light), var(--town-pin));
+  box-shadow: 0 1px 2px rgb(var(--town-pin-shadow-rgb) / 0.35);
+}
+
+.town-sign i {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--town-muted);
+}
+
+/* 出發羅盤：貼下緣，外圈慢慢轉，字不動 */
+.town-compass {
+  position: absolute;
+  z-index: 26;
+  left: 226px;
+  bottom: 40px;
+  width: 148px;
+  height: 148px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.town-compass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("../../assets/town/compass.webp") center / contain no-repeat;
+  filter: drop-shadow(0 6px 10px rgb(var(--town-compass-shadow-rgb) / 0.4));
+  animation: town-spin 60s linear infinite;
+}
+
+.town-compass:hover::before {
+  filter: drop-shadow(0 6px 16px rgb(var(--town-compass-glow-rgb) / 0.9));
+}
+
+.town-compass:focus-visible {
+  outline: 2px solid var(--town-teal);
+  outline-offset: -8px;
+  border-radius: 50%;
+}
+
+.town-compass span {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+
+.town-compass b {
+  margin-right: -0.2em;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 24px;
+  letter-spacing: 0.2em;
+  color: var(--town-compass-text);
+}
+
+.town-compass small {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--town-compass-place);
+}
+
+/* 固定在上方：名字與狀態、金錢，不隨全景平移 */
+.town-status,
+.town-money {
+  position: absolute;
+  z-index: 30;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--town-wash-rgb) / 0.94),
+    rgb(var(--town-wash-rgb) / 0.78)
+  );
+  box-shadow: 0 2px 8px rgb(var(--town-shadow-rgb) / 0.18);
+}
+
+.town-status {
+  left: 0;
+  top: 14px;
+  width: 214px;
+  padding: 8px 30px 9px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+}
+
+.town-status__identity {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.town-status__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.town-status__job {
+  flex: none;
+  font-size: 12px;
+  color: var(--town-job);
+}
+
+.town-status__level {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--town-teal);
+}
+
+.town-status__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.town-status__label {
+  width: 18px;
+  font-size: 11px;
+}
+
+.town-status__row--hp .town-status__label {
+  color: var(--town-hp-label);
+}
+
+.town-status__row--sp .town-status__label {
+  color: var(--town-sp-label);
+}
+
+.town-status__bar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgb(var(--town-bar-rgb) / 0.15);
+}
+
+.town-status__bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.town-status__row--hp .town-status__bar i {
+  background: linear-gradient(90deg, var(--town-hp-light), var(--town-hp));
+}
+
+.town-status__row--sp .town-status__bar i {
+  background: linear-gradient(90deg, var(--town-sp-light), var(--town-sp));
+}
+
+.town-money {
+  right: 0;
+  top: 18px;
+  height: 30px;
+  padding: 0 14px 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--town-money);
+}
+
+.town-money img {
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+}
+
+@keyframes town-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes town-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes town-sway {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .town-world,
+  .town-fade {
+    transition: none;
+  }
+
+  .town-hero__image,
+  .town-arrow--right,
+  .town-compass::before {
+    animation: none;
+  }
+}

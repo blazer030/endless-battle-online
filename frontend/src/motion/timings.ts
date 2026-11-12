@@ -34,3 +34,5 @@ export const InkDotsDelaySeconds = 0.45
 export const PassageMilliseconds = 2_400
 // 打開網頁沒角色或讀不到時，過場背景疊在下一個畫面上淡出（延遲 0.3 秒＋0.6 秒，與 Passage.css 一致）
 export const PassageLeaveMilliseconds = 900
+// 城鎮左右滑完後這麼久內的紙籤點擊不算（從紙籤上開始滑時，放開會再觸發點擊）
+export const SwipeClickGuardMilliseconds = 300
