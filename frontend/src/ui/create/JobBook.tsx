@@ -6,6 +6,7 @@ import { Seal } from "../title/Seal"
 import { bookmarkOf } from "./art"
 import { jobFlavors } from "./flavor"
 import "./JobBook.css"
+import { portraitKey } from "../../game/portrait"
 
 type Props = {
   open: boolean
@@ -28,10 +29,6 @@ const growthLabels: Record<GrowthStatKey, string> = {
 
 const growthText = ({ minimum, maximum }: { minimum: number; maximum: number }) =>
   minimum === maximum ? `+${minimum}` : `+${minimum}～${maximum}`
-
-// 立繪依登記證上的性別：女用 -female，其餘（男、還沒選）用 -male
-const portraitKey = (jobId: string, sex: number | null) =>
-  `${jobId}-${sex === 2 ? "female" : "male"}`
 
 // 書籤：圖示是職業圖示的遮罩，讀不到 R2 的圖時用佔位圖
 const Bookmark = ({
