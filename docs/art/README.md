@@ -97,6 +97,19 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 
 職業圖示不是設計素材：`job-icons/job-6`～`job-9` 用 `import` 上傳 R2（戰士 `62fa0017`、術士 `707f3b3a`、盜賊 `eb722b44`、樂手 `36314e2f`）。
 
+### `town/`：城鎮（設計板 TownFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `panorama-dawn`、`-day`、`-dusk`、`-night` | 城鎮三段全景，依時段換（原圖 1376×768，不縮） | `b1b11a9c`、`cbcc9c3b`、`75b36d0b`、`44221259` |
+| `paper` | 紙籤、名牌、換段紙籤的紙條（356） | `35548540` |
+| `compass` | 出發羅盤（296） | `d55573c6` |
+| `purse` | 金錢的錢袋（48） | `c85813b2` |
+| `icon-character`、`icon-bag`、`icon-companions` | 城門口角色、背包、同伴紙籤的圖示（92） | `1b66a608`、`4ca152c1`、`e0b38181` |
+| `room-<房型 id>` | 加成列的住宿徽章，六間房型（64）：`apprentice-loft`、`training-chamber`、`fighters-bunk`、`stargazer-tower`、`bulwark-room`、`quiet-chapel` | `87c454fc`、`acfda66d`、`b0ea9422`、`19e11db0`、`56c3ace8`、`1d5b6da7` |
+
+密藥圓章的圖是道具圖，不是設計素材：`items/item-2257`（神力秘藥 `8a7c67f6`）、`items/item-2255`（戰鬥熟練手冊 `e233c863`）用 `import` 上傳 R2，其他密藥用道具佔位圖。
+
 ## 提示詞
 
 日系手繪（設計畫布 EBO DEMO）的提示詞在 [`prompts/demo/`](prompts/demo/README.md)；道具描述檔在 `prompts/items/`。`prompts.md` 是舊的深藍夜色舞台範本，只留作參考。
