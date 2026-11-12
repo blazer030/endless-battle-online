@@ -105,6 +105,18 @@ test("MercenaryOverviewConverter_ConvertsTheWholeResponse", () => {
   expect(converted.contract?.nextFightAt).toEqual(new Date(Date.UTC(2026, 10, 12, 8, 31, 40)))
 })
 
+test("MercenaryOverviewConverter_KeepsAMissingContractOrFightAsNull", () => {
+  const contract = overviewDto.contract as Record<string, unknown>
+
+  expect(MercenaryOverviewConverter.toVo({ ...overviewDto, contract: null }).contract).toBeNull()
+  expect(
+    MercenaryOverviewConverter.toVo({
+      ...overviewDto,
+      contract: { ...contract, nextFightAt: null },
+    }).contract?.nextFightAt,
+  ).toBeNull()
+})
+
 test("MercenaryOverviewConverter_MissingExperiencePercentNamesThePath", () => {
   const dto = asDto(overviewDto)
   delete (dto.catalogue as Record<string, unknown>[])[1].experiencePercent

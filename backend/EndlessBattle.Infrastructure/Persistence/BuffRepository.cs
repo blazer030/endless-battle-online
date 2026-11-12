@@ -6,6 +6,7 @@ using CharacterBuffRow = EndlessBattle.Infrastructure.Persistence.Models.Charact
 namespace EndlessBattle.Infrastructure.Persistence;
 
 // kind 存 BuffKindCodes 的儲存代碼（經驗是 Exp、職業經驗是 JobExp）；倍率是 DECIMAL(4,2)
+// 讀取代碼不分大小寫：kind 欄位的定序（utf8mb4_0900_ai_ci）本來就不分，主鍵與查詢也是
 public sealed class BuffRepository(EndlessBattleDbContext context) : IBuffRepository
 {
     public async Task<IReadOnlyList<CharacterBuff>> ListAsync(long characterId, CancellationToken cancellationToken)

@@ -163,6 +163,10 @@ test("ItemUseConverter_ConvertsTheBuffEndToADate", () => {
   })
 })
 
+test("ItemUseConverter_KeepsANoBuffResultAsNull", () => {
+  expect(ItemUseConverter.toVo({ ...useDto, buff: null }).buff).toBeNull()
+})
+
 test("ItemUseConverter_MissingInventoryFieldNamesThePath", () => {
   const dto = { ...useDto, inventory: { ...inventoryDto, bonus: undefined } }
 

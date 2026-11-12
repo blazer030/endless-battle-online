@@ -75,6 +75,30 @@ public class BuffRepositoryTests(MySqlDatabaseFixture database)
             await new BuffRepository(reader).ListAsync(characterId, CancellationToken));
     }
 
+    // 資料庫裡不認識的代碼是資料損毀，讀取時丟例外，不靜默略過
+    [Fact]
+    public async Task Buffs_UnknownStoredKindThrows()
+    {
+        var characterId = await CreateCharacterAsync();
+        await using (var context = database.CreateDbContext())
+        {
+            context.CharacterBuffs.Add(new EndlessBattle.Infrastructure.Persistence.Models.CharacterBuff
+            {
+                CharacterId = characterId,
+                Kind = "Luck",
+                Multiplier = 1.5m,
+                StartsAt = Moment.UtcDateTime,
+                EndsAt = Moment.AddHours(1).UtcDateTime,
+            });
+            await context.SaveChangesAsync(CancellationToken);
+        }
+
+        await using var reader = database.CreateDbContext();
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => new BuffRepository(reader).ListAsync(characterId, CancellationToken));
+        Assert.Contains("Luck", error.Message);
+    }
+
     // 寫入仍用舊代碼，舊版本讀得回來
     [Fact]
     public async Task Buffs_WriteLegacyKind()
