@@ -108,6 +108,15 @@ public class InnTests
         Assert.Equal(1.65, multiplier, 10);
     }
 
+    // 規格範例：經驗密藥 ×1.05 與經驗住宿 ×1.10 → 1.155
+    [Fact]
+    public void Multiplier_ElixirAndLodgingOfSameKindMultiply()
+    {
+        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.05)], BuffKind.Experience, Now, Stay(BuffKind.Experience, 1.10));
+
+        Assert.Equal(1.155, multiplier, 10);
+    }
+
     [Fact]
     public void Combined_LodgingOnlyInsideWindow()
     {

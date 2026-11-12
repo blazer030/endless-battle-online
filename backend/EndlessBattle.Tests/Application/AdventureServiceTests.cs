@@ -324,6 +324,22 @@ public class AdventureServiceTests
         Assert.Empty(await proficiencies.ListAsync(1, CancellationToken));
     }
 
+    // 離線 1 小時：戰報只有最後 30 秒開打的場次，摘要算進全部場次，EventsCoverAll 為 false
+    [Fact]
+    public async Task Advance_LongAbsenceSummarizesAllFights()
+    {
+        await AddCharacterAsync();
+        clock.Advance(TimeSpan.FromHours(1));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        var reportedFights = result.Events.OfType<EncounterEvent>().Count();
+        Assert.InRange(reportedFights, 1, 11);
+        Assert.True(result.Summary.Fights > 1000);
+        Assert.All(result.Events, battleEvent => Assert.True(battleEvent.AtSeconds >= 3600 - 30));
+        Assert.False(result.EventsCoverAll);
+    }
+
     [Fact]
     public async Task Advance_ReturnsNothingAndWritesNothing_WhenClockIsBehind()
     {
