@@ -27,8 +27,10 @@ const PlateFontFamily = [Fonts.latin, Fonts.title]
 
 const degrees = (value: number) => (value * Math.PI) / 180
 
+// 整段補間停掉。不用 killTweensOf(陣列)：對象不只一個時，它不會停掉還沒開始的補間
+// （後面的關鍵影格、還在 delay 的），之後開始時會讀到已銷毀的 Pixi 物件
 export const stopTweens = (targets: readonly object[]) => {
-  gsap.killTweensOf(targets)
+  for (const tween of gsap.getTweensOf(targets)) tween.kill()
 }
 
 const dispose = (target: Container) => {
