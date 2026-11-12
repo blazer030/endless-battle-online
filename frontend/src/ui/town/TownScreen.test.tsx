@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../../api/client"
-import { PollIntervalMilliseconds } from "../../motion/timings"
+import { BuffVo } from "../../game/buffs"
+import { InnVo } from "../../game/inn"
+import { BuffTickMilliseconds, PollIntervalMilliseconds } from "../../motion/timings"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { TownScreen, type TownApi } from "./TownScreen"
@@ -157,4 +159,125 @@ test("TownScreen_MakesNoAdventureRequests", async () => {
   })
 
   expect(api.advance).not.toHaveBeenCalled()
+})
+
+const at = (seconds: number) => new Date(Date.parse("2026-11-12T08:00:00Z") + seconds * 1000)
+
+const attackElixir = BuffVo.create({
+  kind: "Attack",
+  multiplier: 1.05,
+  startsAt: at(-1200),
+  endsAt: at(6000),
+  itemId: "item-2257",
+  itemName: "神力秘藥LV1",
+})
+const legacyDefense = BuffVo.create({
+  kind: "Defense",
+  multiplier: 1.05,
+  startsAt: at(-6900),
+  endsAt: at(300),
+  itemId: null,
+  itemName: null,
+})
+const loft = {
+  id: "apprentice-loft",
+  name: "學徒閣樓",
+  kind: "Experience" as const,
+  multiplier: 1.1,
+  seconds: 28800,
+  price: 100,
+}
+const innWithLodging = InnVo.create({
+  rooms: [loft],
+  lodging: { roomId: "apprentice-loft", startsAt: at(-3600), endsAt: at(25200) },
+})
+
+const bonusApi = (buffs: BuffVo[] = [attackElixir, legacyDefense]) => {
+  const api = createApi()
+  vi.mocked(api.getBuffs).mockResolvedValue(buffs)
+  vi.mocked(api.getInn).mockResolvedValue(innWithLodging)
+  return api
+}
+
+const flush = () =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+
+const badges = () =>
+  within(screen.getByRole("list", { name: "加成" }))
+    .getAllByRole("button")
+    .map((badge) => badge.getAttribute("aria-label"))
+
+test("TownScreen_BonusRowShowsLodgingThenElixirs", async () => {
+  renderTown({ api: bonusApi() })
+  await flush()
+
+  expect(badges()).toEqual(["學徒閣樓，剩 7:00", "神力秘藥LV1，剩 1:40", "物防 ×1.05，剩 5 分"])
+})
+
+test("TownScreen_BonusListOpensAndClosesOnOutsideClick", async () => {
+  renderTown({ api: bonusApi() })
+  await flush()
+
+  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" }))
+  const list = screen.getByRole("dialog", { name: "生效中的加成" })
+  expect(within(list).getByText("住宿 1・密藥 2")).toBeInTheDocument()
+  expect(within(list).getByText("神力秘藥LV1")).toBeInTheDocument()
+  expect(within(list).getByText("物攻 ×1.05")).toBeInTheDocument()
+  // 舊資料：名稱就是「種類 ×倍率」，沒有第二行
+  expect(within(list).getAllByText("物防 ×1.05")).toHaveLength(1)
+
+  fireEvent.click(screen.getByRole("button", { name: "關閉" }))
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+})
+
+test("TownScreen_ChangingSegmentClosesTheBonusList", async () => {
+  renderTown({ api: bonusApi() })
+  await flush()
+
+  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" }))
+  fireEvent.click(screen.getByRole("button", { name: "市集" }))
+
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+})
+
+test("TownScreen_EndingSoonBadgeIsMarked", async () => {
+  renderTown({ api: bonusApi() })
+  await flush()
+
+  expect(screen.getByRole("button", { name: "物防 ×1.05，剩 5 分" })).toHaveAttribute(
+    "data-ending-soon",
+    "true",
+  )
+  expect(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" })).toHaveAttribute(
+    "data-ending-soon",
+    "false",
+  )
+})
+
+// 規格 A bonus runs out in the town
+test("TownScreen_ExpiredBonusTriggersOneRefresh", async () => {
+  const api = bonusApi()
+  renderTown({ api })
+  await flush()
+  vi.mocked(api.getBuffs).mockResolvedValue([attackElixir])
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(BuffTickMilliseconds * 11)
+  })
+
+  expect(api.getBuffs).toHaveBeenCalledTimes(2)
+  expect(api.getInn).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole("button", { name: /物防/ })).not.toBeInTheDocument()
+})
+
+test("TownScreen_BonusRowHiddenWhenLoadingFails", async () => {
+  const api = bonusApi()
+  vi.mocked(api.getBuffs).mockRejectedValue(new Error("boom"))
+  renderTown({ api })
+  await flush()
+
+  expect(screen.queryByRole("list", { name: "加成" })).not.toBeInTheDocument()
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument()
 })

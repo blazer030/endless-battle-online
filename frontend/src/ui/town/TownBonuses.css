@@ -1,0 +1,247 @@
+/* 城鎮加成列（TownFit）：圓章 29×29、間距 8，最多七個排成一排 */
+.town-bonuses {
+  position: absolute;
+  z-index: 40;
+  left: 14px;
+  top: 104px;
+}
+
+.town-bonuses__row {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.town-bonus__disc {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--bonus-glyph);
+  background:
+    radial-gradient(circle at 50% 55%, var(--c), transparent 72%),
+    radial-gradient(circle at 50% 40%, var(--bonus-disc-light), var(--bonus-disc-dark) 75%);
+  box-shadow:
+    inset 0 0 0 1.5px var(--bonus-rim),
+    0 0 0 1px var(--bonus-rim-dark),
+    0 2px 3px rgb(var(--bonus-chip-shadow-rgb) / 0.35);
+}
+
+.town-bonus__disc img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.town-bonus__disc--lodging {
+  --c: rgb(var(--buff-lodging-rgb) / 0.45);
+  border-radius: 7px;
+}
+
+.town-bonus__disc--lodging img {
+  width: 88%;
+  height: 88%;
+}
+
+.town-bonus__disc--experience {
+  --c: rgb(var(--buff-experience-rgb) / 0.55);
+}
+
+.town-bonus__disc--job-experience {
+  --c: rgb(var(--buff-job-experience-rgb) / 0.55);
+}
+
+.town-bonus__disc--attack {
+  --c: rgb(var(--buff-attack-rgb) / 0.55);
+}
+
+.town-bonus__disc--magic {
+  --c: rgb(var(--buff-magic-rgb) / 0.55);
+}
+
+.town-bonus__disc--defense {
+  --c: rgb(var(--buff-defense-rgb) / 0.55);
+}
+
+.town-bonus__disc--magic-defense {
+  --c: rgb(var(--buff-magic-defense-rgb) / 0.55);
+}
+
+.town-bonus__badge {
+  width: 29px;
+  height: 29px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.town-bonus__badge:focus-visible {
+  outline: 2px solid var(--bonus-rim);
+  outline-offset: 2px;
+}
+
+/* 角落的剩餘時間 */
+.town-bonus__badge i {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  translate: -50% 0;
+  padding: 0 3px;
+  border-radius: 6px;
+  font: 700 11px / 14px var(--font-serif);
+  font-style: normal;
+  white-space: nowrap;
+  color: var(--bonus-chip-text);
+  background: var(--bonus-chip);
+  box-shadow: inset 0 0 0 1px rgb(var(--brass-rgb) / 0.7);
+}
+
+.town-bonus__badge[data-ending-soon="true"] {
+  animation: town-bonus-warn 1.6s ease-in-out infinite;
+}
+
+.town-bonus__badge[data-ending-soon="true"] i {
+  color: var(--bonus-warn-text);
+  background: var(--bonus-warn);
+  box-shadow: inset 0 0 0 1px var(--bonus-warn-rim);
+}
+
+@keyframes town-bonus-warn {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1.5px var(--bonus-rim),
+      0 0 0 1px var(--bonus-rim-dark),
+      0 2px 3px rgb(var(--bonus-chip-shadow-rgb) / 0.35);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 0 0 1.5px var(--bonus-rim),
+      0 0 0 1px var(--bonus-rim-dark),
+      0 0 0 4px rgb(var(--bonus-warn-glow-rgb) / 0.45);
+  }
+}
+
+/* 點開的清單：深色金框 */
+.town-bonus-list {
+  position: absolute;
+  left: -2px;
+  top: 44px;
+  width: 236px;
+  padding: 10px 12px 8px;
+  border-radius: 5px;
+  color: var(--bonus-panel-text);
+  text-align: left;
+  background: linear-gradient(100deg, var(--bonus-panel-light), var(--bonus-panel-dark));
+  box-shadow:
+    inset 0 0 0 1px var(--brass),
+    inset 0 0 0 3px rgb(var(--bonus-shadow-rgb) / 0.75),
+    inset 0 0 0 4px rgb(var(--brass-rgb) / 0.4),
+    0 6px 14px rgb(var(--bonus-shadow-rgb) / 0.45);
+}
+
+.town-bonus-list h5 {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px dashed rgb(var(--brass-rgb) / 0.35);
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--bonus-title);
+}
+
+.town-bonus-list h5 small {
+  font-size: 11px;
+  letter-spacing: 0;
+  color: var(--bonus-count);
+}
+
+.town-bonus-list__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+}
+
+.town-bonus-list__row + .town-bonus-list__row {
+  border-top: 1px dashed rgb(var(--brass-rgb) / 0.2);
+}
+
+.town-bonus-list__row .town-bonus__disc {
+  width: 30px;
+  height: 30px;
+}
+
+.town-bonus-list__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.town-bonus-list__text b {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.town-bonus-list__text small {
+  font-size: 11px;
+  color: var(--bonus-effect);
+}
+
+.town-bonus-list__bar {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(var(--glow-rgb) / 0.12);
+}
+
+.town-bonus-list__bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brass), var(--bonus-rim));
+}
+
+.town-bonus-list__row[data-ending-soon="true"] .town-bonus-list__bar i {
+  background: linear-gradient(90deg, var(--bonus-bar-warn-dark), var(--bonus-bar-warn));
+}
+
+.town-bonus-list__left {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--bonus-chip-text);
+}
+
+.town-bonus-list__row[data-ending-soon="true"] .town-bonus-list__left {
+  color: var(--bonus-left-warn);
+}
+
+/* 點清單外任一處收起 */
+.town-bonus-close {
+  position: absolute;
+  inset: 0;
+  z-index: 39;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .town-bonus__badge[data-ending-soon="true"] {
+    animation: none;
+  }
+}

@@ -66,6 +66,37 @@
   --town-compass-shadow-rgb: 80 60 20;
   --town-compass-glow-rgb: 230 180 80;
   --town-pin-shadow-rgb: 0 0 0;
+  /* 城鎮加成列：圓章底色（依加成種類；住宿另一色）與深色清單 */
+  --buff-experience-rgb: 216 176 72;
+  --buff-job-experience-rgb: 104 176 96;
+  --buff-attack-rgb: 232 120 74;
+  --buff-magic-rgb: 156 108 224;
+  --buff-defense-rgb: 128 150 172;
+  --buff-magic-defense-rgb: 72 168 208;
+  --buff-lodging-rgb: 232 176 96;
+  --bonus-disc-light: #4a3420;
+  --bonus-disc-dark: #20150a;
+  --bonus-rim: #f0cf8a;
+  --bonus-rim-dark: #5a3a14;
+  --bonus-chip: #2a1c0e;
+  --bonus-chip-text: #f6e8c8;
+  --bonus-warn: #8e1e1e;
+  --bonus-warn-text: #ffe2d6;
+  --bonus-warn-rim: #f0a090;
+  --bonus-warn-glow-rgb: 220 70 50;
+  --bonus-panel-light: #3a2716;
+  --bonus-panel-dark: #24170c;
+  --bonus-panel-text: #f1e6cf;
+  --bonus-title: #e8c888;
+  --bonus-count: #b8a27a;
+  --bonus-effect: #8fe0c8;
+  --bonus-left-warn: #ff9c84;
+  --bonus-bar-warn-dark: #a8322a;
+  --bonus-bar-warn: #e8705a;
+  --bonus-glyph: #fff8e8;
+  --brass-rgb: 201 164 100;
+  --bonus-shadow-rgb: 30 18 8;
+  --bonus-chip-shadow-rgb: 40 24 8;
   /* 舞台外的空間：所有新畫面共用，之後換成靜態大圖只改這裡 */
   --stage-backdrop: var(--ink);
   --font-serif: "Noto Serif TC", serif;

@@ -14,6 +14,7 @@ import {
 import { SwipeClickGuardMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
 import { useStage } from "../stage/stageContext"
+import { TownBonuses } from "./TownBonuses"
 import { useTimeOfDay } from "../title/useTimeOfDay"
 import iconBag from "../../assets/town/icon-bag.webp"
 import iconCharacter from "../../assets/town/icon-character.webp"
@@ -98,10 +99,16 @@ const Segment = ({ active, children }: { active: boolean; children: ReactNode })
 )
 
 // 城鎮：三段全景（城門口、市集、公會前），點紙籤或左右滑換段；上方固定名字、狀態與金錢
-export const TownScreen = ({ character, onOpen }: Props) => {
+export const TownScreen = ({ api, character, onOpen }: Props) => {
   const stage = useStage()
   const time = useTimeOfDay()
-  const [segment, setSegment] = useState<TownSegment>(0)
+  const [segment, setSegmentState] = useState<TownSegment>(0)
+  const [bonusOpen, setBonusOpen] = useState(false)
+  // 換段時收起加成清單
+  const setSegment = (target: TownSegment) => {
+    setSegmentState(target)
+    setBonusOpen(false)
+  }
   const pointer = useRef<{ x: number; y: number } | null>(null)
   const swipedAt = useRef(Number.NEGATIVE_INFINITY)
 
@@ -277,6 +284,13 @@ export const TownScreen = ({ character, onOpen }: Props) => {
         <Bar label="HP" value={character.healthPoints} maximum={character.stats.maxHealthPoints} />
         <Bar label="SP" value={character.manaPoints} maximum={character.stats.maxManaPoints} />
       </section>
+
+      <TownBonuses
+        api={api}
+        open={bonusOpen}
+        onToggle={() => setBonusOpen((current) => !current)}
+        onClose={() => setBonusOpen(false)}
+      />
 
       <div className="town-money" aria-label="金錢">
         <img src={purse} alt="" />
