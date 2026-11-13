@@ -1,6 +1,5 @@
-using EndlessBattle.Domain.Battle;
+using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Characters;
-using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
 
 namespace EndlessBattle.Domain.Rest;
@@ -10,10 +9,11 @@ public sealed record InnRoom(string Id, string Name, BuffKind Kind, double Multi
 
 public sealed record InnDefinition(IReadOnlyList<InnRoom> Rooms, int Seconds, int PricePerLevel);
 
-// 入住中的房型；每個角色至多一筆，新的整筆取代舊的
+// 一次入住；每次入住一筆，開打時刻在 [StartsAt, EndsAt) 的場次才有加成
 public sealed record Lodging(string RoomId, DateTimeOffset StartsAt, DateTimeOffset EndsAt);
 
-public sealed record InnBooking(Character Character, Lodging Lodging, long Cost);
+// Ended：入住時還沒到期、被截斷到入住時刻的那筆
+public sealed record InnBooking(Character Character, Lodging Booked, Lodging? Ended, long Cost);
 
 public static class Inn
 {
@@ -23,15 +23,17 @@ public static class Inn
     public static IReadOnlyList<string> CanBook(Character character, long price) =>
         character.Money >= price ? [] : ["notEnoughMoney"];
 
-    // 只看 now，不管之前住哪間；HP、SP 回滿到含裝備的上限
-    public static InnBooking Book(Character character, EquipmentBonus equipment, InnDefinition inn, InnRoom room, DateTimeOffset now)
+    // 只扣錢、不回滿；還沒到期的那筆在 now 結束（不退錢），新的一筆從 now 開始
+    public static InnBooking Book(Character character, InnDefinition inn, InnRoom room, Lodging? active, DateTimeOffset now)
     {
         var cost = Price(inn, room, character.Level);
-        var stats = DerivedStats.From(character.Base, equipment);
-        var booked = character with { Money = character.Money - cost, HealthPoints = stats.MaxHealthPoints, ManaPoints = stats.MaxManaPoints };
+        var ended = active is not null && active.EndsAt > now ? active with { EndsAt = now } : null;
 
-        return new InnBooking(booked, new Lodging(room.Id, now, now.AddSeconds(inn.Seconds)), cost);
+        return new InnBooking(character with { Money = character.Money - cost }, new Lodging(room.Id, now, now.AddSeconds(inn.Seconds)), ended, cost);
     }
+
+    // 離線補算最多往前 MaxSimulatedSeconds，比這更早結束的住宿用不到
+    public static DateTimeOffset PruneBefore(DateTimeOffset now) => now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds);
 
     // 房型已不在內容裡 → 視為沒有加成
     public static CharacterBuff? ToBuff(Lodging? lodging, InnDefinition inn)

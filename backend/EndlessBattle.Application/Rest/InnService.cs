@@ -16,7 +16,6 @@ public sealed record InnBookResult(Character Character, Lodging Lodging, long Co
 
 public sealed class InnService(
     ICharacterRepository characters,
-    IEquipmentRepository equipment,
     ILodgingRepository lodgings,
     IGameContent content,
     AdventureService adventure,
@@ -46,11 +45,10 @@ public sealed class InnService(
             character = (await adventure.AdvanceAsync(accountId, cancellationToken)).Character;
             EnsureCanBook(character, Inn.Price(inn, room, character.Level));
 
-            var equipped = await equipment.GetAsync(character.Id, cancellationToken);
-            var booking = Inn.Book(character, EquipmentBonusCalculator.Sum(equipped, content.GetItem), inn, room, clock.UtcNow);
+            var booking = Inn.Book(character, inn, room, await lodgings.FindAsync(character.Id, cancellationToken), clock.UtcNow);
             var updated = await characters.UpdateAsync(booking.Character, cancellationToken);
-            await lodgings.SaveAsync(updated.Id, booking.Lodging, cancellationToken);
-            return new InnBookResult(updated, booking.Lodging, booking.Cost);
+            await lodgings.SaveAsync(updated.Id, booking.Booked, cancellationToken);
+            return new InnBookResult(updated, booking.Booked, booking.Cost);
         }, cancellationToken);
 
     private static void EnsureCanBook(Character character, long price)

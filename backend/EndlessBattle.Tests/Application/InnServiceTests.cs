@@ -42,7 +42,7 @@ public class InnServiceTests
         adventure = new AdventureService(
             characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
             missions, pets, mercenaries, new InMemoryAreaPassRepository(), buffs, lodgings, Content, clock, new ZeroRandomFactory(), unitOfWork);
-        service = new InnService(characters, equipment, lodgings, Content, adventure, unitOfWork, clock);
+        service = new InnService(characters, lodgings, Content, adventure, unitOfWork, clock);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -58,19 +58,18 @@ public class InnServiceTests
     private static async Task<IReadOnlyList<string>> ReasonsAsync(Func<Task> action) =>
         (await Assert.ThrowsAsync<InputValidationException>(action)).Reasons;
 
-    // 上次結算就是現在，不必推進：扣 1 × 50 × 2 = 100，HP、SP 回滿，從現在起住 8 小時
+    // 規格 inn：Booking deducts money and starts the stay——扣 1 × 50 × 2 = 100，HP、SP 不變，從現在起住 8 小時
     [Fact]
-    public async Task Book_SpendsHealsAndSavesLodging()
+    public async Task Book_KeepsHealthAndMana()
     {
         var character = await AddCharacterAsync(character => character with { HealthPoints = 1, ManaPoints = 0 });
-        var stats = DerivedStats.From(character.Base, EquipmentBonus.Zero);
 
         var result = await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
 
         var expected = new Lodging("apprentice-loft", Now, Now.AddHours(8));
         Assert.Equal(100, result.Cost);
         Assert.Equal(expected, result.Lodging);
-        Assert.Equal((1900L, stats.MaxHealthPoints, stats.MaxManaPoints), (result.Character.Money, result.Character.HealthPoints, result.Character.ManaPoints));
+        Assert.Equal((1900L, 1, 0), (result.Character.Money, result.Character.HealthPoints, result.Character.ManaPoints));
         Assert.Equal(result.Character, await ReloadAsync());
         Assert.Equal(expected, await lodgings.FindAsync(character.Id, CancellationToken));
         Assert.Equal(["update", "lodging"], log);

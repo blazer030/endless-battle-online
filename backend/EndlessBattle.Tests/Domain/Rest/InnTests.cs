@@ -59,37 +59,56 @@ public class InnTests
         Assert.Empty(Inn.CanBook(Hero(money: 600), 600));
     }
 
+    private static DateTimeOffset At(int hour) => new(2026, 10, 29, hour, 0, 0, TimeSpan.Zero);
+
+    // 規格 inn：Booking deducts money and starts the stay（Lv 6、1,000 金、HP 20 → 400 金、HP 20、08:00–16:00）
     [Fact]
-    public void Book_SpendsMoneyHealsAndStartsLodging()
+    public void Book_SpendsMoneyOnly()
     {
-        var booking = Inn.Book(Hero(), EquipmentBonus.Zero, Definition, Loft, Now);
+        var hero = Hero() with { HealthPoints = 20, ManaPoints = 3 };
+
+        var booking = Inn.Book(hero, Definition, Loft, active: null, At(8));
 
         Assert.Equal(600, booking.Cost);
-        Assert.Equal(400, booking.Character.Money);
-        Assert.Equal((1000, 91), (booking.Character.HealthPoints, booking.Character.ManaPoints));
-        Assert.Equal(new Lodging("apprentice-loft", Now, Now.AddSeconds(28_800)), booking.Lodging);
+        Assert.Equal(hero with { Money = 400 }, booking.Character);
+        Assert.Equal(new Lodging("apprentice-loft", At(8), At(16)), booking.Booked);
+        Assert.Null(booking.Ended);
     }
 
+    // 規格 inn：Switching rooms（鬥士通鋪 06:00–14:00，10:00 訂學徒閣樓）
     [Fact]
-    public void Book_HealsToMaxIncludingEquipment()
+    public void Book_EndsTheActiveStayNow()
     {
-        var equipment = new EquipmentBonus(StatBonus.Zero with { MaxHealthPoints = 100 });
+        var booking = Inn.Book(Hero(), Definition, Loft, new Lodging("fighters-bunk", At(6), At(14)), At(10));
 
-        var booking = Inn.Book(Hero(), equipment, Definition, Loft, Now);
-
-        Assert.Equal((1100, 91), (booking.Character.HealthPoints, booking.Character.ManaPoints));
+        Assert.Equal(new Lodging("fighters-bunk", At(6), At(10)), booking.Ended);
+        Assert.Equal(new Lodging("apprentice-loft", At(10), At(18)), booking.Booked);
     }
 
+    // 規格 inn：Booking the same room again restarts it
     [Fact]
-    public void Book_ReplacesLodgingAndRestartsTimer()
+    public void Book_SameRoomRestarts()
     {
-        var first = Inn.Book(Hero(), EquipmentBonus.Zero, Definition, Loft, Now);
-        var later = Now.AddHours(3);
+        var booking = Inn.Book(Hero(), Definition, Bunk, new Lodging("fighters-bunk", At(6), At(14)), At(10));
 
-        var second = Inn.Book(first.Character, EquipmentBonus.Zero, Definition, Bunk, later);
+        Assert.Equal(new Lodging("fighters-bunk", At(6), At(10)), booking.Ended);
+        Assert.Equal(new Lodging("fighters-bunk", At(10), At(18)), booking.Booked);
+    }
 
-        Assert.Equal(new Lodging("fighters-bunk", later, later.AddSeconds(28_800)), second.Lodging);
-        Assert.Equal(100, second.Character.Money);
+    // 已經到期的那筆不用截斷
+    [Fact]
+    public void Book_ExpiredStayIsNotEnded()
+    {
+        var booking = Inn.Book(Hero(), Definition, Loft, new Lodging("fighters-bunk", At(1), At(9)), At(10));
+
+        Assert.Null(booking.Ended);
+    }
+
+    // 規格 inn：Pruning at booking time（離線補算上限 86,400 秒）
+    [Fact]
+    public void PruneBefore_IsOneDayEarlier()
+    {
+        Assert.Equal(At(10).AddDays(-1), Inn.PruneBefore(At(10)));
     }
 
     [Fact]
