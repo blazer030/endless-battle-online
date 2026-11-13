@@ -96,7 +96,7 @@ test("InnScreen_ShowsTheActiveStay", async () => {
 
   expect(within(banner()).getByText("學徒閣樓")).toBeInTheDocument()
   expect(within(banner()).getByText("經驗 ×1.10")).toBeInTheDocument()
-  expect(within(banner()).getByText("剩 7:59")).toBeInTheDocument()
+  expect(within(banner()).getByText("剩 07:59")).toBeInTheDocument()
   expect(bubble()).toHaveTextContent("房間還幫你留著呢。要換一間，還是續住？")
 })
 
@@ -131,7 +131,7 @@ test("InnScreen_SheetShowsTheReplacement", async () => {
 
   fireEvent.click(roomCard("學徒閣樓"))
 
-  expect(sheet()).toHaveTextContent("會取代目前的鬥士通鋪（物攻 ×1.05，剩 1:42）")
+  expect(sheet()).toHaveTextContent("會取代目前的鬥士通鋪（物攻 ×1.05，剩 01:42）")
 })
 
 // 規格 inn-screen：Not enough money in the sheet
@@ -355,7 +355,7 @@ test("InnScreen_JustBookedStayShowsItsFullLength", async () => {
   fireEvent.click(seal())
   await flush()
 
-  expect(within(banner()).getByText("剩 8:00")).toBeInTheDocument()
+  expect(within(banner()).getByText("剩 08:00")).toBeInTheDocument()
 })
 
 const openRooms = () => fireEvent.click(screen.getByRole("tab", { name: "客房" }))
@@ -462,12 +462,12 @@ test("InnScreen_BannerCountsSecondsUnderAnHour", async () => {
   expect(within(banner()).getByText("剩 09:59")).toBeInTheDocument()
 })
 
-// 跟城鎮圓章同一個格式：7 小時 58 分 40 秒 → 7:58（分鐘捨去）
+// 跟城鎮圓章同一個格式：7 小時 58 分 40 秒 → 07:58（分鐘捨去）
 test("InnScreen_BannerMatchesTheTownBadge", async () => {
   const endsAt = new Date(at(8, 1).getTime() + (7 * 3600 + 58 * 60 + 40) * 1000)
   await renderInn({
     api: createApi(innWith({ roomId: "apprentice-loft", startsAt: at(8), endsAt })),
   })
 
-  expect(within(banner()).getByText("剩 7:58")).toBeInTheDocument()
+  expect(within(banner()).getByText("剩 07:58")).toBeInTheDocument()
 })

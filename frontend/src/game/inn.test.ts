@@ -143,11 +143,11 @@ test("replaceNotice_NamesTheRoomOrSaysItIsTheSame", () => {
   ]
 
   expect(replaceNotice(lodging, rooms, "apprentice-loft", now)).toEqual({
-    text: "會取代目前的鬥士通鋪（物攻 ×1.05，剩 1:42）",
+    text: "會取代目前的鬥士通鋪（物攻 ×1.05，剩 01:42）",
     replacing: true,
   })
   expect(replaceNotice(lodging, rooms, "fighters-bunk", now)).toEqual({
-    text: "正在住這間，剩 1:42",
+    text: "正在住這間，剩 01:42",
     replacing: false,
   })
   expect(replaceNotice(null, rooms, "apprentice-loft", now)).toBeNull()
@@ -161,5 +161,5 @@ test("stayRemainingClock_NeverExceedsTheStay", () => {
     endsAt: endsIn(30_000 + 8 * 3_600_000),
   }
 
-  expect(stayRemainingClock(lodging, now)).toBe("8:00")
+  expect(stayRemainingClock(lodging, now)).toBe("08:00")
 })

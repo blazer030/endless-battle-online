@@ -38,8 +38,8 @@ test.each<[TownSegment, number, number, TownSegment]>([
 
 // 規格 Bonus row and list：remaining time
 test.each([
-  [6130, "1:42", false],
-  [3600, "1:00", false],
+  [6130, "01:42", false],
+  [3600, "01:00", false],
   [3599, "59:59", false],
   [600, "10:00", false],
   [599, "09:59", true],

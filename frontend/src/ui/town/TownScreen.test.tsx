@@ -227,7 +227,7 @@ test("TownScreen_BonusRowShowsLodgingThenElixirs", async () => {
   renderTown({ api: bonusApi() })
   await flush()
 
-  expect(badges()).toEqual(["學徒閣樓，剩 7:00", "神力秘藥LV1，剩 1:40", "物防 ×1.05，剩 05:00"])
+  expect(badges()).toEqual(["學徒閣樓，剩 07:00", "神力秘藥LV1，剩 01:40", "物防 ×1.05，剩 05:00"])
 })
 
 const lodgingBadge = () =>
@@ -272,7 +272,7 @@ test("TownScreen_BonusListOpensAndClosesOnOutsideClick", async () => {
   renderTown({ api: bonusApi() })
   await flush()
 
-  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" }))
+  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 01:40" }))
   const list = screen.getByRole("dialog", { name: "生效中的加成" })
   expect(within(list).getByText("住宿 1・密藥 2")).toBeInTheDocument()
   expect(within(list).getByText("神力秘藥LV1")).toBeInTheDocument()
@@ -288,7 +288,7 @@ test("TownScreen_ChangingSegmentClosesTheBonusList", async () => {
   renderTown({ api: bonusApi() })
   await flush()
 
-  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" }))
+  fireEvent.click(screen.getByRole("button", { name: "神力秘藥LV1，剩 01:40" }))
   fireEvent.click(screen.getByRole("button", { name: "市集" }))
 
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -315,7 +315,7 @@ test("TownScreen_EndingSoonBadgeIsMarked", async () => {
     "data-ending-soon",
     "true",
   )
-  expect(screen.getByRole("button", { name: "神力秘藥LV1，剩 1:40" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "神力秘藥LV1，剩 01:40" })).toHaveAttribute(
     "data-ending-soon",
     "false",
   )
