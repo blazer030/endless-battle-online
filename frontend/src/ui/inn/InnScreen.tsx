@@ -55,6 +55,8 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
   const [shownId, setShownId] = useState<string | null>(null)
   const [event, setEvent] = useState<InnkeeperEvent | null>(null)
   const [booking, setBooking] = useState(false)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [now, setNow] = useState(() => new Date())
   const alive = useRef(true)
 
@@ -69,16 +71,20 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
     let isCurrent = true
     api.getInn().then(
       (loaded) => {
-        if (isCurrent) setInn(loaded)
+        if (!isCurrent) return
+        setInn(loaded)
+        setLoadFailed(false)
       },
       () => {
-        if (isCurrent) setEvent({ kind: "loadFailed" })
+        if (!isCurrent) return
+        setLoadFailed(true)
+        setEvent({ kind: "loadFailed" })
       },
     )
     return () => {
       isCurrent = false
     }
-  }, [api])
+  }, [api, attempt])
 
   // 剩餘時間定時重算，到期後橫幅換成沒有入住
   useEffect(() => {
@@ -160,6 +166,20 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
           </span>
         </header>
         <i className="inn__rule" aria-hidden="true" />
+
+        {inn === null && loadFailed && (
+          <div className="inn__retry">
+            <Seal
+              className="inn__retry-seal"
+              label="再試一次"
+              onClick={() => {
+                setEvent(null)
+                setLoadFailed(false)
+                setAttempt((count) => count + 1)
+              }}
+            />
+          </div>
+        )}
 
         {inn !== null && (
           <>

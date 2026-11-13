@@ -306,3 +306,31 @@ test.each([
   expect(box).toHaveTextContent(levelText)
   expect(box).toHaveTextContent(`自動住宿一次${feeText}`)
 })
+
+// 規格 inn-screen：Inn load failure——木台上只剩「再試一次」
+test("InnScreen_LoadFailureShowsOnlyTheRetrySeal", async () => {
+  const api = createApi()
+  vi.mocked(api.getInn).mockRejectedValue(new TypeError("Failed to fetch"))
+  await renderInn({ api })
+
+  expect(screen.getByRole("button", { name: "再試一次" })).toBeInTheDocument()
+  expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
+  expect(screen.queryByRole("region", { name: "目前入住" })).not.toBeInTheDocument()
+  expect(bubble()).toHaveTextContent("哎呀，今天的房帳一時找不到……")
+})
+
+// 規格 inn-screen：Retry after a failed load
+test("InnScreen_RetryShowsTheRooms", async () => {
+  const api = createApi()
+  vi.mocked(api.getInn)
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    .mockResolvedValue(innWith(null))
+  await renderInn({ api })
+
+  fireEvent.click(screen.getByRole("button", { name: "再試一次" }))
+  await flush()
+
+  expect(within(screen.getByRole("list", { name: "客房" })).getAllByRole("button")).toHaveLength(6)
+  expect(screen.queryByRole("button", { name: "再試一次" })).not.toBeInTheDocument()
+  expect(bubble()).toHaveTextContent("歡迎光臨暖爐亭！今晚想住哪一間？")
+})
