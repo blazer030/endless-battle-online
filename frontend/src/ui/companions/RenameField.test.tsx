@@ -56,3 +56,32 @@ test("RenameField_LetsCompositionFinishBeforeClipping", () => {
   fireEvent.compositionEnd(input)
   expect(input).toHaveValue("一二三四五六七雷")
 })
+
+// 名字滿了在中間插字：新打的打不進去，原本的字都留著（同瀏覽器原生的輸入上限）
+test("RenameField_InsertingIntoAFullNameKeepsIt", () => {
+  renderField()
+  const input = screen.getByRole("textbox", { name: "傭兵名字" })
+  fireEvent.change(input, { target: { value: "一二三四五六七八" } })
+
+  fireEvent.change(input, { target: { value: "一X二三四五六七八" } })
+  expect(input).toHaveValue("一二三四五六七八")
+
+  fireEvent.change(input, { target: { value: "一二三四五六七" } })
+  fireEvent.change(input, { target: { value: "一XYZ二三四五六七" } })
+  expect(input).toHaveValue("一X二三四五六七")
+})
+
+// 選字中暫時超過上限時「確定」停用，選完截好才恢復
+test("RenameField_ConfirmWaitsWhileComposingOverTheLimit", () => {
+  renderField()
+  const input = screen.getByRole("textbox", { name: "傭兵名字" })
+  fireEvent.change(input, { target: { value: "一二三四五六七" } })
+
+  fireEvent.compositionStart(input)
+  fireEvent.change(input, { target: { value: "一二三四五六七ㄌㄟˊ" } })
+  expect(screen.getByRole("button", { name: "確定" })).toBeDisabled()
+
+  fireEvent.change(input, { target: { value: "一二三四五六七雷" } })
+  fireEvent.compositionEnd(input)
+  expect(screen.getByRole("button", { name: "確定" })).toBeEnabled()
+})

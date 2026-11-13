@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { nameLength } from "../../game/names"
+import { fitName, nameLength } from "../../game/names"
 
 type Props = {
   label: string
@@ -11,16 +11,11 @@ type Props = {
 }
 
 // 改名欄：旁邊顯示字數 n / 上限（去頭尾空白、以字碼計，與伺服器一致），0 字時紅、確定停用
-// 超過上限時截到上限；注音、拼音選字中不截，選完才截。不用輸入框的 maxLength，它以 UTF-16 計，emoji 會算兩個字
-// 去掉開頭空白後最多留 max 個字碼（開頭空白保留，確定時才去頭尾）
-const clip = (value: string, max: number) => {
-  const body = value.trimStart()
-  return value.slice(0, value.length - body.length) + [...body].slice(0, max).join("")
-}
-
+// 超過上限時新輸入打不進去（只截掉超出的部分）；注音、拼音選字中不截，選完才截。不用輸入框的 maxLength，它以 UTF-16 計，emoji 會算兩個字
 export const RenameField = ({ label, initial, maxLength, busy, onConfirm, onCancel }: Props) => {
   const [draft, setDraft] = useState(initial)
-  const composing = useRef(false)
+  // 選字開始前的名字；選完時拿它比對這次新插入了什麼
+  const beforeComposing = useRef<string | null>(null)
   const name = draft.trim()
   const length = nameLength(draft)
   return (
@@ -31,15 +26,17 @@ export const RenameField = ({ label, initial, maxLength, busy, onConfirm, onCanc
         aria-label={label}
         value={draft}
         autoFocus
-        onChange={(event) =>
-          setDraft(composing.current ? event.target.value : clip(event.target.value, maxLength))
-        }
+        onChange={(event) => {
+          const next = event.target.value
+          setDraft(beforeComposing.current === null ? fitName(draft, next, maxLength) : next)
+        }}
         onCompositionStart={() => {
-          composing.current = true
+          beforeComposing.current = draft
         }}
         onCompositionEnd={(event) => {
-          composing.current = false
-          setDraft(clip(event.currentTarget.value, maxLength))
+          const previous = beforeComposing.current ?? draft
+          beforeComposing.current = null
+          setDraft(fitName(previous, event.currentTarget.value, maxLength))
         }}
       />
       <small className={`rename-field__count${length === 0 ? " rename-field__count--empty" : ""}`}>
