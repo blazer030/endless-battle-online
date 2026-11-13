@@ -1,17 +1,17 @@
-/* 時長與 InnRevealMilliseconds 一致 */
-.inn-reveal {
+/* 時長與 RevealMilliseconds 一致 */
+.reveal-layer {
   position: absolute;
   inset: 0;
   z-index: 10;
-  animation: inn-reveal-open 0.55s cubic-bezier(0.65, 0, 0.25, 1) both;
+  animation: reveal-layer-open 0.55s cubic-bezier(0.65, 0, 0.25, 1) both;
 }
 
-.inn-reveal--closing {
+.reveal-layer--closing {
   pointer-events: none;
-  animation: inn-reveal-close 0.55s cubic-bezier(0.65, 0, 0.25, 1) both;
+  animation: reveal-layer-close 0.55s cubic-bezier(0.65, 0, 0.25, 1) both;
 }
 
-@keyframes inn-reveal-open {
+@keyframes reveal-layer-open {
   from {
     clip-path: circle(0 at var(--ox) var(--oy));
   }
@@ -20,7 +20,7 @@
   }
 }
 
-@keyframes inn-reveal-close {
+@keyframes reveal-layer-close {
   from {
     clip-path: circle(140% at var(--ox) var(--oy));
   }
@@ -30,8 +30,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .inn-reveal,
-  .inn-reveal--closing {
+  .reveal-layer,
+  .reveal-layer--closing {
     animation-duration: 0.01s;
   }
 }

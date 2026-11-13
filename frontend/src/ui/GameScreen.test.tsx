@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
 import { InnBookVo, InnVo } from "../game/inn"
-import { InnRevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
+import { RevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
 import { makeCharacter } from "../test/fixtures"
 import { GameScreen } from "./GameScreen"
 
@@ -95,7 +95,7 @@ test("GameScreen_InnOpensTheInnScreen", async () => {
   click("市集")
   click("旅館")
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
   })
 
   expect(screen.getByRole("region", { name: "旅館" })).toBeInTheDocument()
@@ -121,7 +121,7 @@ test("GameScreen_BackFromTheInnShowsTheMarketWithTheNewMoney", async () => {
   click("市集")
   click("旅館")
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
   })
 
   fireEvent.click(screen.getByRole("button", { name: /^學徒閣樓/ }))
@@ -133,7 +133,7 @@ test("GameScreen_BackFromTheInnShowsTheMarketWithTheNewMoney", async () => {
   })
   click("市集")
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
   })
 
   expect(screen.queryByRole("region", { name: "旅館" })).not.toBeInTheDocument()

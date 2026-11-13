@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
 import type { TownFacility, TownSegment } from "../game/town"
-import { InnRevealMilliseconds } from "../motion/timings"
+import { RevealMilliseconds } from "../motion/timings"
 import { AdventureScreen, type Tab } from "./AdventureScreen"
 import type { SubPage } from "./BagScreen"
 import { StageFrame } from "./stage/StageFrame"
-import { InnReveal } from "./inn/InnReveal"
+import { RevealLayer } from "./stage/RevealLayer"
+import { innRevealOrigin } from "../game/inn"
 import { InnScreen } from "./inn/InnScreen"
 import { TownScreen } from "./town/TownScreen"
 
@@ -56,7 +57,7 @@ export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
         setView(
           innPhase === "opening" ? { name: "inn", phase: "open" } : { name: "town", segment: 1 },
         ),
-      InnRevealMilliseconds,
+      RevealMilliseconds,
     )
     return () => clearTimeout(timer)
   }, [innPhase])
@@ -76,14 +77,14 @@ export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
           </div>
         )}
         {view.name === "inn" && (
-          <InnReveal closing={view.phase === "closing"}>
+          <RevealLayer origin={innRevealOrigin} closing={view.phase === "closing"}>
             <InnScreen
               api={api}
               character={character}
               onCharacterChange={setCharacter}
               onBack={() => setView({ name: "inn", phase: "closing" })}
             />
-          </InnReveal>
+          </RevealLayer>
         )}
       </StageFrame>
     )
