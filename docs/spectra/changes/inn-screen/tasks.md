@@ -26,7 +26,7 @@
 
 ## 4. 旅館的純模型
 
-- [ ] 4.1 依 design「瑪莎的台詞是純函式」「門檻步進與自動儲存」「時長格式」，`frontend/src/game/inn.ts` 新增 `innkeeperLine(event, roomName, hasStay)`、`stepThreshold(value, direction)`（不能按時回 null）、`restFeeText(fee)`、`innRevealOrigin(stageHeight)`、`innCounterTop(stageHeight)`，`stayLength` 改成新格式。先寫失敗測試，用規格的 Example 表當測資：Innkeeper lines 七列、Threshold steps 表、Stay length 表、Rest fee text 表、Reveal origin 表（624 → (135, 241)、780 → (120, 296)）、Counter top 表（624 → 162、683 → 186、720 → 200、780 → 224）。驗證：`inn.test.ts` 全綠、`pnpm check` 全綠。
+- [x] 4.1 依 design「瑪莎的台詞是純函式」「門檻步進與自動儲存」「時長格式」，`frontend/src/game/inn.ts` 新增 `innkeeperLine(event, roomName, hasStay)`、`stepThreshold(value, direction)`（不能按時回 null）、`restFeeText(fee)`、`innRevealOrigin(stageHeight)`、`innCounterTop(stageHeight)`，`stayLength` 改成新格式。先寫失敗測試，用規格的 Example 表當測資：Innkeeper lines 七列、Threshold steps 表、Stay length 表、Rest fee text 表、Reveal origin 表（624 → (135, 241)、780 → (120, 296)）、Counter top 表（624 → 162、683 → 186、720 → 200、780 → 224）。驗證：`inn.test.ts` 全綠、`pnpm check` 全綠。
 
 ## 5. 設計素材
 

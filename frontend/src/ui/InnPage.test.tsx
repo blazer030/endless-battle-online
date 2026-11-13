@@ -74,7 +74,7 @@ test("InnPage_ShowsShortStaysInMinutes", async () => {
   renderInn(createFakeApi({ rooms: [room({ seconds: 120 })], lodging: null, restFee: 0 }))
 
   const list = await screen.findByRole("list", { name: "客房" })
-  expect(within(list).getByRole("listitem")).toHaveTextContent("學徒閣樓・經驗 ×1.10・2 分鐘")
+  expect(within(list).getByRole("listitem")).toHaveTextContent("學徒閣樓・經驗 ×1.10・2 分")
 })
 
 test("InnPage_DisablesBookingWhenMoneyIsShort", async () => {

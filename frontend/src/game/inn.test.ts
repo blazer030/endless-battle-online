@@ -1,5 +1,17 @@
 import { expect, test } from "vitest"
-import { lodgingLine, replaceHint, roomEffect, stayLength } from "./inn"
+import {
+  innCounterTop,
+  innkeeperLine,
+  innRevealOrigin,
+  lodgingLine,
+  remainingClock,
+  replaceHint,
+  replaceNotice,
+  restFeeText,
+  roomEffect,
+  stayLength,
+  stepThreshold,
+} from "./inn"
 import type { InnRoom } from "./inn"
 import type { BuffKind } from "./buffs"
 
@@ -29,14 +41,14 @@ test("roomEffect_LabelsEachOfTheSixKinds", () => {
   expect(roomEffect(room({ multiplier: 1.05 }))).toBe("經驗 ×1.05")
 })
 
-// 不到一小時改用分鐘，四捨五入後滿 60 分才進到小時
-test("stayLength_UsesMinutesUnderAnHour", () => {
-  expect(stayLength(60)).toBe("1 分鐘")
-  expect(stayLength(150)).toBe("3 分鐘")
-  expect(stayLength(3_540)).toBe("59 分鐘")
-  expect(stayLength(3_570)).toBe("1 小時")
-  expect(stayLength(5_400)).toBe("1.5 小時")
-  expect(stayLength(28_800)).toBe("8 小時")
+// 規格 inn-screen：stay length 表
+test.each([
+  [28_800, "8 小時"],
+  [27_000, "7 小時 30 分"],
+  [2_700, "45 分"],
+  [86_400, "24 小時"],
+])("stayLength_%i", (seconds, text) => {
+  expect(stayLength(seconds)).toBe(text)
 })
 
 test("lodgingLine_ShowsRemainingHoursAndMinutes", () => {
@@ -70,4 +82,82 @@ test("replaceHint_NamesTheRoomBeingReplaced", () => {
   expect(replaceHint(lodging, rooms, "bulwark-room", now)).toBe("會取代目前的學徒閣樓")
   expect(replaceHint(lodging, rooms, "apprentice-loft", now)).toBeNull()
   expect(replaceHint(null, rooms, "bulwark-room", now)).toBeNull()
+})
+
+// 規格 inn-screen：innkeeper lines 表
+test.each([
+  [null, false, "歡迎光臨暖爐亭！今晚想住哪一間？"],
+  [null, true, "房間還幫你留著呢。要換一間，還是續住？"],
+  [{ kind: "booked", roomName: "學徒閣樓" } as const, true, "學徒閣樓收拾好了，好好睡一覺吧！"],
+  [{ kind: "notEnoughMoney" } as const, false, "哎呀，這間的錢好像還差一點呢。"],
+  [{ kind: "bookFailed" } as const, false, "咦，登記簿沒寫上去……等會兒再來吧。"],
+  [{ kind: "thresholdFailed" } as const, true, "剛剛那個沒記下來，再調一次好嗎？"],
+  [{ kind: "loadFailed" } as const, false, "哎呀，今天的房帳一時找不到……"],
+])("innkeeperLine_%#", (event, hasStay, line) => {
+  expect(innkeeperLine(event, hasStay)).toBe(line)
+})
+
+// 規格 inn-screen：threshold steps 表（null＝不能按）
+test.each([
+  [-1, 0, null],
+  [0, 5, -1],
+  [33, 35, 30],
+  [35, 40, 30],
+  [100, null, 95],
+])("stepThreshold_%i", (value, up, down) => {
+  expect(stepThreshold(value, 1)).toBe(up)
+  expect(stepThreshold(value, -1)).toBe(down)
+})
+
+// 規格 inn-screen：rest fee text 表
+test.each([
+  [0, "免費"],
+  [1200, "1,200 起"],
+])("restFeeText_%i", (fee, text) => {
+  expect(restFeeText(fee)).toBe(text)
+})
+
+// 規格 inn-screen：reveal origin 表
+test.each([
+  [624, 135, 241],
+  [780, 120, 296],
+])("innRevealOrigin_%i", (height, x, y) => {
+  const origin = innRevealOrigin(height)
+  expect(origin.x).toBeCloseTo(x, 0)
+  expect(origin.y).toBeCloseTo(y, 0)
+})
+
+// 規格 inn-screen：counter top 表
+test.each([
+  [624, 162],
+  [683, 186],
+  [720, 200],
+  [780, 224],
+])("innCounterTop_%i", (height, top) => {
+  expect(innCounterTop(height)).toBe(top)
+})
+
+// 規格 inn-screen：Banner for an active stay（08:00–16:00、現在 08:01 → 剩 7:59）
+test("remainingClock_ShowsHoursAndMinutes", () => {
+  expect(remainingClock(endsIn(479 * 60_000), now)).toBe("7:59")
+  expect(remainingClock(endsIn(102 * 60_000), now)).toBe("1:42")
+})
+
+// 規格 inn-screen：Replacing another room／同一間
+test("replaceNotice_NamesTheRoomOrSaysItIsTheSame", () => {
+  const lodging = { roomId: "fighters-bunk", startsAt: now, endsAt: endsIn(102 * 60_000) }
+  const rooms = [
+    room(),
+    room({ id: "fighters-bunk", name: "鬥士通鋪", kind: "Attack", multiplier: 1.05 }),
+  ]
+
+  expect(replaceNotice(lodging, rooms, "apprentice-loft", now)).toEqual({
+    text: "會取代目前的鬥士通鋪（物攻 ×1.05，剩 1:42）",
+    replacing: true,
+  })
+  expect(replaceNotice(lodging, rooms, "fighters-bunk", now)).toEqual({
+    text: "正在住這間，剩 1:42",
+    replacing: false,
+  })
+  expect(replaceNotice(null, rooms, "apprentice-loft", now)).toBeNull()
 })
