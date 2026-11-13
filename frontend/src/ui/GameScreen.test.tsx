@@ -3,8 +3,10 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
 import { InnBookVo, InnVo } from "../game/inn"
+import { MercenaryHireVo } from "../game/mercenaries"
 import { RevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
-import { makeCharacter } from "../test/fixtures"
+import { makeCharacter, makeMercenaryOverview } from "../test/fixtures"
+import { createCompanionsApi } from "./companions/testing"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
@@ -50,6 +52,7 @@ const loft = {
 
 const createApi = () =>
   ({
+    ...createCompanionsApi(),
     getBuffs: vi.fn().mockResolvedValue([]),
     getInn: vi.fn().mockResolvedValue(InnVo.create({ rooms: [loft], lodging: null, restFee: 0 })),
     bookInn: vi.fn(),
@@ -141,11 +144,67 @@ test("GameScreen_BackFromTheInnShowsTheMarketWithTheNewMoney", async () => {
   expect(screen.getByLabelText("金錢")).toHaveTextContent("400")
 })
 
+// 規格 companions-screen：Enter and leave the companions screen——城門口「同伴」展開入口，不呼叫推進
+test("GameScreen_CompanionsOpensTheCompanionsScreen", async () => {
+  const api = renderGame()
+
+  click("同伴")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.getByRole("button", { name: "獸欄" })).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "傭兵所" })).toBeInTheDocument()
+  expect(screen.queryByText(/舊外殼/)).not.toBeInTheDocument()
+  expect(screen.queryByTestId("town-world")).not.toBeInTheDocument()
+  expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 規格 companions-screen：Enter and leave the companions screen——「城門」收回、停在城門口、帶著最新的金錢
+test("GameScreen_BackFromCompanionsShowsTheGate", async () => {
+  const api = createApi()
+  const [grade] = makeMercenaryOverview().catalogue
+  vi.mocked(api.getMercenaries).mockResolvedValue(
+    makeMercenaryOverview({ catalogue: [{ ...grade!, price: 700 }] }),
+  )
+  vi.mocked(api.hireMercenary).mockResolvedValue(
+    MercenaryHireVo.create({
+      mercenaries: makeMercenaryOverview(),
+      character: { ...character, money: 300 },
+    }),
+  )
+  renderGame(api)
+  click("同伴")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  click("傭兵所")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+  fireEvent.click(screen.getByRole("button", { name: /^F級傭兵/ }))
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "F級傭兵" })).getByRole("button", { name: "僱用" }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+  click("同伴")
+  click("城門")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByRole("button", { name: "傭兵所" })).not.toBeInTheDocument()
+  expect(segmentOf()).toBe("0")
+  expect(screen.getByLabelText("金錢")).toHaveTextContent("300")
+})
+
 // 規格 Facilities open the old tabbed screen 的對照表
 test.each([
   [[], "角色 Lv 6", "character／bag"],
   [[], "背包", "bag／bag"],
-  [[], "同伴", "companions／bag"],
   [[], "出發 中央平原", "adventure／bag"],
   [["市集"], "商店街", "bag／shop"],
   [["市集", "公會前"], "鐵舖", "bag／forge"],

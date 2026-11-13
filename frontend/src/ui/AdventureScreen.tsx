@@ -16,7 +16,6 @@ import type { StageHandle } from "../render/StageRenderer"
 import { BagScreen, type SubPage } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
-import { CompanionsScreen } from "./CompanionsScreen"
 import { formatNumber } from "../game/format"
 import { MissionsScreen } from "./MissionsScreen"
 import { SettingsPanel } from "./SettingsPanel"
@@ -32,7 +31,7 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-export type Tab = "adventure" | "character" | "skills" | "bag" | "missions" | "companions"
+export type Tab = "adventure" | "character" | "skills" | "bag" | "missions"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
@@ -40,7 +39,6 @@ const tabs: { id: Tab; label: string }[] = [
   { id: "skills", label: "技能" },
   { id: "bag", label: "背包" },
   { id: "missions", label: "任務" },
-  { id: "companions", label: "同伴" },
 ]
 
 type AreaPass = {
@@ -337,12 +335,6 @@ export function AdventureScreen({
               onCharacterChanged={handleCharacterChange}
               refreshSignal={refreshSignals.missions}
             />
-          </div>
-        )}
-        {/* 同伴分頁每次打開才載入，寵物的飽腹與傭兵的次數都是最新的 */}
-        {tab === "companions" && (
-          <div className="adventure__sheet">
-            <CompanionsScreen api={api} onCharacterChanged={handleCharacterChange} />
           </div>
         )}
       </main>

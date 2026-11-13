@@ -432,22 +432,6 @@ test("AdventureScreen_BagTabOpensBagScreen", async () => {
   expect(screen.getByTestId("stage")).not.toBeVisible()
 })
 
-test("AdventureScreen_CompanionsTabIsSixthAndLoadsPets", async () => {
-  const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
-  await advanceTime(0)
-  expect(api.getPets).not.toHaveBeenCalled()
-
-  fireEvent.click(screen.getByRole("button", { name: "同伴" }))
-  await advanceTime(0)
-
-  expect(api.getPets).toHaveBeenCalledTimes(1)
-  expect(screen.getByRole("button", { name: "同伴" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("tablist", { name: "同伴分頁" })).toBeVisible()
-  expect(screen.getByRole("article", { name: "小黏－草原史萊姆 2歲" })).toBeVisible()
-  expect(screen.getByTestId("stage")).not.toBeVisible()
-})
-
 test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
   const api = createFakeApi()
   render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
@@ -511,7 +495,6 @@ test("AdventureScreen_MissionsTabIsFifthAndLoadsMissions", async () => {
     "技能",
     "背包",
     "任務",
-    "同伴",
   ])
   fireEvent.click(screen.getByRole("button", { name: "任務" }))
   await advanceTime(0)

@@ -116,6 +116,9 @@ export const hallChip = (contract: MercenaryContract | null) =>
 
 const PanoramaHeight = 844
 
+// 同伴畫面從城門口的「同伴」紙籤展開：圓心固定在舞台 (307, 317)
+export const companionsRevealOrigin = () => ({ x: 307, y: 317 })
+
 // 獸欄、傭兵所的木台上緣：844 高時 330，每矮 1 上移 0.45
 export const companionsCounterTop = (stageHeight: number) =>
   Math.round(330 - (PanoramaHeight - stageHeight) * 0.45)

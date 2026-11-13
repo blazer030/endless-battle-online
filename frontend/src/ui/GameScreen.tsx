@@ -6,16 +6,26 @@ import { RevealMilliseconds } from "../motion/timings"
 import { AdventureScreen, type Tab } from "./AdventureScreen"
 import type { SubPage } from "./BagScreen"
 import { StageFrame } from "./stage/StageFrame"
-import { RevealLayer } from "./stage/RevealLayer"
+import { RevealLayer, type RevealOrigin } from "./stage/RevealLayer"
 import { innRevealOrigin } from "../game/inn"
+import { companionsRevealOrigin } from "../game/companions"
 import { InnScreen } from "./inn/InnScreen"
+import { CompanionsScreen } from "./companions/CompanionsScreen"
 import { TownScreen } from "./town/TownScreen"
 
-// 旅館是新畫面；其他設施先接舊外殼：停在對應分頁（背包分頁再停在對應子頁）
-const facilityViews: Record<Exclude<TownFacility, "inn">, { tab: Tab; bagPage: SubPage }> = {
+// 新畫面從城鎮展開：旅館從市集的名牌、同伴從城門口的紙籤；收回後城鎮停在原本的段落
+type Revealed = "inn" | "companions"
+const revealed: Record<Revealed, { origin: RevealOrigin; segment: TownSegment }> = {
+  inn: { origin: innRevealOrigin, segment: 1 },
+  companions: { origin: companionsRevealOrigin, segment: 0 },
+}
+
+const isRevealed = (facility: TownFacility): facility is Revealed => facility in revealed
+
+// 其他設施先接舊外殼：停在對應分頁（背包分頁再停在對應子頁）
+const facilityViews: Record<Exclude<TownFacility, Revealed>, { tab: Tab; bagPage: SubPage }> = {
   character: { tab: "character", bagPage: "bag" },
   bag: { tab: "bag", bagPage: "bag" },
-  companions: { tab: "companions", bagPage: "bag" },
   adventure: { tab: "adventure", bagPage: "bag" },
   shop: { tab: "bag", bagPage: "shop" },
   forge: { tab: "bag", bagPage: "forge" },
@@ -23,11 +33,11 @@ const facilityViews: Record<Exclude<TownFacility, "inn">, { tab: Tab; bagPage: S
   missions: { tab: "missions", bagPage: "bag" },
 }
 
-// 旅館展開與收回時城鎮留在底下；完全展開後才卸載城鎮，收回時以市集段重新顯示
-type InnPhase = "opening" | "open" | "closing"
+// 展開與收回時城鎮留在底下；完全展開後才卸載城鎮，收回時以原本的段落重新顯示
+type RevealPhase = "opening" | "open" | "closing"
 type View =
   | { name: "town"; segment: TownSegment }
-  | { name: "inn"; phase: InnPhase }
+  | { name: "revealed"; facility: Revealed; phase: RevealPhase }
   | { name: "shell"; tab: Tab; bagPage: SubPage; shell: number }
 
 type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
@@ -41,49 +51,65 @@ export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
   const latestShell = useRef(0)
 
   const open = (facility: TownFacility) => {
-    if (facility === "inn") {
-      setView({ name: "inn", phase: "opening" })
+    if (isRevealed(facility)) {
+      setView({ name: "revealed", facility, phase: "opening" })
       return
     }
     latestShell.current += 1
     setView({ name: "shell", ...facilityViews[facility], shell: latestShell.current })
   }
 
-  const innPhase = view.name === "inn" ? view.phase : null
+  const revealedFacility = view.name === "revealed" ? view.facility : null
+  const revealPhase = view.name === "revealed" ? view.phase : null
   useEffect(() => {
-    if (innPhase !== "opening" && innPhase !== "closing") return
+    if (revealedFacility === null || (revealPhase !== "opening" && revealPhase !== "closing"))
+      return
     const timer = setTimeout(
       () =>
         setView(
-          innPhase === "opening" ? { name: "inn", phase: "open" } : { name: "town", segment: 1 },
+          revealPhase === "opening"
+            ? { name: "revealed", facility: revealedFacility, phase: "open" }
+            : { name: "town", segment: revealed[revealedFacility].segment },
         ),
       RevealMilliseconds,
     )
     return () => clearTimeout(timer)
-  }, [innPhase])
+  }, [revealedFacility, revealPhase])
 
-  if (view.name === "town" || view.name === "inn") {
+  if (view.name === "town" || view.name === "revealed") {
     const showTown = view.name === "town" || view.phase !== "open"
+    const close = () => {
+      if (view.name === "revealed") setView({ ...view, phase: "closing" })
+    }
     return (
       <StageFrame>
         {showTown && (
-          <div inert={view.name === "inn"}>
+          <div inert={view.name === "revealed"}>
             <TownScreen
               api={api}
               character={character}
               onOpen={open}
-              initialSegment={view.name === "town" ? view.segment : 1}
+              initialSegment={view.name === "town" ? view.segment : revealed[view.facility].segment}
             />
           </div>
         )}
-        {view.name === "inn" && (
-          <RevealLayer origin={innRevealOrigin} closing={view.phase === "closing"}>
-            <InnScreen
-              api={api}
-              character={character}
-              onCharacterChange={setCharacter}
-              onBack={() => setView({ name: "inn", phase: "closing" })}
-            />
+        {view.name === "revealed" && (
+          <RevealLayer origin={revealed[view.facility].origin} closing={view.phase === "closing"}>
+            {view.facility === "inn" ? (
+              <InnScreen
+                api={api}
+                character={character}
+                onCharacterChange={setCharacter}
+                onBack={close}
+              />
+            ) : (
+              <CompanionsScreen
+                api={api}
+                character={character}
+                onCharacterChange={setCharacter}
+                onBack={close}
+              />
+            )}
           </RevealLayer>
         )}
       </StageFrame>
