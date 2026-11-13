@@ -62,15 +62,29 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, inn.GetProperty("lodging").ValueKind);
     }
 
-    // 規格 inn：Listing with an active stay 的 restFee——Lv 1 免費
+    // 規格 inn：Listing with an active stay——Lv 6、學徒閣樓 08:00–16:00，09:00 查詢：六間房、這筆入住、restFee 0
     [Fact]
     public async Task GetInn_CarriesRestFee()
     {
         await using var factory = new EndlessBattleApiFactory(database);
-        var (client, _) = await CreateCharacterAsync(factory);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Characters.Where(character => character.Id == characterId)
+                .ExecuteUpdateAsync(update => update.SetProperty(character => character.Level, 6), CancellationToken);
+        }
+
+        var day = factory.Clock.UtcNow;
+        factory.Clock.Advance(TimeSpan.FromHours(8));
+        await ReadAsync(await client.PostAsJsonAsync("/api/inn/book", new { roomId = "apprentice-loft" }, CancellationToken));
+        factory.Clock.Advance(TimeSpan.FromHours(1));
 
         var inn = await ReadAsync(await client.GetAsync("/api/inn", CancellationToken));
 
+        Assert.Equal(6, inn.GetProperty("rooms").GetArrayLength());
+        var lodging = inn.GetProperty("lodging");
+        Assert.Equal("apprentice-loft", lodging.GetProperty("roomId").GetString());
+        Assert.Equal((day.AddHours(8), day.AddHours(16)), (lodging.GetProperty("startsAt").GetDateTimeOffset(), lodging.GetProperty("endsAt").GetDateTimeOffset()));
         Assert.Equal(0, inn.GetProperty("restFee").GetInt64());
     }
 

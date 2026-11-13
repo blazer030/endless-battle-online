@@ -174,6 +174,14 @@ describe("import", () => {
       expect(await readFile(manifestPath(), "utf8")).toBe(EmptyManifest)
     })
 
+    it("類別不認得時列出可用的八類", async () => {
+      const { output, lines } = capture()
+
+      await runCli(["import", "weapons", "sword-1", "monster.png"], output, environment)
+
+      expect(lines.join("\n")).toContain("room-badges、room-backgrounds")
+    })
+
     it("鍵不在內容裡時錯誤訊息寫出類別與鍵", async () => {
       const { lines, output } = capture()
 
