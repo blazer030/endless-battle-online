@@ -135,7 +135,7 @@ public class MercenarySimulatorTests
     {
         var run = Run(Hero(), Contract(1, Now));
 
-        Assert.Single(run.Fights);
+        Assert.Equal(MercenaryFightResult.Won, Assert.Single(run.Fights).Result);
         Assert.Null(run.Contract);
     }
 

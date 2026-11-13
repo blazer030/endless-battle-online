@@ -53,11 +53,12 @@ public class PetCareTests
     [Theory]
     [InlineData(0.0, 0.0, 50, 2)]
     [InlineData(0.99, 0.99, 60, 6)]
+    [InlineData(0.0, 0.99, 50, 6)]
     public void Feed_SpecExample(double satietyRoll, double intimacyRoll, int satiety, int intimacy)
     {
         var pet = Fed(attack: 30, satiety: 40) with { Intimacy = 0 };
 
-        var fed = PetCare.Feed(pet, Food("fruit-vigor-small"), Now, new ScriptedRandom(satietyRoll, intimacyRoll));
+        var fed = PetCare.Feed(pet, Food("fruit-vigor-small"), Now, new ScriptedRandom(0.0, satietyRoll, intimacyRoll));
 
         Assert.Equal((32, satiety, intimacy), (fed.Attack, fed.Satiety, fed.Intimacy));
     }

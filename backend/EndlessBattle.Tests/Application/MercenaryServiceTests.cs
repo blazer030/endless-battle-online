@@ -73,8 +73,10 @@ public class MercenaryServiceTests
 
         var overview = await realService.HireAsync(AccountId, "mercenary-1", CancellationToken);
 
-        Assert.Equal((850, false), (overview.Contract!.Remaining, overview.Contract.Fighting));
-        Assert.Equal(500, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        var contract = Assert.IsType<MercenaryContract>(overview.Contract);
+        Assert.Equal((850, false), (contract.Remaining, contract.Fighting));
+        var stored = Assert.IsType<Character>(await characters.FindByAccountAsync(AccountId, CancellationToken));
+        Assert.Equal(500, stored.Money);
     }
 
     [Fact]

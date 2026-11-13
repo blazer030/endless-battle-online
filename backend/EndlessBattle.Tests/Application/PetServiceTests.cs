@@ -94,7 +94,7 @@ public class PetServiceTests
 
         await service.FeedAsync(AccountId, id, "fruit-vigor-small", CancellationToken);
 
-        Assert.Equal(80, (await StoredAsync())!.Money);
+        Assert.Equal(80, Assert.IsType<Character>(await StoredAsync()).Money);
     }
 
     [Fact]
