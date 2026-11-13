@@ -78,6 +78,8 @@ export const CompanionsScreen = ({ api, character, onCharacterChange, onBack }: 
   }, [api, page, attempt])
 
   const open = (target: Page) => {
+    // 回入口時清掉上一次讀到的，重讀完成前對話框留空、不放小籤
+    if (target === "entrance") setEntrance(null)
     setPage(target)
     setReturned(true)
   }

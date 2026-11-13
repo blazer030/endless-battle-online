@@ -81,6 +81,21 @@ test("DoorOpensTheStableAndBackReturns", async () => {
   expect(onBack).toHaveBeenCalledTimes(1)
 })
 
+// 回入口時重讀；讀到之前不留上一次的台詞與小籤（剛在傭兵所簽了約，不能還說「沒有契約」）
+test("ReturningClearsTheOldLinesUntilReloaded", async () => {
+  const api = createCompanionsApi(makePets([]), makeMercenaryOverview({ contract: null }))
+  await renderCompanions(api)
+  fireEvent.click(door("傭兵所"))
+  await flush()
+  vi.mocked(api.getMercenaries).mockReturnValueOnce(new Promise(() => {}))
+
+  fireEvent.click(screen.getByRole("button", { name: "同伴" }))
+  await flush()
+
+  expect(screen.getByTestId("barton-line")).toHaveTextContent(/^$/)
+  expect(door("傭兵所")).not.toHaveTextContent("沒有契約")
+})
+
 // 規格 companions-screen：Companions load failure（入口）
 test("EntranceLoadFailureShowsTheRetrySeal", async () => {
   const api = createCompanionsApi()
