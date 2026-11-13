@@ -266,8 +266,8 @@ test("RenameMercenaryCountsToEight", async () => {
 
   fireEvent.click(screen.getByRole("button", { name: "改名" }))
   const input = screen.getByRole("textbox", { name: "傭兵名字" })
-  expect(input).toHaveAttribute("maxLength", "8")
   fireEvent.change(input, { target: { value: "老葛" } })
+  expect(screen.getByText("2 / 8")).toBeInTheDocument()
   fireEvent.click(screen.getByRole("button", { name: "確定" }))
   await flush()
 

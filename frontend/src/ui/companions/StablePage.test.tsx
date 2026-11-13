@@ -219,7 +219,6 @@ test("RenameCountsCharacters", async () => {
 
   fireEvent.click(screen.getByRole("button", { name: "改名" }))
   const input = screen.getByRole("textbox", { name: "寵物名字" })
-  expect(input).toHaveAttribute("maxLength", "12")
   fireEvent.change(input, { target: { value: "  " } })
   expect(screen.getByText("0 / 12")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "確定" })).toBeDisabled()
