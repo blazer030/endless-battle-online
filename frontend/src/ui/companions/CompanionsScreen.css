@@ -913,3 +913,383 @@
   opacity: 0.38;
   filter: grayscale(0.6);
 }
+
+/* ── 傭兵所：牆上木板當招牌，下面一排名冊便條（F～B）；僱用中的蓋紅章 ── */
+.hall-sign {
+  position: absolute;
+  left: 96px;
+  top: max(48px, calc(var(--pt) - 288px));
+  width: 183px;
+  height: calc(var(--pt) - 140px - max(48px, calc(var(--pt) - 288px)));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  color: var(--hall-sign-text);
+  text-shadow:
+    0 1px 0 rgb(var(--shade-rgb) / 0.6),
+    0 0 6px rgb(var(--shade-rgb) / 0.45);
+}
+
+.hall-roster {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: calc(var(--pt) - 132px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.hall-note {
+  position: relative;
+  width: 100%;
+  height: 112px;
+  padding: 16px 2px 8px;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--umber-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--shade-rgb) / 0.5));
+  transform: rotate(var(--tilt));
+  transition: transform 0.15s;
+}
+
+.hall-note:active {
+  transform: rotate(var(--tilt)) translateY(-2px);
+}
+
+.hall-note__pin {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.hall-note__grade {
+  font-family: var(--font-number);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--hall-grade);
+}
+
+.hall-note__title {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--inn-detail-text);
+}
+
+.hall-note__price {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--umber-deep);
+}
+
+.hall-note__price[data-short="true"] {
+  color: var(--inn-cost-short);
+}
+
+.hall-note__price img {
+  width: 12px;
+  height: 12px;
+}
+
+.hall-note__medals {
+  margin-top: auto;
+  display: flex;
+}
+
+.hall-note__medals img {
+  width: auto;
+  height: 22px;
+  filter: drop-shadow(0 1px 1px rgb(var(--shade-rgb) / 0.35));
+}
+
+.hall-note__medals img + img {
+  margin-left: -6px;
+}
+
+.hall-note__stamp {
+  position: absolute;
+  left: 50%;
+  top: 46px;
+  padding: 1px 4px;
+  border: 2px solid rgb(var(--hall-stamp-rgb));
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: rgb(var(--hall-stamp-rgb));
+  background: rgb(var(--hall-stamp-paper-rgb) / 0.55);
+  transform: translateX(-50%) rotate(-14deg);
+}
+
+/* 傭兵契約：木台上一張釘著的羊皮紙，右上角是狀態圓印 */
+.hall-contract {
+  position: relative;
+  margin: 8px 2px 2px;
+  padding: 26px 18px 16px;
+  color: var(--umber-deep);
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 6px 8px rgb(var(--shade-rgb) / 0.5));
+}
+
+.hall-contract::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.hall-contract__label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--umber-faded);
+}
+
+.hall-contract__stamp {
+  position: absolute;
+  right: 16px;
+  top: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: rgb(var(--hall-stamp-rgb));
+  box-shadow:
+    inset 0 0 0 2px rgb(var(--hall-stamp-rgb)),
+    inset 0 0 0 6px rgb(var(--hall-stamp-rgb) / 0.7);
+  transform: rotate(-12deg);
+  opacity: 0.88;
+}
+
+.hall-contract__stamp--resting {
+  color: var(--hall-resting-text);
+  box-shadow:
+    inset 0 0 0 2px rgb(var(--hall-resting-rgb)),
+    inset 0 0 0 6px rgb(var(--hall-resting-rgb) / 0.6);
+}
+
+.hall-contract .companions-head {
+  padding-right: 64px;
+}
+
+.hall-contract .companions-head__name {
+  color: var(--umber-deep);
+  text-shadow: none;
+}
+
+.hall-contract .companions-head__pen,
+.hall-contract .rename-field__ok,
+.hall-contract .rename-field__cancel {
+  color: var(--wood-deep);
+  background: rgb(var(--umber-rgb) / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.45);
+}
+
+.hall-contract .rename-field__count {
+  color: var(--umber-faded);
+}
+
+.hall-contract .rename-field__count--empty {
+  color: rgb(var(--hall-stamp-rgb));
+}
+
+.hall-contract .companions-sub {
+  color: var(--inn-detail-text);
+}
+
+.hall-contract__remaining {
+  margin-top: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--inn-detail-text);
+}
+
+.hall-contract__remaining b {
+  font-family: var(--font-number);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--umber-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.hall-contract__bar {
+  display: block;
+  height: 6px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgb(var(--umber-rgb) / 0.18);
+}
+
+.hall-contract__bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--hall-bar-dark), var(--hall-bar-light));
+}
+
+.hall-contract__rates {
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+}
+
+.hall-contract__rates li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.hall-contract__rates span {
+  font-size: 11px;
+  color: var(--umber-faded);
+}
+
+.hall-contract__rates b {
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--umber-deep);
+}
+
+.hall-contract .companions-button--quiet {
+  color: var(--wood-deep);
+  background: rgb(var(--umber-rgb) / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.45);
+}
+
+/* 契約與詳情的鍵值列 */
+.hall-facts {
+  margin: 10px 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 14px;
+  font-size: 13px;
+}
+
+.hall-facts--ruled {
+  padding-top: 10px;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+}
+
+.hall-facts dt {
+  color: var(--umber-faded);
+}
+
+.hall-facts dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+  color: var(--umber-deep);
+}
+
+/* 派遣：冒險地依大陸分組，三欄；清單最高 min(300, H − 380)，在清單內捲動 */
+.hall-places {
+  margin-top: 10px;
+  max-height: min(300px, calc(var(--h) - 380px));
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.hall-places::-webkit-scrollbar {
+  display: none;
+}
+
+.hall-places__group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.hall-places h5 {
+  grid-column: 1 / -1;
+  margin: 6px 0 0;
+  padding-bottom: 3px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: var(--umber-faded);
+  border-bottom: 1px dashed rgb(var(--umber-rgb) / 0.4);
+}
+
+.hall-place {
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  cursor: pointer;
+  color: var(--umber-deep);
+  background: rgb(var(--umber-rgb) / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.hall-place b {
+  font-size: 13px;
+}
+
+.hall-place small {
+  font-size: 11px;
+  color: var(--umber-faded);
+}
+
+.hall-place[aria-pressed="true"] {
+  color: var(--paper);
+  background: var(--umber-mid);
+  box-shadow: inset 0 0 0 1px var(--brass);
+}
+
+.hall-place[aria-pressed="true"] small {
+  color: var(--bonus-title);
+}
+
+.hall-places__pick {
+  font-family: var(--font-serif);
+  font-size: 15px;
+}

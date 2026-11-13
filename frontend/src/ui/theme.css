@@ -140,6 +140,14 @@
   --stable-intimacy-light: #f09aa6;
   --stable-activation-dark: #3e8a78;
   --stable-glow-rgb: 255 214 140;
+  --hall-sign-text: #ebd7ae;
+  --hall-grade: #5a2a14;
+  --hall-stamp-rgb: 176 48 30;
+  --hall-stamp-paper-rgb: 255 240 220;
+  --hall-resting-text: #6a5a40;
+  --hall-resting-rgb: 122 106 80;
+  --hall-bar-dark: #8a5a2a;
+  --hall-bar-light: #c98a3a;
   --bonus-bar-warn-dark: #a8322a;
   --bonus-bar-warn: #e8705a;
   --bonus-glyph: #fff8e8;
