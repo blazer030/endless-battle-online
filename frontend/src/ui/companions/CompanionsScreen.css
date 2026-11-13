@@ -180,6 +180,11 @@
   box-shadow: 0 0 0 1px rgb(var(--inn-brass-rgb) / 0.6);
 }
 
+/* 讀到之前小籤先佔位、不顯示，門牌才不會在讀到時往上跳 */
+.companions-door__sign small.companions-door__chip--pending {
+  visibility: hidden;
+}
+
 .companions-entrance__beam {
   position: absolute;
   z-index: 2;

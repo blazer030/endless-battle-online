@@ -241,7 +241,7 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
           title={
             <>
               <b>獸欄</b>
-              <small>{view === null ? "" : `寵物 ${pets.length} / ${view.maxPets}`}</small>
+              <small>{view === null ? "\u00a0" : `寵物 ${pets.length} / ${view.maxPets}`}</small>
             </>
           }
           line={event === null ? null : keeperLine(event)}

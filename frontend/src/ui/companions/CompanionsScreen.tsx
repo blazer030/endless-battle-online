@@ -123,7 +123,9 @@ export const CompanionsScreen = ({ api, character, onCharacterChange, onBack }: 
         </p>
         <span className="companions-door__sign">
           <b>獸欄</b>
-          {loaded !== null && <small>{stableChip(loaded.pets)}</small>}
+          <small className={loaded === null ? "companions-door__chip--pending" : undefined}>
+            {loaded === null ? "\u00a0" : stableChip(loaded.pets)}
+          </small>
         </span>
       </button>
       <button
@@ -138,7 +140,9 @@ export const CompanionsScreen = ({ api, character, onCharacterChange, onBack }: 
         </p>
         <span className="companions-door__sign">
           <b>傭兵所</b>
-          {loaded !== null && <small>{hallChip(loaded.mercenaries.contract)}</small>}
+          <small className={loaded === null ? "companions-door__chip--pending" : undefined}>
+            {loaded === null ? "\u00a0" : hallChip(loaded.mercenaries.contract)}
+          </small>
         </span>
       </button>
       <i className="companions-entrance__beam" aria-hidden="true" />
