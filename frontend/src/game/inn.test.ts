@@ -5,6 +5,7 @@ import {
   innRevealOrigin,
   lodgingLine,
   remainingClock,
+  stayRemainingClock,
   replaceHint,
   replaceNotice,
   restFeeText,
@@ -160,4 +161,15 @@ test("replaceNotice_NamesTheRoomOrSaysItIsTheSame", () => {
     replacing: false,
   })
   expect(replaceNotice(null, rooms, "apprentice-loft", now)).toBeNull()
+})
+
+// 剛入住時畫面的「現在」可能比住宿開始還早（每 30 秒才更新、或伺服器時鐘略快）：剩餘不超過整段時長
+test("stayRemainingClock_NeverExceedsTheStay", () => {
+  const lodging = {
+    roomId: "fighters-bunk",
+    startsAt: endsIn(30_000),
+    endsAt: endsIn(30_000 + 8 * 3_600_000),
+  }
+
+  expect(stayRemainingClock(lodging, now)).toBe("8:00")
 })

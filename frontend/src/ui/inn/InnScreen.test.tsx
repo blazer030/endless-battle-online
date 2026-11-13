@@ -334,3 +334,26 @@ test("InnScreen_RetryShowsTheRooms", async () => {
   expect(screen.queryByRole("button", { name: "再試一次" })).not.toBeInTheDocument()
   expect(bubble()).toHaveTextContent("歡迎光臨暖爐亭！今晚想住哪一間？")
 })
+
+// 剛入住時剩餘不會超過 8 小時：伺服器的開始時間比畫面的「現在」晚 30 秒
+test("InnScreen_JustBookedStayShowsItsFullLength", async () => {
+  const api = createApi()
+  vi.mocked(api.bookInn).mockResolvedValue(
+    InnBookVo.create({
+      character: makeCharacter({ level: 6, money: 400 }),
+      lodging: {
+        roomId: "apprentice-loft",
+        startsAt: new Date(at(8, 1).getTime() + 30_000),
+        endsAt: new Date(at(16, 1).getTime() + 30_000),
+      },
+      cost: 600,
+    }),
+  )
+  await renderInn({ api })
+
+  fireEvent.click(roomCard("學徒閣樓"))
+  fireEvent.click(seal())
+  await flush()
+
+  expect(within(banner()).getByText("剩 8:00")).toBeInTheDocument()
+})

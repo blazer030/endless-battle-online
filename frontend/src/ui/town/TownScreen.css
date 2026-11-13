@@ -2,6 +2,8 @@
 .town {
   position: absolute;
   inset: 0;
+  /* 自成堆疊層：旅館展開時整個城鎮都在旅館底下 */
+  isolation: isolate;
   overflow: hidden;
   font-family: var(--font-ui);
   color: var(--town-text);

@@ -70,6 +70,13 @@ export function remainingClock(endsAt: Date, now: Date): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
 }
 
+// 住宿的剩餘時間：「現在」早於開始時（畫面時鐘每 30 秒才更新、或伺服器時鐘略快）以開始時刻計，不會超過整段時長
+const clampToStart = (lodging: Lodging, now: Date) =>
+  now.getTime() < lodging.startsAt.getTime() ? lodging.startsAt : now
+
+export const stayRemainingClock = (lodging: Lodging, now: Date) =>
+  remainingClock(lodging.endsAt, clampToStart(lodging, now))
+
 // 到期或房型已被移除都視為沒有住宿加成
 export const activeRoom = (lodging: Lodging | null, rooms: readonly InnRoom[], now: Date) =>
   lodging !== null && lodging.endsAt.getTime() > now.getTime()
@@ -83,7 +90,7 @@ export function lodgingLine(
 ): string | null {
   const room = activeRoom(lodging, rooms, now)
   if (room === undefined || lodging === null) return null
-  return `${room.name}・${roomEffect(room)}（剩 ${remainingClock(lodging.endsAt, now)}）`
+  return `${room.name}・${roomEffect(room)}（剩 ${stayRemainingClock(lodging, now)}）`
 }
 
 export function replaceHint(
@@ -105,7 +112,7 @@ export function replaceNotice(
 ): { text: string; replacing: boolean } | null {
   const current = activeRoom(lodging, rooms, now)
   if (current === undefined || lodging === null) return null
-  const left = remainingClock(lodging.endsAt, now)
+  const left = stayRemainingClock(lodging, now)
   return current.id === roomId
     ? { text: `正在住這間，剩 ${left}`, replacing: false }
     : { text: `會取代目前的${current.name}（${roomEffect(current)}，剩 ${left}）`, replacing: true }

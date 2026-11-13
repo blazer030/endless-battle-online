@@ -7,9 +7,9 @@ import {
   innCounterTop,
   innkeeperLine,
   InnVo,
-  remainingClock,
   replaceNotice,
   roomEffect,
+  stayRemainingClock,
   stayLength,
   stayProgress,
   type InnkeeperEvent,
@@ -196,7 +196,7 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
                   <div className="inn-now__text">
                     <span className="inn-now__title">
                       <b>{stay.name}</b>
-                      <em>{`剩 ${remainingClock(lodging.endsAt, now)}`}</em>
+                      <em>{`剩 ${stayRemainingClock(lodging, now)}`}</em>
                     </span>
                     <span className="inn-now__effect">{roomEffect(stay)}</span>
                     <span className="inn-now__bar">
