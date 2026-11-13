@@ -1,4 +1,5 @@
 import { useRef, useState } from "react"
+import { nameLength } from "../../game/names"
 
 type Props = {
   label: string
@@ -21,7 +22,7 @@ export const RenameField = ({ label, initial, maxLength, busy, onConfirm, onCanc
   const [draft, setDraft] = useState(initial)
   const composing = useRef(false)
   const name = draft.trim()
-  const length = [...name].length
+  const length = nameLength(draft)
   return (
     <span className="rename-field">
       <input

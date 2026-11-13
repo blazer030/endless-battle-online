@@ -10,6 +10,7 @@ import {
   type KeeperEvent,
 } from "../../game/companions"
 import { formatNumber } from "../../game/format"
+import { MercenaryNameMaxLength } from "../../game/names"
 import type {
   MercenaryCatalogueEntry,
   MercenaryContract,
@@ -33,7 +34,6 @@ type Props = {
   onBack: () => void
 }
 
-const MercenaryNameMaxLength = 8
 // 名冊便條輪流傾斜
 const NoteTilts = [-3, 2, -1.5, 2.5, -2]
 // 勳章所兌換要用的兩種勳章（大陸、王國）

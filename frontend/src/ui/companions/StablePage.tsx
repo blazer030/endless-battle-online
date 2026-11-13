@@ -14,6 +14,7 @@ import {
   type KeeperEvent,
 } from "../../game/companions"
 import { formatNumber } from "../../game/format"
+import { PetNameMaxLength } from "../../game/names"
 import {
   personalityLabel,
   type Pet,
@@ -50,7 +51,6 @@ type Props = {
 const Stalls = 3
 const StableLoadFailed: KeeperEvent = { kind: "stableLoadFailed" }
 const PetFailed: KeeperEvent = { kind: "petFailed" }
-const PetNameMaxLength = 12
 // setTimeout 的上限（32 位元有號整數）
 const MaxTimerMilliseconds = 2_147_483_647
 
