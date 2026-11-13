@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
-import { ApiError } from "../../api/client"
+import { useCallback, useEffect, useState, type CSSProperties } from "react"
 import type { CharacterVo } from "../../game/character"
 import {
   activationRatio,
@@ -26,7 +25,9 @@ import { Seal } from "../title/Seal"
 import { BackButton } from "./BackButton"
 import type { CompanionsApi } from "./CompanionsScreen"
 import { CounterHeader } from "./KeeperSay"
+import { PenButton } from "./PenButton"
 import { RenameField } from "./RenameField"
+import { useKeeperPage } from "./useKeeperPage"
 import petSilhouette from "../../assets/companions/pet-silhouette.webp"
 import stallGate from "../../assets/companions/stall-gate.webp"
 import fruitVigor from "../../assets/companions/fruit-vigor.webp"
@@ -43,6 +44,8 @@ type Props = {
 }
 
 const Stalls = 3
+const StableLoadFailed: KeeperEvent = { kind: "stableLoadFailed" }
+const PetFailed: KeeperEvent = { kind: "petFailed" }
 const PetNameMaxLength = 12
 // setTimeout 的上限（32 位元有號整數）
 const MaxTimerMilliseconds = 2_147_483_647
@@ -81,44 +84,30 @@ const Bar = ({
 // 獸欄：三格柵門（寵物從門後探出），木台上是選中寵物的資料、果實槽與動作
 export const StablePage = ({ api, character, onCharacterChange, onBack }: Props) => {
   const stage = useStage()
-  const [view, setView] = useState<PetsVo | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
-  const [attempt, setAttempt] = useState(0)
+  const load = useCallback(() => api.getPets(), [api])
+  const {
+    view,
+    setView,
+    loadFailed,
+    event,
+    setEvent,
+    busy,
+    perform,
+    run: send,
+    retry,
+  } = useKeeperPage<PetsVo>({
+    api,
+    load,
+    onCharacterChange,
+    loadFailed: StableLoadFailed,
+    rejected: (reason) => ({ kind: "petRejected", reason }),
+    failed: PetFailed,
+  })
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const [event, setEvent] = useState<KeeperEvent | null>(null)
-  const [busy, setBusy] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [releasing, setReleasing] = useState(false)
   const [effect, setEffect] = useState<Effect | null>(null)
   const [now, setNow] = useState(() => new Date())
-  const alive = useRef(true)
-
-  useEffect(() => {
-    alive.current = true
-    return () => {
-      alive.current = false
-    }
-  }, [])
-
-  useEffect(() => {
-    let isCurrent = true
-    api.getPets().then(
-      (loaded) => {
-        if (!isCurrent) return
-        setView(loaded)
-        setLoadFailed(false)
-        setEvent(null)
-      },
-      () => {
-        if (!isCurrent) return
-        setLoadFailed(true)
-        setEvent({ kind: "stableLoadFailed" })
-      },
-    )
-    return () => {
-      isCurrent = false
-    }
-  }, [api, attempt])
 
   // 餵食冷卻結束時重繪，果實才會恢復可按
   useEffect(() => {
@@ -134,75 +123,36 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
   const pets = view?.pets ?? []
   const pet = pets.find((candidate) => candidate.id === selectedId) ?? pets[0] ?? null
 
-  const reloadCharacter = useCallback(async () => {
-    try {
-      const latest = await api.getMyCharacter()
-      if (alive.current && latest !== null) onCharacterChange(latest)
-    } catch {
-      // 維持原本的金錢
-    }
-  }, [api, onCharacterChange])
+  // 成功時換成回應裡的寵物清單並由米菈說一句
+  const run = (action: () => Promise<PetsVo>, success: KeeperEvent) =>
+    send(action, success).then((done) => {
+      if (done) setNow(new Date())
+      return done
+    })
 
-  const fail = (error: unknown) => {
-    if (error instanceof ApiError && error.reasons.length > 0) {
-      setEvent({ kind: "petRejected", reason: error.reasons[0]! })
-      if (error.reasons.includes("notEnoughMoney")) void reloadCharacter()
-    } else setEvent({ kind: "petFailed" })
-  }
-
-  // 同一時間只送一個請求；成功時換成回應裡的寵物清單並由米菈說一句
-  const run = async (action: () => Promise<PetsVo>, success: KeeperEvent) => {
-    setBusy(true)
-    setEvent(null)
-    try {
-      const pets = await action()
-      if (!alive.current) return true
-      setView(pets)
-      setNow(new Date())
-      setEvent(success)
-      return true
-    } catch (error) {
-      if (alive.current) fail(error)
-      return false
-    } finally {
-      if (alive.current) setBusy(false)
-    }
-  }
-
-  const feed = async (target: Pet, food: PetFood) => {
-    setBusy(true)
-    setEvent(null)
-    try {
-      const result = await api.feedPet(target.id, food.id)
-      if (!alive.current) return
-      onCharacterChange(result.character)
-      const after = result.pets.pets.find((candidate) => candidate.id === target.id)
-      setView(result.pets)
-      setNow(new Date())
-      if (after !== undefined)
-        setEffect((previous) => ({
-          petId: target.id,
-          text: feedEffect(target, after, food),
-          key: (previous?.key ?? 0) + 1,
-        }))
-    } catch (error) {
-      if (alive.current) fail(error)
-    } finally {
-      if (alive.current) setBusy(false)
-    }
-  }
+  const feed = (target: Pet, food: PetFood) =>
+    perform(
+      () => api.feedPet(target.id, food.id),
+      (result) => {
+        onCharacterChange(result.character)
+        const after = result.pets.pets.find((candidate) => candidate.id === target.id)
+        setView(result.pets)
+        setNow(new Date())
+        if (after !== undefined)
+          setEffect((previous) => ({
+            petId: target.id,
+            text: feedEffect(target, after, food),
+            key: (previous?.key ?? 0) + 1,
+          }))
+        return null
+      },
+    )
 
   const select = (id: number) => {
     setSelectedId(id)
     setEvent(null)
     setRenaming(false)
     setReleasing(false)
-  }
-
-  const retry = () => {
-    setEvent(null)
-    setLoadFailed(false)
-    setAttempt((count) => count + 1)
   }
 
   const stalls = Array.from({ length: Stalls }, (_, index) => pets[index] ?? null)
@@ -297,21 +247,14 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
                 ) : (
                   <>
                     <b className="companions-head__name">{pet.name}</b>
-                    <button
-                      type="button"
-                      className="companions-head__pen"
-                      aria-label="改名"
+                    <PenButton
                       disabled={busy}
                       onClick={() => {
                         setEvent(null)
                         setReleasing(false)
                         setRenaming(true)
                       }}
-                    >
-                      <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24">
-                        <path d="M4 20l4.5-1 10-10-3.5-3.5-10 10z" />
-                      </svg>
-                    </button>
+                    />
                   </>
                 )}
                 <span className="companions-head__tag">{personalityLabel(pet.personality)}</span>

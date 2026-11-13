@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
-import { ApiError } from "../../api/client"
+import { useCallback, useState, type CSSProperties } from "react"
 import type { CharacterVo } from "../../game/character"
 import {
   canHire,
@@ -22,7 +21,9 @@ import { Seal } from "../title/Seal"
 import { BackButton } from "./BackButton"
 import type { CompanionsApi } from "./CompanionsScreen"
 import { CounterHeader, KeeperSay } from "./KeeperSay"
+import { PenButton } from "./PenButton"
 import { RenameField } from "./RenameField"
+import { useKeeperPage } from "./useKeeperPage"
 import purse from "../../assets/town/purse.webp"
 
 type Props = {
@@ -38,6 +39,9 @@ const NoteTilts = [-3, 2, -1.5, 2.5, -2]
 // 勳章所兌換要用的兩種勳章（大陸、王國）
 const HonourMedals = ["item-1304", "item-1305"]
 
+const HallLoadFailed: KeeperEvent = { kind: "hallLoadFailed" }
+const MercenaryFailed: KeeperEvent = { kind: "mercenaryFailed" }
+
 type Sheet = { kind: "hire"; entryId: string } | { kind: "place"; pick: number | null }
 
 const gradeOf = (entry: MercenaryCatalogueEntry) => entry.name.replace(/級傭兵$/, "")
@@ -48,105 +52,42 @@ const noteLabel = (entry: MercenaryCatalogueEntry, hired: boolean) =>
 // 傭兵所：牆上名冊便條（F～B）＋木台上的契約；詳情與冒險地是從下方滑出的羊皮紙
 export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) => {
   const stage = useStage()
-  const [view, setView] = useState<MercenaryOverviewVo | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
-  const [attempt, setAttempt] = useState(0)
-  const [event, setEvent] = useState<KeeperEvent | null>(null)
-  const [busy, setBusy] = useState(false)
+  const load = useCallback(() => api.getMercenaries(), [api])
+  const { view, setView, loadFailed, event, setEvent, busy, alive, perform, run, retry } =
+    useKeeperPage<MercenaryOverviewVo>({
+      api,
+      load,
+      onCharacterChange,
+      loadFailed: HallLoadFailed,
+      rejected: (reason, current) => ({
+        kind: "mercenaryRejected",
+        reason,
+        contractName: current?.contract?.name,
+      }),
+      failed: MercenaryFailed,
+    })
   const [renaming, setRenaming] = useState(false)
   const [dismissing, setDismissing] = useState(false)
   // 關上時保留上一張的內容，滑出去時才不會變空白
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [groups, setGroups] = useState<DeployGroup[] | null>(null)
-  const alive = useRef(true)
-
-  useEffect(() => {
-    alive.current = true
-    return () => {
-      alive.current = false
-    }
-  }, [])
-
-  useEffect(() => {
-    let isCurrent = true
-    api.getMercenaries().then(
-      (loaded) => {
-        if (!isCurrent) return
-        setView(loaded)
-        setLoadFailed(false)
-        setEvent(null)
-      },
-      () => {
-        if (!isCurrent) return
-        setLoadFailed(true)
-        setEvent({ kind: "hallLoadFailed" })
-      },
-    )
-    return () => {
-      isCurrent = false
-    }
-  }, [api, attempt])
 
   const catalogue = view?.catalogue ?? []
   const contract = view?.contract ?? null
   const contractEntry =
     contract === null ? undefined : catalogue.find((entry) => entry.id === contract.mercenaryId)
 
-  const reloadCharacter = useCallback(async () => {
-    try {
-      const latest = await api.getMyCharacter()
-      if (alive.current && latest !== null) onCharacterChange(latest)
-    } catch {
-      // 維持原本的金錢
-    }
-  }, [api, onCharacterChange])
-
-  const fail = (error: unknown) => {
-    if (error instanceof ApiError && error.reasons.length > 0) {
-      setEvent({
-        kind: "mercenaryRejected",
-        reason: error.reasons[0]!,
-        contractName: contract?.name,
-      })
-      if (error.reasons.includes("notEnoughMoney")) void reloadCharacter()
-    } else setEvent({ kind: "mercenaryFailed" })
-  }
-
-  // 同一時間只送一個請求；成功時換成回應裡的名冊與契約並由巴頓說一句
-  const run = async (action: () => Promise<MercenaryOverviewVo>, success: KeeperEvent) => {
-    setBusy(true)
-    setEvent(null)
-    try {
-      const overview = await action()
-      if (!alive.current) return true
-      setView(overview)
-      setEvent(success)
-      return true
-    } catch (error) {
-      if (alive.current) fail(error)
-      return false
-    } finally {
-      if (alive.current) setBusy(false)
-    }
-  }
-
-  const hire = async (entry: MercenaryCatalogueEntry) => {
-    setBusy(true)
-    setEvent(null)
-    try {
-      const result = await api.hireMercenary(entry.id)
-      if (!alive.current) return
-      setView(result.mercenaries)
-      onCharacterChange(result.character)
-      setSheetOpen(false)
-      setEvent({ kind: "hired", name: entry.name })
-    } catch (error) {
-      if (alive.current) fail(error)
-    } finally {
-      if (alive.current) setBusy(false)
-    }
-  }
+  const hire = (entry: MercenaryCatalogueEntry) =>
+    perform(
+      () => api.hireMercenary(entry.id),
+      (result) => {
+        setView(result.mercenaries)
+        onCharacterChange(result.character)
+        setSheetOpen(false)
+        return { kind: "hired", name: entry.name }
+      },
+    )
 
   const openSheet = (next: Sheet) => {
     setEvent(null)
@@ -190,12 +131,6 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
       })
     )
       setSheetOpen(false)
-  }
-
-  const retry = () => {
-    setEvent(null)
-    setLoadFailed(false)
-    setAttempt((count) => count + 1)
   }
 
   const line = event === null ? null : keeperLine(event)
@@ -307,21 +242,14 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
                     ) : (
                       <>
                         <b className="companions-head__name">{contract.name}</b>
-                        <button
-                          type="button"
-                          className="companions-head__pen"
-                          aria-label="改名"
+                        <PenButton
                           disabled={busy}
                           onClick={() => {
                             setEvent(null)
                             setDismissing(false)
                             setRenaming(true)
                           }}
-                        >
-                          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24">
-                            <path d="M4 20l4.5-1 10-10-3.5-3.5-10 10z" />
-                          </svg>
-                        </button>
+                        />
                       </>
                     )}
                   </div>
