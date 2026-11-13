@@ -111,6 +111,21 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 
 密藥圓章的圖是道具圖，不是設計素材：`items/item-2257`（神力秘藥 `8a7c67f6`）、`items/item-2255`（戰鬥熟練手冊 `e233c863`）用 `import` 上傳 R2，其他密藥用道具佔位圖。
 
+### `inn/`：旅館（設計板 InnFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `lobby` | 旅館大廳（800，原圖 1280） | `c95d61d5` |
+| `innkeeper` | 老闆娘瑪莎（440，原圖 490） | `047c012e` |
+| `counter-wood` | 木台的木紋（650） | `6884370a` |
+| `counter-edge` | 木台上緣的櫃檯木條（360，原圖 1200） | `d137517f` |
+| `door-plate` | 客房／自動住宿的門牌分頁（360，原圖 600） | `7d42c264` |
+| `parchment` | 入住詳情的羊皮紙（731） | `75aeed6c` |
+| `pin` | 羊皮紙上的圖釘（64） | `59eb4a17` |
+| `close` | 羊皮紙的關閉鈕（80） | `f1386931` |
+
+紅印章、對話框沿用 `title/seal`、`title/bubble`，錢袋沿用 `town/purse`。房型徽章與房間背景是內容圖：`room-badges/<房型 id>`、`room-backgrounds/<房型 id>`，用 `import` 上傳 R2。
+
 ## 提示詞
 
 日系手繪（設計畫布 EBO DEMO）的提示詞在 [`prompts/demo/`](prompts/demo/README.md)；道具描述檔在 `prompts/items/`。`prompts.md` 是舊的深藍夜色舞台範本，只留作參考。

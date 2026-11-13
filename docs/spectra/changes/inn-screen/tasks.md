@@ -30,7 +30,7 @@
 
 ## 5. 設計素材
 
-- [ ] 5.1 用 `cd tools/assets && pnpm cli design inn <名稱> <來源圖>` 把 design 素材清單轉成 `frontend/src/assets/inn/*.webp`：大廳 `c95d61d5`、瑪莎 `047c012e`、木紋 `6884370a`、櫃檯木條 `d137517f`、門牌 `7d42c264`、羊皮紙 `75aeed6c`、圖釘 `59eb4a17`、關閉鈕 `f1386931`、紅印章 `759746ed`、對話框 `b97d9abd`（錢袋沿用 `town/purse.webp`）。`docs/art/README.md` 設計素材清單加 `inn/` 一節。驗證：檔案存在且被畫面 import（tsc 不報錯）；README 清單與檔案一致（內容檢查）。
+- [x] 5.1 用 `cd tools/assets && pnpm cli design inn <名稱> <來源圖>` 把 design 素材清單轉成 `frontend/src/assets/inn/*.webp`：大廳 `c95d61d5`、瑪莎 `047c012e`、木紋 `6884370a`、櫃檯木條 `d137517f`、門牌 `7d42c264`、羊皮紙 `75aeed6c`、圖釘 `59eb4a17`、關閉鈕 `f1386931`、紅印章 `759746ed`、對話框 `b97d9abd`（錢袋沿用 `town/purse.webp`）。`docs/art/README.md` 設計素材清單加 `inn/` 一節。驗證：檔案存在且被畫面 import（tsc 不報錯）；README 清單與檔案一致（內容檢查）。
 
 ## 6. 旅館畫面
 
