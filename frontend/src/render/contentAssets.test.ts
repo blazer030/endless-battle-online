@@ -43,6 +43,16 @@ describe("contentAsset", () => {
     })
   })
 
+  // 規格 town-screen：Lodging badge without an image
+  it("沒有 room-badges/quiet-chapel 時回傳房型徽章佔位圖", () => {
+    const contentAsset = createContentAssets(manifest, placeholders)
+
+    expect(contentAsset("room-badges", "quiet-chapel")).toEqual({
+      url: "/placeholders/room-badges.svg",
+      placeholder: true,
+    })
+  })
+
   it("鍵相同但類別不同時不會拿錯圖", () => {
     const contentAsset = createContentAssets(manifest, placeholders)
 
@@ -53,6 +63,25 @@ describe("contentAsset", () => {
 describe("validateManifest", () => {
   it("格式正確時沒有錯誤", () => {
     expect(validateManifest(manifest)).toEqual([])
+  })
+
+  // 規格 content-assets：Room categories are accepted
+  it("房型兩類的項目通過檢查", () => {
+    expect(
+      validateManifest({
+        baseUrl: "https://x",
+        assets: {
+          "room-badges/apprentice-loft": {
+            file: "room-badges/apprentice-loft.0a1b2c3d4e5f.webp",
+            original: "o",
+          },
+          "room-backgrounds/apprentice-loft": {
+            file: "room-backgrounds/apprentice-loft.0a1b2c3d4e5f.webp",
+            original: "o",
+          },
+        },
+      }),
+    ).toEqual([])
   })
 
   it("類別不合法時列出錯誤", () => {

@@ -4,9 +4,11 @@ import itemsPlaceholder from "../assets/placeholders/items.svg"
 import jobIconsPlaceholder from "../assets/placeholders/job-icons.svg"
 import monstersPlaceholder from "../assets/placeholders/monsters.svg"
 import portraitsPlaceholder from "../assets/placeholders/portraits.svg"
+import roomBackgroundsPlaceholder from "../assets/placeholders/room-backgrounds.svg"
+import roomBadgesPlaceholder from "../assets/placeholders/room-badges.svg"
 import skillsPlaceholder from "../assets/placeholders/skills.svg"
 
-// 內容圖（道具、怪物、技能、職業立繪與圖示、戰鬥背景）放在 R2，清單由 tools/assets 的 import 指令維護
+// 內容圖（道具、怪物、技能、職業立繪與圖示、戰鬥背景、旅館房型徽章與背景）放在 R2，清單由 tools/assets 的 import 指令維護
 export const ContentCategories = [
   "portraits",
   "job-icons",
@@ -14,6 +16,8 @@ export const ContentCategories = [
   "items",
   "monsters",
   "battlefields",
+  "room-badges",
+  "room-backgrounds",
 ] as const
 
 export type ContentCategory = (typeof ContentCategories)[number]
@@ -80,6 +84,8 @@ const placeholders: Record<ContentCategory, string> = {
   items: itemsPlaceholder,
   monsters: monstersPlaceholder,
   battlefields: battlefieldsPlaceholder,
+  "room-badges": roomBadgesPlaceholder,
+  "room-backgrounds": roomBackgroundsPlaceholder,
 }
 
 export const contentAsset = createContentAssets(manifestJson as ContentManifest, placeholders)
