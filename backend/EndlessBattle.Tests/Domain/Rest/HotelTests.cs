@@ -162,4 +162,23 @@ public class HotelTests
 
         Assert.Equal((1080, 94), (result.Character.HealthPoints, result.Character.ManaPoints));
     }
+
+    // 規格 inn：Rest cost 表（HpMax 100：Life 2 → round(2×25) + 50 = 100；經驗 1000）
+    [Theory]
+    [InlineData(100, 0, 0L, 0L, 1000L)]
+    [InlineData(101, 0, 5000L, 2121L, 1000L)]
+    [InlineData(120, 5, 5000L, 2160L, 1000L)]
+    [InlineData(120, 50, 5000L, 1200L, 1000L)]
+    [InlineData(120, 50, 100L, 0L, 800L)]
+    public void Hotel_CostTable(int level, int hp, long money, long cost, long experience)
+    {
+        var hero = Hero(level, hp, money, exp: 1000) with { Base = new BaseStats(Strength: 12, Intelligence: 12, Life: 2, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10) };
+
+        var result = Hotel.Rest(hero);
+
+        Assert.Equal(cost, result.Cost);
+        Assert.Equal(money - cost, result.Character.Money);
+        Assert.Equal(experience, result.Character.Experience);
+        Assert.Equal(100, result.Character.HealthPoints);
+    }
 }

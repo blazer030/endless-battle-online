@@ -39,6 +39,13 @@ public class InnTests
         Assert.Equal(300, Inn.Price(Definition, Bunk, 6));
     }
 
+    // 規格 inn：Room price 的 Lv 120 列
+    [Fact]
+    public void Price_ForLevel120()
+    {
+        Assert.Equal(12_000, Inn.Price(Definition, Loft, 120));
+    }
+
     [Fact]
     public void Price_DoesNotOverflowInt()
     {

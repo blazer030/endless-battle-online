@@ -46,4 +46,19 @@ public class RestRulesTests
     {
         Assert.False(RestRules.ShouldRest(Hero(1, 100, AdventureSettings.Default with { RestHealthPointsPercent = -1 }), Derived, hasActiveSkills: false));
     }
+
+    // 規格 inn：Rest triggers 表（HpMax、SpMax 100）
+    [Theory]
+    [InlineData(0, 100, -1, -1, false, true)]
+    [InlineData(14, 100, 15, 15, false, true)]
+    [InlineData(15, 100, 15, 15, false, false)]
+    [InlineData(100, 10, 15, 15, false, false)]
+    [InlineData(100, 10, 15, 15, true, true)]
+    [InlineData(10, 100, -1, 15, true, false)]
+    public void ShouldRest_TriggerTable(int hp, int sp, int hpThreshold, int spThreshold, bool hasActiveSkills, bool expected)
+    {
+        var settings = AdventureSettings.Default with { RestHealthPointsPercent = hpThreshold, RestManaPointsPercent = spThreshold };
+
+        Assert.Equal(expected, RestRules.ShouldRest(Hero(hp, sp, settings), Derived, hasActiveSkills));
+    }
 }
