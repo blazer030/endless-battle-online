@@ -6,11 +6,13 @@ type Props = {
   assetKey: string
   alt: string
   className?: string
+  // 缺圖或載入失敗時改用這張，沒給時用該類的佔位圖
+  placeholder?: string
 }
 
 // 內容圖：R2 的圖載入失敗時換成該類佔位圖
-export const ContentImage = ({ category, assetKey, alt, className }: Props) => {
-  const candidates = contentArtCandidates(category, assetKey)
+export const ContentImage = ({ category, assetKey, alt, className, placeholder }: Props) => {
+  const candidates = contentArtCandidates(category, assetKey, placeholder)
   const [failed, setFailed] = useState({ key: `${category}/${assetKey}`, count: 0 })
   const current = `${category}/${assetKey}`
   const index = failed.key === current ? failed.count : 0

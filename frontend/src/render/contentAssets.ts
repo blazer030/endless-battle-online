@@ -90,5 +90,15 @@ const placeholders: Record<ContentCategory, string> = {
 
 export const contentAsset = createContentAssets(manifestJson as ContentManifest, placeholders)
 
-export const contentArtCandidates = (category: ContentCategory, key: string): string[] =>
-  artCandidates(contentAsset(category, key), placeholders[category])
+// placeholder 可換成畫面自己的佔位圖（例如寵物用通用剪影），沒給時用該類的佔位圖
+export const contentArtCandidates = (
+  category: ContentCategory,
+  key: string,
+  placeholder: string = placeholders[category],
+): string[] => {
+  const asset = contentAsset(category, key)
+  return artCandidates(
+    asset.placeholder ? { url: placeholder, placeholder: true } : asset,
+    placeholder,
+  )
+}
