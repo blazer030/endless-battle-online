@@ -71,7 +71,7 @@ export function remainingClock(endsAt: Date, now: Date): string {
 }
 
 // 到期或房型已被移除都視為沒有住宿加成
-const activeRoom = (lodging: Lodging | null, rooms: readonly InnRoom[], now: Date) =>
+export const activeRoom = (lodging: Lodging | null, rooms: readonly InnRoom[], now: Date) =>
   lodging !== null && lodging.endsAt.getTime() > now.getTime()
     ? rooms.find((room) => room.id === lodging.roomId)
     : undefined
@@ -168,3 +168,10 @@ export const innRevealOrigin = (stageHeight: number) => {
 // 木台上緣：844 高時 250，每矮 1 上移 0.4
 export const innCounterTop = (stageHeight: number) =>
   Math.round(250 - (PanoramaHeight - stageHeight) * 0.4)
+
+// 住宿剩餘比例：（結束−現在）／（結束−開始），夾在 0～1
+export const stayProgress = (lodging: Lodging, now: Date) => {
+  const total = lodging.endsAt.getTime() - lodging.startsAt.getTime()
+  if (total <= 0) return 0
+  return Math.min(1, Math.max(0, (lodging.endsAt.getTime() - now.getTime()) / total))
+}
