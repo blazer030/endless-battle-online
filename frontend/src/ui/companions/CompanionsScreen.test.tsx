@@ -1,54 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../../api/client"
-import { MercenaryOverviewVo, type MercenaryContract } from "../../game/mercenaries"
 import { PollIntervalMilliseconds } from "../../motion/timings"
-import {
-  makeCharacter,
-  makeMercenaryOverview,
-  makePet,
-  makePets,
-  makeWorld,
-} from "../../test/fixtures"
+import { makeCharacter, makeMercenaryOverview, makePets } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
-import { CompanionsScreen, type CompanionsApi } from "./CompanionsScreen"
-
-const fighting: MercenaryContract = {
-  mercenaryId: "mercenary-f",
-  name: "葛雷",
-  remaining: 64,
-  placeId: 4,
-  placeName: "迷霧森林",
-  fighting: true,
-  nextFightAt: null,
-}
-
-const twoPets = makePets([
-  makePet({ id: 1, name: "小風", carried: true }),
-  makePet({ id: 2, name: "夜影" }),
-])
-const withContract = makeMercenaryOverview({ contract: fighting })
-
-export const createCompanionsApi = (
-  pets = twoPets,
-  mercenaries: MercenaryOverviewVo = withContract,
-): CompanionsApi & Pick<ApiClient, "advance"> => ({
-  getPets: vi.fn().mockResolvedValue(pets),
-  carryPet: vi.fn(),
-  storePet: vi.fn(),
-  releasePet: vi.fn(),
-  renamePet: vi.fn(),
-  feedPet: vi.fn(),
-  getMercenaries: vi.fn().mockResolvedValue(mercenaries),
-  hireMercenary: vi.fn(),
-  deployMercenary: vi.fn(),
-  restMercenary: vi.fn(),
-  renameMercenary: vi.fn(),
-  dismissMercenary: vi.fn(),
-  getWorld: vi.fn().mockResolvedValue(makeWorld()),
-  getMyCharacter: vi.fn(),
-  advance: vi.fn(),
-})
+import { CompanionsScreen } from "./CompanionsScreen"
+import { createCompanionsApi } from "./testing"
 
 const flush = () =>
   act(async () => {

@@ -131,6 +131,15 @@
   --keeper-say-failed-paper: #f6dcd0;
   --keeper-say-sheet-paper: #fff8e8;
   --keeper-say-sheet-failed: #f8ddd2;
+  --companions-tag-light: #f0d8a0;
+  --companions-wood-light: #5c4228;
+  --companions-wood-dark: #3e2b18;
+  --companions-quiet-text: #e8d8b4;
+  --stable-satiety: #b8a050;
+  --stable-intimacy-dark: #a8485a;
+  --stable-intimacy-light: #f09aa6;
+  --stable-activation-dark: #3e8a78;
+  --stable-glow-rgb: 255 214 140;
   --bonus-bar-warn-dark: #a8322a;
   --bonus-bar-warn: #e8705a;
   --bonus-glyph: #fff8e8;
