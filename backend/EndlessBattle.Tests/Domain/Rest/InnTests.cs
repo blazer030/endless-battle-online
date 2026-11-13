@@ -118,6 +118,15 @@ public class InnTests
         Assert.Null(Inn.ToBuff(null, Definition));
     }
 
+    // 規格 inn：Room removed from the content——內容沒有的房型不算加成
+    [Fact]
+    public void ToBuffs_SkipsRemovedRooms()
+    {
+        IReadOnlyList<Lodging> stays = [new("gone-room", Now, Now.AddHours(1)), new("fighters-bunk", Now.AddHours(1), Now.AddHours(9))];
+
+        Assert.Equal([new CharacterBuff(BuffKind.Attack, 1.05, Now.AddHours(1), Now.AddHours(9))], Inn.ToBuffs(stays, Definition));
+    }
+
     [Fact]
     public void ToBuff_UsesRoomKindAndMultiplier()
     {
@@ -129,7 +138,7 @@ public class InnTests
     [Fact]
     public void Combined_MultipliesElixirAndLodging()
     {
-        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, Stay(BuffKind.Experience, 1.1));
+        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, [Stay(BuffKind.Experience, 1.1)]);
 
         Assert.Equal(1.65, multiplier, 10);
     }
@@ -138,7 +147,7 @@ public class InnTests
     [Fact]
     public void Multiplier_ElixirAndLodgingOfSameKindMultiply()
     {
-        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.05)], BuffKind.Experience, Now, Stay(BuffKind.Experience, 1.10));
+        var multiplier = Buffs.Multiplier([Elixir(BuffKind.Experience, 1.05)], BuffKind.Experience, Now, [Stay(BuffKind.Experience, 1.10)]);
 
         Assert.Equal(1.155, multiplier, 10);
     }
@@ -148,14 +157,14 @@ public class InnTests
     {
         var lodging = Stay(BuffKind.Experience, 1.1);
 
-        Assert.Equal(1.1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt, lodging));
-        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.EndsAt, lodging));
-        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt.AddTicks(-1), lodging));
+        Assert.Equal(1.1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt, [lodging]));
+        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.EndsAt, [lodging]));
+        Assert.Equal(1, Buffs.Multiplier([], BuffKind.Experience, lodging.StartsAt.AddTicks(-1), [lodging]));
     }
 
     [Fact]
     public void Combined_OtherKindUnaffected() =>
-        Assert.Equal(1.5, Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, Stay(BuffKind.Attack, 1.05)));
+        Assert.Equal(1.5, Buffs.Multiplier([Elixir(BuffKind.Experience, 1.5)], BuffKind.Experience, Now, [Stay(BuffKind.Attack, 1.05)]));
 
     [Fact]
     public void ApplyTo_WithLodgingRoundsOnce()
@@ -164,7 +173,7 @@ public class InnTests
             HealthPoints: 60, MaxHealthPoints: 350, ManaPoints: 25, MaxManaPoints: 91, Attack: 100, MagicAttack: 40, Defense: 11, MagicDefense: 15, Agility: 12, Charisma: 10, Element: 1,
             Strength: 12, Intelligence: 12);
 
-        var buffed = Buffs.ApplyTo(player, [Elixir(BuffKind.Attack, 1.2)], Now, Stay(BuffKind.Attack, 1.05));
+        var buffed = Buffs.ApplyTo(player, [Elixir(BuffKind.Attack, 1.2)], Now, [Stay(BuffKind.Attack, 1.05)]);
 
         Assert.Equal(DerivedStats.RoundLikePhp(126.0), buffed.Attack);
     }

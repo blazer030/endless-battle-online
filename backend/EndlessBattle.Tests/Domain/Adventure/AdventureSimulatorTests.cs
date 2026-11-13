@@ -1018,7 +1018,7 @@ public class AdventureSimulatorTests
             From.AddSeconds(seconds),
             random,
             buffs: buffs,
-            lodging: lodging);
+            lodgings: lodging is null ? null : [lodging]);
 
     // 每個勝場的（開打秒數, 經驗, 金錢, 熟練度）；事件裡 RewardEvent 接在它那一場的 EncounterEvent 之後
     private static List<(double Start, long Exp, long Money, long JobExp)> RewardsByFightStart(AdventureRun run)
@@ -1115,6 +1115,34 @@ public class AdventureSimulatorTests
             Assert.Equal((pair.First.Money, pair.First.JobExp), (pair.Second.Money, pair.Second.JobExp));
         });
     }
+
+    // 規格 inn：Stays apply by fight start time——換房後兩筆各管各的時段：30 秒前開打的吃經驗 1.1，之後的吃熟練度 1.1
+    [Fact]
+    public void Adventure_SwitchedStaysBoostByFightStart()
+    {
+        var hero = Hero() with { NextLevelExperience = 1_000_000_000 };
+        IReadOnlyList<CharacterBuff> stays =
+        [
+            new(BuffKind.Experience, 1.1, From, From.AddSeconds(30)),
+            new(BuffKind.JobExperience, 1.1, From.AddSeconds(30), From.AddHours(8)),
+        ];
+
+        var plain = RewardsByFightStart(RunWithStays(hero, 50, [], new SeededRandom(7)));
+        var boosted = RewardsByFightStart(RunWithStays(hero, 50, stays, new SeededRandom(7)));
+
+        Assert.Equal(plain.Count, boosted.Count);
+        Assert.Contains(plain, reward => reward.Start < 30);
+        Assert.Contains(plain, reward => reward.Start >= 30);
+        Assert.All(plain.Zip(boosted), pair =>
+        {
+            var before = pair.First.Start < 30;
+            Assert.Equal(before ? Buffs.Scale(pair.First.Exp, 1.1) : pair.First.Exp, pair.Second.Exp);
+            Assert.Equal(before ? pair.First.JobExp : Buffs.Scale(pair.First.JobExp, 1.1), pair.Second.JobExp);
+        });
+    }
+
+    private static AdventureRun RunWithStays(Character character, double seconds, IReadOnlyList<CharacterBuff> stays, IRandomSource random) =>
+        AdventureSimulator.Run(character, Warrior, Place, [Dummy], ItemOf, [], From, From.AddSeconds(seconds), random, lodgings: stays);
 
     // 經驗密藥 1.5 與學徒閣樓 1.1 相乘：146 → Scale(146, 1.65) = 241
     [Fact]

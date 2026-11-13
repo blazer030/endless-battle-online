@@ -35,6 +35,10 @@ public static class Inn
     // 離線補算最多往前 MaxSimulatedSeconds，比這更早結束的住宿用不到
     public static DateTimeOffset PruneBefore(DateTimeOffset now) => now.AddSeconds(-AdventureSimulator.MaxSimulatedSeconds);
 
+    // 每筆住宿轉成加成；房型已不在內容裡的略過
+    public static IReadOnlyList<CharacterBuff> ToBuffs(IReadOnlyList<Lodging> stays, InnDefinition inn) =>
+        stays.Select(stay => ToBuff(stay, inn)).OfType<CharacterBuff>().ToList();
+
     // 房型已不在內容裡 → 視為沒有加成
     public static CharacterBuff? ToBuff(Lodging? lodging, InnDefinition inn)
     {

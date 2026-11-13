@@ -33,11 +33,12 @@ public static class AdventureSimulator
         IReadOnlyList<ActiveMission>? missions = null,
         AdventureCompanions? companions = null,
         IReadOnlyList<CharacterBuff>? buffs = null,
-        CharacterBuff? lodging = null)
+        IReadOnlyList<CharacterBuff>? lodgings = null)
     {
         missions ??= [];
         // 密藥與房型加成依每場的開打時刻判斷是否生效，不擲骰；都沒有時擲骰序列不變
         buffs ??= [];
+        lodgings ??= [];
         var carriedPet = companions?.CarriedPet;
         var capture = companions?.Capture;
         var petCount = companions?.PetCount ?? 0;
@@ -95,7 +96,7 @@ public static class AdventureSimulator
                 continue;
             }
 
-            var player = Buffs.ApplyTo(CombatBridge.ToCombatant(character, bonus), buffs, fightStartsAt, lodging);
+            var player = Buffs.ApplyTo(CombatBridge.ToCombatant(character, bonus), buffs, fightStartsAt, lodgings);
             var monster = CombatantState.From(definition);
             // 寵物每場重新建立，代擋量不帶到下一場
             var pet = carriedPet is null ? null : PetBattle.ToCombatant(carriedPet, player, monster);
@@ -148,9 +149,9 @@ public static class AdventureSimulator
                     // 密藥只乘勝場的經驗與熟練度，在擲骰之後套用
                     experience = Buffs.Scale(
                         RewardFormulas.Experience(definition, definition.HealthPoints, character.Level, killed: true, random),
-                        Buffs.Multiplier(buffs, BuffKind.Experience, fightStartsAt, lodging));
+                        Buffs.Multiplier(buffs, BuffKind.Experience, fightStartsAt, lodgings));
                     money = RewardFormulas.Money(definition, random);
-                    jobExperience = Buffs.Scale(RewardFormulas.JobExperience(definition), Buffs.Multiplier(buffs, BuffKind.JobExperience, fightStartsAt, lodging));
+                    jobExperience = Buffs.Scale(RewardFormulas.JobExperience(definition), Buffs.Multiplier(buffs, BuffKind.JobExperience, fightStartsAt, lodgings));
                     // 擲骰順序：經驗 → 金錢 → 掉落，升級的擲骰在掉落之後
                     dropped = DropRoller.Roll(definition.Drops, random);
                     break;

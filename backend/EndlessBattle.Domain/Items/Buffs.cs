@@ -29,26 +29,27 @@ public static class Buffs
 {
     // 沒有生效的 → 1
     public static double Multiplier(IReadOnlyList<CharacterBuff> buffs, BuffKind kind, DateTimeOffset at) =>
-        Multiplier(buffs, kind, at, lodging: null);
+        Multiplier(buffs, kind, at, lodgings: []);
 
-    // 密藥與房型加成同種同時生效時相乘
-    public static double Multiplier(IReadOnlyList<CharacterBuff> buffs, BuffKind kind, DateTimeOffset at, CharacterBuff? lodging)
+    // 密藥與房型加成同種同時生效時相乘；住宿每次入住一筆、時段不重疊，取 at 所在的那筆
+    public static double Multiplier(IReadOnlyList<CharacterBuff> buffs, BuffKind kind, DateTimeOffset at, IReadOnlyList<CharacterBuff> lodgings)
     {
         var elixir = buffs.Where(buff => buff.Kind == kind && buff.ActiveAt(at)).Select(buff => buff.Multiplier).DefaultIfEmpty(1).Max();
+        var lodging = lodgings.FirstOrDefault(stay => stay.ActiveAt(at));
 
-        return lodging is not null && lodging.Kind == kind && lodging.ActiveAt(at) ? elixir * lodging.Multiplier : elixir;
+        return lodging is not null && lodging.Kind == kind ? elixir * lodging.Multiplier : elixir;
     }
 
     // 物攻、魔攻、物防、魔防各乘倍率後以 PHP round 取整
     public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at) =>
-        ApplyTo(player, buffs, at, lodging: null);
+        ApplyTo(player, buffs, at, lodgings: []);
 
-    public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at, CharacterBuff? lodging) => player with
+    public static CombatantState ApplyTo(CombatantState player, IReadOnlyList<CharacterBuff> buffs, DateTimeOffset at, IReadOnlyList<CharacterBuff> lodgings) => player with
     {
-        Attack = Scale(player.Attack, Multiplier(buffs, BuffKind.Attack, at, lodging)),
-        MagicAttack = Scale(player.MagicAttack, Multiplier(buffs, BuffKind.Magic, at, lodging)),
-        Defense = Scale(player.Defense, Multiplier(buffs, BuffKind.Defense, at, lodging)),
-        MagicDefense = Scale(player.MagicDefense, Multiplier(buffs, BuffKind.MagicDefense, at, lodging)),
+        Attack = Scale(player.Attack, Multiplier(buffs, BuffKind.Attack, at, lodgings)),
+        MagicAttack = Scale(player.MagicAttack, Multiplier(buffs, BuffKind.Magic, at, lodgings)),
+        Defense = Scale(player.Defense, Multiplier(buffs, BuffKind.Defense, at, lodgings)),
+        MagicDefense = Scale(player.MagicDefense, Multiplier(buffs, BuffKind.MagicDefense, at, lodgings)),
     };
 
     public static CharacterBuff Start(string itemId, ElixirSpec elixir, DateTimeOffset now) =>
