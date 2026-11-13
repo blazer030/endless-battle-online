@@ -57,4 +57,5 @@
     - 整段沒有 `POST /api/adventure/advance`。舊外殼背包分頁：背包、裝備、商店、倉庫、銀行、鍛造、勳章所（沒有旅館）。
     - 過程中修的問題（e664249）：展開時城鎮的狀態牌與金錢蓋在旅館上（城鎮加 `isolation: isolate`）；剛入住顯示「剩 8:01」（畫面時鐘每 30 秒才更新，剩餘時間改以住宿開始時刻為下限，補 `stayRemainingClock_NeverExceedsTheStay`、`InnScreen_JustBookedStayShowsItsFullLength`）。
     - 另外看到、沒有改：城鎮加成列的剩餘時間沒有同樣的下限（回城鎮時會重讀，影響很小）；Vite dev server 又一次沒重讀改過的檔，重啟才拿到新程式。
-- [ ] 7.2 `./scripts/check.sh` exit code 0。[after: 1.1, 7.1]
+- [x] 7.2 `./scripts/check.sh` exit code 0。[after: 1.1, 7.1]
+  - 完成紀錄（2026-11-13）：`./scripts/check.sh` exit 0；後端 1922、前端 895、admin 144、tools/assets 65、tools/content-sheet 25 個測試全過。
