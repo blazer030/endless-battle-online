@@ -418,3 +418,32 @@ test("InnScreen_BackSendsAPendingStepAtOnce", async () => {
     restHealthPointsPercent: 20,
   })
 })
+
+// review 補修：較早的存檔成功、較新的失敗時，旅館畫面退回伺服器實際存的值
+test("InnScreen_NewerFailureShowsTheSavedThreshold", async () => {
+  const api = createApi()
+  const initial = withThresholds(15, 15)
+  const calls: { resolve: () => void; reject: (error: Error) => void }[] = []
+  vi.mocked(api.updateSettings).mockImplementation(
+    (settings) =>
+      new Promise((resolve, reject) =>
+        calls.push({ resolve: () => resolve({ ...initial, settings }), reject }),
+      ),
+  )
+  await renderInn({ api, initial })
+  openAutoRest()
+
+  step("HP", "增加")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+  step("HP", "增加")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+  await act(async () => calls[0]!.resolve())
+  await act(async () => calls[1]!.reject(new TypeError("Failed to fetch")))
+
+  expect(thresholdText("HP")).toHaveTextContent("20%")
+  expect(bubble()).toHaveTextContent("剛剛那個沒記下來，再調一次好嗎？")
+})

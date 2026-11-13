@@ -97,3 +97,46 @@ test("InnAutoRest_LeavingSendsAPendingStepAtOnce", () => {
     expect.objectContaining({ restHealthPointsPercent: 20 }),
   )
 })
+
+type Deferred = { resolve: (character: CharacterVo) => void; reject: (error: Error) => void }
+
+// 每次存檔都先掛著，由測試決定何時成功或失敗
+const deferredSaves = () => {
+  const calls: Deferred[] = []
+  const updateSettings = (settings: AdventureSettings) =>
+    new Promise<CharacterVo>((resolve, reject) =>
+      calls.push({ resolve: () => resolve({ ...character(15, 15), settings }), reject }),
+    )
+  return { calls, updateSettings }
+}
+
+// 較早的存檔成功（伺服器存了 20）、較新的失敗：退回 20，不是更早的 15
+test("InnAutoRest_NewerFailureReturnsToTheOlderSuccess", async () => {
+  const saves = deferredSaves()
+  renderAutoRest(saves.updateSettings)
+
+  plus("HP")
+  await waitDelay()
+  plus("HP")
+  await waitDelay()
+  await act(async () => saves.calls[0]!.resolve(character(15, 15)))
+  await act(async () => saves.calls[1]!.reject(new TypeError("Failed to fetch")))
+
+  expect(hp()).toHaveTextContent("20%")
+})
+
+// 較新的先回來（25）、較舊的後回來（20）：外層角色不被舊的蓋回去
+test("InnAutoRest_LateOlderSuccessDoesNotOverwriteTheCharacter", async () => {
+  const saves = deferredSaves()
+  const props = renderAutoRest(saves.updateSettings)
+
+  plus("HP")
+  await waitDelay()
+  plus("HP")
+  await waitDelay()
+  await act(async () => saves.calls[1]!.resolve(character(15, 15)))
+  await act(async () => saves.calls[0]!.resolve(character(15, 15)))
+
+  expect(props.onCharacterChange).toHaveBeenCalledTimes(1)
+  expect(props.onCharacterChange.mock.calls[0]![0].settings.restHealthPointsPercent).toBe(25)
+})

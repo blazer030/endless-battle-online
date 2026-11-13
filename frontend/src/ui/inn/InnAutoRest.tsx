@@ -82,6 +82,8 @@ export const InnAutoRest = ({
   const alive = useRef(true)
   // 每次送出加一；回應只在它還是最後一次送出時才影響畫面
   const request = useRef(0)
+  // 已經成功回來的最新一次送出；比它舊的成功回應不再更新「上次存好的值」與外層角色
+  const confirmedRequest = useRef(0)
   // 送出時用最新的角色設定，只換兩個門檻
   const latest = useRef({ api, character, onCharacterChange, onSaveFailed })
   useEffect(() => {
@@ -101,8 +103,10 @@ export const InnAutoRest = ({
       })
       .then(
         (confirmed) => {
+          if (sent <= confirmedRequest.current) return
+          confirmedRequest.current = sent
           const stored = thresholdsOf(confirmed)
-          if (sent === request.current) saved.current = stored
+          saved.current = stored
           latest.current.onCharacterChange(confirmed)
           if (alive.current && sent === request.current && pending.current === null)
             setValues(stored)
@@ -115,15 +119,18 @@ export const InnAutoRest = ({
       )
   }
 
-  const flush = () => {
-    if (timer.current !== null) clearTimeout(timer.current)
-    timer.current = null
-    if (pending.current !== null) save(pending.current)
-  }
+  // 還沒送出的修改立刻送；放在 ref 裡，effect 不必依賴每次重新建立的函式
+  const flush = useRef(() => {})
+  useEffect(() => {
+    flush.current = () => {
+      if (timer.current !== null) clearTimeout(timer.current)
+      timer.current = null
+      if (pending.current !== null) save(pending.current)
+    }
+  })
 
   useEffect(() => {
-    if (leaving) flush()
-    // flush 只讀 ref
+    if (leaving) flush.current()
   }, [leaving])
 
   // 卸載時（例如直接關掉旅館）還沒送出的修改也立刻送
@@ -131,9 +138,8 @@ export const InnAutoRest = ({
     alive.current = true
     return () => {
       alive.current = false
-      flush()
+      flush.current()
     }
-    // save 只讀 ref，卸載時用的就是最新的
   }, [])
 
   const step = (key: keyof Thresholds, direction: 1 | -1) => {
