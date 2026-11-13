@@ -63,6 +63,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
   - `src/test/setup.ts` — Vitest＋Testing Library 設定。
 - `admin` — 內容後台，Vite + React + TypeScript + Refine + Ant Design，pnpm 管理；獨立專案，不與 `frontend` 共用套件。
 - `tools/assets` — 圖片匯入工具（TypeScript、sharp），pnpm 管理；獨立專案。內容圖轉檔、上傳 R2、維護清單，見 `docs/art/README.md`。
+- `tools/content-sheet` — 遊戲內容與試算表（.xlsx）互轉（TypeScript、exceljs），pnpm 管理；獨立專案。試算表只是查閱與批次修改用的副本，正式內容仍是 `backend/content/*.json`。
 
 ## 硬規則
 
@@ -105,7 +106,7 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 
 ## 指令
 
-- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、API 文件與型別是否最新、後端 build（警告視為錯誤）與測試、前端、admin 與 `tools/assets` 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
+- `./scripts/check.sh` — SQL 檢查、compose 設定驗證（需要 `jq`）、API 文件與型別是否最新、後端 build（警告視為錯誤）與測試、前端、admin、`tools/assets` 與 `tools/content-sheet` 的 `pnpm check`。提交前必須通過，以 exit code 判斷。
 - `./scripts/check-api-types-test.sh` — 測試 API 文件與型別的檢查本身；會重複建置，`check.sh` 只在那兩支腳本有改動時才跑。
 - `docker compose up -d` — 啟動 MySQL 8.4 並用 Flyway 套用 migration（開發用，只有這兩個服務）。第一次先 `cp .env.example .env`：compose 沒有 `EBO_JWT_SIGNING_KEY` 會拒絕啟動，不會退回公開的預設值。
 - `docker compose --profile app up -d --build` — 再加上 `api` 與 `web`（nginx，`http://localhost:8080`），一鍵執行整個遊戲；設定見 `.env.example`。
@@ -117,6 +118,9 @@ Changes can be parked（暫存）— temporarily moved out of `docs/spectra/chan
 - `cd tools/assets && pnpm cli missing [<類別>]` — 列出每類有幾張圖、缺哪些。
 - `cd tools/assets && pnpm cli design <分類> <名稱> <來源圖> [--max-width <n>]` — 設計素材轉成 `frontend/src/assets/<分類>/<名稱>.webp`。
 - `cd tools/assets && pnpm check` — 匯入工具的 eslint、prettier 檢查、`tsc -b`、vitest。
+- `cd tools/content-sheet && pnpm cli export [<輸出.xlsx>]` — 12 個內容檔匯出成一份試算表（預設 `content.xlsx`）：每類一張工作表，巢狀清單拆成子表（`$parent` 指向上一層），編號旁附「（名稱）」對照欄；`_files`、`_tables`、`_columns` 記錄怎麼還原，不要改。
+- `cd tools/content-sheet && pnpm cli import <試算表.xlsx> [--force]` — 試算表寫回 `backend/content/*.json`，沒改的紀錄逐字保留；「（名稱）」欄會被略過。匯出後內容檔又被改過時拒絕寫入，重新匯出再改，或確定要蓋掉才加 `--force`。寫回後跑 `check.sh` 確認內容能載入。
+- `cd tools/content-sheet && pnpm check` — 試算表工具的 eslint、prettier 檢查、`tsc -b`、vitest。
 - `cd backend && dotnet run --project EndlessBattle.Api` — 啟動 API。
 - `cd backend && dotnet test --filter-class "*SeededRandomTests"` — 只跑特定測試類別（xUnit v3 on Microsoft.Testing.Platform）。
 - `cd frontend && pnpm dev` — 啟動前端（`/api`、`/openapi` proxy 到 `http://localhost:5062`；`host: true`，同一個 Wi-Fi 的手機可連）。

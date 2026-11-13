@@ -512,3 +512,6 @@ backend/content-draft/
 
 # 部署到 NAS 用的本機秘密（範本見 .env.nas.local.example）
 .env.nas.local
+
+# tools/content-sheet 匯出的試算表
+content.xlsx

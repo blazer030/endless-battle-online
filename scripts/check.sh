@@ -41,3 +41,5 @@ cd "$repository_root/frontend" && pnpm check
 cd "$repository_root/admin" && pnpm check
 
 cd "$repository_root/tools/assets" && pnpm check
+
+cd "$repository_root/tools/content-sheet" && pnpm check
