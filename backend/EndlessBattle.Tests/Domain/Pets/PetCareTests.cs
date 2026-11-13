@@ -176,4 +176,24 @@ public class PetCareTests
 
         Assert.Equal(age, PetCare.Age(pet, Now));
     }
+
+    // 規格 pets：refusals 表（主人物攻 31 時，攻擊 30 的寵物吃中級活力果實會變 34）
+    [Theory]
+    [InlineData("fed5SecondsAgo", "tooSoon")]
+    [InlineData("satiety100", "full")]
+    [InlineData("overOwner", "overOwner")]
+    [InlineData("tenMoney", "notEnoughMoney")]
+    public void CanFeed_RefusalTable(string state, string reason)
+    {
+        var owner = Owner with { Attack = 31 };
+        var (pet, food, money) = state switch
+        {
+            "fed5SecondsAgo" => (Fed() with { HungerSince = Now.AddSeconds(-5) }, Food("fruit-vigor-small"), 2000L),
+            "satiety100" => (Fed(satiety: 100), Food("fruit-vigor-small"), 2000L),
+            "overOwner" => (Fed(attack: 30), Food("fruit-vigor-medium"), 2000L),
+            _ => (Fed(), Food("fruit-vigor-small"), 10L),
+        };
+
+        Assert.Equal([reason], PetCare.CanFeed(pet, food, owner, money, Now));
+    }
 }
