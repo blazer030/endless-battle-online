@@ -6,6 +6,8 @@ import { RevealMilliseconds } from "../motion/timings"
 import { AdventureScreen, type Tab } from "./AdventureScreen"
 import type { SubPage } from "./BagScreen"
 import { StageFrame } from "./stage/StageFrame"
+import { preloadImages } from "./stage/preloadImages"
+import { companionsImages, innImages } from "./stage/screenImages"
 import { RevealLayer, type RevealOrigin } from "./stage/RevealLayer"
 import { innRevealOrigin } from "../game/inn"
 import { companionsRevealOrigin } from "../game/companions"
@@ -47,6 +49,10 @@ type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => v
 export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
   const [character, setCharacter] = useState(initialCharacter)
   const [view, setView] = useState<View>({ name: "town", segment: 0 })
+  // 在城鎮時先把旅館與同伴的圖載好，第一次打開時不會從空的慢慢冒出來
+  useEffect(() => {
+    void preloadImages([...innImages(), ...companionsImages()])
+  }, [])
   // 每打開一次舊外殼加一；回城鎮後才回來的回應只收最後打開的那次，較早的不蓋掉較新的角色
   const latestShell = useRef(0)
 

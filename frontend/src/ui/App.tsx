@@ -6,6 +6,9 @@ import type { JobVo } from "../game/jobBook"
 import type { CharacterVo } from "../game/character"
 import { PassageLeaveMilliseconds, PassageMilliseconds } from "../motion/timings"
 import { GameScreen } from "./GameScreen"
+import { preloadImages } from "./stage/preloadImages"
+import { townImages } from "./stage/screenImages"
+import { timeOfDay } from "../game/timeOfDay"
 import { CreateScreen } from "./create/CreateScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { Passage } from "./title/Passage"
@@ -108,6 +111,8 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
   const passageCharacter = phase.name === "passage" ? phase.character : null
   useEffect(() => {
     if (passageCharacter === null) return
+    // 過場停留的這段時間先把城鎮的圖載好，進城時不會一張張冒出來
+    void preloadImages(townImages(timeOfDay(new Date().getHours())))
     const timer = setTimeout(
       () => setPhase({ name: "game", character: passageCharacter }),
       PassageMilliseconds,

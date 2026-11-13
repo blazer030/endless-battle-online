@@ -102,3 +102,9 @@ export const contentArtCandidates = (
     placeholder,
   )
 }
+
+// 清單裡某類已有圖的鍵（預先載入畫面會用到的內容圖時用）
+export const contentArtKeys = (category: ContentCategory): string[] =>
+  Object.keys((manifestJson as ContentManifest).assets)
+    .filter((name) => name.startsWith(`${category}/`))
+    .map((name) => name.slice(category.length + 1))
