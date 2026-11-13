@@ -2,7 +2,7 @@
 
 ### Requirement: Bonus row and list
 
-The town SHALL show the active lodging and elixirs as a row of badges, the lodging first and then the elixirs in the order of buff kinds (Experience, JobExperience, Attack, Magic, Defense, MagicDefense). The row SHALL be hidden when nothing is active or when loading the bonuses failed. Each badge SHALL show the remaining time as `H:MM` (minutes rounded down) when at least one hour remains and as `MM:SS` (seconds rounded down) otherwise, and SHALL be marked as ending soon when less than 10 minutes remain. Clicking a badge SHALL open a list showing, per bonus, its name, its effect, a remaining bar of (end − now) / (end − start) and the remaining time; clicking anywhere outside the list SHALL close it. An elixir's row SHALL be named by the item last drunk, exactly as the content names it, with the effect line showing the kind name and multiplier (for example `物攻 ×1.05`); when that item is unknown the row SHALL be named by the kind name and multiplier and SHALL have no effect line. The lodging's row SHALL be named by the room name with the effect line showing the room's kind name and multiplier.
+The town SHALL show the active lodging and elixirs as a row of badges, the lodging first and then the elixirs in the order of buff kinds (Experience, JobExperience, Attack, Magic, Defense, MagicDefense). The row SHALL be hidden when nothing is active or when loading the bonuses failed. Each badge SHALL show the remaining time as `HH:MM` (minutes rounded down, hours zero-padded) when at least one hour remains and as `MM:SS` (seconds rounded down) otherwise, and SHALL be marked as ending soon when less than 10 minutes remain. Clicking a badge SHALL open a list showing, per bonus, its name, its effect, a remaining bar of (end − now) / (end − start) and the remaining time; clicking anywhere outside the list SHALL close it. An elixir's row SHALL be named by the item last drunk, exactly as the content names it, with the effect line showing the kind name and multiplier (for example `物攻 ×1.05`); when that item is unknown the row SHALL be named by the kind name and multiplier and SHALL have no effect line. The lodging's row SHALL be named by the room name with the effect line showing the room's kind name and multiplier.
 
 #### Scenario: Remaining time text
 
@@ -13,8 +13,8 @@ The town SHALL show the active lodging and elixirs as a row of badges, the lodgi
 
 | Remaining | Text | Ending soon |
 | --- | --- | --- |
-| 6130 s | `1:42` | no |
-| 3600 s | `1:00` | no |
+| 6130 s | `01:42` | no |
+| 3600 s | `01:00` | no |
 | 3599 s | `59:59` | no |
 | 600 s | `10:00` | no |
 | 599 s | `09:59` | yes |

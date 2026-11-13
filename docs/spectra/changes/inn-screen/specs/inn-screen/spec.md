@@ -50,12 +50,12 @@ The counter SHALL start at pt = 250 − (844 − H) × 0.4 for stage height H, t
 
 ### Requirement: Current stay banner
 
-The counter SHALL show the stay in effect as a banner with the room badge, the room name, the effect as `<kind name> ×<multiplier>` with two decimals, `剩 <remaining>` in the same remaining time format as the town's bonus row (`H:MM` from one hour up, `MM:SS` below one hour, counted from the stay's start when the local clock is earlier than it) and a remaining bar of (end − now) / (end − start), recalculated every second; when no stay is in effect it SHALL show `目前沒有住宿加成`. When the stay ends while the inn is open the banner SHALL change to `目前沒有住宿加成`.
+The counter SHALL show the stay in effect as a banner with the room badge, the room name, the effect as `<kind name> ×<multiplier>` with two decimals, `剩 <remaining>` in the same remaining time format as the town's bonus row (`HH:MM` from one hour up, `MM:SS` below one hour, counted from the stay's start when the local clock is earlier than it) and a remaining bar of (end − now) / (end − start), recalculated every second; when no stay is in effect it SHALL show `目前沒有住宿加成`. When the stay ends while the inn is open the banner SHALL change to `目前沒有住宿加成`.
 
 #### Scenario: Banner for an active stay
 
 - **WHEN** a stay in `apprentice-loft` (Experience ×1.10) runs from 08:00 to 16:00 and it is 08:01
-- **THEN** the banner shows `學徒閣樓`, `經驗 ×1.10` and `剩 7:59`
+- **THEN** the banner shows `學徒閣樓`, `經驗 ×1.10` and `剩 07:59`
 
 #### Scenario: Banner counts seconds under an hour
 
@@ -97,7 +97,7 @@ Clicking a room card SHALL slide up a detail sheet with the badge, name, effect,
 #### Scenario: Replacing another room
 
 - **WHEN** a stay in `fighters-bunk` has 1:42 left and the player opens `apprentice-loft`
-- **THEN** the sheet shows `會取代目前的鬥士通鋪（物攻 ×1.05，剩 1:42）`
+- **THEN** the sheet shows `會取代目前的鬥士通鋪（物攻 ×1.05，剩 01:42）`
 
 ### Requirement: Innkeeper lines
 
