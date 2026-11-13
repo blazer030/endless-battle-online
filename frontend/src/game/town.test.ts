@@ -155,3 +155,18 @@ test("ExpiredSince_OnlyCountsBonusesActiveAtLoad", () => {
   expect(expiredSince(buffs, staleLodging, loadedAt, later(60))).toBe(true)
   expect(expiredSince([], { ...lodging, endsAt: later(90) }, loadedAt, later(90))).toBe(true)
 })
+
+// review 補修：本機時鐘比住宿開始還早（慢 90 秒）時，從開始時刻起算，跟旅館一樣顯示 08:00
+test("BonusRows_LodgingCountsFromItsStart", () => {
+  const room = {
+    id: "apprentice-loft",
+    name: "學徒閣樓",
+    kind: "Experience" as const,
+    multiplier: 1.1,
+    seconds: 28_800,
+    price: 100,
+  }
+  const lodging = { roomId: "apprentice-loft", startsAt: later(90), endsAt: later(90 + 28_800) }
+
+  expect(bonusRows([], lodging, [room], now)[0]!.remaining).toBe("08:00")
+})

@@ -307,6 +307,22 @@ test("TownScreen_CountsSecondsUnderAnHour", async () => {
   expect(screen.getByRole("button", { name: "物防 ×1.05，剩 04:59" })).toBeInTheDocument()
 })
 
+// review 補修：剛入住、本機時鐘比伺服器慢 90 秒時，圓章跟旅館一樣顯示 08:00
+test("TownScreen_JustBookedLodgingMatchesTheInn", async () => {
+  const api = bonusApi([])
+  vi.mocked(api.getInn).mockResolvedValue(
+    InnVo.create({
+      rooms: [loft],
+      lodging: { roomId: "apprentice-loft", startsAt: at(90), endsAt: at(90 + 28_800) },
+      restFee: 0,
+    }),
+  )
+  renderTown({ api })
+  await flush()
+
+  expect(badges()).toEqual(["學徒閣樓，剩 08:00"])
+})
+
 test("TownScreen_EndingSoonBadgeIsMarked", async () => {
   renderTown({ api: bonusApi() })
   await flush()

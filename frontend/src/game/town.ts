@@ -6,7 +6,7 @@ import {
   type BuffKind,
   type BuffVo,
 } from "./buffs"
-import { roomEffect, type InnRoom, type Lodging } from "./inn"
+import { clampToStart, roomEffect, type InnRoom, type Lodging } from "./inn"
 
 // 城鎮全景三段：0 城門口、1 市集、2 公會前
 export type TownSegment = 0 | 1 | 2
@@ -109,7 +109,7 @@ export const bonusRows = (
             effect: roomEffect(room),
             itemId: null,
             roomId: room.id,
-            ...timing(lodging.startsAt, lodging.endsAt, now),
+            ...timing(lodging.startsAt, lodging.endsAt, clampToStart(lodging, now)),
           },
         ]
   const elixirRows = buffs
