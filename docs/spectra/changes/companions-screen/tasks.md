@@ -7,7 +7,8 @@
 
 ## 2. 純模型
 
-- [ ] 2.1 依 design「管理人傳話是一個共用元件與一張純表」「量條與版位寫成純函式」「餵食浮字由前後兩份寵物算出」「能先擋的先擋，規則仍在伺服器」與 Companions layout follows the stage height 的木台上緣，新增 `frontend/src/game/companions.ts`：`keeperLine(event)`、`miraGreeting(pets)`、`bartonGreeting(contract)`、`stableChip(pets)`、`hallChip(contract)`、`companionsCounterTop(H)`、`satietyRatio`、`intimacyRatio`、`activationRatio`、`shortPrice`、`feedEffect(before, after, food)`、`deployGroups(areas)`、`fruitDisabled(pet, food, money, now)`、`canHire(entry, contract, money)`。先寫失敗測試，用規格的 Example 表當測資：lines 表全部列、counter top 表、prices 表、Bars for a pet、Feeding a fruit（`AT +2　♥ +4`）、Entrance with a carried pet and a fighting mercenary 的台詞與小籤、Deployable places（17 個、無禁區，用 TestContent 或手寫的地區資料）。驗證：`companions.test.ts` 全綠、`pnpm check` 全綠。
+- [x] 2.1 依 design「管理人傳話是一個共用元件與一張純表」「量條與版位寫成純函式」「餵食浮字由前後兩份寵物算出」「能先擋的先擋，規則仍在伺服器」與 Companions layout follows the stage height 的木台上緣，新增 `frontend/src/game/companions.ts`：`keeperLine(event)`、`miraGreeting(pets)`、`bartonGreeting(contract)`、`stableChip(pets)`、`hallChip(contract)`、`companionsCounterTop(H)`、`satietyRatio`、`intimacyRatio`、`activationRatio`、`shortPrice`、`feedEffect(before, after, food)`、`deployGroups(areas)`、`fruitDisabled(pet, food, money, now)`、`canHire(entry, contract, money)`。先寫失敗測試，用規格的 Example 表當測資：lines 表全部列、counter top 表、prices 表、Bars for a pet、Feeding a fruit（`AT +2　♥ +4`）、Entrance with a carried pet and a fighting mercenary 的台詞與小籤、Deployable places（17 個、無禁區，用 TestContent 或手寫的地區資料）。驗證：`companions.test.ts` 全綠、`pnpm check` 全綠。
+  - 實作紀錄：前端測試不能讀後端內容檔，Deployable places 改用 `makeWorld` 測規則（分組、排除禁區、`Lv a–b`），17 個地點的數量留到 5.1 手動確認。另加 `fruitEffect`（`AT+2`）給果實槽用。
 
 ## 3. 素材
 
