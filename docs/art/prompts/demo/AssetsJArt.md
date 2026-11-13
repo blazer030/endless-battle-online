@@ -474,3 +474,13 @@ Use the image-generator subagent to generate ONE image and name the file exactly
 ```
 
 </details>
+
+## 通用寵物剪影（現用）
+
+- 素材：`/_blob/297e4e524678073162a154ac2dd54aaa`
+- 產圖：grok，2026-11-14，比例 1:1，紀錄 g278
+- 對應方式：人工：raw md5 對 grok 原圖轉 png（2026-11-14）
+
+```text
+A mysterious unknown little beast drawn as a soft dark silhouette: a cute chubby four-legged creature sitting upright and facing the viewer, round head with two perky pointed ears, a fluffy tail curled beside it, the whole body filled with one flat deep warm umber-gray ink wash with subtle watercolor texture and a slightly lighter rim along the top edge, only two small round glowing amber eyes visible, no mouth, no nose, no fur details, no markings, simple readable shape hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
