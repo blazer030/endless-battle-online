@@ -1,4 +1,4 @@
-import { useCallback, useState, type CSSProperties } from "react"
+import { useCallback, useRef, useState, type CSSProperties } from "react"
 import type { CharacterVo } from "../../game/character"
 import {
   canHire,
@@ -72,6 +72,8 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [groups, setGroups] = useState<DeployGroup[] | null>(null)
+  // 每次打開或關上羊皮紙加一；冒險地清單回來時用來判斷是不是還開著同一張
+  const sheetVersion = useRef(0)
 
   const catalogue = view?.catalogue ?? []
   const contract = view?.contract ?? null
@@ -90,6 +92,7 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
     )
 
   const openSheet = (next: Sheet) => {
+    sheetVersion.current += 1
     setEvent(null)
     setRenaming(false)
     setDismissing(false)
@@ -98,24 +101,33 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
   }
 
   const closeSheet = () => {
+    sheetVersion.current += 1
     setEvent(null)
     setSheetOpen(false)
   }
 
   // 冒險地清單每次打開都重讀；目前的冒險地若在清單裡就先選好
+  // 回來時羊皮紙已經關掉或換成別張（版本變了）就不套用，也不說它的錯誤
   const openPlaces = async (current: MercenaryContract) => {
     setGroups(null)
     openSheet({ kind: "place", pick: null })
+    const version = sheetVersion.current
+    const stillOpen = () => alive.current && sheetVersion.current === version
     try {
       const loaded = deployGroups(await api.getWorld())
-      if (!alive.current) return
+      if (!stillOpen()) return
       setGroups(loaded)
       const listed = loaded.some((group) =>
         group.places.some((place) => place.id === current.placeId),
       )
-      if (listed) setSheet({ kind: "place", pick: current.placeId })
+      if (listed)
+        setSheet((shown) =>
+          shown?.kind === "place" && shown.pick === null
+            ? { kind: "place", pick: current.placeId }
+            : shown,
+        )
     } catch {
-      if (alive.current) setEvent({ kind: "mercenaryFailed" })
+      if (stillOpen()) setEvent({ kind: "mercenaryFailed" })
     }
   }
 

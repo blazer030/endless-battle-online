@@ -8,7 +8,7 @@ import {
   type MercenaryCatalogueEntry,
   type MercenaryContract,
 } from "../../game/mercenaries"
-import { makeCharacter, makeMercenaryOverview, makePets } from "../../test/fixtures"
+import { makeCharacter, makeMercenaryOverview, makePets, makeWorld } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { HallPage } from "./HallPage"
 import { createCompanionsApi, fighting } from "./testing"
@@ -290,4 +290,44 @@ test("HallLoadFailureShowsOnlyTheRetrySeal", async () => {
 
   expect(screen.getByRole("list", { name: "傭兵名冊" })).toBeInTheDocument()
   expect(screen.getByRole("region", { name: "契約" })).toBeInTheDocument()
+})
+
+// design：冒險地清單讀不到時巴頓在羊皮紙裡說連線失敗
+test("DeployPlacesLoadFailureIsSpokenInTheSheet", async () => {
+  const api = await renderHall({ current: contract({ fighting: false }) })
+  vi.mocked(api.getWorld).mockRejectedValueOnce(new TypeError("Failed to fetch"))
+
+  fireEvent.click(screen.getByRole("button", { name: "派遣" }))
+  await flush()
+
+  const status = within(sheet()).getByRole("status")
+  expect(status).toHaveTextContent("嘖，文書出了點差錯，再來一次。")
+  expect(status).toHaveClass("keeper-say--failed")
+})
+
+// 冒險地清單晚回來時，已經換成的僱用詳情不被蓋掉，也不出現它的錯誤台詞
+test.each([
+  ["resolves", true],
+  ["rejects", false],
+])("LateDeployPlacesDoNotReplaceTheHireSheet %s", async (_, succeeds) => {
+  const api = await renderHall({
+    current: contract({ fighting: false, placeId: 1, placeName: "中央平原" }),
+    money: 1_000_000,
+  })
+  let settle: () => void = () => {}
+  vi.mocked(api.getWorld).mockReturnValueOnce(
+    new Promise((resolve, reject) => {
+      settle = () => (succeeds ? resolve(makeWorld()) : reject(new TypeError("Failed to fetch")))
+    }),
+  )
+
+  fireEvent.click(screen.getByRole("button", { name: "派遣" }))
+  fireEvent.click(within(sheet()).getByRole("button", { name: "關閉" }))
+  fireEvent.click(note("E級傭兵"))
+  settle()
+  await flush()
+
+  expect(screen.getByRole("dialog", { name: "E級傭兵" })).toBeInTheDocument()
+  expect(screen.queryByRole("dialog", { name: "冒險地" })).not.toBeInTheDocument()
+  expect(within(sheet()).queryByRole("status")).not.toBeInTheDocument()
 })
