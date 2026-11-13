@@ -46,6 +46,7 @@ type Props = {
   onBack: () => void
 }
 
+// 設計稿的版面固定三格柵欄
 const Stalls = 3
 const StableLoadFailed: KeeperEvent = { kind: "stableLoadFailed" }
 const PetFailed: KeeperEvent = { kind: "petFailed" }
@@ -240,7 +241,7 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
           title={
             <>
               <b>獸欄</b>
-              <small>{view === null ? "" : `寵物 ${pets.length} / ${Stalls}`}</small>
+              <small>{view === null ? "" : `寵物 ${pets.length} / ${view.maxPets}`}</small>
             </>
           }
           line={event === null ? null : keeperLine(event)}

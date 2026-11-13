@@ -102,6 +102,13 @@ test("StableShowsTheSelectedPet", async () => {
   expect(screen.getByRole("button", { name: /^小風/ })).toHaveTextContent("攜帶")
 })
 
+// 標頭的上限以伺服器給的 maxPets 為準
+test("HeaderCountsAgainstTheServerLimit", async () => {
+  await renderStable({ api: createCompanionsApi(makePets([rabbit], { maxPets: 4 })) })
+
+  expect(screen.getByRole("region", { name: "寵物" })).toHaveTextContent("寵物 1 / 4")
+})
+
 test("EmptyStallsShowEmptyPlates", async () => {
   await renderStable()
 

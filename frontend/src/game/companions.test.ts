@@ -1,5 +1,5 @@
 import { expect, test } from "vitest"
-import { makePet, makeWorld } from "../test/fixtures"
+import { makePet, makePets, makeWorld } from "../test/fixtures"
 import {
   feedCooldownElapsed,
   activationRatio,
@@ -110,14 +110,19 @@ test("Greetings_ForACarriedPetAndAFightingMercenary", () => {
   const pets = [makePet({ id: 1, name: "小風", carried: true }), makePet({ id: 2, name: "夜影" })]
 
   expect(miraGreeting(pets)).toBe("小風今天也很有精神喔！要來看看牠們嗎？")
-  expect(stableChip(pets)).toBe("寵物 2 / 3・小風 攜帶中")
+  expect(stableChip(makePets(pets))).toBe("寵物 2 / 3・小風 攜帶中")
   expect(bartonGreeting(contract())).toBe("葛雷還在迷霧森林幹活，契約我幫你顧著。")
   expect(hallChip(contract())).toBe("葛雷・戰鬥中")
 })
 
+// 上限以伺服器給的 maxPets 為準
+test("StableChip_UsesTheServerLimit", () => {
+  expect(stableChip(makePets([makePet({ name: "夜影" })], { maxPets: 4 }))).toBe("寵物 1 / 4")
+})
+
 test("Greetings_WithoutPetsOrContract", () => {
   expect(miraGreeting([])).toBe("獸欄空蕩蕩的……抓到寵物就帶來給我照顧吧！")
-  expect(stableChip([])).toBe("寵物 0 / 3")
+  expect(stableChip(makePets([]))).toBe("寵物 0 / 3")
   expect(miraGreeting([makePet({ name: "夜影" })])).toBe("孩子們都在欄裡等你呢，今天要帶誰出門？")
   expect(bartonGreeting(null)).toBe("想找人手？名冊上的傢伙個個都能打。")
   expect(hallChip(null)).toBe("沒有契約")

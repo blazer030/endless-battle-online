@@ -1,6 +1,6 @@
 import { formatNumber } from "./format"
 import type { MercenaryCatalogueEntry, MercenaryContract } from "./mercenaries"
-import type { Pet, PetFood, PetFoodStat } from "./pets"
+import type { Pet, PetFood, PetFoodStat, PetsVo } from "./pets"
 import type { WorldAreaVo } from "./world"
 
 // 同伴畫面（設計板 CompanionsFit）的純模型：管理人台詞、狀態小籤、量條比例、版位
@@ -89,8 +89,6 @@ export function keeperLine(event: KeeperEvent): KeeperLine {
 export const MiraLoadFailedGreeting = "咦，獸欄的名簿一下子找不到了……"
 export const BartonLoadFailedGreeting = "嘖，名冊一時翻不到……"
 
-const MaxPets = 3
-
 export function miraGreeting(pets: readonly Pet[]): string {
   if (pets.length === 0) return "獸欄空蕩蕩的……抓到寵物就帶來給我照顧吧！"
   const carried = pets.find((pet) => pet.carried)
@@ -99,9 +97,9 @@ export function miraGreeting(pets: readonly Pet[]): string {
     : `${carried.name}今天也很有精神喔！要來看看牠們嗎？`
 }
 
-export function stableChip(pets: readonly Pet[]): string {
+export function stableChip({ pets, maxPets }: Pick<PetsVo, "pets" | "maxPets">): string {
   const carried = pets.find((pet) => pet.carried)
-  return `寵物 ${pets.length} / ${MaxPets}${carried === undefined ? "" : `・${carried.name} 攜帶中`}`
+  return `寵物 ${pets.length} / ${maxPets}${carried === undefined ? "" : `・${carried.name} 攜帶中`}`
 }
 
 export function bartonGreeting(contract: MercenaryContract | null): string {

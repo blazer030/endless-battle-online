@@ -121,7 +121,7 @@ export const CompanionsScreen = ({ api, character, onCharacterChange, onBack }: 
         </p>
         <span className="companions-door__sign">
           <b>獸欄</b>
-          {loaded !== null && <small>{stableChip(loaded.pets.pets)}</small>}
+          {loaded !== null && <small>{stableChip(loaded.pets)}</small>}
         </span>
       </button>
       <button
