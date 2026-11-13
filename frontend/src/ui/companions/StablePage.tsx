@@ -20,6 +20,7 @@ import {
   type PetsVo,
 } from "../../game/pets"
 import { ContentImage } from "../ContentImage"
+import { FeedCooldownSeconds, FeedEffectSeconds, PetHopSeconds } from "../../motion/timings"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import { BackButton } from "./BackButton"
@@ -161,7 +162,14 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
     <section
       className="companions-page companions-page--stable"
       aria-label="獸欄"
-      style={{ "--pt": `${companionsCounterTop(stage.height)}px` } as CSSProperties}
+      style={
+        {
+          "--pt": `${companionsCounterTop(stage.height)}px`,
+          "--pet-hop": `${PetHopSeconds}s`,
+          "--feed-effect": `${FeedEffectSeconds}s`,
+          "--feed-cooldown": `${FeedCooldownSeconds}s`,
+        } as CSSProperties
+      }
     >
       <div className="companions-scene companions-scene--stable">
         <ul className="stable-stalls" aria-label="柵欄">

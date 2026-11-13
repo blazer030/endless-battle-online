@@ -11,7 +11,7 @@
 }
 
 .companions-entrance--returned {
-  animation: companions-entrance-in 0.35s ease-out;
+  animation: companions-entrance-in var(--entrance-fade) ease-out;
 }
 
 @keyframes companions-entrance-in {
@@ -656,7 +656,7 @@
 }
 
 .stable-stall--fed .stable-stall__pet {
-  animation: stable-hop 0.5s ease-out 2;
+  animation: stable-hop var(--pet-hop) ease-out 2;
 }
 
 @keyframes stable-hop {
@@ -725,7 +725,7 @@
     0 1px 2px rgb(var(--shade-rgb) / 1),
     0 0 6px rgb(var(--shade-rgb) / 0.6);
   pointer-events: none;
-  animation: stable-effect 1.4s ease-out forwards;
+  animation: stable-effect var(--feed-effect) ease-out forwards;
 }
 
 @keyframes stable-effect {
@@ -840,7 +840,7 @@
   border-radius: 2px;
   background: var(--bonus-rim);
   transform-origin: left;
-  animation: stable-cooldown 10s linear forwards;
+  animation: stable-cooldown var(--feed-cooldown) linear forwards;
 }
 
 @keyframes stable-cooldown {

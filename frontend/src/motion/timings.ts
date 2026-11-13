@@ -42,3 +42,11 @@ export const SwipeClickGuardMilliseconds = 300
 export const InnThresholdSaveDelayMilliseconds = 600
 // 旅館、同伴從城鎮上的名牌或紙籤圓形展開／收回的時間（與 RevealLayer.css 一致）
 export const RevealMilliseconds = 550
+// 同伴：從頁面回入口時入口淡入
+export const CompanionsEntranceFadeSeconds = 0.35
+// 餵食成功時寵物跳兩下，每下這麼久
+export const PetHopSeconds = 0.5
+// 餵食成功時從柵欄浮起的字
+export const FeedEffectSeconds = 1.4
+// 餵食冷卻（伺服器規則 PetCare 的 10 秒），果實槽上緣的金線跟著縮掉
+export const FeedCooldownSeconds = 10

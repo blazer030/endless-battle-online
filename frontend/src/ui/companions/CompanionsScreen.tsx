@@ -11,6 +11,7 @@ import {
 } from "../../game/companions"
 import type { MercenaryOverviewVo } from "../../game/mercenaries"
 import type { PetsVo } from "../../game/pets"
+import { CompanionsEntranceFadeSeconds } from "../../motion/timings"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import { BackButton } from "./BackButton"
@@ -101,7 +102,12 @@ export const CompanionsScreen = ({ api, character, onCharacterChange, onBack }: 
   return (
     <div
       className={`companions-entrance${returned ? " companions-entrance--returned" : ""}`}
-      style={{ "--h": `${stage.height}px` } as CSSProperties}
+      style={
+        {
+          "--h": `${stage.height}px`,
+          "--entrance-fade": `${CompanionsEntranceFadeSeconds}s`,
+        } as CSSProperties
+      }
     >
       <button
         type="button"
