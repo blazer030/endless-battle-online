@@ -40,10 +40,10 @@ test.each<[TownSegment, number, number, TownSegment]>([
 test.each([
   [6130, "1:42", false],
   [3600, "1:00", false],
-  [3599, "60 分", false],
-  [600, "10 分", false],
-  [599, "10 分", true],
-  [30, "1 分", true],
+  [3599, "59:59", false],
+  [600, "10:00", false],
+  [599, "09:59", true],
+  [30, "00:30", true],
 ])("RemainingText_%is", (seconds, text, endingSoon) => {
   expect(remainingText(later(seconds), now)).toBe(text)
   expect(isEndingSoon(later(seconds), now)).toBe(endingSoon)
@@ -128,7 +128,7 @@ describe("bonusRows", () => {
       now,
     )
 
-    expect(row.remaining).toBe("30 分")
+    expect(row.remaining).toBe("30:00")
     expect(row.endingSoon).toBe(false)
     expect(row.progress).toBe(0.25)
   })

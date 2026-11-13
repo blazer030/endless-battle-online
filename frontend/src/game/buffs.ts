@@ -70,3 +70,17 @@ export const buffLines = (buffs: readonly BuffVo[], now: Date): string[] =>
       (buff) =>
         `${buffLabel(buff.kind)} ×${buff.multiplier}（剩 ${remainingMinutes(buff.endsAt, now)} 分）`,
     )
+
+export const secondsLeft = (endsAt: Date, now: Date) => (endsAt.getTime() - now.getTime()) / 1000
+
+const twoDigits = (value: number) => String(value).padStart(2, "0")
+
+// 城鎮加成列與旅館共用的剩餘時間：滿 1 小時寫 H:MM（分鐘捨去），不到 1 小時寫 MM:SS（秒捨去）
+export const remainingText = (endsAt: Date, now: Date) => {
+  const seconds = Math.max(0, Math.floor(secondsLeft(endsAt, now)))
+  if (seconds >= 3600) {
+    const minutes = Math.floor(seconds / 60)
+    return `${Math.floor(minutes / 60)}:${twoDigits(minutes % 60)}`
+  }
+  return `${twoDigits(Math.floor(seconds / 60))}:${twoDigits(seconds % 60)}`
+}

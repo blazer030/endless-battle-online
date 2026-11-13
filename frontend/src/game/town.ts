@@ -1,4 +1,13 @@
-import { buffKinds, buffLabel, type BuffKind, type BuffVo } from "./buffs"
+import {
+  buffKinds,
+  buffLabel,
+  remainingText,
+  secondsLeft,
+  type BuffKind,
+  type BuffVo,
+} from "./buffs"
+
+export { remainingText }
 import { roomEffect, type InnRoom, type Lodging } from "./inn"
 
 // 城鎮全景三段：0 城門口、1 市集、2 公會前
@@ -45,18 +54,6 @@ export const swipeTarget = (segment: TownSegment, deltaX: number, deltaY: number
   if (!isSwipe(deltaX, deltaY)) return segment
   const next = segment + (deltaX < 0 ? 1 : -1)
   return next < 0 || next > 2 ? segment : (next as TownSegment)
-}
-
-const secondsLeft = (endsAt: Date, now: Date) => (endsAt.getTime() - now.getTime()) / 1000
-
-// 滿 1 小時寫 H:MM（分鐘捨去），不到 1 小時寫「N 分」（無條件進位）
-export const remainingText = (endsAt: Date, now: Date) => {
-  const seconds = secondsLeft(endsAt, now)
-  if (seconds >= 3600) {
-    const minutes = Math.floor(seconds / 60)
-    return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
-  }
-  return `${Math.ceil(seconds / 60)} 分`
 }
 
 // 不到 10 分鐘就提醒

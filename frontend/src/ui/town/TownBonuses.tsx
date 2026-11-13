@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react"
 import type { BuffKind, BuffVo } from "../../game/buffs"
 import type { InnVo } from "../../game/inn"
 import { bonusRows, expiredSince, type BonusRow } from "../../game/town"
-import { BuffTickMilliseconds } from "../../motion/timings"
+import { CountdownTickMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
 import type { TownApi } from "./TownScreen"
 import "./TownBonuses.css"
@@ -71,7 +71,7 @@ export const TownBonuses = ({ api, open, onToggle, onClose }: Props) => {
       // 讀進來時還有效、現在到期了：重新讀一次（讀到後 at 換新，不會重複觸發）
       if (data !== null && expiredSince(data.buffs, data.inn.lodging, data.at, current))
         setVersion((value) => value + 1)
-    }, BuffTickMilliseconds)
+    }, CountdownTickMilliseconds)
     return () => clearInterval(timer)
   }, [])
 

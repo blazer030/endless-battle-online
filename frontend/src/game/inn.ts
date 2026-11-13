@@ -1,4 +1,4 @@
-import { buffLabel, remainingMinutes, type BuffKind } from "./buffs"
+import { buffLabel, remainingMinutes, remainingText, type BuffKind } from "./buffs"
 import { formatNumber } from "./format"
 import type { CharacterVo } from "./character"
 
@@ -74,8 +74,9 @@ export function remainingClock(endsAt: Date, now: Date): string {
 const clampToStart = (lodging: Lodging, now: Date) =>
   now.getTime() < lodging.startsAt.getTime() ? lodging.startsAt : now
 
+// 與城鎮加成列同一個格式（H:MM／MM:SS）
 export const stayRemainingClock = (lodging: Lodging, now: Date) =>
-  remainingClock(lodging.endsAt, clampToStart(lodging, now))
+  remainingText(lodging.endsAt, clampToStart(lodging, now))
 
 // 到期或房型已被移除都視為沒有住宿加成
 export const activeRoom = (lodging: Lodging | null, rooms: readonly InnRoom[], now: Date) =>
@@ -90,7 +91,8 @@ export function lodgingLine(
 ): string | null {
   const room = activeRoom(lodging, rooms, now)
   if (room === undefined || lodging === null) return null
-  return `${room.name}・${roomEffect(room)}（剩 ${stayRemainingClock(lodging, now)}）`
+  // 角色頁舊外殼的密藥效果卡：維持 H:MM（分鐘進位）
+  return `${room.name}・${roomEffect(room)}（剩 ${remainingClock(lodging.endsAt, clampToStart(lodging, now))}）`
 }
 
 // 詳情上的取代說明：換別間是警示，同一間是「正在住這間」；沒有生效中的住宿時沒有說明

@@ -227,7 +227,7 @@ test("TownScreen_BonusRowShowsLodgingThenElixirs", async () => {
   renderTown({ api: bonusApi() })
   await flush()
 
-  expect(badges()).toEqual(["學徒閣樓，剩 7:00", "神力秘藥LV1，剩 1:40", "物防 ×1.05，剩 5 分"])
+  expect(badges()).toEqual(["學徒閣樓，剩 7:00", "神力秘藥LV1，剩 1:40", "物防 ×1.05，剩 05:00"])
 })
 
 const lodgingBadge = () =>
@@ -294,11 +294,24 @@ test("TownScreen_ChangingSegmentClosesTheBonusList", async () => {
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 })
 
+// 規格 town-screen：Remaining time text——不到 1 小時每秒倒數
+test("TownScreen_CountsSecondsUnderAnHour", async () => {
+  renderTown({ api: bonusApi() })
+  await flush()
+
+  expect(screen.getByRole("button", { name: "物防 ×1.05，剩 05:00" })).toBeInTheDocument()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1000)
+  })
+
+  expect(screen.getByRole("button", { name: "物防 ×1.05，剩 04:59" })).toBeInTheDocument()
+})
+
 test("TownScreen_EndingSoonBadgeIsMarked", async () => {
   renderTown({ api: bonusApi() })
   await flush()
 
-  expect(screen.getByRole("button", { name: "物防 ×1.05，剩 5 分" })).toHaveAttribute(
+  expect(screen.getByRole("button", { name: "物防 ×1.05，剩 05:00" })).toHaveAttribute(
     "data-ending-soon",
     "true",
   )

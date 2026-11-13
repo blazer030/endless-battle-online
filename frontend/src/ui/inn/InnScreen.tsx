@@ -16,7 +16,7 @@ import {
   type InnRoom,
 } from "../../game/inn"
 import { canAfford } from "../../game/inventory"
-import { BuffTickMilliseconds } from "../../motion/timings"
+import { CountdownTickMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
@@ -89,7 +89,7 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
 
   // 剩餘時間定時重算，到期後橫幅換成沒有入住
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), BuffTickMilliseconds)
+    const timer = setInterval(() => setNow(new Date()), CountdownTickMilliseconds)
     return () => clearInterval(timer)
   }, [])
 

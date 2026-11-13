@@ -447,3 +447,27 @@ test("InnScreen_NewerFailureShowsTheSavedThreshold", async () => {
   expect(thresholdText("HP")).toHaveTextContent("20%")
   expect(bubble()).toHaveTextContent("剛剛那個沒記下來，再調一次好嗎？")
 })
+
+// 規格 inn-screen：Banner counts seconds under an hour
+test("InnScreen_BannerCountsSecondsUnderAnHour", async () => {
+  await renderInn({
+    api: createApi(innWith({ roomId: "apprentice-loft", startsAt: at(0, 11), endsAt: at(8, 11) })),
+  })
+
+  expect(within(banner()).getByText("剩 10:00")).toBeInTheDocument()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1000)
+  })
+
+  expect(within(banner()).getByText("剩 09:59")).toBeInTheDocument()
+})
+
+// 跟城鎮圓章同一個格式：7 小時 58 分 40 秒 → 7:58（分鐘捨去）
+test("InnScreen_BannerMatchesTheTownBadge", async () => {
+  const endsAt = new Date(at(8, 1).getTime() + (7 * 3600 + 58 * 60 + 40) * 1000)
+  await renderInn({
+    api: createApi(innWith({ roomId: "apprentice-loft", startsAt: at(8), endsAt })),
+  })
+
+  expect(within(banner()).getByText("剩 7:58")).toBeInTheDocument()
+})

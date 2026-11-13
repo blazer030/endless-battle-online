@@ -22,6 +22,8 @@ export const LevelUpHintMilliseconds = 3_000
 export const PanelRefreshMilliseconds = 5_000
 // 角色頁密藥剩餘分鐘的重算間隔
 export const BuffTickMilliseconds = 30_000
+// 城鎮加成列與旅館的剩餘時間：不到 1 小時要顯示秒，每秒重算
+export const CountdownTickMilliseconds = 1_000
 // 標題背景依時段換圖，畫面開著時隔這麼久重算一次
 export const TimeOfDayRefreshMilliseconds = 60_000
 // 註冊成功蓋上蠟封後，停這麼久再開始讀角色
