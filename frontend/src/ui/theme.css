@@ -121,6 +121,16 @@
   --inn-brass-rgb: 201 164 100;
   --inn-current-rgb: 246 217 138;
   --inn-rim-rgb: 240 207 138;
+  /* 同伴（CompanionsFit）：場景底色、管理人傳話框、量條、名冊與契約 */
+  --companions-scene: #3a2716;
+  --companions-chip-rgb: 36 23 12;
+  --keeper-face: #e8d8b4;
+  --keeper-say-border: #bca786;
+  --keeper-say-paper: #f3e6ca;
+  --keeper-say-failed-border: #cf7d6e;
+  --keeper-say-failed-paper: #f6dcd0;
+  --keeper-say-sheet-paper: #fff8e8;
+  --keeper-say-sheet-failed: #f8ddd2;
   --bonus-bar-warn-dark: #a8322a;
   --bonus-bar-warn: #e8705a;
   --bonus-glyph: #fff8e8;
