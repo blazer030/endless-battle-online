@@ -49,6 +49,19 @@ public class PetCareTests
         Assert.Equal(2, random.Consumed);
     }
 
+    // 規格 pets：Feeding raises the pet——攻擊 30、飽腹 40 的寵物吃初級活力果實：攻擊 32、飽腹 +10～20、親密 +2～6
+    [Theory]
+    [InlineData(0.0, 0.0, 50, 2)]
+    [InlineData(0.99, 0.99, 60, 6)]
+    public void Feed_SpecExample(double satietyRoll, double intimacyRoll, int satiety, int intimacy)
+    {
+        var pet = Fed(attack: 30, satiety: 40) with { Intimacy = 0 };
+
+        var fed = PetCare.Feed(pet, Food("fruit-vigor-small"), Now, new ScriptedRandom(satietyRoll, intimacyRoll));
+
+        Assert.Equal((32, satiety, intimacy), (fed.Attack, fed.Satiety, fed.Intimacy));
+    }
+
     // 先擲飽腹再擲親密度：飽腹擲 0.0 → 10、親密度擲 0.99 → 6
     [Fact]
     public void Feed_RollsSatietyBeforeIntimacy()
@@ -170,6 +183,8 @@ public class PetCareTests
     [InlineData(4.99, 0)]
     [InlineData(5, 1)]
     [InlineData(15, 2)]
+    // 規格 pets：Listing a pet（出生 20 天、2 歲）
+    [InlineData(20, 2)]
     public void Age_IsTenDaysPerYear(double days, int age)
     {
         var pet = Fed() with { BornAt = Now.AddDays(-days) };

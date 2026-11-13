@@ -63,6 +63,20 @@ public class MercenaryServiceTests
         Assert.Equal(["update", "mercenary:add"], log);
     }
 
+    // 規格 mercenaries：Hiring F grade——正式內容的 mercenary-1：1,000 錢剩 500、休息中、850 場
+    [Fact]
+    public async Task Hire_FGradeFromTheRealCatalogue()
+    {
+        var real = JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
+        var realService = new MercenaryService(characters, mercenaries, real, new FakeClock(Now), unitOfWork);
+        await AddCharacterAsync(character => character with { Money = 1000 });
+
+        var overview = await realService.HireAsync(AccountId, "mercenary-1", CancellationToken);
+
+        Assert.Equal((850, false), (overview.Contract!.Remaining, overview.Contract.Fighting));
+        Assert.Equal(500, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+    }
+
     [Fact]
     public async Task Hire_RejectsSecondMercenary()
     {

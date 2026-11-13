@@ -27,7 +27,10 @@ public class PetRulesTests
     [InlineData("   ", false)]
     [InlineData("一二三四五六七八九十一二三", false)]
     [InlineData("一二三四五六七八九十一二", true)]
-    [InlineData("  小雪  ", true)]
+    [InlineData("  小風  ", true)]
+    // 以字碼計：emoji 一個算一個字
+    [InlineData("😀😀😀😀😀😀😀😀😀😀😀😀", true)]
+    [InlineData("😀😀😀😀😀😀😀😀😀😀😀😀😀", false)]
     public void Rename_RejectsEmptyOrTooLong(string? name, bool valid)
     {
         Assert.Equal(valid ? [] : ["nameInvalid"], PetRules.CanRename(name));

@@ -84,6 +84,19 @@ public class PetServiceTests
         Assert.Equal(fed, Assert.Single(overview.Pets).Pet);
     }
 
+    // 規格 pets：Feeding raises the pet——100 錢吃 20 錢的果實剩 80
+    [Fact]
+    public async Task Feed_SpecExampleCharges20Of100()
+    {
+        var character = await characters.AddAsync(
+            TestCharacters.Default(AccountId, $"測試者{AccountId}", 1, 1, Now) with { Money = 100 }, CancellationToken);
+        var id = await AddPetAsync(character, TestPets.Create());
+
+        await service.FeedAsync(AccountId, id, "fruit-vigor-small", CancellationToken);
+
+        Assert.Equal(80, (await StoredAsync())!.Money);
+    }
+
     [Fact]
     public async Task Feed_OverOwnerChangesNothing()
     {
@@ -172,10 +185,10 @@ public class PetServiceTests
         var character = await AddCharacterAsync();
         var id = await AddPetAsync(character, TestPets.Create());
 
-        await service.RenameAsync(AccountId, id, "  阿雪  ", CancellationToken);
+        await service.RenameAsync(AccountId, id, "  小風  ", CancellationToken);
 
         Assert.Equal(["update", $"pet:update:{id}"], log);
-        Assert.Equal("阿雪", (await FindPetAsync(character, id)).Name);
+        Assert.Equal("小風", (await FindPetAsync(character, id)).Name);
 
         var error = await Assert.ThrowsAsync<InputValidationException>(() => service.RenameAsync(AccountId, id, " ", CancellationToken));
         Assert.Equal(["nameInvalid"], error.Reasons);

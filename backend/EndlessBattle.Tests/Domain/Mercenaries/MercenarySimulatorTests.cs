@@ -129,6 +129,16 @@ public class MercenarySimulatorTests
         Assert.Equal(8, run.Contract!.Remaining);
     }
 
+    // 規格 mercenaries：Last fight——剩 1 場打完，契約消失
+    [Fact]
+    public void Mercenary_LastFightRemovesTheContract()
+    {
+        var run = Run(Hero(), Contract(1, Now));
+
+        Assert.Single(run.Fights);
+        Assert.Null(run.Contract);
+    }
+
     [Fact]
     public void Mercenary_StopsWhenFightsRunOut()
     {

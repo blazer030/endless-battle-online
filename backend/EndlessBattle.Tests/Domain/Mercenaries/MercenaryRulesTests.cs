@@ -59,6 +59,9 @@ public class MercenaryRulesTests
     [InlineData("  ", false)]
     [InlineData("一二三四五六七八九", false)]
     [InlineData("一二三四五六七八", true)]
+    // 以字碼計：emoji 一個算一個字
+    [InlineData("😀😀😀😀😀😀😀😀", true)]
+    [InlineData("😀😀😀😀😀😀😀😀😀", false)]
     public void Rename_LimitsToEightCharacters(string? name, bool valid)
     {
         Assert.Equal(valid ? [] : ["nameInvalid"], MercenaryRules.CanRename(name));
