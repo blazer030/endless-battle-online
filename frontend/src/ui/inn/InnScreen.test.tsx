@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { ApiError, type ApiClient } from "../../api/client"
 import type { CharacterVo } from "../../game/character"
 import { InnBookVo, InnVo, type InnRoom, type Lodging } from "../../game/inn"
-import { PollIntervalMilliseconds } from "../../motion/timings"
+import { InnThresholdSaveDelayMilliseconds, PollIntervalMilliseconds } from "../../motion/timings"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { InnScreen, type InnApi } from "./InnScreen"
@@ -42,7 +42,7 @@ const character = makeCharacter({ level: 6, money: 1000 })
 const createApi = (inn = innWith(null)): InnApi & Pick<ApiClient, "advance"> => ({
   getInn: vi.fn().mockResolvedValue(inn),
   bookInn: vi.fn(),
-  updateSettings: vi.fn(),
+  updateSettings: vi.fn(async (settings: CharacterVo["settings"]) => ({ ...character, settings })),
   getMyCharacter: vi.fn(),
   advance: vi.fn(),
 })
@@ -57,7 +57,10 @@ const Harness = ({ api, initial }: { api: InnApi; initial: CharacterVo }) => {
   )
 }
 
-const renderInn = async ({ api = createApi(), initial = character } = {}) => {
+const renderInn = async ({
+  api = createApi(),
+  initial = character,
+}: { api?: ReturnType<typeof createApi>; initial?: CharacterVo } = {}) => {
   render(<Harness api={api} initial={initial} />)
   await act(async () => {
     await vi.advanceTimersByTimeAsync(0)
@@ -204,4 +207,102 @@ test("InnScreen_MakesNoAdventureRequests", async () => {
   })
 
   expect(api.advance).not.toHaveBeenCalled()
+})
+
+const withThresholds = (hp: number, sp: number, overrides: Partial<CharacterVo> = {}) => {
+  const base = makeCharacter({ level: 6, money: 1000, ...overrides })
+  return {
+    ...base,
+    settings: { ...base.settings, restHealthPointsPercent: hp, restManaPointsPercent: sp },
+  }
+}
+
+const openAutoRest = () => fireEvent.click(screen.getByRole("tab", { name: "自動住宿" }))
+const thresholdText = (label: "HP" | "SP") => screen.getByTestId(`threshold-${label.toLowerCase()}`)
+const step = (label: "HP" | "SP", direction: "增加" | "減少") =>
+  fireEvent.click(screen.getByRole("button", { name: `${label} 門檻${direction}` }))
+
+// 規格 inn-screen：Stepping a threshold——畫面上立刻換
+test("InnScreen_ThresholdStepsShowAtOnce", async () => {
+  await renderInn({ initial: withThresholds(33, -1) })
+  openAutoRest()
+
+  step("HP", "增加")
+
+  expect(thresholdText("HP")).toHaveTextContent("35%")
+  expect(thresholdText("SP")).toHaveTextContent("略過")
+  expect(screen.getByRole("button", { name: "SP 門檻減少" })).toBeDisabled()
+})
+
+// 規格 inn-screen：Several steps save once
+test("InnScreen_SeveralStepsSaveOnce", async () => {
+  const api = createApi()
+  const initial = withThresholds(15, 15)
+  vi.mocked(api.updateSettings).mockImplementation(async (settings) => ({ ...initial, settings }))
+  await renderInn({ api, initial })
+  openAutoRest()
+
+  step("HP", "增加")
+  step("HP", "增加")
+  step("HP", "增加")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+
+  expect(api.updateSettings).toHaveBeenCalledTimes(1)
+  expect(api.updateSettings).toHaveBeenCalledWith({
+    ...initial.settings,
+    restHealthPointsPercent: 30,
+  })
+  expect(thresholdText("HP")).toHaveTextContent("30%")
+})
+
+// 規格 inn-screen：Saving fails
+test("InnScreen_SavingFailureRestoresTheThreshold", async () => {
+  const api = createApi()
+  vi.mocked(api.updateSettings).mockRejectedValue(new TypeError("Failed to fetch"))
+  await renderInn({ api, initial: withThresholds(15, 15) })
+  openAutoRest()
+
+  step("HP", "增加")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+
+  expect(thresholdText("HP")).toHaveTextContent("15%")
+  expect(bubble()).toHaveTextContent("剛剛那個沒記下來，再調一次好嗎？")
+})
+
+// 離開旅館時還沒送出的修改立刻送
+test("InnScreen_LeavingSavesAPendingStep", async () => {
+  const api = createApi()
+  const initial = withThresholds(15, 15)
+  vi.mocked(api.updateSettings).mockImplementation(async (settings) => ({ ...initial, settings }))
+  const { unmount } = render(<Harness api={api} initial={initial} />)
+  await flush()
+  openAutoRest()
+
+  step("SP", "減少")
+  unmount()
+
+  expect(api.updateSettings).toHaveBeenCalledWith({
+    ...initial.settings,
+    restManaPointsPercent: 10,
+  })
+})
+
+// 規格 inn-screen：Rest fee text
+test.each([
+  [6, 0, "Lv 6", "免費"],
+  [120, 1200, "Lv 120", "1,200 起"],
+])("InnScreen_RestFeeShowsFreeOrFrom %i", async (level, fee, levelText, feeText) => {
+  await renderInn({
+    api: createApi(innWith(null, fee)),
+    initial: withThresholds(15, 15, { level }),
+  })
+  openAutoRest()
+
+  const box = screen.getByRole("group", { name: "住宿費" })
+  expect(box).toHaveTextContent(levelText)
+  expect(box).toHaveTextContent(`自動住宿一次${feeText}`)
 })

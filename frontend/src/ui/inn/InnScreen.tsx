@@ -20,6 +20,7 @@ import { BuffTickMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
+import { InnAutoRest } from "./InnAutoRest"
 import innkeeper from "../../assets/inn/innkeeper.webp"
 import purse from "../../assets/town/purse.webp"
 import "./InnScreen.css"
@@ -246,6 +247,16 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
                     )
                   })}
                 </ul>
+              )}
+              {tab === "auto" && (
+                <InnAutoRest
+                  api={api}
+                  character={character}
+                  restFee={inn.restFee}
+                  onCharacterChange={onCharacterChange}
+                  onStep={() => setEvent(null)}
+                  onSaveFailed={() => setEvent({ kind: "thresholdFailed" })}
+                />
               )}
             </div>
           </>

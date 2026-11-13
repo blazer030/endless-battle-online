@@ -36,3 +36,5 @@ export const PassageMilliseconds = 2_400
 export const PassageLeaveMilliseconds = 900
 // 城鎮左右滑完後這麼久內的紙籤點擊不算（從紙籤上開始滑時，放開會再觸發點擊）
 export const SwipeClickGuardMilliseconds = 300
+// 旅館的自動住宿門檻：最後一次按 −／＋ 後這麼久才送出（連按只送一次）
+export const InnThresholdSaveDelayMilliseconds = 600

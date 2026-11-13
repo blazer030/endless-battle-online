@@ -698,3 +698,134 @@
     animation: none;
   }
 }
+
+/* 自動住宿：門檻兩列與住宿費，各一個暗色盒子 */
+.inn-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 10px 10px;
+  border: 1px solid rgb(var(--inn-brass-rgb) / 0.3);
+  border-radius: 4px;
+  background: rgb(var(--shade-rgb) / 0.25);
+  color: var(--inn-text-muted);
+}
+
+.inn-box + .inn-box {
+  margin-top: 8px;
+}
+
+.inn-box h4 {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgb(var(--inn-brass-rgb) / 0.25);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--bonus-title);
+}
+
+.inn-box h4 small {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--inn-text-faded);
+}
+
+.inn-box__line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.inn-box__line b {
+  font-weight: 700;
+  color: var(--bonus-chip-text);
+}
+
+.inn-box__line b.inn-box__free {
+  color: var(--bonus-effect);
+}
+
+.inn-threshold {
+  display: grid;
+  grid-template-columns: auto auto 26px 1fr 26px 44px;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+
+.inn-threshold__tag {
+  padding: 0 6px;
+  border-radius: 3px;
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--inn-tag-text);
+  background: var(--inn-hp-tag);
+}
+
+.inn-threshold--sp .inn-threshold__tag {
+  background: var(--inn-sp-tag);
+}
+
+.inn-threshold button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--bonus-rim);
+  background: radial-gradient(circle at 50% 35%, var(--bonus-disc-light), var(--bonus-disc-dark) 75%);
+  box-shadow: inset 0 0 0 1px var(--brass);
+  cursor: pointer;
+}
+
+.inn-threshold button:not(:disabled):active {
+  transform: scale(0.9);
+}
+
+.inn-threshold button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.inn-threshold__gauge {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgb(var(--shade-rgb) / 0.45);
+  box-shadow: inset 0 0 0 1px rgb(var(--inn-brass-rgb) / 0.3);
+}
+
+.inn-threshold__gauge i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--inn-hp-gauge), var(--inn-hp-tag));
+}
+
+.inn-threshold--sp .inn-threshold__gauge i {
+  background: linear-gradient(90deg, var(--inn-sp-gauge), var(--inn-sp-tag));
+}
+
+.inn-threshold__value {
+  text-align: right;
+  font-family: var(--font-number);
+  font-size: 14px;
+  color: var(--bonus-chip-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.inn-threshold__value--off {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--inn-off);
+}
