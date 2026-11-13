@@ -70,11 +70,11 @@ export function remainingClock(endsAt: Date, now: Date): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
 }
 
-// 住宿的剩餘時間：「現在」早於開始時（畫面時鐘每 30 秒才更新、或伺服器時鐘略快）以開始時刻計，不會超過整段時長
+// 住宿剩餘時間的「現在」：本機時鐘比伺服器慢、早於住宿開始時，以開始時刻計，剩餘不會超過整段時長
 const clampToStart = (lodging: Lodging, now: Date) =>
   now.getTime() < lodging.startsAt.getTime() ? lodging.startsAt : now
 
-// 與城鎮加成列同一個格式（H:MM／MM:SS）
+// 與城鎮加成列同一個格式（HH:MM／MM:SS）
 export const stayRemainingClock = (lodging: Lodging, now: Date) =>
   remainingText(lodging.endsAt, clampToStart(lodging, now))
 

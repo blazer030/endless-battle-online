@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import type { BuffVo } from "./buffs"
+import { remainingText, type BuffVo } from "./buffs"
 import type { InnRoom, Lodging } from "./inn"
 import { timeOfDay } from "./timeOfDay"
 import {
@@ -7,7 +7,6 @@ import {
   expiredSince,
   isEndingSoon,
   panoramaOffsets,
-  remainingText,
   swipeTarget,
   type TownSegment,
 } from "./town"

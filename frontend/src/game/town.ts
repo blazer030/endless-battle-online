@@ -6,8 +6,6 @@ import {
   type BuffKind,
   type BuffVo,
 } from "./buffs"
-
-export { remainingText }
 import { roomEffect, type InnRoom, type Lodging } from "./inn"
 
 // 城鎮全景三段：0 城門口、1 市集、2 公會前
