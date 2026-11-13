@@ -26,7 +26,9 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 | 板子 | 內容 |
 |---|---|
 | `HomeJ` | EBO DEMO：標題、建角、城鎮與各設施，一開就是標題層 |
-| `TitleFit` | 標題與建角的新比例稿，由 `work/titlefit/build.py` 產生（見下） |
+| `TitleFit` | 標題與建角的新比例稿，由 `work/titlefit/build.py` 產生（見下）；只在新成品「EBO 新比例畫面」（舊畫布那份 2026-11-12 已刪） |
+| `TownFit` | 城鎮主畫面的新比例稿（全景三段＋上方狀態），由 `work/townfit/build.py` 產生；在新成品 |
+| `InnFit` | 旅館（暖爐亭）的新比例稿，由 `work/innfit/build.py` 產生（房型讀 `backend/content/inn.json`）；在新成品 |
 | `AssetsJ*` | 素材庫（介面、背景、精靈圖、職業、道具、立繪、備用）；`Fonts` 字型比較 |
 | `StyleE`、`Bag2`、`Character2`、`Town`、`Assets` | 棄用，在畫布最下面 |
 
@@ -40,6 +42,15 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 - 新增狀態要改 `build.py` 兩處：`viewState` 裡那張狀態表加一項，`VIEWS` 加 `[名稱, 中文標籤]`。切換 chip 由 `VIEWS` 產生，不用另外加。
 - 點擊測試操作第一個外框（624）：`q('.tf-fr')` 取外框，再往裡面找元素（見 `work/titlefit/test-register.js`）。量數值用 `offsetTop` 這類 DOM 屬性，不受無頭視窗大小影響。
 - 內容從 HomeJ 抽出來再改：要改 TitleFit 就改 `build.py` 裡的替換，HomeJ 不動。要兩邊一起改，需求會明講。
+
+## 新比例成品「EBO 新比例畫面」
+
+https://claude.ai/artifact/Y1nSuzweihhZm9NQEbZSts（Design 類型，跟舊畫布分開）：放照新比例（寬 390、高 624～780）實作的畫面稿，目前有 TitleFit、TownFit、InnFit。
+
+- 本機：`.design-work/fit/src/`（產生器的輸出，用舊畫布的 blob id，可直接預覽）→ `work/fit/remap.py` 換成新成品的 id → `.design-work/fit/project/`（發布用，含 `canvas.json`）。
+- 兩邊的素材 id 不同：舊畫布的素材要先複製進新成品（`Artifact` publish、`url`＝新成品、`asset: true`、`from_url`＝舊畫布、`asset_ids` 一次最多 10 個），結果的「新 id ← 舊 id」寫進 `work/fit/blobmap.json`。`remap.py --missing` 列出還沒複製的。新產的素材直接上傳到新成品，也記進 blobmap（舊 id 欄填新 id 本身）。
+- 預覽：`canvas.py play TownFit -c fit/src -o 名稱`（`-c` 指板子資料夾）。
+- 發布：`root`＝`.design-work/fit` 的絕對路徑、`file_path`＝改過的板子（例 `<repo>/.design-work/fit/project/TownFit.dc.html`）；新增板子或改位置時連 `project/canvas.json` 一起送。
 
 ## 改板子：一律用腳本
 

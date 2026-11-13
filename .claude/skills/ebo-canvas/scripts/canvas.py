@@ -11,8 +11,9 @@
   canvas.py serve                         在 8770 開本機伺服器（已開就跳過）
   canvas.py asset ID FILE                 上傳後記下本機副本（ID 是 /_blob/ 後面那串）
   canvas.py import DIR                    把 Artifact read 下載的素材（檔名＝blob id）收進 assets/
-  canvas.py play BOARD [-s 舊=>新]... [-o 名稱]
-                                          建預覽頁：blob 換本機檔、換 runtime、依 -s 改初始狀態
+  canvas.py play BOARD [-s 舊=>新]... [-o 名稱] [-c 板子資料夾]
+                                          建預覽頁：blob 換本機檔、換 runtime、依 -s 改初始狀態；
+                                          -c 預設 canvas/project，新比例成品的板子用 fit/src
   canvas.py shot 名稱 [-o out.png] [--size 390x844] [--wait 4000]
   canvas.py strip OUT IN... [--crop x,y,w,h] [--zoom N]
                                           多張截圖並排（可先裁切、放大），方便一次看
@@ -76,7 +77,7 @@ def asset_for(bid):
 
 
 def cmd_play(a):
-    src = os.path.join(WORK, 'canvas', 'project', a.board + '.dc.html')
+    src = os.path.join(WORK, a.canvas, a.board + '.dc.html')
     s = open(src, encoding='utf-8').read()
     missing = set()
     def rep(m):
@@ -186,7 +187,7 @@ def main():
     sp.add_parser('serve').set_defaults(f=cmd_serve)
     x = sp.add_parser('asset'); x.add_argument('id'); x.add_argument('file'); x.set_defaults(f=cmd_asset)
     x = sp.add_parser('import'); x.add_argument('dir'); x.set_defaults(f=cmd_import)
-    x = sp.add_parser('play'); x.add_argument('board'); x.add_argument('-s', '--set', action='append'); x.add_argument('-o', '--out'); x.set_defaults(f=cmd_play)
+    x = sp.add_parser('play'); x.add_argument('board'); x.add_argument('-s', '--set', action='append'); x.add_argument('-o', '--out'); x.add_argument('-c', '--canvas', default='canvas/project'); x.set_defaults(f=cmd_play)
     x = sp.add_parser('shot'); x.add_argument('name'); x.add_argument('-o', '--out'); x.add_argument('--size', default='390x844'); x.add_argument('--wait', type=int, default=4000); x.set_defaults(f=cmd_shot)
     x = sp.add_parser('strip'); x.add_argument('out'); x.add_argument('inputs', nargs='+'); x.add_argument('--crop'); x.add_argument('--zoom', type=int, default=1); x.set_defaults(f=cmd_strip)
     x = sp.add_parser('check'); x.add_argument('out'); x.add_argument('inputs', nargs='+'); x.set_defaults(f=cmd_check)
