@@ -5,6 +5,8 @@ namespace EndlessBattle.Infrastructure.Persistence.Models;
 
 public partial class CharacterLodging
 {
+    public long Id { get; set; }
+
     public long CharacterId { get; set; }
 
     public string RoomId { get; set; } = null!;

@@ -285,9 +285,9 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         Assert.Equal(["varchar(64) YES"], columns);
     }
 
-    // 每個角色一列目前的入住；時刻 DATETIME(6) 保留到微秒
+    // 每次入住一列（同一角色可以有多列）；時刻 DATETIME(6) 保留到微秒；主鍵是自增的 id
     [Fact]
-    public async Task Schema_HasCharacterLodgingTable()
+    public async Task Schema_CharacterLodgingAllowsManyStays()
     {
         var characterId = await CreateCharacterAsync();
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -296,20 +296,31 @@ public class DatabaseSchemaTests(MySqlDatabaseFixture database)
         await using var context = database.CreateDbContext();
         context.CharacterLodgings.Add(new CharacterLodging
         {
-            CharacterId = characterId, RoomId = "apprentice-loft", StartsAt = startsAt, EndsAt = startsAt.AddHours(8),
+            CharacterId = characterId, RoomId = "fighters-bunk", StartsAt = startsAt, EndsAt = startsAt.AddHours(4),
+        });
+        context.CharacterLodgings.Add(new CharacterLodging
+        {
+            CharacterId = characterId, RoomId = "apprentice-loft", StartsAt = startsAt.AddHours(4), EndsAt = startsAt.AddHours(12),
         });
         await context.SaveChangesAsync(cancellationToken);
 
         await using var reader = database.CreateDbContext();
-        var lodging = await reader.CharacterLodgings.SingleAsync(row => row.CharacterId == characterId, cancellationToken);
-        Assert.Equal(("apprentice-loft", startsAt, startsAt.AddHours(8)), (lodging.RoomId, lodging.StartsAt, lodging.EndsAt));
+        var stays = await reader.CharacterLodgings
+            .Where(row => row.CharacterId == characterId)
+            .OrderBy(row => row.StartsAt)
+            .Select(row => new { row.RoomId, row.StartsAt, row.EndsAt })
+            .ToListAsync(cancellationToken);
+        Assert.Equal(
+            [new { RoomId = "fighters-bunk", StartsAt = startsAt, EndsAt = startsAt.AddHours(4) },
+             new { RoomId = "apprentice-loft", StartsAt = startsAt.AddHours(4), EndsAt = startsAt.AddHours(12) }],
+            stays);
 
-        await using var second = database.CreateDbContext();
-        second.CharacterLodgings.Add(new CharacterLodging
-        {
-            CharacterId = characterId, RoomId = "quiet-chapel", StartsAt = startsAt, EndsAt = startsAt,
-        });
-        await Assert.ThrowsAsync<DbUpdateException>(() => second.SaveChangesAsync(cancellationToken));
+        var key = await reader.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT(COLUMN_NAME, ' ', COLUMN_KEY, ' ', EXTRA) AS Value FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'character_lodgings' AND COLUMN_KEY = 'PRI'
+            """).ToListAsync(cancellationToken);
+        Assert.Equal(["id PRI auto_increment"], key);
     }
 
     // 新欄位不指定時取資料庫預設：地區 1、子地區 NULL；舊的 current_stage_id 可為 NULL

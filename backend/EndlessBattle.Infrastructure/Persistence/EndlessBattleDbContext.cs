@@ -317,10 +317,13 @@ public partial class EndlessBattleDbContext : DbContext
 
         modelBuilder.Entity<CharacterLodging>(entity =>
         {
-            entity.HasKey(e => e.CharacterId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("character_lodgings");
 
+            entity.HasIndex(e => new { e.CharacterId, e.EndsAt }, "ix_character_lodgings_character_ends");
+
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CharacterId).HasColumnName("character_id");
             entity.Property(e => e.EndsAt)
                 .HasMaxLength(6)
@@ -332,8 +335,8 @@ public partial class EndlessBattleDbContext : DbContext
                 .HasMaxLength(6)
                 .HasColumnName("starts_at");
 
-            entity.HasOne(d => d.Character).WithOne(p => p.CharacterLodging)
-                .HasForeignKey<CharacterLodging>(d => d.CharacterId)
+            entity.HasOne(d => d.Character).WithMany(p => p.CharacterLodgings)
+                .HasForeignKey(d => d.CharacterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_character_lodgings_character");
         });
