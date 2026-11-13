@@ -25,6 +25,7 @@ export const expectedKeys = async (
   contentDirectory: string,
 ): Promise<Record<Category, string[]>> => {
   const jobs = await readList(contentDirectory, "jobs.json", "jobs")
+  const rooms = await readList(contentDirectory, "inn.json", "rooms")
   return {
     portraits: jobs.flatMap((id) => [`${id}-male`, `${id}-female`]),
     "job-icons": jobs,
@@ -32,6 +33,8 @@ export const expectedKeys = async (
     items: await readList(contentDirectory, "items.json", "items"),
     monsters: await readList(contentDirectory, "monsters.json", "monsters"),
     battlefields: await readList(contentDirectory, "world.json", "places"),
+    "room-badges": rooms,
+    "room-backgrounds": rooms,
   }
 }
 

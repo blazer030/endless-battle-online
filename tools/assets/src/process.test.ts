@@ -95,6 +95,32 @@ describe("processImage 怪物與戰鬥背景", () => {
   })
 })
 
+describe("processImage 房型", () => {
+  // 規格 content-assets：Room badge is centered on a square canvas
+  it("273×272 的房型徽章輸出 128×128、長邊 113 並置中", async () => {
+    const source = await syntheticImage(300, 300, [{ left: 10, top: 12, width: 273, height: 272 }])
+
+    const measured = await measure((await processImage("room-badges", source)).webp)
+
+    expect([measured.width, measured.height]).toEqual([128, 128])
+    expect(measured.hasAlpha).toBe(true)
+    const opaque = measured.opaque!
+    expect(opaque.right - opaque.left + 1).toBe(113)
+    expect(Math.abs(opaque.left - (127 - opaque.right))).toBeLessThanOrEqual(1)
+    expect(Math.abs(opaque.top - (127 - opaque.bottom))).toBeLessThanOrEqual(1)
+  })
+
+  // 規格 content-assets：Room background covers its canvas
+  it("1280×720 的房間背景輸出 800×450 且沒有透明像素", async () => {
+    const source = await syntheticImage(1280, 720, [{ left: 0, top: 0, width: 1280, height: 720 }])
+
+    const measured = await measure((await processImage("room-backgrounds", source)).webp)
+
+    expect([measured.width, measured.height]).toEqual([800, 450])
+    expect(measured.hasAlpha).toBe(false)
+  })
+})
+
 describe("encodeWithinLimit", () => {
   it("上限設很小時依序嘗試 85、80…60 後拒絕", async () => {
     const tried: number[] = []
@@ -130,8 +156,17 @@ describe("輸入檢查", () => {
     expect(() => parseCategory("weapons")).toThrow(AssetError)
   })
 
-  it("六個類別都認得", () => {
-    for (const name of ["portraits", "job-icons", "skills", "items", "monsters", "battlefields"])
+  it("八個類別都認得", () => {
+    for (const name of [
+      "portraits",
+      "job-icons",
+      "skills",
+      "items",
+      "monsters",
+      "battlefields",
+      "room-badges",
+      "room-backgrounds",
+    ])
       expect(parseCategory(name)).toBe(name)
   })
 })

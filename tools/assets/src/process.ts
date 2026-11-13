@@ -9,6 +9,8 @@ export const Categories = [
   "items",
   "monsters",
   "battlefields",
+  "room-badges",
+  "room-backgrounds",
 ] as const
 
 export type Category = (typeof Categories)[number]
@@ -23,6 +25,9 @@ export const Specs: Record<Category, Spec> = {
   items: { width: 160, height: 160, quality: 85, maxBytes: 20_480, alpha: true },
   monsters: { width: 540, height: 540, quality: 80, maxBytes: 61_440, alpha: true },
   battlefields: { width: 1024, height: 1024, quality: 75, maxBytes: 153_600, alpha: false },
+  // 房型徽章最大顯示 60、房間背景最寬 390（2 倍密度）；位元組上限是估計值，見 inn-screen design
+  "room-badges": { width: 128, height: 128, quality: 85, maxBytes: 16_384, alpha: true },
+  "room-backgrounds": { width: 800, height: 450, quality: 75, maxBytes: 61_440, alpha: false },
 }
 
 const IconFill = 0.88
@@ -217,10 +222,12 @@ const compose = async (
     case "items":
     case "skills":
     case "job-icons":
+    case "room-badges":
       return composeIcon(raw, spec)
     case "monsters":
       return composeMonster(raw, spec)
     case "battlefields":
+    case "room-backgrounds":
       return composeBattlefield(raw, spec)
   }
 }

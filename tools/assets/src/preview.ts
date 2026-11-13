@@ -16,12 +16,14 @@ const guides = (category: Category, width: number, height: number): string => {
       return line(0, 529, width, 529, "#d33")
     case "items":
     case "skills":
-    case "job-icons": {
+    case "job-icons":
+    case "room-badges": {
       const inner = Math.round(width * 0.88)
       const offset = (width - inner) / 2
       return `<rect x="${offset}" y="${offset}" width="${inner}" height="${inner}" fill="none" stroke="#36c" stroke-width="1" stroke-dasharray="4 3"/>`
     }
     case "battlefields":
+    case "room-backgrounds":
       return ""
   }
 }

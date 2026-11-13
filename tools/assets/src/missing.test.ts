@@ -23,6 +23,9 @@ beforeEach(async () => {
     monsters: [{ id: "monster-1" }, { id: "monster-2" }],
   })
   await writeJson("backend/content/world.json", { places: [{ id: 1 }, { id: 2 }, { id: 3 }] })
+  await writeJson("backend/content/inn.json", {
+    rooms: ["loft", "bunk", "tower", "bulwark", "chapel", "chamber"].map((id) => ({ id })),
+  })
   // 清單有 job-1～job-4 的男女立繪（8 張）與 monster-1
   const assets: Record<string, { file: string; original: string }> = {}
   for (const id of jobIds.slice(0, 4))
@@ -60,7 +63,16 @@ describe("missing", () => {
     expect(text).not.toContain("job-1-male")
   })
 
-  it("沒有指定類別時六類都列出", async () => {
+  // 規格 content-assets：Room keys come from the inn
+  it("房型兩類的鍵來自 inn.json 的房間", async () => {
+    const { exitCode, text } = await run(["missing", "room-badges"])
+
+    expect(exitCode).toBe(0)
+    expect(text).toContain("room-badges：有圖 0／應有 6")
+    expect(text).toContain("loft、bunk、tower、bulwark、chapel、chamber")
+  })
+
+  it("沒有指定類別時八類都列出", async () => {
     const { exitCode, text } = await run(["missing"])
 
     expect(exitCode).toBe(0)
@@ -71,6 +83,8 @@ describe("missing", () => {
       "items：有圖 0／應有 1",
       "monsters：有圖 1／應有 2",
       "battlefields：有圖 0／應有 3",
+      "room-badges：有圖 0／應有 6",
+      "room-backgrounds：有圖 0／應有 6",
     ])
       expect(text).toContain(line)
   })

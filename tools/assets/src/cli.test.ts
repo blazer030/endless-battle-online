@@ -36,6 +36,7 @@ beforeEach(async () => {
     "items.json": { items: [] },
     "monsters.json": { monsters: [{ id: "monster-1" }] },
     "world.json": { places: [{ id: 1 }] },
+    "inn.json": { rooms: [{ id: "apprentice-loft" }] },
   }
   for (const [file, value] of Object.entries(content))
     await writeFile(join(root, "backend/content", file), JSON.stringify(value))

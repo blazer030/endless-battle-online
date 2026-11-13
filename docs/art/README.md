@@ -4,7 +4,7 @@
 
 | | 是什麼 | 放哪裡 | 怎麼更新 |
 |---|---|---|---|
-| 內容圖 | 道具、怪物（含寵物）、技能、職業立繪、職業圖示、戰鬥背景 | Cloudflare R2 bucket `ebo-content`（`https://ebo-assets.blazer030.dev`），git 只存清單 `frontend/src/assets/content-manifest.json` | `tools/assets` 的 `import` 指令，跟著 release／hotfix |
+| 內容圖 | 道具、怪物（含寵物）、技能、職業立繪、職業圖示、戰鬥背景、旅館房型徽章與房間背景 | Cloudflare R2 bucket `ebo-content`（`https://ebo-assets.blazer030.dev`），git 只存清單 `frontend/src/assets/content-manifest.json` | `tools/assets` 的 `import` 指令，跟著 release／hotfix |
 | 設計素材 | UI 元件、場景、NPC、佔位圖 | `frontend/src/assets/<分類>/`，進 git、由 Vite 打包 | `tools/assets` 的 `design` 指令，跟著畫面改版 |
 
 原檔（生圖的 PNG）上傳到私人 bucket `ebo-originals`，不進 git。
@@ -19,6 +19,8 @@
 | `items` 道具圖示 | `<道具 id>` | 160×160 | 圖案長邊 88% 置中 | 是 | 85 | 20 KB |
 | `monsters` 怪物與寵物 | `<怪物 id>` | 540×540 | 縮到寬 513／高 486 以內、水平置中、腳底 y=529 | 是 | 80 | 60 KB |
 | `battlefields` 戰鬥背景 | `<地點 id>`（`world.json` places 的數字） | 1024×1024 | 等比縮放後置中裁切填滿 | 否 | 75 | 150 KB |
+| `room-badges` 房型徽章 | `<房型 id>`（`inn.json` rooms） | 128×128 | 圖案長邊 88% 置中 | 是 | 85 | 16 KB |
+| `room-backgrounds` 房間背景 | `<房型 id>`（`inn.json` rooms） | 800×450 | 等比縮放後置中裁切填滿 | 否 | 75 | 60 KB |
 
 - 鍵只能用小寫英文、數字與連字號，而且要是 `backend/content` 裡有的 id（見「看缺哪些圖」）；新內容要先加進內容檔再匯入圖。R2 鎖定後刪不掉，所以打錯的鍵會在上傳前被擋下，`--dry-run` 只提醒。
 - alpha > 24 的像素算不透明；「圖案」指不透明像素的外框。
@@ -56,7 +58,7 @@
 ### 看缺哪些圖
 
 ```sh
-cd tools/assets && pnpm cli missing          # 六類全部
+cd tools/assets && pnpm cli missing          # 八類全部
 cd tools/assets && pnpm cli missing monsters # 只看一類
 ```
 
