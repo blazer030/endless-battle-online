@@ -9,7 +9,7 @@ import {
   rewardText,
 } from "../game/honour"
 import type { HonourExchange, HonourShopVo } from "../game/honour"
-import "./CompanionsScreen.css"
+import "./HonourPage.css"
 
 export type HonourApi = Pick<ApiClient, "getHonourShop" | "getMercenaries" | "exchangeHonour">
 
