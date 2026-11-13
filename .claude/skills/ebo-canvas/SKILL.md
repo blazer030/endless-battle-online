@@ -29,6 +29,7 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 | `TitleFit` | 標題與建角的新比例稿，由 `work/titlefit/build.py` 產生（見下）；只在新成品「EBO 新比例畫面」（舊畫布那份 2026-11-12 已刪） |
 | `TownFit` | 城鎮主畫面的新比例稿（全景三段＋上方狀態），由 `work/townfit/build.py` 產生；在新成品 |
 | `InnFit` | 旅館（暖爐亭）的新比例稿，由 `work/innfit/build.py` 產生（房型讀 `backend/content/inn.json`）；在新成品 |
+| `CompanionsFit` | 同伴（入口、獸欄、傭兵所）的新比例稿，由 `work/companionsfit/build.py` 產生（傭兵讀 `mercenaries.json`、冒險地讀 `world.json`）；在新成品 |
 | `AssetsJ*` | 素材庫（介面、背景、精靈圖、職業、道具、立繪、備用）；`Fonts` 字型比較 |
 | `StyleE`、`Bag2`、`Character2`、`Town`、`Assets` | 棄用，在畫布最下面 |
 
@@ -45,7 +46,7 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 
 ## 新比例成品「EBO 新比例畫面」
 
-https://claude.ai/artifact/Y1nSuzweihhZm9NQEbZSts（Design 類型，跟舊畫布分開）：放照新比例（寬 390、高 624～780）實作的畫面稿，目前有 TitleFit、TownFit、InnFit。
+https://claude.ai/artifact/Y1nSuzweihhZm9NQEbZSts（Design 類型，跟舊畫布分開）：放照新比例（寬 390、高 624～780）實作的畫面稿，目前有 TitleFit、TownFit、InnFit、CompanionsFit。
 
 - 本機：`.design-work/fit/src/`（產生器的輸出，用舊畫布的 blob id，可直接預覽）→ `work/fit/remap.py` 換成新成品的 id → `.design-work/fit/project/`（發布用，含 `canvas.json`）。
 - 兩邊的素材 id 不同：舊畫布的素材要先複製進新成品（`Artifact` publish、`url`＝新成品、`asset: true`、`from_url`＝舊畫布、`asset_ids` 一次最多 10 個），結果的「新 id ← 舊 id」寫進 `work/fit/blobmap.json`。`remap.py --missing` 列出還沒複製的。新產的素材直接上傳到新成品，也記進 blobmap（舊 id 欄填新 id 本身）。
@@ -72,7 +73,7 @@ zsh $S/gen.sh bg-place-03 1:1 stage "a gloomy swamp with murky green water pools
 
 - 畫風固定在 `gen.sh`（墨線＋水彩、紙紋、暖色；item 加洋紅底、no text、no drop shadow）。換專案時改這段即可。
 - `stage`＝戰鬥舞台背景：繪本水彩、明亮可愛、限定細節（不寫細節限制，grok 會畫得太寫實）；主體只寫場景。21 個地點的場景清單與重產腳本在 `.design-work/work/battle-bg/`（`gen-all.sh 03 07` 只重產指定地點）。
-- 每張圖實際送出的提示詞存在 `raw/名稱.prompt.txt`。素材庫每張素材的提示詞整理在 `docs/art/prompts/demo/`；新增素材後依序跑 `.design-work/work/prompts/` 的 `collect.py`（從 grok／Gemini 本機紀錄抓提示詞）→ `match.py` → `build-docs.py` 更新，對不到的要人工比對（見那裡的 keyed.py、cropped.py、byname.py）。
+- 每張圖實際送出的提示詞存在 `raw/名稱.prompt.txt`。素材庫每張素材的提示詞整理在 `docs/art/prompts/demo/`；新增素材後依序跑 `.design-work/work/prompts/` 的 `collect.py`（從 grok／Gemini 本機紀錄抓提示詞）→ `thumbs.py 原圖… grok 原圖…`（比對用縮圖，要帶檔名）→ `match.py` → 在 `names.json` 補新素材的「名稱、現用／備用、板子」→ `build-docs.py` 更新，對不到的要人工比對（見那裡的 keyed.py、cropped.py、byname.py）。
 - item 會自動跑 `keyclean.py`（preparing-ai-generated-ui-assets skill），並產生 `out/名稱.check.png`（疊在淺、深兩種底上）。**一定要看 check 圖**，看邊緣有沒有紫紅色。
 - `--all`：主體把洋紅包在裡面時用（印章框、戒指圈），而且主體本身沒有粉紫色。
 - 立繪不用 grok，用 Gemini（見 `ebo-design-rules` 的產圖表）。
