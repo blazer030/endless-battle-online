@@ -3,6 +3,8 @@ import type { CharacterVo } from "../../game/character"
 import {
   activationRatio,
   companionsCounterTop,
+  feedCooldownElapsed,
+  FeedCooldownMilliseconds,
   feedEffect,
   fruitDisabled,
   fruitEffect,
@@ -20,7 +22,7 @@ import {
   type PetsVo,
 } from "../../game/pets"
 import { ContentImage } from "../ContentImage"
-import { FeedCooldownSeconds, FeedEffectSeconds, PetHopSeconds } from "../../motion/timings"
+import { FeedEffectSeconds, PetHopSeconds } from "../../motion/timings"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import { BackButton } from "./BackButton"
@@ -82,6 +84,18 @@ const Bar = ({
   </>
 )
 
+// 果實槽上緣的冷卻金線：一律 10 秒縮完，從出現時已經過去的進度接著縮（同一次冷卻只算一次）
+const CooldownLine = ({ until }: { until: Date }) => {
+  const [elapsed] = useState(() => feedCooldownElapsed(until, new Date()))
+  return (
+    <i
+      className="stable-trough__cooldown"
+      style={{ animationDelay: `${-elapsed}ms` }}
+      aria-hidden="true"
+    />
+  )
+}
+
 // 獸欄：三格柵門（寵物從門後探出），木台上是選中寵物的資料、果實槽與動作
 export const StablePage = ({ api, character, onCharacterChange, onBack }: Props) => {
   const stage = useStage()
@@ -110,14 +124,17 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
   const [effect, setEffect] = useState<Effect | null>(null)
   const [now, setNow] = useState(() => new Date())
 
-  // 餵食冷卻結束時重繪，果實才會恢復可按
+  // 餵食冷卻結束時重繪，果實才會恢復可按；等多久用實際時間算（讀資料的往返不會讓它晚到）
   useEffect(() => {
     if (view === null) return
-    const waits = view.pets
-      .map((pet) => pet.nextFeedAt.getTime() - now.getTime())
-      .filter((wait) => wait > 0)
-    if (waits.length === 0) return
-    const timer = setTimeout(() => setNow(new Date()), Math.min(...waits, MaxTimerMilliseconds))
+    const cooling = view.pets.filter((pet) => pet.nextFeedAt.getTime() > now.getTime())
+    if (cooling.length === 0) return
+    const current = Date.now()
+    const wait = Math.min(
+      ...cooling.map((pet) => Math.max(0, pet.nextFeedAt.getTime() - current)),
+      MaxTimerMilliseconds,
+    )
+    const timer = setTimeout(() => setNow(new Date()), wait)
     return () => clearTimeout(timer)
   }, [view, now])
 
@@ -167,7 +184,7 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
           "--pt": `${companionsCounterTop(stage.height)}px`,
           "--pet-hop": `${PetHopSeconds}s`,
           "--feed-effect": `${FeedEffectSeconds}s`,
-          "--feed-cooldown": `${FeedCooldownSeconds}s`,
+          "--feed-cooldown": `${FeedCooldownMilliseconds}ms`,
         } as CSSProperties
       }
     >
@@ -305,11 +322,9 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
               </div>
               <div className="stable-trough" role="group" aria-label="果實">
                 {now.getTime() < pet.nextFeedAt.getTime() && (
-                  <i
-                    key={pet.nextFeedAt.getTime()}
-                    className="stable-trough__cooldown"
-                    style={{ animationDuration: `${pet.nextFeedAt.getTime() - now.getTime()}ms` }}
-                    aria-hidden="true"
+                  <CooldownLine
+                    key={`${pet.id}-${pet.nextFeedAt.getTime()}`}
+                    until={pet.nextFeedAt}
                   />
                 )}
                 {(view?.foods ?? []).map((food) => {

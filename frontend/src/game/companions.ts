@@ -160,6 +160,16 @@ export const fruitEffect = (food: PetFood) => `${statLabels[food.stat]}+${food.a
 export const feedEffect = (before: Pet, after: Pet, food: PetFood) =>
   `${statLabels[food.stat]} +${statOf(after, food.stat) - statOf(before, food.stat)}\u3000♥ +${after.intimacy - before.intimacy}`
 
+// 餵食冷卻（伺服器 PetCare 的 10 秒）
+export const FeedCooldownMilliseconds = 10_000
+
+// 冷卻已經過了多久：果實槽的金線從這個進度接著縮
+export const feedCooldownElapsed = (nextFeedAt: Date, now: Date) =>
+  Math.min(
+    FeedCooldownMilliseconds,
+    Math.max(0, FeedCooldownMilliseconds - (nextFeedAt.getTime() - now.getTime())),
+  )
+
 // 果實停用：冷卻中、吃飽（飽腹 ≥ 100）、錢不夠；「不超過主人」交給伺服器
 export const fruitDisabled = (pet: Pet, food: PetFood, money: number, now: Date) =>
   now.getTime() < pet.nextFeedAt.getTime() || pet.satiety >= 100 || money < food.cost

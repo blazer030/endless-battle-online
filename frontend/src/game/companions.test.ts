@@ -1,6 +1,7 @@
 import { expect, test } from "vitest"
 import { makePet, makeWorld } from "../test/fixtures"
 import {
+  feedCooldownElapsed,
   activationRatio,
   bartonGreeting,
   canHire,
@@ -204,4 +205,16 @@ test("CanHire_NeedsPriceMoneyAndNoContract", () => {
   expect(canHire(entry(500), null, 499)).toBe(false)
   expect(canHire(entry(500), contract(), 1000)).toBe(false)
   expect(canHire(entry(null), null, 10_000_000)).toBe(false)
+})
+
+// 冷卻金線從已經過去的進度接著縮：餵完 4 秒才看到的線，剩 6 秒
+test.each([
+  [6_000, 4_000],
+  [10_000, 0],
+  [0, 10_000],
+  [-3_000, 10_000],
+  [12_000, 0],
+])("FeedCooldownElapsed_FromTheRemainingTime %#", (remaining, elapsed) => {
+  const now = new Date("2026-11-14T08:00:00Z")
+  expect(feedCooldownElapsed(new Date(now.getTime() + remaining), now)).toBe(elapsed)
 })

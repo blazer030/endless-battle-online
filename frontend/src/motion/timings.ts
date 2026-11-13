@@ -48,5 +48,3 @@ export const CompanionsEntranceFadeSeconds = 0.35
 export const PetHopSeconds = 0.5
 // 餵食成功時從柵欄浮起的字
 export const FeedEffectSeconds = 1.4
-// 餵食冷卻（伺服器規則 PetCare 的 10 秒），果實槽上緣的金線跟著縮掉
-export const FeedCooldownSeconds = 10
