@@ -108,12 +108,27 @@ public class AdventureServiceTests
     public async Task Advance_PassesLodgingToSimulation()
     {
         var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
-        await lodgings.SaveAsync(character.Id, new Lodging("apprentice-loft", Start, Start.AddHours(8)), CancellationToken);
+        await lodgings.SaveBookingAsync(character.Id, new Lodging("apprentice-loft", Start, Start.AddHours(8)), ended: null, DateTimeOffset.MinValue, CancellationToken);
         clock.Advance(TimeSpan.FromSeconds(20));
 
         var result = await service.AdvanceAsync(AccountId, CancellationToken);
 
         Assert.Equal((8, 8 * 128L), (result.Summary.Wins, result.Summary.Experience));
+    }
+
+    // 規格 inn：Settling after switching rooms——鬥士通鋪（物攻）到第 10 秒、之後學徒閣樓（經驗 ×1.10），20 秒後才結算：
+    // 開打 0、2.8、5.6、8.4 的 4 場經驗 116，11.2、14、16.8、19.6 的 4 場 128
+    [Fact]
+    public async Task Advance_UsesEachStayByFightStart()
+    {
+        var character = await AddCharacterAsync(character => character with { NextLevelExperience = 1_000_000_000 });
+        await lodgings.SaveBookingAsync(character.Id, new Lodging("fighters-bunk", Start, Start.AddSeconds(10)), ended: null, DateTimeOffset.MinValue, CancellationToken);
+        await lodgings.SaveBookingAsync(character.Id, new Lodging("apprentice-loft", Start.AddSeconds(10), Start.AddHours(8)), ended: null, DateTimeOffset.MinValue, CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(20));
+
+        var result = await service.AdvanceAsync(AccountId, CancellationToken);
+
+        Assert.Equal((8, (4 * 116L) + (4 * 128L)), (result.Summary.Wins, result.Summary.Experience));
     }
 
     // 內容移除了角色所在的地區（999）：時間沒有前進時照樣回傳空結果，不查地區、不寫入

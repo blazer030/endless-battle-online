@@ -13,9 +13,4 @@ public interface ILodgingRepository
 
     // 入住：ended（依開始時刻對上）改成截斷後的結束時刻、新增 booked、刪掉結束早於 pruneBefore 的
     Task SaveBookingAsync(long characterId, Lodging booked, Lodging? ended, DateTimeOffset pruneBefore, CancellationToken cancellationToken);
-
-    Task<Lodging?> FindAsync(long characterId, CancellationToken cancellationToken);
-
-    // 整筆取代
-    Task SaveAsync(long characterId, Lodging lodging, CancellationToken cancellationToken);
 }

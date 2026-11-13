@@ -42,7 +42,7 @@ public class InnServiceTests
         adventure = new AdventureService(
             characters, proficiencies, new InMemorySkillBookRepository(), new InMemorySkillLoadoutRepository(), inventory, equipment,
             missions, pets, mercenaries, new InMemoryAreaPassRepository(), buffs, lodgings, Content, clock, new ZeroRandomFactory(), unitOfWork);
-        service = new InnService(characters, lodgings, Content, adventure, unitOfWork, clock);
+        service = new InnService(characters, lodgings, Content, unitOfWork, clock);
     }
 
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
@@ -52,6 +52,10 @@ public class InnServiceTests
         var character = TestCharacters.Default(AccountId, "測試者", 1, 1, Now);
         return characters.AddAsync(customize is null ? character : customize(character), CancellationToken);
     }
+
+    // 直接放一筆住宿（不截斷、不清理）
+    private Task SeedStayAsync(long characterId, Lodging stay) =>
+        lodgings.SaveBookingAsync(characterId, stay, ended: null, DateTimeOffset.MinValue, CancellationToken);
 
     private async Task<Character> ReloadAsync() => (await characters.FindByAccountAsync(AccountId, CancellationToken))!;
 
@@ -71,7 +75,7 @@ public class InnServiceTests
         Assert.Equal(expected, result.Lodging);
         Assert.Equal((1900L, 1, 0), (result.Character.Money, result.Character.HealthPoints, result.Character.ManaPoints));
         Assert.Equal(result.Character, await ReloadAsync());
-        Assert.Equal(expected, await lodgings.FindAsync(character.Id, CancellationToken));
+        Assert.Equal(expected, await lodgings.FindActiveAsync(character.Id, Now, CancellationToken));
         Assert.Equal(["update", "lodging"], log);
     }
 
@@ -108,44 +112,43 @@ public class InnServiceTests
         Assert.Equal((22 * 116) + (11 * 128), (await ReloadAsync()).Experience);
     }
 
-    // Lv 101、陣亡、錢剛好 101 × 50 × 2 = 10100：結算時先自動住宿花掉 round(10 × 101 × 2.1) = 2121，剩 7979 不夠 → 整筆回滾
+    // 規格 inn：Booking does not settle adventure time——上次結算 1 小時前，入住後仍是那時，也不打任何一場
     [Fact]
-    public async Task Book_RechecksMoneyAfterSettling()
+    public async Task Book_DoesNotSettleAdventureTime()
     {
-        var character = await AddCharacterAsync(character => character with { Level = 101, HealthPoints = 0, Money = 10100, NextLevelExperience = 1_000_000_000 });
-        var previous = new Lodging("fighters-bunk", Now.AddHours(-1), Now.AddHours(7));
-        await lodgings.SaveAsync(character.Id, previous, CancellationToken);
-        clock.Advance(TimeSpan.FromSeconds(1));
+        var character = await AddCharacterAsync(character => character with { LastSettledAt = Now.AddHours(-1) });
 
-        Assert.Equal(["notEnoughMoney"], await ReasonsAsync(() => service.BookAsync(AccountId, "apprentice-loft", CancellationToken)));
-        Assert.Equal(character, await ReloadAsync());
-        Assert.Equal(previous, await lodgings.FindAsync(character.Id, CancellationToken));
-        Assert.Equal("rollback", unitOfWork.Log[^1]);
+        await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
+
+        var reloaded = await ReloadAsync();
+        Assert.Equal((Now.AddHours(-1), character.Experience), (reloaded.LastSettledAt, reloaded.Experience));
+        Assert.Equal(["update", "lodging"], log);
     }
 
-    // 經驗 900／1000、上次結算後 2 秒：結算打 1 場拿 116 經驗升到 Lv 2，價格從 1 × 50 × 2 = 100 漲成 2 × 50 × 2 = 200
+    // 價格用存檔的等級：經驗 900／1000、上次結算後 2 秒，不先結算升級，仍收 1 × 50 × 2 = 100
     [Fact]
-    public async Task Book_ChargesThePriceForTheLevelReachedWhileSettling()
+    public async Task Book_ChargesTheStoredLevel()
     {
         await AddCharacterAsync(character => character with { Experience = 900 });
         clock.Advance(TimeSpan.FromSeconds(2));
 
         var result = await service.BookAsync(AccountId, "apprentice-loft", CancellationToken);
 
-        Assert.Equal(2, result.Character.Level);
-        Assert.Equal(200, result.Cost);
-        Assert.Equal(1800, result.Character.Money);
+        Assert.Equal((1, 100L, 1900L), (result.Character.Level, result.Cost, result.Character.Money));
     }
 
+    // 規格 inn：Switching rooms——舊房間截到入住時刻、新房間從現在起 8 小時，兩筆都在
     [Fact]
-    public async Task Book_ReplacesPreviousRoom()
+    public async Task Book_EndsThePreviousRoom()
     {
         var character = await AddCharacterAsync();
-        await lodgings.SaveAsync(character.Id, new Lodging("apprentice-loft", Now.AddHours(-1), Now.AddHours(7)), CancellationToken);
+        await SeedStayAsync(character.Id, new Lodging("apprentice-loft", Now.AddHours(-1), Now.AddHours(7)));
 
         await service.BookAsync(AccountId, "training-chamber", CancellationToken);
 
-        Assert.Equal(new Lodging("training-chamber", Now, Now.AddHours(8)), await lodgings.FindAsync(character.Id, CancellationToken));
+        Assert.Equal(
+            [new Lodging("apprentice-loft", Now.AddHours(-1), Now), new Lodging("training-chamber", Now, Now.AddHours(8))],
+            await lodgings.ListEndingAfterAsync(character.Id, Now.AddDays(-1), CancellationToken));
     }
 
     // Lv 3：學徒閣樓與修練廂房 3 × 50 × 2 = 300，其餘 150
@@ -154,7 +157,7 @@ public class InnServiceTests
     {
         var character = await AddCharacterAsync(character => character with { Level = 3 });
         var lodging = new Lodging("bulwark-room", Now.AddHours(-1), Now.AddHours(7));
-        await lodgings.SaveAsync(character.Id, lodging, CancellationToken);
+        await SeedStayAsync(character.Id, lodging);
 
         var view = await service.GetAsync(AccountId, CancellationToken);
 
@@ -167,7 +170,7 @@ public class InnServiceTests
     public async Task Get_IgnoresExpiredLodging()
     {
         var character = await AddCharacterAsync();
-        await lodgings.SaveAsync(character.Id, new Lodging("bulwark-room", Now.AddHours(-8), Now), CancellationToken);
+        await SeedStayAsync(character.Id, new Lodging("bulwark-room", Now.AddHours(-8), Now));
 
         Assert.Null((await service.GetAsync(AccountId, CancellationToken)).Lodging);
     }
@@ -176,7 +179,7 @@ public class InnServiceTests
     public async Task Get_IgnoresLodgingForRemovedRoom()
     {
         var character = await AddCharacterAsync();
-        await lodgings.SaveAsync(character.Id, new Lodging("removed-room", Now.AddHours(-1), Now.AddHours(7)), CancellationToken);
+        await SeedStayAsync(character.Id, new Lodging("removed-room", Now.AddHours(-1), Now.AddHours(7)));
 
         Assert.Null((await service.GetAsync(AccountId, CancellationToken)).Lodging);
     }

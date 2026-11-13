@@ -83,8 +83,7 @@ public sealed class AdventureService(
         var job = content.GetJob(character.JobId);
         var skills = await EquippedSkills.LoadAsync(loadout, skillBook, content, character, equipped, cancellationToken);
         var characterBuffs = await buffs.ListAsync(character.Id, cancellationToken);
-        var stay = await lodgings.FindAsync(character.Id, cancellationToken);
-        var lodging = Inn.ToBuffs(stay is null ? [] : [stay], content.Inn);
+        var lodging = Inn.ToBuffs(await lodgings.ListEndingAfterAsync(character.Id, from, cancellationToken), content.Inn);
         var random = randomFactory.Create();
 
         // 傭兵的時間軸先結算，角色從傭兵帶回的經驗、等級與任務進度接著冒險；沒有出擊中的傭兵時不擲任何骰。

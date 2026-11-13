@@ -1,10 +1,7 @@
-using EndlessBattle.Application.Adventure;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
-using EndlessBattle.Application.Inventory;
 using EndlessBattle.Domain.Characters;
-using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Rest;
 
 namespace EndlessBattle.Application.Rest;
@@ -18,21 +15,19 @@ public sealed class InnService(
     ICharacterRepository characters,
     ILodgingRepository lodgings,
     IGameContent content,
-    AdventureService adventure,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
     public async Task<InnView> GetAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
-        var lodging = await lodgings.FindAsync(character.Id, cancellationToken);
-        var active = lodging is not null && lodging.EndsAt > clock.UtcNow && Inn.ToBuff(lodging, content.Inn) is not null;
+        var lodging = await lodgings.FindActiveAsync(character.Id, clock.UtcNow, cancellationToken);
+        var known = lodging is not null && Inn.ToBuff(lodging, content.Inn) is not null;
 
-        return new InnView(content.Inn, character.Level, active ? lodging : null);
+        return new InnView(content.Inn, character.Level, known ? lodging : null);
     }
 
-    // 房型加成只對入住之後開打的場次生效：先以舊的房型把經過的時間結算到現在（同喝密藥），
-    // 結算中可能升級或自動住宿花錢，所以用結算後的角色重算價格再檢查一次；不夠就整筆回滾
+    // 不結算冒險時間：每筆住宿各有時段，之後結算時每場依開打時刻找所在那筆；價格用存檔的等級
     public Task<InnBookResult> BookAsync(long accountId, string roomId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -42,12 +37,10 @@ public sealed class InnService(
                 ?? throw new InputValidationException("沒有這個房間", ["unknownRoom"]);
             EnsureCanBook(character, Inn.Price(inn, room, character.Level));
 
-            character = (await adventure.AdvanceAsync(accountId, cancellationToken)).Character;
-            EnsureCanBook(character, Inn.Price(inn, room, character.Level));
-
-            var booking = Inn.Book(character, inn, room, await lodgings.FindAsync(character.Id, cancellationToken), clock.UtcNow);
+            var now = clock.UtcNow;
+            var booking = Inn.Book(character, inn, room, await lodgings.FindActiveAsync(character.Id, now, cancellationToken), now);
             var updated = await characters.UpdateAsync(booking.Character, cancellationToken);
-            await lodgings.SaveAsync(updated.Id, booking.Booked, cancellationToken);
+            await lodgings.SaveBookingAsync(updated.Id, booking.Booked, booking.Ended, Inn.PruneBefore(now), cancellationToken);
             return new InnBookResult(updated, booking.Booked, booking.Cost);
         }, cancellationToken);
 
