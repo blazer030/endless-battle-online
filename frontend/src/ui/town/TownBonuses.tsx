@@ -4,24 +4,8 @@ import type { InnVo } from "../../game/inn"
 import { bonusRows, expiredSince, type BonusRow } from "../../game/town"
 import { BuffTickMilliseconds } from "../../motion/timings"
 import { ContentImage } from "../ContentImage"
-import roomApprenticeLoft from "../../assets/town/room-apprentice-loft.webp"
-import roomBulwarkRoom from "../../assets/town/room-bulwark-room.webp"
-import roomFightersBunk from "../../assets/town/room-fighters-bunk.webp"
-import roomQuietChapel from "../../assets/town/room-quiet-chapel.webp"
-import roomStargazerTower from "../../assets/town/room-stargazer-tower.webp"
-import roomTrainingChamber from "../../assets/town/room-training-chamber.webp"
 import type { TownApi } from "./TownScreen"
 import "./TownBonuses.css"
-
-// 房型徽章依加成種類（設計稿 HomeJ 旅館板的對應）
-const roomBadges: Record<BuffKind, string> = {
-  Experience: roomApprenticeLoft,
-  JobExperience: roomTrainingChamber,
-  Attack: roomFightersBunk,
-  Magic: roomStargazerTower,
-  Defense: roomBulwarkRoom,
-  MagicDefense: roomQuietChapel,
-}
 
 const kindClass: Record<BuffKind, string> = {
   Experience: "experience",
@@ -39,7 +23,7 @@ const badgeClass = (row: BonusRow) =>
 
 const BadgeImage = ({ row }: { row: BonusRow }) =>
   row.isLodging ? (
-    <img src={roomBadges[row.kind]} alt="" />
+    <ContentImage category="room-badges" assetKey={row.roomId ?? "unknown"} alt="" />
   ) : (
     <ContentImage category="items" assetKey={row.itemId ?? "unknown"} alt="" />
   )

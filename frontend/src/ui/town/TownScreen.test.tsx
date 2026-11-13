@@ -7,6 +7,7 @@ import { BuffTickMilliseconds, PollIntervalMilliseconds } from "../../motion/tim
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { TownScreen, type TownApi } from "./TownScreen"
+import roomBadgesPlaceholder from "../../assets/placeholders/room-badges.svg"
 
 const character = makeCharacter({
   name: "收尾者",
@@ -215,6 +216,44 @@ test("TownScreen_BonusRowShowsLodgingThenElixirs", async () => {
   await flush()
 
   expect(badges()).toEqual(["學徒閣樓，剩 7:00", "神力秘藥LV1，剩 1:40", "物防 ×1.05，剩 5 分"])
+})
+
+const lodgingBadge = () =>
+  screen.getByRole("button", { name: /^鬥士通鋪|^後花園/ }).querySelector("img")!
+
+// 規格 town-screen：Lodging badge for a booked room
+test("TownScreen_LodgingBadgeUsesTheRoomBadgeImage", async () => {
+  const api = bonusApi([])
+  const bunk = { ...loft, id: "fighters-bunk", name: "鬥士通鋪", kind: "Attack" as const }
+  vi.mocked(api.getInn).mockResolvedValue(
+    InnVo.create({
+      ...innWithLodging,
+      rooms: [bunk],
+      lodging: { ...innWithLodging.lodging!, roomId: "fighters-bunk" },
+    }),
+  )
+  renderTown({ api })
+  await flush()
+
+  expect(lodgingBadge()).toHaveAttribute("data-asset", "room-badges/fighters-bunk")
+  expect(lodgingBadge().getAttribute("src")).toContain("room-badges/fighters-bunk.")
+})
+
+// 規格 town-screen：Lodging badge without an image——清單沒有這間的徽章時用房型徽章佔位圖
+test("TownScreen_LodgingBadgeFallsBackToThePlaceholder", async () => {
+  const api = bonusApi([])
+  const garden = { ...loft, id: "garden-room", name: "後花園" }
+  vi.mocked(api.getInn).mockResolvedValue(
+    InnVo.create({
+      ...innWithLodging,
+      rooms: [garden],
+      lodging: { ...innWithLodging.lodging!, roomId: "garden-room" },
+    }),
+  )
+  renderTown({ api })
+  await flush()
+
+  expect(lodgingBadge()).toHaveAttribute("src", roomBadgesPlaceholder)
 })
 
 test("TownScreen_BonusListOpensAndClosesOnOutsideClick", async () => {
