@@ -12,7 +12,7 @@
 
 ## 3. 素材
 
-- [ ] 3.1 用 `cd tools/assets && pnpm cli design companions <名稱> <來源圖>` 轉出 `frontend/src/assets/companions/*.webp`：獸欄背景 `3c3ccab8`、傭兵所背景 `9de43cfb`、米菈 `b70e140f`、巴頓 `cd486224`、柵門 `49cac5a2`、名牌 `c368fe3d`、果實四張（`6660c17b`、`4c5d9e53`、`bbe61dc3`、`da18363b`）、通用寵物剪影（`.design-work/out/pet-silhouette-a.png`）；`docs/art/README.md` 加 `companions/` 一節。依 design「勳章圖是道具內容圖」與「硬規則」（內容圖只用 `import`），用 `pnpm cli import items item-1304 <1e8f0f15 原檔>`、`import items item-1305 <88ffe03e 原檔>` 匯入兩枚勳章（需要 `.env.r2`，先 `--dry-run` 看大小）。驗證：檔案存在；`pnpm cli missing items` 不再列出 item-1304、item-1305；README 清單與檔案一致（內容檢查）。
+- [x] 3.1 用 `cd tools/assets && pnpm cli design companions <名稱> <來源圖>` 轉出 `frontend/src/assets/companions/*.webp`：獸欄背景 `3c3ccab8`、傭兵所背景 `9de43cfb`、米菈 `b70e140f`、巴頓 `cd486224`、柵門 `49cac5a2`、名牌 `c368fe3d`、果實四張（`6660c17b`、`4c5d9e53`、`bbe61dc3`、`da18363b`）、通用寵物剪影（`.design-work/out/pet-silhouette-a.png`）；`docs/art/README.md` 加 `companions/` 一節。依 design「勳章圖是道具內容圖」與「硬規則」（內容圖只用 `import`），用 `pnpm cli import items item-1304 <1e8f0f15 原檔>`、`import items item-1305 <88ffe03e 原檔>` 匯入兩枚勳章（需要 `.env.r2`，先 `--dry-run` 看大小）。驗證：檔案存在；`pnpm cli missing items` 不再列出 item-1304、item-1305；README 清單與檔案一致（內容檢查）。
 
 ## 4. 同伴畫面
 

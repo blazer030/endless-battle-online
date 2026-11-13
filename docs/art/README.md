@@ -126,6 +126,21 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 
 紅印章、對話框沿用 `title/seal`、`title/bubble`，錢袋沿用 `town/purse`。房型徽章與房間背景是內容圖：`room-badges/<房型 id>`、`room-backgrounds/<房型 id>`，用 `import` 上傳 R2。
 
+### `companions/`：同伴（設計板 CompanionsFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `barn` | 入口上門與獸欄的穀倉背景（768） | `3c3ccab8` |
+| `guild` | 入口下門與傭兵所的公會牆背景（768） | `9de43cfb` |
+| `mira` | 獸欄管理員米菈（471） | `b70e140f` |
+| `barton` | 傭兵所長巴頓（480，原圖 645） | `cd486224` |
+| `stall-gate` | 獸欄柵門（260，原圖 420） | `49cac5a2` |
+| `name-plate` | 柵門上的黃銅名牌（200，原圖 600） | `c368fe3d` |
+| `fruit-vigor`、`-aroma`、`-sweet`、`-wild` | 果實槽的活力（AT）、香氣（MT）、甜味（DEF）、野性（出擊值）果實（80） | `6660c17b`、`4c5d9e53`、`bbe61dc3`、`da18363b` |
+| `pet-silhouette` | 通用寵物剪影：寵物沒有怪物內容圖時用（260，原檔 `.design-work/out/pet-silhouette-a.png` 752） | `c7c7e874` |
+
+門牌、木台、羊皮紙、圖釘、關閉鈕沿用 `inn/`，印章、對話框沿用 `title/`，錢袋沿用 `town/purse`。名冊上的勳章是道具內容圖 `items/item-1304`（大陸勳章 `1e8f0f15`）、`items/item-1305`（王國勳章 `88ffe03e`）。
+
 ## 提示詞
 
 日系手繪（設計畫布 EBO DEMO）的提示詞在 [`prompts/demo/`](prompts/demo/README.md)；道具描述檔在 `prompts/items/`。`prompts.md` 是舊的深藍夜色舞台範本，只留作參考。
