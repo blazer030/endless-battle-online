@@ -357,3 +357,64 @@ test("InnScreen_JustBookedStayShowsItsFullLength", async () => {
 
   expect(within(banner()).getByText("剩 8:00")).toBeInTheDocument()
 })
+
+const openRooms = () => fireEvent.click(screen.getByRole("tab", { name: "客房" }))
+
+// review 補修：切到客房再切回來，畫面要是剛存的值，下一次存檔不會把它改回去
+test("InnScreen_SwitchingTabsKeepsTheSavedThreshold", async () => {
+  const api = createApi()
+  const initial = withThresholds(30, 15)
+  vi.mocked(api.updateSettings).mockImplementation(async (settings) => ({ ...initial, settings }))
+  await renderInn({ api, initial })
+  openAutoRest()
+
+  step("HP", "增加")
+  openRooms()
+  openAutoRest()
+  await flush()
+
+  expect(thresholdText("HP")).toHaveTextContent("35%")
+  step("SP", "增加")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+  expect(api.updateSettings).toHaveBeenLastCalledWith({
+    ...initial.settings,
+    restHealthPointsPercent: 35,
+    restManaPointsPercent: 20,
+  })
+})
+
+// review 補修：切走後才失敗也要由瑪莎說，數值退回
+test("InnScreen_SaveFailureAfterSwitchingTabsIsSpoken", async () => {
+  const api = createApi()
+  vi.mocked(api.updateSettings).mockRejectedValue(new TypeError("Failed to fetch"))
+  await renderInn({ api, initial: withThresholds(15, 15) })
+  openAutoRest()
+
+  step("HP", "增加")
+  openRooms()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnThresholdSaveDelayMilliseconds)
+  })
+
+  expect(bubble()).toHaveTextContent("剛剛那個沒記下來，再調一次好嗎？")
+  openAutoRest()
+  expect(thresholdText("HP")).toHaveTextContent("15%")
+})
+
+// verify 補修：按「市集」的那一刻就送出還沒送的修改
+test("InnScreen_BackSendsAPendingStepAtOnce", async () => {
+  const api = createApi()
+  const initial = withThresholds(15, 15)
+  await renderInn({ api, initial })
+  openAutoRest()
+
+  step("HP", "增加")
+  fireEvent.click(screen.getByRole("button", { name: "市集" }))
+
+  expect(api.updateSettings).toHaveBeenCalledWith({
+    ...initial.settings,
+    restHealthPointsPercent: 20,
+  })
+})

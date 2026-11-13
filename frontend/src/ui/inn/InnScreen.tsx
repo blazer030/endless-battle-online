@@ -57,6 +57,7 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
   const [booking, setBooking] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [leaving, setLeaving] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const alive = useRef(true)
 
@@ -142,7 +143,14 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
     <div className="inn" style={{ "--pt": `${innCounterTop(stage.height)}px` } as CSSProperties}>
       <div className="inn__lobby" aria-hidden="true" />
       <img className="inn__innkeeper" src={innkeeper} alt="老闆娘 瑪莎" />
-      <button type="button" className="inn__back" onClick={onBack}>
+      <button
+        type="button"
+        className="inn__back"
+        onClick={() => {
+          setLeaving(true)
+          onBack()
+        }}
+      >
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24">
           <path d="M14.5 5.5c-2.2 2.3-4.4 4.4-6.5 6.4 2 2.1 4.2 4.3 6.6 6.6" />
         </svg>
@@ -268,7 +276,8 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
                   })}
                 </ul>
               )}
-              {tab === "auto" && (
+              {/* 一直掛著、切分頁只隱藏：切走時還在送的存檔結果才接得到 */}
+              <div hidden={tab !== "auto"}>
                 <InnAutoRest
                   api={api}
                   character={character}
@@ -276,8 +285,9 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
                   onCharacterChange={onCharacterChange}
                   onStep={() => setEvent(null)}
                   onSaveFailed={() => setEvent({ kind: "thresholdFailed" })}
+                  leaving={leaving}
                 />
-              )}
+              </div>
             </div>
           </>
         )}

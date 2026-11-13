@@ -13,6 +13,8 @@ type Props = {
   onCharacterChange: (character: CharacterVo) => void
   onStep: () => void
   onSaveFailed: () => void
+  // 玩家按了「市集」：還沒送出的修改立刻送
+  leaving: boolean
 }
 
 const thresholdsOf = (character: CharacterVo): Thresholds => ({
@@ -62,7 +64,8 @@ const Row = ({
   </div>
 )
 
-// 自動住宿：HP／SP 門檻按了就存（最後一次按下後延遲送出，離開時立刻送），失敗退回上次存好的值
+// 自動住宿：HP／SP 門檻按了就存（最後一次按下後延遲送出，離開時立刻送），失敗退回上次存好的值。
+// 旅館裡一直掛著（切分頁只隱藏），存檔結果才不會因為切分頁而遺失；只有最後一次送出、且之後沒有新修改時才更新畫面
 export const InnAutoRest = ({
   api,
   character,
@@ -70,12 +73,15 @@ export const InnAutoRest = ({
   onCharacterChange,
   onStep,
   onSaveFailed,
+  leaving,
 }: Props) => {
   const [values, setValues] = useState(() => thresholdsOf(character))
   const saved = useRef(thresholdsOf(character))
   const pending = useRef<Thresholds | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const alive = useRef(true)
+  // 每次送出加一；回應只在它還是最後一次送出時才影響畫面
+  const request = useRef(0)
   // 送出時用最新的角色設定，只換兩個門檻
   const latest = useRef({ api, character, onCharacterChange, onSaveFailed })
   useEffect(() => {
@@ -84,6 +90,8 @@ export const InnAutoRest = ({
 
   const save = (thresholds: Thresholds) => {
     pending.current = null
+    request.current += 1
+    const sent = request.current
     const current = latest.current
     current.api
       .updateSettings({
@@ -93,24 +101,37 @@ export const InnAutoRest = ({
       })
       .then(
         (confirmed) => {
-          saved.current = thresholds
+          const stored = thresholdsOf(confirmed)
+          if (sent === request.current) saved.current = stored
           latest.current.onCharacterChange(confirmed)
+          if (alive.current && sent === request.current && pending.current === null)
+            setValues(stored)
         },
         () => {
-          if (!alive.current) return
+          if (!alive.current || sent !== request.current || pending.current !== null) return
           setValues(saved.current)
           latest.current.onSaveFailed()
         },
       )
   }
 
-  // 離開旅館：還沒送出的修改立刻送
+  const flush = () => {
+    if (timer.current !== null) clearTimeout(timer.current)
+    timer.current = null
+    if (pending.current !== null) save(pending.current)
+  }
+
+  useEffect(() => {
+    if (leaving) flush()
+    // flush 只讀 ref
+  }, [leaving])
+
+  // 卸載時（例如直接關掉旅館）還沒送出的修改也立刻送
   useEffect(() => {
     alive.current = true
     return () => {
       alive.current = false
-      if (timer.current !== null) clearTimeout(timer.current)
-      if (pending.current !== null) save(pending.current)
+      flush()
     }
     // save 只讀 ref，卸載時用的就是最新的
   }, [])
