@@ -66,7 +66,7 @@ const names: PublicNames = {
 
 const noBuffs = () => ({
   getBuffs: vi.fn<() => Promise<BuffVo[]>>().mockResolvedValue([]),
-  getInn: vi.fn<() => Promise<InnVo>>().mockResolvedValue({ rooms: [], lodging: null }),
+  getInn: vi.fn<() => Promise<InnVo>>().mockResolvedValue({ rooms: [], lodging: null, restFee: 0 }),
 })
 
 const valueOf = (term: string, container: HTMLElement = document.body) => {
@@ -286,6 +286,7 @@ test("CharacterScreen_ShowsTheLodgingLineInTheElixirCard", async () => {
       startsAt: new Date(0),
       endsAt: new Date(Date.now() + 3_600_000),
     },
+    restFee: 0,
   })
   render(<CharacterScreen api={api} character={character} names={names} onSignOut={vi.fn()} />)
 

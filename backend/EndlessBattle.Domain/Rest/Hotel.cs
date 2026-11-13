@@ -12,6 +12,9 @@ public static class Hotel
 
     public static HotelResult Rest(Character c) => Rest(c, EquipmentBonus.Zero);
 
+    // 自動住宿一次的最低費用（旅館畫面顯示用）：Lv 100 以下免費，以上至少 10 × Lv
+    public static long MinimumCost(int level) => level <= FreeLevelMax ? 0 : 10L * level;
+
     // 回滿到含裝備的上限
     public static HotelResult Rest(Character c, EquipmentBonus equipment)
     {
@@ -27,7 +30,7 @@ public static class Hotel
         // healthPoints 夾回上限，缺血比例才不會變負（不變量：係數 ≥ 0）
         var cost = Math.Max(
             (long)Math.Round(10.0 * c.Level * Coefficient(Math.Min(c.HealthPoints, stats.MaxHealthPoints), stats.MaxHealthPoints), MidpointRounding.AwayFromZero),
-            10L * c.Level);
+            MinimumCost(c.Level));
 
         return c.Money >= cost
             ? new HotelResult(healed with { Money = c.Money - cost }, cost, false, wait)

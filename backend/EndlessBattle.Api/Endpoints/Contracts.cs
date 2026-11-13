@@ -487,7 +487,7 @@ public sealed record InnRoomResponse(string Id, string Name, BuffKind Kind, doub
 // 入住中的房型；開打時刻早於 EndsAt 的場次乘上房型倍率
 public sealed record LodgingResponse(string RoomId, DateTimeOffset StartsAt, DateTimeOffset EndsAt);
 
-public sealed record InnResponse(IReadOnlyList<InnRoomResponse> Rooms, LodgingResponse? Lodging);
+public sealed record InnResponse(IReadOnlyList<InnRoomResponse> Rooms, LodgingResponse? Lodging, long RestFee);
 
 public sealed record InnBookRequest(string? RoomId);
 

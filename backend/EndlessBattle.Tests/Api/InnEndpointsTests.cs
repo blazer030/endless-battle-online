@@ -62,6 +62,36 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(JsonValueKind.Null, inn.GetProperty("lodging").ValueKind);
     }
 
+    // 規格 inn：Listing with an active stay 的 restFee——Lv 1 免費
+    [Fact]
+    public async Task GetInn_CarriesRestFee()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, _) = await CreateCharacterAsync(factory);
+
+        var inn = await ReadAsync(await client.GetAsync("/api/inn", CancellationToken));
+
+        Assert.Equal(0, inn.GetProperty("restFee").GetInt64());
+    }
+
+    // 規格 inn：Booking deducts money and starts the stay——回應的 HP、SP 與入住前相同
+    [Fact]
+    public async Task Book_KeepsHealthAndMana()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var (client, characterId) = await CreateCharacterAsync(factory);
+        await using (var context = database.CreateDbContext())
+        {
+            await context.Characters.Where(character => character.Id == characterId)
+                .ExecuteUpdateAsync(update => update.SetProperty(character => character.Hp, 5).SetProperty(character => character.Sp, 1), CancellationToken);
+        }
+
+        var booked = await ReadAsync(await client.PostAsJsonAsync("/api/inn/book", new { roomId = "apprentice-loft" }, CancellationToken));
+
+        var character = booked.GetProperty("character");
+        Assert.Equal((5, 1), (character.GetProperty("healthPoints").GetInt32(), character.GetProperty("manaPoints").GetInt32()));
+    }
+
     // 規格 Buff kinds use complete names：內容檔仍寫 Exp／JobExp
     [Fact]
     public async Task Inn_BuffKindsUseCompleteNames()

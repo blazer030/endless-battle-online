@@ -20,7 +20,8 @@ public static class InnEndpoints
             return TypedResults.Ok(new InnResponse(
                 view.Inn.Rooms.Select(room => new InnRoomResponse(
                     room.Id, room.Name, room.Kind, room.Multiplier, view.Inn.Seconds, Inn.Price(view.Inn, room, view.Level))).ToList(),
-                view.Lodging is { } lodging ? ToResponse(lodging) : null));
+                view.Lodging is { } lodging ? ToResponse(lodging) : null,
+                view.RestFee));
         });
 
         inn.MapPost("/book", async (

@@ -181,4 +181,15 @@ public class HotelTests
         Assert.Equal(experience, result.Character.Experience);
         Assert.Equal(100, result.Character.HealthPoints);
     }
+
+    // 規格 inn：rest fee 表——自動住宿一次的最低費用
+    [Theory]
+    [InlineData(1, 0L)]
+    [InlineData(100, 0L)]
+    [InlineData(101, 1010L)]
+    [InlineData(120, 1200L)]
+    public void MinimumCost_Table(int level, long expected)
+    {
+        Assert.Equal(expected, Hotel.MinimumCost(level));
+    }
 }

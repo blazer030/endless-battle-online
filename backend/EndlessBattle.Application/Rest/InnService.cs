@@ -6,8 +6,8 @@ using EndlessBattle.Domain.Rest;
 
 namespace EndlessBattle.Application.Rest;
 
-// Lodging：已到期或房型不在內容裡 → null
-public sealed record InnView(InnDefinition Inn, int Level, Lodging? Lodging);
+// Lodging：已到期或房型不在內容裡 → null；RestFee：自動住宿一次的最低費用
+public sealed record InnView(InnDefinition Inn, int Level, Lodging? Lodging, long RestFee);
 
 public sealed record InnBookResult(Character Character, Lodging Lodging, long Cost);
 
@@ -24,7 +24,7 @@ public sealed class InnService(
         var lodging = await lodgings.FindActiveAsync(character.Id, clock.UtcNow, cancellationToken);
         var known = lodging is not null && Inn.ToBuff(lodging, content.Inn) is not null;
 
-        return new InnView(content.Inn, character.Level, known ? lodging : null);
+        return new InnView(content.Inn, character.Level, known ? lodging : null, Hotel.MinimumCost(character.Level));
     }
 
     // 不結算冒險時間：每筆住宿各有時段，之後結算時每場依開打時刻找所在那筆；價格用存檔的等級

@@ -22,7 +22,7 @@ const character = makeCharacter({
 
 const createApi = (): TownApi & Pick<ApiClient, "advance"> => ({
   getBuffs: vi.fn().mockResolvedValue([]),
-  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
+  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null, restFee: 0 }),
   advance: vi.fn(),
 })
 
@@ -190,6 +190,7 @@ const loft = {
 const innWithLodging = InnVo.create({
   rooms: [loft],
   lodging: { roomId: "apprentice-loft", startsAt: at(-3600), endsAt: at(25200) },
+  restFee: 0,
 })
 
 const bonusApi = (buffs: BuffVo[] = [attackElixir, legacyDefense]) => {

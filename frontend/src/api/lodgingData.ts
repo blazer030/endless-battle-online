@@ -53,6 +53,7 @@ export const InnConverter = {
     return InnVo.create({
       rooms: parseArray(dto.rooms, `${path}.rooms`, toRoom),
       lodging: dto.lodging === null ? null : toLodging(dto.lodging, `${path}.lodging`),
+      restFee: parseNumber(dto.restFee, `${path}.restFee`),
     })
   },
 }

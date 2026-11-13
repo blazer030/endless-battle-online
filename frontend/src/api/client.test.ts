@@ -485,7 +485,7 @@ test("getBuffs_GetsTheActiveBuffs", async () => {
 })
 
 test("getInn_GetsRoomsAndLodging", async () => {
-  const inn = { rooms: [], lodging: null }
+  const inn = { rooms: [], lodging: null, restFee: 0 }
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(inn))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 

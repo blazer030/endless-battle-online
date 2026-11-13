@@ -2684,6 +2684,8 @@ export interface components {
         InnResponse: {
             rooms: components["schemas"]["InnRoomResponse"][];
             lodging: null | components["schemas"]["LodgingResponse"];
+            /** Format: int64 */
+            restFee: number;
         };
         InnRoomResponse: {
             id: string;

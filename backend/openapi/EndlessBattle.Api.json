@@ -3237,7 +3237,8 @@
       "InnResponse": {
         "required": [
           "rooms",
-          "lodging"
+          "lodging",
+          "restFee"
         ],
         "type": "object",
         "properties": {
@@ -3256,6 +3257,10 @@
                 "$ref": "#/components/schemas/LodgingResponse"
               }
             ]
+          },
+          "restFee": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },

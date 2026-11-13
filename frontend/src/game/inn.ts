@@ -14,15 +14,18 @@ export type InnRoom = {
 
 export type Lodging = { readonly roomId: string; readonly startsAt: Date; readonly endsAt: Date }
 
-type InnVoParams = { rooms: readonly InnRoom[]; lodging: Lodging | null }
+// restFee 是目前等級自動住宿一次的最低費用（0＝免費）
+type InnVoParams = { rooms: readonly InnRoom[]; lodging: Lodging | null; restFee: number }
 
 export class InnVo {
   readonly rooms: readonly InnRoom[]
   readonly lodging: Lodging | null
+  readonly restFee: number
 
   private constructor(params: InnVoParams) {
     this.rooms = params.rooms
     this.lodging = params.lodging
+    this.restFee = params.restFee
   }
 
   static create(params: InnVoParams): InnVo {

@@ -87,6 +87,7 @@ const innDto = {
     startsAt: "2026-11-12T08:00:00Z",
     endsAt: "2026-11-12T16:00:00Z",
   },
+  restFee: 1200,
 }
 
 test("InnConverter_ConvertsTheWholeResponse", () => {
@@ -100,6 +101,14 @@ test("InnConverter_ConvertsTheWholeResponse", () => {
     endsAt: new Date(Date.UTC(2026, 10, 12, 16)),
   })
   expect(InnConverter.toVo({ ...innDto, lodging: null }).lodging).toBeNull()
+})
+
+// 規格 inn：Inn listing 的 restFee
+test("InnConverter_ConvertsTheRestFee", () => {
+  expect(InnConverter.toVo(innDto).restFee).toBe(1200)
+  expect(parseFailure(() => InnConverter.toVo({ ...innDto, restFee: "免費" })).path).toBe(
+    "inn.restFee",
+  )
 })
 
 test("InnConverter_ConvertsTheLodgingStart", () => {

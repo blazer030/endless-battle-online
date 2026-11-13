@@ -25,7 +25,7 @@ const rooms = [
 ]
 
 // 跟伺服器一樣：入住之後再讀旅館會看到新的住宿
-const createFakeApi = (inn: InnVo = { rooms, lodging: null }): InnApi => {
+const createFakeApi = (inn: InnVo = { rooms, lodging: null, restFee: 0 }): InnApi => {
   let current = inn
   const lodging = {
     roomId: "apprentice-loft",
@@ -71,7 +71,7 @@ test("InnPage_ListsRoomsWithEffectAndPrice", async () => {
 })
 
 test("InnPage_ShowsShortStaysInMinutes", async () => {
-  renderInn(createFakeApi({ rooms: [room({ seconds: 120 })], lodging: null }))
+  renderInn(createFakeApi({ rooms: [room({ seconds: 120 })], lodging: null, restFee: 0 }))
 
   const list = await screen.findByRole("list", { name: "客房" })
   expect(within(list).getByRole("listitem")).toHaveTextContent("學徒閣樓・經驗 ×1.10・2 分鐘")
@@ -99,8 +99,8 @@ test("InnPage_BookingCallsApiAndUpdatesCharacter", async () => {
 test("InnPage_ReloadsInnAfterBooking", async () => {
   const api = createFakeApi()
   vi.mocked(api.getInn)
-    .mockResolvedValueOnce({ rooms, lodging: null })
-    .mockResolvedValue({ rooms: [room({ price: 1200 })], lodging: null })
+    .mockResolvedValueOnce({ rooms, lodging: null, restFee: 0 })
+    .mockResolvedValue({ rooms: [room({ price: 1200 })], lodging: null, restFee: 0 })
   renderInn(api)
 
   await user.click((await screen.findAllByRole("button", { name: "入住" }))[0])
@@ -115,7 +115,7 @@ test("InnPage_ShowsReplaceHintForOtherRooms", async () => {
     startsAt: new Date(),
     endsAt: new Date(Date.now() + 3_600_000),
   }
-  renderInn(createFakeApi({ rooms, lodging }))
+  renderInn(createFakeApi({ rooms, lodging, restFee: 0 }))
 
   expect(await screen.findByText(/學徒閣樓・經驗 ×1\.10（剩 1:00）/)).toBeInTheDocument()
   expect(screen.getByText("會取代目前的學徒閣樓")).toBeInTheDocument()
