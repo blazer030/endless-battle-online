@@ -91,10 +91,16 @@
   left: 50%;
   bottom: -9px;
   translate: -50% 0;
-  padding: 0 3px;
+  /* 每秒倒數：字型的數字不等寬（「1」較窄），標籤固定寬、文字置中，外框才不會每秒左右晃；
+     5 個字的「07:45」收窄一點，相鄰圓章的標籤才不會黏在一起（設計稿 v8） */
+  box-sizing: border-box;
+  width: 33px;
+  padding: 0 2px;
   border-radius: 6px;
   font: 700 11px / 14px var(--font-serif);
   font-style: normal;
+  text-align: center;
+  letter-spacing: -0.3px;
   white-space: nowrap;
   color: var(--bonus-chip-text);
   background: var(--bonus-chip);
