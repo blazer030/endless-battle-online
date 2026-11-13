@@ -728,14 +728,14 @@ test("AdventureScreen_OpenBagReloadsAfterASummary", async () => {
   expect(api.getInventory).toHaveBeenCalledTimes(2)
 })
 
-// 從城鎮點旅館：停在背包分頁的旅館子頁
+// 從城鎮點商店街：停在背包分頁的商店子頁
 test("AdventureScreen_OpensAtTheGivenTabAndBagPage", async () => {
   render(
     <AdventureScreen
       api={createFakeApi()}
       initialCharacter={character}
       initialTab="bag"
-      initialBagPage="inn"
+      initialBagPage="shop"
       onSignOut={vi.fn()}
       onReturnToTown={vi.fn()}
     />,
@@ -743,7 +743,7 @@ test("AdventureScreen_OpensAtTheGivenTabAndBagPage", async () => {
   await advanceTime(0)
 
   expect(screen.getByRole("button", { name: "背包" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("tab", { name: "旅館" })).toHaveAttribute("aria-selected", "true")
+  expect(screen.getByRole("tab", { name: "商店" })).toHaveAttribute("aria-selected", "true")
 })
 
 // 回城鎮：還沒播的戰鬥丟掉，交回伺服器最新的角色

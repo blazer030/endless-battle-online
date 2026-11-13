@@ -106,9 +106,6 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
   getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
   exchangeHonour: vi.fn().mockResolvedValue(makeHonourShop()),
-  getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
-  bookInn: vi.fn(),
-  updateSettings: vi.fn(),
   ...overrides,
 })
 
@@ -125,7 +122,8 @@ const openSubPage = async (name: string) => {
   await user.click(await screen.findByRole("tab", { name }))
 }
 
-test("BagScreen_ShowsEightSubPages", async () => {
+// 規格 town-screen：Bag tab has no inn sub-page——旅館改從城鎮市集進
+test("BagScreen_SubPagesDoNotIncludeTheInn", async () => {
   renderBag()
 
   const tabs = within(await screen.findByRole("tablist", { name: "背包分頁" })).getAllByRole("tab")
@@ -137,7 +135,6 @@ test("BagScreen_ShowsEightSubPages", async () => {
     "銀行",
     "鍛造",
     "勳章所",
-    "旅館",
   ])
   expect(screen.getByRole("tab", { name: "背包" })).toHaveAttribute("aria-selected", "true")
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()
@@ -1044,36 +1041,4 @@ test("BagScreen_ElixirShowsSixtyMinutesWhenTheClockIsSlightlyBehind", async () =
   } finally {
     vi.useRealTimers()
   }
-})
-
-// 入住時伺服器先結算，可能升級讓房價上漲，入住後要重新讀取旅館
-test("BagScreen_InnBookingReloadsRoomPrices", async () => {
-  const loft = (price: number) => ({
-    id: "apprentice-loft",
-    name: "學徒閣樓",
-    kind: "Experience" as const,
-    multiplier: 1.1,
-    seconds: 28_800,
-    price,
-  })
-  const lodging = {
-    roomId: "apprentice-loft",
-    endsAt: new Date(Date.now() + 28_800_000),
-  }
-  renderBag(
-    createFakeApi({
-      getInn: vi
-        .fn()
-        .mockResolvedValueOnce({ rooms: [loft(600)], lodging: null })
-        .mockResolvedValue({ rooms: [loft(1200)], lodging }),
-      bookInn: vi
-        .fn()
-        .mockResolvedValue({ character: makeCharacter({ money: 400 }), lodging, cost: 600 }),
-    }),
-  )
-  await openSubPage("旅館")
-
-  await user.click(await screen.findByRole("button", { name: "入住" }))
-
-  expect(await screen.findByText(/學徒閣樓.*1,200 金錢/)).toBeInTheDocument()
 })

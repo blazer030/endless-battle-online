@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
-import { PollIntervalMilliseconds } from "../motion/timings"
+import { InnBookVo, InnVo } from "../game/inn"
+import { InnRevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
 import { makeCharacter } from "../test/fixtures"
 import { GameScreen } from "./GameScreen"
 
@@ -36,12 +37,24 @@ vi.mock("./AdventureScreen", () => ({
   },
 }))
 
-const character = makeCharacter({ name: "收尾者", level: 6 })
+const character = makeCharacter({ name: "收尾者", level: 6, money: 1000 })
+
+const loft = {
+  id: "apprentice-loft",
+  name: "學徒閣樓",
+  kind: "Experience" as const,
+  multiplier: 1.1,
+  seconds: 28_800,
+  price: 600,
+}
 
 const createApi = () =>
   ({
     getBuffs: vi.fn().mockResolvedValue([]),
-    getInn: vi.fn().mockResolvedValue({ rooms: [], lodging: null }),
+    getInn: vi.fn().mockResolvedValue(InnVo.create({ rooms: [loft], lodging: null, restFee: 0 })),
+    bookInn: vi.fn(),
+    updateSettings: vi.fn(),
+    getMyCharacter: vi.fn(),
     advance: vi.fn(),
   }) as unknown as ApiClient
 
@@ -75,14 +88,57 @@ test("GameScreen_StartsAtTheGateWithoutAdventureRequests", async () => {
   expect(api.advance).not.toHaveBeenCalled()
 })
 
-// 規格 Inn opens the bag tab at the inn page
-test("GameScreen_InnOpensTheBagTabAtTheInnPage", () => {
+// 規格 inn-screen：Inn opens the inn screen
+test("GameScreen_InnOpensTheInnScreen", async () => {
   renderGame()
 
   click("市集")
   click("旅館")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+  })
 
-  expect(screen.getByText("舊外殼：bag／inn／Lv 6")).toBeInTheDocument()
+  expect(screen.getByRole("region", { name: "旅館" })).toBeInTheDocument()
+  expect(screen.queryByText(/舊外殼/)).not.toBeInTheDocument()
+  expect(screen.queryByTestId("town-world")).not.toBeInTheDocument()
+})
+
+// 規格 inn-screen：Back returns to the market——入住後按「市集」，城鎮停在市集、金錢是入住後的
+test("GameScreen_BackFromTheInnShowsTheMarketWithTheNewMoney", async () => {
+  const api = createApi()
+  vi.mocked(api.bookInn).mockResolvedValue(
+    InnBookVo.create({
+      character: { ...character, money: 400 },
+      lodging: {
+        roomId: "apprentice-loft",
+        startsAt: new Date(),
+        endsAt: new Date(Date.now() + 28_800_000),
+      },
+      cost: 600,
+    }),
+  )
+  renderGame(api)
+  click("市集")
+  click("旅館")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+  })
+
+  fireEvent.click(screen.getByRole("button", { name: /^學徒閣樓/ }))
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "入住" })).getByRole("button", { name: "入住" }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+  click("市集")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(InnRevealMilliseconds)
+  })
+
+  expect(screen.queryByRole("region", { name: "旅館" })).not.toBeInTheDocument()
+  expect(segmentOf()).toBe("1")
+  expect(screen.getByLabelText("金錢")).toHaveTextContent("400")
 })
 
 // 規格 Facilities open the old tabbed screen 的對照表
@@ -91,7 +147,6 @@ test.each([
   [[], "背包", "bag／bag"],
   [[], "同伴", "companions／bag"],
   [[], "出發 中央平原", "adventure／bag"],
-  [["市集"], "旅館", "bag／inn"],
   [["市集"], "商店街", "bag／shop"],
   [["市集", "公會前"], "鐵舖", "bag／forge"],
   [["市集", "公會前"], "勳章所", "bag／honour"],

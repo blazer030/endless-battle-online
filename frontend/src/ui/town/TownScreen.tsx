@@ -29,6 +29,8 @@ type Props = {
   // 進城鎮那一刻的角色；城鎮不連線，所以停留期間不會變
   character: CharacterVo
   onOpen: (facility: TownFacility) => void
+  // 從旅館回來停在市集；其他時候從城門口開始
+  initialSegment?: TownSegment
 }
 
 const percent = (value: number, maximum: number) =>
@@ -99,10 +101,10 @@ const Segment = ({ active, children }: { active: boolean; children: ReactNode })
 )
 
 // 城鎮：三段全景（城門口、市集、公會前），點紙籤或左右滑換段；上方固定名字、狀態與金錢
-export const TownScreen = ({ api, character, onOpen }: Props) => {
+export const TownScreen = ({ api, character, onOpen, initialSegment = 0 }: Props) => {
   const stage = useStage()
   const time = useTimeOfDay()
-  const [segment, setSegmentState] = useState<TownSegment>(0)
+  const [segment, setSegmentState] = useState<TownSegment>(initialSegment)
   const [bonusOpen, setBonusOpen] = useState(false)
   // 換段時收起加成清單
   const setSegment = (target: TownSegment) => {

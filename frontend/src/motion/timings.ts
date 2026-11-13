@@ -38,3 +38,5 @@ export const PassageLeaveMilliseconds = 900
 export const SwipeClickGuardMilliseconds = 300
 // 旅館的自動住宿門檻：最後一次按 −／＋ 後這麼久才送出（連按只送一次）
 export const InnThresholdSaveDelayMilliseconds = 600
+// 旅館從城鎮市集的名牌圓形展開／收回的時間（與 InnReveal.css 一致）
+export const InnRevealMilliseconds = 550

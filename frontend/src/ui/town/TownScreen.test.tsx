@@ -27,10 +27,15 @@ const createApi = (): TownApi & Pick<ApiClient, "advance"> => ({
   advance: vi.fn(),
 })
 
-const renderTown = ({ scale = 1, api = createApi(), onOpen = vi.fn() } = {}) => {
+const renderTown = ({
+  scale = 1,
+  api = createApi(),
+  onOpen = vi.fn(),
+  initialSegment = 0 as 0 | 1 | 2,
+} = {}) => {
   render(
     <StageContext value={{ height: 624, scale }}>
-      <TownScreen api={api} character={character} onOpen={onOpen} />
+      <TownScreen api={api} character={character} onOpen={onOpen} initialSegment={initialSegment} />
     </StageContext>,
   )
   return { api, onOpen }
@@ -139,6 +144,13 @@ test("TownScreen_FacilitySignsReportTheirFacility", () => {
   fireEvent.click(screen.getByRole("button", { name: "任務板" }))
 
   expect(onOpen.mock.calls.map(([facility]) => facility)).toEqual(["adventure", "inn", "missions"])
+})
+
+// 從旅館回來停在市集
+test("TownScreen_StartsAtTheGivenSegment", () => {
+  renderTown({ initialSegment: 1 })
+
+  expect(segmentOf()).toBe("1")
 })
 
 // 規格 Portrait key
