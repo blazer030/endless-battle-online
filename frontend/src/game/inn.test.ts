@@ -6,7 +6,6 @@ import {
   lodgingLine,
   remainingClock,
   stayRemainingClock,
-  replaceHint,
   replaceNotice,
   restFeeText,
   roomEffect,
@@ -74,15 +73,6 @@ test("lodgingLine_IsNullWithoutLodgingExpiredOrUnknownRoom", () => {
   expect(lodgingLine(null, [room()], now)).toBeNull()
   expect(lodgingLine({ ...live, endsAt: endsIn(0) }, [room()], now)).toBeNull()
   expect(lodgingLine({ ...live, roomId: "gone" }, [room()], now)).toBeNull()
-})
-
-test("replaceHint_NamesTheRoomBeingReplaced", () => {
-  const lodging = { roomId: "apprentice-loft", startsAt: now, endsAt: endsIn(60_000) }
-  const rooms = [room(), room({ id: "bulwark-room", name: "鐵壁客房" })]
-
-  expect(replaceHint(lodging, rooms, "bulwark-room", now)).toBe("會取代目前的學徒閣樓")
-  expect(replaceHint(lodging, rooms, "apprentice-loft", now)).toBeNull()
-  expect(replaceHint(null, rooms, "bulwark-room", now)).toBeNull()
 })
 
 // 規格 inn-screen：innkeeper lines 表

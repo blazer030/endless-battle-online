@@ -93,16 +93,6 @@ export function lodgingLine(
   return `${room.name}・${roomEffect(room)}（剩 ${stayRemainingClock(lodging, now)}）`
 }
 
-export function replaceHint(
-  lodging: Lodging | null,
-  rooms: readonly InnRoom[],
-  roomId: string,
-  now: Date,
-): string | null {
-  const current = activeRoom(lodging, rooms, now)
-  return current === undefined || current.id === roomId ? null : `會取代目前的${current.name}`
-}
-
 // 詳情上的取代說明：換別間是警示，同一間是「正在住這間」；沒有生效中的住宿時沒有說明
 export function replaceNotice(
   lodging: Lodging | null,
