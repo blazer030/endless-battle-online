@@ -253,6 +253,7 @@ test("StableLoadFailureShowsOnlyTheRetrySeal", async () => {
 
   expect(say()).toHaveTextContent("咦，欄裡的名簿一時找不到……")
   expect(screen.queryByRole("group", { name: "果實" })).not.toBeInTheDocument()
+  expect(screen.queryByText(/寵物 \d/)).not.toBeInTheDocument()
   const stalls = within(screen.getByRole("list", { name: "柵欄" })).getAllByRole("button")
   expect(stalls.every((stall) => stall.getAttribute("aria-label") === "空的柵欄")).toBe(true)
 

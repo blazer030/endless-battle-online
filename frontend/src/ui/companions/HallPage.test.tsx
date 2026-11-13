@@ -96,6 +96,7 @@ afterEach(() => {
 test("RosterShowsPricesAndMedals", async () => {
   await renderHall({ money: 50_000 })
 
+  expect(screen.getByRole("region", { name: "櫃檯" })).toHaveTextContent("契約 0 / 1")
   const roster = screen.getByRole("list", { name: "傭兵名冊" })
   expect(within(roster).getAllByRole("button")).toHaveLength(5)
   expect(note("F級傭兵")).toHaveTextContent("500")
@@ -188,6 +189,7 @@ test("ContractShowsRemainingOutOfCatalogueFights", async () => {
   expect(card).toHaveTextContent("迷霧森林")
   expect(card).toHaveTextContent("−5")
   expect(note("F級傭兵")).toHaveTextContent("僱用中")
+  expect(screen.getByRole("region", { name: "櫃檯" })).toHaveTextContent("契約 1 / 1")
 })
 
 // 規格 companions-screen：Deployable places
@@ -281,6 +283,7 @@ test("HallLoadFailureShowsOnlyTheRetrySeal", async () => {
 
   expect(say()).toHaveTextContent("嘖，名冊一時翻不到……")
   expect(screen.queryByRole("list", { name: "傭兵名冊" })).not.toBeInTheDocument()
+  expect(screen.getByRole("region", { name: "櫃檯" })).not.toHaveTextContent("契約")
 
   fireEvent.click(screen.getByRole("button", { name: "再試一次" }))
   await flush()

@@ -262,7 +262,7 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
           title={
             <>
               <b>傭兵所</b>
-              <small>所長・巴頓</small>
+              <small>{view === null ? "" : `契約 ${contract === null ? 0 : 1} / 1`}</small>
             </>
           }
           line={sheetOpen ? null : line}
