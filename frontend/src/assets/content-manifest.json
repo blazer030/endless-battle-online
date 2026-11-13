@@ -140,6 +140,54 @@
     "portraits/job-9-male": {
       "file": "portraits/job-9-male.326c8c8ed4e9.webp",
       "original": "portraits/job-9-male.62ee4999f38b.png"
+    },
+    "room-backgrounds/apprentice-loft": {
+      "file": "room-backgrounds/apprentice-loft.9f1434f20d71.webp",
+      "original": "room-backgrounds/apprentice-loft.268da0ad46f8.jpg"
+    },
+    "room-backgrounds/bulwark-room": {
+      "file": "room-backgrounds/bulwark-room.e6f90747571d.webp",
+      "original": "room-backgrounds/bulwark-room.69abc0c94496.jpg"
+    },
+    "room-backgrounds/fighters-bunk": {
+      "file": "room-backgrounds/fighters-bunk.0ea4fea14671.webp",
+      "original": "room-backgrounds/fighters-bunk.d17e3218072a.jpg"
+    },
+    "room-backgrounds/quiet-chapel": {
+      "file": "room-backgrounds/quiet-chapel.f0717dcf3d33.webp",
+      "original": "room-backgrounds/quiet-chapel.1b2edbf52b8d.jpg"
+    },
+    "room-backgrounds/stargazer-tower": {
+      "file": "room-backgrounds/stargazer-tower.4ba2f1aaff74.webp",
+      "original": "room-backgrounds/stargazer-tower.52bbf6d9a6e4.jpg"
+    },
+    "room-backgrounds/training-chamber": {
+      "file": "room-backgrounds/training-chamber.b4e454310ed0.webp",
+      "original": "room-backgrounds/training-chamber.aaf4df250125.jpg"
+    },
+    "room-badges/apprentice-loft": {
+      "file": "room-badges/apprentice-loft.87efcfa0bb9f.webp",
+      "original": "room-badges/apprentice-loft.a0a63b518e87.png"
+    },
+    "room-badges/bulwark-room": {
+      "file": "room-badges/bulwark-room.a0a8d387350a.webp",
+      "original": "room-badges/bulwark-room.2726d333d2b2.png"
+    },
+    "room-badges/fighters-bunk": {
+      "file": "room-badges/fighters-bunk.a26c915d8083.webp",
+      "original": "room-badges/fighters-bunk.57d3315fe2b5.png"
+    },
+    "room-badges/quiet-chapel": {
+      "file": "room-badges/quiet-chapel.7ce892040aa4.webp",
+      "original": "room-badges/quiet-chapel.f597f2c1cf0c.png"
+    },
+    "room-badges/stargazer-tower": {
+      "file": "room-badges/stargazer-tower.54d930d6c801.webp",
+      "original": "room-badges/stargazer-tower.4f5071d0f1ac.png"
+    },
+    "room-badges/training-chamber": {
+      "file": "room-badges/training-chamber.5328426f5d20.webp",
+      "original": "room-badges/training-chamber.be684971da36.png"
     }
   }
 }
