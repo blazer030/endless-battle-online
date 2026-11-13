@@ -39,7 +39,7 @@
 | 自動住宿 | 住宿費 | 第二個盒子：標題「住宿費」＋右側「Lv N」11px `#A8946E`；一列「自動住宿一次」12px `#C9B58E`，值 700：免費 `#8FE0C8`、否則 `#F6E8C8`「1,200 起」 |
 | 載入失敗 | 再試一次 | 木台上只放紅印章 92×92 置中（padding-bottom 20），字橫排兩行「再試／一次」19px 900、行高 1.2；按下 rotate −4° scale .9 |
 
-素材（blob id 前 8 碼）：大廳 `c95d61d5`、瑪莎 `047c012e`、木紋 `6884370a`、櫃檯木條 `d137517f`、門牌 `7d42c264`、羊皮紙 `75aeed6c`、圖釘 `59eb4a17`、關閉鈕 `f1386931`、紅印章 `759746ed`、對話框 `b97d9abd`。房型（內容圖）：
+素材（blob id 前 8 碼）：大廳 `c95d61d5`、瑪莎 `047c012e`、木紋 `6884370a`、櫃檯木條 `d137517f`、門牌 `7d42c264`、羊皮紙 `75aeed6c`、圖釘 `59eb4a17`、關閉鈕 `f1386931`（以上 8 張進 `frontend/src/assets/inn/`）；紅印章 `759746ed`、對話框 `b97d9abd` 沿用 `title/seal`、`title/bubble`，錢袋沿用 `town/purse`。房型（內容圖）：
 
 | 房型 id | 徽章 | 房間背景 |
 | --- | --- | --- |
@@ -122,7 +122,7 @@
 - `Inn.ToBuffs(IReadOnlyList<Lodging> stays, InnDefinition inn)` → 每列轉成 `CharacterBuff`，房型已不在內容的略過。
 - `Buffs.Multiplier`／`ApplyTo` 的 `CharacterBuff? lodging` 改成 `IReadOnlyList<CharacterBuff> lodgings`，取開打時刻有效的那一筆。`AdventureSimulator.Run` 同步改參數；`BalanceReportService` 傳空清單。
 - `ILodgingRepository`：
-  - `Task<Lodging?> FindActiveAsync(long characterId, DateTimeOffset now, CancellationToken)`：結束時間晚於 now 的最新一列。
+  - `Task<Lodging?> FindActiveAsync(long characterId, DateTimeOffset now, CancellationToken)`：開始 ≤ now ＜ 結束的那一列（只看結束時間會拿到之後才開始的列）。
   - `Task<IReadOnlyList<Lodging>> ListEndingAfterAsync(long characterId, DateTimeOffset after, CancellationToken)`：依開始時間排序。
   - `Task SaveBookingAsync(long characterId, Lodging booked, Lodging? ended, DateTimeOffset pruneBefore, CancellationToken)`：`ended` 以（角色、開始時間）找到那列更新結束時間；新增 `booked`；刪除結束時間早於 `pruneBefore` 的列。同一個 unit of work。
 
@@ -136,7 +136,7 @@
 
 ### 瑪莎的台詞是純函式
 
-`src/game/inn.ts` 的 `innkeeperLine(event, lodgingRoomName)`：
+`src/game/inn.ts` 的 `innkeeperLine(event, hasStay)`；`booked` 事件自己帶房名：
 
 | 情況（event） | 台詞 |
 | --- | --- |
@@ -187,7 +187,7 @@
 
 ### 硬規則
 
-- 硬規則 3（Flyway）：新增 `backend/db/ddl/V000000021__lodging_stays.sql`，依 migration → `docker compose up -d` → `./scripts/scaffold-db.sh` 的順序；只用 `ALTER TABLE`（拿掉舊主鍵與外鍵、加 `id BIGINT AUTO_INCREMENT` 主鍵、加 `(character_id, ends_at)` 索引、加回外鍵，可拆成多個 `ALTER`），不用 `DROP TABLE`／`TRUNCATE`。既有資料保留，每個角色原本那列變成第一筆紀錄。
+- 硬規則 3（Flyway）：新增 `backend/db/ddl/V000000021__lodging_stays.sql`，依 migration → `docker compose up -d` → `./scripts/scaffold-db.sh` 的順序；只用 `ALTER TABLE`（先加 `(character_id, ends_at)` 索引讓外鍵改用它，再拿掉以 `character_id` 為主鍵、加 `id BIGINT AUTO_INCREMENT` 主鍵；外鍵不動），不用 `DROP TABLE`／`TRUNCATE`。既有資料保留，每個角色原本那列變成第一筆紀錄。
 - 硬規則 4、5：`Persistence/Models/CharacterLodging.cs` 由 scaffold 產生，不手改；Application 只看 Domain 的 `Lodging`。
 - 硬規則 6：房型圖放 R2、只用 `tools/assets` 的 `import` 更新清單；內容檔不改。
 - 前端規則 3、8、9：色碼進 `theme.css`；內容圖只經 `contentAssets.ts`；`schema.ts` 用 `pnpm generate:api` 產生。
