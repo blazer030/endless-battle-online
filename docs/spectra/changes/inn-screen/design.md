@@ -170,6 +170,10 @@
 
 畫面數值立即改變；最後一次按下 `InnThresholdSaveDelayMilliseconds`（600，新增在 `timings.ts`）後送 `updateSettings`，內容是 `settingsForm(character)` 換掉兩個門檻。成功：`onCharacterChange`。失敗：兩個門檻退回上次存檔成功的值，台詞 `thresholdFailed`。離開旅館時有尚未送出的修改就立刻送出（不等延遲）。
 
+### 剩餘時間與城鎮同一個格式
+
+使用者 2026-11-13（實機看到旅館「剩 7:59」、城鎮圓章「7:58」）：旅館與城鎮的剩餘時間要同步。滿 1 小時寫 `H:MM`（分鐘捨去），不到 1 小時寫 `MM:SS`（秒捨去），兩邊共用 `src/game/town.ts` 的 `remainingText`；城鎮原本不到 1 小時寫「N 分」（進位）一起改掉。因為有秒，城鎮加成列與旅館橫幅改成每秒重算（`CountdownTickMilliseconds`）。角色頁舊外殼的密藥效果卡不在範圍內。
+
 ### 時長格式
 
 `stayLength(seconds)` 改成：時＝floor(seconds / 3600)、分＝round(餘數 / 60)；分為 0 寫「H 小時」，時為 0 寫「M 分」，否則「H 小時 M 分」。內容規定 60～86400 秒。

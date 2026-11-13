@@ -50,12 +50,17 @@ The counter SHALL start at pt = 250 − (844 − H) × 0.4 for stage height H, t
 
 ### Requirement: Current stay banner
 
-The counter SHALL show the stay in effect as a banner with the room badge, the room name, the effect as `<kind name> ×<multiplier>` with two decimals, `剩 H:MM` and a remaining bar of (end − now) / (end − start), recalculated every `BuffTickMilliseconds`; when no stay is in effect it SHALL show `目前沒有住宿加成`. When the stay ends while the inn is open the banner SHALL change to `目前沒有住宿加成`.
+The counter SHALL show the stay in effect as a banner with the room badge, the room name, the effect as `<kind name> ×<multiplier>` with two decimals, `剩 <remaining>` in the same remaining time format as the town's bonus row (`H:MM` from one hour up, `MM:SS` below one hour, counted from the stay's start when the local clock is earlier than it) and a remaining bar of (end − now) / (end − start), recalculated every second; when no stay is in effect it SHALL show `目前沒有住宿加成`. When the stay ends while the inn is open the banner SHALL change to `目前沒有住宿加成`.
 
 #### Scenario: Banner for an active stay
 
 - **WHEN** a stay in `apprentice-loft` (Experience ×1.10) runs from 08:00 to 16:00 and it is 08:01
 - **THEN** the banner shows `學徒閣樓`, `經驗 ×1.10` and `剩 7:59`
+
+#### Scenario: Banner counts seconds under an hour
+
+- **WHEN** a stay has 10 minutes left and one second passes
+- **THEN** the banner changes from `剩 10:00` to `剩 09:59`
 
 ### Requirement: Room cards
 
@@ -77,7 +82,7 @@ The "客房" tab SHALL list every room as a card with the room background, the r
 
 ### Requirement: Room detail and booking
 
-Clicking a room card SHALL slide up a detail sheet with the badge, name, effect, cost and a seal button "入住"; clicking outside the sheet or its close button SHALL close it. When a different room is in effect the sheet SHALL show `會取代目前的<room name>（<effect>，剩 H:MM）`; when the same room is in effect it SHALL show `正在住這間，剩 H:MM`. When the money is less than the cost, the cost SHALL be marked as insufficient and the seal SHALL be disabled; the seal SHALL also be disabled while a booking is in flight. A successful booking SHALL replace the banner with the booked stay, update the money, close the sheet and report the new character to the game screen.
+Clicking a room card SHALL slide up a detail sheet with the badge, name, effect, cost and a seal button "入住"; clicking outside the sheet or its close button SHALL close it. When a different room is in effect the sheet SHALL show `會取代目前的<room name>（<effect>，剩 <remaining>）`; when the same room is in effect it SHALL show `正在住這間，剩 <remaining>`, both in that remaining time format. When the money is less than the cost, the cost SHALL be marked as insufficient and the seal SHALL be disabled; the seal SHALL also be disabled while a booking is in flight. A successful booking SHALL replace the banner with the booked stay, update the money, close the sheet and report the new character to the game screen.
 
 #### Scenario: Booking succeeds
 
