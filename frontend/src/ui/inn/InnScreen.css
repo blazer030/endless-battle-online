@@ -754,14 +754,16 @@
 
 .inn-threshold {
   display: grid;
-  grid-template-columns: auto auto 26px 1fr 26px 44px;
+  /* 標籤欄固定寬：HP、SP 字寬不同，各列的量條才會一樣長 */
+  grid-template-columns: 30px auto 26px 1fr 26px 44px;
   align-items: center;
   gap: 7px;
   font-size: 12px;
 }
 
 .inn-threshold__tag {
-  padding: 0 6px;
+  padding: 0;
+  text-align: center;
   border-radius: 3px;
   font-family: var(--font-number);
   font-size: 11px;
