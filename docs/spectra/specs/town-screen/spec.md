@@ -102,7 +102,7 @@ While the town is shown the client SHALL NOT send adventure advance requests. Op
 ---
 ### Requirement: Facilities open the old tabbed screen
 
-Each facility in the town SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment.
+Each facility in the town except the inn SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page.
 
 | Facility | Tab | Bag sub-page |
 | --- | --- | --- |
@@ -110,16 +110,20 @@ Each facility in the town SHALL open the old tabbed screen at the following tab 
 | 背包 | bag | bag |
 | 同伴 | companions | — |
 | 出發 | adventure | — |
-| 旅館 | bag | inn |
 | 商店街 | bag | shop |
 | 鐵舖 | bag | forge |
 | 勳章所 | bag | honour |
 | 任務板 | missions | — |
 
-#### Scenario: Inn opens the bag tab at the inn page
+#### Scenario: Inn opens the inn screen
 
 - **WHEN** the player clicks "旅館" in the market
-- **THEN** the old tabbed screen opens on the bag tab showing the inn sub-page
+- **THEN** the inn screen opens and the old tabbed screen is not shown
+
+#### Scenario: Bag tab has no inn sub-page
+
+- **WHEN** the player opens "背包" from the gate
+- **THEN** the bag tab's sub-page buttons do not include "旅館"
 
 #### Scenario: Return to the town
 
@@ -129,7 +133,7 @@ Each facility in the town SHALL open the old tabbed screen at the following tab 
 ---
 ### Requirement: Bonus row and list
 
-The town SHALL show the active lodging and elixirs as a row of badges, the lodging first and then the elixirs in the order of buff kinds (Experience, JobExperience, Attack, Magic, Defense, MagicDefense). The row SHALL be hidden when nothing is active or when loading the bonuses failed. Each badge SHALL show the remaining time as `H:MM` when at least one hour remains and as `N 分` (minutes rounded up) otherwise, and SHALL be marked as ending soon when less than 10 minutes remain. Clicking a badge SHALL open a list showing, per bonus, its name, its effect, a remaining bar of (end − now) / (end − start) and the remaining time; clicking anywhere outside the list SHALL close it. An elixir's row SHALL be named by the item last drunk, exactly as the content names it, with the effect line showing the kind name and multiplier (for example `物攻 ×1.05`); when that item is unknown the row SHALL be named by the kind name and multiplier and SHALL have no effect line. The lodging's row SHALL be named by the room name with the effect line showing the room's kind name and multiplier.
+The town SHALL show the active lodging and elixirs as a row of badges, the lodging first and then the elixirs in the order of buff kinds (Experience, JobExperience, Attack, Magic, Defense, MagicDefense). The row SHALL be hidden when nothing is active or when loading the bonuses failed. Each badge SHALL show the remaining time as `HH:MM` (minutes rounded down, hours zero-padded) when at least one hour remains and as `MM:SS` (seconds rounded down) otherwise, and SHALL be marked as ending soon when less than 10 minutes remain. Clicking a badge SHALL open a list showing, per bonus, its name, its effect, a remaining bar of (end − now) / (end − start) and the remaining time; clicking anywhere outside the list SHALL close it. An elixir's row SHALL be named by the item last drunk, exactly as the content names it, with the effect line showing the kind name and multiplier (for example `物攻 ×1.05`); when that item is unknown the row SHALL be named by the kind name and multiplier and SHALL have no effect line. The lodging's row SHALL be named by the room name with the effect line showing the room's kind name and multiplier.
 
 #### Scenario: Remaining time text
 
@@ -140,12 +144,12 @@ The town SHALL show the active lodging and elixirs as a row of badges, the lodgi
 
 | Remaining | Text | Ending soon |
 | --- | --- | --- |
-| 6130 s | `1:42` | no |
-| 3600 s | `1:00` | no |
-| 3599 s | `60 分` | no |
-| 600 s | `10 分` | no |
-| 599 s | `10 分` | yes |
-| 30 s | `1 分` | yes |
+| 6130 s | `01:42` | no |
+| 3600 s | `01:00` | no |
+| 3599 s | `59:59` | no |
+| 600 s | `10:00` | no |
+| 599 s | `09:59` | yes |
+| 30 s | `00:30` | yes |
 
 #### Scenario: Elixir row names the item
 
@@ -160,7 +164,7 @@ The town SHALL show the active lodging and elixirs as a row of badges, the lodgi
 ---
 ### Requirement: Bonus countdown and refresh
 
-The town SHALL recompute the remaining times from the local clock every minute without contacting the server. When any shown bonus's end time has passed, the town SHALL request the elixirs and the lodging again and show only those still active.
+The town SHALL recompute the remaining times from the local clock every second without contacting the server. When any shown bonus's end time has passed, the town SHALL request the elixirs and the lodging again and show only those still active.
 
 #### Scenario: A bonus runs out in the town
 
@@ -197,3 +201,18 @@ The gate SHALL show the portrait for the character's job and sex from the conten
 
 - **WHEN** a female character of job `job-7` is in the town
 - **THEN** the portrait is looked up as `portraits/job-7-female`
+
+---
+### Requirement: Lodging badge uses the room badge image
+
+The lodging's badge in the bonus row and list SHALL be the content image `room-badges/<room id>` of the active stay's room, obtained through the content image lookup; when the image is missing or fails to load, the room-badges placeholder SHALL be shown.
+
+#### Scenario: Lodging badge for a booked room
+
+- **WHEN** the active stay is in room `fighters-bunk`
+- **THEN** the lodging badge shows the image looked up for (`room-badges`, `fighters-bunk`)
+
+#### Scenario: Lodging badge without an image
+
+- **WHEN** the manifest has no `room-badges/quiet-chapel` and the active stay is in `quiet-chapel`
+- **THEN** the lodging badge shows the room-badges placeholder
