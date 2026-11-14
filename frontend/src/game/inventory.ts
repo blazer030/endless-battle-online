@@ -352,7 +352,7 @@ export const itemTitle = (item: InventoryItem) =>
 export const holeMarks = (item: InventoryItem) =>
   "◆".repeat(item.sockets.length) + "◇".repeat(Math.max(0, item.holes - item.sockets.length))
 
-const bonusLabels: { key: keyof StatBonus; label: string }[] = [
+export const bonusLabels: { key: keyof StatBonus; label: string }[] = [
   { key: "attack", label: "物攻" },
   { key: "magicAttack", label: "魔攻" },
   { key: "defense", label: "物防" },
