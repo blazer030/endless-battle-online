@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import type { ApiClient } from "../api/client"
 import type { CharacterVo } from "../game/character"
 import type { TownFacility, TownSegment } from "../game/town"
@@ -10,6 +10,8 @@ import { preloadImages } from "./stage/preloadImages"
 import { companionsImages, honourImages, innImages, townImages } from "./stage/screenImages"
 import { timeOfDay } from "../game/timeOfDay"
 import { RevealLayer, type RevealOrigin } from "./stage/RevealLayer"
+import "./stage/RevealLayer.css"
+import "./GameScreen.css"
 import { innRevealOrigin } from "../game/inn"
 import { companionsRevealOrigin } from "../game/companions"
 import { honourRevealOrigin } from "../game/honour"
@@ -45,12 +47,27 @@ type View =
   | { name: "revealed"; facility: Revealed; phase: RevealPhase }
   | { name: "shell"; tab: Tab; bagPage: SubPage; shell: number }
 
-type Props = { api: ApiClient; initialCharacter: CharacterVo; onSignOut: () => void }
+type Props = {
+  api: ApiClient
+  initialCharacter: CharacterVo
+  onSignOut: () => void
+  // 進城的過場（歡迎回來、踏上旅途）：墊在城鎮底下，城鎮從舞台正中間圓形展開蓋過它
+  arrival?: ReactNode
+}
+
+// 進城時城鎮的圓心在舞台正中間
+const arrivalReveal = { "--ox": "50%", "--oy": "50%" } as CSSProperties
 
 // 進遊戲後先在城鎮（不連線）；點設施打開舊外殼開始掛機，回城鎮時舊外殼卸載、輪詢停止
 // 卸載前送出的請求回來時仍會交出角色，城鎮跟著更新
-export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
+export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props) => {
   const [character, setCharacter] = useState(initialCharacter)
+  const [arriving, setArriving] = useState(arrival !== undefined)
+  useEffect(() => {
+    if (!arriving) return
+    const timer = setTimeout(() => setArriving(false), RevealMilliseconds)
+    return () => clearTimeout(timer)
+  }, [arriving])
   const [view, setView] = useState<View>({ name: "town", segment: 0 })
   // 在城鎮時先把旅館、同伴與勳章所的圖載好，第一次打開時不會從空的慢慢冒出來；
   // 等城鎮的圖（過場時已開始載，同一張只載一次）載完才開始，慢網路時不跟城鎮搶頻寬
@@ -99,8 +116,14 @@ export const GameScreen = ({ api, initialCharacter, onSignOut }: Props) => {
     }
     return (
       <StageFrame>
+        {arriving && <div className="game-arrival">{arrival}</div>}
         {showTown && (
-          <div inert={view.name === "revealed"}>
+          // 進城展開時套圓形展開的樣式；展開完只拿掉樣式，城鎮不重新掛載
+          <div
+            inert={view.name === "revealed"}
+            className={arriving ? "reveal-layer" : undefined}
+            style={arriving ? arrivalReveal : undefined}
+          >
             <TownScreen
               api={api}
               character={character}

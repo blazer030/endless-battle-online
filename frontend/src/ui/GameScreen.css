@@ -1,0 +1,6 @@
+/* 進城過場墊在城鎮底下（過場本身 z-index 30，這裡壓回最底層） */
+.game-arrival {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}

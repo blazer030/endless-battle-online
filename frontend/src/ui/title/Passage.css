@@ -62,7 +62,10 @@
   box-shadow: 0 1px 2px rgb(var(--glow-rgb) / 0.8);
 }
 
-.passage--immediate {
+.passage--immediate,
+.passage--settled,
+.passage--settled b,
+.passage--settled small {
   animation: none;
 }
 

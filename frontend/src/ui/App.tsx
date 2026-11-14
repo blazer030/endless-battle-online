@@ -25,7 +25,8 @@ type Phase =
   | { name: "create"; jobs: JobVo[]; options: CreationOptionsVo; account: string }
   // fromOpening：接在打開網頁的過場背景後面，背景已經在了
   | { name: "passage"; character: CharacterVo; fromOpening: boolean }
-  | { name: "game"; character: CharacterVo }
+  // arrival：進城前停的過場（歡迎回來、踏上旅途），城鎮從正中間展開蓋過它
+  | { name: "game"; character: CharacterVo; arrival: "歡迎回來" | "踏上旅途" }
 
 type Props = {
   api: ApiClient
@@ -114,7 +115,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
     // 過場停留的這段時間先把城鎮的圖載好，進城時不會一張張冒出來
     void preloadImages(townImages(timeOfDay(new Date().getHours())))
     const timer = setTimeout(
-      () => setPhase({ name: "game", character: passageCharacter }),
+      () => setPhase({ name: "game", character: passageCharacter, arrival: "歡迎回來" }),
       PassageMilliseconds,
     )
     return () => clearTimeout(timer)
@@ -166,7 +167,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
             jobs={phase.jobs}
             options={phase.options}
             account={phase.account}
-            onCreated={(character) => setPhase({ name: "game", character })}
+            onCreated={(character) => setPhase({ name: "game", character, arrival: "踏上旅途" })}
             onLeave={() => setPhase(titlePhase(phase.account))}
           />
           {leavingPassage}
@@ -177,6 +178,7 @@ export const App = ({ api, subscribeToSessionExpiry }: Props) => {
         <GameScreen
           api={api}
           initialCharacter={phase.character}
+          arrival={<Passage settled title={phase.arrival} subtitle={phase.character.name} />}
           onSignOut={() => {
             clearAccessToken()
             setPhase(titlePhase())

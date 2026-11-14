@@ -121,6 +121,42 @@ test("GameScreen_PreloadsInnerPagesAfterTheTown", async () => {
   expect(preloads[1]!.urls.some((url) => url.includes("medal-case"))).toBe(true)
 })
 
+// 進城：城鎮從舞台正中間圓形展開，底下墊著過場；展開完拿掉過場，城鎮不重新掛載
+test("GameScreen_ArrivalRevealsTheTownFromTheCentre", async () => {
+  const api = createApi()
+  render(
+    <GameScreen
+      api={api}
+      initialCharacter={character}
+      onSignOut={vi.fn()}
+      arrival={<p>歡迎回來過場</p>}
+    />,
+  )
+
+  const layer = screen.getByTestId("town-world").closest(".reveal-layer") as HTMLElement | null
+  expect(layer).not.toBeNull()
+  expect([layer!.style.getPropertyValue("--ox"), layer!.style.getPropertyValue("--oy")]).toEqual([
+    "50%",
+    "50%",
+  ])
+  expect(screen.getByText("歡迎回來過場")).toBeInTheDocument()
+  const world = screen.getByTestId("town-world")
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByText("歡迎回來過場")).not.toBeInTheDocument()
+  expect(screen.getByTestId("town-world").closest(".reveal-layer")).toBeNull()
+  expect(screen.getByTestId("town-world")).toBe(world)
+})
+
+test("GameScreen_WithoutArrivalShowsTheTownDirectly", () => {
+  renderGame()
+
+  expect(screen.getByTestId("town-world").closest(".reveal-layer")).toBeNull()
+})
+
 // 規格 inn-screen：Inn opens the inn screen
 test("GameScreen_InnOpensTheInnScreen", async () => {
   renderGame()

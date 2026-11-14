@@ -8,6 +8,7 @@ import {
   PassageLeaveMilliseconds,
   PassageMilliseconds,
   RegisterSealSettleMilliseconds,
+  RevealMilliseconds,
 } from "../motion/timings"
 import { makeCharacter, makeCreationOptions, makePublicJobs } from "../test/fixtures"
 import { App, type SessionExpiryListener } from "./App"
@@ -189,6 +190,24 @@ test("App_SignInWithCharacter_WelcomesBackThenOpensGame", async () => {
   expect(townStatus()).not.toBeInTheDocument()
 
   await finishPassage()
+})
+
+// 過場結束：城鎮從正中間圓形展開，「歡迎回來」留在底下直到展開完
+test("App_WelcomeBackRevealsTheTownFromTheCentre", async () => {
+  const user = setupUser()
+  renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
+  await signIn(user)
+  await passIntoGame()
+
+  expect(screen.getByTestId("town-world").closest(".reveal-layer")).not.toBeNull()
+  expect(screen.getByText("歡迎回來")).toBeInTheDocument()
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByText("歡迎回來")).not.toBeInTheDocument()
+  expect(screen.getByTestId("town-world").closest(".reveal-layer")).toBeNull()
 })
 
 // 登入、沒角色 → 建角
@@ -588,4 +607,7 @@ test("App_CreatedCharacterEntersTheTown", async () => {
   expect(status.getByText("見習魔法師")).toBeInTheDocument()
   expect(status.getByText("Lv 1")).toBeInTheDocument()
   expect(screen.getByTestId("town-world").dataset.segment).toBe("0")
+  // 「踏上旅途」也一樣從正中間展開進城
+  expect(screen.getByTestId("town-world").closest(".reveal-layer")).not.toBeNull()
+  expect(screen.getByText("踏上旅途")).toBeInTheDocument()
 })
