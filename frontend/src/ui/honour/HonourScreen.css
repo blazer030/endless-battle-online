@@ -1,0 +1,333 @@
+/* 勳章所（設計板 HonourFit）：--h 舞台高、--case-top 勳章盒上緣、--case-width 盒寬、--rack-height 陳列板高 */
+.honour {
+  position: relative;
+  height: var(--h);
+  overflow: hidden;
+  font-family: var(--font-number), var(--font-ui);
+  color: var(--honour-ink);
+  background: url("../../assets/title/hall.webp") center top / cover no-repeat var(--honour-hall);
+}
+
+.honour .inn__back {
+  z-index: 30;
+}
+
+/* 櫃檯：接待員莉瑟站在左邊說話；陳列板降下時退開 */
+.honour__clerk {
+  position: absolute;
+  z-index: 0;
+  left: -6px;
+  top: 40px;
+  height: 568px;
+  filter: drop-shadow(3px 0 10px rgb(var(--inn-dark-rgb) / 0.45));
+  transition:
+    transform 0.4s cubic-bezier(0.5, 0, 0.3, 1),
+    opacity 0.3s;
+}
+
+.honour:not(.honour--counter) .honour__clerk {
+  transform: translateX(-70px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.honour__bubble {
+  position: absolute;
+  z-index: 2;
+  left: 176px;
+  top: 78px;
+  width: 208px;
+  height: 112px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 14px 12px 46px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--honour-ink);
+  white-space: pre-line;
+  background: url("../../assets/title/bubble.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 5px rgb(var(--inn-dark-rgb) / 0.35));
+  transform-origin: 0 60%;
+  animation: honour-bubble 0.25s ease-out;
+}
+
+.honour__bubble--failed {
+  color: var(--inn-replace-warn);
+}
+
+@keyframes honour-bubble {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+/* 載入失敗：對話框下方「再試一次」紅印章（同同伴） */
+.seal.honour__retry {
+  z-index: 3;
+  left: 216px;
+  top: 206px;
+  bottom: auto;
+  width: 92px;
+  height: 92px;
+  transform: rotate(-4deg);
+}
+
+.seal.honour__retry span {
+  padding: 0 22px;
+  writing-mode: horizontal-tb;
+  text-align: center;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+}
+
+.seal.honour__retry:not(:disabled):active {
+  transform: rotate(-4deg) scale(0.9);
+}
+
+/* 櫃檯與前緣木條（同任務板的櫃檯） */
+.honour__counter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--case-top) - 28px);
+  bottom: 0;
+  background: url("../../assets/inn/counter-wood.webp") center top / cover no-repeat;
+  filter: sepia(0.35) saturate(1.1) brightness(0.62) contrast(1.08);
+}
+
+.honour__plank {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  top: calc(var(--case-top) - 44px);
+  height: 52px;
+  background: url("../../assets/inn/counter-edge.webp") left center / auto 100% repeat-x;
+  filter: drop-shadow(0 3px 2px rgb(var(--shade-rgb) / 0.55));
+}
+
+/* 勳章盒：五格絲絨，點一枚＝看它換得到什麼；選中的那枚浮起來 */
+.honour-case {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: var(--case-top);
+  width: var(--case-width);
+  height: var(--case-height);
+  margin-left: calc(var(--case-width) / -2);
+  background: url("../../assets/honour/medal-case.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 10px 8px rgb(var(--shade-rgb) / 0.55));
+}
+
+.honour-case__medal {
+  position: absolute;
+  top: 12%;
+  height: 76%;
+  width: 16.6%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.honour-case__medal:disabled {
+  cursor: default;
+}
+
+.honour-case__medal img {
+  height: 78%;
+  width: auto;
+  margin-top: 4%;
+  filter: drop-shadow(0 3px 2px rgb(var(--honour-medal-shadow-rgb) / 0.6));
+  transition:
+    transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1),
+    filter 0.2s;
+}
+
+.honour--counter .honour-case__medal:not(.honour-case__medal--zero) img {
+  animation: honour-glint 3.6s ease-in-out infinite;
+}
+
+.honour-case__medal:nth-child(2) img {
+  animation-delay: 0.7s;
+}
+
+.honour-case__medal:nth-child(3) img {
+  animation-delay: 1.4s;
+}
+
+.honour-case__medal:nth-child(4) img {
+  animation-delay: 2.1s;
+}
+
+.honour-case__medal:nth-child(5) img {
+  animation-delay: 2.8s;
+}
+
+@keyframes honour-glint {
+  0%,
+  70%,
+  100% {
+    filter: drop-shadow(0 3px 2px rgb(var(--honour-medal-shadow-rgb) / 0.6));
+  }
+
+  80% {
+    filter: brightness(1.25) drop-shadow(0 0 6px rgb(var(--stable-glow-rgb) / 0.8))
+      drop-shadow(0 3px 2px rgb(var(--honour-medal-shadow-rgb) / 0.6));
+  }
+}
+
+.honour-case__medal--zero img {
+  filter: grayscale(0.7) brightness(0.75)
+    drop-shadow(0 3px 2px rgb(var(--honour-medal-shadow-rgb) / 0.6));
+  opacity: 0.6;
+}
+
+.honour-case__medal--on img {
+  transform: translateY(-14px) scale(1.1);
+  filter: drop-shadow(0 0 6px rgb(var(--stable-glow-rgb) / 0.85))
+    drop-shadow(0 10px 6px rgb(var(--honour-medal-shadow-rgb) / 0.6));
+  animation: none;
+}
+
+.honour-case__medal--on.honour-case__medal--zero img {
+  opacity: 0.85;
+}
+
+.honour-case__count {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 30px;
+  min-height: 16px;
+  padding: 1px 6px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  font-family: var(--font-number);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--honour-chip-text);
+  background: rgb(var(--honour-chip-rgb) / 0.72);
+  box-shadow: inset 0 0 0 1px rgb(var(--honour-chip-rim-rgb) / 0.55);
+}
+
+.honour-case__medal--on .honour-case__count {
+  color: var(--honour-ink);
+  background: var(--honour-chip-on);
+  box-shadow: 0 1px 3px rgb(var(--shade-rgb) / 0.5);
+}
+
+.honour-case__medal--wait .honour-case__count {
+  background: rgb(var(--honour-chip-rgb) / 0.45);
+}
+
+/* 僱用中的傭兵：釘在木條上的紙條 */
+.honour__hired {
+  position: absolute;
+  z-index: 5;
+  left: 12px;
+  top: calc(var(--case-top) - 35px);
+  padding: 5px 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  transform: rotate(-2deg);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--inn-detail-text);
+  background: url("../../assets/title/book-page.webp") center / cover;
+  box-shadow: 0 3px 6px rgb(var(--shade-rgb) / 0.45);
+}
+
+.honour__hired b {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--honour-ink);
+}
+
+/* 陳列板：木框＋綠絨布，吊牌在板內捲動；櫃檯時收在上方 */
+.honour-rack {
+  position: absolute;
+  z-index: 2;
+  left: 8px;
+  right: 8px;
+  top: 50px;
+  height: var(--rack-height);
+  box-sizing: border-box;
+  border: 30px solid transparent;
+  border-image: url("../../assets/honour/rack-frame.webp") 110 fill / 30px stretch;
+  filter: drop-shadow(0 2px 2px rgb(var(--honour-shadow-rgb) / 0.7))
+    drop-shadow(0 14px 14px rgb(var(--honour-shadow-rgb) / 0.5));
+  animation: honour-rack-down 0.5s cubic-bezier(0.3, 1.15, 0.5, 1);
+}
+
+@keyframes honour-rack-down {
+  from {
+    opacity: 0;
+    transform: translateY(-112%);
+  }
+}
+
+/* 九宮格拉伸的絨布會有接縫：另鋪一整塊絨布蓋到木框內緣 */
+.honour-rack__felt {
+  position: absolute;
+  inset: -8px;
+  background: url("../../assets/honour/felt.webp") center / 100% 100% no-repeat;
+}
+
+.honour-rack::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -8px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 16px 14px -8px rgb(var(--honour-felt-rgb) / 0.7),
+    inset 12px 0 12px -8px rgb(var(--honour-felt-rgb) / 0.5),
+    inset -8px 0 10px -6px rgb(var(--honour-felt-rgb) / 0.4),
+    inset 0 -6px 8px -6px rgb(var(--honour-felt-rgb) / 0.4);
+}
+
+/* 板頂的黃銅銘牌：目前看的勳章 */
+.honour-rack__plate {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: -40px;
+  width: 170px;
+  height: 46px;
+  margin: 0 0 0 -85px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: url("../../assets/companions/name-plate.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--honour-shadow-rgb) / 0.55));
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  color: var(--honour-plate-text);
+  text-shadow: 0 1px 0 rgb(var(--honour-plate-glow-rgb) / 0.6);
+}
+
+.honour-rack__plate img {
+  height: 24px;
+  width: auto;
+  margin-left: -6px;
+}
