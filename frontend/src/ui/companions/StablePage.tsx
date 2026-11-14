@@ -363,7 +363,7 @@ export const StablePage = ({ api, character, onCharacterChange, onBack }: Props)
                           name: pet.name,
                         }).then((done) => {
                           setReleasing(false)
-                          if (done) setSelectedId(null)
+                          if (done) setSelectedId((id) => (id === pet.id ? null : id))
                         })
                       }
                     >

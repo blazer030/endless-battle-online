@@ -268,3 +268,30 @@ test("StableLoadFailureShowsOnlyTheRetrySeal", async () => {
 
   expect(screen.getByRole("group", { name: "果實" })).toBeInTheDocument()
 })
+
+// 放生送出後改點了別隻：回應回來時停在剛點的那隻，不跳回第一隻
+test("ReleaseKeepsTheSelectionMadeWhileWaiting", async () => {
+  const snow = makePet({
+    id: 3,
+    monsterId: "monster-30",
+    species: "雪狐",
+    name: "雪球",
+    nextFeedAt: ready,
+  })
+  const api = await renderStable({ pets: [rabbit, panther, snow] })
+  let finish: () => void = () => {}
+  vi.mocked(api.releasePet).mockReturnValue(
+    new Promise((resolve) => {
+      finish = () => resolve(makePets([rabbit, snow]))
+    }),
+  )
+
+  fireEvent.click(screen.getByRole("button", { name: /^夜影/ }))
+  fireEvent.click(screen.getByRole("button", { name: "放生" }))
+  fireEvent.click(screen.getByRole("button", { name: "確定放生" }))
+  fireEvent.click(screen.getByRole("button", { name: /^雪球/ }))
+  finish()
+  await flush()
+
+  expect(within(screen.getByRole("region", { name: "寵物" })).getByText("雪球")).toBeInTheDocument()
+})
