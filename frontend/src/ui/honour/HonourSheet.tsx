@@ -97,13 +97,18 @@ export const HonourSheet = ({
           {requirements.length > 0 && (
             <>
               <h4>裝備需求</h4>
-              <ul className="honour-sheet__requirements">
+              <dl className="honour-sheet__stats honour-sheet__requirements">
                 {requirements.map((requirement) => (
-                  <li key={requirement.text} data-met={requirement.met}>
-                    {requirement.text}
-                  </li>
+                  <div
+                    key={requirement.stat}
+                    data-met={requirement.met}
+                    data-testid={`requirement-${requirement.stat}`}
+                  >
+                    <dt>{requirement.label}</dt>
+                    <dd>{requirement.value}</dd>
+                  </div>
                 ))}
-              </ul>
+              </dl>
             </>
           )}
           {slots !== null && <p className="honour-sheet__meta">{slots}</p>}

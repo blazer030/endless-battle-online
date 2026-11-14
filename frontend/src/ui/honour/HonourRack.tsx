@@ -65,7 +65,7 @@ export const HonourRack = ({ shop, medal, onPick }: Props) => {
                           <em
                             className={cost.owned < cost.quantity ? "honour-tag__short" : undefined}
                           >
-                            {cost.quantity}
+                            {`×${cost.quantity}`}
                           </em>
                         </span>
                       ))}

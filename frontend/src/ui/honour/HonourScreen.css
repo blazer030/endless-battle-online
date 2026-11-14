@@ -54,10 +54,6 @@
   animation: honour-bubble 0.25s ease-out;
 }
 
-.honour__bubble--failed {
-  color: var(--inn-replace-warn);
-}
-
 @keyframes honour-bubble {
   from {
     opacity: 0;
@@ -227,6 +223,10 @@
   color: var(--honour-ink);
   background: var(--honour-chip-on);
   box-shadow: 0 1px 3px rgb(var(--shade-rgb) / 0.5);
+}
+
+.honour--counter .honour-case__medal--wait img {
+  animation: none;
 }
 
 .honour-case__medal--wait .honour-case__count {
@@ -486,9 +486,11 @@
   gap: 1px;
 }
 
+/* R2 的勳章圖是置中的方形，裁掉兩側透明邊，花費列才排得下一行 */
 .honour-tag__cost img {
   height: 17px;
-  width: auto;
+  width: 10px;
+  object-fit: cover;
 }
 
 .honour-tag__cost em {
@@ -684,8 +686,7 @@
   color: var(--honour-muted);
 }
 
-.honour-sheet__stats,
-.honour-sheet__requirements {
+.honour-sheet__stats {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -712,15 +713,11 @@
   font-weight: 700;
 }
 
-.honour-sheet__requirements li {
-  font-weight: 700;
-}
-
-.honour-sheet__requirements li[data-met="true"] {
+.honour-sheet__requirements [data-met="true"] dd {
   color: var(--inn-detail-effect);
 }
 
-.honour-sheet__requirements li[data-met="false"] {
+.honour-sheet__requirements [data-met="false"] dd {
   color: var(--inn-cost-short);
 }
 

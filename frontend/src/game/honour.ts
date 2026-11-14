@@ -246,10 +246,12 @@ export const effectText = (item: HonourItemDetail): string | null => {
   }
 }
 
-// 裝備需求：夠不夠由伺服器以裸點判斷，畫面只標紅綠
+// 裝備需求：夠不夠由伺服器以裸點判斷，畫面只把數字標紅綠
 export const requirementRows = (item: HonourItemDetail) =>
   item.requirements.map((requirement) => ({
-    text: `${statLabel(requirement.stat)} ${requirement.minimum}`,
+    stat: requirement.stat,
+    label: statLabel(requirement.stat),
+    value: formatNumber(requirement.minimum),
     met: requirement.met,
   }))
 
@@ -259,10 +261,29 @@ export const categoryLine = (item: HonourItemDetail) =>
 export const slotLine = (item: HonourItemDetail) =>
   item.holes > 0 || item.refineMax > 0 ? `孔 ${item.holes}・精鍊上限 +${item.refineMax}` : null
 
+// 照設計稿：七項能力在前，物攻、魔攻、物防、魔防、HP 上限在後
+const bonusOrder: (keyof StatBonus)[] = [
+  "strength",
+  "intelligence",
+  "life",
+  "vitality",
+  "agility",
+  "charisma",
+  "faith",
+  "attack",
+  "magicAttack",
+  "defense",
+  "magicDefense",
+  "maxHealthPoints",
+]
+
 export const bonusRows = (bonus: StatBonus) =>
-  bonusLabels
-    .filter(({ key }) => bonus[key] !== 0)
-    .map(({ key, label }) => ({ label, value: `+${formatNumber(bonus[key])}` }))
+  bonusOrder
+    .filter((key) => bonus[key] !== 0)
+    .map((key) => ({
+      label: bonusLabels.find((row) => row.key === key)?.label ?? key,
+      value: `+${formatNumber(bonus[key])}`,
+    }))
 
 export const mercenaryRows = (mercenary: HonourMercenaryDetail) => [
   { label: "可戰鬥", value: `${formatNumber(mercenary.fights)} 次` },

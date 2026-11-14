@@ -196,7 +196,7 @@ test("UnaffordableAndHiredTagsAreDimmedButOpen", async () => {
   expect(tag("C級傭兵")).toBeEnabled()
   // 不夠的數量標紅
   expect(
-    within(tag("C級傭兵")).getByText("13", { selector: ".honour-tag__short" }),
+    within(tag("C級傭兵")).getByText("×13", { selector: ".honour-tag__short" }),
   ).toBeInTheDocument()
 })
 
@@ -250,10 +250,9 @@ test("SheetShowsEquipmentDetailsAndRequirementColours", async () => {
   const { sheet } = await openSheet("大陸勳章", "刺心者")
 
   expect(within(sheet).getByText("武器・綁定")).toBeInTheDocument()
-  expect(within(sheet).getByText("力量 435").closest("[data-met]")).toHaveAttribute(
-    "data-met",
-    "false",
-  )
+  const requirement = within(sheet).getByTestId("requirement-strength")
+  expect(requirement).toHaveTextContent("力量435")
+  expect(requirement).toHaveAttribute("data-met", "false")
   expect(within(sheet).getByText("物攻")).toBeInTheDocument()
   expect(within(sheet).getByText("孔 2・精鍊上限 +4")).toBeInTheDocument()
   expect(within(sheet).getByTestId("pay-item-1304")).toHaveTextContent("持有 14／需要 9")

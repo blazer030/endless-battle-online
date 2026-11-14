@@ -206,8 +206,8 @@ describe("sheet rows", () => {
         }),
       ),
     ).toEqual([
-      { text: "力量 435", met: false },
-      { text: "魅力 20", met: true },
+      { stat: "strength", label: "力量", value: "435", met: false },
+      { stat: "charisma", label: "魅力", value: "20", met: true },
     ])
   })
 
@@ -220,11 +220,23 @@ describe("sheet rows", () => {
     expect(slotLine(makeHonourItem({ category: "Consumable", holes: 0, refineMax: 0 }))).toBeNull()
   })
 
-  it("lists the non-zero bonuses in the bag's order", () => {
-    expect(bonusRows({ ...emptyBonus, strength: 5, attack: 225, faith: 16 })).toEqual([
-      { label: "物攻", value: "+225" },
-      { label: "力量", value: "+5" },
-      { label: "信仰", value: "+16" },
+  // 照設計稿：先列七項能力，再列物攻、魔攻、物防、魔防、HP 上限
+  it("lists the non-zero bonuses, base stats first", () => {
+    expect(
+      bonusRows({
+        ...emptyBonus,
+        strength: 31,
+        agility: 14,
+        charisma: 16,
+        attack: 440,
+        magicDefense: 30,
+      }),
+    ).toEqual([
+      { label: "力量", value: "+31" },
+      { label: "敏捷", value: "+14" },
+      { label: "魅力", value: "+16" },
+      { label: "物攻", value: "+440" },
+      { label: "魔防", value: "+30" },
     ])
   })
 

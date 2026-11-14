@@ -4,6 +4,7 @@ import type { CharacterVo } from "../../game/character"
 import {
   clerkGreeting,
   clerkLine,
+  MedalKeys,
   medalCase,
   rackHeight,
   type ClerkLine,
@@ -191,7 +192,7 @@ export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
             disabled={loaded === null}
             onClick={() => setMedalId(entry.itemId)}
           >
-            {loaded !== null && <ContentImage category="items" assetKey={entry.itemId} alt="" />}
+            <ContentImage category="items" assetKey={entry.itemId} alt="" />
             <span className="honour-case__count">{loaded === null ? "" : entry.owned}</span>
           </button>
         ))}
@@ -225,9 +226,5 @@ export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
 // 勳章盒五格的左緣（盒寬的百分比，照設計稿）
 const medalSlots = [5.9, 24.3, 42, 59.7, 77.6]
 
-// 還沒讀到時勳章盒照樣畫五格（不寫數字、不能點）
-const placeholderMedals = medalSlots.map((_, index) => ({
-  itemId: `pending-${index}`,
-  name: "勳章",
-  owned: 0,
-}))
+// 還沒讀到時勳章盒照樣畫五枚勳章（不寫數字、不能點）
+const placeholderMedals = MedalKeys.map((itemId) => ({ itemId, name: "勳章", owned: 0 }))
