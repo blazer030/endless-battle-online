@@ -3106,6 +3106,27 @@
           }
         }
       },
+      "HonourElixirResponse": {
+        "required": [
+          "kind",
+          "multiplier",
+          "seconds"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/BuffKind"
+          },
+          "multiplier": {
+            "type": "number",
+            "format": "double"
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "HonourExchangeRequest": {
         "required": [
           "exchangeId"
@@ -3128,7 +3149,9 @@
           "rewardName",
           "quantity",
           "cost",
-          "affordable"
+          "affordable",
+          "item",
+          "mercenary"
         ],
         "type": "object",
         "properties": {
@@ -3156,6 +3179,119 @@
           },
           "affordable": {
             "type": "boolean"
+          },
+          "item": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HonourItemResponse"
+              }
+            ]
+          },
+          "mercenary": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HonourMercenaryResponse"
+              }
+            ]
+          }
+        }
+      },
+      "HonourItemResponse": {
+        "required": [
+          "category",
+          "consumable",
+          "bonus",
+          "requirements",
+          "holes",
+          "refineMax",
+          "bound",
+          "supplyHealthPoints",
+          "supplyManaPoints",
+          "amount",
+          "elixir",
+          "key"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
+          },
+          "consumable": {
+            "$ref": "#/components/schemas/ConsumableKind"
+          },
+          "bonus": {
+            "$ref": "#/components/schemas/StatBonusResponse"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HonourRequirementResponse"
+            }
+          },
+          "holes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "refineMax": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bound": {
+            "type": "boolean"
+          },
+          "supplyHealthPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplyManaPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "elixir": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HonourElixirResponse"
+              }
+            ]
+          },
+          "key": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/HonourKeyResponse"
+              }
+            ]
+          }
+        }
+      },
+      "HonourKeyResponse": {
+        "required": [
+          "placeName",
+          "seconds"
+        ],
+        "type": "object",
+        "properties": {
+          "placeName": {
+            "type": "string"
+          },
+          "seconds": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -3179,10 +3315,63 @@
           }
         }
       },
+      "HonourMercenaryResponse": {
+        "required": [
+          "fights",
+          "moneyPercent",
+          "dropPercent",
+          "experiencePercent",
+          "deathCost"
+        ],
+        "type": "object",
+        "properties": {
+          "fights": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "moneyPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dropPercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "experiencePercent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deathCost": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "HonourRequirementResponse": {
+        "required": [
+          "stat",
+          "minimum",
+          "met"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "type": "string"
+          },
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "met": {
+            "type": "boolean"
+          }
+        }
+      },
       "HonourShopResponse": {
         "required": [
           "medals",
-          "exchanges"
+          "exchanges",
+          "hiredMercenaryName"
         ],
         "type": "object",
         "properties": {
@@ -3197,6 +3386,12 @@
             "items": {
               "$ref": "#/components/schemas/HonourExchangeResponse"
             }
+          },
+          "hiredMercenaryName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -3,6 +3,9 @@ using EndlessBattle.Api.Auth;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Honour;
+using EndlessBattle.Domain.Characters;
+using EndlessBattle.Domain.Items;
+using EndlessBattle.Domain.Mercenaries;
 
 namespace EndlessBattle.Api.Endpoints;
 
@@ -27,7 +30,7 @@ public static class HonourEndpoints
         return app;
     }
 
-    private static HonourShopResponse ToResponse(HonourOverview overview, IGameContent content) => new(
+    public static HonourShopResponse ToResponse(HonourOverview overview, IGameContent content) => new(
         overview.Medals.Select(medal => new HonourMedalResponse(medal.Key, content.GetItem(medal.Key).Name, medal.Value)).ToList(),
         overview.Offers.Select(offer =>
         {
@@ -47,6 +50,26 @@ public static class HonourEndpoints
                     .Select(cost => new HonourCostResponse(
                         cost.ItemId, content.GetItem(cost.ItemId).Name, cost.Quantity, overview.Medals.GetValueOrDefault(cost.ItemId)))
                     .ToList(),
-                offer.Affordable);
-        }).ToList());
+                offer.Affordable,
+                exchange.ItemId is { } detailId ? ItemDetail(content.GetItem(detailId), offer.Requirements, content) : null,
+                exchange.MercenaryId is { } contractId ? MercenaryDetail(content.GetMercenary(contractId)) : null);
+        }).ToList(),
+        overview.HiredMercenaryName);
+
+    private static HonourItemResponse ItemDetail(ItemDefinition item, IReadOnlyList<HonourRequirement> requirements, IGameContent content) => new(
+        item.Category,
+        item.Consumable,
+        StatBonusResponse.From(item.Bonus),
+        requirements.Select(requirement => new HonourRequirementResponse(BaseStatCode.Of(requirement.Stat), requirement.Minimum, requirement.Met)).ToList(),
+        item.Holes,
+        item.RefineMax,
+        item.Bound,
+        item.SupplyHealthPoints,
+        item.SupplyManaPoints,
+        item.Amount,
+        item.Elixir is { } elixir ? new HonourElixirResponse(elixir.Kind, elixir.Multiplier, elixir.Seconds) : null,
+        item.Key is { } key ? new HonourKeyResponse(content.GetPlace(key.PlaceId).Name, key.Seconds) : null);
+
+    private static HonourMercenaryResponse MercenaryDetail(MercenaryDefinition mercenary) => new(
+        mercenary.Fights, mercenary.MoneyPercent, mercenary.DropPercent, mercenary.ExperiencePercent, mercenary.DeathCost);
 }

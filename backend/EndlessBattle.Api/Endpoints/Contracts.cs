@@ -468,14 +468,48 @@ public sealed record MercenaryHireResponse(MercenaryOverviewResponse Mercenaries
 // exchange 只看 ExchangeId
 public sealed record HonourExchangeRequest(string? ExchangeId);
 
-public sealed record HonourShopResponse(IReadOnlyList<HonourMedalResponse> Medals, IReadOnlyList<HonourExchangeResponse> Exchanges);
+// HiredMercenaryName：目前契約的名字，沒有契約為 null
+public sealed record HonourShopResponse(
+    IReadOnlyList<HonourMedalResponse> Medals, IReadOnlyList<HonourExchangeResponse> Exchanges, string? HiredMercenaryName);
 
 // Owned 是背包中的持有數
 public sealed record HonourMedalResponse(string ItemId, string Name, int Owned);
 
-// Kind："item" | "mercenary"；RewardId 是道具或傭兵 id
+// Kind："item" | "mercenary"；RewardId 是道具或傭兵 id；Item 與 Mercenary 依 Kind 恰好一個有值
 public sealed record HonourExchangeResponse(
-    string Id, string Kind, string RewardId, string RewardName, int Quantity, IReadOnlyList<HonourCostResponse> Cost, bool Affordable);
+    string Id,
+    string Kind,
+    string RewardId,
+    string RewardName,
+    int Quantity,
+    IReadOnlyList<HonourCostResponse> Cost,
+    bool Affordable,
+    HonourItemResponse? Item,
+    HonourMercenaryResponse? Mercenary);
+
+// Elixir 只有密藥有值、Key 只有鑰匙有值；Requirements 只列大於 0 的裝備需求
+public sealed record HonourItemResponse(
+    ItemCategory Category,
+    ConsumableKind Consumable,
+    StatBonusResponse Bonus,
+    IReadOnlyList<HonourRequirementResponse> Requirements,
+    int Holes,
+    int RefineMax,
+    bool Bound,
+    int SupplyHealthPoints,
+    int SupplyManaPoints,
+    int Amount,
+    HonourElixirResponse? Elixir,
+    HonourKeyResponse? Key);
+
+// Stat 是 strength、intelligence、agility、charisma 之一；Met：角色裸點是否達到
+public sealed record HonourRequirementResponse(string Stat, int Minimum, bool Met);
+
+public sealed record HonourElixirResponse(BuffKind Kind, double Multiplier, int Seconds);
+
+public sealed record HonourKeyResponse(string PlaceName, int Seconds);
+
+public sealed record HonourMercenaryResponse(int Fights, int MoneyPercent, int DropPercent, int ExperiencePercent, int DeathCost);
 
 public sealed record HonourCostResponse(string ItemId, string Name, int Quantity, int Owned);
 

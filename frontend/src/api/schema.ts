@@ -2649,6 +2649,13 @@ export interface components {
             /** Format: int32 */
             owned: number;
         };
+        HonourElixirResponse: {
+            kind: components["schemas"]["BuffKind"];
+            /** Format: double */
+            multiplier: number;
+            /** Format: int32 */
+            seconds: number;
+        };
         HonourExchangeRequest: {
             exchangeId: null | string;
         };
@@ -2661,6 +2668,32 @@ export interface components {
             quantity: number;
             cost: components["schemas"]["HonourCostResponse"][];
             affordable: boolean;
+            item: null | components["schemas"]["HonourItemResponse"];
+            mercenary: null | components["schemas"]["HonourMercenaryResponse"];
+        };
+        HonourItemResponse: {
+            category: components["schemas"]["ItemCategory"];
+            consumable: components["schemas"]["ConsumableKind"];
+            bonus: components["schemas"]["StatBonusResponse"];
+            requirements: components["schemas"]["HonourRequirementResponse"][];
+            /** Format: int32 */
+            holes: number;
+            /** Format: int32 */
+            refineMax: number;
+            bound: boolean;
+            /** Format: int32 */
+            supplyHealthPoints: number;
+            /** Format: int32 */
+            supplyManaPoints: number;
+            /** Format: int32 */
+            amount: number;
+            elixir: null | components["schemas"]["HonourElixirResponse"];
+            key: null | components["schemas"]["HonourKeyResponse"];
+        };
+        HonourKeyResponse: {
+            placeName: string;
+            /** Format: int32 */
+            seconds: number;
         };
         HonourMedalResponse: {
             itemId: string;
@@ -2668,9 +2701,28 @@ export interface components {
             /** Format: int32 */
             owned: number;
         };
+        HonourMercenaryResponse: {
+            /** Format: int32 */
+            fights: number;
+            /** Format: int32 */
+            moneyPercent: number;
+            /** Format: int32 */
+            dropPercent: number;
+            /** Format: int32 */
+            experiencePercent: number;
+            /** Format: int32 */
+            deathCost: number;
+        };
+        HonourRequirementResponse: {
+            stat: string;
+            /** Format: int32 */
+            minimum: number;
+            met: boolean;
+        };
         HonourShopResponse: {
             medals: components["schemas"]["HonourMedalResponse"][];
             exchanges: components["schemas"]["HonourExchangeResponse"][];
+            hiredMercenaryName: null | string;
         };
         InnBookRequest: {
             roomId: null | string;

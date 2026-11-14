@@ -83,6 +83,38 @@ public class HonourServiceTests
             new[] { "honour-9", "honour-12", "honour-1", "honour-142" }.Select(id => affordable[id]));
     }
 
+    // 規格 honour「Weapon requirement not met」：需求比對裸點（力 300）；沒有需求的不列
+    [Fact]
+    public async Task Get_RequirementMetUsesBaseStats()
+    {
+        await characters.AddAsync(
+            TestCharacters.Default(AccountId, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with
+            {
+                Base = new BaseStats(Strength: 300, Intelligence: 12, Life: 12, Vitality: 10, Agility: 12, Charisma: 10, Faith: 10),
+            },
+            CancellationToken);
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        var offers = overview.Offers.ToDictionary(offer => offer.Exchange.Id);
+        Assert.Equal([new HonourRequirement(BaseStat.Strength, 435, false)], offers["honour-11"].Requirements);
+        Assert.Equal([new HonourRequirement(BaseStat.Strength, 145, true)], offers["honour-9"].Requirements);
+        Assert.Empty(offers["honour-133"].Requirements);
+        Assert.Empty(offers["honour-1"].Requirements);
+    }
+
+    // 規格 honour「Hired mercenary name」
+    [Fact]
+    public async Task Get_HiredMercenaryName()
+    {
+        var character = await AddCharacterAsync();
+        Assert.Null((await service.GetAsync(AccountId, CancellationToken)).HiredMercenaryName);
+
+        await mercenaries.AddAsync(character.Id, new MercenaryContract("test-honour-mercenary", "葛雷", 5, null, null, Now), CancellationToken);
+
+        Assert.Equal("葛雷", (await service.GetAsync(AccountId, CancellationToken)).HiredMercenaryName);
+    }
+
     // 規格 honour「Exchanging for an item」：大陸 14 換巨石槌（honour-9，花大陸 2）
     [Fact]
     public async Task Exchange_FromTheRealContent()

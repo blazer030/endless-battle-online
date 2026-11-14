@@ -102,6 +102,37 @@ public class HonourEndpointsTests(MySqlDatabaseFixture database)
             contract.GetProperty("mercenaryId").GetString(), contract.GetProperty("remaining").GetInt32(), contract.GetProperty("fighting").GetBoolean()));
     }
 
+    // 規格 honour「Exchange details in the listing」的接線：道具與傭兵恰好一個有值、兌換回應也帶詳情與僱用中的名字
+    [Fact]
+    public async Task Honour_ListsDetailsAndHiredName()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GiveAsync(factory, client, "test-medal-a", 1);
+        await GiveAsync(factory, client, "test-medal-b", 1);
+
+        var listed = await ReadOkAsync(await client.GetAsync("/api/honour", CancellationToken));
+
+        Assert.Equal(JsonValueKind.Null, listed.GetProperty("hiredMercenaryName").ValueKind);
+        var ore = listed.GetProperty("exchanges")[0];
+        Assert.Equal(JsonValueKind.Null, ore.GetProperty("mercenary").ValueKind);
+        var item = ore.GetProperty("item");
+        Assert.Equal(("Material", "None", 0, false), (
+            item.GetProperty("category").GetString(), item.GetProperty("consumable").GetString(),
+            item.GetProperty("requirements").GetArrayLength(), item.GetProperty("bound").GetBoolean()));
+        var mercenary = listed.GetProperty("exchanges")[1];
+        Assert.Equal(JsonValueKind.Null, mercenary.GetProperty("item").ValueKind);
+        var contract = mercenary.GetProperty("mercenary");
+        Assert.Equal((5, 100, 100, 100, 1), (
+            contract.GetProperty("fights").GetInt32(), contract.GetProperty("moneyPercent").GetInt32(), contract.GetProperty("dropPercent").GetInt32(),
+            contract.GetProperty("experiencePercent").GetInt32(), contract.GetProperty("deathCost").GetInt32()));
+
+        var exchanged = await ReadOkAsync(await ExchangeAsync(client, "test-exchange-mercenary"));
+
+        Assert.Equal("測試榮譽傭兵", exchanged.GetProperty("hiredMercenaryName").GetString());
+        Assert.Equal(JsonValueKind.Object, exchanged.GetProperty("exchanges")[0].GetProperty("item").ValueKind);
+    }
+
     [Fact]
     public async Task Honour_MissingMedalsReturnsReason()
     {
