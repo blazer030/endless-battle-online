@@ -132,6 +132,9 @@ const renderApp = (
 ) => render(<App api={api} subscribeToSessionExpiry={subscribeToSessionExpiry} />)
 
 const ownCard = () => within(screen.getByRole("region", { name: "我的冒險者登記證" }))
+// 畫面要等非同步結果才切回登記證時用：先等登記證出現再往裡面找
+const findOwnCard = async () =>
+  within(await screen.findByRole("region", { name: "我的冒險者登記證" }))
 const blankCard = () => within(screen.getByRole("region", { name: "空白登記證" }))
 
 const townStatus = () => screen.queryByRole("region", { name: "角色狀態" })
@@ -141,6 +144,14 @@ const finishPassage = () =>
   vi.waitFor(() => {
     act(() => vi.advanceTimersByTime(PassageMilliseconds))
     expect(within(townStatus()!).getByText("青衣")).toBeInTheDocument()
+  })
+
+// 過場淡出的計時器設在 effect 裡，React 用自己抓好的 setImmediate 排 effect，可能比畫面晚一步；
+// 同 finishPassage，用真實時間輪詢、每次推進淡出時間，直到過場真的拿掉（不靠背景推進時間的快慢）
+const finishPassageLeave = (container: HTMLElement) =>
+  vi.waitFor(() => {
+    act(() => vi.advanceTimersByTime(PassageLeaveMilliseconds))
+    expect(container.querySelector(".passage")).toBeNull()
   })
 
 // 有角色時先播歡迎回來過場，播完才進遊戲
@@ -320,8 +331,7 @@ test("App_StoredTokenWithoutCharacter_FadesPassageOverCreation", async () => {
   expect(container.querySelector(".passage")).not.toBeNull()
   expect(screen.queryByRole("status", { name: "讀取中" })).not.toBeInTheDocument()
 
-  act(() => vi.advanceTimersByTime(PassageLeaveMilliseconds))
-  expect(container.querySelector(".passage")).toBeNull()
+  await finishPassageLeave(container)
 })
 
 // 打開網頁讀不到 → 登記證已在底下，過場背景留在上面淡出，PassageLeaveMilliseconds 後拿掉
@@ -335,7 +345,37 @@ test("App_StoredTokenLoadFails_FadesPassageOverRegistryCards", async () => {
   expect(container.querySelector(".passage")).not.toBeNull()
   expect(screen.queryByRole("status", { name: "讀取中" })).not.toBeInTheDocument()
 
-  act(() => vi.advanceTimersByTime(PassageLeaveMilliseconds))
+  await finishPassageLeave(container)
+})
+
+// 修正：機器忙時，登記證畫好了、淡出計時器所在的 effect 還沒跑，只推進一次 PassageLeaveMilliseconds 過場會還在；
+// 背景不推進時間時穩定重現這個情況
+test("App_PassageLeavesEvenWhenEffectsRunLate", async () => {
+  vi.useRealTimers()
+  vi.useFakeTimers({ shouldAdvanceTime: false })
+  saveAccessToken("token")
+  const { container } = renderApp(
+    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) }),
+  )
+  // 每次只等一輪 MessageChannel，登記證一畫好就停：這時淡出計時器所在的 effect 多半還沒跑
+  for (
+    let round = 0;
+    round < 50 && screen.queryByRole("region", { name: "我的冒險者登記證" }) === null;
+    round++
+  )
+    await new Promise<void>((resolve) => {
+      const channel = new MessageChannel()
+      channel.port1.onmessage = () => {
+        channel.port1.close()
+        resolve()
+      }
+      channel.port2.postMessage(null)
+    })
+  expect(screen.getByRole("region", { name: "我的冒險者登記證" })).toBeInTheDocument()
+
+  await finishPassageLeave(container)
+
+  expect(screen.getByRole("region", { name: "我的冒險者登記證" })).toBeInTheDocument()
   expect(container.querySelector(".passage")).toBeNull()
 })
 
@@ -356,7 +396,7 @@ test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
     return () => {}
   })
 
-  expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  expect(await (await findOwnCard()).findByRole("button", { name: "入城" })).toBeInTheDocument()
   // 401 由登出通知切回登記證，過場背景一樣淡出
   expect(container.querySelector(".passage")).not.toBeNull()
   expect(ownCard().getByLabelText("帳號")).toHaveValue("")
@@ -384,7 +424,7 @@ test("App_SignInThenUnauthorizedLoad_ReturnsToRegistryCards", async () => {
   await signIn(user)
 
   await vi.waitFor(() => expect(api.getMyCharacter).toHaveBeenCalled())
-  expect(await ownCard().findByRole("button", { name: "入城" })).toBeInTheDocument()
+  expect(await (await findOwnCard()).findByRole("button", { name: "入城" })).toBeInTheDocument()
   expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
   expect(readAccessToken()).toBeNull()
   expect(screen.queryByRole("alert", { name: "讀取失敗" })).not.toBeInTheDocument()
@@ -503,7 +543,7 @@ test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
 
   await signIn(user)
 
-  expect(await ownCard().findByRole("alert")).toHaveTextContent("帳號或密碼錯誤")
+  expect(await (await findOwnCard()).findByRole("alert")).toHaveTextContent("帳號或密碼錯誤")
   expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
 })
 
