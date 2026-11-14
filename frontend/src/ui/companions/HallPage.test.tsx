@@ -331,3 +331,60 @@ test.each([
   expect(screen.queryByRole("dialog", { name: "冒險地" })).not.toBeInTheDocument()
   expect(within(sheet()).queryByRole("status")).not.toBeInTheDocument()
 })
+
+// 派遣送出後換開了僱用詳情：回應回來時不關掉它，也不在它裡面說派遣的結果
+test.each([
+  ["succeeds", true],
+  ["fails", false],
+])("LateDeployLeavesTheNewSheetAlone %s", async (_, succeeds) => {
+  const resting = contract({ fighting: false, placeId: null, placeName: null })
+  const api = await renderHall({ current: resting, money: 1_000_000 })
+  let settle: () => void = () => {}
+  vi.mocked(api.deployMercenary).mockReturnValueOnce(
+    new Promise((resolve, reject) => {
+      settle = () =>
+        succeeds
+          ? resolve(overview(contract({ placeId: 1, placeName: "中央平原" })))
+          : reject(new ApiError(400, "禁區", ["placeRestricted"]))
+    }),
+  )
+
+  fireEvent.click(screen.getByRole("button", { name: "派遣" }))
+  await flush()
+  fireEvent.click(within(sheet()).getByRole("button", { name: /^中央平原/ }))
+  fireEvent.click(within(sheet()).getByRole("button", { name: "出發" }))
+  fireEvent.click(within(sheet()).getByRole("button", { name: "關閉" }))
+  fireEvent.click(note("E級傭兵"))
+  settle()
+  await flush()
+
+  const hireSheet = screen.getByRole("dialog", { name: "E級傭兵" })
+  expect(within(hireSheet).queryByRole("status")).not.toBeInTheDocument()
+})
+
+// 僱用送出後換開了別張便條：回應回來時那張還開著
+test("LateHireLeavesTheNewSheetOpen", async () => {
+  const api = await renderHall({ money: 1_000_000 })
+  let finish: () => void = () => {}
+  vi.mocked(api.hireMercenary).mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = () =>
+        resolve(
+          MercenaryHireVo.create({
+            mercenaries: overview(contract({ name: "F級傭兵", fighting: false })),
+            character: makeCharacter({ money: 999_500 }),
+          }),
+        )
+    }),
+  )
+
+  fireEvent.click(note("F級傭兵"))
+  fireEvent.click(within(sheet()).getByRole("button", { name: "僱用" }))
+  fireEvent.click(within(sheet()).getByRole("button", { name: "關閉" }))
+  fireEvent.click(note("E級傭兵"))
+  finish()
+  await flush()
+
+  expect(screen.getByRole("dialog", { name: "E級傭兵" })).toBeInTheDocument()
+  expect(screen.getByLabelText("持有金錢")).toHaveTextContent("999,500")
+})

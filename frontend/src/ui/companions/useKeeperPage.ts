@@ -68,27 +68,30 @@ export const useKeeperPage = <T>({
     }
   }, [api, onCharacterChange])
 
-  const fail = (error: unknown) => {
+  const fail = (error: unknown, speak: boolean) => {
     if (error instanceof ApiError && error.reasons.length > 0) {
-      setEvent(rejected(error.reasons[0]!, view))
+      if (speak) setEvent(rejected(error.reasons[0]!, view))
       if (error.reasons.includes("notEnoughMoney")) void reloadCharacter()
-    } else setEvent(failed)
+    } else if (speak) setEvent(failed)
   }
 
   // 送一個請求：成功時交給 onSuccess 套用結果並回傳要說的事件（null 不說話）；回傳是否成功
+  // speak 在回應回來時判斷還要不要說（例如玩家已經換開了別張羊皮紙，就不說在那張裡）
   const perform = async <R>(
     action: () => Promise<R>,
     onSuccess: (result: R) => KeeperEvent | null,
+    speak: () => boolean = () => true,
   ) => {
     setBusy(true)
     setEvent(null)
     try {
       const result = await action()
       if (!alive.current) return true
-      setEvent(onSuccess(result))
+      const said = onSuccess(result)
+      setEvent(speak() ? said : null)
       return true
     } catch (error) {
-      if (alive.current) fail(error)
+      if (alive.current) fail(error, speak())
       return false
     } finally {
       if (alive.current) setBusy(false)
@@ -96,11 +99,15 @@ export const useKeeperPage = <T>({
   }
 
   // 回應就是新的頁面資料時：換上並說 success
-  const run = (action: () => Promise<T>, success: KeeperEvent) =>
-    perform(action, (result) => {
-      setView(result)
-      return success
-    })
+  const run = (action: () => Promise<T>, success: KeeperEvent, speak?: () => boolean) =>
+    perform(
+      action,
+      (result) => {
+        setView(result)
+        return success
+      },
+      speak,
+    )
 
   const retry = () => {
     setEvent(null)

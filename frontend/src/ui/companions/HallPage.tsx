@@ -73,22 +73,40 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
   const [groups, setGroups] = useState<DeployGroup[] | null>(null)
   // 每次打開或關上羊皮紙加一；冒險地清單回來時用來判斷是不是還開著同一張
   const sheetVersion = useRef(0)
+  // 羊皮紙現在是否開著（請求回來時要知道，state 在那時是舊的）
+  const sheetShown = useRef(false)
+  const showSheet = (open: boolean) => {
+    sheetShown.current = open
+    setSheetOpen(open)
+  }
 
   const catalogue = view?.catalogue ?? []
   const contract = view?.contract ?? null
   const contractEntry =
     contract === null ? undefined : catalogue.find((entry) => entry.id === contract.mercenaryId)
 
-  const hire = (entry: MercenaryCatalogueEntry) =>
-    perform(
+  // 送出時記下開著哪一張羊皮紙；回來時還是那張才收起來，換開了別張就不收、也不在那張裡說
+  const sheetGuard = () => {
+    const version = sheetVersion.current
+    return {
+      same: () => sheetVersion.current === version,
+      speak: () => sheetVersion.current === version || !sheetShown.current,
+    }
+  }
+
+  const hire = (entry: MercenaryCatalogueEntry) => {
+    const guard = sheetGuard()
+    return perform(
       () => api.hireMercenary(entry.id),
       (result) => {
         setView(result.mercenaries)
         onCharacterChange(result.character)
-        setSheetOpen(false)
+        if (guard.same()) showSheet(false)
         return { kind: "hired", name: entry.name }
       },
+      guard.speak,
     )
+  }
 
   const openSheet = (next: Sheet) => {
     sheetVersion.current += 1
@@ -96,13 +114,13 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
     setRenaming(false)
     setDismissing(false)
     setSheet(next)
-    setSheetOpen(true)
+    showSheet(true)
   }
 
   const closeSheet = () => {
     sheetVersion.current += 1
     setEvent(null)
-    setSheetOpen(false)
+    showSheet(false)
   }
 
   // 冒險地清單每次打開都重讀；目前的冒險地若在清單裡就先選好
@@ -134,14 +152,16 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
     const place = groups
       ?.flatMap((group) => group.places)
       .find((candidate) => candidate.id === placeId)
+    const guard = sheetGuard()
     if (
-      await run(() => api.deployMercenary(placeId), {
-        kind: "deployed",
-        name: current.name,
-        place: place?.name ?? "",
-      })
+      (await run(
+        () => api.deployMercenary(placeId),
+        { kind: "deployed", name: current.name, place: place?.name ?? "" },
+        guard.speak,
+      )) &&
+      guard.same()
     )
-      setSheetOpen(false)
+      showSheet(false)
   }
 
   const line = event === null ? null : keeperLine(event)
