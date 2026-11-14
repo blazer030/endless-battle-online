@@ -7,7 +7,7 @@ import { MercenaryHireVo } from "../game/mercenaries"
 import { RevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
 import { makeCharacter, makeMercenaryOverview } from "../test/fixtures"
 import { createCompanionsApi } from "./companions/testing"
-import { createHonourApi, shopWith } from "./honour/testing"
+import { createHonourApi, demoExchanges, shopWith } from "./honour/testing"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
@@ -265,6 +265,46 @@ test("GameScreen_BackFromHonourShowsTheGuildSquare", async () => {
 
   expect(screen.queryByRole("group", { name: "持有勳章" })).not.toBeInTheDocument()
   expect(segmentOf()).toBe("2")
+})
+
+// 規格 honour-screen：兌換後回公會前，城鎮帶著兌換後重讀的角色
+test("GameScreen_BackFromHonourCarriesTheLatestCharacter", async () => {
+  const api = createApi()
+  const shop = shopWith({ exchanges: demoExchanges })
+  vi.mocked(api.getHonourShop).mockResolvedValue(shop)
+  vi.mocked(api.exchangeHonour).mockResolvedValue(shop)
+  vi.mocked(api.getMyCharacter).mockResolvedValue({ ...character, money: 777 })
+  renderGame(api)
+  click("市集")
+  click("公會前")
+  click("勳章所")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  fireEvent.click(
+    within(screen.getByRole("group", { name: "持有勳章" })).getByRole("button", {
+      name: /^大陸勳章/,
+    }),
+  )
+  fireEvent.click(screen.getByRole("button", { name: /^巨石槌/ }))
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "巨石槌" })).getByRole("button", { name: "兌換" }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "巨石槌" })).getByRole("button", { name: "關閉" }),
+  )
+  click("櫃檯")
+  click("公會前")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(segmentOf()).toBe("2")
+  expect(screen.getByLabelText("金錢")).toHaveTextContent("777")
 })
 
 // 規格 Facilities open the old tabbed screen 的對照表

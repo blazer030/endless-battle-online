@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { emptyBonus, makeHonourItem, makeHonourShop } from "../test/fixtures"
+import { rainforestAndSilverExchanges } from "../test/honourContent"
 import {
   bonusRows,
   categoryLine,
@@ -94,6 +95,51 @@ describe("rackSections", () => {
     ).toEqual([
       ["道具", ["90000HP回復劑", "大魔石寶箱", "魔法捕捉器", "1500SP藥水", "110000HP回復劑"]],
       ["材料", ["劣質打孔石"]],
+    ])
+  })
+
+  // 規格 honour-screen：Rainforest rack（正式內容）
+  it("lays out the rainforest rack from the real content", () => {
+    const sections = rackSections(rainforestAndSilverExchanges, "item-1306")
+
+    expect(sections.map((section) => [section.title, section.exchanges.length])).toEqual([
+      ["武器", 9],
+      ["頭部", 15],
+      ["鑰匙", 2],
+      ["道具", 1],
+      ["材料", 1],
+    ])
+    expect(
+      sections[0]!.exchanges
+        .slice(0, 3)
+        .map((exchange) => [
+          exchange.rewardName,
+          exchange.cost.find((cost) => cost.itemId === "item-1306")!.quantity,
+        ]),
+    ).toEqual([
+      ["白陽短劍", 8],
+      ["偏斜針", 9],
+      ["流影套索", 10],
+    ])
+  })
+
+  // 規格 honour-screen：Display rack 的 silver rack order（正式內容）
+  it("orders the silver rack from the real content", () => {
+    const tags = rackSections(rainforestAndSilverExchanges, "item-2222").flatMap(
+      (section) => section.exchanges,
+    )
+
+    expect(tags.slice(0, 4).map((exchange) => exchange.rewardName)).toEqual([
+      "90000HP回復劑",
+      "大魔石寶箱",
+      "魔法捕捉器",
+      "1500SP藥水",
+    ])
+    expect(tags).toHaveLength(12)
+    expect([tags[11]!.rewardName, tags[11]!.quantity, tags[11]!.item?.category]).toEqual([
+      "劣質打孔石",
+      3,
+      "Material",
     ])
   })
 

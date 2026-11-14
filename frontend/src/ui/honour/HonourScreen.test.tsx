@@ -5,6 +5,7 @@ import { PollIntervalMilliseconds } from "../../motion/timings"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import mercenaryHelmet from "../../assets/honour/mercenary-helmet.webp"
+import keyPlaceholder from "../../assets/placeholders/items/key.svg"
 import materialPlaceholder from "../../assets/placeholders/items/material.svg"
 import weaponPlaceholder from "../../assets/placeholders/items/weapon.svg"
 import { HonourScreen } from "./HonourScreen"
@@ -225,6 +226,14 @@ test("ItemWithoutImageUsesCategoryPlaceholder", async () => {
     .getByRole("button", { name: /^巨石槌/ })
     .querySelector('[data-asset="items/item-1304"]')
   expect(costMedal).not.toBeNull()
+  fireEvent.click(screen.getByRole("button", { name: "櫃檯" }))
+  fireEvent.click(medalButton("王國勳章"))
+  expect(
+    within(screen.getByRole("region", { name: "王國勳章陳列板" }))
+      .getByRole("button", { name: "靜止鑰匙" })
+      .querySelector("img")
+      ?.getAttribute("src"),
+  ).toBe(keyPlaceholder)
 })
 
 const openSheet = async (
