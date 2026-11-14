@@ -176,6 +176,54 @@ test("HonourShopConverter_MissingOwnedCountNamesThePath", () => {
   expect(parseFailure(() => HonourShopConverter.toVo(dto)).path).toBe("honour.medals[1].owned")
 })
 
+test("HonourShopConverter_ReadsItemAndMercenaryDetails", () => {
+  const converted = HonourShopConverter.toVo(honourDto)
+
+  expect(converted.hiredMercenaryName).toBe("葛雷")
+  expect(converted.exchanges[0].mercenary).toEqual({
+    fights: 900,
+    moneyPercent: 80,
+    dropPercent: 80,
+    experiencePercent: 100,
+    deathCost: 1,
+  })
+  expect(converted.exchanges[0].item).toBeNull()
+  expect(converted.exchanges[1].item?.requirements).toEqual([
+    { stat: "strength", minimum: 435, met: false },
+  ])
+  expect(converted.exchanges[1].item?.key).toEqual({ placeName: "靜止之城", seconds: 86400 })
+  expect(converted.exchanges[1].item?.elixir).toEqual({
+    kind: "Attack",
+    multiplier: 1.05,
+    seconds: 7200,
+  })
+})
+
+test("HonourShopConverter_RejectsAnExchangeWithBothDetails", () => {
+  const dto = asDto(honourDto)
+  const exchanges = dto.exchanges as Record<string, unknown>[]
+  exchanges[0].item = exchanges[1].item
+
+  expect(parseFailure(() => HonourShopConverter.toVo(dto)).path).toBe("honour.exchanges[0].item")
+})
+
+test("HonourShopConverter_RejectsAnItemExchangeWithoutItem", () => {
+  const dto = asDto(honourDto)
+  ;(dto.exchanges as Record<string, unknown>[])[1].item = null
+
+  expect(parseFailure(() => HonourShopConverter.toVo(dto)).path).toBe("honour.exchanges[1].item")
+})
+
+test("HonourShopConverter_RejectsAnUnknownRequirementStat", () => {
+  const dto = asDto(honourDto)
+  const item = (dto.exchanges as Record<string, Record<string, unknown>>[])[1].item
+  ;(item.requirements as Record<string, unknown>[])[0].stat = "life"
+
+  expect(parseFailure(() => HonourShopConverter.toVo(dto)).path).toBe(
+    "honour.exchanges[1].item.requirements[0].stat",
+  )
+})
+
 test("HonourShopConverter_IgnoresUnknownFields", () => {
   expect(HonourShopConverter.toVo({ ...honourDto, banner: "x" })).not.toHaveProperty("banner")
 })

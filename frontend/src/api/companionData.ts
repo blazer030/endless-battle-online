@@ -1,10 +1,16 @@
+import { buffKinds } from "../game/buffs"
 import {
   honourExchangeKinds,
+  honourRequirementStats,
   HonourShopVo,
   type HonourCost,
   type HonourExchange,
+  type HonourItemDetail,
   type HonourMedal,
+  type HonourMercenaryDetail,
+  type HonourRequirement,
 } from "../game/honour"
+import { consumableKinds, itemCategoryIds } from "../game/inventory"
 import {
   MercenaryHireVo,
   MercenaryOverviewVo,
@@ -20,7 +26,9 @@ import {
   type PetFood,
 } from "../game/pets"
 import { CharacterConverter } from "./characterData"
+import { toStatBonus } from "./inventoryData"
 import {
+  ParseError,
   parseArray,
   parseBoolean,
   parseNullableNumber,
@@ -153,16 +161,95 @@ const toCost = (value: unknown, path: string): HonourCost => {
   }
 }
 
-const toExchange = (value: unknown, path: string): HonourExchange => {
+const toRequirement = (value: unknown, path: string): HonourRequirement => {
   const dto = parseObject(value, path)
   return {
+    stat: parseOneOf(dto.stat, honourRequirementStats, `${path}.stat`),
+    minimum: parseNumber(dto.minimum, `${path}.minimum`),
+    met: parseBoolean(dto.met, `${path}.met`),
+  }
+}
+
+const toElixir = (value: unknown, path: string): HonourItemDetail["elixir"] => {
+  if (value === null) return null
+  const dto = parseObject(value, path)
+  return {
+    kind: parseOneOf(dto.kind, buffKinds, `${path}.kind`),
+    multiplier: parseNumber(dto.multiplier, `${path}.multiplier`),
+    seconds: parseNumber(dto.seconds, `${path}.seconds`),
+  }
+}
+
+const toKey = (value: unknown, path: string): HonourItemDetail["key"] => {
+  if (value === null) return null
+  const dto = parseObject(value, path)
+  return {
+    placeName: parseString(dto.placeName, `${path}.placeName`),
+    seconds: parseNumber(dto.seconds, `${path}.seconds`),
+  }
+}
+
+const toItemDetail = (value: unknown, path: string): HonourItemDetail => {
+  const dto = parseObject(value, path)
+  return {
+    category: parseOneOf(dto.category, itemCategoryIds, `${path}.category`),
+    consumable: parseOneOf(dto.consumable, consumableKinds, `${path}.consumable`),
+    bonus: toStatBonus(dto.bonus, `${path}.bonus`),
+    requirements: parseArray(dto.requirements, `${path}.requirements`, toRequirement),
+    holes: parseNumber(dto.holes, `${path}.holes`),
+    refineMax: parseNumber(dto.refineMax, `${path}.refineMax`),
+    bound: parseBoolean(dto.bound, `${path}.bound`),
+    supplyHealthPoints: parseNumber(dto.supplyHealthPoints, `${path}.supplyHealthPoints`),
+    supplyManaPoints: parseNumber(dto.supplyManaPoints, `${path}.supplyManaPoints`),
+    amount: parseNumber(dto.amount, `${path}.amount`),
+    elixir: toElixir(dto.elixir, `${path}.elixir`),
+    key: toKey(dto.key, `${path}.key`),
+  }
+}
+
+const toMercenaryDetail = (value: unknown, path: string): HonourMercenaryDetail => {
+  const dto = parseObject(value, path)
+  return {
+    fights: parseNumber(dto.fights, `${path}.fights`),
+    moneyPercent: parseNumber(dto.moneyPercent, `${path}.moneyPercent`),
+    dropPercent: parseNumber(dto.dropPercent, `${path}.dropPercent`),
+    experiencePercent: parseNumber(dto.experiencePercent, `${path}.experiencePercent`),
+    deathCost: parseNumber(dto.deathCost, `${path}.deathCost`),
+  }
+}
+
+// 依 kind 只能有自己那一份詳情，另一份必須是 null
+const detailFor = <T>(
+  value: unknown,
+  wanted: boolean,
+  path: string,
+  parse: (detail: unknown, detailPath: string) => T,
+): T | null => {
+  if (!wanted) {
+    if (value !== null) throw new ParseError(path, "null")
+    return null
+  }
+  return parse(value, path)
+}
+
+const toExchange = (value: unknown, path: string): HonourExchange => {
+  const dto = parseObject(value, path)
+  const kind = parseOneOf(dto.kind, honourExchangeKinds, `${path}.kind`)
+  return {
     id: parseString(dto.id, `${path}.id`),
-    kind: parseOneOf(dto.kind, honourExchangeKinds, `${path}.kind`),
+    kind,
     rewardId: parseString(dto.rewardId, `${path}.rewardId`),
     rewardName: parseString(dto.rewardName, `${path}.rewardName`),
     quantity: parseNumber(dto.quantity, `${path}.quantity`),
     cost: parseArray(dto.cost, `${path}.cost`, toCost),
     affordable: parseBoolean(dto.affordable, `${path}.affordable`),
+    item: detailFor(dto.item, kind === "item", `${path}.item`, toItemDetail),
+    mercenary: detailFor(
+      dto.mercenary,
+      kind === "mercenary",
+      `${path}.mercenary`,
+      toMercenaryDetail,
+    ),
   }
 }
 
@@ -172,6 +259,7 @@ export const HonourShopConverter = {
     return HonourShopVo.create({
       medals: parseArray(dto.medals, `${path}.medals`, toMedal),
       exchanges: parseArray(dto.exchanges, `${path}.exchanges`, toExchange),
+      hiredMercenaryName: parseNullableString(dto.hiredMercenaryName, `${path}.hiredMercenaryName`),
     })
   },
 }

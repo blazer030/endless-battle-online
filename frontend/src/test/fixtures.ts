@@ -1,4 +1,4 @@
-import { HonourShopVo } from "../game/honour"
+import { HonourShopVo, type HonourItemDetail } from "../game/honour"
 import { MercenaryOverviewVo } from "../game/mercenaries"
 import { PetsVo, type Pet } from "../game/pets"
 import { MissionBoardVo, type Mission } from "../game/missions"
@@ -374,6 +374,23 @@ export const makeMercenaryOverview = (
   })
 
 // 持有大陸勳章 2、白銀勳章 0：魔石換得起，B 級傭兵換不起
+// 勳章所詳情：欄位故意都填上（需求、鑰匙、密藥），轉換測試才看得到每一欄
+export const makeHonourItem = (overrides: Partial<HonourItemDetail> = {}): HonourItemDetail => ({
+  category: "Weapon",
+  consumable: "None",
+  bonus: { ...emptyBonus, strength: 31, attack: 440 },
+  requirements: [{ stat: "strength", minimum: 435, met: false }],
+  holes: 2,
+  refineMax: 4,
+  bound: true,
+  supplyHealthPoints: 0,
+  supplyManaPoints: 0,
+  amount: 0,
+  elixir: { kind: "Attack", multiplier: 1.05, seconds: 7200 },
+  key: { placeName: "靜止之城", seconds: 86400 },
+  ...overrides,
+})
+
 export const makeHonourShop = (overrides: Partial<HonourShopVo> = {}): HonourShopVo =>
   HonourShopVo.create({
     medals: [
@@ -395,6 +412,14 @@ export const makeHonourShop = (overrides: Partial<HonourShopVo> = {}): HonourSho
           { itemId: "kingdom-medal", name: "王國勳章", quantity: 3, owned: 0 },
         ],
         affordable: false,
+        item: null,
+        mercenary: {
+          fights: 900,
+          moneyPercent: 80,
+          dropPercent: 80,
+          experiencePercent: 100,
+          deathCost: 1,
+        },
       },
       {
         id: "honour-attack-stone",
@@ -404,8 +429,11 @@ export const makeHonourShop = (overrides: Partial<HonourShopVo> = {}): HonourSho
         quantity: 1,
         cost: [{ itemId: "continent-medal", name: "大陸勳章", quantity: 2, owned: 2 }],
         affordable: true,
+        item: makeHonourItem(),
+        mercenary: null,
       },
     ],
+    hiredMercenaryName: "葛雷",
     ...overrides,
   })
 

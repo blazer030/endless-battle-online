@@ -1,4 +1,6 @@
+import type { BuffKind } from "./buffs"
 import { formatNumber } from "./format"
+import type { ConsumableKind, ItemCategory, StatBonus } from "./inventory"
 import { translateReasons } from "./reasons"
 
 // 勳章所的資料（來自 /api/honour），由 api/companionData.ts 轉換
@@ -14,7 +16,45 @@ export type HonourCost = {
 export const honourExchangeKinds = ["mercenary", "item"] as const
 export type HonourExchangeKind = (typeof honourExchangeKinds)[number]
 
-// rewardId 是傭兵或道具的 id，依 kind 而定
+export const honourRequirementStats = ["strength", "intelligence", "agility", "charisma"] as const
+export type HonourRequirementStat = (typeof honourRequirementStats)[number]
+
+// met：角色裸點是否達到（伺服器判斷）
+export type HonourRequirement = {
+  readonly stat: HonourRequirementStat
+  readonly minimum: number
+  readonly met: boolean
+}
+
+// 兌換道具的詳情；elixir 只有密藥有、key 只有鑰匙有
+export type HonourItemDetail = {
+  readonly category: ItemCategory
+  readonly consumable: ConsumableKind
+  readonly bonus: StatBonus
+  readonly requirements: readonly HonourRequirement[]
+  readonly holes: number
+  readonly refineMax: number
+  readonly bound: boolean
+  readonly supplyHealthPoints: number
+  readonly supplyManaPoints: number
+  readonly amount: number
+  readonly elixir: {
+    readonly kind: BuffKind
+    readonly multiplier: number
+    readonly seconds: number
+  } | null
+  readonly key: { readonly placeName: string; readonly seconds: number } | null
+}
+
+export type HonourMercenaryDetail = {
+  readonly fights: number
+  readonly moneyPercent: number
+  readonly dropPercent: number
+  readonly experiencePercent: number
+  readonly deathCost: number
+}
+
+// rewardId 是傭兵或道具的 id，依 kind 而定；item 與 mercenary 依 kind 恰好一個有值
 export type HonourExchange = {
   readonly id: string
   readonly kind: HonourExchangeKind
@@ -23,17 +63,26 @@ export type HonourExchange = {
   readonly quantity: number
   readonly cost: readonly HonourCost[]
   readonly affordable: boolean
+  readonly item: HonourItemDetail | null
+  readonly mercenary: HonourMercenaryDetail | null
 }
 
-type HonourShopVoParams = { medals: readonly HonourMedal[]; exchanges: readonly HonourExchange[] }
+type HonourShopVoParams = {
+  medals: readonly HonourMedal[]
+  exchanges: readonly HonourExchange[]
+  hiredMercenaryName: string | null
+}
 
 export class HonourShopVo {
   readonly medals: readonly HonourMedal[]
   readonly exchanges: readonly HonourExchange[]
+  // 目前契約的名字，沒有契約為 null
+  readonly hiredMercenaryName: string | null
 
   private constructor(params: HonourShopVoParams) {
     this.medals = params.medals
     this.exchanges = params.exchanges
+    this.hiredMercenaryName = params.hiredMercenaryName
   }
 
   static create(params: HonourShopVoParams): HonourShopVo {
