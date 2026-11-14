@@ -83,6 +83,29 @@ public class HonourServiceTests
             new[] { "honour-9", "honour-12", "honour-1", "honour-142" }.Select(id => affordable[id]));
     }
 
+    // 規格 honour「Exchange refusals」的 refusals 表（正式內容）：honour-10 只有大陸 4 枚；honour-9 遇到武器格滿
+    [Fact]
+    public async Task Exchange_RealRefusals()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "item-1304", 4);
+
+        var missing = await Assert.ThrowsAsync<InputValidationException>(
+            () => RealService().ExchangeAsync(AccountId, "honour-10", CancellationToken));
+
+        Assert.Equal(["medalsMissing"], missing.Reasons);
+        for (var weapon = 0; weapon < 15; weapon++)
+        {
+            await GiveAsync(character, "item-1384", 1);
+        }
+
+        var full = await Assert.ThrowsAsync<InputValidationException>(
+            () => RealService().ExchangeAsync(AccountId, "honour-9", CancellationToken));
+
+        Assert.Equal(["bagFull"], full.Reasons);
+        Assert.Equal(4, Assert.Single(await BagAsync(character), entry => entry.ItemId == "item-1304").Quantity);
+    }
+
     // 規格 honour「Weapon requirement not met」：需求比對裸點（力 300）；沒有需求的不列
     [Fact]
     public async Task Get_RequirementMetUsesBaseStats()

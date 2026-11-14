@@ -32,6 +32,16 @@ public class HonourResponseTests
         Assert.Equal([new HonourRequirementResponse("strength", 145, true)], item.Requirements);
     }
 
+    // 規格 honour「Weapon requirement not met」：刺心者的分類、孔數、精鍊上限、綁定與未達到的需求
+    [Fact]
+    public void HeartPiercer_IsABoundWeaponWithAnUnmetRequirement()
+    {
+        var item = Respond("honour-11", new HonourRequirement(BaseStat.Strength, 435, false)).Item!;
+
+        Assert.Equal((ItemCategory.Weapon, 2, 4, true), (item.Category, item.Holes, item.RefineMax, item.Bound));
+        Assert.Equal([new HonourRequirementResponse("strength", 435, false)], item.Requirements);
+    }
+
     [Fact]
     public void Supply_HasSupplyHealthPoints()
     {
