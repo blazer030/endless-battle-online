@@ -228,3 +228,53 @@ Use the image-generator subagent to generate ONE image and name the file exactly
 ```text
 A mysterious unknown little beast drawn as a soft dark silhouette: a cute chubby four-legged creature sitting upright and facing the viewer, round head with two perky pointed ears, a fluffy tail curled beside it, the whole body filled with one flat deep warm umber-gray ink wash with subtle watercolor texture and a slightly lighter rim along the top edge, only two small round glowing amber eyes visible, no mouth, no nose, no fur details, no markings, simple readable shape hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
 ```
+
+## 傭兵圖示・盾牌與劍（備用）
+
+- 素材：`/_blob/59862c397ce2ecac04e89ef89ee4deeb`
+- 產圖：grok，2026-11-14，比例 1:1，紀錄 g281
+- 對應方式：out/hn-merc-b.png → raw/hn-merc-b.png
+
+```text
+A single round wooden shield with an iron rim and a short sword crossed behind it, simple bold silhouette, a mercenary emblem, hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
+
+## 雨林勳章・舊版（備用）
+
+- 素材：`/_blob/4f2fd96da462e8e66dcf9a5f22ba37be`
+- 產圖：grok，2026-11-06，比例 2:3，紀錄 g195
+- 對應方式：work/honour/hn-medal-rainforest.png → raw/hn-medal-rainforest.png
+
+```text
+A single military honour medal: a round engraved metal coin hanging from a short folded fabric ribbon at the top, same composition as a classic campaign medal, vertical, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
+
+## 雨林勳章・重產候選 r2（備用）
+
+- 素材：`/_blob/e9b1c935713fcc0223ebff5ed01bdb6f`
+- 產圖：grok，2026-11-14，比例 2:3，紀錄 g283
+- 對應方式：out/hn-medal-rainforest-r2-420.png → raw/hn-medal-rainforest-r2.png
+
+```text
+A single military honour medal: a round engraved metal coin hanging from a folded fabric ribbon at the top, same composition as a classic campaign medal, tall narrow vertical shape, the ribbon section above the coin is as tall as the coin is wide, the ribbon is about as wide as the coin, the coin fills the lower half, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
+
+## 雨林勳章・重產候選 r3（備用）
+
+- 素材：`/_blob/e3e2db89797ba24f01827f8df61d1475`
+- 產圖：grok，2026-11-14，比例 2:3，紀錄 g284
+- 對應方式：out/hn-medal-rainforest-r3-420.png → raw/hn-medal-rainforest-r3.png
+
+```text
+A single military honour medal: a round engraved metal coin hanging from a folded fabric ribbon at the top, same composition as a classic campaign medal, tall narrow vertical shape, the ribbon section above the coin is as tall as the coin is wide, the ribbon is about as wide as the coin, the coin fills the lower half, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
+
+## 雨林勳章・重產候選 r4（備用）
+
+- 素材：`/_blob/3c05e988e70a9b50a332f47fb4c3396e`
+- 產圖：grok，2026-11-14，比例 2:3，紀錄 g285
+- 對應方式：out/hn-medal-rainforest-r4-420.png → raw/hn-medal-rainforest-r4.png
+
+```text
+A single military honour medal: a round engraved metal coin hanging from a folded fabric ribbon at the top, same composition as a classic campaign medal, tall narrow vertical shape, the ribbon section above the coin is as tall as the coin is wide, the ribbon is about as wide as the coin, the coin fills the lower half, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```

@@ -630,6 +630,16 @@ A single small blank rectangular brass nameplate with a thin engraved border and
 A single small blank parchment price tag, rounded top corners, a brass grommet hole near the top with a short loop of twine string, plain blank surface hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
 ```
 
+## 傭兵紅羽頭盔（現用）
+
+- 素材：`/_blob/9ae2440a3558895b23982bcc9e7e9d7d`
+- 產圖：grok，2026-11-14，比例 1:1，紀錄 g280
+- 對應方式：out/hn-merc-a.png → raw/hn-merc-a.png
+
+```text
+A single sturdy steel mercenary helmet with a nose guard and a bold red plume on top, simple bold silhouette, three-quarter view, hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+```
+
 ## 皮革吊牌（現用）
 
 - 素材：`/_blob/0eeb33f779e7c7e82946ab47c9124323`

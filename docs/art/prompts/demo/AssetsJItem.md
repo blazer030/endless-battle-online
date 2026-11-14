@@ -263,12 +263,12 @@ A single military honour medal: a round engraved metal coin hanging from a short
 
 ## 勳章（4）・雨林勳章（現用）
 
-- 素材：`/_blob/4f2fd96da462e8e66dcf9a5f22ba37be`
-- 產圖：grok，2026-11-06，比例 2:3，紀錄 g195
-- 對應方式：work/honour/hn-medal-rainforest.png → raw/hn-medal-rainforest.png
+- 素材：`/_blob/9a9269b1bf240a9492fa9ebc7f507996`
+- 產圖：grok，2026-11-14，比例 2:3，紀錄 g282
+- 對應方式：out/hn-medal-rainforest-r1-420.png → raw/hn-medal-rainforest-r1.png
 
 ```text
-A single military honour medal: a round engraved metal coin hanging from a short folded fabric ribbon at the top, same composition as a classic campaign medal, vertical, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
+A single military honour medal: a round engraved metal coin hanging from a folded fabric ribbon at the top, same composition as a classic campaign medal, tall narrow vertical shape, the ribbon section above the coin is as tall as the coin is wide, the ribbon is about as wide as the coin, the coin fills the lower half, weathered bronze-green coin engraved with a broad jungle leaf and vines, forest green ribbon with a pale yellow center stripe hand-drawn ink linework with visible pen strokes, soft transparent watercolor washes with paper texture, warm muted palette, flat front view, centered, the object fills about 80 percent of the frame, on a solid flat magenta background #FF00FF, no text, no letters, no drop shadow
 ```
 
 ## 勳章（4）・王城勳章（現用）

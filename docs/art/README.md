@@ -69,6 +69,7 @@ cd tools/assets && pnpm cli missing monsters # 只看一類
 - 一律透過 `frontend/src/render/contentAssets.ts` 的 `contentAsset(類別, 鍵)`：清單有就回 R2 網址，沒有就回該類的佔位圖。
 - R2 的圖載入失敗時也退回佔位圖（`contentArtCandidates`）。
 - 佔位圖在 `frontend/src/assets/placeholders/<類別>.svg`，是灰階剪影。SVG 是美術檔不是程式碼，裡面的色碼不受「顏色只寫在 `theme.css`」的規則約束。
+- 道具另有各分類的線條佔位圖 `frontend/src/assets/placeholders/items/<分類>.svg`（`weapon`、`head`、`body`、`hand`、`foot`、`accessory`、`consumable`、`stone`、`refine-stone`、`material`、`medal`、`key`，產生器 `.design-work/work/placeholders/build.py`）；畫面用 `ContentImage` 的 `placeholder` 指定，目前只有勳章所用，背包、鐵舖、商店換新設計時再改用。
 - 冒險頁舞台：怪物與寵物用 `monsters/<怪物 id>`；怪物名字在血條上，寵物保留名牌。
 
 ## 設計素材
@@ -140,6 +141,18 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 | `pet-silhouette` | 通用寵物剪影：寵物沒有怪物內容圖時用（260，原檔 `.design-work/out/pet-silhouette-a.png` 752） | `c7c7e874` |
 
 門牌、木台、羊皮紙、圖釘、關閉鈕沿用 `inn/`，印章、對話框沿用 `title/`，錢袋沿用 `town/purse`。名冊上的勳章是道具內容圖 `items/item-1304`（大陸勳章 `1e8f0f15`）、`items/item-1305`（王國勳章 `88ffe03e`）。
+
+### `honour/`：勳章所（設計板 HonourFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `tag` | 陳列板上的麻繩吊牌（原圖 189） | `13deafb3` |
+| `rack-frame` | 陳列板木框（`border-image` 切 110，不縮，564） | `3677319e` |
+| `felt` | 陳列板的綠絨布（375） | `c85cc481` |
+| `medal-case` | 櫃檯上的絲絨勳章盒（750，原圖 900） | `fed58e66` |
+| `mercenary-helmet` | 傭兵吊牌與詳情的紅羽頭盔（80，原檔 `.design-work/out/hn-merc-a.png` 640） | `9ae2440a` |
+
+榮譽廳背景、莉瑟、對話框、印章沿用 `title/hall`、`title/clerk`、`title/bubble`、`title/seal`；櫃檯與木條沿用 `inn/counter-wood`、`inn/counter-edge`；羊皮紙、吊牌圖釘、關閉鈕沿用 `inn/parchment`、`inn/pin`、`inn/close`；僱用中紙條沿用 `title/book-page`；分區銘牌沿用 `companions/name-plate`。五枚勳章是道具內容圖 `items/item-1304`、`1305`、`1306`（雨林，重產的 199×420 `.design-work/work/honour/hn-medal-rainforest.png`）、`1307`（王城 `644c74e7`）、`2222`（白銀 `f2285d8c`），用 `import` 上傳 R2。
 
 ## 提示詞
 
