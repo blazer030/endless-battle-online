@@ -331,3 +331,183 @@
   width: auto;
   margin-left: -6px;
 }
+
+.honour-rack__list {
+  position: absolute;
+  z-index: 2;
+  inset: -8px -10px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 36px 4px 14px;
+  box-sizing: border-box;
+  animation: honour-list-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.honour-rack__list::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes honour-list-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+/* 分區：小黃銅牌（傭兵、武器、頭部…） */
+.honour-rack__section {
+  width: max-content;
+  margin: 6px auto 8px;
+  padding: 4px 18px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--honour-plate-text);
+  background: url("../../assets/companions/name-plate.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--honour-felt-rgb) / 0.6));
+}
+
+.honour-rack__tags {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 6px;
+  margin-bottom: 10px;
+}
+
+/* 吊牌（2026-11-14 定案 C）：高 138、上內距 48、下內距 8、圖 28；麻繩掛在黃銅圖釘上 */
+.honour-tag {
+  position: relative;
+  height: 138px;
+  padding: 48px 5px 8px;
+  box-sizing: border-box;
+  border: 0;
+  font: inherit;
+  color: var(--honour-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  background: url("../../assets/honour/tag.webp") center top / 100% 100% no-repeat;
+  filter: drop-shadow(0 4px 3px rgb(var(--honour-felt-rgb) / 0.55));
+  transform: rotate(var(--tilt));
+  transform-origin: 50% 3px;
+  transition: transform 0.2s;
+}
+
+.honour-tag:hover {
+  transform: rotate(calc(var(--tilt) * -1.4));
+}
+
+.honour-tag::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.honour-tag--dimmed {
+  filter: drop-shadow(0 4px 3px rgb(var(--honour-felt-rgb) / 0.55)) brightness(0.8) saturate(0.55);
+}
+
+.honour-tag--dimmed .honour-tag__name,
+.honour-tag--dimmed .honour-tag__picture {
+  opacity: 0.75;
+}
+
+/* 圖示右下角標數量（×10） */
+.honour-tag__picture {
+  position: relative;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 28px;
+}
+
+.honour-tag__image {
+  width: 28px;
+  height: 28px;
+}
+
+.honour-tag__image--mercenary {
+  width: auto;
+  filter: drop-shadow(0 1px 1px rgb(var(--umber-rgb) / 0.35));
+}
+
+.honour-tag__quantity {
+  position: absolute;
+  left: 21px;
+  bottom: -3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  white-space: nowrap;
+  color: var(--honour-ink);
+  background: var(--honour-badge-light);
+  box-shadow: 0 0 0 1px rgb(var(--umber-rgb) / 0.55);
+}
+
+/* 名字最多兩行，放在圖和花費列正中間 */
+.honour-tag__name {
+  margin: auto 0;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.honour-tag__cost {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 4px;
+}
+
+.honour-tag__cost > span {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.honour-tag__cost img {
+  height: 17px;
+  width: auto;
+}
+
+.honour-tag__cost em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--honour-ink);
+}
+
+.honour-tag__cost em.honour-tag__short {
+  color: var(--inn-replace-warn);
+}
+
+/* 五種勳章都要的：只畫勳章圖 */
+.honour-tag__cost--many {
+  gap: 0;
+}
+
+.honour-tag__cost--many em {
+  display: none;
+}

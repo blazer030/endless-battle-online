@@ -7,6 +7,7 @@ import { ContentImage } from "../ContentImage"
 import { BackButton } from "../companions/BackButton"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
+import { HonourRack } from "./HonourRack"
 import clerk from "../../assets/title/clerk.webp"
 import "../inn/InnScreen.css"
 import "./HonourScreen.css"
@@ -23,8 +24,6 @@ type Props = {
 
 type Shop = HonourShopVo | "failed" | null
 
-const shortName = (name: string) => name.replace(/勳章$/, "")
-
 // 勳章所（設計板 HonourFit）：櫃檯的莉瑟與勳章盒；點一枚勳章，陳列板降下來掛著它換得到的吊牌
 export const HonourScreen = ({ api, onBack }: Props) => {
   const stage = useStage()
@@ -33,6 +32,8 @@ export const HonourScreen = ({ api, onBack }: Props) => {
   // null＝櫃檯；有值＝陳列板正在看這種勳章
   const [medalId, setMedalId] = useState<string | null>(null)
   const [visit, setVisit] = useState<CounterState["visit"]>("first")
+  // 打開的吊牌（羊皮紙詳情）
+  const [, setSheetId] = useState<string | null>(null)
 
   useEffect(() => {
     let isCurrent = true
@@ -98,14 +99,8 @@ export const HonourScreen = ({ api, onBack }: Props) => {
         />
       )}
 
-      {medal !== undefined && (
-        <section className="honour-rack" aria-label={`${medal.name}陳列板`}>
-          <div className="honour-rack__felt" aria-hidden="true" />
-          <h3 className="honour-rack__plate">
-            <ContentImage category="items" assetKey={medal.itemId} alt="" />
-            {shortName(medal.name)}
-          </h3>
-        </section>
+      {loaded !== null && medal !== undefined && (
+        <HonourRack shop={loaded} medal={medal} onPick={setSheetId} />
       )}
 
       <div className="honour__counter" aria-hidden="true" />

@@ -3,8 +3,11 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { PollIntervalMilliseconds } from "../../motion/timings"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
+import mercenaryHelmet from "../../assets/honour/mercenary-helmet.webp"
+import materialPlaceholder from "../../assets/placeholders/items/material.svg"
+import weaponPlaceholder from "../../assets/placeholders/items/weapon.svg"
 import { HonourScreen } from "./HonourScreen"
-import { createHonourApi, medals, shopWith } from "./testing"
+import { createHonourApi, demoExchanges, itemExchange, medals, shopWith } from "./testing"
 
 const flush = () =>
   act(async () => {
@@ -121,4 +124,97 @@ test("MakesNoAdventureRequests", async () => {
   })
 
   expect(api.advance).not.toHaveBeenCalled()
+})
+
+const openRack = async (
+  name: string,
+  exchanges = demoExchanges,
+  hiredMercenaryName: string | null = null,
+) => {
+  await renderHonour(createHonourApi(shopWith({ exchanges, hiredMercenaryName })))
+  fireEvent.click(medalButton(name))
+  return screen.getByRole("region", { name: `${name}陳列板` })
+}
+
+const tagNames = (rack: HTMLElement) =>
+  within(rack)
+    .getAllByRole("button")
+    .map((tag) => tag.getAttribute("aria-label"))
+
+// 規格 honour-screen：Display rack 的 silver rack order
+test("RackListsTagsBySectionAndQuantity", async () => {
+  const silver: [string, number][] = [["item-2222", 1]]
+  const rack = await openRack("白銀勳章", [
+    itemExchange("134", "110000HP回復劑", "Consumable", [["item-2222", 3]], { quantity: 10 }),
+    itemExchange("133", "90000HP回復劑", "Consumable", silver, { quantity: 10 }),
+    itemExchange("142", "劣質打孔石", "Material", silver, { quantity: 3 }),
+    itemExchange("135", "魔法捕捉器", "Consumable", [["item-2222", 2]], { quantity: 5 }),
+    itemExchange("large-stone-box", "大魔石寶箱", "Consumable", silver),
+  ])
+
+  expect(
+    within(rack)
+      .getAllByRole("heading", { level: 4 })
+      .map((heading) => heading.textContent),
+  ).toEqual(["道具", "材料"])
+  expect(tagNames(rack)).toEqual([
+    "90000HP回復劑 ×10",
+    "大魔石寶箱",
+    "魔法捕捉器 ×5",
+    "110000HP回復劑 ×10",
+    "劣質打孔石 ×3",
+  ])
+})
+
+test("ExchangeWithSeveralMedalsAppearsOnEachRack", async () => {
+  const rack = await openRack("王國勳章")
+
+  expect(tagNames(rack)).toEqual(["C級傭兵", "靜止鑰匙", "劣質打孔石 ×3"])
+  fireEvent.click(screen.getByRole("button", { name: "櫃檯" }))
+  fireEvent.click(medalButton("王城勳章"))
+  expect(tagNames(screen.getByRole("region", { name: "王城勳章陳列板" }))).toEqual([
+    "靜止鑰匙",
+    "劣質打孔石 ×3",
+  ])
+})
+
+test("UnaffordableAndHiredTagsAreDimmedButOpen", async () => {
+  const rack = await openRack("大陸勳章", demoExchanges, "葛雷")
+  const tag = (name: string) => within(rack).getByRole("button", { name: new RegExp(`^${name}`) })
+
+  expect(tag("C級傭兵")).toHaveAttribute("data-dimmed", "true")
+  expect(tag("巨石槌")).toHaveAttribute("data-dimmed", "false")
+  expect(tag("劣質打孔石")).toHaveAttribute("data-dimmed", "true")
+  expect(tag("C級傭兵")).toBeEnabled()
+  // 不夠的數量標紅
+  expect(
+    within(tag("C級傭兵")).getByText("13", { selector: ".honour-tag__short" }),
+  ).toBeInTheDocument()
+})
+
+test("TagShowsQuantityBadge", async () => {
+  const rack = await openRack("白銀勳章")
+  const potion = within(rack).getByRole("button", { name: /^90000HP回復劑/ })
+
+  expect(within(potion).getByText("×10")).toBeInTheDocument()
+  expect(
+    within(within(rack).getByRole("button", { name: /^劣質打孔石/ })).getByText("×3"),
+  ).toBeInTheDocument()
+})
+
+// 規格 honour-screen：Item without a content image 與 pictures by reward
+test("ItemWithoutImageUsesCategoryPlaceholder", async () => {
+  const rack = await openRack("大陸勳章")
+  const picture = (name: string) =>
+    within(rack)
+      .getByRole("button", { name: new RegExp(`^${name}`) })
+      .querySelector("img")
+
+  expect(picture("巨石槌")?.getAttribute("src")).toBe(weaponPlaceholder)
+  expect(picture("劣質打孔石")?.getAttribute("src")).toBe(materialPlaceholder)
+  expect(picture("C級傭兵")?.getAttribute("src")).toBe(mercenaryHelmet)
+  const costMedal = within(rack)
+    .getByRole("button", { name: /^巨石槌/ })
+    .querySelector('[data-asset="items/item-1304"]')
+  expect(costMedal).not.toBeNull()
 })
