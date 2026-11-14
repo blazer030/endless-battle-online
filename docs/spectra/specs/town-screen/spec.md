@@ -102,13 +102,12 @@ While the town is shown the client SHALL NOT send adventure advance requests. Op
 ---
 ### Requirement: Facilities open the old tabbed screen
 
-Each facility in the town except the inn SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page.
+Each facility in the town except the inn and the companions SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page. The companions sign SHALL open the companions screen (see the `companions-screen` capability), and the old tabbed screen SHALL no longer have a companions tab.
 
 | Facility | Tab | Bag sub-page |
 | --- | --- | --- |
 | 角色 | character | — |
 | 背包 | bag | bag |
-| 同伴 | companions | — |
 | 出發 | adventure | — |
 | 商店街 | bag | shop |
 | 鐵舖 | bag | forge |
@@ -125,10 +124,51 @@ Each facility in the town except the inn SHALL open the old tabbed screen at the
 - **WHEN** the player opens "背包" from the gate
 - **THEN** the bag tab's sub-page buttons do not include "旅館"
 
+#### Scenario: Companions opens the companions screen
+
+- **WHEN** the player clicks "同伴" at the gate
+- **THEN** the companions entrance opens and the old tabbed screen is not shown
+
+#### Scenario: Old tabbed screen has no companions tab
+
+- **WHEN** the player opens "角色" from the gate
+- **THEN** the old tabbed screen's tabs do not include "同伴"
+
 #### Scenario: Return to the town
 
 - **WHEN** the player opens "商店街" from the market, then presses "回城鎮"
 - **THEN** the town is shown at the gate segment with the character handed back by the old tabbed screen
+
+
+<!-- @trace
+source: companions-screen
+updated: 2026-11-14
+code:
+  - frontend/src/ui/companions/useKeeperPage.ts
+  - frontend/src/game/names.ts
+  - frontend/src/ui/companions/RenameField.tsx
+  - frontend/src/game/companions.ts
+  - frontend/src/ui/stage/screenImages.ts
+  - frontend/src/ui/companions/HallPage.tsx
+  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
+  - frontend/src/render/contentAssets.ts
+  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
+  - frontend/src/ui/companions/CompanionsScreen.css
+  - frontend/src/ui/companions/StablePage.tsx
+  - frontend/src/ui/companions/CompanionsScreen.tsx
+  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
+  - frontend/src/ui/GameScreen.tsx
+  - frontend/src/ui/stage/preloadImages.ts
+  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
+  - frontend/src/ui/App.tsx
+tests:
+  - frontend/src/ui/companions/RenameField.test.tsx
+  - frontend/src/ui/companions/HallPage.test.tsx
+  - frontend/src/ui/GameScreen.test.tsx
+  - frontend/src/ui/companions/CompanionsScreen.test.tsx
+  - frontend/src/ui/companions/StablePage.test.tsx
+  - frontend/src/ui/stage/screenImages.test.ts
+-->
 
 ---
 ### Requirement: Bonus row and list
