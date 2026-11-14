@@ -12,6 +12,12 @@
   z-index: 30;
 }
 
+/* 兌換送出中返回鍵停用 */
+.honour .inn__back:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* 櫃檯：接待員莉瑟站在左邊說話；陳列板降下時退開 */
 .honour__clerk {
   position: absolute;

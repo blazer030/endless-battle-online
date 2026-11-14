@@ -175,7 +175,14 @@ export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
       )}
 
       {loaded !== null && medal !== undefined && (
-        <HonourRack shop={loaded} medal={medal} onPick={openSheet} />
+        <HonourRack
+          shop={loaded}
+          medal={medal}
+          onPick={(exchangeId) => {
+            // 送出中不換吊牌，回來的結果才會說在送出的那張羊皮紙裡
+            if (!busy) openSheet(exchangeId)
+          }}
+        />
       )}
 
       <div className="honour__counter" aria-hidden="true" />
@@ -189,7 +196,7 @@ export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
             style={{ left: `${medalSlots[index] ?? 0}%` }}
             aria-label={`${entry.name} ${loaded === null ? "" : entry.owned}`.trim()}
             aria-pressed={entry.itemId === medalId}
-            disabled={loaded === null}
+            disabled={loaded === null || busy}
             onClick={() => setMedalId(entry.itemId)}
           >
             <ContentImage category="items" assetKey={entry.itemId} alt="" />
@@ -215,9 +222,9 @@ export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
       )}
 
       {atCounter ? (
-        <BackButton label="公會前" onClick={onBack} />
+        <BackButton label="公會前" disabled={busy} onClick={onBack} />
       ) : (
-        <BackButton label="櫃檯" onClick={backToCounter} />
+        <BackButton label="櫃檯" disabled={busy} onClick={backToCounter} />
       )}
     </div>
   )

@@ -319,7 +319,36 @@ test("SendingBlocksTheSheet", async () => {
   expect(seal(sheet)).toHaveAttribute("aria-busy", "true")
   expect(seal(sheet)).toBeDisabled()
   expect(within(sheet).getByRole("button", { name: "關閉" })).toBeDisabled()
+  expect(screen.getByRole("button", { name: "櫃檯" })).toBeDisabled()
+  within(medalCase())
+    .getAllByRole("button")
+    .forEach((medal) => expect(medal).toBeDisabled())
   expect(api.exchangeHonour).toHaveBeenCalledExactlyOnceWith("9")
+})
+
+// 修正：送出中按「櫃檯」換到別張吊牌，先前那筆的結果不能說在別張羊皮紙裡
+test("LateResultIsNotSpokenInAnotherSheet", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  let finish: (shop: ReturnType<typeof shopWith>) => void = () => undefined
+  vi.mocked(api.exchangeHonour).mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve
+    }),
+  )
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  fireEvent.click(screen.getByRole("button", { name: "櫃檯" }))
+  fireEvent.click(medalButton("大陸勳章"))
+  fireEvent.click(screen.getByRole("button", { name: /^破山斧/ }))
+  finish(shopWith({ exchanges: demoExchanges }))
+  await flush()
+
+  expect(screen.queryByRole("dialog", { name: "破山斧" })).not.toBeInTheDocument()
+  expect(said(screen.getByRole("dialog", { name: "巨石槌" }))).toHaveTextContent(
+    "換好了！已經幫您放進背包囉。",
+  )
 })
 
 // 規格 honour-screen：Exchanging twice in a row
