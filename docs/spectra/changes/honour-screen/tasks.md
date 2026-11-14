@@ -36,3 +36,9 @@
   - 驗證紀錄（2026-11-14）：本機測試角色（大陸 14、王國 6、雨林 3、王城 0、白銀 2，契約改名葛雷），在 390×624 逐格對照 HonourFit 的 `desk`、`rackHired`、`sheetReq`、`sheetMercHired`、`okItem`、`deskFail`，390×780 量到勳章盒 374 寬、上緣 576、離底 28、陳列板 464（同規格表），1440×720 舞台置中、展開圓心 (271, 237) 正好是「勳章所」紙籤中心（390×624 時紙籤中心 (287, 209)）。白銀 2 枚連換兩次 90000HP回復劑：持有 2 → 1 → 0、第二次後印章停用寫「勳章不足」、背包多 20 瓶、回櫃檯莉瑟道謝；塞滿 15 格身體裝後換玉兔魔服：莉瑟說「哎呀，身體的格子已經滿了……」、勳章沒扣；傭兵詳情「僱用中：葛雷」；`/api/honour` 失敗（頁內攔截請求）時莉瑟說帳冊翻不到＋「再試一次」、恢復後重試正常；「公會前」收回停在段落 2；停在勳章所時沒有 `POST /api/adventure/advance`；舊外殼背包分頁只剩背包／裝備／商店／倉庫／銀行／鍛造。`/api/honour` 實測 85.6 KB（未壓縮，144 筆）。對照稿子修了：吊牌花費加「×」、R2 勳章是置中方形圖所以花費列的勳章裁成 10px 寬（否則傭兵兩種勳章會折成兩行）、裝備需求改成左右兩欄只把數字標色、能力加成改成七項能力在前、載入中／失敗時勳章盒照樣畫勳章、失敗那句不用紅字；分類佔位圖的不透明度 .55 → .9（吊牌上才看得清楚）。載入中的畫面只靠測試（實機一閃而過）。
 - [x] 5.2 `./scripts/check.sh` exit code 0。[after: 1.1, 5.1]
   - 驗證紀錄：2026-11-14 `./scripts/check.sh` exit 0（後端 1954 項、前端 1025 項、admin 144 項、tools/assets 66 項、tools/content-sheet 25 項，0 失敗）。
+
+## 6. verify／review 之後（2026-11-14，使用者：全部修）
+
+- [x] 6.1 缺陷：兌換送出中返回鍵（「櫃檯」「公會前」）還能按，回櫃檯換開別張吊牌後，先前那筆的結果會說在別張羊皮紙裡。兩條測試：`SendingBlocksTheSheet` 加上返回鍵與勳章盒停用的斷言、`LateResultIsNotSpokenInAnotherSheet` 重現 review 的情境；先跑兩條都失敗。修法：`BackButton` 加 `disabled`，送出中返回鍵、勳章盒停用，點吊牌也不換羊皮紙（遮罩底下用鍵盤仍點得到）；停用的返回鍵半透明、不給按下回饋（c7e1449）。
+- [x] 6.2 補測試（一跑就過，描述現況）：後端 `HonourServiceTests.Exchange_RealRefusals`（honour-10 配大陸 4 枚 → `medalsMissing`；武器 15 格塞滿後 honour-9 → `bagFull`、勳章沒扣）、`HonourResponseTests.HeartPiercer_IsABoundWeaponWithAnUnmetRequirement`（e9f122d）；前端 `honour.test.ts` 的雨林與白銀陳列板用 `src/test/honourContent.ts`（從正式內容抽出、39 筆用到雨林或白銀的兌換）對照規格數字、`ItemWithoutImageUsesCategoryPlaceholder` 加靜止鑰匙、`GameScreen_BackFromHonourCarriesTheLatestCharacter`（兌換後回公會前，金錢換成重讀的角色）（f5ee4f4）。
+- [x] 6.3 proposal 影響清單拿掉沒改到的 `game/town.ts`、`motion/timings.ts`；design 的前端硬規則改寫成實際做法（展開沿用 `RevealMilliseconds`，CSS 動畫秒數寫在 CSS，同同伴）。4.2 任務原文的「時長進 `timings.ts`」照此解讀：沒有新增程式用的時長。

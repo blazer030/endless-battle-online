@@ -37,10 +37,10 @@
   - `frontend/src/api/`：`schema.ts` 重新產生、勳章所轉換器加新欄位。
   - `frontend/src/game/honour.ts`：勳章所畫面的純模型（台詞、分頁與排序、效果文字、版位）。
   - `frontend/src/ui/honour/`：櫃檯、陳列板、羊皮紙詳情、莉瑟傳話。
-  - `frontend/src/ui/GameScreen.tsx`、`frontend/src/game/town.ts`：勳章所改成新畫面、回公會前。
+  - `frontend/src/ui/GameScreen.tsx`：勳章所改成新畫面、回公會前。
   - `frontend/src/ui/BagScreen.tsx`：拿掉勳章所子頁；刪 `frontend/src/ui/HonourPage.tsx`、`HonourPage.css` 與測試。
   - `frontend/src/assets/honour/`、`frontend/src/assets/placeholders/`：榮譽廳、陳列板、吊牌、勳章盒、傭兵頭盔等設計素材與 12 張道具分類佔位圖。
   - `frontend/src/ui/stage/screenImages.ts`：城鎮預載勳章所素材。
-  - `frontend/src/ui/theme.css`、`frontend/src/motion/timings.ts`：新色碼與時長。
+  - `frontend/src/ui/theme.css`：新色碼（展開時長沿用 `timings.ts` 既有的 `RevealMilliseconds`）。
 - 內容圖：雨林、王城、白銀勳章用 `tools/assets` 匯入 R2（`frontend/src/assets/content-manifest.json`）。
 - 文件：`docs/art/README.md` 設計素材清單；`.claude/skills/ebo-canvas` 板子表加 HonourFit。

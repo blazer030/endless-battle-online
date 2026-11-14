@@ -136,7 +136,7 @@
 
 - 硬規則 1、4、5：需求判斷在 Domain（`EquipmentRules`）與 Application，Api 只轉換；不涉及 scaffold 檔與資料表。
 - 硬規則 6：勳章圖放 R2、用 `import` 更新清單；內容檔不改。
-- 前端規則 2、3、5、7、8、9：舞台 390×624～780、陳列板與羊皮紙在區域內捲動；色碼進 `theme.css`（同值沿用旅館、同伴的變數）；台詞、排序、版位在 `src/game/`；時長進 `timings.ts`；內容圖只經 `contentAssets.ts`；`schema.ts` 用 `pnpm generate:api` 產生。
+- 前端規則 2、3、5、7、8、9：舞台 390×624～780、陳列板與羊皮紙在區域內捲動；色碼進 `theme.css`（同值沿用旅館、同伴的變數）；台詞、排序、版位在 `src/game/`；程式用到的時長沿用 `timings.ts`（展開 `RevealMilliseconds`），陳列板、羊皮紙的 CSS 動畫秒數寫在 CSS（同同伴）；內容圖只經 `contentAssets.ts`；`schema.ts` 用 `pnpm generate:api` 產生。
 - 不涉及 migration、admin。
 
 ## Implementation Contract
