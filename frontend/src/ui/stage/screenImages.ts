@@ -1,3 +1,4 @@
+import { HonourMedalKeys } from "../../game/companions"
 import type { TimeOfDay } from "../../game/timeOfDay"
 import { contentArtCandidates, contentArtKeys } from "../../render/contentAssets"
 
@@ -43,5 +44,5 @@ export const companionsImages = (): string[] => [
   ...urlsOf(companionsArt),
   ...urlsOf(innArt).filter((url) => /(parchment|pin|close|counter-|door-plate)/.test(url)),
   ...urlsOf(sharedArt),
-  ...firstArt("items", ["item-1304", "item-1305"]),
+  ...firstArt("items", HonourMedalKeys),
 ]

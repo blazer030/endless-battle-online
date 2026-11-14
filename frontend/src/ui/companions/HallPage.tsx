@@ -4,6 +4,7 @@ import {
   canHire,
   companionsCounterTop,
   deployGroups,
+  HonourMedalKeys,
   keeperLine,
   shortPrice,
   type DeployGroup,
@@ -36,8 +37,6 @@ type Props = {
 
 // 名冊便條輪流傾斜
 const NoteTilts = [-3, 2, -1.5, 2.5, -2]
-// 勳章所兌換要用的兩種勳章（大陸、王國）
-const HonourMedals = ["item-1304", "item-1305"]
 
 const HallLoadFailed: KeeperEvent = { kind: "hallLoadFailed" }
 const MercenaryFailed: KeeperEvent = { kind: "mercenaryFailed" }
@@ -185,7 +184,7 @@ export const HallPage = ({ api, character, onCharacterChange, onBack }: Props) =
                     <span className="hall-note__title">級傭兵</span>
                     {entry.price === null ? (
                       <span className="hall-note__medals">
-                        {HonourMedals.map((medal) => (
+                        {HonourMedalKeys.map((medal) => (
                           <ContentImage key={medal} category="items" assetKey={medal} alt="" />
                         ))}
                       </span>

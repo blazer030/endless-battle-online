@@ -172,6 +172,9 @@ export const feedCooldownElapsed = (nextFeedAt: Date, now: Date) =>
 export const fruitDisabled = (pet: Pet, food: PetFood, money: number, now: Date) =>
   now.getTime() < pet.nextFeedAt.getTime() || pet.satiety >= 100 || money < food.cost
 
+// 勳章所兌換 C、B 級要用的兩種勳章（大陸、王國）的道具內容圖鍵；名冊便條上畫這兩枚
+export const HonourMedalKeys = ["item-1304", "item-1305"] as const
+
 export const canHire = (
   entry: MercenaryCatalogueEntry,
   contract: MercenaryContract | null,
