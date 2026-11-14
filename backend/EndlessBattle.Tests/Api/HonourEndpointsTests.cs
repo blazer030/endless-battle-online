@@ -22,13 +22,13 @@ public class HonourEndpointsTests(MySqlDatabaseFixture database)
     }
 
     // 直接寫入勳章：取得勳章要靠任務或掉落，這裡跳過
-    private static async Task GiveAsync(EndlessBattleApiFactory factory, HttpClient client, string itemId, int quantity)
+    private static async Task<long> GiveAsync(EndlessBattleApiFactory factory, HttpClient client, string itemId, int quantity)
     {
         var account = await client.GetFromJsonAsync<JsonElement>("/api/accounts/me", CancellationToken);
         using var scope = factory.Services.CreateScope();
         var character = await scope.ServiceProvider.GetRequiredService<ICharacterRepository>()
             .FindByAccountAsync(account.GetProperty("accountId").GetInt64(), CancellationToken);
-        await scope.ServiceProvider.GetRequiredService<IInventoryRepository>()
+        return await scope.ServiceProvider.GetRequiredService<IInventoryRepository>()
             .AddAsync(character!.Id, TestItems.Entry(0, itemId, quantity), CancellationToken);
     }
 
@@ -69,6 +69,20 @@ public class HonourEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(("mercenary", "test-honour-mercenary", "測試榮譽傭兵", false), (
             mercenary.GetProperty("kind").GetString(), mercenary.GetProperty("rewardId").GetString(),
             mercenary.GetProperty("rewardName").GetString(), mercenary.GetProperty("affordable").GetBoolean()));
+    }
+
+    // 規格 honour「Honour listing」：勳章只算背包，存進倉庫的不算
+    [Fact]
+    public async Task Honour_CountsMedalsInTheBagOnly()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        var medals = await GiveAsync(factory, client, "test-medal-a", 3);
+        await ReadOkAsync(await client.PostAsJsonAsync("/api/depot/store", new { inventoryId = medals, quantity = 2 }, CancellationToken));
+
+        var shop = await ReadOkAsync(await client.GetAsync("/api/honour", CancellationToken));
+
+        Assert.Equal(1, shop.GetProperty("medals")[0].GetProperty("owned").GetInt32());
     }
 
     [Fact]

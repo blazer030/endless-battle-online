@@ -96,6 +96,34 @@ public class HonourShopTests
         Assert.Null(outcome.Item);
     }
 
+    // 規格 honour「Exchange refusals」的 refusals 表；礦石對應 honour-9／honour-10，榮譽傭兵對應 honour-1
+    [Theory]
+    [InlineData("unknown", 3, 1, false, false, new[] { "honourUnknown" })]
+    [InlineData("ore", 1, 0, false, false, new[] { "medalsMissing" })]
+    [InlineData("mercenary", 1, 1, true, false, new[] { "mercenaryHired" })]
+    [InlineData("mercenary", 1, 0, true, false, new[] { "medalsMissing", "mercenaryHired" })]
+    [InlineData("ore", 2, 0, false, true, new[] { "bagFull" })]
+    public void Exchange_RefusalTable(string exchange, int medalA, int medalB, bool hired, bool bagFull, string[] reasons)
+    {
+        List<InventoryEntry> bag = bagFull ? FullMaterials() : [];
+        bag.Add(TestItems.Entry(1, "test-medal-a", medalA));
+        if (medalB > 0)
+        {
+            bag.Add(TestItems.Entry(2, "test-medal-b", medalB));
+        }
+
+        var contract = hired
+            ? MercenaryRules.NewContract(new MercenaryDefinition("test-mercenary", "測試傭兵", 100, 3, 50, 100, 50, 2), Now)
+            : null;
+        var chosen = exchange switch { "ore" => Ore, "mercenary" => Mercenary, _ => null };
+
+        var outcome = Exchange(chosen, bag, contract);
+
+        Assert.Equal(reasons, outcome.Reasons);
+        Assert.Null(outcome.Item);
+        Assert.Null(outcome.Mercenary);
+    }
+
     [Fact]
     public void Affordable_NeedsEveryMedal()
     {

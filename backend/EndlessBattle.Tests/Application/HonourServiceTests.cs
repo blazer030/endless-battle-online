@@ -57,6 +57,62 @@ public class HonourServiceTests
         Assert.Equal([2, 0], overview.Medals.Values);
     }
 
+    private HonourService RealService() => new(
+        characters,
+        inventory,
+        new InMemoryEquipmentRepository(inventory),
+        mercenaries,
+        JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content")),
+        new FakeClock(Now),
+        new InMemoryUnitOfWork(characters, inventory, mercenaries));
+
+    // 規格 honour「Listing with medals in the bag」的 affordability 表（正式內容）
+    [Fact]
+    public async Task Get_RealAffordability()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "item-1304", 14);
+        await GiveAsync(character, "item-1305", 6);
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        Assert.Equal([14, 6, 0, 0, 0], overview.Medals.Values);
+        var affordable = overview.Offers.ToDictionary(offer => offer.Exchange.Id, offer => offer.Affordable);
+        Assert.Equal(
+            [true, true, false, false],
+            new[] { "honour-9", "honour-12", "honour-1", "honour-142" }.Select(id => affordable[id]));
+    }
+
+    // 規格 honour「Exchanging for an item」：大陸 14 換巨石槌（honour-9，花大陸 2）
+    [Fact]
+    public async Task Exchange_FromTheRealContent()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "item-1304", 14);
+
+        var overview = await RealService().ExchangeAsync(AccountId, "honour-9", CancellationToken);
+
+        var bag = await BagAsync(character);
+        Assert.Equal(12, Assert.Single(bag, entry => entry.ItemId == "item-1304").Quantity);
+        Assert.Equal(1, Assert.Single(bag, entry => entry.ItemId == "item-1384").Quantity);
+        Assert.Equal(12, overview.Medals["item-1304"]);
+    }
+
+    // 規格 honour「Exchanging for a mercenary」：大陸、王國各 13 換 C級傭兵（honour-1）
+    [Fact]
+    public async Task Exchange_RealMercenaryStartsResting()
+    {
+        var character = await AddCharacterAsync();
+        await GiveAsync(character, "item-1304", 13);
+        await GiveAsync(character, "item-1305", 13);
+
+        await RealService().ExchangeAsync(AccountId, "honour-1", CancellationToken);
+
+        Assert.Empty(await BagAsync(character));
+        var contract = await mercenaries.FindAsync(character.Id, CancellationToken);
+        Assert.Equal(("mercenary-4", "C級傭兵", false), (contract!.MercenaryId, contract.Name, contract.Fighting));
+    }
+
     [Fact]
     public async Task Exchange_PaysMedalsAndAddsItem()
     {
