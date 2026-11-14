@@ -13,6 +13,13 @@ import { GameScreen } from "./GameScreen"
 // 每個舊外殼交出的「之後才回來的角色」記在這裡，測試在回城鎮後再送
 const lateReports: ((character: CharacterVo) => void)[] = []
 
+// 預載只記下被要了哪些圖；每次呼叫各自等測試放行
+const preloads: { urls: readonly string[]; finish: () => void }[] = []
+vi.mock("./stage/preloadImages", () => ({
+  preloadImages: (urls: readonly string[]) =>
+    new Promise<void>((resolve) => preloads.push({ urls, finish: resolve })),
+}))
+
 vi.mock("./AdventureScreen", () => ({
   AdventureScreen: ({
     initialCharacter,
@@ -70,6 +77,7 @@ const segmentOf = () => screen.getByTestId("town-world").dataset.segment
 const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }))
 
 beforeEach(() => {
+  preloads.length = 0
   lateReports.length = 0
   vi.useFakeTimers()
 })
@@ -89,6 +97,25 @@ test("GameScreen_StartsAtTheGateWithoutAdventureRequests", async () => {
   expect(segmentOf()).toBe("0")
   expect(within(screen.getByRole("region", { name: "角色狀態" })).getByText("收尾者")).toBeVisible()
   expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 城鎮的圖先載完，才在背景載旅館與同伴的圖（慢網路時不跟城鎮搶頻寬）
+test("GameScreen_PreloadsInnerPagesAfterTheTown", async () => {
+  renderGame()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+
+  expect(preloads).toHaveLength(1)
+  expect(preloads[0]!.urls.some((url) => url.includes("panorama-"))).toBe(true)
+
+  preloads[0]!.finish()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+
+  expect(preloads).toHaveLength(2)
+  expect(preloads[1]!.urls.some((url) => url.includes("stall-gate"))).toBe(true)
 })
 
 // 規格 inn-screen：Inn opens the inn screen
