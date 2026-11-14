@@ -511,3 +511,326 @@
 .honour-tag__cost--many em {
   display: none;
 }
+
+/* 拉近的吊牌：詳情寫在羊皮紙上，紅印章兌換 */
+.honour-sheet__mask {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgb(var(--honour-shadow-rgb) / 0.5);
+  animation: honour-fade 0.2s ease-out;
+}
+
+.honour-sheet {
+  position: absolute;
+  z-index: 21;
+  left: 18px;
+  right: 18px;
+  top: 64px;
+  max-height: calc(100% - 92px);
+  box-sizing: border-box;
+  padding: 30px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui);
+  color: var(--honour-ink);
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 10px 16px rgb(var(--honour-shadow-rgb) / 0.6));
+  animation: honour-sheet-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+.honour-sheet::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+@keyframes honour-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes honour-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.55) rotate(-4deg);
+  }
+}
+
+.honour-sheet__close {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  top: 14px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: url("../../assets/inn/close.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--umber-rgb) / 0.4));
+}
+
+.honour-sheet__close:not(:disabled):active {
+  transform: scale(0.9);
+}
+
+.honour-sheet__close:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 名稱到孔數在紙內捲動，下緣淡出 */
+.honour-sheet__scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding-bottom: 8px;
+  mask: linear-gradient(#000 calc(100% - 14px), transparent);
+}
+
+.honour-sheet__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.honour-sheet__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 40px 8px 0;
+}
+
+.honour-sheet__top > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.honour-sheet__picture {
+  position: relative;
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background: rgb(var(--umber-rgb) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.35);
+}
+
+.honour-sheet__image {
+  width: 40px;
+  height: 40px;
+}
+
+.honour-sheet__image--mercenary {
+  width: auto;
+  height: 46px;
+  filter: drop-shadow(0 1px 1px rgb(var(--umber-rgb) / 0.35));
+}
+
+.honour-sheet__quantity {
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-family: var(--font-number);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--honour-chip-text);
+  background: var(--honour-badge);
+}
+
+.honour-sheet h3 {
+  margin: 0 0 2px;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.honour-sheet__sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--honour-muted);
+}
+
+.honour-sheet__effect {
+  margin: 0 0 4px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--honour-ink);
+}
+
+.honour-sheet h4 {
+  margin: 10px 0 6px;
+  padding-top: 9px;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--honour-muted);
+}
+
+.honour-sheet__stats,
+.honour-sheet__requirements {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 18px;
+  font-size: 13px;
+}
+
+.honour-sheet__stats > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.honour-sheet__stats dt {
+  margin: 0;
+}
+
+.honour-sheet__stats dd {
+  margin: 0;
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.honour-sheet__requirements li {
+  font-weight: 700;
+}
+
+.honour-sheet__requirements li[data-met="true"] {
+  color: var(--inn-detail-effect);
+}
+
+.honour-sheet__requirements li[data-met="false"] {
+  color: var(--inn-cost-short);
+}
+
+.honour-sheet__meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--inn-detail-text);
+}
+
+.honour-sheet__pay {
+  flex: 0 0 auto;
+}
+
+.honour-sheet__pay h4 {
+  margin-top: 2px;
+}
+
+.honour-sheet__cost {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 13px;
+}
+
+.honour-sheet__cost img {
+  height: 28px;
+  width: auto;
+}
+
+.honour-sheet__cost small {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--inn-detail-text);
+}
+
+.honour-sheet__cost em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--honour-ink);
+}
+
+.honour-sheet__cost em[data-short="false"] {
+  color: var(--inn-detail-effect);
+}
+
+.honour-sheet__cost em[data-short="true"] {
+  color: var(--inn-cost-short);
+}
+
+/* 莉瑟傳話：陳列板降下時她已退場，改在羊皮紙裡、印章那排上方說 */
+.honour-sheet__say .keeper-say {
+  margin-top: 10px;
+}
+
+.honour-sheet__say .keeper-say p {
+  background: var(--keeper-say-sheet-paper);
+}
+
+.honour-sheet__say .keeper-say--failed p {
+  background: var(--keeper-say-sheet-failed);
+}
+
+.keeper-say__face--lise {
+  background-image: url("../../assets/title/clerk.webp");
+  background-size: 78.7px 205.4px;
+  background-position: -24px -9.9px;
+}
+
+.honour-sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.honour-sheet__note {
+  font-size: 12px;
+  color: var(--inn-replace-warn);
+}
+
+.seal.honour-sheet__seal {
+  position: relative;
+  bottom: auto;
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 66px;
+  height: 66px;
+}
+
+.seal.honour-sheet__seal span {
+  font-size: 19px;
+}
+
+/* 送出中：印章壓下去、字一明一暗 */
+.seal.honour-sheet__seal--busy,
+.seal.honour-sheet__seal--busy:disabled {
+  transform: rotate(-3deg) scale(0.92);
+  filter: drop-shadow(0 1px 1px rgb(var(--shade-rgb) / 0.35)) brightness(0.92);
+  cursor: progress;
+}
+
+.seal.honour-sheet__seal--busy span {
+  animation: honour-busy 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes honour-busy {
+  to {
+    opacity: 0.35;
+  }
+}

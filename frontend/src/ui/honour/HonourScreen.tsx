@@ -1,13 +1,23 @@
-import { useEffect, useState, type CSSProperties } from "react"
-import type { ApiClient } from "../../api/client"
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
+import { ApiError, type ApiClient } from "../../api/client"
 import type { CharacterVo } from "../../game/character"
-import { clerkGreeting, medalCase, rackHeight, type CounterState } from "../../game/honour"
+import {
+  clerkGreeting,
+  clerkLine,
+  medalCase,
+  rackHeight,
+  type ClerkLine,
+  type CounterState,
+  type HonourExchange,
+} from "../../game/honour"
 import type { HonourShopVo } from "../../game/honour"
 import { ContentImage } from "../ContentImage"
 import { BackButton } from "../companions/BackButton"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import { HonourRack } from "./HonourRack"
+import { HonourSheet } from "./HonourSheet"
+import "../companions/CompanionsScreen.css"
 import clerk from "../../assets/title/clerk.webp"
 import "../inn/InnScreen.css"
 import "./HonourScreen.css"
@@ -25,15 +35,25 @@ type Props = {
 type Shop = HonourShopVo | "failed" | null
 
 // 勳章所（設計板 HonourFit）：櫃檯的莉瑟與勳章盒；點一枚勳章，陳列板降下來掛著它換得到的吊牌
-export const HonourScreen = ({ api, onBack }: Props) => {
+export const HonourScreen = ({ api, onCharacterChange, onBack }: Props) => {
   const stage = useStage()
   const [shop, setShop] = useState<Shop>(null)
   const [attempt, setAttempt] = useState(0)
   // null＝櫃檯；有值＝陳列板正在看這種勳章
   const [medalId, setMedalId] = useState<string | null>(null)
   const [visit, setVisit] = useState<CounterState["visit"]>("first")
-  // 打開的吊牌（羊皮紙詳情）
-  const [, setSheetId] = useState<string | null>(null)
+  // 打開的吊牌（羊皮紙詳情）、送出中、莉瑟在羊皮紙裡說的話
+  const [sheetId, setSheetId] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [say, setSay] = useState<ClerkLine | null>(null)
+  const alive = useRef(true)
+
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+    }
+  }, [])
 
   useEffect(() => {
     let isCurrent = true
@@ -59,9 +79,63 @@ export const HonourScreen = ({ api, onBack }: Props) => {
   })
   const atCounter = medalId === null
   const medal = loaded?.medals.find((entry) => entry.itemId === medalId)
+  const sheet =
+    medal === undefined ? undefined : loaded?.exchanges.find((entry) => entry.id === sheetId)
+
+  const reloadCharacter = useCallback(async () => {
+    try {
+      const latest = await api.getMyCharacter()
+      if (alive.current && latest !== null) onCharacterChange(latest)
+    } catch {
+      // 城鎮收回時會再帶回角色
+    }
+  }, [api, onCharacterChange])
+
+  // 兌換：成功時整個畫面換成回傳的資料、羊皮紙留著可再換；失敗時莉瑟說原因並重讀勳章所
+  const exchange = async (entry: HonourExchange) => {
+    setBusy(true)
+    setSay(null)
+    try {
+      const next = await api.exchangeHonour(entry.id)
+      if (!alive.current) return
+      setShop(next)
+      setVisit("exchanged")
+      setSay(
+        clerkLine(
+          entry.kind === "mercenary"
+            ? { kind: "exchangedMercenary", name: next.hiredMercenaryName ?? entry.rewardName }
+            : { kind: "exchangedItem" },
+        ),
+      )
+      void reloadCharacter()
+    } catch (error) {
+      if (!alive.current) return
+      setSay(
+        clerkLine(
+          error instanceof ApiError && error.reasons.length > 0
+            ? { kind: "refused", reasons: error.reasons, category: entry.item?.category ?? null }
+            : { kind: "failed" },
+        ),
+      )
+      api.getHonourShop().then(
+        (latest) => {
+          if (alive.current) setShop(latest)
+        },
+        () => undefined,
+      )
+    } finally {
+      if (alive.current) setBusy(false)
+    }
+  }
+
+  const openSheet = (exchangeId: string | null) => {
+    setSay(null)
+    setSheetId(exchangeId)
+  }
 
   const backToCounter = () => {
     setMedalId(null)
+    openSheet(null)
     setVisit((current) => (current === "exchanged" ? current : "browsed"))
   }
 
@@ -100,7 +174,7 @@ export const HonourScreen = ({ api, onBack }: Props) => {
       )}
 
       {loaded !== null && medal !== undefined && (
-        <HonourRack shop={loaded} medal={medal} onPick={setSheetId} />
+        <HonourRack shop={loaded} medal={medal} onPick={openSheet} />
       )}
 
       <div className="honour__counter" aria-hidden="true" />
@@ -126,6 +200,17 @@ export const HonourScreen = ({ api, onBack }: Props) => {
         <div className="honour__hired">
           僱用中<b>{loaded.hiredMercenaryName}</b>
         </div>
+      )}
+
+      {loaded !== null && sheet !== undefined && (
+        <HonourSheet
+          exchange={sheet}
+          hiredMercenaryName={loaded.hiredMercenaryName}
+          busy={busy}
+          say={say}
+          onExchange={() => void exchange(sheet)}
+          onClose={() => openSheet(null)}
+        />
       )}
 
       {atCounter ? (

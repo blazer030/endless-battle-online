@@ -1,5 +1,6 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react"
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { ApiError } from "../../api/client"
 import { PollIntervalMilliseconds } from "../../motion/timings"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
@@ -7,7 +8,14 @@ import mercenaryHelmet from "../../assets/honour/mercenary-helmet.webp"
 import materialPlaceholder from "../../assets/placeholders/items/material.svg"
 import weaponPlaceholder from "../../assets/placeholders/items/weapon.svg"
 import { HonourScreen } from "./HonourScreen"
-import { createHonourApi, demoExchanges, itemExchange, medals, shopWith } from "./testing"
+import {
+  createHonourApi,
+  demoExchanges,
+  itemExchange,
+  medals,
+  mercenaryExchange,
+  shopWith,
+} from "./testing"
 
 const flush = () =>
   act(async () => {
@@ -217,4 +225,228 @@ test("ItemWithoutImageUsesCategoryPlaceholder", async () => {
     .getByRole("button", { name: /^巨石槌/ })
     .querySelector('[data-asset="items/item-1304"]')
   expect(costMedal).not.toBeNull()
+})
+
+const openSheet = async (
+  medal: string,
+  tag: string,
+  api = createHonourApi(shopWith({ exchanges: demoExchanges })),
+) => {
+  await renderHonour(api)
+  fireEvent.click(medalButton(medal))
+  fireEvent.click(
+    within(screen.getByRole("region", { name: `${medal}陳列板` })).getByRole("button", {
+      name: new RegExp(`^${tag}`),
+    }),
+  )
+  return { api, sheet: screen.getByRole("dialog", { name: tag }) }
+}
+
+const seal = (sheet: HTMLElement) => within(sheet).getByRole("button", { name: "兌換" })
+const said = (sheet: HTMLElement) => within(sheet).queryByTestId("clerk-say")
+
+// 規格 honour-screen：Equipment with an unmet requirement
+test("SheetShowsEquipmentDetailsAndRequirementColours", async () => {
+  const { sheet } = await openSheet("大陸勳章", "刺心者")
+
+  expect(within(sheet).getByText("武器・綁定")).toBeInTheDocument()
+  expect(within(sheet).getByText("力量 435").closest("[data-met]")).toHaveAttribute(
+    "data-met",
+    "false",
+  )
+  expect(within(sheet).getByText("物攻")).toBeInTheDocument()
+  expect(within(sheet).getByText("孔 2・精鍊上限 +4")).toBeInTheDocument()
+  expect(within(sheet).getByTestId("pay-item-1304")).toHaveTextContent("持有 14／需要 9")
+  expect(seal(sheet)).toBeEnabled()
+})
+
+// 規格 honour-screen：Effects of consumables and keys
+test("SheetShowsEffectsForConsumablesAndKeys", async () => {
+  const { sheet } = await openSheet("白銀勳章", "90000HP回復劑")
+  expect(within(sheet).getByText("補給欄自動使用：HP 回復 90,000")).toBeInTheDocument()
+  expect(within(sheet).getByText("×10")).toBeInTheDocument()
+  expect(within(sheet).getByText("道具")).toBeInTheDocument()
+
+  fireEvent.click(within(sheet).getByRole("button", { name: "關閉" }))
+  fireEvent.click(screen.getByRole("button", { name: "櫃檯" }))
+  fireEvent.click(medalButton("王國勳章"))
+  fireEvent.click(
+    within(screen.getByRole("region", { name: "王國勳章陳列板" })).getByRole("button", {
+      name: "靜止鑰匙",
+    }),
+  )
+  expect(
+    within(screen.getByRole("dialog", { name: "靜止鑰匙" })).getByText("開啟「靜止之城」24 小時"),
+  ).toBeInTheDocument()
+})
+
+test("SheetShowsMercenaryContract", async () => {
+  const { sheet } = await openSheet("大陸勳章", "C級傭兵")
+
+  expect(within(sheet).getByText("傭兵")).toBeInTheDocument()
+  expect(within(sheet).getByText("900 次")).toBeInTheDocument()
+  expect(within(sheet).getByText("戰敗消耗")).toBeInTheDocument()
+  expect(within(sheet).getByTestId("pay-item-1305")).toHaveTextContent("持有 6／需要 13")
+  expect(within(sheet).getByTestId("pay-item-1305").querySelector("[data-short]")).toHaveAttribute(
+    "data-short",
+    "true",
+  )
+})
+
+test("SealDisabledWhenShortOrHired", async () => {
+  const short = await openSheet("大陸勳章", "C級傭兵")
+  expect(seal(short.sheet)).toBeDisabled()
+  expect(within(short.sheet).getByText("勳章不足")).toBeInTheDocument()
+  cleanup()
+
+  const rich = [mercenaryExchange("1", "C級傭兵", [["item-1304", 13]]), ...demoExchanges.slice(1)]
+  const hired = await openSheet(
+    "大陸勳章",
+    "C級傭兵",
+    createHonourApi(shopWith({ exchanges: rich, hiredMercenaryName: "葛雷" })),
+  )
+  expect(seal(hired.sheet)).toBeDisabled()
+  expect(within(hired.sheet).getByText("僱用中：葛雷")).toBeInTheDocument()
+})
+
+test("SendingBlocksTheSheet", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockReturnValue(new Promise(() => undefined))
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  expect(seal(sheet)).toHaveAttribute("aria-busy", "true")
+  expect(seal(sheet)).toBeDisabled()
+  expect(within(sheet).getByRole("button", { name: "關閉" })).toBeDisabled()
+  expect(api.exchangeHonour).toHaveBeenCalledExactlyOnceWith("9")
+})
+
+// 規格 honour-screen：Exchanging twice in a row
+test("ExchangingTwiceInARow", async () => {
+  const potion = (owned: number) =>
+    shopWith({
+      medals: medals.map((medal) => (medal.itemId === "item-2222" ? { ...medal, owned } : medal)),
+      exchanges: [
+        {
+          ...demoExchanges[5]!,
+          cost: [{ itemId: "item-2222", name: "白銀勳章", quantity: 1, owned }],
+          affordable: owned >= 1,
+        },
+      ],
+    })
+  const api = createHonourApi(potion(2))
+  const latest = makeCharacter({ money: 77 })
+  vi.mocked(api.getMyCharacter).mockResolvedValue(latest)
+  vi.mocked(api.exchangeHonour).mockResolvedValueOnce(potion(1)).mockResolvedValueOnce(potion(0))
+  const onCharacterChange = vi.fn()
+  render(
+    <StageContext value={{ height: 624, scale: 1 }}>
+      <HonourScreen
+        api={api}
+        character={makeCharacter()}
+        onCharacterChange={onCharacterChange}
+        onBack={vi.fn()}
+      />
+    </StageContext>,
+  )
+  await flush()
+  fireEvent.click(medalButton("白銀勳章"))
+  fireEvent.click(screen.getByRole("button", { name: /^90000HP回復劑/ }))
+  const sheet = screen.getByRole("dialog", { name: "90000HP回復劑" })
+
+  fireEvent.click(seal(sheet))
+  await flush()
+  expect(within(sheet).getByTestId("pay-item-2222")).toHaveTextContent("持有 1／需要 1")
+  expect(said(sheet)).toHaveTextContent("換好了！已經幫您放進背包囉。")
+  expect(seal(sheet)).toBeEnabled()
+  expect(onCharacterChange).toHaveBeenCalledWith(latest)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+  expect(within(sheet).getByTestId("pay-item-2222")).toHaveTextContent("持有 0／需要 1")
+  expect(seal(sheet)).toBeDisabled()
+  expect(medalButton("白銀勳章")).toHaveTextContent("0")
+})
+
+test("MercenaryExchangeNamesTheContract", async () => {
+  const rich = [mercenaryExchange("1", "C級傭兵", [["item-1304", 13]])]
+  const api = createHonourApi(shopWith({ exchanges: rich }))
+  vi.mocked(api.exchangeHonour).mockResolvedValue(
+    shopWith({ exchanges: rich, hiredMercenaryName: "C級傭兵" }),
+  )
+  const { sheet } = await openSheet("大陸勳章", "C級傭兵", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  expect(said(sheet)).toHaveTextContent("C級傭兵的契約簽好囉，祝您順利！")
+  expect(seal(sheet)).toBeDisabled()
+  expect(screen.getByText("僱用中").parentElement).toHaveTextContent("僱用中C級傭兵")
+})
+
+// 規格 honour-screen：Bag full names the category
+test("BagFullNamesTheCategory", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, "無法兌換", ["bagFull"]))
+  const { sheet } = await openSheet("大陸勳章", "破山斧", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  expect(said(sheet)).toHaveTextContent("哎呀，武器的格子已經滿了……")
+  expect(said(sheet)).toHaveAttribute("data-failed", "true")
+})
+
+test("RefusalReloadsTheListing", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, "無法兌換", ["medalsMissing"]))
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  expect(said(sheet)).toHaveTextContent("勳章好像還差一點呢……")
+  expect(api.getHonourShop).toHaveBeenCalledTimes(2)
+  expect(screen.getByRole("dialog", { name: "巨石槌" })).toBeInTheDocument()
+})
+
+test("NetworkFailureIsSpoken", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new Error("offline"))
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+
+  expect(said(sheet)).toHaveTextContent("咦，剛剛沒送出去……再試一次吧？")
+})
+
+test("NextActionClearsTheLine", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new Error("offline"))
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+  fireEvent.click(seal(sheet))
+  await flush()
+  expect(said(sheet)).not.toBeNull()
+
+  fireEvent.click(within(sheet).getByRole("button", { name: "關閉" }))
+  fireEvent.click(screen.getByRole("button", { name: /^巨石槌/ }))
+
+  expect(said(screen.getByRole("dialog", { name: "巨石槌" }))).toBeNull()
+})
+
+// 規格 honour-screen：換過再回櫃檯，莉瑟道謝
+test("BackAfterExchangingThanks", async () => {
+  const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
+  vi.mocked(api.exchangeHonour).mockResolvedValue(shopWith({ exchanges: demoExchanges }))
+  const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
+
+  fireEvent.click(seal(sheet))
+  await flush()
+  fireEvent.click(within(sheet).getByRole("button", { name: "關閉" }))
+  fireEvent.click(screen.getByRole("button", { name: "櫃檯" }))
+
+  expect(clerk().textContent).toBe("兌換好了！\n祝您冒險一路順風。")
 })
