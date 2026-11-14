@@ -5,15 +5,7 @@ import { ApiError } from "../api/client"
 import type { RecipeVo } from "../game/forge"
 import type { DepotVo, InventoryVo } from "../game/inventory"
 import type { CharacterVo } from "../game/character"
-import {
-  emptyBonus,
-  makeCharacter,
-  makeHonourShop,
-  makeMercenaryOverview,
-  makeInventory,
-  makeItem,
-  makeShopItem,
-} from "../test/fixtures"
+import { emptyBonus, makeCharacter, makeInventory, makeItem, makeShopItem } from "../test/fixtures"
 import { PanelRefreshMilliseconds } from "../motion/timings"
 import { BagScreen, type BagApi } from "./BagScreen"
 
@@ -103,9 +95,6 @@ const createFakeApi = (overrides: Partial<BagApi> = {}): BagApi => ({
   mergeCrossStones: vi.fn().mockResolvedValue({ success: true, inventory }),
   getRecipes: vi.fn().mockResolvedValue([]),
   synthesize: vi.fn().mockResolvedValue({ successes: 0, attempts: 1, cost: 0, inventory }),
-  getHonourShop: vi.fn().mockResolvedValue(makeHonourShop()),
-  getMercenaries: vi.fn().mockResolvedValue(makeMercenaryOverview()),
-  exchangeHonour: vi.fn().mockResolvedValue(makeHonourShop()),
   ...overrides,
 })
 
@@ -122,8 +111,8 @@ const openSubPage = async (name: string) => {
   await user.click(await screen.findByRole("tab", { name }))
 }
 
-// 規格 town-screen：Bag tab has no inn sub-page——旅館改從城鎮市集進
-test("BagScreen_SubPagesDoNotIncludeTheInn", async () => {
+// 規格 town-screen：Bag tab has no inn sub-page、Bag tab has no honour sub-page——旅館、勳章所改從城鎮進
+test("BagScreen_SubPagesDoNotIncludeTheInnOrHonour", async () => {
   renderBag()
 
   const tabs = within(await screen.findByRole("tablist", { name: "背包分頁" })).getAllByRole("tab")
@@ -134,7 +123,6 @@ test("BagScreen_SubPagesDoNotIncludeTheInn", async () => {
     "倉庫",
     "銀行",
     "鍛造",
-    "勳章所",
   ])
   expect(screen.getByRole("tab", { name: "背包" })).toHaveAttribute("aria-selected", "true")
   expect(await screen.findByText("測試劍 +0")).toBeInTheDocument()
@@ -150,9 +138,6 @@ test("BagScreen_SubPagesDoNotIncludeTheInn", async () => {
   await openSubPage("鍛造")
   const forgeTabs = within(screen.getByRole("tablist", { name: "鍛造項目" })).getAllByRole("tab")
   expect(forgeTabs.map((tab) => tab.textContent)).toEqual(["精鍊", "鑲嵌", "合成"])
-  await openSubPage("勳章所")
-  const held = await screen.findByRole("list", { name: "持有勳章" })
-  expect(within(held).getByText("大陸勳章 ×2")).toBeInTheDocument()
 })
 
 test("BagScreen_ListsMedalsInTheirOwnCategory", async () => {
@@ -206,18 +191,6 @@ test("BagScreen_CaptureItemCanBeEquippedToTheSupplySlot", async () => {
   await user.click(screen.getByRole("button", { name: "裝備" }))
 
   expect(api.equip).toHaveBeenCalledWith(41, 5)
-})
-
-test("BagScreen_HonourExchangeRefreshesTheBagAndCharacter", async () => {
-  const { api, onCharacterChanged } = renderBag()
-  await openSubPage("勳章所")
-
-  const stone = await screen.findByRole("article", { name: "攻擊魔石 ×1" })
-  await user.click(within(stone).getByRole("button", { name: "兌換" }))
-
-  expect(api.exchangeHonour).toHaveBeenCalledWith("honour-attack-stone")
-  expect(api.getInventory).toHaveBeenCalledTimes(2)
-  expect(onCharacterChanged).toHaveBeenCalledWith(expect.objectContaining({ money: 10 }))
 })
 
 test("BagScreen_ListsItemsByCategoryWithUsage", async () => {

@@ -7,7 +7,6 @@ import {
   type ItemCategory,
   type StatBonus,
 } from "./inventory"
-import { translateReasons } from "./reasons"
 import { statLabel } from "./stats"
 
 // 勳章所的資料（來自 /api/honour），由 api/companionData.ts 轉換
@@ -97,39 +96,10 @@ export class HonourShopVo {
   }
 }
 
-export const medalText = (medal: HonourMedal) => `${medal.name} ×${formatNumber(medal.owned)}`
+// ---- 勳章所畫面（設計板 HonourFit）的純模型：莉瑟的話、陳列板分區、詳情文字、版位 ----
 
-export const rewardText = (exchange: Pick<HonourExchange, "rewardName" | "quantity">) =>
-  `${exchange.rewardName} ×${formatNumber(exchange.quantity)}`
-
-export const costText = (cost: HonourCost) => `${cost.name} ×${formatNumber(cost.quantity)}`
-
-export const isShort = (cost: HonourCost) => cost.owned < cost.quantity
-
-const groups: { kind: HonourExchangeKind; title: string }[] = [
-  { kind: "mercenary", title: "傭兵" },
-  { kind: "item", title: "道具" },
-]
-
-export const exchangeGroups = (exchanges: readonly HonourExchange[]) =>
-  groups
-    .map(({ kind, title }) => ({
-      title,
-      exchanges: exchanges.filter((exchange) => exchange.kind === kind),
-    }))
-    .filter((group) => group.exchanges.length > 0)
-
-const reasonTexts: Record<string, string> = {
-  honourUnknown: "沒有這個兌換項目",
-  medalsMissing: "勳章不足",
-  mercenaryHired: "只能僱用一位傭兵",
-  bagFull: "背包已滿",
-}
-
-export const honourErrorMessage = (reasons: string[], fallback: string) =>
-  translateReasons(reasonTexts, reasons, fallback)
-
-// ---- 勳章所新畫面（設計板 HonourFit）的純模型：莉瑟的話、陳列板分區、詳情文字、版位 ----
+// 五枚勳章的道具 id（勳章盒預載用）
+export const MedalKeys = ["item-1304", "item-1305", "item-1306", "item-1307", "item-2222"] as const
 
 // 展開圓心＝公會前「勳章所」紙籤中心（紙籤跟著全景縮放，矮舞台時被全景右緣擋住）
 export const honourRevealOrigin = (stageHeight: number) => {

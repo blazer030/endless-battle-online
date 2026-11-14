@@ -40,7 +40,6 @@ import type { CharacterVo } from "../game/character"
 import { formatNumber } from "../game/format"
 import "./BagScreen.css"
 import { ForgePage, type ForgeApi } from "./ForgePage"
-import { HonourPage, type HonourApi } from "./HonourPage"
 import {
   ItemDetail,
   ItemName,
@@ -69,7 +68,6 @@ export type BagApi = Pick<
   | "withdraw"
   | "getMyCharacter"
   | keyof ForgeApi
-  | keyof HonourApi
 >
 
 type Props = {
@@ -83,7 +81,7 @@ type Props = {
   initialPage?: SubPage
 }
 
-export type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge" | "honour"
+export type SubPage = "bag" | "equipment" | "shop" | "depot" | "bank" | "forge"
 
 const subPages: { id: SubPage; label: string }[] = [
   { id: "bag", label: "背包" },
@@ -92,7 +90,6 @@ const subPages: { id: SubPage; label: string }[] = [
   { id: "depot", label: "倉庫" },
   { id: "bank", label: "銀行" },
   { id: "forge", label: "鍛造" },
-  { id: "honour", label: "勳章所" },
 ]
 
 const fallbackError = "發生錯誤，請稍後再試"
@@ -172,16 +169,6 @@ export function BagScreen({
             character={character}
             busy={busy}
             mutate={mutate}
-          />
-        )
-      case "honour":
-        // 兌換的道具進背包、勳章扣掉，背包與角色都重新讀取
-        return (
-          <HonourPage
-            api={api}
-            onExchanged={async () => {
-              await mutate(async () => ({ inventory: await api.getInventory() }))
-            }}
           />
         )
     }

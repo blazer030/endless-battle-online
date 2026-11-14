@@ -7,6 +7,7 @@ import { MercenaryHireVo } from "../game/mercenaries"
 import { RevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
 import { makeCharacter, makeMercenaryOverview } from "../test/fixtures"
 import { createCompanionsApi } from "./companions/testing"
+import { createHonourApi, shopWith } from "./honour/testing"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
@@ -60,6 +61,7 @@ const loft = {
 const createApi = () =>
   ({
     ...createCompanionsApi(),
+    ...createHonourApi(shopWith()),
     getBuffs: vi.fn().mockResolvedValue([]),
     getInn: vi.fn().mockResolvedValue(InnVo.create({ rooms: [loft], lodging: null, restFee: 0 })),
     bookInn: vi.fn(),
@@ -116,6 +118,7 @@ test("GameScreen_PreloadsInnerPagesAfterTheTown", async () => {
 
   expect(preloads).toHaveLength(2)
   expect(preloads[1]!.urls.some((url) => url.includes("stall-gate"))).toBe(true)
+  expect(preloads[1]!.urls.some((url) => url.includes("medal-case"))).toBe(true)
 })
 
 // 規格 inn-screen：Inn opens the inn screen
@@ -228,6 +231,42 @@ test("GameScreen_BackFromCompanionsShowsTheGate", async () => {
   expect(screen.getByLabelText("金錢")).toHaveTextContent("300")
 })
 
+// 規格 honour-screen：Enter and leave the honour screen——公會前「勳章所」展開櫃檯，不呼叫推進
+test("GameScreen_HonourOpensTheHonourScreen", async () => {
+  const api = renderGame()
+
+  click("市集")
+  click("公會前")
+  click("勳章所")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.getByRole("group", { name: "持有勳章" })).toBeInTheDocument()
+  expect(screen.queryByText(/舊外殼/)).not.toBeInTheDocument()
+  expect(screen.queryByTestId("town-world")).not.toBeInTheDocument()
+  expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 規格 honour-screen：「公會前」收回、停在公會前
+test("GameScreen_BackFromHonourShowsTheGuildSquare", async () => {
+  renderGame()
+  click("市集")
+  click("公會前")
+  click("勳章所")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  click("公會前")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByRole("group", { name: "持有勳章" })).not.toBeInTheDocument()
+  expect(segmentOf()).toBe("2")
+})
+
 // 規格 Facilities open the old tabbed screen 的對照表
 test.each([
   [[], "角色 Lv 6", "character／bag"],
@@ -235,7 +274,6 @@ test.each([
   [[], "出發 中央平原", "adventure／bag"],
   [["市集"], "商店街", "bag／shop"],
   [["市集", "公會前"], "鐵舖", "bag／forge"],
-  [["市集", "公會前"], "勳章所", "bag／honour"],
   [["市集", "公會前"], "任務板", "missions／bag"],
 ])("GameScreen_EachFacilityOpensItsTab %#", (path, facility, expected) => {
   renderGame()

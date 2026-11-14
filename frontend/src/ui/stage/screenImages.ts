@@ -1,4 +1,5 @@
 import { HonourMedalKeys } from "../../game/companions"
+import { MedalKeys } from "../../game/honour"
 import type { TimeOfDay } from "../../game/timeOfDay"
 import { contentArtCandidates, contentArtKeys } from "../../render/contentAssets"
 
@@ -17,6 +18,20 @@ const companionsArt = import.meta.glob<string>("../../assets/companions/*.webp",
   eager: true,
   import: "default",
 })
+const honourArt = import.meta.glob<string>("../../assets/honour/*.webp", {
+  eager: true,
+  import: "default",
+})
+// 勳章所沿用標題的榮譽廳、莉瑟、僱用中紙條，以及同伴的分區銘牌
+const honourSharedArt = import.meta.glob<string>(
+  [
+    "../../assets/title/hall.webp",
+    "../../assets/title/clerk.webp",
+    "../../assets/title/book-page.webp",
+    "../../assets/companions/name-plate.webp",
+  ],
+  { eager: true, import: "default" },
+)
 // 紅印章、對話框：旅館與同伴共用（錢袋在城鎮資料夾，進城時已載）
 const sharedArt = import.meta.glob<string>(
   ["../../assets/title/seal.webp", "../../assets/title/bubble.webp"],
@@ -45,4 +60,13 @@ export const companionsImages = (): string[] => [
   ...urlsOf(innArt).filter((url) => /(parchment|pin|close|counter-|door-plate)/.test(url)),
   ...urlsOf(sharedArt),
   ...firstArt("items", HonourMedalKeys),
+]
+
+// 勳章所：櫃檯、陳列板、羊皮紙與五枚勳章（道具佔位圖是很小的 SVG，不預載）
+export const honourImages = (): string[] => [
+  ...urlsOf(honourArt),
+  ...urlsOf(honourSharedArt),
+  ...urlsOf(innArt).filter((url) => /(parchment|pin|close|counter-)/.test(url)),
+  ...urlsOf(sharedArt),
+  ...firstArt("items", MedalKeys),
 ]
