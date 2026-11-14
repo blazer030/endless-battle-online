@@ -1087,3 +1087,30 @@ A single row of 3 simple flat glyph icons for a fantasy RPG mobile game inventor
 - 產圖：grok，2026-10-28，比例 16:9，紀錄 g105
 - 對應方式：線條圖示填滿成剪影（後製），原圖是線條版
 - 提示詞：同上方 g105
+
+## 遊戲 icon・打開的書＋直劍（完整版 512）（現用）
+
+- 素材：`/_blob/a36b184b811f20e9270cb5518153ca19`
+- 產圖：Gemini（agy image-generator），2026-11-14，比例 1:1，紀錄 g292
+- 對應方式：out/icon-jp-open-512.png → raw/icon-jp-open.png
+- 參考圖：`ref-sword.png`
+
+```text
+A Japanese fantasy RPG item icon in the exact art style of the reference sword: clean dark ink line art with even confident outlines, soft transparent Japanese watercolor wash coloring, gentle subtle shading, and warm tones. Flat front view, centered, filling about 80% of the frame. Subject: A thick open fantasy storybook with its two blocks of pages spread in a wide V-shape. The pages are smooth blank cream paper with no text, letters, or markings. Underneath the pages is a warm brown leather book cover. A short straight steel sword, matching the design in the reference image (silver quillon crossguard, wrapped grip, round pommel, straight double-edged steel blade), is stabbed vertically straight down into the spine/gutter between the open pages. The sword's hilt and crossguard stand tall and clear well above the top edge of the book so the silhouette is clean and easily readable at small icon sizes. Background is a solid, completely flat pure magenta color (#FF00FF) with no shadows, no gradient, no vignette, no floor, and no background details.
+```
+
+<details><summary>送出的需求</summary>
+
+```text
+Use the image-generator subagent to generate ONE image and name the file exactly 'icon-jp-open'. Pass this file to it as the reference image: .design-work/work/icon/ref-sword.png. Image brief: A game app icon emblem for a Japanese fantasy RPG. Match the attached sword illustration's art style exactly: clean hand-drawn ink outlines with an even confident line weight, soft transparent Japanese watercolor washes, gentle simple shading, soft muted warm colors, cute and friendly like a Japanese RPG item icon, not western realistic, not gritty, not photographic. Subject: an open storybook seen from the front with its two page blocks spread in a wide V shape, and a short straight sword stabbed upright into the middle of the pages, the sword hilt and crossguard standing well above the book so the two shapes stay separate, cream pages with no writing, warm brown leather cover. Bold simple readable silhouette that still reads at 16 pixels, chunky shapes, very few small details, no texture noise, flat front view, centered, the subject fills about 80 percent of the frame. Background: a perfectly flat, solid magenta #FF00FF filling the whole image, one single color with no gradient, no vignette, no noise, no shadow, no ground. No text, no letters. Square aspect ratio 1:1. Reply with only the saved file path.
+```
+
+</details>
+
+## 遊戲 icon・主體去背（現用）
+
+- 素材：`/_blob/3c625daca5b3e9a729d653597068c9ad`
+- 產圖：Gemini（agy image-generator），2026-11-14，比例 1:1，紀錄 g292
+- 對應方式：out/icon-jp-open.png → raw/icon-jp-open.png
+- 參考圖：`ref-sword.png`
+- 提示詞：同上方 g292
