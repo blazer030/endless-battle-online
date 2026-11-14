@@ -6,10 +6,6 @@ export const CharacterNameMaxLength = 12
 export const PetNameMaxLength = 12
 export const MercenaryNameMaxLength = 8
 
-export const NameLengthError = "名稱長度不符"
-
-export const isNameTooLong = (name: string, maxLength: number) => nameLength(name) > maxLength
-
 // 輸入超過上限時只截掉這次新插入、超出的部分，原本的字都留著（同瀏覽器原生 maxLength，但以字碼計）
 export const fitName = (previous: string, next: string, maxLength: number) => {
   if (nameLength(next) <= maxLength) return next
