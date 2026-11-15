@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react"
-import type { ApiClient } from "../../api/client"
+import { ApiError, type ApiClient } from "../../api/client"
 import type { CharacterVo } from "../../game/character"
 import {
+  actionLabel,
   completedRegular,
   dailyNotes,
+  liseLine,
   missionsLayout,
   openingPage,
   resetHours,
   type BoardPage,
+  type LiseLine,
   type Mission,
   type MissionBoardVo,
+  type MissionCompletionVo,
 } from "../../game/missions"
 import { useStage } from "../stage/stageContext"
 import { BackButton } from "../companions/BackButton"
@@ -43,7 +47,7 @@ const findMission = (board: MissionBoardVo, id: string): Mission | undefined =>
   [...board.available, ...board.active, ...board.completed].find((mission) => mission.id === id)
 
 // 任務板（設計板 MissionsFit）：公會牆上的佈告欄（每日／一般兩頁）＋櫃檯上手邊的三張；點一張拉近成委託單
-export const MissionsScreen = ({ api, character, onBack }: Props) => {
+export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Props) => {
   const stage = useStage()
   const [board, setBoard] = useState<Board>(null)
   const [attempt, setAttempt] = useState(0)
@@ -51,6 +55,19 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
   const [sheet, setSheet] = useState<Sheet>(null)
   // 第一次讀到任務板時選頁；玩家自己換過頁就不再改
   const pageChosen = useRef(false)
+  // 送出中、莉瑟在委託單裡說的話、放棄的再確認、剛完成的那一筆
+  const [busy, setBusy] = useState(false)
+  const [say, setSay] = useState<LiseLine | null>(null)
+  const [asking, setAsking] = useState(false)
+  const [result, setResult] = useState<{ id: string; value: MissionCompletionVo } | null>(null)
+  const alive = useRef(true)
+
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
+    }
+  }, [])
 
   useEffect(() => {
     let isCurrent = true
@@ -80,8 +97,94 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
   const resetText =
     loaded === null ? "" : `${resetHours(loaded.nextDailyReset, new Date())} 小時後重置`
 
+  // 換一張委託單、關掉、清單：上一張的傳話、再確認、完成結果都收掉
+  const showSheet = (next: Sheet) => {
+    setSay(null)
+    setAsking(false)
+    setResult(null)
+    setSheet(next)
+  }
+
   const closeSheet = () => {
-    setSheet(sheet?.kind === "mission" && sheet.fromPile ? { kind: "pile" } : null)
+    showSheet(sheet?.kind === "mission" && sheet.fromPile ? { kind: "pile" } : null)
+  }
+
+  const pick = (id: string) => {
+    // 送出中不換委託單，回來的結果才會說在送出的那一張裡
+    if (!busy) showSheet({ kind: "mission", id, fromPile: false })
+  }
+
+  // 同一時間只送一個請求；成功換成回傳的任務板、委託單留著；失敗時莉瑟說原因並重讀任務板
+  const send = async (
+    mission: Mission,
+    request: () => Promise<MissionBoardVo>,
+    success: LiseLine | null,
+  ) => {
+    setBusy(true)
+    setSay(null)
+    setAsking(false)
+    try {
+      const next = await request()
+      if (!alive.current) return
+      setBoard(next)
+      setSay(success)
+    } catch (error) {
+      if (!alive.current) return
+      setSay(
+        liseLine(
+          error instanceof ApiError && error.reasons.length > 0
+            ? { kind: "refused", reasons: error.reasons, mission }
+            : { kind: "failed" },
+        ),
+      )
+      api.getMissions().then(
+        (latest) => {
+          if (alive.current) setBoard(latest)
+        },
+        () => undefined,
+      )
+    } finally {
+      if (alive.current) setBusy(false)
+    }
+  }
+
+  const accept = (mission: Mission) =>
+    send(mission, () => api.acceptMission(mission.id), liseLine({ kind: "accepted", mission }))
+
+  const abandon = (mission: Mission) =>
+    send(mission, () => api.abandonMission(mission.id), liseLine({ kind: "abandoned" }))
+
+  const complete = (mission: Mission) =>
+    send(
+      mission,
+      async () => {
+        const value = await api.completeMission(mission.id)
+        if (alive.current) {
+          setResult({ id: mission.id, value })
+          onCharacterChange(value.character)
+        }
+        return value.board
+      },
+      null,
+    )
+
+  const sheetView = (current: MissionBoardVo, mission: Mission) =>
+    current.completed.includes(mission)
+      ? "done"
+      : current.active.includes(mission)
+        ? "active"
+        : "open"
+
+  // 印章：可接的接取（手邊滿了停用）；手邊的交付或完成（還沒達成停用）
+  const sealState = (current: MissionBoardVo, mission: Mission) => {
+    const open = sheetView(current, mission) === "open"
+    const full = current.active.length >= current.activeLimit
+    return {
+      open,
+      seal: open ? "接取" : actionLabel(mission),
+      sealDisabled: open ? full : !mission.ready,
+      note: open && full ? `手邊已有 ${current.activeLimit} 張` : null,
+    }
   }
 
   return (
@@ -97,7 +200,7 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
         } as CSSProperties
       }
     >
-      <BackButton label="公會前" onClick={onBack} />
+      <BackButton label="公會前" disabled={busy} onClick={onBack} />
       {loaded !== null && page === "daily" && dailyNotes(loaded).length > 0 && (
         <div className="missions__reset">
           <b>{resetText}</b>
@@ -111,8 +214,10 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
           pageChosen.current = true
           setPage(next)
         }}
-        onPick={(id) => setSheet({ kind: "mission", id, fromPile: false })}
-        onPile={() => setSheet({ kind: "pile" })}
+        onPick={pick}
+        onPile={() => {
+          if (!busy) showSheet({ kind: "pile" })
+        }}
         onRetry={() => {
           setBoard(null)
           setAttempt((count) => count + 1)
@@ -123,28 +228,39 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
       <div className="missions__tag">
         進行中<b data-testid="hand-count">{loaded === null ? "" : loaded.active.length}</b> / 3
       </div>
-      <MissionHand
-        active={loaded?.active ?? null}
-        onPick={(id) => setSheet({ kind: "mission", id, fromPile: false })}
-      />
+      <MissionHand active={loaded?.active ?? null} onPick={pick} />
       {loaded !== null && sheet?.kind === "pile" && (
         <CompletedList
           missions={completedRegular(loaded)}
-          onPick={(id) => setSheet({ kind: "mission", id, fromPile: true })}
-          onClose={() => setSheet(null)}
+          onPick={(id) => showSheet({ kind: "mission", id, fromPile: true })}
+          onClose={() => showSheet(null)}
         />
       )}
       {loaded !== null && sheetMission !== undefined && (
         <MissionSheet
           mission={sheetMission}
-          view={
-            loaded.completed.includes(sheetMission)
-              ? "done"
-              : loaded.active.includes(sheetMission)
-                ? "active"
-                : "open"
-          }
+          view={sheetView(loaded, sheetMission)}
           resetText={resetText}
+          result={result?.id === sheetMission.id ? result.value : null}
+          say={say}
+          actions={{
+            ...sealState(loaded, sheetMission),
+            busy,
+            asking,
+            onSeal: () => {
+              void (sealState(loaded, sheetMission).open
+                ? accept(sheetMission)
+                : complete(sheetMission))
+            },
+            onAsk: () => {
+              setSay(null)
+              setAsking(true)
+            },
+            onCancelAsk: () => setAsking(false),
+            onAbandon: () => {
+              void abandon(sheetMission)
+            },
+          }}
           onClose={closeSheet}
         />
       )}
