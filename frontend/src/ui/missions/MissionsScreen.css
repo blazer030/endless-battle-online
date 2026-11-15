@@ -1,0 +1,1056 @@
+/* 任務板（設計板 MissionsFit）：--h 舞台高、--board-height 佈告欄高、--row-height 單子排高、--hand-top 手邊上緣、--hand-height 手邊高 */
+.missions {
+  position: relative;
+  height: var(--h);
+  overflow: hidden;
+  font-family: var(--font-ui);
+  color: var(--honour-ink);
+  background:
+    linear-gradient(rgb(var(--missions-wash-rgb) / 0.16), rgb(var(--missions-wash-rgb) / 0.16)),
+    url("../../assets/missions/guild-wall.webp") center / cover no-repeat var(--ink);
+}
+
+.missions .inn__back {
+  z-index: 30;
+}
+
+.missions .inn__back:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 每日委託的重置時間：釘在牆上的小紙條 */
+.missions__reset {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  top: 12px;
+  padding: 5px 10px;
+  transform: rotate(1.5deg);
+  background: url("../../assets/title/book-page.webp") center / cover;
+  box-shadow: 0 2px 5px rgb(var(--missions-shade-rgb) / 0.4);
+}
+
+.missions__reset b {
+  font-size: 12px;
+  color: var(--honour-ink);
+}
+
+/* 佈告欄：木框九宮格（四角取原圖 150px、顯示 30px），軟木另鋪一整塊蓋到木框內緣 */
+.missions-board {
+  position: absolute;
+  z-index: 2;
+  left: 10px;
+  right: 10px;
+  top: 46px;
+  height: var(--board-height);
+  box-sizing: border-box;
+  border: 30px solid transparent;
+  border-image: url("../../assets/missions/board-frame.webp") 150 fill / 30px stretch;
+  filter: drop-shadow(0 2px 2px rgb(var(--shade-rgb) / 0.7))
+    drop-shadow(0 14px 14px rgb(var(--shade-rgb) / 0.55));
+  touch-action: pan-y;
+}
+
+.missions-board__cork {
+  position: absolute;
+  inset: -14px;
+  background: url("../../assets/missions/cork.webp") center / 100% 100% no-repeat;
+}
+
+/* 木框比軟木高：框的內緣往軟木上投一圈陰影，外緣上亮下暗 */
+.missions-board::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -14px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 3px 2px rgb(var(--missions-frame-rgb) / 0.55),
+    inset 3px 0 2px rgb(var(--missions-frame-rgb) / 0.4),
+    inset 0 22px 18px -8px rgb(var(--missions-frame-rgb) / 0.75),
+    inset 16px 0 16px -8px rgb(var(--missions-frame-rgb) / 0.6),
+    inset -10px 0 12px -6px rgb(var(--missions-frame-rgb) / 0.45),
+    inset 0 -8px 10px -6px rgb(var(--missions-frame-rgb) / 0.4);
+}
+
+.missions-board::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -30px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 2px 1px rgb(var(--missions-frame-light-rgb) / 0.4),
+    inset 2px 0 1px rgb(var(--missions-frame-light-rgb) / 0.25),
+    inset 0 -3px 1px rgb(var(--missions-frame-rgb) / 0.55),
+    inset -2px 0 1px rgb(var(--missions-frame-rgb) / 0.4);
+}
+
+.missions-board__page {
+  position: absolute;
+  z-index: 2;
+  inset: -12px;
+  overflow: hidden;
+  animation: missions-page-in 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes missions-page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 每日頁 3×3 不捲動；一般頁在軟木裡上下捲動，上下緣淡出 */
+.missions-board__notes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52px;
+  bottom: 28px;
+  padding: 0 4px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, var(--row-height));
+  gap: 10px;
+  align-content: center;
+}
+
+.missions-board__notes--scroll {
+  top: 58px;
+  bottom: 24px;
+  grid-template-rows: none;
+  grid-auto-rows: var(--row-height);
+  align-content: start;
+  padding: 9px 4px 18px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  mask: linear-gradient(transparent, #000 9px, #000 calc(100% - 16px), transparent);
+}
+
+.missions-board__notes--scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* 佈告欄上的單子：圖釘（每日紅、一般黃銅）、名稱兩行、委託者、Lv 與種類 */
+.missions-slip {
+  position: relative;
+  min-height: 0;
+  padding: 13px 8px 6px;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--honour-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--missions-shade-rgb) / 0.45));
+  transform: rotate(var(--r));
+  transition: transform 0.15s;
+}
+
+.missions-slip:hover {
+  transform: rotate(var(--r)) translateY(-2px);
+}
+
+.missions-slip__pin {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.missions-slip--daily .missions-slip__pin {
+  background-image: url("../../assets/missions/pin-red.webp");
+}
+
+.missions-slip > b {
+  flex: 0 0 auto;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.missions-slip > small {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--honour-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.missions-slip__foot {
+  flex: 0 0 auto;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.missions-slip__foot em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--honour-badge);
+}
+
+.missions-slip__foot i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--inn-detail-effect);
+}
+
+.missions-slip--daily .missions-slip__foot i {
+  color: var(--inn-replace-warn);
+}
+
+/* 今天完成的每日委託：留在原位褪色＋「完」章 */
+.missions-slip--done {
+  filter: drop-shadow(0 3px 3px rgb(var(--missions-shade-rgb) / 0.45)) saturate(0.7)
+    brightness(0.95);
+}
+
+.missions-slip--done > b,
+.missions-slip--done > small,
+.missions-slip--done .missions-slip__foot {
+  opacity: 0.6;
+}
+
+.missions-slip__done {
+  position: absolute;
+  right: 6px;
+  bottom: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 900;
+  color: var(--paper);
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  opacity: 0.9;
+  transform: rotate(-12deg);
+}
+
+/* 讀取中：只有空白的紙，淡淡閃 */
+.missions-slip--wait {
+  pointer-events: none;
+  animation: missions-wait 1s ease-in-out infinite alternate;
+}
+
+@keyframes missions-wait {
+  to {
+    opacity: 0.6;
+  }
+}
+
+/* 換頁：軟木上緣兩張標題紙，目前頁在前，另一張壓在後面變暗；另一頁有可接的單子時紙角紅圈寫張數 */
+.missions-board__tabs {
+  position: absolute;
+  z-index: 3;
+  left: -4px;
+  top: -4px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.missions-tab {
+  position: relative;
+  z-index: 2;
+  padding: 8px 15px 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  line-height: 1.2;
+  color: var(--missions-title);
+  white-space: nowrap;
+  transform: rotate(-1.5deg);
+  transition: transform 0.2s;
+}
+
+.missions-tab + .missions-tab {
+  margin-left: -10px;
+}
+
+.missions-tab__paper {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--missions-shade-rgb) / 0.5));
+}
+
+.missions-tab__paper::before {
+  content: "";
+  position: absolute;
+  inset: 5px 7px;
+  border: 1.5px solid rgb(var(--missions-title-line-rgb) / 0.5);
+  outline: 1px solid rgb(var(--missions-title-line-rgb) / 0.3);
+  outline-offset: -4px;
+}
+
+.missions-tab__pin {
+  position: absolute;
+  top: -6px;
+  left: 5px;
+  width: 15px;
+  height: 15px;
+  background: url("../../assets/missions/pin-red.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.missions-tab__pin + .missions-tab__pin {
+  left: auto;
+  right: 5px;
+}
+
+.missions-tab--regular .missions-tab__pin {
+  background-image: url("../../assets/inn/pin.webp");
+}
+
+.missions-tab:not(.missions-tab--on) {
+  z-index: 1;
+  color: var(--missions-title-off);
+  transform: translateY(5px) rotate(2.5deg) scale(0.93);
+}
+
+.missions-tab:not(.missions-tab--on) .missions-tab__paper {
+  filter: brightness(0.8) saturate(0.7) drop-shadow(0 2px 2px rgb(var(--missions-shade-rgb) / 0.5));
+}
+
+.missions-tab__count {
+  position: absolute;
+  right: -9px;
+  top: -10px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  font: 700 13px / 24px var(--font-number);
+  letter-spacing: 0;
+  text-indent: 0;
+  text-align: center;
+  color: var(--paper);
+  background: var(--inn-replace-warn);
+  box-shadow:
+    0 0 0 2px rgb(var(--missions-count-ring-rgb) / 0.9),
+    0 2px 3px rgb(var(--shade-rgb) / 0.5);
+}
+
+.missions-tab--daily .missions-tab__count {
+  right: auto;
+  left: -10px;
+}
+
+/* 空板：只剩幾根圖釘；每日委託還沒開放時正中間釘一張「Lv N」 */
+.missions-board__pins {
+  position: absolute;
+  inset: 52px 0 28px;
+  pointer-events: none;
+}
+
+.missions-board__pins i {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.missions-board__page--daily .missions-board__pins i {
+  background-image: url("../../assets/missions/pin-red.webp");
+}
+
+.missions-board__lock {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 12px);
+  width: 116px;
+  height: 68px;
+  margin: -34px 0 0 -58px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-number);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--honour-badge);
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--missions-shade-rgb) / 0.45));
+  transform: rotate(-2deg);
+}
+
+.missions-board__lock::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 17px;
+  height: 17px;
+  margin-left: -8px;
+  background: url("../../assets/missions/pin-red.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+/* 讀取失敗：軟木正中間，莉瑟的話＋「再試一次」紅印章 */
+.missions-board__failed {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-45%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.missions-board__failed .keeper-say {
+  align-self: stretch;
+}
+
+.missions-board__failed .keeper-say p {
+  background: var(--keeper-say-sheet-failed);
+}
+
+.seal.missions-board__retry {
+  position: relative;
+  bottom: auto;
+  width: 92px;
+  height: 92px;
+  transform: rotate(-4deg);
+}
+
+.seal.missions-board__retry span {
+  writing-mode: horizontal-tb;
+  text-align: center;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.seal.missions-board__retry:not(:disabled):active {
+  transform: rotate(-4deg) scale(0.9);
+}
+
+/* 完成過的一般委託：一般頁右上角釘著的一疊 */
+.missions-pile {
+  position: absolute;
+  z-index: 3;
+  right: 8px;
+  top: 6px;
+  width: 72px;
+  height: 48px;
+  padding: 0 0 7px 11px;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--honour-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 3px rgb(var(--missions-shade-rgb) / 0.5));
+  transform: rotate(-4deg);
+}
+
+.missions-pile::before,
+.missions-pile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  transform: rotate(7deg) translate(3px, -3px);
+  filter: brightness(0.9);
+}
+
+.missions-pile::after {
+  transform: rotate(-6deg) translate(-4px, 2px);
+  filter: brightness(0.82);
+}
+
+.missions-pile__pin {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 15px;
+  height: 15px;
+  margin-left: -7px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.missions-pile__stamp {
+  position: absolute;
+  right: 7px;
+  top: 9px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--paper);
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  transform: rotate(8deg);
+}
+
+.missions-pile b {
+  font-family: var(--font-number);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--honour-ink);
+}
+
+/* 櫃檯與前緣木條；「進行中 N / 3」紙條 */
+.missions__counter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--hand-top) - 28px);
+  bottom: 0;
+  background: url("../../assets/inn/counter-wood.webp") center top / cover no-repeat;
+  filter: sepia(0.35) saturate(1.1) brightness(0.62) contrast(1.08);
+}
+
+.missions__plank {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  top: calc(var(--hand-top) - 44px);
+  height: 52px;
+  background: url("../../assets/title/desk-edge.webp") left center / auto 100% repeat-x;
+  filter: drop-shadow(0 3px 2px rgb(var(--shade-rgb) / 0.55));
+}
+
+.missions__tag {
+  position: absolute;
+  z-index: 4;
+  left: 14px;
+  top: calc(var(--hand-top) - 38px);
+  padding: 5px 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  transform: rotate(-2deg);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--inn-detail-text);
+  background: url("../../assets/title/book-page.webp") center / cover;
+  box-shadow: 0 3px 6px rgb(var(--shade-rgb) / 0.45);
+}
+
+.missions__tag b {
+  min-width: 9px;
+  margin-left: 4px;
+  font-family: var(--font-number);
+  font-size: 15px;
+  letter-spacing: 0;
+  color: var(--honour-ink);
+}
+
+.missions__tag b:empty {
+  height: 15px;
+  border-radius: 2px;
+  background: rgb(var(--missions-line-rgb) / 0.18);
+}
+
+/* 拉近的委託單與完成的委託清單 */
+.missions-sheet__mask {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgb(var(--missions-shade-rgb) / 0.45);
+  animation: missions-fade 0.2s ease-out;
+}
+
+@keyframes missions-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.missions-sheet {
+  position: absolute;
+  z-index: 21;
+  left: 18px;
+  right: 18px;
+  top: 64px;
+  max-height: calc(100% - 92px);
+  min-height: 300px;
+  box-sizing: border-box;
+  padding: 30px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  color: var(--honour-ink);
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 10px 16px rgb(var(--shade-rgb) / 0.6));
+  animation: missions-sheet-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+@keyframes missions-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.55) rotate(-4deg);
+  }
+}
+
+.missions-sheet::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  background: url("../../assets/inn/pin.webp") center / contain no-repeat;
+  filter: drop-shadow(0 2px 1px rgb(var(--shade-rgb) / 0.5));
+}
+
+.missions-sheet--daily::before {
+  background-image: url("../../assets/missions/pin-red.webp");
+}
+
+.missions-sheet__close {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  top: 14px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: url("../../assets/inn/close.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--umber-rgb) / 0.4));
+}
+
+.missions-sheet__close:not(:disabled):active {
+  transform: scale(0.9);
+}
+
+.missions-sheet__close:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 名稱到報酬在紙內捲動，下緣淡出 */
+.missions-sheet__scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 0 2px 10px 0;
+  mask: linear-gradient(#000 calc(100% - 14px), transparent);
+}
+
+.missions-sheet__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.missions-sheet h3 {
+  margin: 0 40px 2px 0;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.missions-sheet h3 small {
+  margin-left: 8px;
+  font-family: var(--font-number);
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--honour-muted);
+}
+
+.missions-sheet__giver {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--honour-muted);
+}
+
+.missions-sheet__description {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--missions-desc);
+  white-space: pre-line;
+}
+
+.missions-sheet__requirements {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--inn-detail-text);
+}
+
+.missions-sheet h4 {
+  margin: 10px 0 4px;
+  padding-top: 8px;
+  border-top: 1px dashed rgb(var(--missions-line-rgb) / 0.45);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--honour-muted);
+}
+
+/* 目標：一列一項（擊殺附出沒地點、交付附分類圖）；夠的綠、不夠的紅 */
+.missions-goal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.missions-goal__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.missions-goal__text > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.missions-goal__text small {
+  font-size: 11px;
+  color: var(--missions-sub);
+}
+
+.missions-goal em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.missions-goal em.missions-goal__word {
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+
+.missions-goal[data-met="true"] em {
+  color: var(--inn-detail-effect);
+}
+
+.missions-goal[data-short="true"] em {
+  color: var(--inn-cost-short);
+}
+
+.missions-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: rgb(var(--missions-line-rgb) / 0.18);
+  box-shadow: inset 0 0 0 1px rgb(var(--missions-line-rgb) / 0.35);
+  overflow: hidden;
+}
+
+.missions-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--missions-bar-dark), var(--missions-bar-light));
+}
+
+.missions-sheet .missions-bar {
+  margin: 4px 0 0;
+}
+
+.missions-sheet__item {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.missions-sheet__coin {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.missions-sheet__rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.missions-sheet__rewards > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.missions-sheet__reset {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--inn-replace-warn);
+}
+
+/* 完成：「完」字章蓋在單子右上（避開關閉鈕），委託者的話＋這次拿到的東西 */
+.missions-sheet__stamp {
+  position: absolute;
+  z-index: 2;
+  right: 58px;
+  top: 22px;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--paper);
+  pointer-events: none;
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+  transform: rotate(-12deg);
+}
+
+.missions-sheet__stamp--fresh {
+  animation: missions-stamp 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes missions-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-12deg) scale(1.8);
+  }
+}
+
+.missions-sheet__quote {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgb(var(--missions-quote-rgb) / 0.55);
+  background: rgb(var(--missions-quote-paper-rgb) / 0.08);
+}
+
+.missions-sheet__quote small {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--missions-sub);
+}
+
+.missions-sheet__quote p {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--honour-ink);
+  white-space: pre-line;
+}
+
+.missions-sheet__got {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.missions-sheet__got li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--missions-got);
+}
+
+.missions-sheet__got li[data-kind="level"] {
+  font-weight: 700;
+  color: var(--missions-level);
+}
+
+.missions-sheet__got li[data-kind="missed"] {
+  color: var(--honour-muted);
+}
+
+/* 莉瑟傳話：委託單裡、印章那排上方 */
+.missions-sheet .keeper-say {
+  margin-top: 8px;
+}
+
+.missions-sheet .keeper-say p {
+  background: var(--keeper-say-sheet-paper);
+}
+
+.missions-sheet .keeper-say--failed p {
+  background: var(--keeper-say-sheet-failed);
+}
+
+/* 放棄（再確認）、停用說明、紅印章 */
+.missions-sheet__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+}
+
+.missions-sheet__ink {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  color: var(--honour-badge);
+  background: rgb(var(--missions-ink-rgb) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--missions-line-rgb) / 0.5);
+}
+
+.missions-sheet__ink--danger {
+  color: var(--inn-replace-warn);
+  box-shadow: inset 0 0 0 1px rgb(var(--missions-seal-rgb) / 0.6);
+}
+
+.missions-sheet__ink:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.missions-sheet__note {
+  font-size: 12px;
+  color: var(--inn-replace-warn);
+}
+
+.seal.missions-sheet__seal {
+  position: relative;
+  bottom: auto;
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 66px;
+  height: 66px;
+}
+
+.seal.missions-sheet__seal span {
+  font-size: 19px;
+}
+
+.seal.missions-sheet__seal--busy,
+.seal.missions-sheet__seal--busy:disabled {
+  transform: rotate(-3deg) scale(0.92);
+  filter: drop-shadow(0 1px 1px rgb(var(--shade-rgb) / 0.35)) brightness(0.92);
+  cursor: progress;
+}
+
+.seal.missions-sheet__seal--busy span {
+  animation: missions-busy 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes missions-busy {
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* 完成的委託清單 */
+.missions-done {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  border: 0;
+  border-bottom: 1px dashed rgb(var(--missions-line-rgb) / 0.35);
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.missions-done__stamp {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--paper);
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  transform: rotate(-6deg);
+}
+
+.missions-done__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.missions-done__text b {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.missions-done__text small {
+  font-size: 11px;
+  color: var(--honour-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.missions-done em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--honour-badge);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .missions-slip--wait,
+  .missions-board__page,
+  .missions-sheet,
+  .missions-sheet__stamp--fresh {
+    animation: none;
+  }
+}

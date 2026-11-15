@@ -650,11 +650,11 @@ describe("sheet text", () => {
         pet: { monsterId: "m", name: "飛兔", level: 2 },
       }),
     ).toEqual([
-      { text: "經驗 3,800", icon: null, category: null },
-      { text: "15,000", icon: "coin", category: null },
-      { text: "白色布料 ×1", icon: null, category: "Material" },
-      { text: "技能 施毒 Lv1", icon: null, category: null },
-      { text: "寵物 飛兔 Lv2", icon: null, category: null },
+      { text: "經驗 3,800", icon: null, category: null, itemId: null },
+      { text: "15,000", icon: "coin", category: null, itemId: null },
+      { text: "白色布料 ×1", icon: null, category: "Material", itemId: "item-342" },
+      { text: "技能 施毒 Lv1", icon: null, category: null, itemId: null },
+      { text: "寵物 飛兔 Lv2", icon: null, category: null, itemId: null },
     ])
     expect(
       rewardRows({ experience: 190, money: 0, items: [], skill: null, pet: null }),
@@ -689,11 +689,23 @@ describe("sheet text", () => {
         }),
       ),
     ).toEqual([
-      { text: "獲得經驗 9,500、金錢 300", icon: "coin", category: null, kind: "normal" },
-      { text: "獲得 白色布料 ×2", icon: null, category: "Material", kind: "normal" },
-      { text: "學會了 施毒 Lv1", icon: null, category: null, kind: "normal" },
-      { text: "獲得寵物 飛兔 Lv2", icon: null, category: null, kind: "normal" },
-      { text: "升到 Lv50", icon: null, category: null, kind: "level" },
+      {
+        text: "獲得經驗 9,500、金錢 300",
+        icon: "coin",
+        category: null,
+        itemId: null,
+        kind: "normal",
+      },
+      {
+        text: "獲得 白色布料 ×2",
+        icon: null,
+        category: "Material",
+        itemId: "item-342",
+        kind: "normal",
+      },
+      { text: "學會了 施毒 Lv1", icon: null, category: null, itemId: null, kind: "normal" },
+      { text: "獲得寵物 飛兔 Lv2", icon: null, category: null, itemId: null, kind: "normal" },
+      { text: "升到 Lv50", icon: null, category: null, itemId: null, kind: "level" },
     ])
   })
 
@@ -703,8 +715,14 @@ describe("sheet text", () => {
         completion({ skill: { skillId: "s", name: "施毒", level: 1 }, skillGranted: false }),
       ),
     ).toEqual([
-      { text: "獲得經驗 9,500", icon: null, category: null, kind: "normal" },
-      { text: "已經學會施毒，這次沒有學到", icon: null, category: null, kind: "missed" },
+      { text: "獲得經驗 9,500", icon: null, category: null, itemId: null, kind: "normal" },
+      {
+        text: "已經學會施毒，這次沒有學到",
+        icon: null,
+        category: null,
+        itemId: null,
+        kind: "missed",
+      },
     ])
   })
 })

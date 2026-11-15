@@ -442,26 +442,40 @@ export type RewardRow = {
   readonly text: string
   readonly icon: "coin" | null
   readonly category: ItemCategory | null
+  readonly itemId: string | null
 }
 
 export const rewardRows = (rewards: MissionReward): RewardRow[] => [
-  { text: `經驗 ${formatNumber(rewards.experience)}`, icon: null, category: null },
+  { text: `經驗 ${formatNumber(rewards.experience)}`, icon: null, category: null, itemId: null },
   ...(rewards.money > 0
-    ? [{ text: formatNumber(rewards.money), icon: "coin" as const, category: null }]
+    ? [{ text: formatNumber(rewards.money), icon: "coin" as const, category: null, itemId: null }]
     : []),
   ...rewards.items.map((item) => ({
     text: `${item.name} ×${formatNumber(item.quantity)}`,
     icon: null,
     category: item.category,
+    itemId: item.itemId,
   })),
   ...(rewards.skill === null
     ? []
     : [
-        { text: `技能 ${rewards.skill.name} Lv${rewards.skill.level}`, icon: null, category: null },
+        {
+          text: `技能 ${rewards.skill.name} Lv${rewards.skill.level}`,
+          icon: null,
+          category: null,
+          itemId: null,
+        },
       ]),
   ...(rewards.pet === null
     ? []
-    : [{ text: `寵物 ${rewards.pet.name} Lv${rewards.pet.level}`, icon: null, category: null }]),
+    : [
+        {
+          text: `寵物 ${rewards.pet.name} Lv${rewards.pet.level}`,
+          icon: null,
+          category: null,
+          itemId: null,
+        },
+      ]),
 ]
 
 // kind：missed＝已經會的技能沒學到、level＝升級（紅字）
@@ -472,12 +486,14 @@ export const completionRows = (result: MissionCompletionVo): CompletionRow[] => 
     text: `獲得經驗 ${formatNumber(result.experience)}${result.money > 0 ? `、金錢 ${formatNumber(result.money)}` : ""}`,
     icon: result.money > 0 ? "coin" : null,
     category: null,
+    itemId: null,
     kind: "normal",
   },
   ...result.items.map((item) => ({
     text: `獲得 ${item.name} ×${formatNumber(item.quantity)}`,
     icon: null,
     category: item.category,
+    itemId: item.itemId,
     kind: "normal" as const,
   })),
   ...(result.skill === null
@@ -488,12 +504,14 @@ export const completionRows = (result: MissionCompletionVo): CompletionRow[] => 
               text: `學會了 ${result.skill.name} Lv${result.skill.level}`,
               icon: null,
               category: null,
+              itemId: null,
               kind: "normal" as const,
             }
           : {
               text: `已經學會${result.skill.name}，這次沒有學到`,
               icon: null,
               category: null,
+              itemId: null,
               kind: "missed" as const,
             },
       ]),
@@ -504,6 +522,7 @@ export const completionRows = (result: MissionCompletionVo): CompletionRow[] => 
           text: `獲得寵物 ${result.pet.name} Lv${result.pet.level}`,
           icon: null,
           category: null,
+          itemId: null,
           kind: "normal" as const,
         },
       ]),
@@ -513,6 +532,7 @@ export const completionRows = (result: MissionCompletionVo): CompletionRow[] => 
           text: `升到 Lv${result.character.level}`,
           icon: null,
           category: null,
+          itemId: null,
           kind: "level" as const,
         },
       ]

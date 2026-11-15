@@ -331,6 +331,13 @@
   background-position: -26.2px -9px;
 }
 
+/* 勳章所與任務板的接待員莉瑟 */
+.keeper-say__face--lise {
+  background-image: url("../../assets/title/clerk.webp");
+  background-size: 78.7px 205.4px;
+  background-position: -24px -9.9px;
+}
+
 .keeper-say p {
   --keeper-border: var(--keeper-say-border);
   position: relative;

@@ -789,12 +789,6 @@
   background: var(--keeper-say-sheet-failed);
 }
 
-.keeper-say__face--lise {
-  background-image: url("../../assets/title/clerk.webp");
-  background-size: 78.7px 205.4px;
-  background-position: -24px -9.9px;
-}
-
 .honour-sheet__actions {
   display: flex;
   align-items: center;

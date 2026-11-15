@@ -162,6 +162,28 @@
   --honour-felt-rgb: 5 15 8;
   --honour-shadow-rgb: 20 10 4;
   --honour-medal-shadow-rgb: 30 0 5;
+  /* 任務板（MissionsFit）：同值沿用勳章所、旅館的變數，這裡只放新的 */
+  --missions-title: #5a1e12;
+  --missions-title-off: #7a4a3a;
+  --missions-sub: #8a7356;
+  --missions-desc: #4a3418;
+  --missions-skill: #2f6a8a;
+  --missions-got: #2f5a3a;
+  --missions-level: #8a2a16;
+  --missions-bar-dark: #8a5a20;
+  --missions-bar-light: #b07a2a;
+  --missions-wash-rgb: 245 228 200;
+  --missions-shade-rgb: 30 15 5;
+  --missions-frame-rgb: 10 4 0;
+  --missions-frame-light-rgb: 255 225 180;
+  --missions-line-rgb: 90 60 30;
+  --missions-title-line-rgb: 90 30 18;
+  --missions-slot-rgb: 240 215 170;
+  --missions-ink-rgb: 120 90 50;
+  --missions-quote-rgb: 140 40 25;
+  --missions-quote-paper-rgb: 120 85 40;
+  --missions-seal-rgb: 176 48 30;
+  --missions-count-ring-rgb: 246 235 213;
   --bonus-bar-warn-dark: #a8322a;
   --bonus-bar-warn: #e8705a;
   --bonus-glyph: #fff8e8;
