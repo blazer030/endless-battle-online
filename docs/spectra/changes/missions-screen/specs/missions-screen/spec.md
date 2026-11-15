@@ -63,11 +63,6 @@ Each slip on the board SHALL show the mission title without the "[每日]" prefi
 | `mission-1` (delivers 蜘蛛絲) | title 製作漁網, kind 交付 |
 | `mission-16` (asks for a pet) | kind 寵物 |
 
---- | --- |
-| daily `[每日]討伐任務` | title 討伐任務, kind 討伐 |
-| `mission-1` (delivers 蜘蛛絲) | title 製作漁網, kind 交付 |
-| `mission-16` (asks for a pet) | kind 寵物 |
-
 ---
 ### Requirement: Daily page
 
@@ -134,7 +129,7 @@ Objective progress SHALL be "progress / count" for a kill target, "owned / quant
 ---
 ### Requirement: Mission sheet
 
-Clicking a slip SHALL open the mission sheet over the board. The sheet SHALL show the title (without "[每日]"), "委託者　giver", the description, and for a mission not yet accepted its conditions joined by "・": "Lv N", "限 job", "限 男性／女性", "限 birth 出身", "需先完成「title」". It SHALL list every objective: "擊敗 monster" with its place and "progress / count" (or "×count" before accepting), "交付 item" with the item's category placeholder and "owned / quantity" (or "×quantity"), "交付寵物 species" with "需攜帶" before accepting and "攜帶中／未攜帶" after, and "技能 skill LvN" with "目前 LvN／未學會"; unmet objectives of an accepted mission SHALL be marked. It SHALL list the rewards: "經驗 N", money with the coin icon, "item ×N" with the category placeholder, "技能 skill LvN", "寵物 species LvN". A daily mission's sheet SHALL show "每日委託・N 小時後重置". The content SHALL scroll inside the sheet while Lise's line and the action row stay fixed at the bottom. The close button SHALL return to the board (or to the completed list when opened from it).
+Clicking a slip SHALL open the mission sheet over the board. The sheet SHALL show the title (without "[每日]"), "委託者　giver", the description, and for a mission not yet accepted its conditions joined by "・": "Lv N", "限 job", "限 男性／女性", "限 (birth)出身", "需先完成「title」". It SHALL list every objective: "擊敗 monster" with its place and "progress / count" (or "×count" before accepting), "交付 item" with the item's category placeholder and "owned / quantity" (or "×quantity"), "交付寵物 species" with "需攜帶" before accepting and "攜帶中／未攜帶" after, and "技能 skill LvN" with "目前 LvN／未學會"; unmet objectives of an accepted mission SHALL be marked. It SHALL list the rewards: "經驗 N", money with the coin icon, "item ×N" with the category placeholder, "技能 skill LvN", "寵物 species LvN". A daily mission's sheet SHALL show "每日委託・N 小時後重置". The content SHALL scroll inside the sheet while Lise's line and the action row stay fixed at the bottom. The close button SHALL return to the board (or to the completed list when opened from it).
 
 #### Scenario: Sheet of an available mission
 
@@ -152,7 +147,7 @@ Clicking a slip SHALL open the mission sheet over the board. The sheet SHALL sho
 
 The sheet of an available mission SHALL have a red seal "接取"; with 3 missions in hand the seal SHALL be disabled with "手邊已有 3 張" beside it. The sheet of an active mission SHALL have "放棄" and a red seal "交付" (when the mission has a delivery or a pet) or "完成"; the seal SHALL be disabled until the mission is ready. "放棄" SHALL ask again with "確定放棄" and "取消". While a request is being sent the seal SHALL look pressed, and the seal, "放棄" and the close button SHALL be disabled.
 
-After a successful accept, abandon or complete the sheet SHALL stay open and show the mission's new state from the returned board. After a completion the sheet SHALL show a "完" stamp, the giver's completion message when there is one, and "這次拿到": "獲得經驗 N" (with "、金錢 N" when money is given), "獲得 item ×N", "學會了 skill LvN" or "已經學會 skill，這次沒有學到" when `skillGranted` is false, "獲得寵物 species LvN", and "升到 LvN" with the new character level when levels were gained. The returned character SHALL replace the screen's character. A completed mission opened from the daily page or the completed list SHALL show the "完" stamp, the giver's completion message when there is one, and the mission's rewards.
+After a successful accept, abandon or complete the sheet SHALL stay open and show the mission's new state from the returned board. After a completion the sheet SHALL show a "完" stamp, the giver's completion message when there is one, and "這次拿到": "獲得經驗 N" (with "、金錢 N" when money is given), "獲得 item ×N", "學會了 skill LvN" or "已經學會(skill)，這次沒有學到" when `skillGranted` is false, "獲得寵物 species LvN", and "升到 LvN" with the new character level when levels were gained. The returned character SHALL replace the screen's character. A completed mission opened from the daily page or the completed list SHALL show the "完" stamp, the giver's completion message when there is one, and the mission's rewards.
 
 #### Scenario: Accept keeps the sheet open
 
