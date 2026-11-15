@@ -61,6 +61,8 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
   const [asking, setAsking] = useState(false)
   const [result, setResult] = useState<{ id: string; value: MissionCompletionVo } | null>(null)
   const alive = useRef(true)
+  // 每次送出或重讀加一；回來時編號已經不是最新的就丟掉，晚到的舊任務板不會蓋掉之後的結果
+  const latestRequest = useRef(0)
 
   useEffect(() => {
     alive.current = true
@@ -123,6 +125,7 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
     setBusy(true)
     setSay(null)
     setAsking(false)
+    latestRequest.current += 1
     try {
       const next = await request()
       if (!alive.current) return
@@ -137,9 +140,10 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
             : { kind: "failed" },
         ),
       )
+      const reload = ++latestRequest.current
       api.getMissions().then(
         (latest) => {
-          if (alive.current) setBoard(latest)
+          if (alive.current && reload === latestRequest.current) setBoard(latest)
         },
         () => undefined,
       )

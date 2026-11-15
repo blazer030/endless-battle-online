@@ -605,6 +605,30 @@ test("FailureReloadsTheBoard", async () => {
   expect(api.getMissions).toHaveBeenCalledTimes(2)
 })
 
+test("LateReloadDoesNotUndoALaterSuccess", async () => {
+  const before = makeMissionBoard({ available: [mission1] })
+  const api = createMissionsApi(before)
+  let answerReload: (board: MissionBoardVo) => void = () => undefined
+  vi.mocked(api.getMissions)
+    .mockResolvedValueOnce(before)
+    .mockReturnValueOnce(new Promise((resolve) => (answerReload = resolve)))
+  vi.mocked(api.acceptMission)
+    .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    .mockResolvedValueOnce(makeMissionBoard({ active: [mission1] }))
+  await renderMissions(api)
+
+  const sheet = openSheet(/^製作漁網/)
+  fireEvent.click(seal(sheet))
+  await flush()
+  fireEvent.click(seal(sheet))
+  await flush()
+  answerReload(before)
+  await flush()
+
+  expect(seal(screen.getByRole("dialog", { name: "製作漁網" }))).toHaveTextContent("交付")
+  expect(within(hand()).getByRole("button", { name: /^製作漁網/ })).toBeInTheDocument()
+})
+
 // 規格 Network failure
 test("NetworkFailureIsSpoken", async () => {
   const api = createMissionsApi(lv150Board())
