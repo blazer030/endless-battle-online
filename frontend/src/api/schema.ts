@@ -2951,6 +2951,8 @@ export interface components {
             activeLimit: number;
             /** Format: date-time */
             nextDailyReset: string;
+            /** Format: int32 */
+            firstDailyLevel: null | number;
         };
         MissionCompleteResponse: {
             board: components["schemas"]["MissionBoardResponse"];
@@ -2974,6 +2976,7 @@ export interface components {
             quantity: number;
             /** Format: int32 */
             owned: number;
+            category: components["schemas"]["ItemCategory"];
         };
         MissionKillResponse: {
             monsterId: string;
@@ -3000,6 +3003,8 @@ export interface components {
             /** Format: int32 */
             level: number;
             met: boolean;
+            /** Format: int32 */
+            learnedLevel: null | number;
         };
         MissionRequirementsResponse: {
             jobId: null | string;
@@ -3009,6 +3014,9 @@ export interface components {
             birth: null | number;
             prerequisiteId: null | string;
             prerequisiteTitle: null | string;
+            jobName: null | string;
+            sexName: null | string;
+            birthName: null | string;
         };
         MissionResponse: {
             id: string;
@@ -3030,12 +3038,14 @@ export interface components {
             expiresAt: null | string;
             deliverPet: null | components["schemas"]["MissionPetResponse"];
             requiredSkill: null | components["schemas"]["MissionRequiredSkillResponse"];
+            completionMessage: null | string;
         };
         MissionRewardItemResponse: {
             itemId: string;
             name: string;
             /** Format: int32 */
             quantity: number;
+            category: components["schemas"]["ItemCategory"];
         };
         MissionRewardPetResponse: {
             monsterId: string;

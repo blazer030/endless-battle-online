@@ -6,7 +6,8 @@ namespace EndlessBattle.Domain.Missions;
 
 public sealed record MissionEntry(MissionDefinition Definition, MissionObjective Objective, MissionRecord? Record, bool Ready, DateTimeOffset? ExpiresAt);
 
-// Owned：建看板時的背包道具總數、CarriedPetMonsterId：攜帶中寵物的物種、Learned：已學的技能，回應交付進度與技能條件用
+// Owned：建看板時的背包道具總數、CarriedPetMonsterId：攜帶中寵物的物種、Learned：已學的技能，回應交付進度與技能條件用；
+// FirstDailyLevel：內容裡每日任務的最低等級（沒有每日任務為 null）
 public sealed record MissionBoardView(
     IReadOnlyList<MissionEntry> Available,
     IReadOnlyList<MissionEntry> Active,
@@ -14,7 +15,8 @@ public sealed record MissionBoardView(
     DateTimeOffset NextDailyReset,
     IReadOnlyDictionary<string, int> Owned,
     string? CarriedPetMonsterId = null,
-    IReadOnlyList<LearnedSkill>? Learned = null)
+    IReadOnlyList<LearnedSkill>? Learned = null,
+    int? FirstDailyLevel = null)
 {
     public IReadOnlyList<LearnedSkill> Learned { get; init; } = Learned ?? [];
 }
@@ -57,7 +59,8 @@ public static class MissionBoard
             .Select(record => Entry(character, byId[record.MissionId], record, owned, carriedPetMonsterId, learned))
             .ToList();
 
-        return new MissionBoardView(available, active, completed, nextReset, owned, carriedPetMonsterId, learned);
+        var firstDailyLevel = missions.Where(mission => mission.Daily).Select(mission => (int?)mission.Level).Min();
+        return new MissionBoardView(available, active, completed, nextReset, owned, carriedPetMonsterId, learned, firstDailyLevel);
     }
 
     // 未知任務、過期每日紀錄，以及與定義種類不符（每日卻無週期、一般卻有週期）的紀錄一律忽略

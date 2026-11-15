@@ -291,6 +291,38 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(["test-hunt"], Ids(completion.GetProperty("board"), "completed"));
     }
 
+    // 規格 missions「Board details for the mission board screen」：只有已完成的委託帶完成台詞
+    [Fact]
+    public async Task Missions_CompletedCarriesCompletionMessage()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        (await PostAsync(client, "accept", "test-hunt")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-hunt", 3);
+
+        var board = (await ReadAsync(await PostAsync(client, "complete", "test-hunt"))).GetProperty("board");
+
+        var completed = Assert.Single(board.GetProperty("completed").EnumerateArray());
+        Assert.Equal("謝謝你。", completed.GetProperty("completionMessage").GetString());
+        Assert.All(board.GetProperty("available").EnumerateArray(), mission =>
+            Assert.Equal(JsonValueKind.Null, mission.GetProperty("completionMessage").ValueKind));
+    }
+
+    [Fact]
+    public async Task Complete_ResponseItemsCarryCategory()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateCharacterAsync(factory);
+        (await PostAsync(client, "accept", "test-stone-reward")).EnsureSuccessStatusCode();
+        await SetProgressAsync(factory, client, "test-stone-reward", 1);
+
+        var completion = await ReadAsync(await PostAsync(client, "complete", "test-stone-reward"));
+
+        Assert.Equal("Stone", Assert.Single(completion.GetProperty("items").EnumerateArray()).GetProperty("category").GetString());
+        var completed = Assert.Single(completion.GetProperty("board").GetProperty("completed").EnumerateArray());
+        Assert.Equal("Stone", Assert.Single(completed.GetProperty("rewards").GetProperty("items").EnumerateArray()).GetProperty("category").GetString());
+    }
+
     [Fact]
     public async Task Missions_CompleteIncompleteReturnsReason()
     {

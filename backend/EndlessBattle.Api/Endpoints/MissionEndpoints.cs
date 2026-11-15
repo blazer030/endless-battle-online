@@ -4,6 +4,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Domain.World;
 
@@ -58,7 +59,8 @@ public static class MissionEndpoints
     {
         List<MissionResponse> Map(IReadOnlyList<MissionEntry> entries) =>
             entries.Select(entry => ToResponse(entry, board, content)).ToList();
-        return new MissionBoardResponse(Map(board.Available), Map(board.Active), Map(board.Completed), MissionRules.MaxActive, board.NextDailyReset);
+        return new MissionBoardResponse(
+            Map(board.Available), Map(board.Active), Map(board.Completed), MissionRules.MaxActive, board.NextDailyReset, board.FirstDailyLevel);
     }
 
     private static MissionResponse ToResponse(MissionEntry entry, MissionBoardView board, IGameContent content)
@@ -80,14 +82,21 @@ public static class MissionEndpoints
             mission.Daily,
             objective.Kills.Select((kill, index) => ToResponse(kill, entry.Record?.ProgressOf(index) ?? 0, content)).ToList(),
             objective.Deliver
-                .Select(item => new MissionDeliverResponse(item.ItemId, content.GetItem(item.ItemId).Name, item.Quantity, owned.GetValueOrDefault(item.ItemId)))
+                .Select(item =>
+                {
+                    var definition = content.GetItem(item.ItemId);
+                    return new MissionDeliverResponse(item.ItemId, definition.Name, item.Quantity, owned.GetValueOrDefault(item.ItemId), definition.Category);
+                })
                 .ToList(),
             new MissionRequirementsResponse(
                 requirements.JobId,
                 requirements.Sex,
                 requirements.Birth,
                 requirements.PrerequisiteId,
-                requirements.PrerequisiteId is { } prerequisiteId ? content.GetMission(prerequisiteId).Title : null),
+                requirements.PrerequisiteId is { } prerequisiteId ? content.GetMission(prerequisiteId).Title : null,
+                requirements.JobId is { } jobId ? content.GetJob(jobId).Name : null,
+                OptionName(CharacterOptions.Sexes, requirements.Sex),
+                OptionName(CharacterOptions.Births, requirements.Birth)),
             new MissionRewardResponse(
                 objective.Experience,
                 reward.Money,
@@ -100,12 +109,24 @@ public static class MissionEndpoints
                 ? new MissionPetResponse(species, content.GetMonster(species).Name, species == carriedPetMonsterId)
                 : null,
             mission.RequiredSkill is { } required
-                ? new MissionRequiredSkillResponse(required.SkillId, content.GetSkill(required.SkillId).Name, required.Level, MissionRules.HasRequiredSkill(mission, board.Learned))
-                : null);
+                ? new MissionRequiredSkillResponse(
+                    required.SkillId,
+                    content.GetSkill(required.SkillId).Name,
+                    required.Level,
+                    MissionRules.HasRequiredSkill(mission, board.Learned),
+                    board.Learned.FirstOrDefault(known => known.SkillId == required.SkillId)?.Level)
+                : null,
+            entry.Record?.State == MissionState.Completed && mission.CompletionMessage != "" ? mission.CompletionMessage : null);
     }
 
-    private static MissionRewardItemResponse ToResponse(ItemQuantity item, IGameContent content) =>
-        new(item.ItemId, content.GetItem(item.ItemId).Name, item.Quantity);
+    private static MissionRewardItemResponse ToResponse(ItemQuantity item, IGameContent content)
+    {
+        var definition = content.GetItem(item.ItemId);
+        return new(item.ItemId, definition.Name, item.Quantity, definition.Category);
+    }
+
+    private static string? OptionName(IReadOnlyList<CharacterOption> options, int? id) =>
+        id is { } value ? options.FirstOrDefault(option => option.Id == value)?.Name : null;
 
     private static MissionRewardSkillResponse ToResponse(SkillReward skill, IGameContent content) =>
         new(skill.SkillId, content.GetSkill(skill.SkillId).Name, skill.Level);

@@ -218,4 +218,15 @@ public class MissionBoardTests
         Assert.False(otherSpecies.Active.Single().Ready);
         Assert.False(noPet.Active.Single().Ready);
     }
+
+    // 規格 missions「Board details for the mission board screen」：內容裡每日委託的最低等級，沒有每日委託為 null
+    [Fact]
+    public void Board_FirstDailyLevelIsTheLowestDaily()
+    {
+        IReadOnlyList<MissionDefinition> missions =
+            [General("a", level: 5), DailyMission("high") with { Level = 50 }, DailyMission("low") with { Level = 30 }];
+
+        Assert.Equal(30, MissionBoard.Build(Hero, missions, [], NothingOwned, Now).FirstDailyLevel);
+        Assert.Null(MissionBoard.Build(Hero, [General("a")], [], NothingOwned, Now).FirstDailyLevel);
+    }
 }

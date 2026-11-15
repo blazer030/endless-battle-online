@@ -357,15 +357,16 @@ public sealed record UnsocketResponse(bool Success, bool Recovered, InventoryRes
 
 public sealed record MissionRequest(string? MissionId);
 
-// ActiveLimit 是同時進行中的上限；NextDailyReset 為 UTC
+// ActiveLimit 是同時進行中的上限；NextDailyReset 為 UTC；FirstDailyLevel 是內容裡每日任務的最低等級（沒有每日任務為 null）
 public sealed record MissionBoardResponse(
     IReadOnlyList<MissionResponse> Available,
     IReadOnlyList<MissionResponse> Active,
     IReadOnlyList<MissionResponse> Completed,
     int ActiveLimit,
-    DateTimeOffset NextDailyReset);
+    DateTimeOffset NextDailyReset,
+    int? FirstDailyLevel);
 
-// 每日任務的 Kills 與 Rewards 是該週期擲出的結果；ExpiresAt 只有每日任務有值
+// 每日任務的 Kills 與 Rewards 是該週期擲出的結果；ExpiresAt 只有每日任務有值；CompletionMessage 只有已完成且內容有寫時有值
 public sealed record MissionResponse(
     string Id,
     string Giver,
@@ -382,10 +383,11 @@ public sealed record MissionResponse(
     bool Ready,
     DateTimeOffset? ExpiresAt,
     MissionPetResponse? DeliverPet,
-    MissionRequiredSkillResponse? RequiredSkill);
+    MissionRequiredSkillResponse? RequiredSkill,
+    string? CompletionMessage);
 
-// 回報時要達到的技能等級；Met：已學等級達到要求
-public sealed record MissionRequiredSkillResponse(string SkillId, string Name, int Level, bool Met);
+// 回報時要達到的技能等級；Met：已學等級達到要求；LearnedLevel：目前已學等級（沒學過為 null）
+public sealed record MissionRequiredSkillResponse(string SkillId, string Name, int Level, bool Met, int? LearnedLevel);
 
 // 要交出的寵物物種；Carried：攜帶中的寵物是這個物種
 public sealed record MissionPetResponse(string MonsterId, string Name, bool Carried);
@@ -393,14 +395,16 @@ public sealed record MissionPetResponse(string MonsterId, string Name, bool Carr
 public sealed record MissionKillResponse(string MonsterId, string MonsterName, int PlaceId, string PlaceName, int Count, int Progress);
 
 // Owned 是背包中的持有數（不含已裝備與補給欄）
-public sealed record MissionDeliverResponse(string ItemId, string Name, int Quantity, int Owned);
+public sealed record MissionDeliverResponse(string ItemId, string Name, int Quantity, int Owned, ItemCategory Category);
 
-public sealed record MissionRequirementsResponse(string? JobId, int? Sex, int? Birth, string? PrerequisiteId, string? PrerequisiteTitle);
+// JobName、SexName、BirthName 是條件的顯示名稱，沒有限制為 null
+public sealed record MissionRequirementsResponse(
+    string? JobId, int? Sex, int? Birth, string? PrerequisiteId, string? PrerequisiteTitle, string? JobName, string? SexName, string? BirthName);
 
 public sealed record MissionRewardResponse(
     long Experience, long Money, IReadOnlyList<MissionRewardItemResponse> Items, MissionRewardSkillResponse? Skill, MissionRewardPetResponse? Pet);
 
-public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity);
+public sealed record MissionRewardItemResponse(string ItemId, string Name, int Quantity, ItemCategory Category);
 
 public sealed record MissionRewardSkillResponse(string SkillId, string Name, int Level);
 

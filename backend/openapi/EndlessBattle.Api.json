@@ -4217,7 +4217,8 @@
           "active",
           "completed",
           "activeLimit",
-          "nextDailyReset"
+          "nextDailyReset",
+          "firstDailyLevel"
         ],
         "type": "object",
         "properties": {
@@ -4246,6 +4247,13 @@
           "nextDailyReset": {
             "type": "string",
             "format": "date-time"
+          },
+          "firstDailyLevel": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -4321,7 +4329,8 @@
           "itemId",
           "name",
           "quantity",
-          "owned"
+          "owned",
+          "category"
         ],
         "type": "object",
         "properties": {
@@ -4338,6 +4347,9 @@
           "owned": {
             "type": "integer",
             "format": "int32"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
           }
         }
       },
@@ -4413,7 +4425,8 @@
           "skillId",
           "name",
           "level",
-          "met"
+          "met",
+          "learnedLevel"
         ],
         "type": "object",
         "properties": {
@@ -4429,6 +4442,13 @@
           },
           "met": {
             "type": "boolean"
+          },
+          "learnedLevel": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -4438,7 +4458,10 @@
           "sex",
           "birth",
           "prerequisiteId",
-          "prerequisiteTitle"
+          "prerequisiteTitle",
+          "jobName",
+          "sexName",
+          "birthName"
         ],
         "type": "object",
         "properties": {
@@ -4473,6 +4496,24 @@
               "null",
               "string"
             ]
+          },
+          "jobName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sexName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "birthName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4493,7 +4534,8 @@
           "ready",
           "expiresAt",
           "deliverPet",
-          "requiredSkill"
+          "requiredSkill",
+          "completionMessage"
         ],
         "type": "object",
         "properties": {
@@ -4576,6 +4618,12 @@
                 "$ref": "#/components/schemas/MissionRequiredSkillResponse"
               }
             ]
+          },
+          "completionMessage": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4583,7 +4631,8 @@
         "required": [
           "itemId",
           "name",
-          "quantity"
+          "quantity",
+          "category"
         ],
         "type": "object",
         "properties": {
@@ -4596,6 +4645,9 @@
           "quantity": {
             "type": "integer",
             "format": "int32"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ItemCategory"
           }
         }
       },
