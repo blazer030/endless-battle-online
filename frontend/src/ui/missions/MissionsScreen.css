@@ -3,7 +3,7 @@
   position: relative;
   height: var(--h);
   overflow: hidden;
-  font-family: var(--font-ui);
+  font-family: var(--font-number), var(--font-ui);
   color: var(--honour-ink);
   background:
     linear-gradient(rgb(var(--missions-wash-rgb) / 0.16), rgb(var(--missions-wash-rgb) / 0.16)),
