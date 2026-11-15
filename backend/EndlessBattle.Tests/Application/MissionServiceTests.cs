@@ -159,6 +159,26 @@ public class MissionServiceTests
         Assert.Equal((MissionState.Active, 0, (DateOnly?)Today), (record.State, record.ProgressOf(0), record.DailyPeriod));
     }
 
+    // 規格 missions「Completing a delivery mission」：正式內容 mission-1 交 1 個蜘蛛絲、得 1 個白色布料
+    [Fact]
+    public async Task Complete_DeliveryMissionFromTheRealContent()
+    {
+        var character = await characters.AddAsync(
+            TestCharacters.Default(AccountId, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with { JobId = "job-6" }, CancellationToken);
+        await GiveAsync(character, "item-331", 1);
+        await SeedAsync(character, new MissionRecord("mission-1", MissionState.Active, [], null, Now.AddHours(-1), null));
+
+        var completion = await Service(JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content")))
+            .CompleteAsync(AccountId, "mission-1", CancellationToken);
+
+        var bag = await BagAsync(character);
+        Assert.DoesNotContain(bag, entry => entry.ItemId == "item-331");
+        Assert.Equal(1, Assert.Single(bag, entry => entry.ItemId == "item-342").Quantity);
+        Assert.Equal(3800, completion.Experience);
+        Assert.StartsWith("感謝您的努力", completion.CompletionMessage);
+        Assert.Equal(MissionState.Completed, Assert.Single(await RecordsAsync(character)).State);
+    }
+
     [Fact]
     public async Task Abandon_RemovesActiveAndAllowsReaccept()
     {

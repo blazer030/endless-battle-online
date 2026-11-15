@@ -33,6 +33,15 @@ public class DailyMissionsTests
         Assert.Equal(Utc(22, 1), DailyMissions.PeriodStart(October22));
     }
 
+    // 規格 missions「Period switches at 09:00 Taipei」
+    [Theory]
+    [InlineData(0, 59, 14)]
+    [InlineData(1, 0, 15)]
+    public void Period_TableAtNineTaipei(int hour, int minute, int expectedDay)
+    {
+        Assert.Equal(new DateOnly(2026, 11, expectedDay), DailyMissions.PeriodOf(new DateTimeOffset(2026, 11, 15, hour, minute, 0, TimeSpan.Zero)));
+    }
+
     [Fact]
     public void IsExpired_OnlyForPastPeriods()
     {

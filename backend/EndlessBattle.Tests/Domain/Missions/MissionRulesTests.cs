@@ -108,4 +108,15 @@ public class MissionRulesTests
             ["tooMany", "levelTooLow", "jobMismatch", "sexMismatch", "birthMismatch", "prerequisiteMissing", "missionConflict"],
             MissionRules.CanAccept(Hero(1), mission, [Active("rival"), Active("b"), Active("c")]));
     }
+
+    // 規格 missions「Accept reasons in order」：Lv5、手邊 3 張，接 Lv10 限術士且前置未完成
+    [Fact]
+    public void CanAccept_ExampleReasons()
+    {
+        var mission = Mission("hunt", level: 10, requirements: new MissionRequirements("sorcerer", PrerequisiteId: "first"));
+
+        Assert.Equal(
+            ["tooMany", "levelTooLow", "jobMismatch", "prerequisiteMissing"],
+            MissionRules.CanAccept(Hero(5), mission, [Active("a"), Active("b"), Active("c")]));
+    }
 }
