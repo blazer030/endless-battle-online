@@ -426,6 +426,7 @@ test("GameScreen_BackFromMissionsCarriesTheLatestCharacter", async () => {
 
   expect(segmentOf()).toBe("2")
   expect(screen.getByLabelText("金錢")).toHaveTextContent("777")
+  expect(api.advance).not.toHaveBeenCalled()
 })
 
 // 規格 Facilities open the old tabbed screen 的對照表

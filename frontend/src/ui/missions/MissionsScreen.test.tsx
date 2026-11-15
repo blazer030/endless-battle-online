@@ -131,6 +131,10 @@ test("CompletedDailyStaysFadedInPlace", async () => {
   expect(within(slips()[0]).getByText("討伐")).toBeInTheDocument()
   expect(within(slips()[0]).getByText("Lv 50")).toBeInTheDocument()
   expect(screen.getByText(/小時後重置$/)).toBeInTheDocument()
+
+  const sheet = openSheet(/^今天已完成，委託mission-225/)
+  expect(within(sheet).getByText("完")).toBeInTheDocument()
+  expect(within(sheet).queryByRole("button", { name: "接取" })).not.toBeInTheDocument()
 })
 
 test("RegularPageListsEveryAvailable", async () => {

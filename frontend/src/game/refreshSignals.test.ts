@@ -77,7 +77,7 @@ describe("refreshSignalsFor", () => {
     ).toEqual(none)
   })
 
-  it("任務進度重載任務，升級重載技能", () => {
+  it("任務進度不再重載，升級重載技能", () => {
     const mission = event({
       type: "mission",
       atSeconds: 0,
