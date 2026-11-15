@@ -286,9 +286,13 @@ export const makeMission = (overrides: Partial<Mission> = {}): Mission => ({
     birth: null,
     prerequisiteId: null,
     prerequisiteTitle: null,
+    jobName: null,
+    sexName: null,
+    birthName: null,
   },
   rewards: { experience: 190, money: 50, items: [], skill: null, pet: null },
   requiredSkill: null,
+  completionMessage: null,
   ready: false,
   expiresAt: null,
   deliverPet: null,
@@ -302,6 +306,7 @@ export const makeMissionBoard = (overrides: Partial<MissionBoardVo> = {}): Missi
     completed: [],
     activeLimit: 3,
     nextDailyReset: new Date("2026-10-23T01:00:00Z"),
+    firstDailyLevel: 50,
     ...overrides,
   })
 

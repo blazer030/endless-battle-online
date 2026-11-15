@@ -32,8 +32,8 @@ const delivery = makeMission({
   id: "test-delivery",
   kills: [],
   deliver: [
-    { itemId: "herb", name: "藥草", quantity: 5, owned: 7 },
-    { itemId: "fang", name: "狼牙", quantity: 3, owned: 1 },
+    { itemId: "herb", name: "藥草", quantity: 5, owned: 7, category: "Material" },
+    { itemId: "fang", name: "狼牙", quantity: 3, owned: 1, category: "Material" },
   ],
 })
 
@@ -57,6 +57,9 @@ describe("requirementLines", () => {
         birth: 2,
         prerequisiteId: "test-hunt",
         prerequisiteTitle: "綠地上的黏液",
+        jobName: null,
+        sexName: null,
+        birthName: null,
       },
     })
 
@@ -77,6 +80,9 @@ describe("requirementLines", () => {
         birth: 4,
         prerequisiteId: "test-hunt",
         prerequisiteTitle: null,
+        jobName: null,
+        sexName: null,
+        birthName: null,
       },
     })
 
@@ -128,7 +134,13 @@ describe("objectiveLines", () => {
       objectiveLines(
         makeMission({
           kills: [],
-          requiredSkill: { skillId: "skill-414", name: "斯巴達", level: 2, met: true },
+          requiredSkill: {
+            skillId: "skill-414",
+            name: "斯巴達",
+            level: 2,
+            met: true,
+            learnedLevel: null,
+          },
         }),
       ),
     ).toEqual(["技能 斯巴達 Lv2"])
@@ -139,7 +151,13 @@ describe("objectiveLines", () => {
       objectiveLines(
         makeMission({
           kills: [],
-          requiredSkill: { skillId: "skill-414", name: "斯巴達", level: 2, met: false },
+          requiredSkill: {
+            skillId: "skill-414",
+            name: "斯巴達",
+            level: 2,
+            met: false,
+            learnedLevel: null,
+          },
         }),
       ),
     ).toEqual(["技能 斯巴達 Lv2（等級不足）"])
@@ -167,7 +185,7 @@ describe("rewardLines", () => {
       rewardLines({
         experience: 19000,
         money: 1500,
-        items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
+        items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5, category: "Material" }],
         skill: { skillId: "steal", name: "偷竊", level: 2 },
         pet: null,
       }),
@@ -244,7 +262,7 @@ describe("progressRatio", () => {
   describe("counts a pet and a skill condition as one step each", () => {
     const fullKills = makeMission().kills.map((kill) => ({ ...kill, count: 3, progress: 3 }))
     const pet = { monsterId: "grass-slime", name: "草原史萊姆" }
-    const skill = { skillId: "skill-414", name: "無我", level: 2 }
+    const skill = { skillId: "skill-414", name: "無我", level: 2, learnedLevel: null }
 
     it.each([
       ["skill not met", null, { ...skill, met: false }, 3 / 4],
@@ -344,7 +362,7 @@ describe("completionLines", () => {
     completionMessage: "謝謝你，綠地又恢復平靜了。",
     experience: 1900,
     money: 50,
-    items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
+    items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5, category: "Material" }],
     skill: { skillId: "steal", name: "偷竊", level: 1 },
     skillGranted: true,
     levelsGained: 2,

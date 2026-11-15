@@ -19,7 +19,7 @@ const delivery = makeMission({
   id: "test-delivery",
   title: "藥草採集",
   kills: [],
-  deliver: [{ itemId: "herb", name: "藥草", quantity: 5, owned: 5 }],
+  deliver: [{ itemId: "herb", name: "藥草", quantity: 5, owned: 5, category: "Material" }],
   ready: true,
 })
 
@@ -199,7 +199,7 @@ test("MissionsScreen_CompleteShowsResultAndUpdatesCharacter", async () => {
     completionMessage: "謝謝你，藥草夠用了。",
     experience: 190,
     money: 50,
-    items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5 }],
+    items: [{ itemId: "small-potion", name: "小補給藥劑", quantity: 5, category: "Material" }],
     skill: null,
     skillGranted: false,
     levelsGained: 0,

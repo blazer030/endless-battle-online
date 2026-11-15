@@ -1,6 +1,7 @@
 import { formatNumber } from "./format"
 import { nameOf, type PublicNames } from "./publicNames"
 import type { CharacterVo } from "./character"
+import type { ItemCategory } from "./inventory"
 
 // 任務板與任務完成的資料（來自 /api/missions），由 api/missionData.ts 轉換
 export type MissionKill = {
@@ -18,21 +19,26 @@ export type MissionDeliver = {
   readonly name: string
   readonly quantity: number
   readonly owned: number
+  readonly category: ItemCategory
 }
 
-// 各條件為 null 表示不限
+// 各條件為 null 表示不限；jobName、sexName、birthName 是條件的顯示名稱
 export type MissionRequirements = {
   readonly jobId: string | null
   readonly sex: number | null
   readonly birth: number | null
   readonly prerequisiteId: string | null
   readonly prerequisiteTitle: string | null
+  readonly jobName: string | null
+  readonly sexName: string | null
+  readonly birthName: string | null
 }
 
 export type MissionRewardItem = {
   readonly itemId: string
   readonly name: string
   readonly quantity: number
+  readonly category: ItemCategory
 }
 export type MissionRewardSkill = {
   readonly skillId: string
@@ -60,14 +66,16 @@ export type MissionPet = {
   readonly carried: boolean
 }
 
+// learnedLevel 是目前已學等級，沒學過為 null
 export type MissionRequiredSkill = {
   readonly skillId: string
   readonly name: string
   readonly level: number
   readonly met: boolean
+  readonly learnedLevel: number | null
 }
 
-// expiresAt 是每日任務的期限，一般任務為 null
+// expiresAt 是每日任務的期限，一般任務為 null；completionMessage 只有已完成且內容有寫時有值
 export type Mission = {
   readonly id: string
   readonly giver: string
@@ -85,14 +93,17 @@ export type Mission = {
   readonly expiresAt: Date | null
   readonly deliverPet: MissionPet | null
   readonly requiredSkill: MissionRequiredSkill | null
+  readonly completionMessage: string | null
 }
 
+// firstDailyLevel 是內容裡每日任務的最低等級，沒有每日任務為 null
 type MissionBoardVoParams = {
   available: readonly Mission[]
   active: readonly Mission[]
   completed: readonly Mission[]
   activeLimit: number
   nextDailyReset: Date
+  firstDailyLevel: number | null
 }
 
 export class MissionBoardVo {
@@ -101,6 +112,7 @@ export class MissionBoardVo {
   readonly completed: readonly Mission[]
   readonly activeLimit: number
   readonly nextDailyReset: Date
+  readonly firstDailyLevel: number | null
 
   private constructor(params: MissionBoardVoParams) {
     this.available = params.available
@@ -108,6 +120,7 @@ export class MissionBoardVo {
     this.completed = params.completed
     this.activeLimit = params.activeLimit
     this.nextDailyReset = params.nextDailyReset
+    this.firstDailyLevel = params.firstDailyLevel
   }
 
   static create(params: MissionBoardVoParams): MissionBoardVo {

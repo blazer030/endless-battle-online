@@ -12,6 +12,7 @@ import {
   type MissionRewardPet,
   type MissionRewardSkill,
 } from "../game/missions"
+import { itemCategoryIds } from "../game/inventory"
 import { CharacterConverter } from "./characterData"
 import {
   parseArray,
@@ -20,6 +21,7 @@ import {
   parseNullableString,
   parseNumber,
   parseObject,
+  parseOneOf,
   parseString,
   parseTimestamp,
 } from "./parse"
@@ -43,6 +45,7 @@ const toDeliver = (value: unknown, path: string): MissionDeliver => {
     name: parseString(dto.name, `${path}.name`),
     quantity: parseNumber(dto.quantity, `${path}.quantity`),
     owned: parseNumber(dto.owned, `${path}.owned`),
+    category: parseOneOf(dto.category, itemCategoryIds, `${path}.category`),
   }
 }
 
@@ -54,6 +57,9 @@ const toRequirements = (value: unknown, path: string): MissionRequirements => {
     birth: parseNullableNumber(dto.birth, `${path}.birth`),
     prerequisiteId: parseNullableString(dto.prerequisiteId, `${path}.prerequisiteId`),
     prerequisiteTitle: parseNullableString(dto.prerequisiteTitle, `${path}.prerequisiteTitle`),
+    jobName: parseNullableString(dto.jobName, `${path}.jobName`),
+    sexName: parseNullableString(dto.sexName, `${path}.sexName`),
+    birthName: parseNullableString(dto.birthName, `${path}.birthName`),
   }
 }
 
@@ -63,6 +69,7 @@ const toRewardItem = (value: unknown, path: string): MissionRewardItem => {
     itemId: parseString(dto.itemId, `${path}.itemId`),
     name: parseString(dto.name, `${path}.name`),
     quantity: parseNumber(dto.quantity, `${path}.quantity`),
+    category: parseOneOf(dto.category, itemCategoryIds, `${path}.category`),
   }
 }
 
@@ -115,6 +122,7 @@ const toRequiredSkill = (value: unknown, path: string): MissionRequiredSkill | n
     name: parseString(dto.name, `${path}.name`),
     level: parseNumber(dto.level, `${path}.level`),
     met: parseBoolean(dto.met, `${path}.met`),
+    learnedLevel: parseNullableNumber(dto.learnedLevel, `${path}.learnedLevel`),
   }
 }
 
@@ -137,6 +145,7 @@ const toMission = (value: unknown, path: string): Mission => {
     expiresAt: dto.expiresAt === null ? null : parseTimestamp(dto.expiresAt, `${path}.expiresAt`),
     deliverPet: toMissionPet(dto.deliverPet, `${path}.deliverPet`),
     requiredSkill: toRequiredSkill(dto.requiredSkill, `${path}.requiredSkill`),
+    completionMessage: parseNullableString(dto.completionMessage, `${path}.completionMessage`),
   }
 }
 
@@ -149,6 +158,7 @@ export const MissionBoardConverter = {
       completed: parseArray(dto.completed, `${path}.completed`, toMission),
       activeLimit: parseNumber(dto.activeLimit, `${path}.activeLimit`),
       nextDailyReset: parseTimestamp(dto.nextDailyReset, `${path}.nextDailyReset`),
+      firstDailyLevel: parseNullableNumber(dto.firstDailyLevel, `${path}.firstDailyLevel`),
     })
   },
 }
