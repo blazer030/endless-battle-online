@@ -77,6 +77,9 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
   const sheetMission =
     loaded !== null && sheet?.kind === "mission" ? findMission(loaded, sheet.id) : undefined
 
+  const resetText =
+    loaded === null ? "" : `${resetHours(loaded.nextDailyReset, new Date())} 小時後重置`
+
   const closeSheet = () => {
     setSheet(sheet?.kind === "mission" && sheet.fromPile ? { kind: "pile" } : null)
   }
@@ -97,7 +100,7 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
       <BackButton label="公會前" onClick={onBack} />
       {loaded !== null && page === "daily" && dailyNotes(loaded).length > 0 && (
         <div className="missions__reset">
-          <b>{`${resetHours(loaded.nextDailyReset, new Date())} 小時後重置`}</b>
+          <b>{resetText}</b>
         </div>
       )}
       <MissionBoard
@@ -131,10 +134,17 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
           onClose={() => setSheet(null)}
         />
       )}
-      {sheetMission !== undefined && (
+      {loaded !== null && sheetMission !== undefined && (
         <MissionSheet
           mission={sheetMission}
-          completed={loaded?.completed.includes(sheetMission) ?? false}
+          view={
+            loaded.completed.includes(sheetMission)
+              ? "done"
+              : loaded.active.includes(sheetMission)
+                ? "active"
+                : "open"
+          }
+          resetText={resetText}
           onClose={closeSheet}
         />
       )}

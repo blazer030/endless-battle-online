@@ -309,3 +309,104 @@ test("HandSlipOpensItsSheet", async () => {
 
   expect(screen.getByRole("dialog", { name: "委託mission-31" })).toBeInTheDocument()
 })
+
+// ── 委託單（規格 Mission sheet）──
+
+const mission1 = regular("mission-1", 20, {
+  title: "製作漁網",
+  giver: "漁村村長",
+  description: "幫我們做一張漁網吧。",
+  kills: [],
+  deliver: [deliver("蜘蛛絲", 1, 0)],
+  rewards: {
+    experience: 3800,
+    money: 0,
+    items: [{ itemId: "item-342", name: "白色布料", quantity: 1, category: "Material" }],
+    skill: null,
+    pet: null,
+  },
+})
+const openSheet = (name: RegExp | string) => {
+  fireEvent.click(within(board()).getByRole("button", { name }))
+  return screen.getByRole("dialog")
+}
+
+// 規格 Sheet of an available mission
+test("SheetOfAnAvailableMission", async () => {
+  await renderMissions(createMissionsApi(makeMissionBoard({ available: [mission1] })))
+
+  const sheet = openSheet(/^製作漁網/)
+  expect(within(sheet).getByText(/^委託者.漁村村長$/)).toBeInTheDocument()
+  expect(within(sheet).getByText("幫我們做一張漁網吧。")).toBeInTheDocument()
+  expect(within(sheet).getByText("Lv 20")).toBeInTheDocument()
+  const goal = within(sheet).getByTestId("goal-0")
+  expect(goal).toHaveTextContent("交付 蜘蛛絲")
+  expect(goal).toHaveTextContent("×1")
+  expect(within(sheet).getByText("經驗 3,800")).toBeInTheDocument()
+  expect(within(sheet).getByText("白色布料 ×1")).toBeInTheDocument()
+  expect(screen.queryByRole("progressbar", { name: "委託進度" })).toBeNull()
+})
+
+// 規格 Sheet of an active mission with an unmet skill
+test("SheetOfAnActiveMissionMarksUnmetSkill", async () => {
+  const skillMission = regular("mission-318", 5500, {
+    title: "輝煌都市傳說(1)",
+    requiredSkill: { skillId: "skill-414", name: "施毒", level: 2, met: false, learnedLevel: 1 },
+  })
+  await renderMissions(createMissionsApi(lv150Board({ active: [skillMission] })))
+
+  fireEvent.click(within(hand()).getByRole("button", { name: /^輝煌都市傳說/ }))
+  const sheet = screen.getByRole("dialog")
+
+  const skill = within(sheet).getByTestId("goal-1")
+  expect(skill).toHaveTextContent("技能 施毒 Lv2")
+  expect(skill).toHaveTextContent("目前 Lv1")
+  expect(skill).toHaveAttribute("data-short", "true")
+  expect(within(sheet).queryByText(/^Lv 5,500/)).toBeNull()
+  expect(within(sheet).getByRole("progressbar", { name: "委託進度" })).toBeInTheDocument()
+})
+
+test("SheetShowsEveryObjective", async () => {
+  const many = regular("mission-40", 40, {
+    title: "紅蓮與奔雷",
+    kills: [],
+    deliver: [deliver("火", 3, 2), deliver("雷", 3, 3), deliver("風", 1, 0), deliver("土", 1, 0)],
+    deliverPet: { monsterId: "monster-1", name: "飛兔", carried: true },
+  })
+  await renderMissions(createMissionsApi(lv150Board({ active: [many] })))
+
+  fireEvent.click(within(hand()).getByRole("button", { name: /^紅蓮與奔雷/ }))
+  const sheet = screen.getByRole("dialog")
+
+  const goals = within(sheet).getAllByTestId(/^goal-/)
+  expect(goals.map((goal) => goal.textContent)).toEqual([
+    "交付 火2 / 3",
+    "交付 雷3 / 3",
+    "交付 風0 / 1",
+    "交付 土0 / 1",
+    "交付寵物 飛兔攜帶中",
+  ])
+  expect(goals[1]).toHaveAttribute("data-met", "true")
+  expect(goals[2]).toHaveAttribute("data-short", "true")
+})
+
+test("RewardItemsUseCategoryPlaceholders", async () => {
+  await renderMissions(createMissionsApi(makeMissionBoard({ available: [mission1] })))
+
+  const sheet = openSheet(/^製作漁網/)
+
+  const pictures = Array.from(sheet.querySelectorAll("img[data-asset]"))
+  expect(pictures.map((picture) => picture.getAttribute("data-asset"))).toEqual([
+    "items/蜘蛛絲",
+    "items/item-342",
+  ])
+})
+
+test("DailySheetShowsResetHours", async () => {
+  await renderMissions()
+
+  const sheet = openSheet(/^委託mission-222/)
+
+  expect(within(sheet).getByText(/^每日委託・\d+ 小時後重置$/)).toBeInTheDocument()
+  expect(within(sheet).getByRole("heading", { name: "委託mission-222" })).toBeInTheDocument()
+})

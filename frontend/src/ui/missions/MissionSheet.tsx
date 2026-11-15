@@ -1,6 +1,13 @@
 import type { ReactNode } from "react"
 import { formatNumber } from "../../game/format"
-import { displayTitle, rewardRows, type Mission } from "../../game/missions"
+import {
+  displayTitle,
+  objectiveRows,
+  progressRatio,
+  requirementText,
+  rewardRows,
+  type Mission,
+} from "../../game/missions"
 import type { ItemCategory } from "../../game/inventory"
 import { ContentImage } from "../ContentImage"
 import { categoryPlaceholders } from "../itemPlaceholders"
@@ -69,29 +76,88 @@ export const RewardList = ({ mission }: { mission: Mission }) => (
   </>
 )
 
-type SheetProps = { mission: Mission; completed: boolean; onClose: () => void }
+// open＝可接、active＝手邊的、done＝完成的
+export type SheetView = "open" | "active" | "done"
 
-// 委託單：完成的委託蓋「完」章，紙上是委託者的完成台詞＋報酬
-export const MissionSheet = ({ mission, completed, onClose }: SheetProps) => (
-  <SheetFrame label={displayTitle(mission)} daily={mission.daily} onClose={onClose}>
-    {completed && (
-      <span className="missions-sheet__stamp" aria-hidden="true">
-        完
-      </span>
-    )}
-    <div className="missions-sheet__scroll">
-      <h3>{displayTitle(mission)}</h3>
-      <p className="missions-sheet__giver">{`委託者\u3000${mission.giver}`}</p>
-      {completed && mission.completionMessage !== null && (
-        <div className="missions-sheet__quote">
-          <small>{mission.giver}</small>
-          <p>{mission.completionMessage}</p>
-        </div>
+type SheetProps = { mission: Mission; view: SheetView; resetText: string; onClose: () => void }
+
+// 委託單：說明、條件、目標、報酬在紙內捲動；完成的蓋「完」章，紙上是委託者的完成台詞＋報酬
+export const MissionSheet = ({ mission, view, resetText, onClose }: SheetProps) => {
+  const accepted = view === "active"
+  const percent = Math.round(progressRatio(mission) * 100)
+  return (
+    <SheetFrame label={displayTitle(mission)} daily={mission.daily} onClose={onClose}>
+      {view === "done" && (
+        <span className="missions-sheet__stamp" aria-hidden="true">
+          完
+        </span>
       )}
-      <RewardList mission={mission} />
-    </div>
-  </SheetFrame>
-)
+      <div className="missions-sheet__scroll">
+        <h3>{displayTitle(mission)}</h3>
+        <p className="missions-sheet__giver">{`委託者\u3000${mission.giver}`}</p>
+        {view !== "done" && (
+          <>
+            <p className="missions-sheet__description">{mission.description}</p>
+            {view === "open" && (
+              <p className="missions-sheet__requirements">{requirementText(mission)}</p>
+            )}
+            <h4>委託內容</h4>
+            {objectiveRows(mission, accepted).map((row, index) => (
+              <div
+                key={index}
+                className="missions-goal"
+                data-testid={`goal-${index}`}
+                data-met={row.met}
+                data-short={row.short}
+              >
+                <span className="missions-goal__text">
+                  {row.category !== null && row.itemId !== null && (
+                    <ItemPicture itemId={row.itemId} category={row.category} />
+                  )}
+                  <span>
+                    {row.text}
+                    {row.sub !== null && <small>{row.sub}</small>}
+                  </span>
+                </span>
+                <em
+                  className={
+                    /\d/.test(row.amount) && !row.amount.startsWith("目前")
+                      ? undefined
+                      : "missions-goal__word"
+                  }
+                >
+                  {row.amount}
+                </em>
+              </div>
+            ))}
+            {accepted && (
+              <span
+                className="missions-bar"
+                role="progressbar"
+                aria-label="委託進度"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percent}
+              >
+                <i style={{ width: `${percent}%` }} />
+              </span>
+            )}
+          </>
+        )}
+        {view === "done" && mission.completionMessage !== null && (
+          <div className="missions-sheet__quote">
+            <small>{mission.giver}</small>
+            <p>{mission.completionMessage}</p>
+          </div>
+        )}
+        <RewardList mission={mission} />
+        {mission.daily && view !== "done" && (
+          <p className="missions-sheet__reset">{`每日委託・${resetText}`}</p>
+        )}
+      </div>
+    </SheetFrame>
+  )
+}
 
 type ListProps = { missions: readonly Mission[]; onPick: (id: string) => void; onClose: () => void }
 

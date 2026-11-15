@@ -351,6 +351,7 @@ export type ObjectiveRow = {
   readonly met: boolean
   readonly short: boolean
   readonly category: ItemCategory | null
+  readonly itemId: string | null
 }
 
 export const objectiveRows = (mission: Mission, accepted: boolean): ObjectiveRow[] => [
@@ -363,6 +364,7 @@ export const objectiveRows = (mission: Mission, accepted: boolean): ObjectiveRow
     met: accepted && kill.progress >= kill.count,
     short: false,
     category: null,
+    itemId: null,
   })),
   ...mission.deliver.map((item) => ({
     text: `交付 ${item.name}`,
@@ -373,6 +375,7 @@ export const objectiveRows = (mission: Mission, accepted: boolean): ObjectiveRow
     met: accepted && item.owned >= item.quantity,
     short: accepted && item.owned < item.quantity,
     category: item.category,
+    itemId: item.itemId,
   })),
   ...(mission.deliverPet === null
     ? []
@@ -384,6 +387,7 @@ export const objectiveRows = (mission: Mission, accepted: boolean): ObjectiveRow
           met: accepted && mission.deliverPet.carried,
           short: accepted && !mission.deliverPet.carried,
           category: null,
+          itemId: null,
         },
       ]),
   ...(mission.requiredSkill === null
@@ -399,6 +403,7 @@ export const objectiveRows = (mission: Mission, accepted: boolean): ObjectiveRow
           met: mission.requiredSkill.met,
           short: !mission.requiredSkill.met,
           category: null,
+          itemId: null,
         },
       ]),
 ]
