@@ -102,7 +102,7 @@ While the town is shown the client SHALL NOT send adventure advance requests. Op
 ---
 ### Requirement: Facilities open the old tabbed screen
 
-Each facility in the town except the inn, the companions and the honour hall SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page. The companions sign SHALL open the companions screen (see the `companions-screen` capability), and the old tabbed screen SHALL no longer have a companions tab. The honour hall sign SHALL open the honour screen (see the `honour-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an honour sub-page.
+Each facility in the town except the inn, the companions, the honour hall and the mission board SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page. The companions sign SHALL open the companions screen (see the `companions-screen` capability), and the old tabbed screen SHALL no longer have a companions tab. The honour hall sign SHALL open the honour screen (see the `honour-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an honour sub-page. The mission board sign SHALL open the missions screen (see the `missions-screen` capability), and the old tabbed screen SHALL no longer have a missions tab.
 
 | Facility | Tab | Bag sub-page |
 | --- | --- | --- |
@@ -111,7 +111,6 @@ Each facility in the town except the inn, the companions and the honour hall SHA
 | 出發 | adventure | — |
 | 商店街 | bag | shop |
 | 鐵舖 | bag | forge |
-| 任務板 | missions | — |
 
 #### Scenario: Inn opens the inn screen
 
@@ -143,74 +142,20 @@ Each facility in the town except the inn, the companions and the honour hall SHA
 - **WHEN** the player opens "背包" from the gate
 - **THEN** the bag tab's sub-page buttons do not include "勳章所"
 
+#### Scenario: Mission board opens the missions screen
+
+- **WHEN** the player clicks "任務板" at the guild square
+- **THEN** the mission board opens and the old tabbed screen is not shown
+
+#### Scenario: Old tabbed screen has no missions tab
+
+- **WHEN** the player opens "角色" from the gate
+- **THEN** the old tabbed screen's tabs do not include "任務"
+
 #### Scenario: Return to the town
 
 - **WHEN** the player opens "商店街" from the market, then presses "回城鎮"
 - **THEN** the town is shown at the gate segment with the character handed back by the old tabbed screen
-
-
-<!-- @trace
-source: honour-screen
-updated: 2026-11-14
-code:
-  - frontend/src/assets/honour/felt.webp
-  - backend/EndlessBattle.Tests/Api/HonourEndpointsTests.cs
-  - frontend/src/ui/honour/HonourSheet.tsx
-  - frontend/src/assets/placeholders/items/head.svg
-  - frontend/src/assets/placeholders/items/medal.svg
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/game/honour.ts
-  - backend/EndlessBattle.Api/Endpoints/HonourEndpoints.cs
-  - frontend/src/assets/placeholders/items/weapon.svg
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/assets/honour/rack-frame.webp
-  - docs/art/README.md
-  - frontend/src/game/inventory.ts
-  - frontend/src/ui/honour/testing.ts
-  - frontend/src/assets/placeholders/items/hand.svg
-  - frontend/src/ui/honour/HonourScreen.css
-  - docs/art/prompts/demo/generations.jsonl
-  - frontend/src/ui/honour/RewardPicture.tsx
-  - backend/EndlessBattle.Application/Honour/HonourService.cs
-  - frontend/src/assets/placeholders/items/key.svg
-  - docs/art/prompts/demo/AssetsJ.md
-  - frontend/src/api/companionData.ts
-  - frontend/src/assets/placeholders/items/foot.svg
-  - frontend/src/assets/honour/tag.webp
-  - frontend/src/assets/placeholders/items/consumable.svg
-  - frontend/src/ui/honour/HonourRack.tsx
-  - frontend/src/ui/honour/HonourScreen.tsx
-  - frontend/src/assets/content-manifest.json
-  - frontend/src/ui/companions/KeeperSay.tsx
-  - frontend/src/assets/honour/mercenary-helmet.webp
-  - docs/art/prompts/demo/AssetsJSpare.md
-  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/BagScreen.tsx
-  - frontend/src/ui/companions/BackButton.tsx
-  - frontend/src/assets/placeholders/items/stone.svg
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/HonourServiceTests.cs
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/placeholders/items/refine-stone.svg
-  - frontend/src/assets/placeholders/items/accessory.svg
-  - backend/EndlessBattle.Tests/Api/HonourResponseTests.cs
-  - docs/art/prompts/demo/AssetsJItem.md
-  - frontend/src/assets/honour/medal-case.webp
-  - frontend/src/assets/placeholders/items/body.svg
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - frontend/src/assets/placeholders/items/material.svg
-tests:
-  - frontend/src/ui/honour/HonourScreen.test.tsx
-  - frontend/src/api/companionData.test.ts
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/game/honour.test.ts
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
-  - frontend/src/test/honourContent.ts
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/test/fixtures.ts
--->
 
 ---
 ### Requirement: Bonus row and list
