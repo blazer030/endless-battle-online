@@ -17,7 +17,6 @@ import { BagScreen, type SubPage } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
 import { CharacterScreen } from "./CharacterScreen"
 import { formatNumber } from "../game/format"
-import { MissionsScreen } from "./MissionsScreen"
 import { SettingsPanel } from "./SettingsPanel"
 import { SkillsScreen } from "./SkillsScreen"
 import { StageErrorBoundary } from "./StageErrorBoundary"
@@ -31,14 +30,13 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-export type Tab = "adventure" | "character" | "skills" | "bag" | "missions"
+export type Tab = "adventure" | "character" | "skills" | "bag"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
   { id: "character", label: "角色" },
   { id: "skills", label: "技能" },
   { id: "bag", label: "背包" },
-  { id: "missions", label: "任務" },
 ]
 
 type AreaPass = {
@@ -87,7 +85,7 @@ export function AdventureScreen({
     subPlace: initialCharacter.subPlace,
   })
   // 戰報讓開著的分頁過時就遞增，分頁自己節流重載
-  const [refreshSignals, setRefreshSignals] = useState({ bag: 0, missions: 0, skills: 0 })
+  const [refreshSignals, setRefreshSignals] = useState({ bag: 0, skills: 0 })
   const stageHandle = useRef<StageHandle>(null)
   // 舞台狀態只是播放進度，不需要觸發重繪
   const stageState = useRef(initialStageState)
@@ -181,10 +179,9 @@ export function AdventureScreen({
     appendLines(added)
     setCharacter(playback.displayedCharacter)
     const signals = refreshSignalsFor(items)
-    if (signals.bag || signals.missions || signals.skills)
+    if (signals.bag || signals.skills)
       setRefreshSignals((previous) => ({
         bag: previous.bag + Number(signals.bag),
-        missions: previous.missions + Number(signals.missions),
         skills: previous.skills + Number(signals.skills),
       }))
   }
@@ -323,17 +320,6 @@ export function AdventureScreen({
               jobNames={names.jobs}
               refreshSignal={refreshSignals.bag}
               initialPage={initialBagPage}
-            />
-          </div>
-        )}
-        {/* 任務分頁每次打開才載入，擊殺進度與交付數量都是最新的 */}
-        {tab === "missions" && (
-          <div className="adventure__sheet">
-            <MissionsScreen
-              api={api}
-              names={names}
-              onCharacterChanged={handleCharacterChange}
-              refreshSignal={refreshSignals.missions}
             />
           </div>
         )}

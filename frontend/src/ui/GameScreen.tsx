@@ -7,7 +7,13 @@ import { AdventureScreen, type Tab } from "./AdventureScreen"
 import type { SubPage } from "./BagScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { preloadImages } from "./stage/preloadImages"
-import { companionsImages, honourImages, innImages, townImages } from "./stage/screenImages"
+import {
+  companionsImages,
+  honourImages,
+  innImages,
+  missionsImages,
+  townImages,
+} from "./stage/screenImages"
 import { timeOfDay } from "../game/timeOfDay"
 import { RevealLayer, type RevealOrigin } from "./stage/RevealLayer"
 import "./stage/RevealLayer.css"
@@ -15,17 +21,20 @@ import "./GameScreen.css"
 import { innRevealOrigin } from "../game/inn"
 import { companionsRevealOrigin } from "../game/companions"
 import { honourRevealOrigin } from "../game/honour"
+import { missionsRevealOrigin } from "../game/missions"
 import { InnScreen } from "./inn/InnScreen"
 import { CompanionsScreen } from "./companions/CompanionsScreen"
 import { HonourScreen } from "./honour/HonourScreen"
+import { MissionsScreen } from "./missions/MissionsScreen"
 import { TownScreen } from "./town/TownScreen"
 
-// 新畫面從城鎮展開：旅館從市集的名牌、同伴從城門口的紙籤、勳章所從公會前的紙籤；收回後城鎮停在原本的段落
-type Revealed = "inn" | "companions" | "honour"
+// 新畫面從城鎮展開：旅館從市集的名牌、同伴從城門口的紙籤、勳章所與任務板從公會前的紙籤；收回後城鎮停在原本的段落
+type Revealed = "inn" | "companions" | "honour" | "missions"
 const revealed: Record<Revealed, { origin: RevealOrigin; segment: TownSegment }> = {
   inn: { origin: innRevealOrigin, segment: 1 },
   companions: { origin: companionsRevealOrigin, segment: 0 },
   honour: { origin: honourRevealOrigin, segment: 2 },
+  missions: { origin: missionsRevealOrigin, segment: 2 },
 }
 
 const isRevealed = (facility: TownFacility): facility is Revealed => facility in revealed
@@ -37,7 +46,6 @@ const facilityViews: Record<Exclude<TownFacility, Revealed>, { tab: Tab; bagPage
   adventure: { tab: "adventure", bagPage: "bag" },
   shop: { tab: "bag", bagPage: "shop" },
   forge: { tab: "bag", bagPage: "forge" },
-  missions: { tab: "missions", bagPage: "bag" },
 }
 
 // 展開與收回時城鎮留在底下；完全展開後才卸載城鎮，收回時以原本的段落重新顯示
@@ -69,12 +77,18 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
     return () => clearTimeout(timer)
   }, [arriving])
   const [view, setView] = useState<View>({ name: "town", segment: 0 })
-  // 在城鎮時先把旅館、同伴與勳章所的圖載好，第一次打開時不會從空的慢慢冒出來；
+  // 在城鎮時先把旅館、同伴、勳章所與任務板的圖載好，第一次打開時不會從空的慢慢冒出來；
   // 等城鎮的圖（過場時已開始載，同一張只載一次）載完才開始，慢網路時不跟城鎮搶頻寬
   useEffect(() => {
     let isCurrent = true
     void preloadImages(townImages(timeOfDay(new Date().getHours()))).then(() => {
-      if (isCurrent) void preloadImages([...innImages(), ...companionsImages(), ...honourImages()])
+      if (isCurrent)
+        void preloadImages([
+          ...innImages(),
+          ...companionsImages(),
+          ...honourImages(),
+          ...missionsImages(),
+        ])
     })
     return () => {
       isCurrent = false
@@ -148,8 +162,15 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
                 onCharacterChange={setCharacter}
                 onBack={close}
               />
-            ) : (
+            ) : view.facility === "honour" ? (
               <HonourScreen
+                api={api}
+                character={character}
+                onCharacterChange={setCharacter}
+                onBack={close}
+              />
+            ) : (
+              <MissionsScreen
                 api={api}
                 character={character}
                 onCharacterChange={setCharacter}

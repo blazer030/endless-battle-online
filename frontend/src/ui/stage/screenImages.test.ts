@@ -1,5 +1,11 @@
 import { expect, test } from "vitest"
-import { companionsImages, honourImages, innImages, townImages } from "./screenImages"
+import {
+  companionsImages,
+  honourImages,
+  innImages,
+  missionsImages,
+  townImages,
+} from "./screenImages"
 
 // 城鎮只預載目前時段的全景（四張都載太浪費）
 test("TownImages_OnlyTheCurrentPanorama", () => {
@@ -26,5 +32,22 @@ test("HonourImages_IncludeArtAndTheFiveMedals", () => {
   }
   for (const medal of ["item-1304", "item-1305", "item-1306", "item-1307", "item-2222"]) {
     expect(urls.some((url) => url.includes(`items/${medal}`))).toBe(true)
+  }
+})
+
+// 任務板：公會內牆、佈告欄木框與軟木、紅圖釘、單子紙、莉瑟
+test("MissionsImages_IncludeTheBoardArt", () => {
+  const urls = missionsImages()
+
+  for (const name of [
+    "guild-wall",
+    "board-frame",
+    "cork",
+    "pin-red",
+    "parchment",
+    "clerk",
+    "seal",
+  ]) {
+    expect(urls.some((url) => url.includes(name))).toBe(true)
   }
 })

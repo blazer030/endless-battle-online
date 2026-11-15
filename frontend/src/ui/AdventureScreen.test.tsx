@@ -482,27 +482,15 @@ test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
   expect(within(screen.getByRole("banner")).getByText("金錢 10")).toBeInTheDocument()
 })
 
-test("AdventureScreen_MissionsTabIsFifthAndLoadsMissions", async () => {
+// 規格 town-screen：舊外殼沒有任務分頁（任務板改從公會前進）
+test("AdventureScreen_HasNoMissionsTab", async () => {
   const api = createFakeApi()
   render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
   await advanceTime(0)
-  expect(api.getMissions).not.toHaveBeenCalled()
 
   const navigation = within(screen.getByRole("navigation")).getAllByRole("button")
-  expect(navigation.map((button) => button.textContent)).toEqual([
-    "冒險",
-    "角色",
-    "技能",
-    "背包",
-    "任務",
-  ])
-  fireEvent.click(screen.getByRole("button", { name: "任務" }))
-  await advanceTime(0)
-
-  expect(api.getMissions).toHaveBeenCalledTimes(1)
-  expect(screen.getByRole("button", { name: "任務" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("article", { name: "綠地上的黏液" })).toBeVisible()
-  expect(screen.getByTestId("stage")).not.toBeVisible()
+  expect(navigation.map((button) => button.textContent)).toEqual(["冒險", "角色", "技能", "背包"])
+  expect(api.getMissions).not.toHaveBeenCalled()
 })
 
 test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {

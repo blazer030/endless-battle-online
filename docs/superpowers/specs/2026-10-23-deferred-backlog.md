@@ -13,7 +13,7 @@
 ## 前端
 
 - **移動前送出的輪詢在移動後才回來**：`BattlePlayback.enqueue` 會把已確認的角色換回舊地點、把舊地區的戰鬥排在「你前往」之後，地點標題最多 10 秒顯示舊地點。建議 `useAdventureLoop`（`useAdventureLoop.ts:39`）維護一個 generation，移動時遞增，回應回來時 generation 已變就整包丟棄。來源：Task 10 審查。
-- **背景重載與使用者操作沒有先後保護**：`BagScreen.tsx`、`MissionsScreen.tsx`、`SkillsScreen.tsx` 的背景重載若晚於賣出、接任務、學技能的回應，舊資料會蓋掉新結果；初次載入失敗後背景重載成功也不會清掉錯誤狀態。修法：`busy` 時略過背景重載，或只接受最新一次請求的回應。來源：Task 10 審查。
+- **背景重載與使用者操作沒有先後保護**：`BagScreen.tsx`、`SkillsScreen.tsx` 的背景重載若晚於賣出、學技能的回應，舊資料會蓋掉新結果；初次載入失敗後背景重載成功也不會清掉錯誤狀態。修法：`busy` 時略過背景重載，或只接受最新一次請求的回應。來源：Task 10 審查。
 - **通行倒數的判斷寫在畫面裡**：`AdventureScreen.tsx` 裡 `areaPassText` 的三行判斷建議抽到 `game/world.ts` 並寫單元測試，釘住「同 placeId、不同 subPlace 不顯示」。來源：Task 10 審查。
 - `WorldPanel.tsx:166` 在 render 裡呼叫 `new Date()`。來源：Task 4 實作者疑慮。
 - 移動後佇列清空了，但舞台上舊怪物的血條會留到下一場遭遇（≤10 秒）。來源：Task 10 審查。
@@ -33,7 +33,6 @@
 
 ## 測試缺口
 
-- 計畫 8 的前端測試：`MissionsScreen` 的重複送出、確認後重置、卡片位置沒有測試（計畫 10 分派給 Task 9，但 Task 9 只做後端）。來源：記憶檔、`MissionsScreen.test.tsx` 現況。
 - 容器啟動（Task 2）：fixture 把所有 `TimeoutException` 都改寫成「3 分鐘內沒有就緒」，Testcontainers 自己的逾時也會被改寫；「start 完全不理 token」只靠 `WaitAsync` 逃生的路徑、「第一次丟例外、第二次成功」、「dispose 本身丟例外」都沒有測試；`attempts <= 0` 沒有參數檢查。來源：Task 2 審查。
 - 逃跑戰報的角色名稱（`AdventureScreen` 傳 `playerName`）沒有接線測試。來源：Task 3 審查。
 - `WorldService.MoveAsync` 的交易包覆：通行證寫入失敗時鑰匙是否回滾沒有測試（拿掉交易包覆預測會存活）。來源：Task 4 審查。

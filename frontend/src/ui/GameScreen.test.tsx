@@ -8,6 +8,8 @@ import { RevealMilliseconds, PollIntervalMilliseconds } from "../motion/timings"
 import { makeCharacter, makeMercenaryOverview } from "../test/fixtures"
 import { createCompanionsApi } from "./companions/testing"
 import { createHonourApi, demoExchanges, shopWith } from "./honour/testing"
+import { MissionCompletionVo } from "../game/missions"
+import { createMissionsApi, lv150Board, regular } from "./missions/testing"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
@@ -62,6 +64,7 @@ const createApi = () =>
   ({
     ...createCompanionsApi(),
     ...createHonourApi(shopWith()),
+    ...createMissionsApi(lv150Board()),
     getBuffs: vi.fn().mockResolvedValue([]),
     getInn: vi.fn().mockResolvedValue(InnVo.create({ rooms: [loft], lodging: null, restFee: 0 })),
     bookInn: vi.fn(),
@@ -343,6 +346,88 @@ test("GameScreen_BackFromHonourCarriesTheLatestCharacter", async () => {
   expect(screen.getByLabelText("金錢")).toHaveTextContent("777")
 })
 
+// 規格 missions-screen：Enter and leave the missions screen——公會前「任務板」展開佈告欄，不呼叫推進
+test("GameScreen_MissionsOpensTheMissionsScreen", async () => {
+  const api = renderGame()
+
+  click("市集")
+  click("公會前")
+  click("任務板")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.getByRole("region", { name: "佈告欄" })).toBeInTheDocument()
+  expect(screen.queryByText(/舊外殼/)).not.toBeInTheDocument()
+  expect(screen.queryByTestId("town-world")).not.toBeInTheDocument()
+  expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 規格 missions-screen：「公會前」收回、停在公會前
+test("GameScreen_BackFromMissionsShowsTheGuildSquare", async () => {
+  renderGame()
+  click("市集")
+  click("公會前")
+  click("任務板")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  click("公會前")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByRole("region", { name: "佈告欄" })).not.toBeInTheDocument()
+  expect(segmentOf()).toBe("2")
+})
+
+// 規格 missions-screen：完成委託後回公會前，城鎮帶著完成回傳的角色
+test("GameScreen_BackFromMissionsCarriesTheLatestCharacter", async () => {
+  const api = createApi()
+  const done = regular("mission-50", 1, { title: "擊敗青魔導士", ready: true })
+  vi.mocked(api.getMissions).mockResolvedValue(lv150Board({ active: [done] }))
+  vi.mocked(api.completeMission).mockResolvedValue(
+    MissionCompletionVo.create({
+      board: lv150Board({ completed: [done] }),
+      character: { ...character, money: 777 },
+      completionMessage: "",
+      experience: 190,
+      money: 50,
+      items: [],
+      skill: null,
+      skillGranted: false,
+      levelsGained: 0,
+      pet: null,
+    }),
+  )
+  renderGame(api)
+  click("市集")
+  click("公會前")
+  click("任務板")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  fireEvent.click(
+    within(screen.getByRole("group", { name: "手邊的委託" })).getByRole("button", {
+      name: /^擊敗青魔導士/,
+    }),
+  )
+  click("完成")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+  click("關閉")
+  click("公會前")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(segmentOf()).toBe("2")
+  expect(screen.getByLabelText("金錢")).toHaveTextContent("777")
+})
+
 // 規格 Facilities open the old tabbed screen 的對照表
 test.each([
   [[], "角色 Lv 6", "character／bag"],
@@ -350,7 +435,6 @@ test.each([
   [[], "出發 中央平原", "adventure／bag"],
   [["市集"], "商店街", "bag／shop"],
   [["市集", "公會前"], "鐵舖", "bag／forge"],
-  [["市集", "公會前"], "任務板", "missions／bag"],
 ])("GameScreen_EachFacilityOpensItsTab %#", (path, facility, expected) => {
   renderGame()
 

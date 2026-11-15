@@ -3,7 +3,7 @@ import type { PlaybackItem } from "./battlePlayback"
 import type { BattleEvent, Drop } from "./battleEvents"
 import { refreshSignalsFor } from "./refreshSignals"
 
-const none = { bag: false, missions: false, skills: false }
+const none = { bag: false, skills: false }
 
 const event = (value: BattleEvent): PlaybackItem => ({ kind: "event", event: value })
 
@@ -105,7 +105,8 @@ describe("refreshSignalsFor", () => {
         faith: 0,
       },
     })
-    expect(refreshSignalsFor([mission])).toEqual({ ...none, missions: true })
+    // 任務進度只給舊任務分頁用；任務板改從公會前進、打開時才讀，不再需要
+    expect(refreshSignalsFor([mission])).toEqual(none)
     expect(refreshSignalsFor([levelUp])).toEqual({ ...none, skills: true })
   })
 
@@ -126,12 +127,11 @@ describe("refreshSignalsFor", () => {
     })
     expect(refreshSignalsFor([encounter, reward(2, [drop(false)])])).toEqual({
       bag: true,
-      missions: false,
       skills: true,
     })
   })
 
-  it("背景回來的摘要涵蓋沒逐筆播出的場次，重載背包與任務", () => {
+  it("背景回來的摘要涵蓋沒逐筆播出的場次，重載背包", () => {
     const summary: PlaybackItem = {
       kind: "summary",
       fights: 30,
@@ -142,6 +142,6 @@ describe("refreshSignalsFor", () => {
       missionKills: 0,
       petsCaptured: 0,
     }
-    expect(refreshSignalsFor([summary])).toEqual({ bag: true, missions: true, skills: false })
+    expect(refreshSignalsFor([summary])).toEqual({ bag: true, skills: false })
   })
 })

@@ -22,6 +22,10 @@ const honourArt = import.meta.glob<string>("../../assets/honour/*.webp", {
   eager: true,
   import: "default",
 })
+const missionsArt = import.meta.glob<string>(
+  ["../../assets/missions/*.webp", "../../assets/title/desk-edge.webp"],
+  { eager: true, import: "default" },
+)
 // 勳章所沿用標題的榮譽廳、莉瑟、僱用中紙條，以及同伴的分區銘牌
 const honourSharedArt = import.meta.glob<string>(
   [
@@ -69,4 +73,12 @@ export const honourImages = (): string[] => [
   ...urlsOf(innArt).filter((url) => /(parchment|pin|close|counter-)/.test(url)),
   ...urlsOf(sharedArt),
   ...firstArt("items", MedalKeys),
+]
+
+// 任務板：公會內牆、佈告欄、紅圖釘；單子紙、黃銅圖釘、關閉、櫃檯沿用旅館，木條、重置紙條、莉瑟沿用標題
+export const missionsImages = (): string[] => [
+  ...urlsOf(missionsArt),
+  ...urlsOf(innArt).filter((url) => /(parchment|pin|close|counter-wood)/.test(url)),
+  ...urlsOf(honourSharedArt).filter((url) => /(clerk|book-page)/.test(url)),
+  ...urlsOf(sharedArt),
 ]
