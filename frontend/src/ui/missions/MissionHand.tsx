@@ -1,16 +1,20 @@
 import type { CSSProperties } from "react"
-import { handSlip, MaxActiveMissions, type Mission } from "../../game/missions"
+import { handSlip, type Mission } from "../../game/missions"
 
 // 手邊三張輪流微微傾斜（照設計稿）
 const tilts = [-3, 1.5, 3.5]
-const tilt = (index: number) => ({ "--r": `${tilts[index]}deg` }) as CSSProperties
+const tilt = (index: number) => ({ "--r": `${tilts[index % tilts.length]}deg` }) as CSSProperties
 
-type Props = { active: readonly Mission[] | null; onPick: (missionId: string) => void }
+type Props = {
+  active: readonly Mission[] | null
+  limit: number
+  onPick: (missionId: string) => void
+}
 
 // 櫃檯上手邊的委託：名稱、第一項目標與進度、其餘「＋N 項」、進度條；全部達成蓋「達成／可交」；空位是虛線框
-export const MissionHand = ({ active, onPick }: Props) => (
+export const MissionHand = ({ active, limit, onPick }: Props) => (
   <div className="missions-hand" role="group" aria-label="手邊的委託">
-    {Array.from({ length: MaxActiveMissions }, (_, index) => {
+    {Array.from({ length: limit }, (_, index) => {
       const mission = active?.[index]
       if (mission === undefined)
         return (

@@ -171,6 +171,7 @@ export class MissionCompletionVo {
   }
 }
 
+// 手邊上限以伺服器回傳的 activeLimit 為準；這個只在任務板讀到之前畫空位用
 export const MaxActiveMissions = 3
 
 const clampRatio = (value: number) => Math.min(Math.max(value, 0), 1)
@@ -460,7 +461,7 @@ export const completionRows = (result: MissionCompletionVo): CompletionRow[] => 
 export type LiseEvent =
   | { kind: "accepted"; mission: Mission }
   | { kind: "abandoned" }
-  | { kind: "refused"; reasons: readonly string[]; mission: Mission }
+  | { kind: "refused"; reasons: readonly string[]; mission: Mission; activeLimit: number }
   | { kind: "failed" }
 
 export type LiseLine = { readonly text: string; readonly failed: boolean }
@@ -479,7 +480,7 @@ const fullCategory = (mission: Mission) => {
   return categories.size === 1 && only !== undefined ? categoryLabel(only) : "背包"
 }
 
-const refusalLines: [string, (mission: Mission) => string][] = [
+const refusalLines: [string, (mission: Mission, activeLimit: number) => string][] = [
   ["itemsMissing", () => "交付的東西好像還差一點呢……"],
   ["objectiveIncomplete", () => "討伐的數量好像還差一點呢……"],
   ["petMissing", (mission) => `咦，您身邊沒有帶著${mission.deliverPet?.name ?? "寵物"}呢……`],
@@ -492,7 +493,7 @@ const refusalLines: [string, (mission: Mission) => string][] = [
   ],
   ["bagFull", (mission) => `哎呀，${fullCategory(mission)}的格子已經滿了……`],
   ["petsFull", () => `獸欄已經住滿 ${MaxPetsInStable} 隻了，新夥伴沒地方住呢……`],
-  ["tooMany", () => `您手邊已經有 ${MaxActiveMissions} 張委託了喔。`],
+  ["tooMany", (_, activeLimit) => `您手邊已經有 ${activeLimit} 張委託了喔。`],
   ["missionNotActive", () => "這張委託已經不在您手上了呢……"],
 ]
 
@@ -507,7 +508,9 @@ export const liseLine = (event: LiseEvent): LiseLine => {
       return sentFailed
     case "refused": {
       const line = refusalLines.find(([reason]) => event.reasons.includes(reason))
-      return line === undefined ? sentFailed : { text: line[1](event.mission), failed: true }
+      return line === undefined
+        ? sentFailed
+        : { text: line[1](event.mission, event.activeLimit), failed: true }
     }
   }
 }

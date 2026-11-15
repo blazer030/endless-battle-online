@@ -6,6 +6,7 @@ import {
   completedRegular,
   dailyNotes,
   liseLine,
+  MaxActiveMissions,
   missionsLayout,
   openingPage,
   resetHours,
@@ -93,6 +94,7 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
 
   const loaded = board !== null && board !== "failed" ? board : null
   const layout = missionsLayout(stage.height)
+  const handLimit = loaded?.activeLimit ?? MaxActiveMissions
   const sheetMission =
     loaded !== null && sheet?.kind === "mission" ? findMission(loaded, sheet.id) : undefined
 
@@ -136,7 +138,7 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
       setSay(
         liseLine(
           error instanceof ApiError && error.reasons.length > 0
-            ? { kind: "refused", reasons: error.reasons, mission }
+            ? { kind: "refused", reasons: error.reasons, mission, activeLimit: handLimit }
             : { kind: "failed" },
         ),
       )
@@ -230,9 +232,10 @@ export const MissionsScreen = ({ api, character, onCharacterChange, onBack }: Pr
       <div className="missions__counter" aria-hidden="true" />
       <div className="missions__plank" aria-hidden="true" />
       <div className="missions__tag">
-        進行中<b data-testid="hand-count">{loaded === null ? "" : loaded.active.length}</b> / 3
+        進行中<b data-testid="hand-count">{loaded === null ? "" : loaded.active.length}</b> /{" "}
+        {handLimit}
       </div>
-      <MissionHand active={loaded?.active ?? null} onPick={pick} />
+      <MissionHand active={loaded?.active ?? null} limit={handLimit} onPick={pick} />
       {loaded !== null && sheet?.kind === "pile" && (
         <CompletedList
           missions={completedRegular(loaded)}

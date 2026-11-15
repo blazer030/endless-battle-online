@@ -483,7 +483,8 @@ describe("liseLine", () => {
       pet: null,
     },
   })
-  const refused = (...reasons: string[]) => liseLine({ kind: "refused", reasons, mission })
+  const refused = (...reasons: string[]) =>
+    liseLine({ kind: "refused", reasons, mission, activeLimit: 3 })
 
   it.each([
     [liseLine({ kind: "accepted", mission }), "「討伐任務」就拜託您了，路上小心！", false],
@@ -495,6 +496,11 @@ describe("liseLine", () => {
     [refused("bagFull"), "哎呀，材料的格子已經滿了……", true],
     [refused("petsFull"), "獸欄已經住滿 3 隻了，新夥伴沒地方住呢……", true],
     [refused("tooMany"), "您手邊已經有 3 張委託了喔。", true],
+    [
+      liseLine({ kind: "refused", reasons: ["tooMany"], mission, activeLimit: 4 }),
+      "您手邊已經有 4 張委託了喔。",
+      true,
+    ],
     [refused("missionNotActive"), "這張委託已經不在您手上了呢……", true],
     [refused("levelTooLow"), "咦，剛剛沒送出去……再試一次吧？", true],
     [liseLine({ kind: "failed" }), "咦，剛剛沒送出去……再試一次吧？", true],
@@ -516,9 +522,9 @@ describe("liseLine", () => {
         pet: null,
       },
     })
-    expect(liseLine({ kind: "refused", reasons: ["bagFull"], mission: mixed }).text).toBe(
-      "哎呀，背包的格子已經滿了……",
-    )
+    expect(
+      liseLine({ kind: "refused", reasons: ["bagFull"], mission: mixed, activeLimit: 3 }).text,
+    ).toBe("哎呀，背包的格子已經滿了……")
   })
 })
 

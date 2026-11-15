@@ -102,9 +102,15 @@ The regular page SHALL list every available regular mission in the board order a
 ---
 ### Requirement: Missions in hand
 
-The counter SHALL show three slots and a "進行中 N / 3" paper. Each active mission SHALL be a slip in hand, in acceptance order, with its title (a red dot before daily missions), its first objective line and that objective's progress, "＋N 項" when there are more objectives, and a progress bar. Empty slots SHALL show an empty frame. When every objective is met the slip SHALL be stamped "可交" for a mission with a delivery or a pet, otherwise "達成"; a mission that only lacks its required skill level SHALL NOT be stamped. Clicking a slip SHALL open its sheet.
+The counter SHALL show one slot per `activeLimit` from the board (3 today; 3 while the board is still loading) and a "進行中 N / activeLimit" paper. Each active mission SHALL be a slip in hand, in acceptance order, with its title (a red dot before daily missions), its first objective line and that objective's progress, "＋N 項" when there are more objectives, and a progress bar. Empty slots SHALL show an empty frame. When every objective is met the slip SHALL be stamped "可交" for a mission with a delivery or a pet, otherwise "達成"; a mission that only lacks its required skill level SHALL NOT be stamped. Clicking a slip SHALL open its sheet.
 
 Objective progress SHALL be "progress / count" for a kill target, "owned / quantity" (owned capped at quantity) for a delivery item, "攜帶中" or "未攜帶" for a pet, and "目前 LvN" or "未學會" for a required skill. The progress bar SHALL be the sum of met amounts over the sum of needed amounts, counting each kill and delivery by its number and the pet and the skill as 1 each.
+
+#### Scenario: Hand follows the server limit
+
+- **GIVEN** a board with `activeLimit` 4 and 3 missions in hand
+- **WHEN** the hand is shown
+- **THEN** the counter has one empty slot, the paper reads "進行中 3 / 4", and an available mission's "接取" seal is enabled
 
 #### Scenario: Several objectives
 
@@ -145,7 +151,7 @@ Clicking a slip SHALL open the mission sheet over the board. The sheet SHALL sho
 ---
 ### Requirement: Accept, abandon and complete from the sheet
 
-The sheet of an available mission SHALL have a red seal "接取"; with 3 missions in hand the seal SHALL be disabled with "手邊已有 3 張" beside it. The sheet of an active mission SHALL have "放棄" and a red seal "交付" (when the mission has a delivery or a pet) or "完成"; the seal SHALL be disabled until the mission is ready. "放棄" SHALL ask again with "確定放棄" and "取消". While a request is being sent the seal SHALL look pressed, and the seal, "放棄" and the close button SHALL be disabled.
+The sheet of an available mission SHALL have a red seal "接取"; with `activeLimit` missions in hand the seal SHALL be disabled with "手邊已有 (activeLimit) 張" beside it. The sheet of an active mission SHALL have "放棄" and a red seal "交付" (when the mission has a delivery or a pet) or "完成"; the seal SHALL be disabled until the mission is ready. "放棄" SHALL ask again with "確定放棄" and "取消". While a request is being sent the seal SHALL look pressed, and the seal, "放棄" and the close button SHALL be disabled.
 
 After a successful accept, abandon or complete the sheet SHALL stay open and show the mission's new state from the returned board. After a completion the sheet SHALL show a "完" stamp, the giver's completion message when there is one, and "這次拿到": "獲得經驗 N" (with "、金錢 N" when money is given), "獲得 item ×N", "學會了 skill LvN" or "已經學會(skill)，這次沒有學到" when `skillGranted` is false, "獲得寵物 species LvN", and "升到 LvN" with the new character level when levels were gained. The returned character SHALL replace the screen's character. A completed mission opened from the daily page or the completed list SHALL show the "完" stamp, the giver's completion message when there is one, and the mission's rewards.
 
@@ -186,7 +192,7 @@ Feedback and errors on the sheet SHALL be spoken by Lise above the action row, w
 | `skillTooLow` | yes | (skill)要練到 LvN 才行喔。 |
 | `bagFull` | yes | 哎呀，(category)的格子已經滿了…… |
 | `petsFull` | yes | 獸欄已經住滿 3 隻了，新夥伴沒地方住呢…… |
-| `tooMany` | yes | 您手邊已經有 3 張委託了喔。 |
+| `tooMany` | yes | 您手邊已經有 (activeLimit) 張委託了喔。 |
 | `missionNotActive` | yes | 這張委託已經不在您手上了呢…… |
 | any other reason, or no response | yes | 咦，剛剛沒送出去……再試一次吧？ |
 

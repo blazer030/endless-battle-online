@@ -256,6 +256,19 @@ test("HandShowsActiveMissionsInOrder", async () => {
   expect(screen.getByTestId("hand-count")).toHaveTextContent("2")
 })
 
+test("HandFollowsTheServerLimit", async () => {
+  const held = [regular("mission-1"), regular("mission-2"), regular("mission-3")]
+  await renderMissions(
+    createMissionsApi(
+      makeMissionBoard({ activeLimit: 4, active: held, available: [regular("mission-4")] }),
+    ),
+  )
+
+  expect(within(hand()).getAllByTestId("hand-empty")).toHaveLength(1)
+  expect(screen.getByTestId("hand-count").parentElement).toHaveTextContent("進行中3 / 4")
+  expect(seal(openSheet(/^委託mission-4/))).toBeEnabled()
+})
+
 // 規格 Several objectives
 test("HandSlipShowsFirstObjectiveAndMore", async () => {
   const many = regular("mission-40", 40, {
