@@ -1054,3 +1054,127 @@
     animation: none;
   }
 }
+
+/* 手邊的委託：三格，單子高 --hand-height；空位是虛線框 */
+.missions-hand {
+  position: absolute;
+  z-index: 5;
+  left: 10px;
+  right: 10px;
+  top: var(--hand-top);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.missions-held {
+  position: relative;
+  height: var(--hand-height);
+  padding: 12px 9px 9px;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: var(--honour-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: url("../../assets/inn/parchment.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 5px 5px rgb(var(--shade-rgb) / 0.5));
+  transform: rotate(var(--r));
+}
+
+.missions-held > b {
+  flex: 0 0 auto;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.missions-held[data-daily="true"] > b::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 4px 1px 0;
+  border-radius: 50%;
+  background: var(--inn-cost-short);
+  vertical-align: middle;
+}
+
+.missions-held__goal {
+  flex: 0 0 auto;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--inn-detail-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.missions-held__count {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.25;
+}
+
+.missions-held__count em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--honour-ink);
+}
+
+.missions-held__count em[data-met="true"] {
+  color: var(--inn-detail-effect);
+}
+
+.missions-held__count em[data-short="true"] {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--inn-cost-short);
+}
+
+.missions-held__count small {
+  font-size: 11px;
+  color: var(--honour-muted);
+}
+
+.missions-held .missions-bar {
+  margin-top: auto;
+}
+
+.missions-held__stamp {
+  position: absolute;
+  right: 4px;
+  bottom: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  writing-mode: vertical-rl;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--paper);
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  transform: rotate(-10deg);
+  opacity: 0.92;
+}
+
+.missions-hand__empty {
+  height: var(--hand-height);
+  box-sizing: border-box;
+  border: 2px dashed rgb(var(--missions-slot-rgb) / 0.55);
+  border-radius: 4px;
+  background: rgb(var(--shade-rgb) / 0.18);
+  transform: rotate(var(--r));
+}

@@ -222,3 +222,90 @@ test("MakesNoAdventureRequests", async () => {
   expect(api.getMissions).toHaveBeenCalledOnce()
   void daily
 })
+
+// ── 手邊（規格 Missions in hand）──
+
+const hand = () => screen.getByRole("group", { name: "手邊的委託" })
+const handSlips = () => within(hand()).queryAllByRole("button")
+const deliver = (name: string, quantity: number, owned: number) => ({
+  itemId: name,
+  name,
+  quantity,
+  owned,
+  category: "Material" as const,
+})
+
+test("HandShowsActiveMissionsInOrder", async () => {
+  await renderMissions(
+    createMissionsApi(
+      lv150Board({ active: [regular("mission-31", 30), daily("mission-223", 50)] }),
+    ),
+  )
+
+  expect(handSlips().map((slip) => within(slip).getByTestId("hand-title").textContent)).toEqual([
+    "委託mission-31",
+    "委託mission-223",
+  ])
+  expect(handSlips()[1]).toHaveAttribute("data-daily", "true")
+  expect(within(hand()).getAllByTestId("hand-empty")).toHaveLength(1)
+  expect(screen.getByTestId("hand-count")).toHaveTextContent("2")
+})
+
+// 規格 Several objectives
+test("HandSlipShowsFirstObjectiveAndMore", async () => {
+  const many = regular("mission-40", 40, {
+    kills: [],
+    deliver: [deliver("火", 3, 2), deliver("雷", 3, 0), deliver("風", 1, 0), deliver("土", 1, 0)],
+  })
+  await renderMissions(createMissionsApi(lv150Board({ active: [many] })))
+
+  const slip = handSlips()[0]
+  expect(within(slip).getByText("交付 火")).toBeInTheDocument()
+  expect(within(slip).getByText("2 / 3")).toBeInTheDocument()
+  expect(within(slip).getByText("＋3 項")).toBeInTheDocument()
+  expect(within(slip).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25")
+})
+
+test("HandStampsReadyMissions", async () => {
+  await renderMissions(
+    createMissionsApi(
+      lv150Board({
+        active: [
+          regular("mission-41", 1, {
+            ready: true,
+            kills: [{ ...regular("x").kills[0], progress: 8 }],
+          }),
+          regular("mission-42", 1, { ready: true, kills: [], deliver: [deliver("火", 1, 1)] }),
+        ],
+      }),
+    ),
+  )
+
+  expect(within(handSlips()[0]).getByText("達成")).toBeInTheDocument()
+  expect(within(handSlips()[1]).getByText("可交")).toBeInTheDocument()
+})
+
+// 規格 Only the skill is missing
+test("HandDoesNotStampWhenOnlySkillIsMissing", async () => {
+  const skillOnly = regular("mission-318", 5500, {
+    kills: [{ ...regular("x").kills[0], count: 3, progress: 3 }],
+    requiredSkill: { skillId: "skill-414", name: "施毒", level: 3, met: false, learnedLevel: 2 },
+    ready: false,
+  })
+  await renderMissions(createMissionsApi(lv150Board({ active: [skillOnly] })))
+
+  const slip = handSlips()[0]
+  expect(within(slip).queryByText("達成")).toBeNull()
+  expect(within(slip).getByText("＋1 項")).toBeInTheDocument()
+  expect(Number(within(slip).getByRole("progressbar").getAttribute("aria-valuenow"))).toBeLessThan(
+    100,
+  )
+})
+
+test("HandSlipOpensItsSheet", async () => {
+  await renderMissions(createMissionsApi(lv150Board({ active: [regular("mission-31", 30)] })))
+
+  fireEvent.click(handSlips()[0])
+
+  expect(screen.getByRole("dialog", { name: "委託mission-31" })).toBeInTheDocument()
+})

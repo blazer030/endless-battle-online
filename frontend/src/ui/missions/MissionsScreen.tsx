@@ -14,6 +14,7 @@ import {
 import { useStage } from "../stage/stageContext"
 import { BackButton } from "../companions/BackButton"
 import { MissionBoard } from "./MissionBoard"
+import { MissionHand } from "./MissionHand"
 import { CompletedList, MissionSheet } from "./MissionSheet"
 import "../companions/CompanionsScreen.css"
 import "../inn/InnScreen.css"
@@ -119,6 +120,10 @@ export const MissionsScreen = ({ api, character, onBack }: Props) => {
       <div className="missions__tag">
         進行中<b data-testid="hand-count">{loaded === null ? "" : loaded.active.length}</b> / 3
       </div>
+      <MissionHand
+        active={loaded?.active ?? null}
+        onPick={(id) => setSheet({ kind: "mission", id, fromPile: false })}
+      />
       {loaded !== null && sheet?.kind === "pile" && (
         <CompletedList
           missions={completedRegular(loaded)}
