@@ -154,6 +154,17 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 
 榮譽廳背景、莉瑟、對話框、印章沿用 `title/hall`、`title/clerk`、`title/bubble`、`title/seal`；櫃檯與木條沿用 `inn/counter-wood`、`inn/counter-edge`；羊皮紙、吊牌圖釘、關閉鈕沿用 `inn/parchment`、`inn/pin`、`inn/close`；僱用中紙條沿用 `title/book-page`；分區銘牌沿用 `companions/name-plate`。五枚勳章是道具內容圖 `items/item-1304`、`1305`、`1306`（雨林，重產的 199×420 `.design-work/work/honour/hn-medal-rainforest.png`）、`1307`（王城 `644c74e7`）、`2222`（白銀 `f2285d8c`），用 `import` 上傳 R2。
 
+### `missions/`：任務板（設計板 MissionsFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `guild-wall` | 公會內牆背景（720） | `82726833` |
+| `board-frame` | 佈告欄木框（九宮格，四角取原圖 150px 顯示 30px，不縮，731） | `eb177ca7` |
+| `cork` | 佈告欄軟木，另鋪一整塊避免九宮格接縫（562） | `cc3ffb99` |
+| `pin-red` | 每日委託的紅圖釘（64，原圖 435） | `ad435803` |
+
+單子紙、標題紙、委託單沿用 `inn/parchment`；一般委託的黃銅圖釘、關閉鈕、櫃檯沿用 `inn/pin`、`inn/close`、`inn/counter-wood`；木條沿用 `title/desk-edge`；重置紙條沿用 `title/book-page`；「完」章、「達成／可交」章與紅印章沿用 `title/seal`；莉瑟頭像沿用 `title/clerk`；金錢圖示沿用 `town/purse`；道具用 `placeholders/items/` 的分類佔位圖。
+
 ## 提示詞
 
 日系手繪（設計畫布 EBO DEMO）的提示詞在 [`prompts/demo/`](prompts/demo/README.md)；道具描述檔在 `prompts/items/`。`prompts.md` 是舊的深藍夜色舞台範本，只留作參考。
