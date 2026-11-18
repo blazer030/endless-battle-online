@@ -28,6 +28,7 @@ public partial class ErrorCodeFormatTests(MySqlDatabaseFixture database)
             await anonymous.PostAsJsonAsync("/api/accounts/login", new { username = ApiClientExtensions.NewUsername(), password = "wrong-password" }, CancellationToken),
             await noCharacter.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody("樣本", strength: 1, intelligence: 1, life: 1, agility: 3)),
             await noCharacter.GetAsync("/api/inventory", CancellationToken),
+            await anonymous.GetAsync("/api/inventory", CancellationToken),
             await player.PostAsJsonAsync("/api/missions/accept", new { missionId = "no-such-mission" }, CancellationToken),
             await player.PostAsJsonAsync("/api/inventory/equip", new { }, CancellationToken),
             await player.PostAsJsonAsync("/api/skills/learn", new { skillId = "no-such-skill" }, CancellationToken),

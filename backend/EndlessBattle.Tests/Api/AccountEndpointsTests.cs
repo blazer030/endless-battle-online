@@ -144,7 +144,23 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
         await using var factory = new EndlessBattleApiFactory(database);
         var response = await factory.CreateClient().GetAsync("/api/accounts/me", CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("Bearer", response.Headers.WwwAuthenticate.Single().Scheme);
+        Assert.Equal(["AUTHENTICATION_REQUIRED"], await response.ReadReasonsAsync());
         var character = await factory.CreateClient().GetAsync("/api/characters/me", CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, character.StatusCode);
+    }
+
+    // 權杖過期或簽章不對也一樣：AUTHENTICATION_REQUIRED（跟登入時密碼錯的 AUTHENTICATION_FAILED 分開）
+    [Fact]
+    public async Task ProtectedEndpoint_Returns401_WithInvalidToken()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "not-a-token");
+
+        var response = await client.GetAsync("/api/accounts/me", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(["AUTHENTICATION_REQUIRED"], await response.ReadReasonsAsync());
     }
 }

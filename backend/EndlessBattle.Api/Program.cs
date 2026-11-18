@@ -42,6 +42,7 @@ builder.Services
             ValidAudience = jwtOptions.Audience,
             IssuerSigningKey = JwtTokenIssuer.CreateSigningKey(jwtOptions),
         };
+        options.Events = new JwtBearerEvents { OnChallenge = AuthenticationChallenge.WriteAsync };
     });
 builder.Services.AddAuthorization();
 
