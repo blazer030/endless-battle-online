@@ -79,7 +79,19 @@ endpoint 檢查必填欄位缺漏（缺少 id、數量、欄位、組數、孔�
 
 ### 例外必須帶代碼
 
-`InputValidationException(string message, IReadOnlyList<string> reasons)`、`ConflictException(string message, IReadOnlyList<string> reasons, Exception? innerException = null)` 的 reasons 改成必填、不得為空（空的丟 `ArgumentException`）；`NotFoundException(string message, string reason)` 加代碼並對外成為 reasons 的唯一一項；`AuthenticationFailedException` 固定代碼 `AUTHENTICATION_FAILED`；Domain 的 `CharacterCreationException(string message, string reason)` 帶代碼，`CharacterService` 轉成 `InputValidationException` 時沿用。這樣漏帶代碼在編譯期就擋下，不會有沒代碼的錯誤回應。代碼仍寫成字串（不集中成常數），跟現況一致。
+`InputValidationException(string message, IReadOnlyList<string> reasons)`、`ConflictException(string message, IReadOnlyList<string> reasons, Exception? innerException = null)` 的 reasons 改成必填、不得為空（空的丟 `ArgumentException`）；`NotFoundException(string message, string reason)` 加代碼並對外成為 reasons 的唯一一項；`AuthenticationFailedException` 固定代碼 `AUTHENTICATION_FAILED`；Domain 的 `CharacterCreationException(string message, string reason)` 帶代碼，`CharacterService` 轉成 `InputValidationException` 時沿用。這樣漏帶代碼在編譯期就擋下，不會有沒代碼的錯誤回應。代碼本身集中在 `ReasonCodes`，見下一節。
+
+### 代碼集中在 ReasonCodes（2026-11-18 review 後追加）
+
+Supersedes：本文件〈例外必須帶代碼〉原本的「代碼仍寫成字串（不集中成常數）」。使用者 2026-11-18 要求後端把代碼整理在一起。
+
+- 新增 `backend/EndlessBattle.Domain/ReasonCodes.cs`（namespace `EndlessBattle.Domain`，`public static class ReasonCodes`）：每個代碼一個 `public const string`，名稱是代碼的 PascalCase（`BagFull = "BAG_FULL"`、`Full = "FULL"`），依區域分組（共通、帳號、建角、背包與道具、商店倉庫銀行旅館、鐵舖、技能與轉職、地圖與設定、同伴、勳章所、任務）。帶參數的代碼用方法：`StatTooLow(string stat)`、`MissingTool(string itemId)`。代碼格式規則 `IsWellFormed(string code)`（`^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$`）也搬到這裡。
+- 放 Domain：Domain、Application、Infrastructure、Api 四層都引用 Domain，Domain 不能引用其他層（硬規則 2），只有放這裡四層都用得到。帳號、`REQUEST_INVALID`、`AUTHENTICATION_REQUIRED` 這類不屬遊戲規則的代碼也一起放，因為要的是「一處看到全部」；Domain 只多了字串常數與 BCL 的 Regex，不增加任何引用。
+- 四層所有寫代碼字串的地方改用 `ReasonCodes.X`；`AuthenticationFailedException.Reason`、`AuthenticationChallenge.Reason`、`RequestErrors.RequestInvalid` 改成指向 `ReasonCodes`（或移除改直接用）。Application 原本的 `internal static class ReasonCodes`（`Require`）改名為 `ReasonCodeRequirement`，格式判斷改呼叫 `ReasonCodes.IsWellFormed`。
+- 測試裡斷言的代碼維持字面值（測的是對外契約，常數寫錯時測試才抓得到）。前端不在範圍。
+- 純結構變更：API 回應、代碼值、玩家看到的字都不變；單獨一個 ♻️ refactor commit。
+
+替代方案：Domain 與 Application 各放自己的代碼。沒選：代碼會分兩處，`BAG_FULL` 這類同時在 Domain 與 Application 用的要選邊，跟「整理在一起」相反。
 
 ### 前端共用代碼文字表
 
@@ -109,6 +121,7 @@ endpoint 檢查必填欄位缺漏（缺少 id、數量、欄位、組數、孔�
 - `ApplicationExceptionHandler` 寫出 `ProblemDetails { Status, Extensions["reasons"] }`；`BadHttpRequestException` 的 reasons 是 `["REQUEST_INVALID"]`，狀態碼沿用例外自帶的。
 - `RouteHandlerOptions.ThrowOnBadRequest` 在所有環境為 `true`。
 - 前端：`ApiError(status: number, reasons: string[])`；`errorText(code)`、`errorTextOf(reasons)`。
+- 後端代碼：`EndlessBattle.Domain.ReasonCodes` 的常數、`StatTooLow(stat)`、`MissingTool(itemId)`、`IsWellFormed(code)`；ReasonCodes.cs 以外的後端原始碼不寫代碼字串。
 
 **失敗模式**
 
@@ -119,6 +132,7 @@ endpoint 檢查必填欄位缺漏（缺少 id、數量、欄位、組數、孔�
 
 - 後端：`ApplicationExceptionHandlerTests`（或對應的 Api 測試）斷言 400／401／404／409 的回應沒有 `detail`、有非空 `reasons`；`AccountEndpointsTests`、`CharacterEndpointsTests` 改斷言代碼；一條掃描測試以反射或樣本請求確認錯誤代碼都符合大寫底線格式。
 - 例外建構子：reasons 為空時丟 `ArgumentException` 的單元測試。
+- 代碼集中：`ReasonCodesTests` 斷言每個常數符合 `IsWellFormed`、值不重複；`ReasonCodeSpellingTests` 掃 Domain、Application、Infrastructure、Api 原始碼（scaffold 產生的 `Persistence/Models/` 與 `EndlessBattleDbContext.cs` 除外），ReasonCodes.cs 以外沒有等於某個常數值（或以「值:」開頭）的字串字面值，也沒有全大寫含底線的字串字面值。
 - 前端：`errorText.test.ts`（每個新代碼與未知代碼）、`client.test.ts`（不讀 `detail`）、`TitleScreen`、`CreateScreen`、`SkillsScreen`、`BagScreen`、`SettingsPanel`、`WorldPanel` 的錯誤顯示測試改用代碼。
 - `./scripts/check.sh` exit 0。
 

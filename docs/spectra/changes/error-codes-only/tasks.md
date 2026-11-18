@@ -35,3 +35,10 @@
 
 - [x] 5.1 `./scripts/check.sh` exit code 0。 [after: 4.2]
   - 實作紀錄：2026-11-18 `./scripts/check.sh` exit 0：後端 1981、前端 1094、admin 144、tools/assets 66、content-sheet 25。
+
+## 6. 代碼集中（2026-11-18 review 後追加）
+
+- [x] 6.1 依 design「代碼集中在 ReasonCodes」新增 `backend/EndlessBattle.Domain/ReasonCodes.cs`，收齊後端目前產生的 103 個代碼（2026-11-18 以 grep 掃 Domain、Application、Infrastructure、Api 的字串實測，含 `STAT_TOO_LOW`、`MISSING_TOOL` 兩個帶參數的），四層原始碼寫代碼字串的地方全部改用 `ReasonCodes.X`、`ReasonCodes.StatTooLow(stat)`、`ReasonCodes.MissingTool(itemId)`；`AuthenticationFailedException.Reason`、`AuthenticationChallenge.Reason`、`RequestErrors.RequestInvalid` 改指向 `ReasonCodes`；Application 的 `internal static class ReasonCodes` 改名 `ReasonCodeRequirement` 並呼叫 `ReasonCodes.IsWellFormed`。測試：先寫 `ReasonCodesTests`（每個 public const 符合 `IsWellFormed`、值不重複；`StatTooLow("strength")` 是 `STAT_TOO_LOW:strength`）並把 `ReasonCodeSpellingTests` 改成「ReasonCodes.cs 以外的後端原始碼（Persistence/Models 與 EndlessBattleDbContext.cs 除外）沒有等於常數值或以『值:』開頭的字串字面值、也沒有全大寫含底線的字串字面值」，看它們失敗（類別不存在、掃到散寫的字面值），再搬移。驗證：`cd backend && dotnet build`（警告視為錯誤）通過、`dotnet test` 全綠且既有斷言代碼字面值的測試沒改；單獨以 ♻️ refactor commit。 [after: 5.1]
+  - 實作紀錄：`ReasonCodes` 101 個常數＋`StatTooLow`、`MissingTool` 兩個方法；48 個檔 171 處字面值改用常數。`AuthenticationFailedException.Reason`、`AuthenticationChallenge.Reason`、`RequestErrors.RequestInvalid` 這三個別名拿掉、直接用 `ReasonCodes`；`BaseStatCode.StatTooLow(BaseStat)`、`ForgeTools.Missing` 保留給呼叫端，內部改呼叫 `ReasonCodes`。後端 1998 全綠，既有測試只改了兩個掃描測試檔。
+- [x] 6.2 `./scripts/check.sh` exit code 0。 [after: 6.1]
+  - 實作紀錄：2026-11-18 exit 0：後端 1998、前端 1095、admin 144、tools/assets 66、content-sheet 25。
