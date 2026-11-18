@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace EndlessBattle.Application.Common;
 
 // Api 層把這些例外對應成 HTTP 狀態碼：409、404、400、401，並把原因代碼放進 ProblemDetails 的 reasons
@@ -24,10 +26,14 @@ public sealed class AuthenticationFailedException() : Exception("帳號或密碼
     public const string Reason = "AUTHENTICATION_FAILED";
 }
 
-internal static class ReasonCodes
+// 原因代碼：全大寫、字之間用底線；帶參數的代碼在冒號後接參數（參數照原本的寫法，例如 STAT_TOO_LOW:strength）
+internal static partial class ReasonCodes
 {
+    [GeneratedRegex("^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$")]
+    private static partial Regex Spelling();
+
     public static IReadOnlyList<string> Require(IReadOnlyList<string> reasons) =>
-        reasons.Count > 0 && reasons.All(reason => !string.IsNullOrWhiteSpace(reason))
+        reasons.Count > 0 && reasons.All(reason => reason is not null && Spelling().IsMatch(reason))
             ? reasons
-            : throw new ArgumentException("錯誤必須帶至少一個原因代碼", nameof(reasons));
+            : throw new ArgumentException("錯誤必須帶至少一個全大寫底線的原因代碼", nameof(reasons));
 }

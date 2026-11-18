@@ -16,4 +16,16 @@ public class ApplicationExceptionsTests
     [Fact]
     public void NotFound_BlankReason_Throws() =>
         Assert.Throws<ArgumentException>(() => new NotFoundException("尚未建立角色", " "));
+
+    // 代碼格式寫錯（例如還是駝峰式）也在建立時擋下：大寫底線，冒號後的參數不限
+    [Theory]
+    [InlineData("bagFull")]
+    [InlineData("Bag_Full")]
+    [InlineData("missingTool:item-1")]
+    public void InputValidation_CodeNotUpperSnake_Throws(string code) =>
+        Assert.Throws<ArgumentException>(() => new InputValidationException("無法購買", [code]));
+
+    [Fact]
+    public void InputValidation_ParameterAfterColonKeepsItsSpelling() =>
+        Assert.Equal(["MISSING_TOOL:item-1378"], new InputValidationException("缺少需要的道具", ["MISSING_TOOL:item-1378"]).Reasons);
 }
