@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from "react"
 import { ApiError, type ApiClient } from "../api/client"
+import { GenericErrorText } from "../game/errorText"
 import {
   attackChoices,
   parseSettings,
@@ -20,11 +21,10 @@ type Props = {
   onClose: () => void
 }
 
-const fallbackError = "發生錯誤，請稍後再試"
 const conflictError = "角色資料已被其他請求更新，請再試一次"
 
 const describeError = (error: unknown) => {
-  if (!(error instanceof ApiError)) return fallbackError
+  if (!(error instanceof ApiError)) return GenericErrorText
   if (error.status === 409) return conflictError
   return settingsErrorMessage(error.reasons)
 }

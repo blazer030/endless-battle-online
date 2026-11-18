@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
+import { GenericErrorText } from "../game/errorText"
 import type { WorldAreaVo, WorldPlace } from "../game/world"
 import type { CharacterVo } from "../game/character"
 import { moveReasonText, passActive, placeAccess, recommendationLabel } from "../game/world"
@@ -14,13 +15,12 @@ type Props = {
   onClose: () => void
 }
 
-const fallbackError = "發生錯誤，請稍後再試"
 const conflictError = "角色資料已被其他請求更新，請再試一次"
 
 const describeMoveError = (error: unknown): string[] => {
-  if (!(error instanceof ApiError)) return [fallbackError]
+  if (!(error instanceof ApiError)) return [GenericErrorText]
   if (error.status === 409) return [conflictError]
-  return error.reasons.length === 0 ? [fallbackError] : error.reasons.map(moveReasonText)
+  return error.reasons.length === 0 ? [GenericErrorText] : error.reasons.map(moveReasonText)
 }
 
 export function WorldPanel({ api, character, onCharacterChange, onClose }: Props) {

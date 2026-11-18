@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
-import { errorTextOf } from "../game/errorText"
+import { errorTextOf, GenericErrorText } from "../game/errorText"
 import {
   ActiveSlots,
   clearSlot,
@@ -38,8 +38,6 @@ type Props = {
   refreshSignal?: number
 }
 
-const fallbackError = "發生錯誤，請稍後再試"
-
 // 「動作：原因」；整句說法的代碼（例如轉職時背包滿）直接用那句；這頁的表翻不出來的代碼用共用的說法
 const describeError = (
   error: unknown,
@@ -47,7 +45,7 @@ const describeError = (
   reasonText: (code: string) => string,
   sentences: Readonly<Record<string, string>> = {},
 ) => {
-  if (!(error instanceof ApiError)) return fallbackError
+  if (!(error instanceof ApiError)) return GenericErrorText
   const sentence = error.reasons.length === 1 ? sentences[error.reasons[0]!] : undefined
   if (sentence !== undefined) return sentence
   const texts = error.reasons.map(reasonText)

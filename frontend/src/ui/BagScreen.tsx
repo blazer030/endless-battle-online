@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState, type FormEvent } from "react"
 import { ApiError, type ApiClient } from "../api/client"
+import { GenericErrorText } from "../game/errorText"
 import {
   bagItems,
   bagSlotsOf,
@@ -92,10 +93,8 @@ const subPages: { id: SubPage; label: string }[] = [
   { id: "forge", label: "鍛造" },
 ]
 
-const fallbackError = "發生錯誤，請稍後再試"
-
 const describeError = (error: unknown) =>
-  error instanceof ApiError ? errorMessage(error.reasons) : fallbackError
+  error instanceof ApiError ? errorMessage(error.reasons) : GenericErrorText
 
 export function BagScreen({
   api,

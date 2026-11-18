@@ -1,4 +1,4 @@
-// 原因代碼全部認得時以「、」串起對照文字；有任何認不得的代碼或沒有代碼時改用後端的 detail
+// 原因代碼全部認得時以「、」串起對照文字；有任何認不得的代碼或沒有代碼時改用 fallback
 export const translateReasons = (
   texts: Readonly<Record<string, string>>,
   reasons: string[],
