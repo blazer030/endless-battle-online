@@ -311,4 +311,17 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    // spec game-api-contract：Missing field
+    [Fact]
+    public async Task Learn_MissingSkillId_RequestInvalid()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.PostAsJsonAsync("/api/skills/learn", new { }, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(["REQUEST_INVALID"], await response.ReadReasonsAsync());
+    }
 }

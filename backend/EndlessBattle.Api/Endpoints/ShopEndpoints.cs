@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Economy;
 using EndlessBattle.Domain.Items;
@@ -15,23 +16,23 @@ public static class ShopEndpoints
         shop.MapGet("/", (ItemCategory? category, int? level, ShopService service) =>
         {
             var items = service.List(
-                category ?? throw new InputValidationException("缺少分類"),
-                level ?? throw new InputValidationException("缺少商店等級"));
+                category ?? throw RequestErrors.Invalid("缺少分類"),
+                level ?? throw RequestErrors.Invalid("缺少商店等級"));
             return TypedResults.Ok(items.Select(item => new ShopItemResponse(
                 item.Id, item.Name, item.Category, item.Price, StatBonusResponse.From(item.Bonus), EquipmentRequirementResponse.From(item.Requires), item.Holes, item.RefineMax)).ToList());
         });
 
         shop.MapPost("/buy", async (BuyRequest request, ClaimsPrincipal user, ShopService service, CancellationToken cancellationToken) =>
         {
-            var itemId = request.ItemId ?? throw new InputValidationException("缺少品項 id");
-            var quantity = request.Quantity ?? throw new InputValidationException("缺少數量");
+            var itemId = request.ItemId ?? throw RequestErrors.Invalid("缺少品項 id");
+            var quantity = request.Quantity ?? throw RequestErrors.Invalid("缺少數量");
             return TypedResults.Ok(InventoryEndpoints.ToResponse(await service.BuyAsync(user.GetAccountId(), itemId, quantity, cancellationToken)));
         });
 
         shop.MapPost("/sell", async (SellRequest request, ClaimsPrincipal user, ShopService service, CancellationToken cancellationToken) =>
         {
-            var inventoryId = request.InventoryId ?? throw new InputValidationException("缺少道具 id");
-            var quantity = request.Quantity ?? throw new InputValidationException("缺少數量");
+            var inventoryId = request.InventoryId ?? throw RequestErrors.Invalid("缺少道具 id");
+            var quantity = request.Quantity ?? throw RequestErrors.Invalid("缺少數量");
             return TypedResults.Ok(InventoryEndpoints.ToResponse(await service.SellAsync(user.GetAccountId(), inventoryId, quantity, cancellationToken)));
         });
 

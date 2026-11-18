@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -16,7 +17,7 @@ public static class BankEndpoints
         bank.MapPost("/deposit", async (
             BankAmountRequest request, ClaimsPrincipal user, BankService service, CharacterService characters, IGameContent content, CancellationToken cancellationToken) =>
         {
-            var amount = request.Amount ?? throw new InputValidationException("缺少金額");
+            var amount = request.Amount ?? throw RequestErrors.Invalid("缺少金額");
             await service.DepositAsync(user.GetAccountId(), amount, cancellationToken);
             return TypedResults.Ok(await ProfileAsync(user, characters, content, cancellationToken));
         });
@@ -24,7 +25,7 @@ public static class BankEndpoints
         bank.MapPost("/withdraw", async (
             BankAmountRequest request, ClaimsPrincipal user, BankService service, CharacterService characters, IGameContent content, CancellationToken cancellationToken) =>
         {
-            var amount = request.Amount ?? throw new InputValidationException("缺少金額");
+            var amount = request.Amount ?? throw RequestErrors.Invalid("缺少金額");
             await service.WithdrawAsync(user.GetAccountId(), amount, cancellationToken);
             return TypedResults.Ok(await ProfileAsync(user, characters, content, cancellationToken));
         });

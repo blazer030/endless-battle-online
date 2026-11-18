@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -28,7 +29,7 @@ public static class InnEndpoints
             InnBookRequest request, ClaimsPrincipal user, InnService service, CharacterService characters, IGameContent content,
             CancellationToken cancellationToken) =>
         {
-            var roomId = request.RoomId ?? throw new InputValidationException("缺少房型");
+            var roomId = request.RoomId ?? throw RequestErrors.Invalid("缺少房型");
             var result = await service.BookAsync(user.GetAccountId(), roomId, cancellationToken);
             var profile = await characters.GetAsync(user.GetAccountId(), cancellationToken);
             return TypedResults.Ok(new InnBookResponse(

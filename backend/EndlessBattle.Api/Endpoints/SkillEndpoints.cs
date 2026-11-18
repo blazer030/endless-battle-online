@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Skills;
@@ -17,7 +18,7 @@ public static class SkillEndpoints
 
         skills.MapPost("/learn", async (LearnSkillRequest request, ClaimsPrincipal user, SkillService service, CancellationToken cancellationToken) =>
         {
-            var skillId = request.SkillId ?? throw new InputValidationException("缺少技能 id");
+            var skillId = request.SkillId ?? throw RequestErrors.Invalid("缺少技能 id");
             return TypedResults.Ok(ToResponse(await service.LearnAsync(user.GetAccountId(), skillId, cancellationToken)));
         });
 
@@ -29,10 +30,10 @@ public static class SkillEndpoints
 
     // 只檢查欄位是否齊全；欄位規則由 Domain 的 SkillLoadout 驗證
     private static IReadOnlyList<SkillSlot> ToSlots(SetSkillSlotsRequest request) =>
-        (request.Slots ?? throw new InputValidationException("缺少技能欄位"))
+        (request.Slots ?? throw RequestErrors.Invalid("缺少技能欄位"))
             .Select(slot => slot is { Slot: { } number, SkillId: { } skillId }
                 ? new SkillSlot(number, skillId)
-                : throw new InputValidationException("技能欄位資料不完整"))
+                : throw RequestErrors.Invalid("技能欄位資料不完整"))
             .ToList();
 
     private static SkillOverviewResponse ToResponse(SkillOverview overview) => new(

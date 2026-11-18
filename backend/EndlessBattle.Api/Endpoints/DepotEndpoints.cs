@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Economy;
 
@@ -16,15 +17,15 @@ public static class DepotEndpoints
 
         depot.MapPost("/store", async (StoreRequest request, ClaimsPrincipal user, DepotService service, CancellationToken cancellationToken) =>
         {
-            var inventoryId = request.InventoryId ?? throw new InputValidationException("缺少道具 id");
-            var quantity = request.Quantity ?? throw new InputValidationException("缺少數量");
+            var inventoryId = request.InventoryId ?? throw RequestErrors.Invalid("缺少道具 id");
+            var quantity = request.Quantity ?? throw RequestErrors.Invalid("缺少數量");
             return TypedResults.Ok(ToResponse(await service.StoreAsync(user.GetAccountId(), inventoryId, quantity, cancellationToken)));
         });
 
         depot.MapPost("/take", async (TakeRequest request, ClaimsPrincipal user, DepotService service, CancellationToken cancellationToken) =>
         {
-            var depotId = request.DepotId ?? throw new InputValidationException("缺少倉庫道具 id");
-            var quantity = request.Quantity ?? throw new InputValidationException("缺少數量");
+            var depotId = request.DepotId ?? throw RequestErrors.Invalid("缺少倉庫道具 id");
+            var quantity = request.Quantity ?? throw RequestErrors.Invalid("缺少數量");
             return TypedResults.Ok(ToResponse(await service.TakeAsync(user.GetAccountId(), depotId, quantity, cancellationToken)));
         });
 

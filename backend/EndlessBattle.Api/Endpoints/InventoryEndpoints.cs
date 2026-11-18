@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
@@ -18,20 +19,20 @@ public static class InventoryEndpoints
 
         inventory.MapPost("/equip", async (EquipRequest request, ClaimsPrincipal user, InventoryService service, CancellationToken cancellationToken) =>
         {
-            var inventoryId = request.InventoryId ?? throw new InputValidationException("缺少道具 id");
+            var inventoryId = request.InventoryId ?? throw RequestErrors.Invalid("缺少道具 id");
             return TypedResults.Ok(ToResponse(await service.EquipAsync(user.GetAccountId(), inventoryId, request.Quantity, cancellationToken)));
         });
 
         inventory.MapPost("/unequip", async (UnequipRequest request, ClaimsPrincipal user, InventoryService service, CancellationToken cancellationToken) =>
         {
-            var slot = request.Slot ?? throw new InputValidationException("缺少裝備欄位");
+            var slot = request.Slot ?? throw RequestErrors.Invalid("缺少裝備欄位");
             return TypedResults.Ok(ToResponse(await service.UnequipAsync(user.GetAccountId(), slot, cancellationToken)));
         });
 
         inventory.MapPost("/use", async (
             UseItemRequest request, ClaimsPrincipal user, InventoryService service, IGameContent content, CancellationToken cancellationToken) =>
         {
-            var inventoryId = request.InventoryId ?? throw new InputValidationException("缺少道具 id");
+            var inventoryId = request.InventoryId ?? throw RequestErrors.Invalid("缺少道具 id");
             var result = await service.UseAsync(user.GetAccountId(), inventoryId, cancellationToken);
             return TypedResults.Ok(new UseItemResponse(
                 ToResponse(result.Inventory),

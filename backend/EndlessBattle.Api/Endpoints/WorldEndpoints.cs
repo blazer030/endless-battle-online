@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.World;
@@ -22,7 +23,7 @@ public static class WorldEndpoints
         {
             if (request.PlaceId is not { } placeId)
             {
-                throw new InputValidationException("請指定地區");
+                throw RequestErrors.Invalid("請指定地區");
             }
 
             var profile = await service.MoveAsync(user.GetAccountId(), placeId, request.SubPlace, cancellationToken);

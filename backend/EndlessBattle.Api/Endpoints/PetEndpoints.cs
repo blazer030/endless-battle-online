@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -33,7 +34,7 @@ public static class PetEndpoints
         pets.MapPost("/feed", async (
             PetRequest request, ClaimsPrincipal user, PetService service, CharacterService characters, IGameContent content, CancellationToken cancellationToken) =>
         {
-            var foodId = request.FoodId ?? throw new InputValidationException("缺少食物 id");
+            var foodId = request.FoodId ?? throw RequestErrors.Invalid("缺少食物 id");
             var overview = await service.FeedAsync(user.GetAccountId(), PetIdOf(request), foodId, cancellationToken);
             var profile = await characters.GetAsync(user.GetAccountId(), cancellationToken);
             return TypedResults.Ok(new PetFeedResponse(
@@ -44,7 +45,7 @@ public static class PetEndpoints
         return app;
     }
 
-    private static long PetIdOf(PetRequest request) => request.PetId ?? throw new InputValidationException("缺少寵物 id");
+    private static long PetIdOf(PetRequest request) => request.PetId ?? throw RequestErrors.Invalid("缺少寵物 id");
 
     // 內容檔移除的怪物以 id 代替物種名
     private static PetsResponse ToResponse(PetOverview overview, IGameContent content) => new(

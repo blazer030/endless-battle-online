@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -20,7 +21,7 @@ public static class MercenaryEndpoints
             MercenaryRequest request, ClaimsPrincipal user, MercenaryService service, CharacterService characters, IGameContent content,
             CancellationToken cancellationToken) =>
         {
-            var mercenaryId = request.MercenaryId ?? throw new InputValidationException("缺少傭兵 id");
+            var mercenaryId = request.MercenaryId ?? throw RequestErrors.Invalid("缺少傭兵 id");
             var overview = await service.HireAsync(user.GetAccountId(), mercenaryId, cancellationToken);
             var profile = await characters.GetAsync(user.GetAccountId(), cancellationToken);
             return TypedResults.Ok(new MercenaryHireResponse(
@@ -31,7 +32,7 @@ public static class MercenaryEndpoints
         mercenaries.MapPost("/deploy", async (
             MercenaryRequest request, ClaimsPrincipal user, MercenaryService service, IGameContent content, CancellationToken cancellationToken) =>
         {
-            var placeId = request.PlaceId ?? throw new InputValidationException("缺少地區 id");
+            var placeId = request.PlaceId ?? throw RequestErrors.Invalid("缺少地區 id");
             return TypedResults.Ok(ToResponse(await service.DeployAsync(user.GetAccountId(), placeId, cancellationToken), content));
         });
 

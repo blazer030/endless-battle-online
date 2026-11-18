@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -53,7 +54,7 @@ public static class MissionEndpoints
     }
 
     private static string RequireMissionId(MissionRequest request) =>
-        string.IsNullOrWhiteSpace(request.MissionId) ? throw new InputValidationException("缺少任務 id") : request.MissionId;
+        string.IsNullOrWhiteSpace(request.MissionId) ? throw RequestErrors.Invalid("缺少任務 id") : request.MissionId;
 
     public static MissionBoardResponse ToResponse(MissionBoardView board, IGameContent content)
     {

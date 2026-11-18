@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Honour;
@@ -22,7 +23,7 @@ public static class HonourEndpoints
             HonourExchangeRequest request, ClaimsPrincipal user, HonourService service, IGameContent content, CancellationToken cancellationToken) =>
         {
             var exchangeId = string.IsNullOrWhiteSpace(request.ExchangeId)
-                ? throw new InputValidationException("缺少兌換 id")
+                ? throw RequestErrors.Invalid("缺少兌換 id")
                 : request.ExchangeId;
             return TypedResults.Ok(ToResponse(await service.ExchangeAsync(user.GetAccountId(), exchangeId, cancellationToken), content));
         });

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Jobs;
@@ -24,7 +25,7 @@ public static class JobEndpoints
         {
             if (string.IsNullOrWhiteSpace(request.JobId))
             {
-                throw new InputValidationException("請指定職業");
+                throw RequestErrors.Invalid("請指定職業");
             }
 
             var profile = await service.ChangeAsync(user.GetAccountId(), request.JobId, cancellationToken);

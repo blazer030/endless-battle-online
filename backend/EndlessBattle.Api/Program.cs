@@ -46,6 +46,8 @@ builder.Services
 builder.Services.AddAuthorization();
 
 builder.Services.AddProblemDetails();
+// 讀不懂的請求內容預設只有 Development 會丟例外；一律丟出才會經過 ApplicationExceptionHandler、帶 REQUEST_INVALID
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 // 遊戲用 v1、admin 用 admin，兩份文件互不包含對方的路徑
 builder.Services.AddOpenApi(options => options.ShouldInclude = description => !AdminEndpoints.IsAdminPath(description.RelativePath));

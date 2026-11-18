@@ -4,7 +4,11 @@ using System.Text.Json;
 using EndlessBattle.Domain.Items;
 using EndlessBattle.Infrastructure.Persistence;
 using EndlessBattle.Tests.Support;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace EndlessBattle.Tests.Api;
 
@@ -386,5 +390,29 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(
             new Dictionary<long, bool> { [fresh] = false, [refined] = true, [socketed] = true, [drilled] = true },
             enhanced);
+    }
+
+    // spec game-api-contract：Unreadable body
+    [Fact]
+    public async Task Equip_UnreadableBody_RequestInvalid()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+        using var body = new StringContent("not json", System.Text.Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync("/api/inventory/equip", body, CancellationToken);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(["REQUEST_INVALID"], await response.ReadReasonsAsync());
+    }
+
+    // 預設只有 Development 會把讀不懂的內容丟成例外；正式環境也要經過 ApplicationExceptionHandler 才有代碼
+    [Fact]
+    public async Task Production_ThrowsOnBadRequest()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        await using var production = factory.WithWebHostBuilder(builder => builder.UseEnvironment("Production"));
+
+        Assert.True(production.Services.GetRequiredService<IOptions<RouteHandlerOptions>>().Value.ThrowOnBadRequest);
     }
 }

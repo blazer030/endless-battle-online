@@ -29,6 +29,7 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
             InputValidationException validation => validation.Reasons,
             ConflictException conflict => conflict.Reasons,
             NotFoundException { Reason: { } reason } => [reason],
+            BadHttpRequestException => [RequestErrors.RequestInvalid],
             AuthenticationFailedException => [AuthenticationFailedException.Reason],
             _ => [],
         };

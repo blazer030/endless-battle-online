@@ -22,6 +22,8 @@ public class ApplicationExceptionHandlerTests
         Assert.True(handled);
         Assert.Equal(statusCode, httpContext.Response.StatusCode);
         Assert.Equal(statusCode, problemDetails.Written?.ProblemDetails.Status);
+        var reasons = Assert.IsAssignableFrom<IEnumerable<string>>(problemDetails.Written?.ProblemDetails.Extensions["reasons"]);
+        Assert.Equal(["REQUEST_INVALID"], reasons);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EndlessBattle.Api.Auth;
+using EndlessBattle.Api.Errors;
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
@@ -42,7 +43,7 @@ public static class CharacterEndpoints
                     EscapeHealthPointsPercent: { } escapeHealthPoints,
                 })
             {
-                throw new InputValidationException("設定資料不完整");
+                throw RequestErrors.Invalid("設定資料不完整");
             }
 
             var settings = new AdventureSettings(request.Attack, potionHealthPoints, potionManaPoints, restHealthPoints, restManaPoints, escapeHealthPoints);
@@ -64,7 +65,7 @@ public static class CharacterEndpoints
             || request.JobId is null
             || allocation is not { Strength: { } strength, Intelligence: { } intelligence, Life: { } life, Agility: { } agility })
         {
-            throw new InputValidationException("創角資料不完整");
+            throw RequestErrors.Invalid("創角資料不完整");
         }
 
         return new CreateCharacterCommand(
