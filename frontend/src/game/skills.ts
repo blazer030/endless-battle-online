@@ -85,24 +85,39 @@ export const proficiencyPercent = (value: number) =>
 
 const translate = (texts: Record<string, string>) => (code: string) => texts[code] ?? code
 
+// 條件未達成的文字：錯誤代碼對照與卡片提示共用
+const JobConditionText = {
+  sameJob: "已是目前職業",
+  levelTooLow: "等級不足",
+  parentProficiencyTooLow: "前置職業熟練度不足",
+} as const
+
+const statTooLowText = (stat: string) => `${statLabel(stat)}不足`
+
+const LearnConditionText = {
+  wrongJob: "不是目前職業的技能",
+  notEnoughProficiency: "技能熟練度不足",
+  notEnoughMoney: "金錢不足",
+} as const
+
 const fixedJobReasonText = translate({
-  SAME_JOB: "已是目前職業",
-  LEVEL_TOO_LOW: "等級不足",
-  PARENT_PROFICIENCY_TOO_LOW: "前置職業熟練度不足",
+  SAME_JOB: JobConditionText.sameJob,
+  LEVEL_TOO_LOW: JobConditionText.levelTooLow,
+  PARENT_PROFICIENCY_TOO_LOW: JobConditionText.parentProficiencyTooLow,
 })
 
 const StatTooLowPrefix = "STAT_TOO_LOW:"
 
 export const jobReasonText = (code: string) =>
   code.startsWith(StatTooLowPrefix)
-    ? `${statLabel(code.slice(StatTooLowPrefix.length))}不足`
+    ? statTooLowText(code.slice(StatTooLowPrefix.length))
     : fixedJobReasonText(code)
 
 export const learnReasonText = translate({
-  WRONG_JOB: "不是目前職業的技能",
+  WRONG_JOB: LearnConditionText.wrongJob,
   MAX_LEVEL: "已達最高等級",
-  NOT_ENOUGH_PROFICIENCY: "技能熟練度不足",
-  NOT_ENOUGH_MONEY: "金錢不足",
+  NOT_ENOUGH_PROFICIENCY: LearnConditionText.notEnoughProficiency,
+  NOT_ENOUGH_MONEY: LearnConditionText.notEnoughMoney,
   PREREQUISITE: "前置技能等級不足",
 })
 
@@ -111,12 +126,12 @@ export const unmetLearnTexts = ({ taughtByCurrentJob, prerequisite, next }: Skil
   next === null
     ? []
     : [
-        ...(taughtByCurrentJob ? [] : ["不是目前職業的技能"]),
+        ...(taughtByCurrentJob ? [] : [LearnConditionText.wrongJob]),
         ...(prerequisite === null || prerequisite.met
           ? []
           : [`前置技能：${prerequisite.name} Lv ${prerequisite.level}`]),
-        ...(next.enoughProficiency ? [] : ["技能熟練度不足"]),
-        ...(next.enoughMoney ? [] : ["金錢不足"]),
+        ...(next.enoughProficiency ? [] : [LearnConditionText.notEnoughProficiency]),
+        ...(next.enoughMoney ? [] : [LearnConditionText.notEnoughMoney]),
       ]
 
 export const slotReasonText = translate({
@@ -133,10 +148,10 @@ const conditionsMet = (job: JobChoiceVo) =>
 
 // 轉職按鈕的提示：還沒達成的條件
 export const unmetJobTexts = (job: JobChoiceVo): string[] => [
-  ...(job.current ? ["已是目前職業"] : []),
-  ...(job.levelMet ? [] : ["等級不足"]),
-  ...(job.parentProficiencyMet ? [] : ["前置職業熟練度不足"]),
-  ...job.statRequirements.filter(({ met }) => !met).map(({ stat }) => `${statLabel(stat)}不足`),
+  ...(job.current ? [JobConditionText.sameJob] : []),
+  ...(job.levelMet ? [] : [JobConditionText.levelTooLow]),
+  ...(job.parentProficiencyMet ? [] : [JobConditionText.parentProficiencyTooLow]),
+  ...job.statRequirements.filter(({ met }) => !met).map(({ stat }) => statTooLowText(stat)),
 ]
 
 // 轉職成功但列表沒能重新載入時，在本地改標目前職業；其他條件沿用上次的判定

@@ -1,5 +1,6 @@
 import {
   JobChoiceVo,
+  type JobStatCheck,
   SkillOverviewVo,
   skillTimings,
   skillTypes,
@@ -17,7 +18,7 @@ import {
   parseOneOf,
   parseString,
 } from "./parse"
-import { toGrowth, toPrerequisite } from "./publicData"
+import { toGrowth, toPrerequisite, toStatRequirement } from "./publicData"
 import type { components } from "./schema"
 
 type SetSkillSlotsDto = components["schemas"]["SetSkillSlotsRequest"]
@@ -27,6 +28,11 @@ const toPrerequisiteCheck = (value: unknown, path: string): SkillPrerequisiteChe
   if (prerequisite === null) return null
   return { ...prerequisite, met: parseBoolean(parseObject(value, path).met, `${path}.met`) }
 }
+
+const toStatCheck = (value: unknown, path: string): JobStatCheck => ({
+  ...toStatRequirement(value, path),
+  met: parseBoolean(parseObject(value, path).met, `${path}.met`),
+})
 
 const toNextLevel = (value: unknown, path: string): SkillNextLevel | null => {
   if (value === null) return null
@@ -91,18 +97,7 @@ export const JobChoiceConverter = {
       levelMet: parseBoolean(dto.levelMet, `${path}.levelMet`),
       proficiencyRequired: parseNumber(dto.proficiencyRequired, `${path}.proficiencyRequired`),
       parentProficiencyMet: parseBoolean(dto.parentProficiencyMet, `${path}.parentProficiencyMet`),
-      statRequirements: parseArray(
-        dto.statRequirements,
-        `${path}.statRequirements`,
-        (item, itemPath) => {
-          const requirement = parseObject(item, itemPath)
-          return {
-            stat: parseString(requirement.stat, `${itemPath}.stat`),
-            minimum: parseNumber(requirement.minimum, `${itemPath}.minimum`),
-            met: parseBoolean(requirement.met, `${itemPath}.met`),
-          }
-        },
-      ),
+      statRequirements: parseArray(dto.statRequirements, `${path}.statRequirements`, toStatCheck),
       growth: toGrowth(dto.growth, `${path}.growth`),
       current: parseBoolean(dto.current, `${path}.current`),
       proficiencyPercent: parseNumber(dto.proficiencyPercent, `${path}.proficiencyPercent`),

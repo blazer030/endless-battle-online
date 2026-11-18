@@ -27,7 +27,7 @@ const toGrowthRange = (value: unknown, path: string): GrowthRange => {
   }
 }
 
-// 技能頁（api/skillData.ts）也用同樣的前置技能、能力需求與成長格式
+// 技能頁（api/skillData.ts）以前置技能、能力需求為基礎再加上 met，成長格式相同
 export const toPrerequisite = (value: unknown, path: string): SkillPrerequisite | null => {
   if (value === null) return null
   const dto = parseObject(value, path)
@@ -38,14 +38,16 @@ export const toPrerequisite = (value: unknown, path: string): SkillPrerequisite 
   }
 }
 
+export const toStatRequirement = (value: unknown, path: string): StatRequirement => {
+  const dto = parseObject(value, path)
+  return {
+    stat: parseString(dto.stat, `${path}.stat`),
+    minimum: parseNumber(dto.minimum, `${path}.minimum`),
+  }
+}
+
 export const toStatRequirements = (value: unknown, path: string): StatRequirement[] =>
-  parseArray(value, path, (item, itemPath) => {
-    const requirement = parseObject(item, itemPath)
-    return {
-      stat: parseString(requirement.stat, `${itemPath}.stat`),
-      minimum: parseNumber(requirement.minimum, `${itemPath}.minimum`),
-    }
-  })
+  parseArray(value, path, toStatRequirement)
 
 export const toGrowth = (value: unknown, path: string): Record<GrowthStatKey, GrowthRange> => {
   const dto = parseObject(value, path)
