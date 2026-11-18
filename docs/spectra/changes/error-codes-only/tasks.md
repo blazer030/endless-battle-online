@@ -26,6 +26,7 @@
 ## 4. 拿掉 detail
 
 - [x] 4.1 依 design「錯誤回應只留 reasons」實作 `game-api-contract` 的 Error responses carry only reason codes：`ApplicationExceptionHandler` 不再設定 `detail` 與中文 `title`（只留 `status` 與 reasons）。TDD：先在 `ApplicationExceptionHandlerTests` 寫 400／401／404／409 各一條「回應沒有 detail、title 不是中文、reasons 非空」看它們失敗，並新增 `ErrorCodeFormatTests`：送一組會失敗的樣本請求（註冊、登入、建角、接取委託、裝備、缺欄位、沒有角色），斷言每個 reasons 都符合 `^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$`；`AccountEndpointsTests`、`CharacterEndpointsTests` 裡斷言 detail 的地方改成斷言代碼。驗證：`dotnet test` 全綠；若 `backend/openapi/EndlessBattle.Api.json` 因此改變，`pnpm generate:api` 重新產生 `frontend/src/api/schema.ts`。 [after: 2.5]
+  - review 後追加（2026-11-18，使用者選「補 401 的代碼」）：JwtBearer 的 `OnChallenge` 寫出 401 `AUTHENTICATION_REQUIRED`（`AuthenticationChallenge`），測試 `ProtectedEndpoint_Returns401_WithoutToken`、`ProtectedEndpoint_Returns401_WithInvalidToken`，`ErrorCodeFormatTests` 加沒登入的樣本。
   - 實作紀錄：handler 只寫 `Status` 與 reasons，`title` 交給 ASP.NET 預設；OpenAPI 文件沒有變，不用重新產生 `schema.ts`（8be87ad）。
 - [x] 4.2 前端 `ApiError` 改成 `{ status, reasons }`（`message` 是代碼用逗號接起來），`readProblem` 不再讀 `detail`，拿掉 `fallbackDetail` 的外部用途（通用句改由 `errorText` 提供）。TDD：先改 `client.test.ts`：回應帶 `detail` 時 `ApiError` 沒有 detail 欄位、reasons 照讀、沒有 reasons 時為空陣列，看它失敗。驗證：`cd frontend && pnpm check` 全綠、`grep -rn "\.detail" frontend/src` 沒有結果（`schema.ts` 除外）。 [after: 3.3, 4.1]
   - 實作紀錄：`ApiError(status, reasons)`，`message` 是代碼用逗號接起來（沒有代碼時 `HTTP <status>`）；`fallbackDetail` 拿掉，通用句由 `GenericErrorText` 提供；測試裡 37 處 `new ApiError` 一併改（90b7a17）。

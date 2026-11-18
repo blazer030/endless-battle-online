@@ -51,6 +51,7 @@ endpoint 檢查必填欄位缺漏（缺少 id、數量、欄位、組數、孔�
 | 密碼太短 | 400 | `PASSWORD_TOO_SHORT` | 密碼至少要 8 個字元 |
 | 帳號已被使用 | 409 | `USERNAME_TAKEN` | 帳號已被使用 |
 | 帳號或密碼錯誤 | 401 | `AUTHENTICATION_FAILED` | 帳號或密碼錯誤 |
+| 沒帶權杖、權杖過期或不合法（2026-11-18 review 後追加） | 401 | `AUTHENTICATION_REQUIRED` | 前端不顯示文字，清掉權杖回登記證 |
 | 權杖的帳號不存在 | 404 | `ACCOUNT_NOT_FOUND` | 找不到帳號 |
 | 角色名稱長度 | 400 | `CHARACTER_NAME_LENGTH` | 角色名稱必須是 2～12 個字 |
 | 角色名稱組合字元過多 | 400 | `CHARACTER_NAME_TOO_COMPLEX` | 角色名稱含有過多組合字元，請改用較簡單的字 |
@@ -69,6 +70,12 @@ endpoint 檢查必填欄位缺漏（缺少 id、數量、欄位、組數、孔�
 | 請求不完整或格式錯 | 400 | `REQUEST_INVALID` | 發生錯誤，請稍後再試 |
 
 `CONCURRENT_UPDATE` 涵蓋 `EfUnitOfWork` 的死鎖重試失敗、`CharacterRepository` 的樂觀鎖衝突、`WorldService` 的鑰匙已被用掉、`JobProficiencyRepository` 的熟練度已變動。
+
+### 沒帶憑證的 401 也帶代碼
+
+沒帶權杖、權杖過期或不合法時，401 是 JwtBearer 驗證那一層直接回的，不經過 `ApplicationExceptionHandler`，原本沒有內容。`AddJwtBearer` 的 `Events.OnChallenge` 改成寫出 `{ status: 401, reasons: ["AUTHENTICATION_REQUIRED"] }`（`Api/Auth/AuthenticationChallenge`，保留 `WWW-Authenticate: Bearer`）。用新代碼而不沿用 `AUTHENTICATION_FAILED`，分清楚「需要重新登入」與「登入時帳號密碼不符」。不存在的路徑（404）、方法不對（405）只會在前端寫錯時發生，不在規則內、維持空內容。前端遇到 401 照舊清掉權杖回登記證，不需要文字。
+
+替代方案：所有空內容的 4xx 一次補齊（`UseStatusCodePages`）、或只把規格收窄。使用者 2026-11-18 review 後選這個（只補 401）。
 
 ### 例外必須帶代碼
 

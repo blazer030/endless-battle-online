@@ -26,7 +26,7 @@
 
 ### Requirement: Sign in
 
-`POST /api/accounts/login` SHALL respond 200 with an access token when the username and password match an account. A wrong password and an unknown username SHALL both respond 401 with the same reason `AUTHENTICATION_FAILED`, so the response does not reveal whether the account exists. The access token SHALL expire 30 days after it is issued. Endpoints other than registration, sign-in, health and `/api/public/` SHALL respond 401 without a valid token.
+`POST /api/accounts/login` SHALL respond 200 with an access token when the username and password match an account. A wrong password and an unknown username SHALL both respond 401 with the same reason `AUTHENTICATION_FAILED`, so the response does not reveal whether the account exists. The access token SHALL expire 30 days after it is issued. Endpoints other than registration, sign-in, health and `/api/public/` SHALL respond 401 with the reason `AUTHENTICATION_REQUIRED` without a valid token.
 
 #### Scenario: Unknown user and wrong password look the same
 
@@ -36,4 +36,4 @@
 #### Scenario: Protected endpoint without a token
 
 - **WHEN** a client requests `GET /api/characters/me` without a token
-- **THEN** the API responds 401
+- **THEN** the API responds 401 with the reason `AUTHENTICATION_REQUIRED`
