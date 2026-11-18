@@ -143,6 +143,7 @@ public class EfUnitOfWorkTests(MySqlDatabaseFixture database)
 
         var conflict = Assert.Single(results.OfType<ConflictException>());
         Assert.Equal(1213, Assert.IsType<MySqlException>(conflict.InnerException).Number);
+        Assert.Equal(["CONCURRENT_UPDATE"], conflict.Reasons);
         await using var reader = database.CreateDbContext();
         Assert.Equal(first.Money + 1, await MoneyAsync(reader, first.Id, CancellationToken));
         Assert.Equal(second.Money + 1, await MoneyAsync(reader, second.Id, CancellationToken));

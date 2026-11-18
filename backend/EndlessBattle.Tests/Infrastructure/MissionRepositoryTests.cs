@@ -71,6 +71,7 @@ public class MissionRepositoryTests(MySqlDatabaseFixture database)
 
         var conflict = await Assert.ThrowsAsync<ConflictException>(() => AddAsync(characterId, Active("m1")));
         Assert.IsType<DbUpdateException>(conflict.InnerException, exactMatch: false);
+        Assert.Equal(["MISSION_CONFLICT"], conflict.Reasons);
     }
 
     [Fact]

@@ -346,7 +346,8 @@ public class InventoryServiceTests
     [Fact]
     public async Task Get_Returns404WithoutCharacter()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => service.GetAsync(AccountId, CancellationToken));
+        var notFound = await Assert.ThrowsAsync<NotFoundException>(() => service.GetAsync(AccountId, CancellationToken));
+        Assert.Equal("CHARACTER_NOT_FOUND", notFound.Reason);
     }
 
     // 重複送出的裝備請求要撞版本鎖：角色寫入衝突時，背包與欄位都不能動

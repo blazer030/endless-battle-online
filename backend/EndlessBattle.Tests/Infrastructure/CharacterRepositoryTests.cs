@@ -34,6 +34,7 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
 
         var conflict = await Assert.ThrowsAsync<ConflictException>(() => repositoryB.UpdateAsync(snapshotB with { Money = 20 }, cancellationToken));
         Assert.IsType<DbUpdateConcurrencyException>(conflict.InnerException);
+        Assert.Equal(["CONCURRENT_UPDATE"], conflict.Reasons);
     }
 
     // 帳號名稱與「一個帳號一個角色」撞唯一鍵：409，原本的資料庫錯誤留在 InnerException

@@ -159,7 +159,8 @@ public class ForgeServiceTests
         var otherSword = await inventory.AddAsync(character.Id + 100, TestItems.Entry(0, "test-sword"), CancellationToken);
 
         await Assert.ThrowsAsync<NotFoundException>(() => service.RefineAsync(AccountId, otherSword, stone, useSafeStone: false, CancellationToken));
-        await Assert.ThrowsAsync<NotFoundException>(() => service.RefineAsync(AccountId, 999, stone, useSafeStone: false, CancellationToken));
+        var missing = await Assert.ThrowsAsync<NotFoundException>(() => service.RefineAsync(AccountId, 999, stone, useSafeStone: false, CancellationToken));
+        Assert.Equal("ITEM_NOT_FOUND", missing.Reason);
         Assert.Empty(log);
     }
 
@@ -503,7 +504,8 @@ public class ForgeServiceTests
         var character = await AddCharacterAsync();
         await GiveAsync(character, "test-ore", 3);
 
-        await Assert.ThrowsAsync<NotFoundException>(() => service.SynthesizeAsync(AccountId, "nope", 1, CancellationToken));
+        var notFound = await Assert.ThrowsAsync<NotFoundException>(() => service.SynthesizeAsync(AccountId, "nope", 1, CancellationToken));
+        Assert.Equal("RECIPE_UNKNOWN", notFound.Reason);
 
         Assert.Empty(log);
     }

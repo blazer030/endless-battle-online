@@ -38,7 +38,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
                 ? new ConflictException("此帳號已有角色", exception, ["ACCOUNT_HAS_CHARACTER"])
                 : MySqlErrors.IsDuplicateKey(exception, "uk_characters_name")
                     ? new ConflictException("角色名稱已被使用", exception, ["CHARACTER_NAME_TAKEN"])
-                    : new ConflictException("角色資料重複", exception);
+                    : new ConflictException("角色資料重複", exception, ["CONCURRENT_UPDATE"]);
         }
 
         return ToDomain(row);
@@ -47,7 +47,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
     public async Task<Character> UpdateAsync(Character character, CancellationToken cancellationToken)
     {
         var row = await context.Characters.SingleOrDefaultAsync(existing => existing.Id == character.Id, cancellationToken)
-            ?? throw new NotFoundException("找不到角色");
+            ?? throw new NotFoundException("找不到角色", "CHARACTER_NOT_FOUND");
 
         // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
         context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
@@ -59,7 +59,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("角色資料已被其他請求更新，請重新整理", exception);
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理", exception, ["CONCURRENT_UPDATE"]);
         }
 
         return ToDomain(row);

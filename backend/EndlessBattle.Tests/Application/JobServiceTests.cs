@@ -92,7 +92,8 @@ public class JobServiceTests
     {
         await ArrangeAsync();
 
-        await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "nope", CancellationToken));
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "nope", CancellationToken));
+        Assert.Equal(["JOB_UNKNOWN"], invalid.Reasons);
     }
 
     [Fact]

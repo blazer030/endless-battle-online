@@ -415,4 +415,17 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.True(production.Services.GetRequiredService<IOptions<RouteHandlerOptions>>().Value.ThrowOnBadRequest);
     }
+
+    // spec game-api-contract：No character yet
+    [Fact]
+    public async Task Inventory_WithoutCharacter_CharacterNotFound()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await factory.CreateAuthenticatedClientAsync();
+
+        var response = await client.GetAsync("/api/inventory", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(["CHARACTER_NOT_FOUND"], await response.ReadReasonsAsync());
+    }
 }

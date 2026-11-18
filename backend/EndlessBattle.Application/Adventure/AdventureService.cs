@@ -47,7 +47,7 @@ public sealed class AdventureService(
     public async Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)
-            ?? throw new NotFoundException("尚未建立角色");
+            ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
 
         // 裝備在一次推進中不變，只讀一次
         var equipped = await equipment.GetAsync(character.Id, cancellationToken);

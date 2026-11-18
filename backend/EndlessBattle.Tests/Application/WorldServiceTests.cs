@@ -181,7 +181,7 @@ public class WorldServiceTests
 
         var conflict = await Assert.ThrowsAsync<ConflictException>(() => service.MoveAsync(AccountId, 17, 1, CancellationToken));
 
-        Assert.Equal("鑰匙已被其他請求使用", conflict.Message);
+        Assert.Equal(["CONCURRENT_UPDATE"], conflict.Reasons);
         Assert.Null(await passes.FindAsync(character.Id, 17, CancellationToken));
         Assert.Equal(1, await KeysAsync(character.Id));
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);

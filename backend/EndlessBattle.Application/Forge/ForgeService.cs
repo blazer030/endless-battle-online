@@ -206,7 +206,7 @@ public sealed class ForgeService(
         unitOfWork.RunAsync(async cancellationToken =>
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
-            var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方");
+            var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方", "RECIPE_UNKNOWN");
             var state = await LoadAsync(character.Id, cancellationToken);
             var completed = await CompletedByCharacterAsync(character.Id, cancellationToken);
             Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem, completed), "無法合成");
@@ -272,10 +272,10 @@ public sealed class ForgeService(
 
     private static InventoryEntry FindTarget(InventoryState state, long inventoryId) =>
         state.Bag.Concat(state.Loadout.Equipped.Values).FirstOrDefault(entry => entry.Id == inventoryId)
-            ?? throw new NotFoundException("找不到這件道具");
+            ?? throw new NotFoundException("找不到這件道具", "ITEM_NOT_FOUND");
 
     private static InventoryEntry FindInBag(InventoryState state, long inventoryId) =>
-        state.Bag.FirstOrDefault(entry => entry.Id == inventoryId) ?? throw new NotFoundException("背包裡沒有這件道具");
+        state.Bag.FirstOrDefault(entry => entry.Id == inventoryId) ?? throw new NotFoundException("背包裡沒有這件道具", "ITEM_NOT_FOUND");
 
     // 交易中第一個寫入：鎖住角色列，同一角色的並行請求排在後面，因版本不符收到 409
     private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
@@ -285,5 +285,5 @@ public sealed class ForgeService(
         BagReader.LoadAsync(inventory, equipment, characterId, cancellationToken);
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
 }

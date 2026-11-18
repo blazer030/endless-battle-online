@@ -111,8 +111,9 @@ public class SkillServiceTests
     {
         await ArrangeAsync(skillPoints: 300);
 
-        await Assert.ThrowsAsync<InputValidationException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => service.LearnAsync(AccountId, "no-such-skill", CancellationToken));
 
+        Assert.Equal(["SKILL_UNKNOWN"], invalid.Reasons);
         Assert.Empty(log);
     }
 

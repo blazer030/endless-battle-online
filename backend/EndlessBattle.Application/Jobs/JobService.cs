@@ -65,7 +65,7 @@ public sealed class JobService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var target = content.AllJobs.FirstOrDefault(job => job.Id == jobId)
-                ?? throw new InputValidationException("找不到職業");
+                ?? throw new InputValidationException("找不到職業", ["JOB_UNKNOWN"]);
             var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
 
             var check = JobChange.Evaluate(character, target, rows);
@@ -111,5 +111,5 @@ public sealed class JobService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
 }
