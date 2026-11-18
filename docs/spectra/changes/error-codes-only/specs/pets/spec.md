@@ -19,7 +19,7 @@ Feeding SHALL be rejected, checking in this order and reporting only the first r
 | State | Reason |
 | --- | --- |
 | fed 5 seconds ago | TOO_SOON |
-| satiety 100 | full |
+| satiety 100 | FULL |
 | pet attack 30, owner attack 31, medium vigor fruit | OVER_OWNER |
 | 10 money, small fruit | NOT_ENOUGH_MONEY |
 
