@@ -2,9 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace EndlessBattle.Domain;
 
-// 後端所有原因代碼都在這裡：錯誤回應與正常回應的 reasons 共用；值是對外契約，前端依代碼決定文字。
+// 後端所有原因代碼都在這裡：錯誤回應的 reasons 用的代碼；值是對外契約，前端依代碼決定文字。
 // 全大寫底線，帶參數的代碼冒號後是參數（STAT_TOO_LOW:strength）
-public static partial class ReasonCodes
+public static partial class ErrorCodes
 {
     // 共通
     public const string RequestInvalid = "REQUEST_INVALID";

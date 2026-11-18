@@ -27,7 +27,7 @@ public class ApplicationExceptionHandlerTests
     }
 
     [Fact]
-    public async Task InputValidation_WritesReasonCodesAsExtension()
+    public async Task InputValidation_WritesErrorCodesAsExtension()
     {
         var problemDetails = new RecordingProblemDetailsService();
 

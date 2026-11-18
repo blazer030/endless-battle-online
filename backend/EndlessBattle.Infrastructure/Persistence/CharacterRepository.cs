@@ -36,10 +36,10 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
             throw MySqlErrors.IsDuplicateKey(exception, "uk_characters_account_id")
-                ? new ConflictException("此帳號已有角色", [ReasonCodes.AccountHasCharacter], exception)
+                ? new ConflictException("此帳號已有角色", [ErrorCodes.AccountHasCharacter], exception)
                 : MySqlErrors.IsDuplicateKey(exception, "uk_characters_name")
-                    ? new ConflictException("角色名稱已被使用", [ReasonCodes.CharacterNameTaken], exception)
-                    : new ConflictException("角色資料重複", [ReasonCodes.ConcurrentUpdate], exception);
+                    ? new ConflictException("角色名稱已被使用", [ErrorCodes.CharacterNameTaken], exception)
+                    : new ConflictException("角色資料重複", [ErrorCodes.ConcurrentUpdate], exception);
         }
 
         return ToDomain(row);
@@ -48,7 +48,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
     public async Task<Character> UpdateAsync(Character character, CancellationToken cancellationToken)
     {
         var row = await context.Characters.SingleOrDefaultAsync(existing => existing.Id == character.Id, cancellationToken)
-            ?? throw new NotFoundException("找不到角色", ReasonCodes.CharacterNotFound);
+            ?? throw new NotFoundException("找不到角色", ErrorCodes.CharacterNotFound);
 
         // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
         context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
@@ -60,7 +60,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("角色資料已被其他請求更新，請重新整理", [ReasonCodes.ConcurrentUpdate], exception);
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理", [ErrorCodes.ConcurrentUpdate], exception);
         }
 
         return ToDomain(row);

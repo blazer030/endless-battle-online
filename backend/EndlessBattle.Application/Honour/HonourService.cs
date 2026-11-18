@@ -130,5 +130,5 @@ public sealed class HonourService(
     };
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

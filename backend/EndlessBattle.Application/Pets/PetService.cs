@@ -76,7 +76,7 @@ public sealed class PetService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var pet = FindPet(await pets.ListAsync(character.Id, cancellationToken), petId);
             var food = PetCare.Foods.FirstOrDefault(food => food.Id == foodId)
-                ?? throw new InputValidationException("沒有這種食物", [ReasonCodes.FoodUnknown]);
+                ?? throw new InputValidationException("沒有這種食物", [ErrorCodes.FoodUnknown]);
             var owner = DerivedStats.From(character.Base, await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
             var now = clock.UtcNow;
             Check(PetCare.CanFeed(pet, food, owner, character.Money, now), "無法餵食");
@@ -107,7 +107,7 @@ public sealed class PetService(
     }
 
     private static Pet FindPet(IReadOnlyList<Pet> owned, long petId) =>
-        owned.FirstOrDefault(pet => pet.Id == petId) ?? throw new InputValidationException("沒有這隻寵物", [ReasonCodes.PetUnknown]);
+        owned.FirstOrDefault(pet => pet.Id == petId) ?? throw new InputValidationException("沒有這隻寵物", [ErrorCodes.PetUnknown]);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {
@@ -118,5 +118,5 @@ public sealed class PetService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

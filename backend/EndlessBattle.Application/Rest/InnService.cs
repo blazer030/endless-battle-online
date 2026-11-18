@@ -35,7 +35,7 @@ public sealed class InnService(
             var inn = content.Inn;
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var room = inn.Rooms.FirstOrDefault(candidate => candidate.Id == roomId)
-                ?? throw new InputValidationException("沒有這個房間", [ReasonCodes.UnknownRoom]);
+                ?? throw new InputValidationException("沒有這個房間", [ErrorCodes.UnknownRoom]);
             EnsureCanBook(character, Inn.Price(inn, room, character.Level));
 
             var now = clock.UtcNow;
@@ -55,5 +55,5 @@ public sealed class InnService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

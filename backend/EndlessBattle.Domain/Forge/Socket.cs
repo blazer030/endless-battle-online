@@ -18,7 +18,7 @@ public static class Socket
 
     // 原因代碼依序為 NOT_EQUIPMENT、NOT_STONE、HOLE_OUT_OF_RANGE、HOLE_OCCUPIED、DUPLICATE_STONE，只回第一個
     public static IReadOnlyList<string> CheckInsert(InventoryEntry equipment, ItemDefinition equipmentDef, int hole, ItemDefinition stone) =>
-        equipmentDef.IsEquipment ? InsertReasons(equipment, hole, stone) : [ReasonCodes.NotEquipment];
+        equipmentDef.IsEquipment ? InsertReasons(equipment, hole, stone) : [ErrorCodes.NotEquipment];
 
     public static SocketOutcome Insert(InventoryEntry equipment, int hole, ItemDefinition stone, IRandomSource random)
     {
@@ -30,7 +30,7 @@ public static class Socket
 
     // 原因代碼依序為 NOT_EQUIPMENT、HOLE_OUT_OF_RANGE、HOLE_EMPTY，只回第一個
     public static IReadOnlyList<string> CheckRemove(InventoryEntry equipment, ItemDefinition equipmentDef, int hole) =>
-        equipmentDef.IsEquipment ? RemoveReasons(equipment, hole) : [ReasonCodes.NotEquipment];
+        equipmentDef.IsEquipment ? RemoveReasons(equipment, hole) : [ErrorCodes.NotEquipment];
 
     // 擲 rand(1, 100) < 25 回收（24%）；不論成敗該孔都清空
     public static RemoveOutcome Remove(InventoryEntry equipment, int hole, IRandomSource random)
@@ -46,10 +46,10 @@ public static class Socket
     {
         if (!equipmentDef.IsEquipment)
         {
-            return [ReasonCodes.NotEquipment];
+            return [ErrorCodes.NotEquipment];
         }
 
-        return equipment.Holes >= MaxHoles ? [ReasonCodes.MaxHoles] : [];
+        return equipment.Holes >= MaxHoles ? [ErrorCodes.MaxHoles] : [];
     }
 
     // 擲 rand(1, 100) ≤ 8 成功：同一筆道具的孔數 +1（不換道具 id）
@@ -65,10 +65,10 @@ public static class Socket
     {
         if (!InRange(equipment, hole))
         {
-            return [ReasonCodes.HoleOutOfRange];
+            return [ErrorCodes.HoleOutOfRange];
         }
 
-        return equipment.Sockets.Any(socket => socket.Hole == hole) ? [] : [ReasonCodes.HoleEmpty];
+        return equipment.Sockets.Any(socket => socket.Hole == hole) ? [] : [ErrorCodes.HoleEmpty];
     }
 
     private static bool InRange(InventoryEntry equipment, int hole) => hole >= 1 && hole <= Math.Min(equipment.Holes, MaxHoles);
@@ -92,19 +92,19 @@ public static class Socket
     {
         if (stone.Stone is null)
         {
-            return [ReasonCodes.NotStone];
+            return [ErrorCodes.NotStone];
         }
 
         if (!InRange(equipment, hole))
         {
-            return [ReasonCodes.HoleOutOfRange];
+            return [ErrorCodes.HoleOutOfRange];
         }
 
         if (equipment.Sockets.Any(socket => socket.Hole == hole))
         {
-            return [ReasonCodes.HoleOccupied];
+            return [ErrorCodes.HoleOccupied];
         }
 
-        return equipment.Sockets.Any(socket => socket.StoneId == stone.Id) ? [ReasonCodes.DuplicateStone] : [];
+        return equipment.Sockets.Any(socket => socket.StoneId == stone.Id) ? [ErrorCodes.DuplicateStone] : [];
     }
 }

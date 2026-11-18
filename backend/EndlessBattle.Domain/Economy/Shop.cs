@@ -19,27 +19,27 @@ public static class Shop
     {
         if (!item.ShopSellable)
         {
-            return [ReasonCodes.NotForSale];
+            return [ErrorCodes.NotForSale];
         }
 
         var validQuantity = item.IsEquipment ? quantity == 1 : quantity is >= 1 and <= MaxBuyQuantity;
         if (!validQuantity)
         {
-            return [ReasonCodes.InvalidQuantity];
+            return [ErrorCodes.InvalidQuantity];
         }
 
         if (BuyCost(item, quantity) > character.Money)
         {
-            return [ReasonCodes.NotEnoughMoney];
+            return [ErrorCodes.NotEnoughMoney];
         }
 
-        return InventoryRules.TryAdd(sameCategoryBag, item, quantity, character.BagBonus).Discarded > 0 ? [ReasonCodes.BagFull] : [];
+        return InventoryRules.TryAdd(sameCategoryBag, item, quantity, character.BagBonus).Discarded > 0 ? [ErrorCodes.BagFull] : [];
     }
 
     // 綁定的道具也可以賣給商店（WOG 的綁定只擋贈送、轉倉、交易）
     public static IReadOnlyList<string> CanSell(InventoryEntry entry, ItemDefinition item, int quantity)
     {
         var valid = item.IsEquipment ? quantity == 1 : quantity >= 1 && quantity <= entry.Quantity;
-        return valid ? [] : [ReasonCodes.InvalidQuantity];
+        return valid ? [] : [ErrorCodes.InvalidQuantity];
     }
 }

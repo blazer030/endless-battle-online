@@ -8,26 +8,26 @@ namespace EndlessBattle.Application.Common;
 public sealed class ConflictException(string message, IReadOnlyList<string> reasons, Exception? innerException = null)
     : Exception(message, innerException)
 {
-    public IReadOnlyList<string> Reasons { get; } = ReasonCodeRequirement.Require(reasons);
+    public IReadOnlyList<string> Reasons { get; } = ErrorCodeRequirement.Require(reasons);
 }
 
 public sealed class NotFoundException(string message, string reason) : Exception(message)
 {
-    public string Reason { get; } = ReasonCodeRequirement.Require([reason])[0];
+    public string Reason { get; } = ErrorCodeRequirement.Require([reason])[0];
 }
 
 public sealed class InputValidationException(string message, IReadOnlyList<string> reasons) : Exception(message)
 {
-    public IReadOnlyList<string> Reasons { get; } = ReasonCodeRequirement.Require(reasons);
+    public IReadOnlyList<string> Reasons { get; } = ErrorCodeRequirement.Require(reasons);
 }
 
 public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤");
 
-// 代碼寫法的規則在 Domain 的 ReasonCodes.IsWellFormed
-internal static class ReasonCodeRequirement
+// 代碼寫法的規則在 Domain 的 ErrorCodes.IsWellFormed
+internal static class ErrorCodeRequirement
 {
     public static IReadOnlyList<string> Require(IReadOnlyList<string> reasons) =>
-        reasons.Count > 0 && reasons.All(reason => reason is not null && ReasonCodes.IsWellFormed(reason))
+        reasons.Count > 0 && reasons.All(reason => reason is not null && ErrorCodes.IsWellFormed(reason))
             ? reasons
             : throw new ArgumentException("錯誤必須帶至少一個全大寫底線的原因代碼", nameof(reasons));
 }

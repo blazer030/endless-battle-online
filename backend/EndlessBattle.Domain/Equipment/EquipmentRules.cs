@@ -10,13 +10,13 @@ public static class EquipmentRules
     {
         if (!item.IsEquipment)
         {
-            return [ReasonCodes.NotEquipment];
+            return [ErrorCodes.NotEquipment];
         }
 
         var reasons = new List<string>();
         if (item.JobId is not null && item.JobId != character.JobId)
         {
-            reasons.Add(ReasonCodes.JobMismatch);
+            reasons.Add(ErrorCodes.JobMismatch);
         }
 
         var bare = character.Base;

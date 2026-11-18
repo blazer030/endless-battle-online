@@ -12,16 +12,16 @@ public static class StoneMerge
     {
         if (stone.Refine is null)
         {
-            return [ReasonCodes.NotRefineStone];
+            return [ErrorCodes.NotRefineStone];
         }
 
         if (SameKindNext(stone, stone, find) is null)
         {
-            return [ReasonCodes.CannotMerge];
+            return [ErrorCodes.CannotMerge];
         }
 
         // 以除法比較，避免組數極大時乘法溢位
-        return pairs < 1 || pairs > quantity / StonesPerPair ? [ReasonCodes.InvalidQuantity] : [];
+        return pairs < 1 || pairs > quantity / StonesPerPair ? [ErrorCodes.InvalidQuantity] : [];
     }
 
     // 同類合成必成功：兩顆同種類、同等級的精鍊石 → 同種類 +1 級。find(kind, level) 找不到或已是 LV10 時回 null
@@ -46,15 +46,15 @@ public static class StoneMerge
     {
         if (first.Refine is null || second.Refine is null)
         {
-            return [ReasonCodes.NotRefineStone];
+            return [ErrorCodes.NotRefineStone];
         }
 
         if (CrossKindCandidates(first, second, refineStones) is not { Count: > 0 })
         {
-            return [ReasonCodes.CannotMerge];
+            return [ErrorCodes.CannotMerge];
         }
 
-        return pairs < 1 || pairs > Math.Min(firstQuantity, secondQuantity) ? [ReasonCodes.InvalidQuantity] : [];
+        return pairs < 1 || pairs > Math.Min(firstQuantity, secondQuantity) ? [ErrorCodes.InvalidQuantity] : [];
     }
 
     // 每組獨立擲：候選＝等級 −1、種類不是兩個來源的精鍊石（依內容順序），random.NextInt(候選數)。呼叫前先以 CheckCrossKind 確認

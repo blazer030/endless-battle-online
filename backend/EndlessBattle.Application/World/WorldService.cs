@@ -86,7 +86,7 @@ public sealed class WorldService(
             if (AreaKeys.NeedsKey(target, pass, now))
             {
                 var held = await FindKeyAsync(updated.Id, placeId, keyItems, cancellationToken)
-                    ?? throw new ConflictException("鑰匙已被其他請求使用", [ReasonCodes.ConcurrentUpdate]);
+                    ?? throw new ConflictException("鑰匙已被其他請求使用", [ErrorCodes.ConcurrentUpdate]);
                 if (held.Quantity > 1)
                 {
                     await inventory.UpdateQuantityAsync(updated.Id, held.Id, held.Quantity - 1, cancellationToken);
@@ -115,5 +115,5 @@ public sealed class WorldService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

@@ -15,7 +15,7 @@ public static class AuthenticationChallenge
         response.StatusCode = StatusCodes.Status401Unauthorized;
         response.Headers.WWWAuthenticate = JwtBearerDefaults.AuthenticationScheme;
         var problemDetails = new ProblemDetails { Status = StatusCodes.Status401Unauthorized };
-        problemDetails.Extensions["reasons"] = new[] { ReasonCodes.AuthenticationRequired };
+        problemDetails.Extensions["reasons"] = new[] { ErrorCodes.AuthenticationRequired };
         await context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>().WriteAsync(new ProblemDetailsContext
         {
             HttpContext = context.HttpContext,

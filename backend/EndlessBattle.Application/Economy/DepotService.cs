@@ -33,8 +33,8 @@ public sealed class DepotService(
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
                 ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
-                    ? new InputValidationException("請先卸下這件裝備", [ReasonCodes.Equipped])
-                    : new InputValidationException("背包裡沒有這件道具", [ReasonCodes.ItemNotFound]));
+                    ? new InputValidationException("請先卸下這件裝備", [ErrorCodes.Equipped])
+                    : new InputValidationException("背包裡沒有這件道具", [ErrorCodes.ItemNotFound]));
             var item = content.GetItem(entry.ItemId);
             var stored = await depot.ListAsync(character.Id, cancellationToken);
             var plan = DepotRules.TryStore(stored, item, entry, quantity, character.DepotBonus);
@@ -69,7 +69,7 @@ public sealed class DepotService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var stored = await depot.ListAsync(character.Id, cancellationToken);
             var entry = stored.FirstOrDefault(candidate => candidate.Id == depotId)
-                ?? throw new InputValidationException("倉庫裡沒有這件道具", [ReasonCodes.ItemNotFound]);
+                ?? throw new InputValidationException("倉庫裡沒有這件道具", [ErrorCodes.ItemNotFound]);
             var item = content.GetItem(entry.ItemId);
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var sameCategory = state.Bag.Where(other => content.GetItem(other.ItemId).Category == item.Category).ToList();
@@ -119,5 +119,5 @@ public sealed class DepotService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

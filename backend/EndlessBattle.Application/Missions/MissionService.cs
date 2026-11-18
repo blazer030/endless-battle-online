@@ -61,7 +61,7 @@ public sealed class MissionService(
             var current = MissionBoard.Current(records, content.AllMissions, now);
             if (!current.Any(record => record.MissionId == missionId && record.State == MissionState.Active))
             {
-                throw new InputValidationException("任務不在進行中", [ReasonCodes.MissionNotActive]);
+                throw new InputValidationException("任務不在進行中", [ErrorCodes.MissionNotActive]);
             }
 
             await LockAndRemoveStaleAsync(character, records, now, cancellationToken);
@@ -79,19 +79,19 @@ public sealed class MissionService(
             var records = await missions.ListAsync(character.Id, cancellationToken);
             var record = MissionBoard.Current(records, content.AllMissions, now)
                 .FirstOrDefault(current => current.MissionId == missionId && current.State == MissionState.Active)
-                ?? throw new InputValidationException("無法完成任務", [ReasonCodes.MissionNotActive]);
+                ?? throw new InputValidationException("無法完成任務", [ErrorCodes.MissionNotActive]);
             var mission = content.GetMission(missionId);
             var objective = DailyMissions.Resolve(mission, character.Id, record.DailyPeriod);
             if (!MissionBoard.Ready(objective, record))
             {
-                throw new InputValidationException("無法完成任務", [ReasonCodes.ObjectiveIncomplete]);
+                throw new InputValidationException("無法完成任務", [ErrorCodes.ObjectiveIncomplete]);
             }
 
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var delivery = Delivery.Plan(state.Bag, objective.Deliver);
             if (delivery.Missing.Count > 0)
             {
-                throw new InputValidationException("無法完成任務", [ReasonCodes.ItemsMissing]);
+                throw new InputValidationException("無法完成任務", [ErrorCodes.ItemsMissing]);
             }
 
             // 交寵物要交攜帶中的那隻（PHP pe_st=0 and pe_m_id）
@@ -100,13 +100,13 @@ public sealed class MissionService(
             if (objective.DeliverPet is { } species)
             {
                 deliveredPet = owned.FirstOrDefault(pet => pet.Carried && pet.MonsterId == species)
-                    ?? throw new InputValidationException("無法完成任務", [ReasonCodes.PetMissing]);
+                    ?? throw new InputValidationException("無法完成任務", [ErrorCodes.PetMissing]);
             }
 
             var learned = await skillBook.ListAsync(character.Id, cancellationToken);
             if (!MissionRules.HasRequiredSkill(mission, learned))
             {
-                throw new InputValidationException("無法完成任務", [ReasonCodes.SkillTooLow]);
+                throw new InputValidationException("無法完成任務", [ErrorCodes.SkillTooLow]);
             }
 
             var outcome = MissionRewards.Apply(
@@ -190,5 +190,5 @@ public sealed class MissionService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

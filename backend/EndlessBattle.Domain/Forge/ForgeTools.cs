@@ -5,5 +5,5 @@ public static class ForgeTools
 {
     public const string SafeRefineStone = "safe-refine-stone", StoneRemover = "item-1378", HoleDriller = "item-3361";
 
-    public static string Missing(string toolId) => ReasonCodes.MissingTool(toolId);
+    public static string Missing(string toolId) => ErrorCodes.MissingTool(toolId);
 }

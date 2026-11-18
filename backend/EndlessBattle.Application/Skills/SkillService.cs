@@ -38,7 +38,7 @@ public sealed class SkillService(
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var skill = FindSkill(skillId)
-            ?? throw new InputValidationException("不存在的技能", [ReasonCodes.SkillUnknown]);
+            ?? throw new InputValidationException("不存在的技能", [ErrorCodes.SkillUnknown]);
         // 學習扣的是目前職業的技能點：關聯表有目前職業＋這個技能才能學
         var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), character.JobId);
         var levels = (await skillBook.ListAsync(character.Id, cancellationToken))
@@ -82,7 +82,7 @@ public sealed class SkillService(
         content.AllSkills.FirstOrDefault(skill => skill.Id == skillId);
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 
     private static long SkillPointsOf(IReadOnlyList<JobProficiency> points, string jobId) =>
         points.FirstOrDefault(row => row.JobId == jobId)?.SkillPoints ?? 0;

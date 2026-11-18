@@ -88,7 +88,7 @@ public sealed class MercenaryService(
     private MercenaryOverview Overview(MercenaryContract? contract) => new(content.AllMercenaries, contract);
 
     private async Task<MercenaryContract> FindContractAsync(Character character, CancellationToken cancellationToken) =>
-        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", [ReasonCodes.NoMercenary]);
+        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", [ErrorCodes.NoMercenary]);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {
@@ -99,5 +99,5 @@ public sealed class MercenaryService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

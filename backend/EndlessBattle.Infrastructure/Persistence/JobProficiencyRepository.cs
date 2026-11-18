@@ -37,7 +37,7 @@ public sealed class JobProficiencyRepository(EndlessBattleDbContext context) : I
             cancellationToken);
         if (affected == 0)
         {
-            throw new ConflictException("技能熟練度已變動", [ReasonCodes.ConcurrentUpdate]);
+            throw new ConflictException("技能熟練度已變動", [ErrorCodes.ConcurrentUpdate]);
         }
     }
 }

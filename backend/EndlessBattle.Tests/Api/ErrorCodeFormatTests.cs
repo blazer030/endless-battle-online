@@ -11,10 +11,10 @@ public partial class ErrorCodeFormatTests(MySqlDatabaseFixture database)
     private static CancellationToken CancellationToken => TestContext.Current.CancellationToken;
 
     [GeneratedRegex("^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$")]
-    private static partial Regex ReasonCode();
+    private static partial Regex ErrorCode();
 
     [Fact]
-    public async Task SampleErrors_CarryOnlyUpperSnakeReasonCodes()
+    public async Task SampleErrors_CarryOnlyUpperSnakeErrorCodes()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var anonymous = factory.CreateClient();
@@ -41,7 +41,7 @@ public partial class ErrorCodeFormatTests(MySqlDatabaseFixture database)
             Assert.False(body.TryGetProperty("detail", out _), $"{response.RequestMessage?.RequestUri} 不該有 detail");
             var reasons = body.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString() ?? "").ToList();
             Assert.NotEmpty(reasons);
-            Assert.All(reasons, reason => Assert.Matches(ReasonCode(), reason));
+            Assert.All(reasons, reason => Assert.Matches(ErrorCode(), reason));
         }
     }
 }

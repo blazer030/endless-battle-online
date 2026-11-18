@@ -66,7 +66,7 @@ public sealed class JobService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var target = content.AllJobs.FirstOrDefault(job => job.Id == jobId)
-                ?? throw new InputValidationException("找不到職業", [ReasonCodes.JobUnknown]);
+                ?? throw new InputValidationException("找不到職業", [ErrorCodes.JobUnknown]);
             var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
 
             var check = JobChange.Evaluate(character, target, rows);
@@ -77,7 +77,7 @@ public sealed class JobService(
 
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var unequipped = Unequipping.TryReturnAll(state.Bag, state.Loadout, character.BagBonus, content.GetItem)
-                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", [ReasonCodes.BagFull]);
+                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", [ErrorCodes.BagFull]);
 
             var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
             await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
@@ -112,5 +112,5 @@ public sealed class JobService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ErrorCodes.CharacterNotFound);
 }

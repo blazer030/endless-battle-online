@@ -21,17 +21,17 @@ public static class SkillLearning
         var reasons = new List<string>();
         if (!teaching.TaughtByCurrentJob)
         {
-            reasons.Add(ReasonCodes.WrongJob);
+            reasons.Add(ErrorCodes.WrongJob);
         }
 
         if (skill.Prerequisite is { } prerequisite && teaching.PrerequisiteLevel < prerequisite.Level)
         {
-            reasons.Add(ReasonCodes.Prerequisite);
+            reasons.Add(ErrorCodes.Prerequisite);
         }
 
         if (currentLevel >= skill.MaxLevel)
         {
-            reasons.Add(ReasonCodes.MaxLevel);
+            reasons.Add(ErrorCodes.MaxLevel);
             return new LearnCheck(false, reasons, skill.MaxLevel);
         }
 
@@ -39,12 +39,12 @@ public static class SkillLearning
         var next = skill.LevelAt(targetLevel);
         if (skillPoints < next.Proficiency)
         {
-            reasons.Add(ReasonCodes.NotEnoughProficiency);
+            reasons.Add(ErrorCodes.NotEnoughProficiency);
         }
 
         if (character.Money < next.Money)
         {
-            reasons.Add(ReasonCodes.NotEnoughMoney);
+            reasons.Add(ErrorCodes.NotEnoughMoney);
         }
 
         return new LearnCheck(reasons.Count == 0, reasons, targetLevel);

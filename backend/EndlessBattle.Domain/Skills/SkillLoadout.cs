@@ -29,33 +29,33 @@ public static class SkillLoadout
             var isActiveSlot = IsActiveSlot(slot.Slot);
             if (!isActiveSlot && !IsPassiveSlot(slot.Slot))
             {
-                reasons.Add(ReasonCodes.SlotOutOfRange);
+                reasons.Add(ErrorCodes.SlotOutOfRange);
             }
 
             if (!seenSlots.Add(slot.Slot))
             {
-                reasons.Add(ReasonCodes.DuplicateSlot);
+                reasons.Add(ErrorCodes.DuplicateSlot);
             }
 
             if (!learnedIds.Contains(slot.SkillId))
             {
-                reasons.Add(ReasonCodes.NotLearned);
+                reasons.Add(ErrorCodes.NotLearned);
                 continue;
             }
 
             if (!seenSkills.Add(slot.SkillId))
             {
-                reasons.Add(ReasonCodes.DuplicateSkill);
+                reasons.Add(ErrorCodes.DuplicateSkill);
             }
 
             var skill = skills(slot.SkillId);
             if (isActiveSlot && skill.Type == SkillType.Passive)
             {
-                reasons.Add(ReasonCodes.PassiveInActiveSlot);
+                reasons.Add(ErrorCodes.PassiveInActiveSlot);
             }
             else if (IsPassiveSlot(slot.Slot) && skill.Type == SkillType.Active)
             {
-                reasons.Add(ReasonCodes.ActiveInPassiveSlot);
+                reasons.Add(ErrorCodes.ActiveInPassiveSlot);
             }
         }
 

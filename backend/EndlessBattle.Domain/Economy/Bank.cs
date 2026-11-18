@@ -12,16 +12,16 @@ public static class Bank
         var reasons = new List<string>();
         if (character.Level < MinimumLevel)
         {
-            reasons.Add(ReasonCodes.LevelTooLow);
+            reasons.Add(ErrorCodes.LevelTooLow);
         }
 
         if (amount <= 0)
         {
-            reasons.Add(ReasonCodes.InvalidAmount);
+            reasons.Add(ErrorCodes.InvalidAmount);
         }
         else if (amount > character.Money)
         {
-            reasons.Add(ReasonCodes.NotEnoughMoney);
+            reasons.Add(ErrorCodes.NotEnoughMoney);
         }
 
         return reasons;
@@ -29,5 +29,5 @@ public static class Bank
 
     // 領出不看等級；原因代碼：INVALID_AMOUNT、NOT_ENOUGH_BANK
     public static IReadOnlyList<string> CanWithdraw(Character character, long amount) =>
-        amount <= 0 ? [ReasonCodes.InvalidAmount] : amount > character.Bank ? [ReasonCodes.NotEnoughBank] : [];
+        amount <= 0 ? [ErrorCodes.InvalidAmount] : amount > character.Bank ? [ErrorCodes.NotEnoughBank] : [];
 }

@@ -14,10 +14,10 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
         (int Status, IReadOnlyList<string> Reasons)? error = exception switch
         {
             InputValidationException validation => (StatusCodes.Status400BadRequest, validation.Reasons),
-            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, [ReasonCodes.AuthenticationFailed]),
+            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, [ErrorCodes.AuthenticationFailed]),
             NotFoundException notFound => (StatusCodes.Status404NotFound, [notFound.Reason]),
             ConflictException conflict => (StatusCodes.Status409Conflict, conflict.Reasons),
-            BadHttpRequestException badRequest => (badRequest.StatusCode, [ReasonCodes.RequestInvalid]),
+            BadHttpRequestException badRequest => (badRequest.StatusCode, [ErrorCodes.RequestInvalid]),
             _ => null,
         };
         if (error is null)

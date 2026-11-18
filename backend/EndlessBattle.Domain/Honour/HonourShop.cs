@@ -26,21 +26,21 @@ public static class HonourShop
     {
         if (exchange is null)
         {
-            return new HonourOutcome(new DeliveryPlan([], [], []), null, null, [ReasonCodes.HonourUnknown]);
+            return new HonourOutcome(new DeliveryPlan([], [], []), null, null, [ErrorCodes.HonourUnknown]);
         }
 
         var payment = Delivery.Plan(bag, exchange.Cost);
         var reasons = new List<string>();
         if (payment.Missing.Count > 0)
         {
-            reasons.Add(ReasonCodes.MedalsMissing);
+            reasons.Add(ErrorCodes.MedalsMissing);
         }
 
         if (exchange.MercenaryId is { } mercenaryId)
         {
             if (current is not null)
             {
-                reasons.Add(ReasonCodes.MercenaryHired);
+                reasons.Add(ErrorCodes.MercenaryHired);
             }
 
             var contract = MercenaryRules.NewContract(mercenaries(mercenaryId), now);
@@ -52,7 +52,7 @@ public static class HonourShop
         var added = InventoryRules.TryAdd(sameCategory, item, exchange.Quantity, character.BagBonus);
         if (added.Discarded > 0)
         {
-            reasons.Add(ReasonCodes.BagFull);
+            reasons.Add(ErrorCodes.BagFull);
         }
 
         return reasons.Count > 0 ? Rejected(payment, reasons) : new HonourOutcome(payment, added, null, []);

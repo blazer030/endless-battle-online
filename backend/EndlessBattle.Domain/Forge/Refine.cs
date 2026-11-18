@@ -15,21 +15,21 @@ public static class Refine
     {
         if (!equipmentDef.IsEquipment)
         {
-            return [ReasonCodes.NotEquipment];
+            return [ErrorCodes.NotEquipment];
         }
 
         if (stone.Refine is null)
         {
-            return [ReasonCodes.NotRefineStone];
+            return [ErrorCodes.NotRefineStone];
         }
 
         var target = equipment.RefineLevel + 1;
         if (stone.Refine.Level != target)
         {
-            return [ReasonCodes.WrongStoneLevel];
+            return [ErrorCodes.WrongStoneLevel];
         }
 
-        return target > equipmentDef.RefineMax ? [ReasonCodes.AtRefineMax] : [];
+        return target > equipmentDef.RefineMax ? [ErrorCodes.AtRefineMax] : [];
     }
 
     // 擲 r = rand(1, 100)，10n > r 失敗（成功率 101 − 10n %）；成功才依序擲各能力

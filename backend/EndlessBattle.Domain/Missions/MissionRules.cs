@@ -18,51 +18,51 @@ public static class MissionRules
     {
         if (mission is null)
         {
-            return [ReasonCodes.MissionUnknown];
+            return [ErrorCodes.MissionUnknown];
         }
 
         var own = records.FirstOrDefault(record => record.MissionId == mission.Id);
         if (own is not null)
         {
-            return [own.State == MissionState.Active ? ReasonCodes.AlreadyActive : ReasonCodes.AlreadyCompleted];
+            return [own.State == MissionState.Active ? ErrorCodes.AlreadyActive : ErrorCodes.AlreadyCompleted];
         }
 
         var requirements = mission.Requirements;
         var reasons = new List<string>();
         if (records.Count(record => record.State == MissionState.Active) >= MaxActive)
         {
-            reasons.Add(ReasonCodes.TooMany);
+            reasons.Add(ErrorCodes.TooMany);
         }
 
         if (character.Level < mission.Level)
         {
-            reasons.Add(ReasonCodes.LevelTooLow);
+            reasons.Add(ErrorCodes.LevelTooLow);
         }
 
         if (requirements.JobId is not null && requirements.JobId != character.JobId)
         {
-            reasons.Add(ReasonCodes.JobMismatch);
+            reasons.Add(ErrorCodes.JobMismatch);
         }
 
         if (requirements.Sex is not null && requirements.Sex != character.Sex)
         {
-            reasons.Add(ReasonCodes.SexMismatch);
+            reasons.Add(ErrorCodes.SexMismatch);
         }
 
         if (requirements.Birth is not null && requirements.Birth != character.Birth)
         {
-            reasons.Add(ReasonCodes.BirthMismatch);
+            reasons.Add(ErrorCodes.BirthMismatch);
         }
 
         if (requirements.PrerequisiteId is not null
             && !records.Any(record => record.MissionId == requirements.PrerequisiteId && record.State == MissionState.Completed))
         {
-            reasons.Add(ReasonCodes.PrerequisiteMissing);
+            reasons.Add(ErrorCodes.PrerequisiteMissing);
         }
 
         if (requirements.ConflictsWith is not null && records.Any(record => record.MissionId == requirements.ConflictsWith))
         {
-            reasons.Add(ReasonCodes.MissionConflict);
+            reasons.Add(ErrorCodes.MissionConflict);
         }
 
         return reasons;
