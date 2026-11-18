@@ -148,6 +148,22 @@ test("CreateScreen_BadRequestSpeaksTheReason", async () => {
   expect(depart()).toBeEnabled()
 })
 
+// 409 只有 CHARACTER_NAME_TAKEN 是名字重複；同時改同一份資料（CONCURRENT_UPDATE）說共用的說法、不打開名字欄
+test("CreateScreen_OtherConflictSpeaksTheReason", async () => {
+  const user = setupUser()
+  const api = {
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(409, ["CONCURRENT_UPDATE"])),
+  }
+  renderCreate(api)
+  await fillCard(user)
+
+  await user.click(depart())
+
+  await vi.waitFor(() => expect(lise()).toHaveTextContent("資料正被其他請求使用，請重試"))
+  expect(screen.queryByRole("textbox", { name: "名字" })).not.toBeInTheDocument()
+  expect(depart()).toBeEnabled()
+})
+
 test("CreateScreen_NetworkFailureKeepsCard", async () => {
   const user = setupUser()
   const api = { createCharacter: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")) }

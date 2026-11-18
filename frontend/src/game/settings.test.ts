@@ -94,6 +94,7 @@ describe("parseSettings", () => {
 describe("settingsErrorMessage", () => {
   test("settingsErrorMessage_TranslatesKnownReasons", () => {
     expect(settingsErrorMessage(["INVALID_PERCENT"])).toBe(InvalidPercentMessage)
+    expect(settingsErrorMessage(["INVALID_ATTACK"])).toBe("設定無效")
     expect(settingsErrorMessage(["REQUEST_INVALID"])).toBe("發生錯誤，請稍後再試")
     expect(settingsErrorMessage(["CHARACTER_NOT_FOUND"])).toBe("尚未建立角色")
   })

@@ -137,11 +137,7 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
       }
       setBusy(false)
       setSay(null)
-      if (
-        error instanceof ApiError &&
-        error.status === 409 &&
-        !error.reasons.includes("ACCOUNT_HAS_CHARACTER")
-      ) {
+      if (error instanceof ApiError && error.reasons.includes("CHARACTER_NAME_TAKEN")) {
         // 名字重複：打開名字欄讓玩家改
         setStep("name")
         setNameInput(draft.name ?? "")
@@ -149,11 +145,12 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
         return
       }
       setStep("idle")
-      setNotice(
-        error instanceof ApiError && error.status === 400
-          ? errorTextOf(error.reasons)
-          : Lines.noResponse,
-      )
+      // API 給了原因代碼（400、名字以外的 409）時說代碼的文字；連不上、伺服器錯誤或已有角色卻讀不到時說登記簿沒回應
+      const spoken =
+        error instanceof ApiError &&
+        error.reasons.length > 0 &&
+        !error.reasons.includes("ACCOUNT_HAS_CHARACTER")
+      setNotice(spoken ? errorTextOf(error.reasons) : Lines.noResponse)
     }
   }
 

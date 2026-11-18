@@ -27,6 +27,7 @@ export const InvalidPercentMessage = "門檻必須是 -1～100 的整數（逃�
 
 const reasonTexts: Record<string, string> = {
   INVALID_PERCENT: InvalidPercentMessage,
+  INVALID_ATTACK: "設定無效",
 }
 
 export const settingsErrorMessage = (reasons: string[]) =>
