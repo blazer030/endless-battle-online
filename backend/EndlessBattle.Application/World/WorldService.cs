@@ -85,7 +85,7 @@ public sealed class WorldService(
             if (AreaKeys.NeedsKey(target, pass, now))
             {
                 var held = await FindKeyAsync(updated.Id, placeId, keyItems, cancellationToken)
-                    ?? throw new ConflictException("鑰匙已被其他請求使用", reasons: ["CONCURRENT_UPDATE"]);
+                    ?? throw new ConflictException("鑰匙已被其他請求使用", ["CONCURRENT_UPDATE"]);
                 if (held.Quantity > 1)
                 {
                     await inventory.UpdateQuantityAsync(updated.Id, held.Id, held.Quantity - 1, cancellationToken);

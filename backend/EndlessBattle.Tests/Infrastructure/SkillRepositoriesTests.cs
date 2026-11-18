@@ -106,7 +106,7 @@ public class SkillRepositoriesTests(MySqlDatabaseFixture database)
         await Assert.ThrowsAsync<ConflictException>(() => new EfUnitOfWork(context).RunAsync<bool>(async cancellationToken =>
         {
             await new SkillLoadoutRepository(context).ReplaceAsync(characterId, [new SkillSlot(1, "slash")], cancellationToken);
-            throw new ConflictException("外層失敗");
+            throw new ConflictException("外層失敗", ["CONCURRENT_UPDATE"]);
         }, CancellationToken));
 
         Assert.Equal(original, await ListSlotsAsync(characterId));

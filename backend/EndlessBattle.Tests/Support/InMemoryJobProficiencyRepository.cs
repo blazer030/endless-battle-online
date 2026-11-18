@@ -44,7 +44,7 @@ public sealed class InMemoryJobProficiencyRepository(List<string>? log = null) :
         Log.Add($"spend:{jobId}:{cost}");
         if (rows.GetValueOrDefault((characterId, jobId)) is not { } existing || existing.SkillPoints < cost)
         {
-            throw new ConflictException("技能熟練度已變動");
+            throw new ConflictException("技能熟練度已變動", ["CONCURRENT_UPDATE"]);
         }
 
         rows[(characterId, jobId)] = existing with { SkillPoints = existing.SkillPoints - cost };

@@ -28,7 +28,7 @@ public sealed class LoggingCharacterRepository(List<string> log) : ICharacterRep
         if (FailNextUpdate)
         {
             FailNextUpdate = false;
-            throw new ConflictException("版本不符");
+            throw new ConflictException("版本不符", ["CONCURRENT_UPDATE"]);
         }
 
         log.Add("update");

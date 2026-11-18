@@ -41,14 +41,15 @@ public class ApplicationExceptionHandlerTests
     }
 
     [Fact]
-    public async Task InputValidation_OmitsReasonsWhenEmpty()
+    public async Task NotFound_WritesItsReason()
     {
         var problemDetails = new RecordingProblemDetailsService();
 
         await new ApplicationExceptionHandler(problemDetails).TryHandleAsync(
-            new DefaultHttpContext(), new InputValidationException("資料不完整"), TestContext.Current.CancellationToken);
+            new DefaultHttpContext(), new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND"), TestContext.Current.CancellationToken);
 
-        Assert.False(problemDetails.Written!.ProblemDetails.Extensions.ContainsKey("reasons"));
+        var reasons = Assert.IsAssignableFrom<IEnumerable<string>>(problemDetails.Written?.ProblemDetails.Extensions["reasons"]);
+        Assert.Equal(["CHARACTER_NOT_FOUND"], reasons);
     }
 
     private sealed class RecordingProblemDetailsService : IProblemDetailsService

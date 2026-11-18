@@ -18,7 +18,7 @@ public sealed class InMemoryMercenaryRepository(List<string>? log = null) : IMer
     {
         if (!rows.TryAdd(characterId, contract))
         {
-            throw new ConflictException("已有傭兵合約");
+            throw new ConflictException("已有傭兵合約", ["MERCENARY_HIRED"]);
         }
 
         writes.Add("mercenary:add");

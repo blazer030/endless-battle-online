@@ -22,7 +22,7 @@ public sealed class InMemoryMissionRepository(List<string>? log = null) : IMissi
     {
         if (!rows.TryAdd((characterId, record.MissionId), record))
         {
-            throw new ConflictException("任務已存在");
+            throw new ConflictException("任務已存在", ["MISSION_CONFLICT"]);
         }
 
         writes.Add($"mission:add:{record.MissionId}");

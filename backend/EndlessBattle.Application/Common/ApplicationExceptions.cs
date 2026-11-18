@@ -1,27 +1,33 @@
 namespace EndlessBattle.Application.Common;
 
-// Api 層把這些例外對應成 HTTP 狀態碼：409、404、400、401
+// Api 層把這些例外對應成 HTTP 狀態碼：409、404、400、401，並把原因代碼放進 ProblemDetails 的 reasons
+// 錯誤回應只帶原因代碼（文字由前端決定），所以每個例外都必須帶至少一個代碼；訊息只給伺服器紀錄與測試看
 // innerException 是被轉換的原始錯誤（例如資料庫的唯一鍵或死鎖），留著給記錄與除錯
-// Reasons 是給前端判斷用的原因代碼；Api 層非空時放進 ProblemDetails 的 reasons
-public sealed class ConflictException(string message, Exception? innerException = null, IReadOnlyList<string>? reasons = null)
+public sealed class ConflictException(string message, IReadOnlyList<string> reasons, Exception? innerException = null)
     : Exception(message, innerException)
 {
-    public IReadOnlyList<string> Reasons { get; } = reasons ?? [];
+    public IReadOnlyList<string> Reasons { get; } = ReasonCodes.Require(reasons);
 }
 
-// Reason 是給前端判斷用的原因代碼；Api 層放進 ProblemDetails 的 reasons
-public sealed class NotFoundException(string message, string? reason = null) : Exception(message)
+public sealed class NotFoundException(string message, string reason) : Exception(message)
 {
-    public string? Reason { get; } = reason;
+    public string Reason { get; } = ReasonCodes.Require([reason])[0];
 }
 
-// Reasons 是給前端判斷用的原因代碼；Api 層非空時放進 ProblemDetails 的 reasons
-public sealed class InputValidationException(string message, IReadOnlyList<string>? reasons = null) : Exception(message)
+public sealed class InputValidationException(string message, IReadOnlyList<string> reasons) : Exception(message)
 {
-    public IReadOnlyList<string> Reasons { get; } = reasons ?? [];
+    public IReadOnlyList<string> Reasons { get; } = ReasonCodes.Require(reasons);
 }
 
 public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤")
 {
     public const string Reason = "AUTHENTICATION_FAILED";
+}
+
+internal static class ReasonCodes
+{
+    public static IReadOnlyList<string> Require(IReadOnlyList<string> reasons) =>
+        reasons.Count > 0 && reasons.All(reason => !string.IsNullOrWhiteSpace(reason))
+            ? reasons
+            : throw new ArgumentException("錯誤必須帶至少一個原因代碼", nameof(reasons));
 }

@@ -35,10 +35,10 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
             throw MySqlErrors.IsDuplicateKey(exception, "uk_characters_account_id")
-                ? new ConflictException("此帳號已有角色", exception, ["ACCOUNT_HAS_CHARACTER"])
+                ? new ConflictException("此帳號已有角色", ["ACCOUNT_HAS_CHARACTER"], exception)
                 : MySqlErrors.IsDuplicateKey(exception, "uk_characters_name")
-                    ? new ConflictException("角色名稱已被使用", exception, ["CHARACTER_NAME_TAKEN"])
-                    : new ConflictException("角色資料重複", exception, ["CONCURRENT_UPDATE"]);
+                    ? new ConflictException("角色名稱已被使用", ["CHARACTER_NAME_TAKEN"], exception)
+                    : new ConflictException("角色資料重複", ["CONCURRENT_UPDATE"], exception);
         }
 
         return ToDomain(row);
@@ -59,7 +59,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("角色資料已被其他請求更新，請重新整理", exception, ["CONCURRENT_UPDATE"]);
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理", ["CONCURRENT_UPDATE"], exception);
         }
 
         return ToDomain(row);

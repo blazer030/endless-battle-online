@@ -17,7 +17,7 @@ public sealed class InMemoryCharacterRepository : ICharacterRepository, IRestora
     {
         if (charactersByAccount.ContainsKey(character.AccountId))
         {
-            throw new ConflictException("此帳號已有角色", reasons: ["ACCOUNT_HAS_CHARACTER"]);
+            throw new ConflictException("此帳號已有角色", ["ACCOUNT_HAS_CHARACTER"]);
         }
 
         var stored = character with { Id = nextId++ };
@@ -30,7 +30,7 @@ public sealed class InMemoryCharacterRepository : ICharacterRepository, IRestora
         var existing = charactersByAccount[character.AccountId];
         if (existing.Version != character.Version)
         {
-            throw new ConflictException("版本不符");
+            throw new ConflictException("版本不符", ["CONCURRENT_UPDATE"]);
         }
 
         var stored = character with { Version = character.Version + 1 };
