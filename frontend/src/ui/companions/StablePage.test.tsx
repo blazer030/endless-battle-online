@@ -174,7 +174,7 @@ test("FruitsDisabledWhenPoor", async () => {
 // 規格 companions-screen：lines 表的 OVER_OWNER
 test("FeedingRejectedOverOwnerIsSpoken", async () => {
   const api = await renderStable({ pets: [{ ...rabbit, satiety: 40 }] })
-  vi.mocked(api.feedPet).mockRejectedValue(new ApiError(400, "不行", ["OVER_OWNER"]))
+  vi.mocked(api.feedPet).mockRejectedValue(new ApiError(400, ["OVER_OWNER"]))
 
   fireEvent.click(fruit("中級活力果實"))
   await flush()
@@ -186,7 +186,7 @@ test("FeedingRejectedOverOwnerIsSpoken", async () => {
 // 規格 companions-screen：Keepers speak——錢不夠時重讀角色
 test("NotEnoughMoneyReloadsTheCharacter", async () => {
   const api = await renderStable({ pets: [{ ...rabbit, satiety: 40 }] })
-  vi.mocked(api.feedPet).mockRejectedValue(new ApiError(400, "錢不夠", ["NOT_ENOUGH_MONEY"]))
+  vi.mocked(api.feedPet).mockRejectedValue(new ApiError(400, ["NOT_ENOUGH_MONEY"]))
   vi.mocked(api.getMyCharacter).mockResolvedValue(makeCharacter({ money: 15 }))
 
   fireEvent.click(fruit("初級活力果實"))

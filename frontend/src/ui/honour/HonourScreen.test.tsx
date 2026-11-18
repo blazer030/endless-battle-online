@@ -426,7 +426,7 @@ test("MercenaryExchangeNamesTheContract", async () => {
 // 規格 honour-screen：Bag full names the category
 test("BagFullNamesTheCategory", async () => {
   const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
-  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, "無法兌換", ["BAG_FULL"]))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, ["BAG_FULL"]))
   const { sheet } = await openSheet("大陸勳章", "破山斧", api)
 
   fireEvent.click(seal(sheet))
@@ -438,7 +438,7 @@ test("BagFullNamesTheCategory", async () => {
 
 test("RefusalReloadsTheListing", async () => {
   const api = createHonourApi(shopWith({ exchanges: demoExchanges }))
-  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, "無法兌換", ["MEDALS_MISSING"]))
+  vi.mocked(api.exchangeHonour).mockRejectedValue(new ApiError(400, ["MEDALS_MISSING"]))
   const { sheet } = await openSheet("大陸勳章", "巨石槌", api)
 
   fireEvent.click(seal(sheet))

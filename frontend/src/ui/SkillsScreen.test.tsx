@@ -215,7 +215,7 @@ test("SkillsScreen_ChangeJobReportsCharacterAndReloads", async () => {
 
 test("SkillsScreen_JobChangeShowsBagFullAsAWholeSentence", async () => {
   const api = createApi({
-    changeJob: vi.fn().mockRejectedValue(new ApiError(400, "", ["BAG_FULL"])),
+    changeJob: vi.fn().mockRejectedValue(new ApiError(400, ["BAG_FULL"])),
   })
   renderScreen(api)
 
@@ -226,7 +226,7 @@ test("SkillsScreen_JobChangeShowsBagFullAsAWholeSentence", async () => {
 
 test("SkillsScreen_RequestInvalidShowsGenericText", async () => {
   const api = createApi({
-    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "", ["REQUEST_INVALID"])),
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, ["REQUEST_INVALID"])),
   })
   renderScreen(api)
 
@@ -331,7 +331,7 @@ test("SkillsScreen_LearnCallsApiAndShowsNewOverview", async () => {
 
 test("SkillsScreen_ShowsLearnReasonsFromServer", async () => {
   const api = createApi({
-    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "", ["NOT_ENOUGH_MONEY"])),
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, ["NOT_ENOUGH_MONEY"])),
   })
   renderScreen(api)
 
@@ -407,7 +407,7 @@ test("SkillsScreen_DisablesSaveWhileLoadoutIsInvalid", async () => {
 
 test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   const api = createApi({
-    setSkillSlots: vi.fn().mockRejectedValue(new ApiError(400, "", ["ACTIVE_IN_PASSIVE_SLOT"])),
+    setSkillSlots: vi.fn().mockRejectedValue(new ApiError(400, ["ACTIVE_IN_PASSIVE_SLOT"])),
   })
   renderScreen(api)
 

@@ -599,7 +599,7 @@ test("BagFullNamesTheCategory", async () => {
     rewards: { ...mission1.rewards },
   })
   const api = createMissionsApi(lv150Board({ active: [material] }))
-  vi.mocked(api.completeMission).mockRejectedValue(new ApiError(400, "無法完成任務", ["BAG_FULL"]))
+  vi.mocked(api.completeMission).mockRejectedValue(new ApiError(400, ["BAG_FULL"]))
   await renderMissions(api)
 
   fireEvent.click(seal(openHand(/^製作漁網/)))
@@ -612,7 +612,7 @@ test("BagFullNamesTheCategory", async () => {
 
 test("FailureReloadsTheBoard", async () => {
   const api = createMissionsApi(lv150Board())
-  vi.mocked(api.acceptMission).mockRejectedValue(new ApiError(400, "無法接取任務", ["TOO_MANY"]))
+  vi.mocked(api.acceptMission).mockRejectedValue(new ApiError(400, ["TOO_MANY"]))
   await renderMissions(api)
 
   fireEvent.click(seal(openSheet(/^委託mission-222/)))

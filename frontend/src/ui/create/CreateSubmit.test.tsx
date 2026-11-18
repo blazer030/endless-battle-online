@@ -85,9 +85,7 @@ test("CreateScreen_DepartSendsTheCardAndShowsThePassage", async () => {
 test("CreateScreen_NameTakenOpensNameRow", async () => {
   const user = setupUser()
   const api = {
-    createCharacter: vi
-      .fn()
-      .mockRejectedValue(new ApiError(409, "角色名稱已被使用", ["CHARACTER_NAME_TAKEN"])),
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(409, ["CHARACTER_NAME_TAKEN"])),
     getMyCharacter: vi.fn(),
   }
   renderCreate(api)
@@ -106,9 +104,7 @@ test("CreateScreen_AccountAlreadyHasCharacterEntersTheGame", async () => {
   const user = setupUser()
   const character = makeCharacter({ name: "收尾者" })
   const api = {
-    createCharacter: vi
-      .fn()
-      .mockRejectedValue(new ApiError(409, "此帳號已有角色", ["ACCOUNT_HAS_CHARACTER"])),
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(409, ["ACCOUNT_HAS_CHARACTER"])),
     getMyCharacter: vi.fn().mockResolvedValue(character),
   }
   const { onCreated } = renderCreate(api)
@@ -125,9 +121,7 @@ test("CreateScreen_AccountAlreadyHasCharacterEntersTheGame", async () => {
 test("CreateScreen_AccountAlreadyHasCharacterButLoadFailsKeepsCard", async () => {
   const user = setupUser()
   const api = {
-    createCharacter: vi
-      .fn()
-      .mockRejectedValue(new ApiError(409, "此帳號已有角色", ["ACCOUNT_HAS_CHARACTER"])),
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(409, ["ACCOUNT_HAS_CHARACTER"])),
     getMyCharacter: vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
   }
   const { onCreated } = renderCreate(api)
@@ -143,7 +137,7 @@ test("CreateScreen_AccountAlreadyHasCharacterButLoadFailsKeepsCard", async () =>
 test("CreateScreen_BadRequestSpeaksTheReason", async () => {
   const user = setupUser()
   const api = {
-    createCharacter: vi.fn().mockRejectedValue(new ApiError(400, "", ["POINTS_NOT_SPENT"])),
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(400, ["POINTS_NOT_SPENT"])),
   }
   renderCreate(api)
   await fillCard(user)

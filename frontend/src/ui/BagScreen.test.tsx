@@ -443,8 +443,8 @@ test("BagScreen_BankDepositsAtLevel15", async () => {
 
 test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
   const api = createFakeApi({
-    buy: vi.fn().mockRejectedValue(new ApiError(400, "無法購買", ["BAG_FULL"])),
-    equip: vi.fn().mockRejectedValue(new ApiError(400, "無法裝備", ["STAT_TOO_LOW:strength"])),
+    buy: vi.fn().mockRejectedValue(new ApiError(400, ["BAG_FULL"])),
+    equip: vi.fn().mockRejectedValue(new ApiError(400, ["STAT_TOO_LOW:strength"])),
   })
   renderBag(api)
 
@@ -462,7 +462,7 @@ test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
 // spec game-api-contract：Unknown code in the front end
 test("BagScreen_UnknownCodeShowsGenericText", async () => {
   const api = createFakeApi({
-    equip: vi.fn().mockRejectedValue(new ApiError(400, "", ["SOMETHING_NEW"])),
+    equip: vi.fn().mockRejectedValue(new ApiError(400, ["SOMETHING_NEW"])),
   })
   renderBag(api)
 
@@ -735,7 +735,7 @@ test("BagScreen_ForgeSynthesizeDisabledWithoutMaterials", async () => {
 
 test("BagScreen_ForgeShowsMappedErrorReasons", async () => {
   await renderForge({
-    refine: vi.fn().mockRejectedValue(new ApiError(400, "無法精鍊", ["WRONG_STONE_LEVEL"])),
+    refine: vi.fn().mockRejectedValue(new ApiError(400, ["WRONG_STONE_LEVEL"])),
   })
 
   await user.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
@@ -881,7 +881,7 @@ test("BagScreen_PetEggShowsPetsFullError", async () => {
   renderBag(
     createFakeApi({
       getInventory: vi.fn().mockResolvedValue(makeInventory([petEgg])),
-      useItem: vi.fn().mockRejectedValue(new ApiError(400, "這個道具不能使用", ["PETS_FULL"])),
+      useItem: vi.fn().mockRejectedValue(new ApiError(400, ["PETS_FULL"])),
     }),
   )
   await user.click(await screen.findByRole("tab", { name: "道具" }))

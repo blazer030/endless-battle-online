@@ -135,15 +135,22 @@ test("getMyCharacter_ReturnsNull_On404", async () => {
   expect(await client.getMyCharacter()).toBeNull()
 })
 
-test("request_ThrowsApiErrorWithDetail_OnConflict", async () => {
-  const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ detail: "角色名稱已被使用" }, 409))
+test("request_ThrowsApiErrorWithReasons_OnConflict", async () => {
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue(
+      jsonResponse({ detail: "角色名稱已被使用", reasons: ["CHARACTER_NAME_TAKEN"] }, 409),
+    )
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
   const error = await client.createCharacter(command).catch((caught: unknown) => caught)
 
   expect(error).toBeInstanceOf(ApiError)
   expect((error as ApiError).status).toBe(409)
-  expect((error as ApiError).detail).toBe("角色名稱已被使用")
+  expect((error as ApiError).reasons).toEqual(["CHARACTER_NAME_TAKEN"])
+  // 後端就算還帶著 detail 也不讀：顯示的文字由前端依代碼決定
+  expect(error).not.toHaveProperty("detail")
+  expect((error as ApiError).message).toBe("CHARACTER_NAME_TAKEN")
 })
 
 test("request_ClearsTokenAndNotifies_On401", async () => {
@@ -227,7 +234,6 @@ test("request_ExposesProblemReasons_OnValidationError", async () => {
   const error = await client.setSkillSlots([]).catch((caught: unknown) => caught)
 
   expect(error).toBeInstanceOf(ApiError)
-  expect((error as ApiError).detail).toBe("技能欄位不正確")
   expect((error as ApiError).reasons).toEqual(["DUPLICATE_SKILL", "NOT_LEARNED"])
 })
 

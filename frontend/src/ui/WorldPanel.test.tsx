@@ -209,9 +209,7 @@ test("WorldPanel_PlaceWithoutSubPlacesMovesWithNull", async () => {
 test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
   const { onClose } = renderPanel(
     createApi({
-      moveTo: vi
-        .fn()
-        .mockRejectedValue(new ApiError(400, "無法移動", ["RESTRICTED", "SUB_PLACE_REQUIRED"])),
+      moveTo: vi.fn().mockRejectedValue(new ApiError(400, ["RESTRICTED", "SUB_PLACE_REQUIRED"])),
     }),
   )
 
@@ -226,7 +224,7 @@ test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
 })
 
 test("WorldPanel_ShowsRetryHint_OnConflict", async () => {
-  renderPanel(createApi({ moveTo: vi.fn().mockRejectedValue(new ApiError(409, "資料衝突")) }))
+  renderPanel(createApi({ moveTo: vi.fn().mockRejectedValue(new ApiError(409)) }))
 
   await user.click(await placeButton("試鍊洞窟"))
   await user.click(screen.getByRole("button", { name: "燈影隧道" }))

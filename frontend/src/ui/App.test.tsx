@@ -357,7 +357,7 @@ test("App_StoredTokenWithoutCharacter_FadesPassageOverCreation", async () => {
 test("App_StoredTokenLoadFails_FadesPassageOverRegistryCards", async () => {
   saveAccessToken("token")
   const { container } = renderApp(
-    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) }),
+    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500)) }),
   )
 
   await screen.findByRole("region", { name: "我的冒險者登記證" })
@@ -374,7 +374,7 @@ test("App_PassageLeavesEvenWhenEffectsRunLate", async () => {
   vi.useFakeTimers({ shouldAdvanceTime: false })
   saveAccessToken("token")
   const { container } = renderApp(
-    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) }),
+    createFakeApi({ getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500)) }),
   )
   // 每次只等一輪 MessageChannel，登記證一畫好就停：這時淡出計時器所在的 effect 多半還沒跑
   for (
@@ -406,7 +406,7 @@ test("App_UnauthorizedLoad_ReturnsToRegistryCards", async () => {
     getMyCharacter: vi.fn().mockImplementation(() => {
       localStorage.clear()
       expire()
-      return Promise.reject(new ApiError(401, "未授權"))
+      return Promise.reject(new ApiError(401))
     }),
   })
 
@@ -432,7 +432,7 @@ test("App_SignInThenUnauthorizedLoad_ReturnsToRegistryCards", async () => {
     getMyCharacter: vi.fn().mockImplementation(() => {
       localStorage.clear()
       expire()
-      return Promise.reject(new ApiError(401, "未授權"))
+      return Promise.reject(new ApiError(401))
     }),
   })
   renderApp(api, (listener) => {
@@ -452,7 +452,7 @@ test("App_SignInThenUnauthorizedLoad_ReturnsToRegistryCards", async () => {
 test.each([
   {
     failure: "character server error",
-    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) },
+    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500)) },
   },
   {
     failure: "creation data network error",
@@ -479,7 +479,7 @@ test.each([
 test.each([
   {
     failure: "character server error",
-    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500, "伺服器錯誤")) },
+    overrides: { getMyCharacter: vi.fn().mockRejectedValue(new ApiError(500)) },
   },
   {
     failure: "character network error",
@@ -552,7 +552,7 @@ test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
   const api = createFakeApi({
     login: vi.fn().mockImplementation(() => {
       expire()
-      return Promise.reject(new ApiError(401, "", ["AUTHENTICATION_FAILED"]))
+      return Promise.reject(new ApiError(401, ["AUTHENTICATION_FAILED"]))
     }),
   })
   renderApp(api, (listener) => {

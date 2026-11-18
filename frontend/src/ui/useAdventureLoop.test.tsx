@@ -119,10 +119,7 @@ test("adventureLoop_AdvancesOnMountAndEveryInterval", async () => {
 })
 
 test("adventureLoop_IgnoresConflictAndKeepsPolling", async () => {
-  const advance = vi
-    .fn()
-    .mockRejectedValueOnce(new ApiError(409, "冒險進行中"))
-    .mockResolvedValue(emptyResponse)
+  const advance = vi.fn().mockRejectedValueOnce(new ApiError(409)).mockResolvedValue(emptyResponse)
   const { result } = renderLoop(createFakeApi(advance))
   await advanceTime(0)
   expect(result.current.error).toBeNull()

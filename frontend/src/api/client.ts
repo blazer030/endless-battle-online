@@ -55,18 +55,15 @@ import { CreationOptionsConverter, JobConverter } from "./publicData"
 import { JobChoiceConverter, SkillOverviewConverter, SkillSlotsConverter } from "./skillData"
 import { WorldConverter } from "./worldData"
 
-export const fallbackDetail = "發生錯誤，請稍後再試"
-
 export class ApiError extends Error {
   readonly status: number
-  readonly detail: string
-  // ProblemDetails 的 reasons 擴充欄位：驗證失敗（400）與衝突（409）的原因代碼
+  // ProblemDetails 的 reasons 擴充欄位：原因代碼；顯示的文字由前端依代碼決定（見 game/errorText.ts）
   readonly reasons: string[]
 
-  constructor(status: number, detail: string, reasons: string[] = []) {
-    super(detail)
+  constructor(status: number, reasons: string[] = []) {
+    // message 只給除錯與紀錄看
+    super(reasons.length > 0 ? reasons.join(",") : `HTTP ${status}`)
     this.status = status
-    this.detail = detail
     this.reasons = reasons
     this.name = "ApiError"
   }
@@ -143,23 +140,24 @@ export type ApiClient = {
   bookInn: (roomId: string) => Promise<InnBookVo>
 }
 
-type Problem = { detail: string; reasons: string[] }
-
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === "string")
 
-const readProblem = async (response: Response): Promise<Problem> => {
-  const problem: Problem = { detail: fallbackDetail, reasons: [] }
+// 錯誤回應只讀原因代碼；不是 JSON 或沒有 reasons 時為空清單
+const readReasons = async (response: Response): Promise<string[]> => {
   try {
     const body: unknown = await response.json()
-    if (typeof body !== "object" || body === null) return problem
-    if ("detail" in body && typeof body.detail === "string" && body.detail !== "")
-      problem.detail = body.detail
-    if ("reasons" in body && isStringArray(body.reasons)) problem.reasons = body.reasons
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      "reasons" in body &&
+      isStringArray(body.reasons)
+    )
+      return body.reasons
   } catch {
-    // 內容不是 JSON 時使用預設訊息
+    // 內容不是 JSON
   }
-  return problem
+  return []
 }
 
 export const createApiClient = (options: {
@@ -182,12 +180,12 @@ export const createApiClient = (options: {
     })
     if (response.ok) return response
 
-    const { detail, reasons } = await readProblem(response)
+    const reasons = await readReasons(response)
     if (response.status === 401) {
       clearAccessToken()
       options.onUnauthorized()
     }
-    throw new ApiError(response.status, detail, reasons)
+    throw new ApiError(response.status, reasons)
   }
 
   const requestJson = async <T>(path: string, method: string, body?: unknown): Promise<T> =>
