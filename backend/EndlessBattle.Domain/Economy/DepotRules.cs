@@ -12,7 +12,7 @@ public static class DepotRules
     public static int Capacity(int depotBonus) => Slots + depotBonus;
 
     // 可堆疊的道具與倉庫中同種的合併，合併後超過 254 就拒絕；裝備每件一格，強化原樣帶入。
-    // 原因代碼：INVALID_QUANTITY、stackLimit、depotFull。綁定的道具也可以存（綁定只擋贈送與交易）
+    // 原因代碼：INVALID_QUANTITY、STACK_LIMIT、DEPOT_FULL。綁定的道具也可以存（綁定只擋贈送與交易）
     public static DepotPlan TryStore(
         IReadOnlyList<InventoryEntry> depot, ItemDefinition item, InventoryEntry entry, int quantity, int depotBonus)
     {
@@ -28,14 +28,14 @@ public static class DepotRules
             if (existing is not null)
             {
                 return existing.Quantity + quantity > StackLimit
-                    ? Rejected("stackLimit")
+                    ? Rejected("STACK_LIMIT")
                     : new DepotPlan([], [], [existing with { Quantity = existing.Quantity + quantity }]);
             }
         }
 
         if (depot.Count >= Capacity(depotBonus))
         {
-            return Rejected("depotFull");
+            return Rejected("DEPOT_FULL");
         }
 
         return new DepotPlan([], [entry with { Id = 0, Quantity = quantity }], []);

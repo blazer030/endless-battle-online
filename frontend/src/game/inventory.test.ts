@@ -234,7 +234,7 @@ describe("reasonText", () => {
   it.each([
     ["ALREADY_EQUIPPED", "這件道具已經裝備中"],
     ["BAG_FULL", "背包已滿"],
-    ["depotFull", "倉庫已滿"],
+    ["DEPOT_FULL", "倉庫已滿"],
     ["EQUIPPED", "請先卸下這件裝備"],
     ["INVALID_AMOUNT", "金額不正確"],
     ["INVALID_LEVEL", "商店等級不正確"],
@@ -249,7 +249,7 @@ describe("reasonText", () => {
     ["NOT_FOR_SALE", "商店沒有販售這個品項"],
     ["NOT_USABLE", "這個道具不能直接使用"],
     ["SLOT_EMPTY", "這一欄沒有裝備"],
-    ["stackLimit", "已達堆疊上限"],
+    ["STACK_LIMIT", "已達堆疊上限"],
     ["STAT_TOO_LOW:strength", "力量不足"],
     ["STAT_TOO_LOW:intelligence", "智力不足"],
     ["STAT_TOO_LOW:agility", "敏捷不足"],

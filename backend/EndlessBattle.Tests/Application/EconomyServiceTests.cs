@@ -284,7 +284,7 @@ public class EconomyServiceTests
         Assert.Equal(198, Assert.Single(merged.Depot.Entries).Entry.Quantity);
         var third = await GiveAsync(character, "test-supply", 99);
 
-        Assert.Equal(["stackLimit"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, third, 99, CancellationToken)));
+        Assert.Equal(["STACK_LIMIT"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, third, 99, CancellationToken)));
 
         var partial = await depotService.StoreAsync(AccountId, third, 56, CancellationToken);
         Assert.Equal(254, Assert.Single(partial.Depot.Entries).Entry.Quantity);
@@ -302,7 +302,7 @@ public class EconomyServiceTests
 
         var sword = await GiveAsync(character, "test-sword");
 
-        Assert.Equal(["depotFull"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, sword, 1, CancellationToken)));
+        Assert.Equal(["DEPOT_FULL"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, sword, 1, CancellationToken)));
     }
 
     [Fact]

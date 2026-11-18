@@ -468,7 +468,7 @@ const fixedReasonTexts: Record<string, string> = {
   NOT_STONE: "這不是魔石",
   WRONG_STONE_LEVEL: "精鍊石等級不符",
   BAG_FULL: "背包已滿",
-  depotFull: "倉庫已滿",
+  DEPOT_FULL: "倉庫已滿",
   EQUIPPED: "請先卸下這件裝備",
   INVALID_AMOUNT: "金額不正確",
   INVALID_LEVEL: "商店等級不正確",
@@ -484,7 +484,7 @@ const fixedReasonTexts: Record<string, string> = {
   NOT_USABLE: "這個道具不能直接使用",
   PETS_FULL: "牧場已滿，最多只能擁有3隻寵物",
   SLOT_EMPTY: "這一欄沒有裝備",
-  stackLimit: "已達堆疊上限",
+  STACK_LIMIT: "已達堆疊上限",
   UNKNOWN_ROOM: "沒有這個房間",
 }
 

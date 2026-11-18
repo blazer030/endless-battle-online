@@ -32,7 +32,7 @@ public class DepotRulesTests
     {
         var depot = new[] { TestItems.Entry(1, "supply", 250) };
 
-        Assert.Equal(["stackLimit"], DepotRules.TryStore(depot, Supply, TestItems.Entry(9, "supply", 10), 10, 0).Reasons);
+        Assert.Equal(["STACK_LIMIT"], DepotRules.TryStore(depot, Supply, TestItems.Entry(9, "supply", 10), 10, 0).Reasons);
         Assert.Empty(DepotRules.TryStore(depot, Supply, TestItems.Entry(9, "supply", 10), 4, 0).Reasons);
     }
 
@@ -41,7 +41,7 @@ public class DepotRulesTests
     {
         var plan = DepotRules.TryStore(Filled(20), Sword, TestItems.Entry(9, "sword"), 1, 0);
 
-        Assert.Equal(["depotFull"], plan.Reasons);
+        Assert.Equal(["DEPOT_FULL"], plan.Reasons);
         Assert.Empty(DepotRules.TryStore(Filled(20), Sword, TestItems.Entry(9, "sword"), 1, 1).Reasons);
     }
 
