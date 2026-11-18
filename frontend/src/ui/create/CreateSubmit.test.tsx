@@ -140,10 +140,10 @@ test("CreateScreen_AccountAlreadyHasCharacterButLoadFailsKeepsCard", async () =>
   expect(onCreated).not.toHaveBeenCalled()
 })
 
-test("CreateScreen_BadRequestShowsDetail", async () => {
+test("CreateScreen_BadRequestSpeaksTheReason", async () => {
   const user = setupUser()
   const api = {
-    createCharacter: vi.fn().mockRejectedValue(new ApiError(400, "能力點數必須剛好分完 10 點")),
+    createCharacter: vi.fn().mockRejectedValue(new ApiError(400, "", ["POINTS_NOT_SPENT"])),
   }
   renderCreate(api)
   await fillCard(user)

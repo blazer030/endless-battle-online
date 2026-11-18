@@ -552,7 +552,7 @@ test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
   const api = createFakeApi({
     login: vi.fn().mockImplementation(() => {
       expire()
-      return Promise.reject(new ApiError(401, "帳號或密碼錯誤"))
+      return Promise.reject(new ApiError(401, "", ["AUTHENTICATION_FAILED"]))
     }),
   })
   renderApp(api, (listener) => {

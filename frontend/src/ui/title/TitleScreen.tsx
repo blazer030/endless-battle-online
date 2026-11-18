@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react"
-import { ApiError, fallbackDetail, type ApiClient } from "../../api/client"
+import { ApiError, type ApiClient } from "../../api/client"
+import { errorTextOf, GenericErrorText } from "../../game/errorText"
 import cardBlank from "../../assets/title/card-blank.webp"
 import cardSealed from "../../assets/title/card-sealed.webp"
 import {
@@ -36,7 +37,9 @@ const emptyCard: Card = { user: "", pass: "", confirmation: "", error: null }
 
 const passwordMismatch = "兩次密碼不一樣"
 
-const errorText = (error: unknown) => (error instanceof ApiError ? error.detail : fallbackDetail)
+// 文字依回應的第一個原因代碼；連不上（不是 ApiError）時用通用句
+const errorText = (error: unknown) =>
+  error instanceof ApiError ? errorTextOf(error.reasons) : GenericErrorText
 
 const onEnter = (action: () => void) => (event: KeyboardEvent) => {
   if (event.key === "Enter") action()

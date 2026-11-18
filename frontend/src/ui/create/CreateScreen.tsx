@@ -18,6 +18,7 @@ import {
   type AllocationStat,
   type CreationDraft,
 } from "../../game/creationDraft"
+import { errorTextOf } from "../../game/errorText"
 import type { JobVo } from "../../game/jobBook"
 import { baseStatLabels, baseStatsFromAllocation } from "../../game/stats"
 import type { CharacterVo } from "../../game/character"
@@ -148,7 +149,11 @@ export const CreateScreen = ({ api, jobs, options, onCreated, onLeave }: Props) 
         return
       }
       setStep("idle")
-      setNotice(error instanceof ApiError && error.status === 400 ? error.detail : Lines.noResponse)
+      setNotice(
+        error instanceof ApiError && error.status === 400
+          ? errorTextOf(error.reasons)
+          : Lines.noResponse,
+      )
     }
   }
 
