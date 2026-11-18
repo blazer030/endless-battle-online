@@ -93,6 +93,21 @@ Supersedes：本文件〈例外必須帶代碼〉原本的「代碼仍寫成字�
 
 替代方案：Domain 與 Application 各放自己的代碼。沒選：代碼會分兩處，`BAG_FULL` 這類同時在 Domain 與 Application 用的要選邊，跟「整理在一起」相反。
 
+### 職業與技能用狀態欄位，原因代碼只用在錯誤（2026-11-18 review 後追加）
+
+使用者 2026-11-18 指出「職業能不能轉是職業的狀態，不是原因代碼」：原本 `GET /api/jobs` 的 `reasons` 與技能總覽 `next.reasons` 把「目前條件」跟「操作失敗的原因」混在一起。改成每個條件自己帶有沒有達成，形狀比照勳章所的能力需求（`HonourRequirement` 的 `met`）：
+
+| 回應 | 拿掉 | 加上 | 保留 |
+| --- | --- | --- | --- |
+| `GET /api/jobs` 每個職業 | `reasons` | `levelMet`（等級 ≥ `unlockLevel`）、`parentProficiencyMet`（沒有前置職業時 `true`）、`statRequirements[].met`（裸點 ≥ `minimum`） | `current`、`eligible`（＝不是目前職業且全部達成）、其餘欄位 |
+| `GET /api/skills` 每個技能 | `next.reasons` | `taughtByCurrentJob`、`prerequisite.met`（沒有前置技能時 `prerequisite` 照舊是 null）、`next.enoughMoney`、`next.enoughProficiency` | `next.canLearn`（＝全部達成）；滿級時 `next` 照舊是 null |
+
+- Domain：`JobChange.Evaluate` 回傳的 `JobChangeCheck` 改成各條件的布林與每項能力的達成狀態，`Eligible` 與 `Reasons`（給轉職失敗的錯誤用）由這些欄位推出來；`SkillLearning.Evaluate` 的 `LearnCheck` 同樣改成各條件的布林，`Allowed` 與 `Reasons` 由欄位推出。錯誤代碼與順序不變：轉職失敗照舊回 `SAME_JOB`、`LEVEL_TOO_LOW`、`PARENT_PROFICIENCY_TOO_LOW`、`STAT_TOO_LOW:<stat>`，學技能失敗照舊回 `WRONG_JOB`、`PREREQUISITE`、`MAX_LEVEL`、`NOT_ENOUGH_PROFICIENCY`、`NOT_ENOUGH_MONEY`。
+- 前端舊技能頁：職業卡的未達成條件、按鈕停用與提示文字改看狀態欄位；技能卡的未達成原因由 `taughtByCurrentJob`、`prerequisite.met`、`next.enoughProficiency`、`next.enoughMoney` 組出，文字不變（「不是目前職業的技能」「前置技能：○○ Lv ○」「技能熟練度不足」「金錢不足」）。轉職成功、列表沒能重新載入時在本地改標目前職業（`markCurrentJob`）改成調整 `current` 與 `eligible`。轉職、學技能失敗的錯誤文字照舊依代碼。
+- 拆開以後代碼只出現在錯誤回應，後端常數類別 `ReasonCodes` 改名 `ErrorCodes`（`ReasonCodeRequirement` → `ErrorCodeRequirement`，測試一併改名）；API 欄位仍叫 `reasons`，規格仍稱「原因代碼」。Supersedes 本文件〈代碼集中在 ReasonCodes〉的類別名稱。
+
+替代方案：保留清單、改成條件物件（`unmet: [{ kind: "level", required: 30 }]`）。沒選：使用者選比照勳章所的 `met`；條件的要求值本來就有欄位，只缺達成狀態。
+
 ### 前端共用代碼文字表
 
 新增 `frontend/src/game/errorText.ts`：`errorText(code: string): string`，涵蓋上表的新代碼，認不得的代碼回「發生錯誤，請稍後再試」（原本的 `fallbackDetail`），以及 `errorTextOf(reasons: readonly string[]): string` 取第一個代碼的文字（沒有代碼時同上）。各畫面原有的代碼文字表不動、只改代碼寫法；舊畫面原本「沒代碼時用 `detail`」的地方，改成「這頁的表沒有這個代碼時用 `errorText`」。
@@ -112,7 +127,7 @@ Supersedes：本文件〈例外必須帶代碼〉原本的「代碼仍寫成字�
 **行為**
 
 - 任何遊戲 API 錯誤（400、401、404、409）的回應 JSON 有 `status` 與非空的 `reasons`，沒有 `detail`；`title` 不是中文。
-- 原因代碼都符合 `^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$`（冒號後是參數）。錯誤回應與 `GET /api/jobs`、技能總覽的正常 `reasons` 都是。
+- 原因代碼都符合 `^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$`（冒號後是參數），只出現在錯誤回應；`GET /api/jobs` 與技能總覽用狀態欄位，不帶 `reasons`。
 - 玩家在標題頁、建角頁、背包、技能、設定、世界、旅館、同伴、勳章所、任務板看到的錯誤文字與改之前相同（〈前端文字照搬原句〉的兩個例外除外）。
 
 **介面**
@@ -121,7 +136,8 @@ Supersedes：本文件〈例外必須帶代碼〉原本的「代碼仍寫成字�
 - `ApplicationExceptionHandler` 寫出 `ProblemDetails { Status, Extensions["reasons"] }`；`BadHttpRequestException` 的 reasons 是 `["REQUEST_INVALID"]`，狀態碼沿用例外自帶的。
 - `RouteHandlerOptions.ThrowOnBadRequest` 在所有環境為 `true`。
 - 前端：`ApiError(status: number, reasons: string[])`；`errorText(code)`、`errorTextOf(reasons)`。
-- 後端代碼：`EndlessBattle.Domain.ReasonCodes` 的常數、`StatTooLow(stat)`、`MissingTool(itemId)`、`IsWellFormed(code)`；ReasonCodes.cs 以外的後端原始碼不寫代碼字串。
+- 職業清單與技能總覽：見〈職業與技能用狀態欄位，原因代碼只用在錯誤〉的欄位表；正常回應沒有 `reasons`。
+- 後端代碼：`EndlessBattle.Domain.ErrorCodes`（原 `ReasonCodes`）的常數、`StatTooLow(stat)`、`MissingTool(itemId)`、`IsWellFormed(code)`；ReasonCodes.cs 以外的後端原始碼不寫代碼字串。
 
 **失敗模式**
 
@@ -132,7 +148,8 @@ Supersedes：本文件〈例外必須帶代碼〉原本的「代碼仍寫成字�
 
 - 後端：`ApplicationExceptionHandlerTests`（或對應的 Api 測試）斷言 400／401／404／409 的回應沒有 `detail`、有非空 `reasons`；`AccountEndpointsTests`、`CharacterEndpointsTests` 改斷言代碼；一條掃描測試以反射或樣本請求確認錯誤代碼都符合大寫底線格式。
 - 例外建構子：reasons 為空時丟 `ArgumentException` 的單元測試。
-- 代碼集中：`ReasonCodesTests` 斷言每個常數符合 `IsWellFormed`、值不重複；`ReasonCodeSpellingTests` 掃 Domain、Application、Infrastructure、Api 原始碼（scaffold 產生的 `Persistence/Models/` 與 `EndlessBattleDbContext.cs` 除外），ReasonCodes.cs 以外沒有等於某個常數值（或以「值:」開頭）的字串字面值，也沒有全大寫含底線的字串字面值。
+- 職業與技能狀態：`JobEndpointsTests`、`SkillEndpointsTests` 斷言新欄位、回應沒有 `reasons`；前端 `SkillsScreen.test.tsx` 的未達成條件改用狀態欄位。
+- 代碼集中：`ErrorCodesTests`（原 `ReasonCodesTests`） 斷言每個常數符合 `IsWellFormed`、值不重複；`ReasonCodeSpellingTests` 掃 Domain、Application、Infrastructure、Api 原始碼（scaffold 產生的 `Persistence/Models/` 與 `EndlessBattleDbContext.cs` 除外），ReasonCodes.cs 以外沒有等於某個常數值（或以「值:」開頭）的字串字面值，也沒有全大寫含底線的字串字面值。
 - 前端：`errorText.test.ts`（每個新代碼與未知代碼）、`client.test.ts`（不讀 `detail`）、`TitleScreen`、`CreateScreen`、`SkillsScreen`、`BagScreen`、`SettingsPanel`、`WorldPanel` 的錯誤顯示測試改用代碼。
 - `./scripts/check.sh` exit 0。
 
