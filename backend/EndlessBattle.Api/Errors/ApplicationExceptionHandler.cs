@@ -28,6 +28,8 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
         {
             InputValidationException validation => validation.Reasons,
             ConflictException conflict => conflict.Reasons,
+            NotFoundException { Reason: { } reason } => [reason],
+            AuthenticationFailedException => [AuthenticationFailedException.Reason],
             _ => [],
         };
         if (reasons.Count > 0)

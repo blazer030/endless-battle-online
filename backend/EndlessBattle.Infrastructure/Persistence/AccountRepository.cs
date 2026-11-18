@@ -17,7 +17,7 @@ public sealed class AccountRepository(EndlessBattleDbContext context) : IAccount
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("帳號已被使用", exception);
+            throw new ConflictException("帳號已被使用", exception, ["USERNAME_TAKEN"]);
         }
 
         return account.Id;

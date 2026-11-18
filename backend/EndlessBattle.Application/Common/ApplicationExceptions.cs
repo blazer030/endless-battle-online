@@ -9,7 +9,11 @@ public sealed class ConflictException(string message, Exception? innerException 
     public IReadOnlyList<string> Reasons { get; } = reasons ?? [];
 }
 
-public sealed class NotFoundException(string message) : Exception(message);
+// Reason 是給前端判斷用的原因代碼；Api 層放進 ProblemDetails 的 reasons
+public sealed class NotFoundException(string message, string? reason = null) : Exception(message)
+{
+    public string? Reason { get; } = reason;
+}
 
 // Reasons 是給前端判斷用的原因代碼；Api 層非空時放進 ProblemDetails 的 reasons
 public sealed class InputValidationException(string message, IReadOnlyList<string>? reasons = null) : Exception(message)
@@ -17,4 +21,7 @@ public sealed class InputValidationException(string message, IReadOnlyList<strin
     public IReadOnlyList<string> Reasons { get; } = reasons ?? [];
 }
 
-public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤");
+public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤")
+{
+    public const string Reason = "AUTHENTICATION_FAILED";
+}

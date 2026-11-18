@@ -14,12 +14,12 @@ public sealed partial class AccountService(IAccountRepository accounts, IPasswor
     {
         if (!UsernamePattern().IsMatch(username))
         {
-            throw new InputValidationException("帳號必須是 3～32 個英數字或底線");
+            throw new InputValidationException("帳號必須是 3～32 個英數字或底線", ["USERNAME_INVALID"]);
         }
 
         if (password.Length < MinimumPasswordLength)
         {
-            throw new InputValidationException($"密碼至少要 {MinimumPasswordLength} 個字元");
+            throw new InputValidationException($"密碼至少要 {MinimumPasswordLength} 個字元", ["PASSWORD_TOO_SHORT"]);
         }
 
         return await accounts.AddAsync(username, passwordHashing.Hash(password), clock.UtcNow, cancellationToken);
@@ -39,5 +39,5 @@ public sealed partial class AccountService(IAccountRepository accounts, IPasswor
 
     public async Task<AccountCredentials> GetAsync(long accountId, CancellationToken cancellationToken) =>
         await accounts.FindByIdAsync(accountId, cancellationToken)
-        ?? throw new NotFoundException("找不到帳號");
+        ?? throw new NotFoundException("找不到帳號", "ACCOUNT_NOT_FOUND");
 }

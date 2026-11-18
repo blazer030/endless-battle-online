@@ -8,6 +8,15 @@ public static class ApiClientExtensions
 {
     public static string NewUsername() => $"user_{Guid.NewGuid():N}"[..20];
 
+    // 錯誤回應（ProblemDetails）的 reasons；沒有這個欄位時回空清單
+    public static async Task<IReadOnlyList<string>> ReadReasonsAsync(this HttpResponseMessage response)
+    {
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>(TestContext.Current.CancellationToken);
+        return body.TryGetProperty("reasons", out var reasons)
+            ? reasons.EnumerateArray().Select(reason => reason.GetString() ?? "").ToList()
+            : [];
+    }
+
     // 用隨機帳號註冊並登入，回傳已帶 Bearer token 的 client
     public static async Task<HttpClient> CreateAuthenticatedClientAsync(this EndlessBattleApiFactory factory)
     {

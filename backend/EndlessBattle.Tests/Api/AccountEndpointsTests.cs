@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EndlessBattle.Api.Auth;
 using EndlessBattle.Tests.Support;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace EndlessBattle.Tests.Api;
@@ -45,22 +47,21 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
         var duplicate = await client.PostAsJsonAsync("/api/accounts/register", new { username = username.ToUpperInvariant(), password = "password123" }, CancellationToken);
 
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
-        Assert.Equal("帳號已被使用", await DetailOf(duplicate));
+        Assert.Equal(["USERNAME_TAKEN"], await duplicate.ReadReasonsAsync());
     }
 
-    private const string InvalidUsername = "帳號必須是 3～32 個英數字或底線";
-
+    // spec registration input 表的 400 列
     [Theory]
-    [InlineData("ab", "abcdefgh", InvalidUsername)]
-    [InlineData("has space", "abcdefgh", InvalidUsername)]
-    [InlineData("abcdefghijklmnopqrstuvwxyzabcdefg", "abcdefgh", InvalidUsername)]
-    [InlineData("valid_name", "abcdefg", "密碼至少要 8 個字元")]
-    public async Task Register_Returns400_ForInvalidInput(string username, string password, string detail)
+    [InlineData("ab", "abcdefgh", "USERNAME_INVALID")]
+    [InlineData("has space", "abcdefgh", "USERNAME_INVALID")]
+    [InlineData("abcdefghijklmnopqrstuvwxyzabcdefg", "abcdefgh", "USERNAME_INVALID")]
+    [InlineData("valid_name", "abcdefg", "PASSWORD_TOO_SHORT")]
+    public async Task Register_Returns400_ForInvalidInput(string username, string password, string reason)
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var response = await factory.CreateClient().PostAsJsonAsync("/api/accounts/register", new { username, password }, CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal(detail, await DetailOf(response));
+        Assert.Equal([reason], await response.ReadReasonsAsync());
     }
 
     // spec 註冊範例表的「abc」列（帳號要唯一，用隨機 3 個字）與上限 32 個字元；密碼剛好 8 個字元
@@ -105,11 +106,23 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(TimeSpan.FromDays(30), token.ValidTo - token.IssuedAt);
     }
 
-    private static async Task<string?> DetailOf(HttpResponseMessage response) =>
-        (await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("detail").GetString();
+    // 權杖有效但帳號已不存在（例如換資料庫）
+    [Fact]
+    public async Task Me_Returns404_WithAccountNotFound_ForUnknownAccount()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = factory.CreateClient();
+        var token = factory.Services.GetRequiredService<JwtTokenIssuer>().Issue(long.MaxValue);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/accounts/me", CancellationToken);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(["ACCOUNT_NOT_FOUND"], await response.ReadReasonsAsync());
+    }
 
     [Fact]
-    public async Task Login_Returns401_WithSameDetail_ForWrongPasswordAndUnknownUser()
+    public async Task Login_Returns401_WithSameReason_ForWrongPasswordAndUnknownUser()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = factory.CreateClient();
@@ -121,10 +134,8 @@ public class AccountEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, unknownUser.StatusCode);
-        var wrongPasswordDetail = (await wrongPassword.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("detail").GetString();
-        var unknownUserDetail = (await unknownUser.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("detail").GetString();
-        Assert.Equal("帳號或密碼錯誤", wrongPasswordDetail);
-        Assert.Equal(wrongPasswordDetail, unknownUserDetail);
+        Assert.Equal(["AUTHENTICATION_FAILED"], await wrongPassword.ReadReasonsAsync());
+        Assert.Equal(["AUTHENTICATION_FAILED"], await unknownUser.ReadReasonsAsync());
     }
 
     [Fact]
