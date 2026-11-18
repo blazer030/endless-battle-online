@@ -33,7 +33,9 @@ const fillBlank = async (
 
 test("TitleScreen_ShowsLoginErrorOnOwnCard", async () => {
   const user = userEvent.setup()
-  const api = makeApi({ login: vi.fn().mockRejectedValue(new ApiError(401, "", ["AUTHENTICATION_FAILED"])) })
+  const api = makeApi({
+    login: vi.fn().mockRejectedValue(new ApiError(401, "", ["AUTHENTICATION_FAILED"])),
+  })
   const { onSignedIn } = renderTitle(api)
 
   await user.type(ownCard().getByLabelText("帳號"), "ethan")
@@ -73,7 +75,9 @@ test("TitleScreen_SignsInWithEnter", async () => {
 
 test("TitleScreen_ShowsAccountTakenOnBlankCard", async () => {
   const user = userEvent.setup()
-  const api = makeApi({ register: vi.fn().mockRejectedValue(new ApiError(409, "", ["USERNAME_TAKEN"])) })
+  const api = makeApi({
+    register: vi.fn().mockRejectedValue(new ApiError(409, "", ["USERNAME_TAKEN"])),
+  })
   renderTitle(api)
 
   await fillBlank(user, "ethan", "abcdefgh")
@@ -102,7 +106,9 @@ test("TitleScreen_RegisterThenSignsInWithSameAccount", async () => {
 
 test("TitleScreen_TappingOwnCardBringsItBack", async () => {
   const user = userEvent.setup()
-  const api = makeApi({ register: vi.fn().mockRejectedValue(new ApiError(409, "", ["USERNAME_TAKEN"])) })
+  const api = makeApi({
+    register: vi.fn().mockRejectedValue(new ApiError(409, "", ["USERNAME_TAKEN"])),
+  })
   renderTitle(api)
   await fillBlank(user, "ethan", "abcdefgh")
   expect(ownCard().getByLabelText("帳號")).toBeDisabled()
