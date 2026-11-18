@@ -43,7 +43,8 @@ const next = (overrides: Partial<NonNullable<Skill["next"]>> = {}) => ({
   proficiency: 300,
   summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
   canLearn: true,
-  reasons: [],
+  enoughMoney: true,
+  enoughProficiency: true,
   ...overrides,
 })
 
@@ -57,6 +58,7 @@ const skill = (overrides: Partial<Skill>): Skill => ({
   level: 0,
   maxLevel: 5,
   summary: null,
+  taughtByCurrentJob: true,
   prerequisite: null,
   next: next(),
   ...overrides,
@@ -79,7 +81,7 @@ const overview: SkillOverviewVo = {
         summary: "常駐｜自己物防 +3%",
         money: 4500,
         canLearn: false,
-        reasons: ["NOT_ENOUGH_MONEY"],
+        enoughMoney: false,
       }),
     }),
     skill({
@@ -258,8 +260,8 @@ test("SkillsScreen_NamesThePrerequisiteSkill", async () => {
   const advanced = skill({
     id: "advanced-burst",
     name: "狂暴爆氣",
-    prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
-    next: next({ canLearn: false, reasons: ["PREREQUISITE", "NOT_ENOUGH_MONEY"] }),
+    prerequisite: { skillId: "burst", name: "爆氣", level: 3, met: false },
+    next: next({ canLearn: false, enoughMoney: false }),
   })
   renderScreen(
     createApi({ getSkills: vi.fn().mockResolvedValue({ ...overview, skills: [advanced] }) }),

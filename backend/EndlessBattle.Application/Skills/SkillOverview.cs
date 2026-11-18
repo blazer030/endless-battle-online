@@ -5,7 +5,8 @@ namespace EndlessBattle.Application.Skills;
 // SkillPoints 是目前職業的技能點 sk_
 public sealed record SkillOverview(string JobId, long SkillPoints, IReadOnlyList<SkillView> Skills, IReadOnlyList<SkillSlot> Slots);
 
-// Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null）；Prerequisite 在沒有前置技能時為 null；Next 在已滿級時為 null
+// Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null）；Prerequisite 在沒有前置技能時為 null；Next 在已滿級時為 null；
+// TaughtByCurrentJob、Prerequisite.Met、Next 的 EnoughMoney／EnoughProficiency 是各學習條件有沒有達成
 public sealed record SkillView(
     string Id,
     string Name,
@@ -16,9 +17,12 @@ public sealed record SkillView(
     int Level,
     int MaxLevel,
     string? Summary,
-    SkillPrerequisiteView? Prerequisite,
+    bool TaughtByCurrentJob,
+    SkillPrerequisiteCheckView? Prerequisite,
     NextLevelView? Next);
 
 public sealed record SkillPrerequisiteView(string SkillId, string Name, int Level);
 
-public sealed record NextLevelView(int Level, long Money, long Proficiency, string Summary, bool CanLearn, IReadOnlyList<string> Reasons);
+public sealed record SkillPrerequisiteCheckView(string SkillId, string Name, int Level, bool Met);
+
+public sealed record NextLevelView(int Level, long Money, long Proficiency, string Summary, bool CanLearn, bool EnoughMoney, bool EnoughProficiency);

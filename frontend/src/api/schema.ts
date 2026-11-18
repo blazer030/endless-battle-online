@@ -3234,7 +3234,8 @@ export interface components {
             proficiency: number;
             summary: string;
             canLearn: boolean;
-            reasons: string[];
+            enoughMoney: boolean;
+            enoughProficiency: boolean;
         };
         SkillOverviewResponse: {
             jobId: string;
@@ -3242,6 +3243,13 @@ export interface components {
             skillPoints: number;
             skills: components["schemas"]["SkillResponse"][];
             slots: components["schemas"]["SkillSlotResponse"][];
+        };
+        SkillPrerequisiteCheckResponse: {
+            skillId: string;
+            name: string;
+            /** Format: int32 */
+            level: number;
+            met: boolean;
         };
         SkillPrerequisiteResponse: {
             skillId: string;
@@ -3261,7 +3269,8 @@ export interface components {
             /** Format: int32 */
             maxLevel: number;
             summary: null | string;
-            prerequisite: null | components["schemas"]["SkillPrerequisiteResponse"];
+            taughtByCurrentJob: boolean;
+            prerequisite: null | components["schemas"]["SkillPrerequisiteCheckResponse"];
             next: null | components["schemas"]["SkillNextLevelResponse"];
         };
         SkillSlotRequest: {

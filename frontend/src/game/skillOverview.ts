@@ -4,6 +4,9 @@ import type { GrowthRange, GrowthStatKey, SkillPrerequisite, StatRequirement } f
 // 轉職頁的能力需求：裸點有沒有達到 minimum
 export type JobStatCheck = StatRequirement & { readonly met: boolean }
 
+// 技能卡的前置技能：已學等級有沒有達到 level
+export type SkillPrerequisiteCheck = SkillPrerequisite & { readonly met: boolean }
+
 export const skillTypes = ["Active", "Passive"] as const
 export type SkillType = (typeof skillTypes)[number]
 
@@ -16,10 +19,12 @@ export type SkillNextLevel = {
   readonly proficiency: number
   readonly summary: string
   readonly canLearn: boolean
-  readonly reasons: readonly string[]
+  readonly enoughMoney: boolean
+  readonly enoughProficiency: boolean
 }
 
-// level 0 表示尚未學習；summary 是目前等級的效果文字（未學為 null）；next 在已滿級時為 null
+// level 0 表示尚未學習；summary 是目前等級的效果文字（未學為 null）；next 在已滿級時為 null；
+// taughtByCurrentJob、prerequisite.met、next 的 enoughMoney／enoughProficiency 是各學習條件有沒有達成
 export type Skill = {
   readonly id: string
   readonly name: string
@@ -30,7 +35,8 @@ export type Skill = {
   readonly level: number
   readonly maxLevel: number
   readonly summary: string | null
-  readonly prerequisite: SkillPrerequisite | null
+  readonly taughtByCurrentJob: boolean
+  readonly prerequisite: SkillPrerequisiteCheck | null
   readonly next: SkillNextLevel | null
 }
 

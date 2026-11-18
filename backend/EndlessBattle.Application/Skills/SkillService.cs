@@ -92,12 +92,12 @@ public sealed class SkillService(
 
     private SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
     {
+        var check = SkillLearning.Evaluate(character, skill, level, skillPoints, teaching);
         NextLevelView? next = null;
-        if (level < skill.MaxLevel)
+        if (!check.AtMaxLevel)
         {
-            var check = SkillLearning.Evaluate(character, skill, level, skillPoints, teaching);
-            var target = skill.LevelAt(level + 1);
-            next = new NextLevelView(target.Level, target.Money, target.Proficiency, SkillSummary.Of(target), check.Allowed, check.Reasons);
+            var target = skill.LevelAt(check.TargetLevel);
+            next = new NextLevelView(target.Level, target.Money, target.Proficiency, SkillSummary.Of(target), check.Allowed, check.EnoughMoney, check.EnoughProficiency);
         }
 
         // 內容縮減等級上限時，已學等級以上限計
@@ -105,8 +105,9 @@ public sealed class SkillService(
         return new SkillView(
             skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, skill.Icon, level, skill.MaxLevel,
             current is null ? null : SkillSummary.Of(current),
+            check.TaughtByCurrentJob,
             skill.Prerequisite is { } prerequisite
-                ? new SkillPrerequisiteView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level)
+                ? new SkillPrerequisiteCheckView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level, check.PrerequisiteMet)
                 : null,
             next);
     }

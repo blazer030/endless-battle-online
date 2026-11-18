@@ -5,6 +5,7 @@ import {
   skillTypes,
   type Skill,
   type SkillNextLevel,
+  type SkillPrerequisiteCheck,
   type SkillSlotCommand,
 } from "../game/skillOverview"
 import {
@@ -21,7 +22,11 @@ import type { components } from "./schema"
 
 type SetSkillSlotsDto = components["schemas"]["SetSkillSlotsRequest"]
 
-const toStrings = (value: unknown, path: string): string[] => parseArray(value, path, parseString)
+const toPrerequisiteCheck = (value: unknown, path: string): SkillPrerequisiteCheck | null => {
+  const prerequisite = toPrerequisite(value, path)
+  if (prerequisite === null) return null
+  return { ...prerequisite, met: parseBoolean(parseObject(value, path).met, `${path}.met`) }
+}
 
 const toNextLevel = (value: unknown, path: string): SkillNextLevel | null => {
   if (value === null) return null
@@ -32,7 +37,8 @@ const toNextLevel = (value: unknown, path: string): SkillNextLevel | null => {
     proficiency: parseNumber(dto.proficiency, `${path}.proficiency`),
     summary: parseString(dto.summary, `${path}.summary`),
     canLearn: parseBoolean(dto.canLearn, `${path}.canLearn`),
-    reasons: toStrings(dto.reasons, `${path}.reasons`),
+    enoughMoney: parseBoolean(dto.enoughMoney, `${path}.enoughMoney`),
+    enoughProficiency: parseBoolean(dto.enoughProficiency, `${path}.enoughProficiency`),
   }
 }
 
@@ -48,7 +54,8 @@ const toSkill = (value: unknown, path: string): Skill => {
     level: parseNumber(dto.level, `${path}.level`),
     maxLevel: parseNumber(dto.maxLevel, `${path}.maxLevel`),
     summary: parseNullableString(dto.summary, `${path}.summary`),
-    prerequisite: toPrerequisite(dto.prerequisite, `${path}.prerequisite`),
+    taughtByCurrentJob: parseBoolean(dto.taughtByCurrentJob, `${path}.taughtByCurrentJob`),
+    prerequisite: toPrerequisiteCheck(dto.prerequisite, `${path}.prerequisite`),
     next: toNextLevel(dto.next, `${path}.next`),
   }
 }

@@ -18,6 +18,7 @@ const overviewDto = {
       level: 1,
       maxLevel: 5,
       summary: "機率 10%｜自己物攻 +5%",
+      taughtByCurrentJob: true,
       prerequisite: null,
       next: {
         level: 2,
@@ -25,7 +26,8 @@ const overviewDto = {
         proficiency: 50,
         summary: "機率 12%｜自己物攻 +7%",
         canLearn: false,
-        reasons: ["notEnoughSkillPoints"],
+        enoughMoney: true,
+        enoughProficiency: false,
       },
     },
     {
@@ -38,7 +40,8 @@ const overviewDto = {
       level: 0,
       maxLevel: 1,
       summary: null,
-      prerequisite: { skillId: "skill-1", name: "爆氣", level: 3 },
+      taughtByCurrentJob: false,
+      prerequisite: { skillId: "skill-1", name: "爆氣", level: 3, met: false },
       next: null,
     },
   ],

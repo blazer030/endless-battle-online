@@ -2,8 +2,21 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.Skills;
 
-// Reasons 代碼：WRONG_JOB、prerequisite、maxLevel、NOT_ENOUGH_PROFICIENCY、NOT_ENOUGH_MONEY
-public sealed record LearnCheck(bool Allowed, IReadOnlyList<string> Reasons, int TargetLevel);
+// 每個條件各自報告有沒有達成（技能總覽用）；滿級時不看熟練度與金錢（兩者為 true）。
+// 不能學時的錯誤代碼依序 WRONG_JOB、PREREQUISITE、MAX_LEVEL、NOT_ENOUGH_PROFICIENCY、NOT_ENOUGH_MONEY
+public sealed record LearnCheck(bool TaughtByCurrentJob, bool PrerequisiteMet, bool AtMaxLevel, bool EnoughProficiency, bool EnoughMoney, int TargetLevel)
+{
+    public bool Allowed => TaughtByCurrentJob && PrerequisiteMet && !AtMaxLevel && EnoughProficiency && EnoughMoney;
+
+    public IReadOnlyList<string> Reasons =>
+    [
+        .. TaughtByCurrentJob ? [] : new[] { ErrorCodes.WrongJob },
+        .. PrerequisiteMet ? [] : new[] { ErrorCodes.Prerequisite },
+        .. AtMaxLevel ? [ErrorCodes.MaxLevel] : Array.Empty<string>(),
+        .. EnoughProficiency ? [] : new[] { ErrorCodes.NotEnoughProficiency },
+        .. EnoughMoney ? [] : new[] { ErrorCodes.NotEnoughMoney },
+    ];
+}
 
 public sealed class SkillLearningException(IReadOnlyList<string> reasons) : Exception("無法學習技能")
 {
@@ -18,36 +31,16 @@ public static class SkillLearning
 {
     public static LearnCheck Evaluate(Character character, SkillDefinition skill, int currentLevel, long skillPoints, SkillTeaching teaching)
     {
-        var reasons = new List<string>();
-        if (!teaching.TaughtByCurrentJob)
-        {
-            reasons.Add(ErrorCodes.WrongJob);
-        }
-
-        if (skill.Prerequisite is { } prerequisite && teaching.PrerequisiteLevel < prerequisite.Level)
-        {
-            reasons.Add(ErrorCodes.Prerequisite);
-        }
-
+        var prerequisiteMet = skill.Prerequisite is not { } prerequisite || teaching.PrerequisiteLevel >= prerequisite.Level;
         if (currentLevel >= skill.MaxLevel)
         {
-            reasons.Add(ErrorCodes.MaxLevel);
-            return new LearnCheck(false, reasons, skill.MaxLevel);
+            return new LearnCheck(teaching.TaughtByCurrentJob, prerequisiteMet, AtMaxLevel: true, EnoughProficiency: true, EnoughMoney: true, skill.MaxLevel);
         }
 
         var targetLevel = currentLevel + 1;
         var next = skill.LevelAt(targetLevel);
-        if (skillPoints < next.Proficiency)
-        {
-            reasons.Add(ErrorCodes.NotEnoughProficiency);
-        }
-
-        if (character.Money < next.Money)
-        {
-            reasons.Add(ErrorCodes.NotEnoughMoney);
-        }
-
-        return new LearnCheck(reasons.Count == 0, reasons, targetLevel);
+        return new LearnCheck(
+            teaching.TaughtByCurrentJob, prerequisiteMet, AtMaxLevel: false, skillPoints >= next.Proficiency, character.Money >= next.Money, targetLevel);
     }
 
     public static (Character Character, long ProficiencyCost, LearnedSkill Learned) Apply(

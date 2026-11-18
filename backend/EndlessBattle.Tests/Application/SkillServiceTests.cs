@@ -207,11 +207,14 @@ public class SkillServiceTests
         Assert.Equal(0, burst.Level);
         Assert.Equal(5, burst.MaxLevel);
         Assert.Null(burst.Summary);
-        Assert.Equal(new NextLevelView(1, 500, 300, "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", true, []), burst.Next, NextLevelViewComparer.Instance);
+        Assert.Equal(new NextLevelView(1, 500, 300, "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", true, true, true), burst.Next);
+        Assert.True(burst.TaughtByCurrentJob);
         var combo = overview.Skills[2];
         Assert.Equal(2, combo.Level);
         Assert.Equal("機率 50%｜消耗 SP 8｜物理連擊 3 次，3 回合、自己物攻 -2%，3 回合", combo.Summary);
-        Assert.Equal(["WRONG_JOB", "NOT_ENOUGH_PROFICIENCY", "NOT_ENOUGH_MONEY"], combo.Next!.Reasons);
+        Assert.False(combo.TaughtByCurrentJob);
+        Assert.False(combo.Next!.EnoughProficiency);
+        Assert.False(combo.Next.EnoughMoney);
         Assert.False(combo.Next.CanLearn);
     }
 
@@ -228,15 +231,5 @@ public class SkillServiceTests
         Assert.EndsWith("｜冷卻 4 回合", heal.Next!.Summary);
         Assert.Equal(SkillTiming.BeforeAttack, heal.Timing);
         Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Summary);
-    }
-
-    private sealed class NextLevelViewComparer : IEqualityComparer<NextLevelView?>
-    {
-        public static readonly NextLevelViewComparer Instance = new();
-
-        public bool Equals(NextLevelView? x, NextLevelView? y) =>
-            x is not null && y is not null && x with { Reasons = [] } == y with { Reasons = [] } && x.Reasons.SequenceEqual(y.Reasons);
-
-        public int GetHashCode(NextLevelView? obj) => obj?.Level ?? 0;
     }
 }

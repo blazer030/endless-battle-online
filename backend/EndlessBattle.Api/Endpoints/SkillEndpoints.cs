@@ -49,11 +49,12 @@ public static class SkillEndpoints
             skill.Level,
             skill.MaxLevel,
             skill.Summary,
+            skill.TaughtByCurrentJob,
             skill.Prerequisite is { } prerequisite
-                ? new SkillPrerequisiteResponse(prerequisite.SkillId, prerequisite.Name, prerequisite.Level)
+                ? new SkillPrerequisiteCheckResponse(prerequisite.SkillId, prerequisite.Name, prerequisite.Level, prerequisite.Met)
                 : null,
             skill.Next is { } next
-                ? new SkillNextLevelResponse(next.Level, next.Money, next.Proficiency, next.Summary, next.CanLearn, next.Reasons)
+                ? new SkillNextLevelResponse(next.Level, next.Money, next.Proficiency, next.Summary, next.CanLearn, next.EnoughMoney, next.EnoughProficiency)
                 : null)).ToList(),
         overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId)).ToList());
 }

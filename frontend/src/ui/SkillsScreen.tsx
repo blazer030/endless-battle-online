@@ -8,9 +8,9 @@ import {
   equippedSummary,
   jobReasonText,
   learnReasonText,
-  learnReasonTextOf,
   markCurrentJob,
   unmetJobTexts,
+  unmetLearnTexts,
   PassiveSlots,
   setSlot,
   slotReasonText,
@@ -84,9 +84,6 @@ const loadAll = async (api: SkillsApi): Promise<Loaded> => {
   const [jobs, overview] = await Promise.all([api.getJobs(), api.getSkills()])
   return { jobs, overview }
 }
-
-const reasonsTitle = (reasons: readonly string[], text: (code: string) => string) =>
-  reasons.length === 0 ? undefined : reasons.map(text).join("、")
 
 export function SkillsScreen({ api, character, onCharacterChange, refreshSignal = 0 }: Props) {
   const jobsId = useId()
@@ -364,7 +361,7 @@ function SkillCard({
 }) {
   const { next } = skill
   const current = currentParts(skill)
-  const reasonText = learnReasonTextOf(skill)
+  const unmet = unmetLearnTexts(skill).join("、")
   return (
     <li className="skills__item">
       <div className="skills__item-head">
@@ -382,14 +379,12 @@ function SkillCard({
       ) : (
         <>
           <p className="skills__next">{nextLevelText(next)}</p>
-          {!next.canLearn && (
-            <p className="skills__unmet">{next.reasons.map(reasonText).join("、")}</p>
-          )}
+          {!next.canLearn && <p className="skills__unmet">{unmet}</p>}
           <button
             type="button"
             className="skills__action"
             disabled={!next.canLearn || busy}
-            title={reasonsTitle(next.reasons, reasonText)}
+            title={unmet || undefined}
             onClick={() => onLearn(skill.id)}
           >
             {skill.level === 0 ? "學習" : "升級"}

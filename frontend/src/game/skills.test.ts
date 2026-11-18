@@ -5,7 +5,7 @@ import {
   equippedSummary,
   jobReasonText,
   learnReasonText,
-  learnReasonTextOf,
+  unmetLearnTexts,
   markCurrentJob,
   unmetJobTexts,
   proficiencyPercent,
@@ -29,6 +29,7 @@ const skill = (overrides: Partial<Skill>): Skill => ({
   level: 1,
   maxLevel: 5,
   summary: "機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合",
+  taughtByCurrentJob: true,
   prerequisite: null,
   next: null,
   ...overrides,
@@ -188,14 +189,34 @@ describe("skills", () => {
     expect(slotReasonText("somethingNew")).toBe("somethingNew")
   })
 
-  it("learnReasonTextOf_NamesThePrerequisiteSkillAndLevel", () => {
+  it("unmetLearnTexts_ListsEachUnmetCondition", () => {
+    const next = {
+      level: 2,
+      money: 2000,
+      proficiency: 600,
+      summary: "",
+      canLearn: false,
+      enoughMoney: false,
+      enoughProficiency: false,
+    }
     const advanced = skill({
       id: "advanced-burst",
-      prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
+      taughtByCurrentJob: false,
+      prerequisite: { skillId: "burst", name: "爆氣", level: 3, met: false },
+      next,
     })
 
-    expect(learnReasonTextOf(advanced)("PREREQUISITE")).toBe("前置技能：爆氣 Lv 3")
-    expect(learnReasonTextOf(advanced)("NOT_ENOUGH_MONEY")).toBe("金錢不足")
-    expect(learnReasonTextOf(skill({}))("PREREQUISITE")).toBe("前置技能等級不足")
+    expect(unmetLearnTexts(advanced)).toEqual([
+      "不是目前職業的技能",
+      "前置技能：爆氣 Lv 3",
+      "技能熟練度不足",
+      "金錢不足",
+    ])
+    expect(
+      unmetLearnTexts(
+        skill({ next: { ...next, canLearn: true, enoughMoney: true, enoughProficiency: true } }),
+      ),
+    ).toEqual([])
+    expect(unmetLearnTexts(skill({ next: null }))).toEqual([])
   })
 })

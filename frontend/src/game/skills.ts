@@ -106,15 +106,18 @@ export const learnReasonText = translate({
   PREREQUISITE: "前置技能等級不足",
 })
 
-const Prerequisite = "PREREQUISITE"
-
-// 技能卡上的未達成原因：前置技能寫出名稱與要求等級
-export const learnReasonTextOf =
-  ({ prerequisite }: Skill) =>
-  (code: string) =>
-    code === Prerequisite && prerequisite !== null
-      ? `前置技能：${prerequisite.name} Lv ${prerequisite.level}`
-      : learnReasonText(code)
+// 技能卡上的未達成條件：前置技能寫出名稱與要求等級；滿級（next 為 null）不列
+export const unmetLearnTexts = ({ taughtByCurrentJob, prerequisite, next }: Skill): string[] =>
+  next === null
+    ? []
+    : [
+        ...(taughtByCurrentJob ? [] : ["不是目前職業的技能"]),
+        ...(prerequisite === null || prerequisite.met
+          ? []
+          : [`前置技能：${prerequisite.name} Lv ${prerequisite.level}`]),
+        ...(next.enoughProficiency ? [] : ["技能熟練度不足"]),
+        ...(next.enoughMoney ? [] : ["金錢不足"]),
+      ]
 
 export const slotReasonText = translate({
   SLOT_OUT_OF_RANGE: "欄位編號不正確",

@@ -5318,7 +5318,8 @@
           "proficiency",
           "summary",
           "canLearn",
-          "reasons"
+          "enoughMoney",
+          "enoughProficiency"
         ],
         "type": "object",
         "properties": {
@@ -5340,11 +5341,11 @@
           "canLearn": {
             "type": "boolean"
           },
-          "reasons": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "enoughMoney": {
+            "type": "boolean"
+          },
+          "enoughProficiency": {
+            "type": "boolean"
           }
         }
       },
@@ -5375,6 +5376,30 @@
             "items": {
               "$ref": "#/components/schemas/SkillSlotResponse"
             }
+          }
+        }
+      },
+      "SkillPrerequisiteCheckResponse": {
+        "required": [
+          "skillId",
+          "name",
+          "level",
+          "met"
+        ],
+        "type": "object",
+        "properties": {
+          "skillId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "met": {
+            "type": "boolean"
           }
         }
       },
@@ -5409,6 +5434,7 @@
           "level",
           "maxLevel",
           "summary",
+          "taughtByCurrentJob",
           "prerequisite",
           "next"
         ],
@@ -5449,13 +5475,16 @@
               "string"
             ]
           },
+          "taughtByCurrentJob": {
+            "type": "boolean"
+          },
           "prerequisite": {
             "oneOf": [
               {
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/SkillPrerequisiteResponse"
+                "$ref": "#/components/schemas/SkillPrerequisiteCheckResponse"
               }
             ]
           },

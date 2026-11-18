@@ -197,12 +197,15 @@ public sealed record SkillResponse(
     int Level,
     int MaxLevel,
     string? Summary,
-    SkillPrerequisiteResponse? Prerequisite,
+    bool TaughtByCurrentJob,
+    SkillPrerequisiteCheckResponse? Prerequisite,
     SkillNextLevelResponse? Next);
 
 public sealed record SkillPrerequisiteResponse(string SkillId, string Name, int Level);
 
-public sealed record SkillNextLevelResponse(int Level, long Money, long Proficiency, string Summary, bool CanLearn, IReadOnlyList<string> Reasons);
+public sealed record SkillPrerequisiteCheckResponse(string SkillId, string Name, int Level, bool Met);
+
+public sealed record SkillNextLevelResponse(int Level, long Money, long Proficiency, string Summary, bool CanLearn, bool EnoughMoney, bool EnoughProficiency);
 
 public sealed record SkillSlotResponse(int Slot, string SkillId);
 

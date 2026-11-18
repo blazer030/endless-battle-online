@@ -62,6 +62,19 @@ public class SkillLearningTests
         Assert.Equal(1, check.TargetLevel);
     }
 
+    // 技能總覽用：每個條件各自報告有沒有達成
+    [Fact]
+    public void Evaluate_ReportsEachCondition()
+    {
+        var check = SkillLearning.Evaluate(Warrior with { Money = 499 }, Burst, 0, 0, Taught);
+
+        Assert.True(check.TaughtByCurrentJob);
+        Assert.True(check.PrerequisiteMet);
+        Assert.False(check.AtMaxLevel);
+        Assert.False(check.EnoughProficiency);
+        Assert.False(check.EnoughMoney);
+    }
+
     [Fact]
     public void Learn_RejectsOtherJobSkill()
     {

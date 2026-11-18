@@ -80,7 +80,10 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(500, next.GetProperty("money").GetInt64());
         Assert.Equal(300, next.GetProperty("proficiency").GetInt64());
         Assert.False(next.GetProperty("canLearn").GetBoolean());
-        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.True(burst.GetProperty("taughtByCurrentJob").GetBoolean());
+        Assert.True(next.GetProperty("enoughMoney").GetBoolean());
+        Assert.False(next.GetProperty("enoughProficiency").GetBoolean());
+        Assert.False(next.TryGetProperty("reasons", out _));
         // 效果文字由條件、消耗、效果產生；未學時目前等級沒有效果文字；被動硬甲常駐
         Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", next.GetProperty("summary").GetString());
         Assert.Equal(JsonValueKind.Null, burst.GetProperty("summary").ValueKind);
@@ -127,7 +130,9 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("burst", prerequisite.GetProperty("skillId").GetString());
         Assert.Equal("爆氣", prerequisite.GetProperty("name").GetString());
         Assert.Equal(3, prerequisite.GetProperty("level").GetInt32());
-        Assert.Contains("PREREQUISITE", skills["advanced-burst"].GetProperty("next").GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.False(prerequisite.GetProperty("met").GetBoolean());
+        Assert.False(skills["advanced-burst"].GetProperty("taughtByCurrentJob").GetBoolean());
+        Assert.False(skills["advanced-burst"].GetProperty("next").GetProperty("canLearn").GetBoolean());
         Assert.Equal(JsonValueKind.Null, skills["burst"].GetProperty("prerequisite").ValueKind);
     }
 
