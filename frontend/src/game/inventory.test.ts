@@ -277,20 +277,18 @@ describe("reasonText", () => {
     expect(reasonText(code)).toBe(text)
   })
 
-  it("keeps an unknown code visible", () => {
-    expect(reasonText("somethingNew")).toBe("無法完成（somethingNew）")
+  it("uses the shared error text for an unknown code", () => {
+    expect(reasonText("SOMETHING_NEW")).toBe("發生錯誤，請稍後再試")
   })
 })
 
 describe("errorMessage", () => {
   it("joins the translated reasons", () => {
-    expect(errorMessage("無法裝備", ["JOB_MISMATCH", "STAT_TOO_LOW:strength"])).toBe(
-      "職業不符、力量不足",
-    )
+    expect(errorMessage(["JOB_MISMATCH", "STAT_TOO_LOW:strength"])).toBe("職業不符、力量不足")
   })
 
-  it("uses the detail when there are no reasons", () => {
-    expect(errorMessage("缺少數量", [])).toBe("缺少數量")
+  it("uses the generic text when there are no reasons", () => {
+    expect(errorMessage([])).toBe("發生錯誤，請稍後再試")
   })
 })
 

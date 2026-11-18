@@ -1,3 +1,4 @@
+import { errorText, GenericErrorText } from "./errorText"
 import { formatNumber } from "./format"
 import { buffLabel, durationMinutes, type BuffVo } from "./buffs"
 import { statLabel } from "./stats"
@@ -495,8 +496,8 @@ export const reasonText = (code: string) => {
     return `${statLabel(code.slice(StatTooLowPrefix.length))}不足`
   if (code.startsWith(MissingToolPrefix))
     return `缺少${toolNames[code.slice(MissingToolPrefix.length)] ?? "需要的道具"}`
-  return fixedReasonTexts[code] ?? `無法完成（${code}）`
+  return fixedReasonTexts[code] ?? errorText(code)
 }
 
-export const errorMessage = (detail: string, reasons: string[]) =>
-  reasons.length === 0 ? detail : reasons.map(reasonText).join("、")
+export const errorMessage = (reasons: readonly string[]) =>
+  reasons.length === 0 ? GenericErrorText : reasons.map(reasonText).join("、")

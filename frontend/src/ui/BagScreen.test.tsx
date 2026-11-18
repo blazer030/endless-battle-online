@@ -459,6 +459,19 @@ test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("背包已滿")
 })
 
+// spec game-api-contract：Unknown code in the front end
+test("BagScreen_UnknownCodeShowsGenericText", async () => {
+  const api = createFakeApi({
+    equip: vi.fn().mockRejectedValue(new ApiError(400, "", ["SOMETHING_NEW"])),
+  })
+  renderBag(api)
+
+  await user.click(await screen.findByRole("button", { name: /測試劍 \+0/ }))
+  await user.click(screen.getByRole("button", { name: "裝備" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("發生錯誤，請稍後再試")
+})
+
 test("BagScreen_ShowsRetry_WhenInventoryFailsToLoad", async () => {
   const api = createFakeApi({
     getInventory: vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValue(inventory),

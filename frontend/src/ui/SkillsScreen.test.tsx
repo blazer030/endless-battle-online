@@ -213,6 +213,28 @@ test("SkillsScreen_ChangeJobReportsCharacterAndReloads", async () => {
   expect(api.getSkills).toHaveBeenCalledTimes(2)
 })
 
+test("SkillsScreen_JobChangeShowsBagFullAsAWholeSentence", async () => {
+  const api = createApi({
+    changeJob: vi.fn().mockRejectedValue(new ApiError(400, "", ["BAG_FULL"])),
+  })
+  renderScreen(api)
+
+  await user.click(within(await jobCard("盜賊（基礎）")).getByRole("button", { name: "轉職" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("背包已滿，無法卸下全部裝備")
+})
+
+test("SkillsScreen_RequestInvalidShowsGenericText", async () => {
+  const api = createApi({
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "", ["REQUEST_INVALID"])),
+  })
+  renderScreen(api)
+
+  await user.click(within(await skillCard("爆氣 Lv 0/5")).getByRole("button", { name: "學習" }))
+
+  expect(await screen.findByRole("alert")).toHaveTextContent(/^發生錯誤，請稍後再試$/)
+})
+
 test("SkillsScreen_KeepsTheJobChange_WhenReloadFails", async () => {
   const changed = makeCharacter({ jobId: "thief", jobName: "盜賊" })
   const api = createApi({
@@ -309,7 +331,7 @@ test("SkillsScreen_LearnCallsApiAndShowsNewOverview", async () => {
 
 test("SkillsScreen_ShowsLearnReasonsFromServer", async () => {
   const api = createApi({
-    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "無法學習技能", ["NOT_ENOUGH_MONEY"])),
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "", ["NOT_ENOUGH_MONEY"])),
   })
   renderScreen(api)
 
@@ -385,9 +407,7 @@ test("SkillsScreen_DisablesSaveWhileLoadoutIsInvalid", async () => {
 
 test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   const api = createApi({
-    setSkillSlots: vi
-      .fn()
-      .mockRejectedValue(new ApiError(400, "技能欄位不正確", ["ACTIVE_IN_PASSIVE_SLOT"])),
+    setSkillSlots: vi.fn().mockRejectedValue(new ApiError(400, "", ["ACTIVE_IN_PASSIVE_SLOT"])),
   })
   renderScreen(api)
 

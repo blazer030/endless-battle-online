@@ -26,7 +26,7 @@ const conflictError = "角色資料已被其他請求更新，請再試一次"
 const describeError = (error: unknown) => {
   if (!(error instanceof ApiError)) return fallbackError
   if (error.status === 409) return conflictError
-  return settingsErrorMessage(error.reasons, error.detail)
+  return settingsErrorMessage(error.reasons)
 }
 
 // 值一律來自 attackChoices；找不到時退回自動

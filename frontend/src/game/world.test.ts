@@ -34,8 +34,9 @@ describe("moveReasonText", () => {
     expect(moveReasonText(code)).toBe(text)
   })
 
-  it("falls back to the code when it is unknown", () => {
-    expect(moveReasonText("somethingNew")).toBe("somethingNew")
+  it("falls back to the shared error text when it is unknown", () => {
+    expect(moveReasonText("CHARACTER_NOT_FOUND")).toBe("尚未建立角色")
+    expect(moveReasonText("SOMETHING_NEW")).toBe("發生錯誤，請稍後再試")
   })
 })
 

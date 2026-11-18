@@ -1,3 +1,4 @@
+import { errorText } from "./errorText"
 import type { CharacterVo } from "./character"
 
 // 世界地圖（來自 /api/world），由 api/worldData.ts 轉換
@@ -61,7 +62,7 @@ const moveReasonTexts: Record<string, string> = {
   SAME_PLACE: "你已經在這裡",
 }
 
-export const moveReasonText = (code: string) => moveReasonTexts[code] ?? code
+export const moveReasonText = (code: string) => moveReasonTexts[code] ?? errorText(code)
 
 export const locationTitle = ({
   placeName,

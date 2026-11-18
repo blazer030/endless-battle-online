@@ -20,7 +20,7 @@ const conflictError = "角色資料已被其他請求更新，請再試一次"
 const describeMoveError = (error: unknown): string[] => {
   if (!(error instanceof ApiError)) return [fallbackError]
   if (error.status === 409) return [conflictError]
-  return error.reasons.length === 0 ? [error.detail] : error.reasons.map(moveReasonText)
+  return error.reasons.length === 0 ? [fallbackError] : error.reasons.map(moveReasonText)
 }
 
 export function WorldPanel({ api, character, onCharacterChange, onClose }: Props) {

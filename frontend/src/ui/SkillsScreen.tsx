@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useState } from "react"
 import { ApiError, type ApiClient } from "../api/client"
+import { errorTextOf } from "../game/errorText"
 import {
   ActiveSlots,
   clearSlot,
@@ -39,13 +40,23 @@ type Props = {
 
 const fallbackError = "發生錯誤，請稍後再試"
 
-// 錯誤訊息後面接上原因代碼的中文
-const describeError = (error: unknown, reasonText: (code: string) => string) => {
+// 「動作：原因」；整句說法的代碼（例如轉職時背包滿）直接用那句；這頁的表翻不出來的代碼用共用的說法
+const describeError = (
+  error: unknown,
+  prefix: string,
+  reasonText: (code: string) => string,
+  sentences: Readonly<Record<string, string>> = {},
+) => {
   if (!(error instanceof ApiError)) return fallbackError
-  return error.reasons.length === 0
-    ? error.detail
-    : `${error.detail}：${error.reasons.map(reasonText).join("、")}`
+  const sentence = error.reasons.length === 1 ? sentences[error.reasons[0]!] : undefined
+  if (sentence !== undefined) return sentence
+  const texts = error.reasons.map(reasonText)
+  return texts.length > 0 && texts.every((text, index) => text !== error.reasons[index])
+    ? `${prefix}：${texts.join("、")}`
+    : errorTextOf(error.reasons)
 }
+
+const jobErrorSentences = { BAG_FULL: "背包已滿，無法卸下全部裝備" }
 
 const tierLabel = (tier: number) => (tier === 1 ? "基礎" : "進階")
 
@@ -153,7 +164,8 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
         setJobs((current) => (current === null ? current : markCurrentJob(current, changed.jobId)))
         await load().catch(() => setJobError(ReloadAfterChangeFailed))
       },
-      (error) => setJobError(describeError(error, jobReasonText)),
+      (error) =>
+        setJobError(describeError(error, "轉職條件不符", jobReasonText, jobErrorSentences)),
     )
 
   const learn = (skillId: string) =>
@@ -165,7 +177,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
         const refreshed = await api.getMyCharacter().catch(() => null)
         if (refreshed !== null) onCharacterChange(refreshed)
       },
-      (error) => setLearnError(describeError(error, learnReasonText)),
+      (error) => setLearnError(describeError(error, "無法學習技能", learnReasonText)),
     )
 
   const saveSlots = () =>
@@ -178,7 +190,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
         setDrafts(draftsFrom(updated))
         setSaved(true)
       },
-      (error) => setSlotError(describeError(error, slotReasonText)),
+      (error) => setSlotError(describeError(error, "技能欄位不正確", slotReasonText)),
     )
 
   const editDrafts = (next: SlotDraft[]) => {

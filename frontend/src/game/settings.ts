@@ -1,3 +1,4 @@
+import { errorTextOf } from "./errorText"
 import { translateReasons } from "./reasons"
 import type { AdventureSettings, AttackKind, CharacterVo } from "./character"
 
@@ -28,8 +29,8 @@ const reasonTexts: Record<string, string> = {
   INVALID_PERCENT: InvalidPercentMessage,
 }
 
-export const settingsErrorMessage = (reasons: string[], fallback: string) =>
-  translateReasons(reasonTexts, reasons, fallback)
+export const settingsErrorMessage = (reasons: string[]) =>
+  translateReasons(reasonTexts, reasons, errorTextOf(reasons))
 
 export const settingsForm = (character: CharacterVo): SettingsForm => {
   const { settings } = character

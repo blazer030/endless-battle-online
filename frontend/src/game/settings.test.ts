@@ -93,7 +93,8 @@ describe("parseSettings", () => {
 
 describe("settingsErrorMessage", () => {
   test("settingsErrorMessage_TranslatesKnownReasons", () => {
-    expect(settingsErrorMessage(["INVALID_PERCENT"], "fallback")).toBe(InvalidPercentMessage)
-    expect(settingsErrorMessage(["unknown"], "fallback")).toBe("fallback")
+    expect(settingsErrorMessage(["INVALID_PERCENT"])).toBe(InvalidPercentMessage)
+    expect(settingsErrorMessage(["REQUEST_INVALID"])).toBe("發生錯誤，請稍後再試")
+    expect(settingsErrorMessage(["CHARACTER_NOT_FOUND"])).toBe("尚未建立角色")
   })
 })

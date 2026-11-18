@@ -95,7 +95,7 @@ const subPages: { id: SubPage; label: string }[] = [
 const fallbackError = "發生錯誤，請稍後再試"
 
 const describeError = (error: unknown) =>
-  error instanceof ApiError ? errorMessage(error.detail, error.reasons) : fallbackError
+  error instanceof ApiError ? errorMessage(error.reasons) : fallbackError
 
 export function BagScreen({
   api,
