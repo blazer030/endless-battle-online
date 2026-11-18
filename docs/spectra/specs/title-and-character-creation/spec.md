@@ -8,7 +8,7 @@ The title screen lets a visitor sign in or register on an adventurer's registry 
 
 ### Requirement: Sign in on the registry card
 
-The title screen SHALL show the player's own registry card with an account field, a password field and a 入城 seal. The seal SHALL be enabled only when both fields are non-empty and no request is in progress. Pressing the seal, or pressing Enter in either field, SHALL sign in. On success the screen SHALL load the character. On failure the card SHALL show the API's error detail; when the request fails without an API error the card SHALL show 發生錯誤，請稍後再試.
+The title screen SHALL show the player's own registry card with an account field, a password field and a 入城 seal. The seal SHALL be enabled only when both fields are non-empty and no request is in progress. Pressing the seal, or pressing Enter in either field, SHALL sign in. On success the screen SHALL load the character. On failure the card SHALL show the text for the response's first reason code (`AUTHENTICATION_FAILED` reads 帳號或密碼錯誤; see the `game-api-contract` capability for unknown codes); when the request fails without an API error the card SHALL show 發生錯誤，請稍後再試.
 
 #### Scenario: Wrong password
 
@@ -20,131 +20,10 @@ The title screen SHALL show the player's own registry card with an account field
 - **WHEN** the account field is filled and the password field is empty
 - **THEN** the 入城 seal is disabled
 
-
-<!-- @trace
-source: title-and-create-screens
-updated: 2026-11-10
-code:
-  - frontend/src/ui/create/art.ts
-  - frontend/src/game/jobBook.ts
-  - frontend/src/assets/title/bookmark-thief.webp
-  - frontend/src/ui/title/TitleBackdrop.tsx
-  - frontend/src/ui/title/TitleScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Api/Errors/ApplicationExceptionHandler.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/MySqlErrors.cs
-  - frontend/src/assets/title/card-sealed.webp
-  - frontend/src/ui/CharacterScreen.css
-  - frontend/src/ui/screens.css
-  - backend/EndlessBattle.Application/Characters/ICharacterRepository.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/assets/title/element-fire.webp
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - frontend/src/assets/title/element-water.webp
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/title/TitleBackdrop.css
-  - backend/content/skills.json
-  - frontend/src/assets/title/sky-day.webp
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - frontend/src/assets/title/desk-edge.webp
-  - frontend/src/ui/stage/StageFrame.css
-  - frontend/src/assets/title/bookmark-bard.webp
-  - backend/EndlessBattle.Tests/Api/AccountEndpointsTests.cs
-  - docs/art/README.md
-  - frontend/src/assets/title/bubble.webp
-  - frontend/src/assets/title/sky-dawn.webp
-  - frontend/src/ui/CharacterScreen.tsx
-  - frontend/src/ui/create/CreateScreen.css
-  - frontend/src/assets/title/card-blank.webp
-  - frontend/src/ui/AdventureScreen.tsx
-  - backend/EndlessBattle.Domain/Battle/ElementTable.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/assets/title/note.webp
-  - frontend/src/game/creationOptions.ts
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs
-  - .env.nas.local.example
-  - frontend/src/ui/stage/StageFrame.tsx
-  - CLAUDE.md
-  - frontend/index.html
-  - frontend/src/ui/useContentArtUrl.ts
-  - frontend/src/assets/title/sign.webp
-  - frontend/src/game/creationDraft.ts
-  - frontend/src/ui/CreateCharacterScreen.css
-  - frontend/src/assets/title/hall.webp
-  - frontend/src/assets/title/sky-dusk.webp
-  - frontend/src/ui/title/Passage.tsx
-  - frontend/src/ui/create/JobBook.css
-  - frontend/src/ui/title/Seal.tsx
-  - backend/EndlessBattle.Tests/Support/InMemoryCharacterRepository.cs
-  - frontend/src/assets/title/bookmark-sorcerer.webp
-  - frontend/src/assets/title/desk.webp
-  - frontend/src/ui/App.tsx
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/title/element-earth.webp
-  - frontend/src/assets/title/bookmark-warrior.webp
-  - frontend/src/api/client.ts
-  - frontend/src/assets/title/element-wood.webp
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/assets/content-manifest.json
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - docs/superpowers/specs/2026-10-22-wog-remake-rulings.md
-  - frontend/src/ui/create/JobBook.tsx
-  - frontend/src/ui/stage/fitStage.ts
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - scripts/deploy-nas.sh
-  - backend/EndlessBattle.Application/Common/ApplicationExceptions.cs
-  - frontend/src/assets/title/book-page.webp
-  - frontend/src/assets/title/element-poison.webp
-  - frontend/src/game/timeOfDay.ts
-  - frontend/src/assets/title/clerk.webp
-  - backend/EndlessBattle.Api/Program.cs
-  - frontend/src/assets/title/seal.webp
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - frontend/src/assets/title/sky-night.webp
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/ui/create/flavor.ts
-  - frontend/src/ui/title/Passage.css
-  - frontend/src/ui/title/useTimeOfDay.ts
-  - frontend/src/ui/AuthScreen.tsx
-  - frontend/src/ui/title/Seal.css
-  - backend/openapi/EndlessBattle.Api.json
-  - frontend/src/ui/ContentImage.tsx
-  - frontend/src/api/parse.ts
-  - frontend/src/assets/title/element-wind.webp
-  - backend/EndlessBattle.Domain/Characters/CharacterOptions.cs
-  - backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs
-  - backend/EndlessBattle.Application/DependencyInjection.cs
-  - frontend/src/motion/timings.ts
-  - frontend/src/ui/title/TitleScreen.css
-tests:
-  - frontend/src/api/publicData.test.ts
-  - frontend/src/ui/stage/StageFrame.test.tsx
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/test/fixtures.ts
-  - frontend/src/game/timeOfDay.test.ts
-  - frontend/src/ui/create/JobBook.test.tsx
-  - frontend/src/ui/theme.test.ts
-  - frontend/src/ui/create/CreateScreen.test.tsx
-  - frontend/src/ui/AuthScreen.test.tsx
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/ui/stage/fitStage.test.ts
-  - frontend/src/ui/title/TitleBackdrop.test.tsx
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/ui/title/TitleScreen.test.tsx
-  - frontend/src/ui/create/CreateSubmit.test.tsx
--->
-
 ---
 ### Requirement: Register with a blank card
 
-The title screen SHALL show a stack of blank registry cards beside the own card. Tapping the stack SHALL bring a blank card to the front with its own account field, password field, password confirmation field and 登記 seal; tapping the own card SHALL bring it back. The 登記 seal SHALL stay disabled until all three fields are filled. When the two passwords differ, pressing 登記 SHALL show 兩次密碼不一樣 on the blank card and SHALL NOT call the API. Otherwise pressing 登記 SHALL register the account and then sign in with the same account and password. On success the blank card SHALL be sealed with wax and the screen SHALL load the character. When registration fails the blank card SHALL show the API's error detail. When registration succeeds but the sign-in fails, the blank card SHALL be sealed and, 0.9 seconds later, the own card SHALL come to the front with the new account name filled in, an empty password and the failure's error detail, because registering the same account again can only fail; 0.6 seconds after that the blank card SHALL be cleared and returned to the stack.
+The title screen SHALL show a stack of blank registry cards beside the own card. Tapping the stack SHALL bring a blank card to the front with its own account field, password field, password confirmation field and 登記 seal; tapping the own card SHALL bring it back. The 登記 seal SHALL stay disabled until all three fields are filled. When the two passwords differ, pressing 登記 SHALL show 兩次密碼不一樣 on the blank card and SHALL NOT call the API. Otherwise pressing 登記 SHALL register the account and then sign in with the same account and password. On success the blank card SHALL be sealed with wax and the screen SHALL load the character. When registration fails the blank card SHALL show the text for the response's first reason code (`USERNAME_INVALID` reads 帳號必須是 3～32 個英數字或底線, `PASSWORD_TOO_SHORT` reads 密碼至少要 8 個字元, `USERNAME_TAKEN` reads 帳號已被使用). When registration succeeds but the sign-in fails, the blank card SHALL be sealed and, 0.9 seconds later, the own card SHALL come to the front with the new account name filled in, an empty password and the failure's error text, because registering the same account again can only fail; 0.6 seconds after that the blank card SHALL be cleared and returned to the stack.
 
 #### Scenario: Account already taken
 
@@ -159,133 +38,12 @@ The title screen SHALL show a stack of blank registry cards beside the own card.
 #### Scenario: Sign-in fails after registering
 
 - **WHEN** registration succeeds for the account `newcomer` and the following sign-in fails without an API response
-- **THEN** the own card comes to the front with the account `newcomer`, an empty password and the connection error detail
+- **THEN** the own card comes to the front with the account `newcomer`, an empty password and 發生錯誤，請稍後再試
 
 #### Scenario: Successful registration leads to character creation
 
 - **WHEN** registration and the following sign-in succeed for a new account
 - **THEN** the blank card is sealed, the character is loaded, and because the account has no character the character creation screen opens
-
-
-<!-- @trace
-source: title-and-create-screens
-updated: 2026-11-10
-code:
-  - frontend/src/ui/create/art.ts
-  - frontend/src/game/jobBook.ts
-  - frontend/src/assets/title/bookmark-thief.webp
-  - frontend/src/ui/title/TitleBackdrop.tsx
-  - frontend/src/ui/title/TitleScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Api/Errors/ApplicationExceptionHandler.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/MySqlErrors.cs
-  - frontend/src/assets/title/card-sealed.webp
-  - frontend/src/ui/CharacterScreen.css
-  - frontend/src/ui/screens.css
-  - backend/EndlessBattle.Application/Characters/ICharacterRepository.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/assets/title/element-fire.webp
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - frontend/src/assets/title/element-water.webp
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/title/TitleBackdrop.css
-  - backend/content/skills.json
-  - frontend/src/assets/title/sky-day.webp
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - frontend/src/assets/title/desk-edge.webp
-  - frontend/src/ui/stage/StageFrame.css
-  - frontend/src/assets/title/bookmark-bard.webp
-  - backend/EndlessBattle.Tests/Api/AccountEndpointsTests.cs
-  - docs/art/README.md
-  - frontend/src/assets/title/bubble.webp
-  - frontend/src/assets/title/sky-dawn.webp
-  - frontend/src/ui/CharacterScreen.tsx
-  - frontend/src/ui/create/CreateScreen.css
-  - frontend/src/assets/title/card-blank.webp
-  - frontend/src/ui/AdventureScreen.tsx
-  - backend/EndlessBattle.Domain/Battle/ElementTable.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/assets/title/note.webp
-  - frontend/src/game/creationOptions.ts
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs
-  - .env.nas.local.example
-  - frontend/src/ui/stage/StageFrame.tsx
-  - CLAUDE.md
-  - frontend/index.html
-  - frontend/src/ui/useContentArtUrl.ts
-  - frontend/src/assets/title/sign.webp
-  - frontend/src/game/creationDraft.ts
-  - frontend/src/ui/CreateCharacterScreen.css
-  - frontend/src/assets/title/hall.webp
-  - frontend/src/assets/title/sky-dusk.webp
-  - frontend/src/ui/title/Passage.tsx
-  - frontend/src/ui/create/JobBook.css
-  - frontend/src/ui/title/Seal.tsx
-  - backend/EndlessBattle.Tests/Support/InMemoryCharacterRepository.cs
-  - frontend/src/assets/title/bookmark-sorcerer.webp
-  - frontend/src/assets/title/desk.webp
-  - frontend/src/ui/App.tsx
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/title/element-earth.webp
-  - frontend/src/assets/title/bookmark-warrior.webp
-  - frontend/src/api/client.ts
-  - frontend/src/assets/title/element-wood.webp
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/assets/content-manifest.json
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - docs/superpowers/specs/2026-10-22-wog-remake-rulings.md
-  - frontend/src/ui/create/JobBook.tsx
-  - frontend/src/ui/stage/fitStage.ts
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - scripts/deploy-nas.sh
-  - backend/EndlessBattle.Application/Common/ApplicationExceptions.cs
-  - frontend/src/assets/title/book-page.webp
-  - frontend/src/assets/title/element-poison.webp
-  - frontend/src/game/timeOfDay.ts
-  - frontend/src/assets/title/clerk.webp
-  - backend/EndlessBattle.Api/Program.cs
-  - frontend/src/assets/title/seal.webp
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - frontend/src/assets/title/sky-night.webp
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/ui/create/flavor.ts
-  - frontend/src/ui/title/Passage.css
-  - frontend/src/ui/title/useTimeOfDay.ts
-  - frontend/src/ui/AuthScreen.tsx
-  - frontend/src/ui/title/Seal.css
-  - backend/openapi/EndlessBattle.Api.json
-  - frontend/src/ui/ContentImage.tsx
-  - frontend/src/api/parse.ts
-  - frontend/src/assets/title/element-wind.webp
-  - backend/EndlessBattle.Domain/Characters/CharacterOptions.cs
-  - backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs
-  - backend/EndlessBattle.Application/DependencyInjection.cs
-  - frontend/src/motion/timings.ts
-  - frontend/src/ui/title/TitleScreen.css
-tests:
-  - frontend/src/api/publicData.test.ts
-  - frontend/src/ui/stage/StageFrame.test.tsx
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/test/fixtures.ts
-  - frontend/src/game/timeOfDay.test.ts
-  - frontend/src/ui/create/JobBook.test.tsx
-  - frontend/src/ui/theme.test.ts
-  - frontend/src/ui/create/CreateScreen.test.tsx
-  - frontend/src/ui/AuthScreen.test.tsx
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/ui/stage/fitStage.test.ts
-  - frontend/src/ui/title/TitleBackdrop.test.tsx
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/ui/title/TitleScreen.test.tsx
-  - frontend/src/ui/create/CreateSubmit.test.tsx
--->
 
 ---
 ### Requirement: Load the character before entering
@@ -776,17 +534,22 @@ tests:
 ---
 ### Requirement: Submit or leave character creation
 
-Pressing 出發 SHALL create the character with the filled values. On success the screen SHALL show 踏上旅途 with the character name and then open the game. When the API responds 409 with the reason `accountHasCharacter`, the account already has a character (for example the first press of 出發 succeeded but its response timed out), so the screen SHALL load that character and continue as on success with the loaded character's name. Any other 409 SHALL make 莉瑟 say 哎呀，「<name>」已經有人登記了……換一個名字好嗎？ and the 名字 row SHALL open with the name to edit. When the API responds 400, 莉瑟 SHALL say the API's error detail. Any other failure SHALL make 莉瑟 say 咦，登記簿那邊沒有回應……, keep every filled row, and keep 出發 enabled; tapping a row or pressing 出發 again SHALL replace that line. The 離開 button SHALL ask 登記證還沒填完呢，確定現在就要離開嗎？ with 繼續填寫 and 先離開; 先離開 SHALL clear the stored access token and return to the title screen with the account name on the own card and an empty password.
+Pressing 出發 SHALL create the character with the filled values. On success the screen SHALL show 踏上旅途 with the character name and then open the game. When the API responds 409 with the reason `ACCOUNT_HAS_CHARACTER`, the account already has a character (for example the first press of 出發 succeeded but its response timed out), so the screen SHALL load that character and continue as on success with the loaded character's name. When the API responds 409 with the reason `CHARACTER_NAME_TAKEN`, 莉瑟 SHALL say 哎呀，「<name>」已經有人登記了……換一個名字好嗎？ and the 名字 row SHALL open with the name to edit. When the API responds with any other reason code, 莉瑟 SHALL say the text for the response's first reason code (for example 400 `POINTS_NOT_SPENT` reads 能力點數必須剛好分完 10 點, 409 `CONCURRENT_UPDATE` reads 資料正被其他請求使用，請重試) and the 名字 row SHALL stay closed. Any other failure SHALL make 莉瑟 say 咦，登記簿那邊沒有回應……, keep every filled row, and keep 出發 enabled; tapping a row or pressing 出發 again SHALL replace that line. The 離開 button SHALL ask 登記證還沒填完呢，確定現在就要離開嗎？ with 繼續填寫 and 先離開; 先離開 SHALL clear the stored access token and return to the title screen with the account name on the own card and an empty password.
 
 #### Scenario: Name taken
 
-- **WHEN** the player presses 出發 with the name 收尾者 and the API responds 409 with the reason `characterNameTaken`
+- **WHEN** the player presses 出發 with the name 收尾者 and the API responds 409 with the reason `CHARACTER_NAME_TAKEN`
 - **THEN** 莉瑟 says 哎呀，「收尾者」已經有人登記了……換一個名字好嗎？ and the 名字 answer is open containing 收尾者
 
 #### Scenario: Account already has a character
 
-- **WHEN** the player presses 出發 again after an earlier press created the character 收尾者 but timed out, and the API responds 409 with the reason `accountHasCharacter`
+- **WHEN** the player presses 出發 again after an earlier press created the character 收尾者 but timed out, and the API responds 409 with the reason `ACCOUNT_HAS_CHARACTER`
 - **THEN** the screen loads the character, shows 踏上旅途 with 收尾者, and opens the game
+
+#### Scenario: Another conflict speaks its reason
+
+- **WHEN** the player presses 出發 and the API responds 409 with the reason `CONCURRENT_UPDATE`
+- **THEN** 莉瑟 says 資料正被其他請求使用，請重試, the 名字 answer stays closed, and 出發 stays enabled
 
 #### Scenario: Network failure keeps the card
 
@@ -797,123 +560,3 @@ Pressing 出發 SHALL create the character with the filled values. On success th
 
 - **WHEN** the player confirms 先離開
 - **THEN** the stored access token is cleared and the title screen shows the own card with the registered account name and an empty password
-
-<!-- @trace
-source: title-and-create-screens
-updated: 2026-11-10
-code:
-  - frontend/src/ui/create/art.ts
-  - frontend/src/game/jobBook.ts
-  - frontend/src/assets/title/bookmark-thief.webp
-  - frontend/src/ui/title/TitleBackdrop.tsx
-  - frontend/src/ui/title/TitleScreen.tsx
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - backend/EndlessBattle.Api/Errors/ApplicationExceptionHandler.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/MySqlErrors.cs
-  - frontend/src/assets/title/card-sealed.webp
-  - frontend/src/ui/CharacterScreen.css
-  - frontend/src/ui/screens.css
-  - backend/EndlessBattle.Application/Characters/ICharacterRepository.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/assets/title/element-fire.webp
-  - backend/EndlessBattle.Tests/Api/InventoryEndpointsTests.cs
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - frontend/src/assets/title/element-water.webp
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/title/TitleBackdrop.css
-  - backend/content/skills.json
-  - frontend/src/assets/title/sky-day.webp
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - frontend/src/assets/title/desk-edge.webp
-  - frontend/src/ui/stage/StageFrame.css
-  - frontend/src/assets/title/bookmark-bard.webp
-  - backend/EndlessBattle.Tests/Api/AccountEndpointsTests.cs
-  - docs/art/README.md
-  - frontend/src/assets/title/bubble.webp
-  - frontend/src/assets/title/sky-dawn.webp
-  - frontend/src/ui/CharacterScreen.tsx
-  - frontend/src/ui/create/CreateScreen.css
-  - frontend/src/assets/title/card-blank.webp
-  - frontend/src/ui/AdventureScreen.tsx
-  - backend/EndlessBattle.Domain/Battle/ElementTable.cs
-  - frontend/src/api/publicData.ts
-  - frontend/src/assets/title/note.webp
-  - frontend/src/game/creationOptions.ts
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Api/PublicEndpointsTests.cs
-  - .env.nas.local.example
-  - frontend/src/ui/stage/StageFrame.tsx
-  - CLAUDE.md
-  - frontend/index.html
-  - frontend/src/ui/useContentArtUrl.ts
-  - frontend/src/assets/title/sign.webp
-  - frontend/src/game/creationDraft.ts
-  - frontend/src/ui/CreateCharacterScreen.css
-  - frontend/src/assets/title/hall.webp
-  - frontend/src/assets/title/sky-dusk.webp
-  - frontend/src/ui/title/Passage.tsx
-  - frontend/src/ui/create/JobBook.css
-  - frontend/src/ui/title/Seal.tsx
-  - backend/EndlessBattle.Tests/Support/InMemoryCharacterRepository.cs
-  - frontend/src/assets/title/bookmark-sorcerer.webp
-  - frontend/src/assets/title/desk.webp
-  - frontend/src/ui/App.tsx
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/title/element-earth.webp
-  - frontend/src/assets/title/bookmark-warrior.webp
-  - frontend/src/api/client.ts
-  - frontend/src/assets/title/element-wood.webp
-  - backend/EndlessBattle.Api/Endpoints/ContentEndpoints.cs
-  - frontend/src/assets/content-manifest.json
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Application/Jobs/PublicJobService.cs
-  - docs/superpowers/specs/2026-10-22-wog-remake-rulings.md
-  - frontend/src/ui/create/JobBook.tsx
-  - frontend/src/ui/stage/fitStage.ts
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - scripts/deploy-nas.sh
-  - backend/EndlessBattle.Application/Common/ApplicationExceptions.cs
-  - frontend/src/assets/title/book-page.webp
-  - frontend/src/assets/title/element-poison.webp
-  - frontend/src/game/timeOfDay.ts
-  - frontend/src/assets/title/clerk.webp
-  - backend/EndlessBattle.Api/Program.cs
-  - frontend/src/assets/title/seal.webp
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - frontend/src/assets/title/sky-night.webp
-  - frontend/src/ui/create/CreateScreen.tsx
-  - frontend/src/ui/create/flavor.ts
-  - frontend/src/ui/title/Passage.css
-  - frontend/src/ui/title/useTimeOfDay.ts
-  - frontend/src/ui/AuthScreen.tsx
-  - frontend/src/ui/title/Seal.css
-  - backend/openapi/EndlessBattle.Api.json
-  - frontend/src/ui/ContentImage.tsx
-  - frontend/src/api/parse.ts
-  - frontend/src/assets/title/element-wind.webp
-  - backend/EndlessBattle.Domain/Characters/CharacterOptions.cs
-  - backend/EndlessBattle.Api/Endpoints/PublicEndpoints.cs
-  - backend/EndlessBattle.Application/DependencyInjection.cs
-  - frontend/src/motion/timings.ts
-  - frontend/src/ui/title/TitleScreen.css
-tests:
-  - frontend/src/api/publicData.test.ts
-  - frontend/src/ui/stage/StageFrame.test.tsx
-  - frontend/src/game/creationDraft.test.ts
-  - frontend/src/test/fixtures.ts
-  - frontend/src/game/timeOfDay.test.ts
-  - frontend/src/ui/create/JobBook.test.tsx
-  - frontend/src/ui/theme.test.ts
-  - frontend/src/ui/create/CreateScreen.test.tsx
-  - frontend/src/ui/AuthScreen.test.tsx
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/ui/useAdventureLoop.test.tsx
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/ui/stage/fitStage.test.ts
-  - frontend/src/ui/title/TitleBackdrop.test.tsx
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/ui/title/TitleScreen.test.tsx
-  - frontend/src/ui/create/CreateSubmit.test.tsx
--->

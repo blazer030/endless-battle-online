@@ -26,7 +26,7 @@ The inn SHALL price a room as the character's level × `pricePerLevel` × the ro
 ---
 ### Requirement: Booking a room buys a timed bonus
 
-Booking a room SHALL deduct its price from the character's money and SHALL start a stay from now until now + the inn's `seconds`. Booking SHALL NOT change the character's health or mana points and SHALL NOT settle adventure time. The price SHALL be computed from the stored character's level. When the money is less than the price the booking SHALL be rejected with reason `notEnoughMoney`; an unknown room SHALL be rejected with reason `unknownRoom`; a rejected booking SHALL write nothing.
+Booking a room SHALL deduct its price from the character's money and SHALL start a stay from now until now + the inn's `seconds`. Booking SHALL NOT change the character's health or mana points and SHALL NOT settle adventure time. The price SHALL be computed from the stored character's level. When the money is less than the price the booking SHALL be rejected with reason `NOT_ENOUGH_MONEY`; an unknown room SHALL be rejected with reason `UNKNOWN_ROOM`; a rejected booking SHALL write nothing.
 
 #### Scenario: Booking deducts money and starts the stay
 
@@ -41,12 +41,12 @@ Booking a room SHALL deduct its price from the character's money and SHALL start
 #### Scenario: Not enough money
 
 - **WHEN** a level 6 character with 599 money books `apprentice-loft`
-- **THEN** the request fails with HTTP 400 and reasons `["notEnoughMoney"]`, and the money and stays are unchanged
+- **THEN** the request fails with HTTP 400 and reasons `["NOT_ENOUGH_MONEY"]`, and the money and stays are unchanged
 
 #### Scenario: Unknown room
 
 - **WHEN** a character books room `penthouse`, which the inn does not define
-- **THEN** the request fails with HTTP 400 and reasons `["unknownRoom"]`, and nothing is written
+- **THEN** the request fails with HTTP 400 and reasons `["UNKNOWN_ROOM"]`, and nothing is written
 
 ---
 ### Requirement: Booking ends the active stay

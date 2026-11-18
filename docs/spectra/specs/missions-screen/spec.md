@@ -188,14 +188,14 @@ Feedback and errors on the sheet SHALL be spoken by Lise above the action row, w
 | --- | --- | --- |
 | accepted | no | 「(title)」就拜託您了，路上小心！ |
 | abandoned | no | 好的，這張先放回佈告欄囉。 |
-| `itemsMissing` | yes | 交付的東西好像還差一點呢…… |
-| `objectiveIncomplete` | yes | 討伐的數量好像還差一點呢…… |
-| `petMissing` | yes | 咦，您身邊沒有帶著(pet)呢…… |
-| `skillTooLow` | yes | (skill)要練到 LvN 才行喔。 |
-| `bagFull` | yes | 哎呀，(category)的格子已經滿了…… |
-| `petsFull` | yes | 獸欄已經住滿 3 隻了，新夥伴沒地方住呢…… |
-| `tooMany` | yes | 您手邊已經有 (activeLimit) 張委託了喔。 |
-| `missionNotActive` | yes | 這張委託已經不在您手上了呢…… |
+| `ITEMS_MISSING` | yes | 交付的東西好像還差一點呢…… |
+| `OBJECTIVE_INCOMPLETE` | yes | 討伐的數量好像還差一點呢…… |
+| `PET_MISSING` | yes | 咦，您身邊沒有帶著(pet)呢…… |
+| `SKILL_TOO_LOW` | yes | (skill)要練到 LvN 才行喔。 |
+| `BAG_FULL` | yes | 哎呀，(category)的格子已經滿了…… |
+| `PETS_FULL` | yes | 獸欄已經住滿 3 隻了，新夥伴沒地方住呢…… |
+| `TOO_MANY` | yes | 您手邊已經有 (activeLimit) 張委託了喔。 |
+| `MISSION_NOT_ACTIVE` | yes | 這張委託已經不在您手上了呢…… |
 | any other reason, or no response | yes | 咦，剛剛沒送出去……再試一次吧？ |
 
 (title) is the title without "[每日]"; (pet) and (skill) are the mission's pet species and required skill names and N the required level; (category) is the category label of the reward items when they all share one category, otherwise 背包. When a request fails with several reasons, Lise SHALL speak the line of the first reason in the table order.

@@ -502,7 +502,7 @@ Feedback and errors SHALL be spoken by Lise and SHALL NOT appear as system messa
 
 #### Scenario: Bag full names the category
 
-- **WHEN** an exchange of 破山斧 is refused with `bagFull`
+- **WHEN** an exchange of 破山斧 is refused with `BAG_FULL`
 - **THEN** Lise says `哎呀，武器的格子已經滿了……` in the sheet with the failure colour
 
 ##### Example: clerk lines
@@ -517,74 +517,10 @@ Feedback and errors SHALL be spoken by Lise and SHALL NOT appear as system messa
 | load failure | yes | 哎呀，帳冊一時翻不到了…… |
 | item exchanged | no | 換好了！已經幫您放進背包囉。 |
 | mercenary exchanged | no | C級傭兵的契約簽好囉，祝您順利！ |
-| `bagFull` for 90000HP回復劑 | yes | 哎呀，道具的格子已經滿了…… |
-| `mercenaryHired` | yes | 您已經有一位傭兵了，一次只能一位喔。 |
-| `medalsMissing` | yes | 勳章好像還差一點呢…… |
+| `BAG_FULL` for 90000HP回復劑 | yes | 哎呀，道具的格子已經滿了…… |
+| `MERCENARY_HIRED` | yes | 您已經有一位傭兵了，一次只能一位喔。 |
+| `MEDALS_MISSING` | yes | 勳章好像還差一點呢…… |
 | any other reason or a network failure | yes | 咦，剛剛沒送出去……再試一次吧？ |
-
-
-<!-- @trace
-source: honour-screen
-updated: 2026-11-14
-code:
-  - frontend/src/assets/honour/felt.webp
-  - backend/EndlessBattle.Tests/Api/HonourEndpointsTests.cs
-  - frontend/src/ui/honour/HonourSheet.tsx
-  - frontend/src/assets/placeholders/items/head.svg
-  - frontend/src/assets/placeholders/items/medal.svg
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/game/honour.ts
-  - backend/EndlessBattle.Api/Endpoints/HonourEndpoints.cs
-  - frontend/src/assets/placeholders/items/weapon.svg
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/assets/honour/rack-frame.webp
-  - docs/art/README.md
-  - frontend/src/game/inventory.ts
-  - frontend/src/ui/honour/testing.ts
-  - frontend/src/assets/placeholders/items/hand.svg
-  - frontend/src/ui/honour/HonourScreen.css
-  - docs/art/prompts/demo/generations.jsonl
-  - frontend/src/ui/honour/RewardPicture.tsx
-  - backend/EndlessBattle.Application/Honour/HonourService.cs
-  - frontend/src/assets/placeholders/items/key.svg
-  - docs/art/prompts/demo/AssetsJ.md
-  - frontend/src/api/companionData.ts
-  - frontend/src/assets/placeholders/items/foot.svg
-  - frontend/src/assets/honour/tag.webp
-  - frontend/src/assets/placeholders/items/consumable.svg
-  - frontend/src/ui/honour/HonourRack.tsx
-  - frontend/src/ui/honour/HonourScreen.tsx
-  - frontend/src/assets/content-manifest.json
-  - frontend/src/ui/companions/KeeperSay.tsx
-  - frontend/src/assets/honour/mercenary-helmet.webp
-  - docs/art/prompts/demo/AssetsJSpare.md
-  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/BagScreen.tsx
-  - frontend/src/ui/companions/BackButton.tsx
-  - frontend/src/assets/placeholders/items/stone.svg
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/HonourServiceTests.cs
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/placeholders/items/refine-stone.svg
-  - frontend/src/assets/placeholders/items/accessory.svg
-  - backend/EndlessBattle.Tests/Api/HonourResponseTests.cs
-  - docs/art/prompts/demo/AssetsJItem.md
-  - frontend/src/assets/honour/medal-case.webp
-  - frontend/src/assets/placeholders/items/body.svg
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - frontend/src/assets/placeholders/items/material.svg
-tests:
-  - frontend/src/ui/honour/HonourScreen.test.tsx
-  - frontend/src/api/companionData.test.ts
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/game/honour.test.ts
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
-  - frontend/src/test/honourContent.ts
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/test/fixtures.ts
--->
 
 ---
 ### Requirement: Honour loading and load failure

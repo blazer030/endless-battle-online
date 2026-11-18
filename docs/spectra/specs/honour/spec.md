@@ -170,86 +170,22 @@ tests:
 ---
 ### Requirement: Exchange refusals
 
-An exchange SHALL be refused with reasons and SHALL change nothing. An unknown exchange id SHALL be refused with `honourUnknown` alone. Otherwise the reasons SHALL be listed in this order: `medalsMissing` when any medal is short, `mercenaryHired` when the reward is a mercenary and a contract already exists, `bagFull` when the item reward does not fit in its category of the bag after the medals are paid.
+An exchange SHALL be refused with reasons and SHALL change nothing. An unknown exchange id SHALL be refused with `HONOUR_UNKNOWN` alone. Otherwise the reasons SHALL be listed in this order: `MEDALS_MISSING` when any medal is short, `MERCENARY_HIRED` when the reward is a mercenary and a contract already exists, `BAG_FULL` when the item reward does not fit in its category of the bag after the medals are paid.
 
 #### Scenario: Short of medals and already hired
 
 - **WHEN** a character with a contract and 5 continent medals exchanges honour-1
-- **THEN** the exchange is refused with `medalsMissing`, `mercenaryHired` and the bag is unchanged
+- **THEN** the exchange is refused with `MEDALS_MISSING`, `MERCENARY_HIRED` and the bag is unchanged
 
 ##### Example: refusals
 
 | Situation | Reasons |
 | --- | --- |
-| exchange id `honour-999` | `honourUnknown` |
-| honour-10 with 4 continent medals | `medalsMissing` |
-| honour-1 with enough medals and a contract | `mercenaryHired` |
-| honour-1 with 5 continent medals and a contract | `medalsMissing`, `mercenaryHired` |
-| honour-9 with enough medals and the weapon bag full | `bagFull` |
-
-
-<!-- @trace
-source: honour-screen
-updated: 2026-11-14
-code:
-  - frontend/src/assets/honour/felt.webp
-  - backend/EndlessBattle.Tests/Api/HonourEndpointsTests.cs
-  - frontend/src/ui/honour/HonourSheet.tsx
-  - frontend/src/assets/placeholders/items/head.svg
-  - frontend/src/assets/placeholders/items/medal.svg
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/game/honour.ts
-  - backend/EndlessBattle.Api/Endpoints/HonourEndpoints.cs
-  - frontend/src/assets/placeholders/items/weapon.svg
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/assets/honour/rack-frame.webp
-  - docs/art/README.md
-  - frontend/src/game/inventory.ts
-  - frontend/src/ui/honour/testing.ts
-  - frontend/src/assets/placeholders/items/hand.svg
-  - frontend/src/ui/honour/HonourScreen.css
-  - docs/art/prompts/demo/generations.jsonl
-  - frontend/src/ui/honour/RewardPicture.tsx
-  - backend/EndlessBattle.Application/Honour/HonourService.cs
-  - frontend/src/assets/placeholders/items/key.svg
-  - docs/art/prompts/demo/AssetsJ.md
-  - frontend/src/api/companionData.ts
-  - frontend/src/assets/placeholders/items/foot.svg
-  - frontend/src/assets/honour/tag.webp
-  - frontend/src/assets/placeholders/items/consumable.svg
-  - frontend/src/ui/honour/HonourRack.tsx
-  - frontend/src/ui/honour/HonourScreen.tsx
-  - frontend/src/assets/content-manifest.json
-  - frontend/src/ui/companions/KeeperSay.tsx
-  - frontend/src/assets/honour/mercenary-helmet.webp
-  - docs/art/prompts/demo/AssetsJSpare.md
-  - backend/EndlessBattle.Tests/Domain/Honour/HonourShopTests.cs
-  - frontend/src/ui/theme.css
-  - frontend/src/ui/BagScreen.tsx
-  - frontend/src/ui/companions/BackButton.tsx
-  - frontend/src/assets/placeholders/items/stone.svg
-  - backend/openapi/EndlessBattle.Api.json
-  - backend/EndlessBattle.Tests/Application/HonourServiceTests.cs
-  - frontend/src/api/schema.ts
-  - frontend/src/assets/placeholders/items/refine-stone.svg
-  - frontend/src/assets/placeholders/items/accessory.svg
-  - backend/EndlessBattle.Tests/Api/HonourResponseTests.cs
-  - docs/art/prompts/demo/AssetsJItem.md
-  - frontend/src/assets/honour/medal-case.webp
-  - frontend/src/assets/placeholders/items/body.svg
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - frontend/src/assets/placeholders/items/material.svg
-tests:
-  - frontend/src/ui/honour/HonourScreen.test.tsx
-  - frontend/src/api/companionData.test.ts
-  - frontend/src/ui/BagScreen.test.tsx
-  - frontend/src/game/honour.test.ts
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
-  - frontend/src/test/honourContent.ts
-  - frontend/src/ui/App.test.tsx
-  - frontend/src/test/fixtures.ts
--->
+| exchange id `honour-999` | `HONOUR_UNKNOWN` |
+| honour-10 with 4 continent medals | `MEDALS_MISSING` |
+| honour-1 with enough medals and a contract | `MERCENARY_HIRED` |
+| honour-1 with 5 continent medals and a contract | `MEDALS_MISSING`, `MERCENARY_HIRED` |
+| honour-9 with enough medals and the weapon bag full | `BAG_FULL` |
 
 ---
 ### Requirement: Exchange details in the listing

@@ -43,7 +43,7 @@ Content validation SHALL reject a mission whose targets repeat a monster, whose 
 ---
 ### Requirement: A regular mission can ask for a pet
 
-A regular mission SHALL be able to name a pet in `deliverPet`. Completing it SHALL require a carried pet of that species, and that pet SHALL be removed on completion, the same as a daily pet mission. Without such a carried pet, completion SHALL fail with `petMissing` and nothing SHALL change.
+A regular mission SHALL be able to name a pet in `deliverPet`. Completing it SHALL require a carried pet of that species, and that pet SHALL be removed on completion, the same as a daily pet mission. Without such a carried pet, completion SHALL fail with `PET_MISSING` and nothing SHALL change.
 
 A regular mission SHALL have at least one of `kills`, `deliver` or `deliverPet`. A pet species SHALL NOT be an NPC, and a mission monster SHALL only be named by its own mission.
 
@@ -57,7 +57,7 @@ A regular mission SHALL have at least one of `kills`, `deliver` or `deliverPet`.
 
 - **GIVEN** `mission-16` asks for `monster-1`, and the player's only pet of that species is not carried
 - **WHEN** the player completes the mission
-- **THEN** the request fails with `petMissing`, and the pet and the mission record are unchanged
+- **THEN** the request fails with `PET_MISSING`, and the pet and the mission record are unchanged
 
 #### Scenario: Another mission's monster is rejected
 
@@ -67,7 +67,7 @@ A regular mission SHALL have at least one of `kills`, `deliver` or `deliverPet`.
 ---
 ### Requirement: A mission can require a skill level
 
-A mission SHALL be able to name a skill and level in `requiredSkill`. This SHALL NOT block accepting the mission. Completing it SHALL require the learned level of that skill to be at least the required level; otherwise completion SHALL fail with `skillTooLow` and nothing SHALL change. The mission board SHALL report whether the condition is met, and a mission that does not meet it SHALL NOT be ready.
+A mission SHALL be able to name a skill and level in `requiredSkill`. This SHALL NOT block accepting the mission. Completing it SHALL require the learned level of that skill to be at least the required level; otherwise completion SHALL fail with `SKILL_TOO_LOW` and nothing SHALL change. The mission board SHALL report whether the condition is met, and a mission that does not meet it SHALL NOT be ready.
 
 A mission progress event SHALL report `SkillTooLow` when the learned level is below the required level at the time of the fight. With `SkillTooLow` true, the battle log SHALL say the skill level is still needed and the stage SHALL NOT show the mission-achieved plate. The mission page's progress SHALL count a pet and a skill condition as one step each, so it reaches full only when the mission is ready.
 
@@ -86,8 +86,8 @@ A mission progress event SHALL report `SkillTooLow` when the learned level is be
 
 | Learned level | Result |
 | ------------- | ------ |
-| not learned | fails with `skillTooLow` |
-| 1 | fails with `skillTooLow` |
+| not learned | fails with `SKILL_TOO_LOW` |
+| 1 | fails with `SKILL_TOO_LOW` |
 | 2 | completes |
 | 3 | completes |
 

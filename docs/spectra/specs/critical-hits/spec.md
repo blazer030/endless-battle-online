@@ -206,7 +206,7 @@ Characters and monsters SHALL NOT have a special attack name. Creating a charact
 #### Scenario: Settings are saved without a name for the special attack
 
 - **WHEN** a settings request lists only the attack choice and the five percent thresholds
-- **THEN** the settings are saved, and an invalid threshold is still refused with reason `invalidPercent`
+- **THEN** the settings are saved, and an invalid threshold is still refused with reason `INVALID_PERCENT`
 
 #### Scenario: Battle events carry no name
 
@@ -217,73 +217,3 @@ Characters and monsters SHALL NOT have a special attack name. Creating a charact
 
 - **WHEN** all migrations have been applied
 - **THEN** the `characters` table has no `special_attack_name` column
-
-<!-- @trace
-source: remove-special-attack-name
-updated: 2026-11-06
-code:
-  - backend/EndlessBattle.Domain/Characters/Character.cs
-  - backend/EndlessBattle.Application/Characters/CharacterService.cs
-  - backend/EndlessBattle.Tests/Support/ApiClientExtensions.cs
-  - backend/EndlessBattle.Api/Endpoints/CharacterEndpoints.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/BattleEventsTests.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/EndlessBattleDbContext.cs
-  - backend/EndlessBattle.Tests/Domain/Pets/PetBattleTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/CharacterRepositoryTests.cs
-  - backend/EndlessBattle.Application/Balance/BalanceReportService.cs
-  - backend/EndlessBattle.Tests/Support/TestCharacters.cs
-  - docs/superpowers/screenshots/plan-10-settings.png
-  - README.md
-  - frontend/src/render/effects.ts
-  - backend/EndlessBattle.Tests/Api/CharacterEndpointsTests.cs
-  - frontend/src/api/schema.ts
-  - scripts/import-wog45.py
-  - backend/db/ddl/V000000018__remove_character_special_attack_name.sql
-  - backend/EndlessBattle.Domain/Battle/WogBattle.cs
-  - backend/EndlessBattle.Tests/Domain/CharacterFactoryTests.cs
-  - frontend/src/game/settings.ts
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePetTests.cs
-  - backend/EndlessBattle.Tests/Domain/Rest/InnTests.cs
-  - backend/EndlessBattle.Domain/Characters/CombatBridge.cs
-  - backend/EndlessBattle.Tests/Application/CharacterServiceTests.cs
-  - frontend/src/game/names.ts
-  - backend/EndlessBattle.Domain/Battle/BattleEvents.cs
-  - backend/EndlessBattle.Infrastructure/Persistence/Models/Character.cs
-  - frontend/src/ui/CharacterScreen.tsx
-  - frontend/src/game/battleLog.ts
-  - docs/research/wog45/gaps.md
-  - backend/EndlessBattle.Api/Endpoints/Contracts.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattlePotionTests.cs
-  - frontend/src/ui/SettingsPanel.css
-  - backend/EndlessBattle.Domain/Characters/CharacterFactory.cs
-  - frontend/src/render/StageRenderer.ts
-  - backend/EndlessBattle.Infrastructure/Persistence/CharacterRepository.cs
-  - backend/EndlessBattle.Tests/Content/BalanceTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/CombatantStateTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/SkillCasterTests.cs
-  - backend/EndlessBattle.Tests/Domain/Skills/SkillEffectTests.cs
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleSkillTests.cs
-  - backend/EndlessBattle.Tests/Infrastructure/DatabaseSchemaTests.cs
-  - backend/EndlessBattle.Domain/Battle/CombatantState.cs
-  - backend/EndlessBattle.Tests/Domain/Items/BuffsTests.cs
-  - frontend/src/game/stageModel.ts
-  - frontend/src/motion/timings.ts
-  - backend/EndlessBattle.Tests/Content/WogImportTests.cs
-  - backend/EndlessBattle.Domain/Characters/CreateCharacterCommand.cs
-  - frontend/src/ui/SettingsPanel.tsx
-  - backend/EndlessBattle.Tests/Domain/Battle/RoundResolverTests.cs
-  - frontend/src/ui/CreateCharacterScreen.tsx
-  - backend/EndlessBattle.Tests/Domain/Battle/WogBattleTests.cs
-tests:
-  - frontend/src/ui/CharacterScreen.test.tsx
-  - frontend/src/game/battleLog.test.ts
-  - frontend/src/game/stageModel.test.ts
-  - frontend/src/ui/InnPage.test.tsx
-  - frontend/src/ui/SettingsPanel.test.tsx
-  - frontend/src/ui/BattleLog.test.tsx
-  - frontend/src/ui/CreateCharacterScreen.test.tsx
-  - frontend/src/game/settings.test.ts
-  - frontend/src/test/fixtures.ts
-  - frontend/src/ui/AdventureScreen.test.tsx
-  - frontend/src/api/client.test.ts
--->

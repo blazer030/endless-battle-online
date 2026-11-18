@@ -8,7 +8,7 @@ Defines the mission board and its API: which missions a character can see and ac
 
 ### Requirement: Mission board lists available, active and completed missions
 
-`GET /api/missions` SHALL return the character's mission board with `available`, `active`, `completed`, `activeLimit` (3) and `nextDailyReset`. A mission SHALL be available when it has no record and every accept condition other than `tooMany` holds, so a full hand still lists what could be accepted. Available missions SHALL be ordered daily first, then regular missions by level ascending, then content order. Active missions SHALL be ordered by acceptance time, oldest first, and completed missions by completion time, newest first. Records of a past daily period, records of missions missing from the content, and records whose kind (daily or regular) no longer matches the content SHALL NOT appear. Item counts used for delivery progress SHALL count the bag only, not equipped or stored items.
+`GET /api/missions` SHALL return the character's mission board with `available`, `active`, `completed`, `activeLimit` (3) and `nextDailyReset`. A mission SHALL be available when it has no record and every accept condition other than `TOO_MANY` holds, so a full hand still lists what could be accepted. Available missions SHALL be ordered daily first, then regular missions by level ascending, then content order. Active missions SHALL be ordered by acceptance time, oldest first, and completed missions by completion time, newest first. Records of a past daily period, records of missions missing from the content, and records whose kind (daily or regular) no longer matches the content SHALL NOT appear. Item counts used for delivery progress SHALL count the bag only, not equipped or stored items.
 
 #### Scenario: Board order
 
@@ -19,7 +19,7 @@ Defines the mission board and its API: which missions a character can see and ac
 
 - **GIVEN** the character has 3 active missions
 - **WHEN** the board is read
-- **THEN** missions whose only failing condition is `tooMany` are still in `available`
+- **THEN** missions whose only failing condition is `TOO_MANY` are still in `available`
 
 #### Scenario: Yesterday's daily record is hidden
 
@@ -30,23 +30,23 @@ Defines the mission board and its API: which missions a character can see and ac
 ---
 ### Requirement: Accepting a mission
 
-`POST /api/missions/accept` SHALL add an active record for the mission and return the new board. Accepting SHALL fail with HTTP 400 and the reasons below, and nothing SHALL change. `missionUnknown`, `alreadyActive` and `alreadyCompleted` SHALL be reported alone; the other reasons SHALL all be reported together in this order: `tooMany` (3 missions already active), `levelTooLow` (character level below the mission level), `jobMismatch`, `sexMismatch`, `birthMismatch`, `prerequisiteMissing` (the prerequisite mission is not completed), `missionConflict` (the mission's rival route has a record in any state). A daily mission's record SHALL store the current daily period.
+`POST /api/missions/accept` SHALL add an active record for the mission and return the new board. Accepting SHALL fail with HTTP 400 and the reasons below, and nothing SHALL change. `MISSION_UNKNOWN`, `ALREADY_ACTIVE` and `ALREADY_COMPLETED` SHALL be reported alone; the other reasons SHALL all be reported together in this order: `TOO_MANY` (3 missions already active), `LEVEL_TOO_LOW` (character level below the mission level), `JOB_MISMATCH`, `SEX_MISMATCH`, `BIRTH_MISMATCH`, `PREREQUISITE_MISSING` (the prerequisite mission is not completed), `MISSION_CONFLICT` (the mission's rival route has a record in any state). A daily mission's record SHALL store the current daily period.
 
 #### Scenario: Accept reasons in order
 
 - **GIVEN** a level-5 warrior with 3 active missions
 - **WHEN** the character accepts a level-10 mission limited to sorcerers whose prerequisite is not completed
-- **THEN** the request fails with `tooMany`, `levelTooLow`, `jobMismatch`, `prerequisiteMissing` in that order
+- **THEN** the request fails with `TOO_MANY`, `LEVEL_TOO_LOW`, `JOB_MISMATCH`, `PREREQUISITE_MISSING` in that order
 
 #### Scenario: Accepting a completed mission
 
 - **WHEN** the character accepts a regular mission it has completed
-- **THEN** the request fails with only `alreadyCompleted`
+- **THEN** the request fails with only `ALREADY_COMPLETED`
 
 ---
 ### Requirement: Abandoning a mission
 
-`POST /api/missions/abandon` SHALL delete the active record and return the new board; the mission SHALL be acceptable again afterwards, and kill progress SHALL start over. Abandoning a mission that is not active SHALL fail with `missionNotActive`.
+`POST /api/missions/abandon` SHALL delete the active record and return the new board; the mission SHALL be acceptable again afterwards, and kill progress SHALL start over. Abandoning a mission that is not active SHALL fail with `MISSION_NOT_ACTIVE`.
 
 #### Scenario: Abandon and accept again
 
@@ -57,12 +57,12 @@ Defines the mission board and its API: which missions a character can see and ac
 #### Scenario: Abandoning a completed mission
 
 - **WHEN** the player abandons a completed mission
-- **THEN** the request fails with `missionNotActive`
+- **THEN** the request fails with `MISSION_NOT_ACTIVE`
 
 ---
 ### Requirement: Completing a mission
 
-`POST /api/missions/complete` SHALL check in this order and fail with the first failing reason: `missionNotActive`, `objectiveIncomplete` (a kill target is not full), `itemsMissing` (the bag lacks a delivery item), `petMissing` (no carried pet of the asked species), `skillTooLow`, then the reward checks `bagFull` (a reward item does not fit the bag after delivery) and `petsFull` (a pet reward with 3 pets after delivery), which SHALL be reported together. On failure nothing SHALL change. On success the delivery items and the delivered pet SHALL be removed, the character SHALL gain experience (mission level × 190, levelling up at once) and money, the reward items SHALL go into the bag, a reward skill SHALL be learned at its level unless the character already knows that skill at any level, a reward pet SHALL be added to the stable, and the record SHALL become completed. The response SHALL return the new board, the updated character, the mission's completion message, the experience, money, items, skill, whether the skill was learned (`skillGranted`), the number of levels gained and the pet.
+`POST /api/missions/complete` SHALL check in this order and fail with the first failing reason: `MISSION_NOT_ACTIVE`, `OBJECTIVE_INCOMPLETE` (a kill target is not full), `ITEMS_MISSING` (the bag lacks a delivery item), `PET_MISSING` (no carried pet of the asked species), `SKILL_TOO_LOW`, then the reward checks `BAG_FULL` (a reward item does not fit the bag after delivery) and `PETS_FULL` (a pet reward with 3 pets after delivery), which SHALL be reported together. On failure nothing SHALL change. On success the delivery items and the delivered pet SHALL be removed, the character SHALL gain experience (mission level × 190, levelling up at once) and money, the reward items SHALL go into the bag, a reward skill SHALL be learned at its level unless the character already knows that skill at any level, a reward pet SHALL be added to the stable, and the record SHALL become completed. The response SHALL return the new board, the updated character, the mission's completion message, the experience, money, items, skill, whether the skill was learned (`skillGranted`), the number of levels gained and the pet.
 
 #### Scenario: Completing a delivery mission
 
@@ -80,7 +80,7 @@ Defines the mission board and its API: which missions a character can see and ac
 
 - **GIVEN** the reward item's category is full in the bag after delivery
 - **WHEN** the player completes the mission
-- **THEN** the request fails with `bagFull`, and the bag, the character and the mission record are unchanged
+- **THEN** the request fails with `BAG_FULL`, and the bag, the character and the mission record are unchanged
 
 ---
 ### Requirement: Daily missions roll once per day and reset at 09:00 Taipei
@@ -98,7 +98,7 @@ A daily period SHALL start at 09:00 Asia/Taipei (UTC+8, no daylight saving) and 
 
 - **GIVEN** the character completed a daily mission today
 - **WHEN** it accepts the mission again before the reset
-- **THEN** the request fails with `alreadyCompleted`; after the reset the mission is available again
+- **THEN** the request fails with `ALREADY_COMPLETED`; after the reset the mission is available again
 
 ---
 ### Requirement: Board details for the mission board screen

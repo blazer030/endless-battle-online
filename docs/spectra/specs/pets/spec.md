@@ -101,7 +101,7 @@ tests:
 ---
 ### Requirement: Feeding a pet
 
-Feeding SHALL be rejected, checking in this order and reporting only the first reason: `tooSoon` before the pet's next feed time (10 seconds after it was last fed), `full` when satiety is 100 or more, `overOwner` when the raised stat would exceed the owner's effective stat including equipment (attack against physical attack, magic against magic attack, defense against the higher of physical and magic defense; spirit has no cap), and `notEnoughMoney` when the money is below the fruit's cost. An unknown fruit SHALL be rejected with `foodUnknown`. Otherwise feeding SHALL deduct the cost, raise the stat by the fruit's amount, add a random satiety in the fruit's range (small 10–20, medium 18–28; satiety above 100 is kept), add a random intimacy of 2–6 (no upper limit), restart the 10-second wait, and return the updated pets and character.
+Feeding SHALL be rejected, checking in this order and reporting only the first reason: `TOO_SOON` before the pet's next feed time (10 seconds after it was last fed), `FULL` when satiety is 100 or more, `OVER_OWNER` when the raised stat would exceed the owner's effective stat including equipment (attack against physical attack, magic against magic attack, defense against the higher of physical and magic defense; spirit has no cap), and `NOT_ENOUGH_MONEY` when the money is below the fruit's cost. An unknown fruit SHALL be rejected with `FOOD_UNKNOWN`. Otherwise feeding SHALL deduct the cost, raise the stat by the fruit's amount, add a random satiety in the fruit's range (small 10–20, medium 18–28; satiety above 100 is kept), add a random intimacy of 2–6 (no upper limit), restart the 10-second wait, and return the updated pets and character.
 
 #### Scenario: Feeding raises the pet
 
@@ -117,87 +117,25 @@ Feeding SHALL be rejected, checking in this order and reporting only the first r
 
 | State | Reason |
 | --- | --- |
-| fed 5 seconds ago | tooSoon |
-| satiety 100 | full |
-| pet attack 30, owner attack 31, medium vigor fruit | overOwner |
-| 10 money, small fruit | notEnoughMoney |
-
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->
+| fed 5 seconds ago | TOO_SOON |
+| satiety 100 | FULL |
+| pet attack 30, owner attack 31, medium vigor fruit | OVER_OWNER |
+| 10 money, small fruit | NOT_ENOUGH_MONEY |
 
 ---
 ### Requirement: Carrying and storing pets
 
-Carrying a pet SHALL make it the only carried pet and put every other pet in the stable; storing a pet SHALL put it in the stable. An unknown pet SHALL be rejected with `petUnknown`.
+Carrying a pet SHALL make it the only carried pet and put every other pet in the stable; storing a pet SHALL put it in the stable. An unknown pet SHALL be rejected with `PET_UNKNOWN`.
 
 #### Scenario: Switching the carried pet
 
 - **WHEN** pet A is carried and the character carries pet B
 - **THEN** B is carried and A is in the stable
 
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->
-
 ---
 ### Requirement: Renaming and releasing pets
 
-Renaming a pet SHALL trim surrounding spaces and accept 1 to 12 characters counted as Unicode code points, otherwise reject with `nameInvalid`. Releasing a pet SHALL remove it.
+Renaming a pet SHALL trim surrounding spaces and accept 1 to 12 characters counted as Unicode code points, otherwise reject with `NAME_INVALID`. Releasing a pet SHALL remove it.
 
 #### Scenario: Name length
 
@@ -209,40 +147,10 @@ Renaming a pet SHALL trim surrounding spaces and accept 1 to 12 characters count
 | Name | Result |
 | --- | --- |
 | `  小風  ` | 小風 |
-| (empty) | nameInvalid |
-| 13 characters | nameInvalid |
+| (empty) | NAME_INVALID |
+| 13 characters | NAME_INVALID |
 
 #### Scenario: Releasing
 
 - **WHEN** a pet is released
 - **THEN** it is no longer listed
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->

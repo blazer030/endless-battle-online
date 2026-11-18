@@ -59,7 +59,7 @@ tests:
 ---
 ### Requirement: Hiring a mercenary
 
-Hiring SHALL report, in this order, `honourOnly` when the price is null, `mercenaryHired` when a contract exists, and `notEnoughMoney` when the price is null or above the money; an unknown mercenary SHALL be rejected with `mercenaryUnknown`. A successful hire SHALL deduct the price and start a resting contract with the catalogue's fights.
+Hiring SHALL report, in this order, `HONOUR_ONLY` when the price is null, `MERCENARY_HIRED` when a contract exists, and `NOT_ENOUGH_MONEY` when the price is null or above the money; an unknown mercenary SHALL be rejected with `MERCENARY_UNKNOWN`. A successful hire SHALL deduct the price and start a resting contract with the catalogue's fights.
 
 #### Scenario: Hiring F grade
 
@@ -69,120 +69,27 @@ Hiring SHALL report, in this order, `honourOnly` when the price is null, `mercen
 #### Scenario: Second hire refused
 
 - **WHEN** a character with a contract hires another mercenary
-- **THEN** the request fails with reason `mercenaryHired` and nothing changes
-
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->
+- **THEN** the request fails with reason `MERCENARY_HIRED` and nothing changes
 
 ---
 ### Requirement: Deploying and resting
 
-Deploying SHALL set the contract's place and make it fight, the first fight 100 seconds later; a restricted place SHALL be rejected with `placeRestricted` and an unknown place with `placeUnknown`. Resting SHALL stop fighting. Every contract command without a contract SHALL be rejected with `noMercenary`.
+Deploying SHALL set the contract's place and make it fight, the first fight 100 seconds later; a restricted place SHALL be rejected with `PLACE_RESTRICTED` and an unknown place with `PLACE_UNKNOWN`. Resting SHALL stop fighting. Every contract command without a contract SHALL be rejected with `NO_MERCENARY`.
 
 #### Scenario: Deploying to a restricted place
 
 - **WHEN** the mercenary is deployed to a restricted place
-- **THEN** the request fails with reason `placeRestricted`
-
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->
+- **THEN** the request fails with reason `PLACE_RESTRICTED`
 
 ---
 ### Requirement: Renaming and dismissing
 
-Renaming the mercenary SHALL trim surrounding spaces and accept 1 to 8 characters counted as Unicode code points, otherwise reject with `nameInvalid`. Dismissing SHALL remove the contract.
+Renaming the mercenary SHALL trim surrounding spaces and accept 1 to 8 characters counted as Unicode code points, otherwise reject with `NAME_INVALID`. Dismissing SHALL remove the contract.
 
 #### Scenario: Name of nine characters
 
 - **WHEN** the mercenary is renamed to a nine-character name
-- **THEN** the request fails with reason `nameInvalid`
-
-
-<!-- @trace
-source: companions-screen
-updated: 2026-11-14
-code:
-  - frontend/src/ui/companions/useKeeperPage.ts
-  - frontend/src/game/names.ts
-  - frontend/src/ui/companions/RenameField.tsx
-  - frontend/src/game/companions.ts
-  - frontend/src/ui/stage/screenImages.ts
-  - frontend/src/ui/companions/HallPage.tsx
-  - backend/EndlessBattle.Tests/Application/PetServiceTests.cs
-  - frontend/src/render/contentAssets.ts
-  - backend/EndlessBattle.Tests/Domain/Mercenaries/MercenarySimulatorTests.cs
-  - frontend/src/ui/companions/CompanionsScreen.css
-  - frontend/src/ui/companions/StablePage.tsx
-  - frontend/src/ui/companions/CompanionsScreen.tsx
-  - backend/EndlessBattle.Tests/Application/MercenaryServiceTests.cs
-  - frontend/src/ui/GameScreen.tsx
-  - frontend/src/ui/stage/preloadImages.ts
-  - backend/EndlessBattle.Tests/Domain/Pets/PetCareTests.cs
-  - frontend/src/ui/App.tsx
-tests:
-  - frontend/src/ui/companions/RenameField.test.tsx
-  - frontend/src/ui/companions/HallPage.test.tsx
-  - frontend/src/ui/GameScreen.test.tsx
-  - frontend/src/ui/companions/CompanionsScreen.test.tsx
-  - frontend/src/ui/companions/StablePage.test.tsx
-  - frontend/src/ui/stage/screenImages.test.ts
--->
+- **THEN** the request fails with reason `NAME_INVALID`
 
 ---
 ### Requirement: Contract ends when fights run out

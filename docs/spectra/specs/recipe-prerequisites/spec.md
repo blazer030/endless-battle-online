@@ -8,7 +8,7 @@ Defines recipes that can only be used after completing a mission, so the highest
 
 ### Requirement: A recipe can require a completed mission
 
-A recipe SHALL be able to name a mission in `requiredMissionId`. Synthesizing it SHALL require that mission to be completed; otherwise the request SHALL fail with `missionIncomplete` and SHALL NOT consume materials or money. An active mission SHALL NOT count as completed. Content validation SHALL reject a required mission that does not exist or is a daily mission.
+A recipe SHALL be able to name a mission in `requiredMissionId`. Synthesizing it SHALL require that mission to be completed; otherwise the request SHALL fail with `MISSION_INCOMPLETE` and SHALL NOT consume materials or money. An active mission SHALL NOT count as completed. Content validation SHALL reject a required mission that does not exist or is a daily mission.
 
 #### Scenario: Synthesis depends on the mission state
 
@@ -19,8 +19,8 @@ A recipe SHALL be able to name a mission in `requiredMissionId`. Synthesizing it
 
 | `mission-317` state | Result |
 | ------------------- | ------ |
-| not accepted | fails with `missionIncomplete` |
-| active | fails with `missionIncomplete` |
+| not accepted | fails with `MISSION_INCOMPLETE` |
+| active | fails with `MISSION_INCOMPLETE` |
 | completed | synthesis runs |
 
 #### Scenario: A recipe without a prerequisite is unaffected
