@@ -64,7 +64,7 @@ public class CharacterFactoryTests
     [Fact]
     public void Create_RejectsAllocationOverTen()
     {
-        Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(4, 3, 3, 1))));
+        Assert.Equal("POINTS_NOT_SPENT", Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(4, 3, 3, 1)))).Reason);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class CharacterFactoryTests
     [InlineData(-1, 4, 4, 3)]
     public void Create_RejectsZeroInAnyStat(int str, int smart, int life, int agi)
     {
-        Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(str, smart, life, agi))));
+        Assert.Equal("STAT_BELOW_ONE", Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(str, smart, life, agi)))).Reason);
     }
 
     [Theory]
@@ -91,19 +91,19 @@ public class CharacterFactoryTests
     {
         var exception = Assert.Throws<CharacterCreationException>(() => Create(Command(new StatAllocation(str, smart, life, agi))));
 
-        Assert.Equal("能力點數必須剛好分完 10 點", exception.Message);
+        Assert.Equal("POINTS_NOT_SPENT", exception.Reason);
     }
 
     [Theory]
-    [InlineData(3, 1, 1)]
-    [InlineData(0, 1, 1)]
-    [InlineData(1, 0, 1)]
-    [InlineData(1, 7, 1)]
-    [InlineData(1, 1, 0)]
-    [InlineData(1, 1, 5)]
-    public void Create_RejectsInvalidEnums(int sex, int element, int birth)
+    [InlineData(3, 1, 1, "SEX_INVALID")]
+    [InlineData(0, 1, 1, "SEX_INVALID")]
+    [InlineData(1, 0, 1, "ELEMENT_INVALID")]
+    [InlineData(1, 7, 1, "ELEMENT_INVALID")]
+    [InlineData(1, 1, 0, "BIRTH_INVALID")]
+    [InlineData(1, 1, 5, "BIRTH_INVALID")]
+    public void Create_RejectsInvalidEnums(int sex, int element, int birth, string reason)
     {
-        Assert.Throws<CharacterCreationException>(() => Create(Command(sex: sex, element: element, birth: birth)));
+        Assert.Equal(reason, Assert.Throws<CharacterCreationException>(() => Create(Command(sex: sex, element: element, birth: birth))).Reason);
     }
 
     [Theory]
@@ -119,7 +119,7 @@ public class CharacterFactoryTests
     [Fact]
     public void Create_RejectsNonStartingJob()
     {
-        Assert.Throws<CharacterCreationException>(() => Create(Command() with { JobId = "berserker" }, Berserker));
+        Assert.Equal("JOB_NOT_FIRST_TIER", Assert.Throws<CharacterCreationException>(() => Create(Command() with { JobId = "berserker" }, Berserker)).Reason);
     }
 
     // TestCharacters.Default：Base (12,12,12,10,12,10,10) → At 12、Mat 12、Df 10、Mdf 10、

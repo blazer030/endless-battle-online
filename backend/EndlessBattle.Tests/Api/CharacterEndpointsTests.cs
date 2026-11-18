@@ -268,18 +268,17 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("留點"), strength: 1, intelligence: 1, life: 1, agility: 3));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal("能力點數必須剛好分完 10 點", problem.GetProperty("detail").GetString());
+        Assert.Equal(["POINTS_NOT_SPENT"], await response.ReadReasonsAsync());
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/characters/me", CancellationToken)).StatusCode);
     }
 
     [Theory]
-    [InlineData(3, 3, 1, "warrior")]
-    [InlineData(1, 7, 1, "warrior")]
-    [InlineData(1, 3, 0, "warrior")]
-    [InlineData(1, 3, 1, "ghost")]
-    [InlineData(1, 3, 1, "berserker")]
-    public async Task Create_RejectsInvalidChoices(int sex, int element, int birth, string jobId)
+    [InlineData(3, 3, 1, "warrior", "SEX_INVALID")]
+    [InlineData(1, 7, 1, "warrior", "ELEMENT_INVALID")]
+    [InlineData(1, 3, 0, "warrior", "BIRTH_INVALID")]
+    [InlineData(1, 3, 1, "ghost", "JOB_UNKNOWN")]
+    [InlineData(1, 3, 1, "berserker", "JOB_NOT_FIRST_TIER")]
+    public async Task Create_RejectsInvalidChoices(int sex, int element, int birth, string jobId, string reason)
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
@@ -296,6 +295,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.CreateCharacterAsync(body);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal([reason], await response.ReadReasonsAsync());
     }
 
     [Fact]
@@ -306,6 +306,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.GetAsync("/api/characters/me", CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Equal(["CHARACTER_NOT_FOUND"], await response.ReadReasonsAsync());
     }
 
     [Fact]
@@ -357,10 +358,10 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
     }
 
     [Theory]
-    [InlineData(1, 1, 1, 3, "能力點數必須剛好分完 10 點")]
-    [InlineData(4, 2, 3, 2, "能力點數必須剛好分完 10 點")]
-    [InlineData(0, 4, 3, 3, "每項能力至少要分配 1 點")]
-    public async Task Create_Returns400_WithAllocationDetail(int str, int smart, int life, int agi, string detail)
+    [InlineData(1, 1, 1, 3, "POINTS_NOT_SPENT")]
+    [InlineData(4, 2, 3, 2, "POINTS_NOT_SPENT")]
+    [InlineData(0, 4, 3, 3, "STAT_BELOW_ONE")]
+    public async Task Create_Returns400_WithAllocationReason(int str, int smart, int life, int agi, string reason)
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await factory.CreateAuthenticatedClientAsync();
@@ -368,7 +369,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("配點"), strength: str, intelligence: smart, life: life, agility: agi));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal(detail, await DetailOf(response));
+        Assert.Equal([reason], await response.ReadReasonsAsync());
     }
 
     [Fact]
@@ -380,11 +381,8 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(UniqueName("轉職"), jobId: "berserker"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("只能選擇初階職業", await DetailOf(response));
+        Assert.Equal(["JOB_NOT_FIRST_TIER"], await response.ReadReasonsAsync());
     }
-
-    private static async Task<string?> DetailOf(HttpResponseMessage response) =>
-        (await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken)).GetProperty("detail").GetString();
 
     // 409 的訊息與原因代碼（回應內容只能讀一次）
     private static async Task<(string? Detail, string?[] Reasons)> ConflictOf(HttpResponseMessage response)
@@ -419,6 +417,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var client = await factory.CreateAuthenticatedClientAsync();
         var response = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(name), CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(["CHARACTER_NAME_LENGTH"], await response.ReadReasonsAsync());
     }
 
     // 6 個文字單位（通過字數檢查），但有 15 個 code point，超過資料庫 VARCHAR(12)
@@ -432,6 +431,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var response = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody($"修仙者{meditator}{meditator}{meditator}"), CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(["CHARACTER_NAME_TOO_COMPLEX"], await response.ReadReasonsAsync());
     }
 
     [Fact]

@@ -29,18 +29,18 @@ public sealed class CharacterService(
         var nameLength = new StringInfo(trimmedName).LengthInTextElements;
         if (nameLength < MinimumNameLength || nameLength > MaximumNameLength)
         {
-            throw new InputValidationException($"角色名稱必須是 {MinimumNameLength}～{MaximumNameLength} 個字");
+            throw new InputValidationException($"角色名稱必須是 {MinimumNameLength}～{MaximumNameLength} 個字", ["CHARACTER_NAME_LENGTH"]);
         }
 
         // 資料庫欄位 VARCHAR(12) 以 code point 計算；組合 emoji 一個字就可能佔好幾個
         if (trimmedName.EnumerateRunes().Count() > MaximumNameLength)
         {
-            throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字");
+            throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字", ["CHARACTER_NAME_TOO_COMPLEX"]);
         }
 
         if (content.AllJobs.All(candidate => candidate.Id != request.JobId))
         {
-            throw new InputValidationException("不存在的職業");
+            throw new InputValidationException("不存在的職業", ["JOB_UNKNOWN"]);
         }
 
         var command = request with { Name = trimmedName };
@@ -53,7 +53,7 @@ public sealed class CharacterService(
         }
         catch (CharacterCreationException exception)
         {
-            throw new InputValidationException(exception.Message);
+            throw new InputValidationException(exception.Message, [exception.Reason]);
         }
 
         return await characters.AddAsync(character, cancellationToken);
@@ -95,5 +95,5 @@ public sealed class CharacterService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
 }
