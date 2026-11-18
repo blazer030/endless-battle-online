@@ -318,9 +318,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
         var second = await client.PostAsJsonAsync("/api/characters", ApiClientExtensions.ValidCharacterBody(UniqueName("再")), CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
-        var (detail, reasons) = await ConflictOf(second);
-        Assert.Equal("此帳號已有角色", detail);
-        Assert.Equal(["ACCOUNT_HAS_CHARACTER"], reasons);
+        Assert.Equal(["ACCOUNT_HAS_CHARACTER"], await second.ReadReasonsAsync());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.StartsWith("初", me.GetProperty("name").GetString());
     }
@@ -337,9 +335,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         var duplicate = await secondClient.CreateCharacterAsync(ApiClientExtensions.ValidCharacterBody(name.ToUpperInvariant()));
 
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
-        var (detail, reasons) = await ConflictOf(duplicate);
-        Assert.Equal("角色名稱已被使用", detail);
-        Assert.Equal(["CHARACTER_NAME_TAKEN"], reasons);
+        Assert.Equal(["CHARACTER_NAME_TAKEN"], await duplicate.ReadReasonsAsync());
     }
 
     // spec 名字長度範例表的「艾倫」與「12 個中文字」列；名字要唯一，用隨機漢字
@@ -382,14 +378,6 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(["JOB_NOT_FIRST_TIER"], await response.ReadReasonsAsync());
-    }
-
-    // 409 的訊息與原因代碼（回應內容只能讀一次）
-    private static async Task<(string? Detail, string?[] Reasons)> ConflictOf(HttpResponseMessage response)
-    {
-        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        return (problem.GetProperty("detail").GetString(),
-            problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()).ToArray());
     }
 
     [Fact]

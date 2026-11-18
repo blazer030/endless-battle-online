@@ -52,6 +52,30 @@ public class ApplicationExceptionHandlerTests
         Assert.Equal(["CHARACTER_NOT_FOUND"], reasons);
     }
 
+    // spec game-api-contract：Error responses carry only reason codes——沒有 detail、沒有給玩家看的中文 title
+    public static TheoryData<Exception, int> ApplicationErrors => new()
+    {
+        { new InputValidationException("無法學習技能", ["NOT_ENOUGH_MONEY"]), StatusCodes.Status400BadRequest },
+        { new AuthenticationFailedException(), StatusCodes.Status401Unauthorized },
+        { new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND"), StatusCodes.Status404NotFound },
+        { new ConflictException("版本不符", ["CONCURRENT_UPDATE"]), StatusCodes.Status409Conflict },
+    };
+
+    [Theory]
+    [MemberData(nameof(ApplicationErrors))]
+    public async Task ApplicationError_WritesOnlyStatusAndReasons(Exception exception, int status)
+    {
+        var problemDetails = new RecordingProblemDetailsService();
+
+        await new ApplicationExceptionHandler(problemDetails).TryHandleAsync(new DefaultHttpContext(), exception, TestContext.Current.CancellationToken);
+
+        var written = problemDetails.Written!.ProblemDetails;
+        Assert.Equal(status, written.Status);
+        Assert.Null(written.Detail);
+        Assert.Null(written.Title);
+        Assert.NotEmpty(Assert.IsAssignableFrom<IEnumerable<string>>(written.Extensions["reasons"]));
+    }
+
     private sealed class RecordingProblemDetailsService : IProblemDetailsService
     {
         public ProblemDetailsContext? Written { get; private set; }

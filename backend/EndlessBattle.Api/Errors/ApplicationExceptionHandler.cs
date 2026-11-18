@@ -5,38 +5,29 @@ using Microsoft.AspNetCore.Mvc;
 namespace EndlessBattle.Api.Errors;
 
 // 把 Application 層的例外轉成 ProblemDetails；其他例外交給預設處理（500）
+// 回應只帶狀態碼與原因代碼（reasons），文字由前端依代碼決定；例外訊息只留在伺服器紀錄
 public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        var (status, title) = exception switch
+        (int Status, IReadOnlyList<string> Reasons)? error = exception switch
         {
-            InputValidationException => (StatusCodes.Status400BadRequest, "輸入不正確"),
-            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, "驗證失敗"),
-            NotFoundException => (StatusCodes.Status404NotFound, "找不到資料"),
-            ConflictException => (StatusCodes.Status409Conflict, "資料衝突"),
-            BadHttpRequestException badRequest => (badRequest.StatusCode, "請求格式錯誤"),
-            _ => (0, ""),
+            InputValidationException validation => (StatusCodes.Status400BadRequest, validation.Reasons),
+            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, [AuthenticationFailedException.Reason]),
+            NotFoundException notFound => (StatusCodes.Status404NotFound, [notFound.Reason]),
+            ConflictException conflict => (StatusCodes.Status409Conflict, conflict.Reasons),
+            BadHttpRequestException badRequest => (badRequest.StatusCode, [RequestErrors.RequestInvalid]),
+            _ => null,
         };
-        if (status == 0)
+        if (error is null)
         {
             return false;
         }
 
-        var problemDetails = new ProblemDetails { Status = status, Title = title, Detail = exception.Message };
-        var reasons = exception switch
-        {
-            InputValidationException validation => validation.Reasons,
-            ConflictException conflict => conflict.Reasons,
-            NotFoundException notFound => [notFound.Reason],
-            BadHttpRequestException => [RequestErrors.RequestInvalid],
-            AuthenticationFailedException => [AuthenticationFailedException.Reason],
-            _ => [],
-        };
-        if (reasons.Count > 0)
-        {
-            problemDetails.Extensions["reasons"] = reasons;
-        }
+        var (status, reasons) = error.Value;
+
+        var problemDetails = new ProblemDetails { Status = status };
+        problemDetails.Extensions["reasons"] = reasons;
 
         httpContext.Response.StatusCode = status;
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
