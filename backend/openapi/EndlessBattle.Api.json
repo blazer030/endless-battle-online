@@ -3698,13 +3698,14 @@
           "parentId",
           "parentName",
           "unlockLevel",
+          "levelMet",
           "proficiencyRequired",
+          "parentProficiencyMet",
           "statRequirements",
           "growth",
           "current",
           "proficiencyPercent",
-          "eligible",
-          "reasons"
+          "eligible"
         ],
         "type": "object",
         "properties": {
@@ -3734,14 +3735,20 @@
             "type": "integer",
             "format": "int32"
           },
+          "levelMet": {
+            "type": "boolean"
+          },
           "proficiencyRequired": {
             "type": "integer",
             "format": "int32"
           },
+          "parentProficiencyMet": {
+            "type": "boolean"
+          },
           "statRequirements": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/JobStatRequirementResponse"
+              "$ref": "#/components/schemas/JobStatCheckResponse"
             }
           },
           "growth": {
@@ -3756,12 +3763,6 @@
           },
           "eligible": {
             "type": "boolean"
-          },
-          "reasons": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -3825,6 +3826,26 @@
             "items": {
               "$ref": "#/components/schemas/SkillLevelSummaryResponse"
             }
+          }
+        }
+      },
+      "JobStatCheckResponse": {
+        "required": [
+          "stat",
+          "minimum",
+          "met"
+        ],
+        "type": "object",
+        "properties": {
+          "stat": {
+            "type": "string"
+          },
+          "minimum": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "met": {
+            "type": "boolean"
           }
         }
       },

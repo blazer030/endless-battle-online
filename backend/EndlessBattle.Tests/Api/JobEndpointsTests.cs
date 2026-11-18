@@ -40,9 +40,14 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("測試戰士", berserker.GetProperty("parentName").GetString());
         Assert.Equal(60, berserker.GetProperty("statRequirements")[0].GetProperty("minimum").GetInt32());
         Assert.Equal(3, berserker.GetProperty("growth").GetProperty("strength").GetProperty("minimum").GetInt32());
-        Assert.Equal(
-            ["LEVEL_TOO_LOW", "PARENT_PROFICIENCY_TOO_LOW", "STAT_TOO_LOW:strength"],
-            berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.False(berserker.GetProperty("levelMet").GetBoolean());
+        Assert.False(berserker.GetProperty("parentProficiencyMet").GetBoolean());
+        Assert.False(berserker.GetProperty("statRequirements")[0].GetProperty("met").GetBoolean());
+        Assert.False(berserker.TryGetProperty("reasons", out _));
+        var thief = Find("thief");
+        Assert.True(thief.GetProperty("levelMet").GetBoolean());
+        Assert.True(thief.GetProperty("parentProficiencyMet").GetBoolean());
+        Assert.False(Find("warrior").GetProperty("eligible").GetBoolean());
     }
 
     // 測試狂戰士：成長 str [3, 4]、需求 str 60
@@ -61,17 +66,17 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("strength", berserker.GetProperty("statRequirements")[0].GetProperty("stat").GetString());
     }
 
-    // 測試狂戰士要求力量 60
+    // 測試狂戰士要求力量 60：轉職失敗的錯誤照舊帶能力代碼
     [Fact]
-    public async Task Jobs_StatReasonNamesTheStatInFull()
+    public async Task Change_StatReasonNamesTheStatInFull()
     {
         await using var factory = new EndlessBattleApiFactory(database);
         var client = await CreateClientWithCharacterAsync(factory);
 
-        var jobs = (await client.GetFromJsonAsync<JsonElement>("/api/jobs", CancellationToken)).EnumerateArray();
+        var response = await ChangeAsync(client, "berserker");
 
-        var berserker = jobs.First(job => job.GetProperty("id").GetString() == "berserker");
-        Assert.Contains("STAT_TOO_LOW:strength", berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("STAT_TOO_LOW:strength", await response.ReadReasonsAsync());
     }
 
     [Fact]

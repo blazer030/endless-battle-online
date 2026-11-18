@@ -2809,15 +2809,16 @@ export interface components {
             parentName: null | string;
             /** Format: int32 */
             unlockLevel: number;
+            levelMet: boolean;
             /** Format: int32 */
             proficiencyRequired: number;
-            statRequirements: components["schemas"]["JobStatRequirementResponse"][];
+            parentProficiencyMet: boolean;
+            statRequirements: components["schemas"]["JobStatCheckResponse"][];
             growth: components["schemas"]["JobGrowthResponse"];
             current: boolean;
             /** Format: int32 */
             proficiencyPercent: number;
             eligible: boolean;
-            reasons: string[];
         };
         JobProficiencyResponse: {
             jobId: string;
@@ -2834,6 +2835,12 @@ export interface components {
             maxLevel: number;
             prerequisite: null | components["schemas"]["SkillPrerequisiteResponse"];
             levels: components["schemas"]["SkillLevelSummaryResponse"][];
+        };
+        JobStatCheckResponse: {
+            stat: string;
+            /** Format: int32 */
+            minimum: number;
+            met: boolean;
         };
         JobStatRequirementResponse: {
             stat: string;

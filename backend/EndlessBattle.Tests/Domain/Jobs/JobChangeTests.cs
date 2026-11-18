@@ -59,6 +59,22 @@ public class JobChangeTests
         Assert.True(JobChange.Evaluate(character, target with { StatRequirements = [new StatRequirement(stat, minimum - 1)] }, []).Eligible);
     }
 
+    // 職業清單用：每個條件各自報告有沒有達成
+    [Fact]
+    public void Evaluate_ReportsEachCondition()
+    {
+        var check = JobChange.Evaluate(Warrior(level: 29, str: 59), Berserker, Ch(3500));
+
+        Assert.False(check.Current);
+        Assert.False(check.LevelMet);
+        Assert.True(check.ParentProficiencyMet);
+        Assert.Equal([new StatCheck(BaseStat.Strength, 60, false)], check.Stats);
+    }
+
+    [Fact]
+    public void Evaluate_NoParent_ParentProficiencyMet() =>
+        Assert.True(JobChange.Evaluate(Warrior(level: 1), Thief, []).ParentProficiencyMet);
+
     [Fact]
     public void Evaluate_MissingProficiencyRow_CountsAsZero()
     {

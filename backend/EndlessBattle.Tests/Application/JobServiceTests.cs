@@ -120,7 +120,7 @@ public class JobServiceTests
         var warrior = options.Single(option => option.Id == "warrior");
         Assert.True(warrior.Current);
         Assert.Equal(50, warrior.ProficiencyPercent);
-        Assert.Equal(["SAME_JOB"], warrior.Reasons);
+        Assert.False(warrior.Eligible);
         var thief = options.Single(option => option.Id == "thief");
         Assert.True(thief.Eligible);
         Assert.False(thief.Current);

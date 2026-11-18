@@ -10,6 +10,7 @@ import {
   learnReasonText,
   learnReasonTextOf,
   markCurrentJob,
+  unmetJobTexts,
   PassiveSlots,
   setSlot,
   slotReasonText,
@@ -61,20 +62,16 @@ const tierLabel = (tier: number) => (tier === 1 ? "基礎" : "進階")
 type Requirement = { text: string; met: boolean }
 
 const requirementsOf = (job: JobChoiceVo, jobs: JobChoiceVo[]): Requirement[] => {
-  const unmet = new Set(job.reasons)
-  const rows: Requirement[] = [{ text: `Lv ${job.unlockLevel}`, met: !unmet.has("LEVEL_TOO_LOW") }]
+  const rows: Requirement[] = [{ text: `Lv ${job.unlockLevel}`, met: job.levelMet }]
   if (job.parentId !== null) {
     const parent = jobs.find((candidate) => candidate.id === job.parentId)
     rows.push({
       text: `${job.parentName ?? job.parentId}熟練度 ${parent?.proficiencyPercent ?? 0}%／100%`,
-      met: !unmet.has("PARENT_PROFICIENCY_TOO_LOW"),
+      met: job.parentProficiencyMet,
     })
   }
-  for (const { stat, minimum } of job.statRequirements) {
-    rows.push({
-      text: `${statLabel(stat)} ≥ ${formatNumber(minimum)}`,
-      met: !unmet.has(`STAT_TOO_LOW:${stat}`),
-    })
+  for (const { stat, minimum, met } of job.statRequirements) {
+    rows.push({ text: `${statLabel(stat)} ≥ ${formatNumber(minimum)}`, met })
   }
   return rows
 }
@@ -251,7 +248,7 @@ export function SkillsScreen({ api, character, onCharacterChange, refreshSignal 
                 type="button"
                 className="skills__action"
                 disabled={!job.eligible || busy}
-                title={reasonsTitle(job.reasons, jobReasonText)}
+                title={unmetJobTexts(job).join("、") || undefined}
                 onClick={() => void changeJob(job.id)}
               >
                 轉職

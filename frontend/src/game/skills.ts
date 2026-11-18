@@ -125,13 +125,20 @@ export const slotReasonText = translate({
   PASSIVE_IN_ACTIVE_SLOT: "主動欄只能放主動技能",
 })
 
-const SameJob = "SAME_JOB"
+const conditionsMet = (job: JobChoiceVo) =>
+  job.levelMet && job.parentProficiencyMet && job.statRequirements.every(({ met }) => met)
+
+// 轉職按鈕的提示：還沒達成的條件
+export const unmetJobTexts = (job: JobChoiceVo): string[] => [
+  ...(job.current ? ["已是目前職業"] : []),
+  ...(job.levelMet ? [] : ["等級不足"]),
+  ...(job.parentProficiencyMet ? [] : ["前置職業熟練度不足"]),
+  ...job.statRequirements.filter(({ met }) => !met).map(({ stat }) => `${statLabel(stat)}不足`),
+]
 
 // 轉職成功但列表沒能重新載入時，在本地改標目前職業；其他條件沿用上次的判定
 export const markCurrentJob = (jobs: JobChoiceVo[], currentJobId: string): JobChoiceVo[] =>
   jobs.map((job) => {
-    const isCurrent = job.id === currentJobId
-    const others = job.reasons.filter((code) => code !== SameJob)
-    const reasons = isCurrent ? [SameJob, ...others] : others
-    return { ...job, current: isCurrent, reasons, eligible: reasons.length === 0 }
+    const current = job.id === currentJobId
+    return { ...job, current, eligible: !current && conditionsMet(job) }
   })

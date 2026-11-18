@@ -7,6 +7,7 @@ import {
   learnReasonText,
   learnReasonTextOf,
   markCurrentJob,
+  unmetJobTexts,
   proficiencyPercent,
   setSlot,
   slotReasonText,
@@ -15,7 +16,7 @@ import {
   validateLoadout,
 } from "./skills"
 import type { SlotDraft } from "./skills"
-import type { JobChoiceVo, Skill, SkillOverviewVo } from "./skillOverview"
+import type { Skill, SkillOverviewVo } from "./skillOverview"
 import { makeJobChoice } from "../test/fixtures"
 
 const skill = (overrides: Partial<Skill>): Skill => ({
@@ -128,27 +129,40 @@ describe("skills", () => {
       expect(validateLoadout(loadout, overview)).toEqual(reasons)
   })
 
-  it("markCurrentJob_MovesCurrentAndSameJobToTheNewJob", () => {
-    const option = (id: string, current: boolean, reasons: string[]): JobChoiceVo =>
-      makeJobChoice({ id, current, eligible: reasons.length === 0, reasons })
+  it("markCurrentJob_MovesCurrentToTheNewJob", () => {
     const jobs = [
-      option("warrior", true, ["SAME_JOB"]),
-      option("thief", false, []),
-      option("knight", false, ["LEVEL_TOO_LOW"]),
+      makeJobChoice({ id: "warrior", current: true, eligible: false }),
+      makeJobChoice({ id: "thief" }),
+      makeJobChoice({ id: "knight", levelMet: false, eligible: false }),
     ]
 
     expect(
-      markCurrentJob(jobs, "thief").map(({ id, current, eligible, reasons }) => ({
-        id,
-        current,
-        eligible,
-        reasons,
-      })),
+      markCurrentJob(jobs, "thief").map(({ id, current, eligible }) => ({ id, current, eligible })),
     ).toEqual([
-      { id: "warrior", current: false, eligible: true, reasons: [] },
-      { id: "thief", current: true, eligible: false, reasons: ["SAME_JOB"] },
-      { id: "knight", current: false, eligible: false, reasons: ["LEVEL_TOO_LOW"] },
+      { id: "warrior", current: false, eligible: true },
+      { id: "thief", current: true, eligible: false },
+      { id: "knight", current: false, eligible: false },
     ])
+  })
+
+  it("unmetJobTexts_ListsEachUnmetCondition", () => {
+    expect(unmetJobTexts(makeJobChoice({ current: true, eligible: false }))).toEqual([
+      "已是目前職業",
+    ])
+    expect(
+      unmetJobTexts(
+        makeJobChoice({
+          levelMet: false,
+          parentProficiencyMet: false,
+          statRequirements: [
+            { stat: "vitality", minimum: 60, met: false },
+            { stat: "strength", minimum: 20, met: true },
+          ],
+          eligible: false,
+        }),
+      ),
+    ).toEqual(["等級不足", "前置職業熟練度不足", "體質不足"])
+    expect(unmetJobTexts(makeJobChoice({}))).toEqual([])
   })
 
   it("proficiencyPercent_FloorsAndCapsAtHundred", () => {

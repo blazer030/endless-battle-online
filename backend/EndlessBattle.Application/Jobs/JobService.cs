@@ -17,13 +17,14 @@ public sealed record JobOption(
     string? ParentId,
     string? ParentName,
     int UnlockLevel,
+    bool LevelMet,
     int ProficiencyRequired,
-    IReadOnlyList<StatRequirement> StatRequirements,
+    bool ParentProficiencyMet,
+    IReadOnlyList<StatCheck> StatRequirements,
     JobGrowth Growth,
     bool Current,
     int ProficiencyPercent,
-    bool Eligible,
-    IReadOnlyList<string> Reasons);
+    bool Eligible);
 
 public sealed class JobService(
     ICharacterRepository characters,
@@ -49,13 +50,14 @@ public sealed class JobService(
                 job.ParentId,
                 job.ParentId is null ? null : content.GetJob(job.ParentId).Name,
                 job.UnlockLevel,
+                check.LevelMet,
                 job.ProficiencyRequired,
-                job.StatRequirements,
+                check.ParentProficiencyMet,
+                check.Stats,
                 job.Growth,
-                character.JobId == job.Id,
+                check.Current,
                 JobProficiencyDisplay.Percent(own),
-                check.Eligible,
-                check.Reasons);
+                check.Eligible);
         }).ToList();
     }
 

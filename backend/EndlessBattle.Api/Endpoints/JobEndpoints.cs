@@ -42,13 +42,14 @@ public static class JobEndpoints
         option.ParentId,
         option.ParentName,
         option.UnlockLevel,
+        option.LevelMet,
         option.ProficiencyRequired,
-        option.StatRequirements.Select(requirement => new JobStatRequirementResponse(BaseStatCode.Of(requirement.Stat), requirement.Minimum)).ToList(),
+        option.ParentProficiencyMet,
+        option.StatRequirements.Select(requirement => new JobStatCheckResponse(BaseStatCode.Of(requirement.Stat), requirement.Minimum, requirement.Met)).ToList(),
         ToResponse(option.Growth),
         option.Current,
         option.ProficiencyPercent,
-        option.Eligible,
-        option.Reasons);
+        option.Eligible);
 
     private static JobGrowthResponse ToResponse(JobGrowth growth) => new(
         ToResponse(growth.Strength),

@@ -52,8 +52,10 @@ const jobDto = {
   parentId: "job-6",
   parentName: "戰士",
   unlockLevel: 30,
+  levelMet: false,
   proficiencyRequired: 3500,
-  statRequirements: [{ stat: "strength", minimum: 60 }],
+  parentProficiencyMet: true,
+  statRequirements: [{ stat: "strength", minimum: 60, met: false }],
   growth: {
     strength: range(3, 4),
     intelligence: range(0, 1),
@@ -66,7 +68,6 @@ const jobDto = {
   current: false,
   proficiencyPercent: 40,
   eligible: false,
-  reasons: ["LEVEL_TOO_LOW", "STAT_TOO_LOW:strength"],
 }
 
 const parseFailure = (convert: () => unknown): ParseError => {
@@ -109,12 +110,13 @@ test("SkillOverviewConverter_IgnoresUnknownFields", () => {
   expect(overview).not.toHaveProperty("rank")
 })
 
-test("JobChoiceConverter_ConvertsGrowthAndReasons", () => {
+test("JobChoiceConverter_ConvertsGrowthAndConditions", () => {
   const job = JobChoiceConverter.toVo(jobDto)
 
   expect(job.growth.strength).toEqual({ minimum: 3, maximum: 4 })
-  expect(job.statRequirements).toEqual([{ stat: "strength", minimum: 60 }])
-  expect(job.reasons).toEqual(["LEVEL_TOO_LOW", "STAT_TOO_LOW:strength"])
+  expect(job.statRequirements).toEqual([{ stat: "strength", minimum: 60, met: false }])
+  expect(job.levelMet).toBe(false)
+  expect(job.parentProficiencyMet).toBe(true)
   expect(job.parentName).toBe("戰士")
 })
 

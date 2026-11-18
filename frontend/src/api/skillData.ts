@@ -16,7 +16,7 @@ import {
   parseOneOf,
   parseString,
 } from "./parse"
-import { toGrowth, toPrerequisite, toStatRequirements } from "./publicData"
+import { toGrowth, toPrerequisite } from "./publicData"
 import type { components } from "./schema"
 
 type SetSkillSlotsDto = components["schemas"]["SetSkillSlotsRequest"]
@@ -81,13 +81,25 @@ export const JobChoiceConverter = {
       parentId: parseNullableString(dto.parentId, `${path}.parentId`),
       parentName: parseNullableString(dto.parentName, `${path}.parentName`),
       unlockLevel: parseNumber(dto.unlockLevel, `${path}.unlockLevel`),
+      levelMet: parseBoolean(dto.levelMet, `${path}.levelMet`),
       proficiencyRequired: parseNumber(dto.proficiencyRequired, `${path}.proficiencyRequired`),
-      statRequirements: toStatRequirements(dto.statRequirements, `${path}.statRequirements`),
+      parentProficiencyMet: parseBoolean(dto.parentProficiencyMet, `${path}.parentProficiencyMet`),
+      statRequirements: parseArray(
+        dto.statRequirements,
+        `${path}.statRequirements`,
+        (item, itemPath) => {
+          const requirement = parseObject(item, itemPath)
+          return {
+            stat: parseString(requirement.stat, `${itemPath}.stat`),
+            minimum: parseNumber(requirement.minimum, `${itemPath}.minimum`),
+            met: parseBoolean(requirement.met, `${itemPath}.met`),
+          }
+        },
+      ),
       growth: toGrowth(dto.growth, `${path}.growth`),
       current: parseBoolean(dto.current, `${path}.current`),
       proficiencyPercent: parseNumber(dto.proficiencyPercent, `${path}.proficiencyPercent`),
       eligible: parseBoolean(dto.eligible, `${path}.eligible`),
-      reasons: toStrings(dto.reasons, `${path}.reasons`),
     })
   },
 }

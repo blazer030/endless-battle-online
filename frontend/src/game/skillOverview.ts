@@ -1,6 +1,9 @@
 // 技能頁的技能與轉職資料（來自 /api/skills、/api/jobs），由 api/skillData.ts 轉換
 import type { GrowthRange, GrowthStatKey, SkillPrerequisite, StatRequirement } from "./jobBook"
 
+// 轉職頁的能力需求：裸點有沒有達到 minimum
+export type JobStatCheck = StatRequirement & { readonly met: boolean }
+
 export const skillTypes = ["Active", "Passive"] as const
 export type SkillType = (typeof skillTypes)[number]
 
@@ -68,16 +71,17 @@ type JobChoiceVoParams = {
   parentId: string | null
   parentName: string | null
   unlockLevel: number
+  levelMet: boolean
   proficiencyRequired: number
-  statRequirements: StatRequirement[]
+  parentProficiencyMet: boolean
+  statRequirements: JobStatCheck[]
   growth: Record<GrowthStatKey, GrowthRange>
   current: boolean
   proficiencyPercent: number
   eligible: boolean
-  reasons: string[]
 }
 
-// 轉職頁的一個職業：目前職業、熟練度與能不能轉職的判定
+// 轉職頁的一個職業：目前職業、熟練度、每個轉職條件有沒有達成
 export class JobChoiceVo {
   readonly id: string
   readonly name: string
@@ -85,13 +89,14 @@ export class JobChoiceVo {
   readonly parentId: string | null
   readonly parentName: string | null
   readonly unlockLevel: number
+  readonly levelMet: boolean
   readonly proficiencyRequired: number
-  readonly statRequirements: readonly StatRequirement[]
+  readonly parentProficiencyMet: boolean
+  readonly statRequirements: readonly JobStatCheck[]
   readonly growth: Readonly<Record<GrowthStatKey, GrowthRange>>
   readonly current: boolean
   readonly proficiencyPercent: number
   readonly eligible: boolean
-  readonly reasons: readonly string[]
 
   private constructor(params: JobChoiceVoParams) {
     this.id = params.id
@@ -100,13 +105,14 @@ export class JobChoiceVo {
     this.parentId = params.parentId
     this.parentName = params.parentName
     this.unlockLevel = params.unlockLevel
+    this.levelMet = params.levelMet
     this.proficiencyRequired = params.proficiencyRequired
+    this.parentProficiencyMet = params.parentProficiencyMet
     this.statRequirements = params.statRequirements
     this.growth = params.growth
     this.current = params.current
     this.proficiencyPercent = params.proficiencyPercent
     this.eligible = params.eligible
-    this.reasons = params.reasons
   }
 
   static create(params: JobChoiceVoParams): JobChoiceVo {

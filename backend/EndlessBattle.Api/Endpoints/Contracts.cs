@@ -213,13 +213,16 @@ public sealed record JobOptionResponse(
     string? ParentId,
     string? ParentName,
     int UnlockLevel,
+    bool LevelMet,
     int ProficiencyRequired,
-    IReadOnlyList<JobStatRequirementResponse> StatRequirements,
+    bool ParentProficiencyMet,
+    IReadOnlyList<JobStatCheckResponse> StatRequirements,
     JobGrowthResponse Growth,
     bool Current,
     int ProficiencyPercent,
-    bool Eligible,
-    IReadOnlyList<string> Reasons);
+    bool Eligible);
+
+public sealed record JobStatCheckResponse(string Stat, int Minimum, bool Met);
 
 public sealed record ChangeJobRequest(string? JobId);
 

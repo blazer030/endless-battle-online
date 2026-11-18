@@ -91,7 +91,9 @@ export const makeJobChoice = (overrides: Partial<JobChoiceVo> = {}): JobChoiceVo
   parentId: null,
   parentName: null,
   unlockLevel: 1,
+  levelMet: true,
   proficiencyRequired: 0,
+  parentProficiencyMet: true,
   statRequirements: [],
   growth: {
     strength: { minimum: 1, maximum: 2 },
@@ -105,7 +107,6 @@ export const makeJobChoice = (overrides: Partial<JobChoiceVo> = {}): JobChoiceVo
   current: false,
   proficiencyPercent: 0,
   eligible: true,
-  reasons: [],
   ...overrides,
 })
 

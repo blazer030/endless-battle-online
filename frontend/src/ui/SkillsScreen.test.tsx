@@ -16,7 +16,6 @@ const jobs: JobChoiceVo[] = [
     current: true,
     proficiencyPercent: 42,
     eligible: false,
-    reasons: ["SAME_JOB"],
   }),
   jobOption({ id: "thief", name: "盜賊" }),
   jobOption({
@@ -26,13 +25,14 @@ const jobs: JobChoiceVo[] = [
     parentId: "warrior",
     parentName: "戰士",
     unlockLevel: 30,
+    levelMet: false,
     proficiencyRequired: 3500,
+    parentProficiencyMet: false,
     statRequirements: [
-      { stat: "vitality", minimum: 60 },
-      { stat: "strength", minimum: 20 },
+      { stat: "vitality", minimum: 60, met: false },
+      { stat: "strength", minimum: 20, met: true },
     ],
     eligible: false,
-    reasons: ["LEVEL_TOO_LOW", "PARENT_PROFICIENCY_TOO_LOW", "STAT_TOO_LOW:vitality"],
   }),
 ]
 
