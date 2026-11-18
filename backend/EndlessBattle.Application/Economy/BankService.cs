@@ -1,5 +1,6 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Economy;
 
@@ -32,5 +33,5 @@ public sealed class BankService(ICharacterRepository characters, IUnitOfWork uni
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

@@ -18,51 +18,51 @@ public static class MissionRules
     {
         if (mission is null)
         {
-            return ["MISSION_UNKNOWN"];
+            return [ReasonCodes.MissionUnknown];
         }
 
         var own = records.FirstOrDefault(record => record.MissionId == mission.Id);
         if (own is not null)
         {
-            return [own.State == MissionState.Active ? "ALREADY_ACTIVE" : "ALREADY_COMPLETED"];
+            return [own.State == MissionState.Active ? ReasonCodes.AlreadyActive : ReasonCodes.AlreadyCompleted];
         }
 
         var requirements = mission.Requirements;
         var reasons = new List<string>();
         if (records.Count(record => record.State == MissionState.Active) >= MaxActive)
         {
-            reasons.Add("TOO_MANY");
+            reasons.Add(ReasonCodes.TooMany);
         }
 
         if (character.Level < mission.Level)
         {
-            reasons.Add("LEVEL_TOO_LOW");
+            reasons.Add(ReasonCodes.LevelTooLow);
         }
 
         if (requirements.JobId is not null && requirements.JobId != character.JobId)
         {
-            reasons.Add("JOB_MISMATCH");
+            reasons.Add(ReasonCodes.JobMismatch);
         }
 
         if (requirements.Sex is not null && requirements.Sex != character.Sex)
         {
-            reasons.Add("SEX_MISMATCH");
+            reasons.Add(ReasonCodes.SexMismatch);
         }
 
         if (requirements.Birth is not null && requirements.Birth != character.Birth)
         {
-            reasons.Add("BIRTH_MISMATCH");
+            reasons.Add(ReasonCodes.BirthMismatch);
         }
 
         if (requirements.PrerequisiteId is not null
             && !records.Any(record => record.MissionId == requirements.PrerequisiteId && record.State == MissionState.Completed))
         {
-            reasons.Add("PREREQUISITE_MISSING");
+            reasons.Add(ReasonCodes.PrerequisiteMissing);
         }
 
         if (requirements.ConflictsWith is not null && records.Any(record => record.MissionId == requirements.ConflictsWith))
         {
-            reasons.Add("MISSION_CONFLICT");
+            reasons.Add(ReasonCodes.MissionConflict);
         }
 
         return reasons;

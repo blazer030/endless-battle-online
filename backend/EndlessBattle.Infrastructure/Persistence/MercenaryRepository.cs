@@ -1,5 +1,6 @@
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Mercenaries;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Mercenaries;
 using EndlessBattle.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public sealed class MercenaryRepository(EndlessBattleDbContext context) : IMerce
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("已有傭兵合約", ["MERCENARY_HIRED"], exception);
+            throw new ConflictException("已有傭兵合約", [ReasonCodes.MercenaryHired], exception);
         }
     }
 

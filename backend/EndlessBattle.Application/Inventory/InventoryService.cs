@@ -4,6 +4,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Items;
 using EndlessBattle.Application.Pets;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Equipment;
 using EndlessBattle.Domain.Items;
@@ -65,7 +66,7 @@ public sealed class InventoryService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var state = await LoadAsync(character.Id, cancellationToken);
             var equipped = state.Loadout.Equipped.GetValueOrDefault(slot)
-                ?? throw new InputValidationException("這一欄沒有裝備", ["SLOT_EMPTY"]);
+                ?? throw new InputValidationException("這一欄沒有裝備", [ReasonCodes.SlotEmpty]);
 
             if (slot == EquipmentSlot.Supply)
             {
@@ -174,7 +175,7 @@ public sealed class InventoryService(
     {
         if (quantity < 1 || quantity > InventoryRules.StackLimit || quantity > entry.Quantity)
         {
-            throw new InputValidationException($"補給數量必須是 1～{InventoryRules.StackLimit}，且不超過持有數量", ["INVALID_QUANTITY"]);
+            throw new InputValidationException($"補給數量必須是 1～{InventoryRules.StackLimit}，且不超過持有數量", [ReasonCodes.InvalidQuantity]);
         }
 
         var left = entry with { Quantity = entry.Quantity - quantity };
@@ -228,7 +229,7 @@ public sealed class InventoryService(
     private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
         characters.UpdateAsync(character, cancellationToken);
 
-    private static InputValidationException BagFull() => new("背包已滿", ["BAG_FULL"]);
+    private static InputValidationException BagFull() => new("背包已滿", [ReasonCodes.BagFull]);
 
     private Task<InventoryState> LoadAsync(long characterId, CancellationToken cancellationToken) =>
         BagReader.LoadAsync(inventory, equipment, characterId, cancellationToken);
@@ -237,11 +238,11 @@ public sealed class InventoryService(
     {
         if (state.Loadout.Equipped.Values.Any(entry => entry.Id == inventoryId))
         {
-            throw new InputValidationException("這件道具已經裝備中", ["ALREADY_EQUIPPED"]);
+            throw new InputValidationException("這件道具已經裝備中", [ReasonCodes.AlreadyEquipped]);
         }
 
         return state.Bag.FirstOrDefault(entry => entry.Id == inventoryId)
-            ?? throw new InputValidationException("背包裡沒有這件道具", ["ITEM_NOT_FOUND"]);
+            ?? throw new InputValidationException("背包裡沒有這件道具", [ReasonCodes.ItemNotFound]);
     }
 
     private async Task<InventoryView> ViewAsync(Character character, CancellationToken cancellationToken)
@@ -265,5 +266,5 @@ public sealed class InventoryService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

@@ -40,12 +40,12 @@ public static class MissionRewards
         var reasons = new List<string>();
         if (placed.Discarded.Contains(true))
         {
-            reasons.Add("BAG_FULL");
+            reasons.Add(ReasonCodes.BagFull);
         }
 
         if (reward.Pet is not null && petCountAfterDelivery >= PetRules.MaxPets)
         {
-            reasons.Add("PETS_FULL");
+            reasons.Add(ReasonCodes.PetsFull);
         }
 
         if (reasons.Count > 0)

@@ -11,34 +11,34 @@ public static class PlaceMove
     {
         if (target is null)
         {
-            return ["UNKNOWN_PLACE"];
+            return [ReasonCodes.UnknownPlace];
         }
 
         var reasons = new List<string>();
         var needsKey = AreaKeys.NeedsKey(target, pass, now);
         if (needsKey && !hasKey)
         {
-            reasons.Add("RESTRICTED");
+            reasons.Add(ReasonCodes.Restricted);
         }
 
         if (!target.HasSubPlaces && subPlace is not null)
         {
-            reasons.Add("SUB_PLACE_NOT_ALLOWED");
+            reasons.Add(ReasonCodes.SubPlaceNotAllowed);
         }
 
         if (target.HasSubPlaces && subPlace is null)
         {
-            reasons.Add("SUB_PLACE_REQUIRED");
+            reasons.Add(ReasonCodes.SubPlaceRequired);
         }
 
         if (target.HasSubPlaces && subPlace is { } index && target.SubPlaces.All(candidate => candidate.Index != index))
         {
-            reasons.Add("SUB_PLACE_OUT_OF_RANGE");
+            reasons.Add(ReasonCodes.SubPlaceOutOfRange);
         }
 
         if (character.PlaceId == target.Id && character.SubPlace == subPlace && !needsKey)
         {
-            reasons.Add("SAME_PLACE");
+            reasons.Add(ReasonCodes.SamePlace);
         }
 
         return reasons;

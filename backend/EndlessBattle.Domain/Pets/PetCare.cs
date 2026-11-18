@@ -39,20 +39,20 @@ public static class PetCare
     {
         if (now < NextFeedAt(pet))
         {
-            return ["TOO_SOON"];
+            return [ReasonCodes.TooSoon];
         }
 
         if (pet.Satiety >= SatietyFull)
         {
-            return ["FULL"];
+            return [ReasonCodes.Full];
         }
 
         if (ExceedsOwner(Raise(pet, food), owner))
         {
-            return ["OVER_OWNER"];
+            return [ReasonCodes.OverOwner];
         }
 
-        return money < food.Cost ? ["NOT_ENOUGH_MONEY"] : [];
+        return money < food.Cost ? [ReasonCodes.NotEnoughMoney] : [];
     }
 
     // 先擲飽腹再擲親密度；飽腹可以超過 100

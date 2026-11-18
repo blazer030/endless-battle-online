@@ -1,4 +1,5 @@
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,10 +14,10 @@ public sealed class ApplicationExceptionHandler(IProblemDetailsService problemDe
         (int Status, IReadOnlyList<string> Reasons)? error = exception switch
         {
             InputValidationException validation => (StatusCodes.Status400BadRequest, validation.Reasons),
-            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, [AuthenticationFailedException.Reason]),
+            AuthenticationFailedException => (StatusCodes.Status401Unauthorized, [ReasonCodes.AuthenticationFailed]),
             NotFoundException notFound => (StatusCodes.Status404NotFound, [notFound.Reason]),
             ConflictException conflict => (StatusCodes.Status409Conflict, conflict.Reasons),
-            BadHttpRequestException badRequest => (badRequest.StatusCode, [RequestErrors.RequestInvalid]),
+            BadHttpRequestException badRequest => (badRequest.StatusCode, [ReasonCodes.RequestInvalid]),
             _ => null,
         };
         if (error is null)

@@ -1,5 +1,6 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Progression;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,7 +37,7 @@ public sealed class JobProficiencyRepository(EndlessBattleDbContext context) : I
             cancellationToken);
         if (affected == 0)
         {
-            throw new ConflictException("技能熟練度已變動", ["CONCURRENT_UPDATE"]);
+            throw new ConflictException("技能熟練度已變動", [ReasonCodes.ConcurrentUpdate]);
         }
     }
 }

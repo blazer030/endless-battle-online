@@ -13,6 +13,6 @@ public static class PetRules
     public static IReadOnlyList<string> CanRename(string? name)
     {
         var length = name?.Trim().EnumerateRunes().Count() ?? 0;
-        return length is >= 1 and <= NameMaxLength ? [] : ["NAME_INVALID"];
+        return length is >= 1 and <= NameMaxLength ? [] : [ReasonCodes.NameInvalid];
     }
 }

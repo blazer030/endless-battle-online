@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using EndlessBattle.Domain;
 
 namespace EndlessBattle.Application.Common;
 
@@ -8,32 +8,26 @@ namespace EndlessBattle.Application.Common;
 public sealed class ConflictException(string message, IReadOnlyList<string> reasons, Exception? innerException = null)
     : Exception(message, innerException)
 {
-    public IReadOnlyList<string> Reasons { get; } = ReasonCodes.Require(reasons);
+    public IReadOnlyList<string> Reasons { get; } = ReasonCodeRequirement.Require(reasons);
 }
 
 public sealed class NotFoundException(string message, string reason) : Exception(message)
 {
-    public string Reason { get; } = ReasonCodes.Require([reason])[0];
+    public string Reason { get; } = ReasonCodeRequirement.Require([reason])[0];
 }
 
 public sealed class InputValidationException(string message, IReadOnlyList<string> reasons) : Exception(message)
 {
-    public IReadOnlyList<string> Reasons { get; } = ReasonCodes.Require(reasons);
+    public IReadOnlyList<string> Reasons { get; } = ReasonCodeRequirement.Require(reasons);
 }
 
-public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤")
-{
-    public const string Reason = "AUTHENTICATION_FAILED";
-}
+public sealed class AuthenticationFailedException() : Exception("帳號或密碼錯誤");
 
-// 原因代碼：全大寫、字之間用底線；帶參數的代碼在冒號後接參數（參數照原本的寫法，例如 STAT_TOO_LOW:strength）
-internal static partial class ReasonCodes
+// 代碼寫法的規則在 Domain 的 ReasonCodes.IsWellFormed
+internal static class ReasonCodeRequirement
 {
-    [GeneratedRegex("^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*(:.+)?$")]
-    private static partial Regex Spelling();
-
     public static IReadOnlyList<string> Require(IReadOnlyList<string> reasons) =>
-        reasons.Count > 0 && reasons.All(reason => reason is not null && Spelling().IsMatch(reason))
+        reasons.Count > 0 && reasons.All(reason => reason is not null && ReasonCodes.IsWellFormed(reason))
             ? reasons
             : throw new ArgumentException("錯誤必須帶至少一個全大寫底線的原因代碼", nameof(reasons));
 }

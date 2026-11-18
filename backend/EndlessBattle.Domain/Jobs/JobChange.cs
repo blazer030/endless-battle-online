@@ -14,12 +14,12 @@ public static class JobChange
         var reasons = new List<string>();
         if (character.JobId == target.Id)
         {
-            reasons.Add("SAME_JOB");
+            reasons.Add(ReasonCodes.SameJob);
         }
 
         if (character.Level < target.UnlockLevel)
         {
-            reasons.Add("LEVEL_TOO_LOW");
+            reasons.Add(ReasonCodes.LevelTooLow);
         }
 
         if (target.ParentId is not null)
@@ -27,7 +27,7 @@ public static class JobChange
             var parent = proficiency.FirstOrDefault(row => row.JobId == target.ParentId)?.Proficiency ?? 0;
             if (parent < target.ProficiencyRequired)
             {
-                reasons.Add("PARENT_PROFICIENCY_TOO_LOW");
+                reasons.Add(ReasonCodes.ParentProficiencyTooLow);
             }
         }
 

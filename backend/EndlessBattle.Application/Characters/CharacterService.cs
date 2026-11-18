@@ -4,6 +4,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Items;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Items;
 
@@ -29,18 +30,18 @@ public sealed class CharacterService(
         var nameLength = new StringInfo(trimmedName).LengthInTextElements;
         if (nameLength < MinimumNameLength || nameLength > MaximumNameLength)
         {
-            throw new InputValidationException($"角色名稱必須是 {MinimumNameLength}～{MaximumNameLength} 個字", ["CHARACTER_NAME_LENGTH"]);
+            throw new InputValidationException($"角色名稱必須是 {MinimumNameLength}～{MaximumNameLength} 個字", [ReasonCodes.CharacterNameLength]);
         }
 
         // 資料庫欄位 VARCHAR(12) 以 code point 計算；組合 emoji 一個字就可能佔好幾個
         if (trimmedName.EnumerateRunes().Count() > MaximumNameLength)
         {
-            throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字", ["CHARACTER_NAME_TOO_COMPLEX"]);
+            throw new InputValidationException("角色名稱含有過多組合字元，請改用較簡單的字", [ReasonCodes.CharacterNameTooComplex]);
         }
 
         if (content.AllJobs.All(candidate => candidate.Id != request.JobId))
         {
-            throw new InputValidationException("不存在的職業", ["JOB_UNKNOWN"]);
+            throw new InputValidationException("不存在的職業", [ReasonCodes.JobUnknown]);
         }
 
         var command = request with { Name = trimmedName };
@@ -95,5 +96,5 @@ public sealed class CharacterService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

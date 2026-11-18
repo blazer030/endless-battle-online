@@ -19,7 +19,7 @@ public static class Synthesis
     {
         if (recipe.RequiredMissionId is { } missionId && completedMissionIds?.Contains(missionId) != true)
         {
-            return ["MISSION_INCOMPLETE"];
+            return [ReasonCodes.MissionIncomplete];
         }
 
         var materials = CheckMaterials(recipe, attempts, bag);
@@ -30,12 +30,12 @@ public static class Synthesis
 
         if (CostPerAttempt * attempts > money)
         {
-            return ["NOT_ENOUGH_MONEY"];
+            return [ReasonCodes.NotEnoughMoney];
         }
 
         var result = getItem(recipe.ResultItemId);
         var sameCategory = AfterTaking(bag, Consumed(recipe, attempts)).Where(entry => getItem(entry.ItemId).Category == result.Category).ToList();
-        return InventoryRules.TryAdd(sameCategory, result, recipe.ResultQuantity * attempts, bagBonus).Discarded > 0 ? ["BAG_FULL"] : [];
+        return InventoryRules.TryAdd(sameCategory, result, recipe.ResultQuantity * attempts, bagBonus).Discarded > 0 ? [ReasonCodes.BagFull] : [];
     }
 
     // 每次獨立擲 rand(1, 100) ≤ 成功率（WOG syn.php:426-433）；材料一律依次數全扣
@@ -87,12 +87,12 @@ public static class Synthesis
     {
         if (attempts < 1)
         {
-            return ["INVALID_QUANTITY"];
+            return [ReasonCodes.InvalidQuantity];
         }
 
         var missing = Required(recipe).Any(material =>
             (long)material.Quantity * attempts > bag.Where(entry => entry.ItemId == material.ItemId).Sum(entry => (long)entry.Quantity));
-        return missing ? ["MISSING_MATERIALS"] : [];
+        return missing ? [ReasonCodes.MissingMaterials] : [];
     }
 
     private static List<(string ItemId, int Quantity)> Required(Recipe recipe) =>

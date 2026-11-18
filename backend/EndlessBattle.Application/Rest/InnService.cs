@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Rest;
 
@@ -34,7 +35,7 @@ public sealed class InnService(
             var inn = content.Inn;
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var room = inn.Rooms.FirstOrDefault(candidate => candidate.Id == roomId)
-                ?? throw new InputValidationException("沒有這個房間", ["UNKNOWN_ROOM"]);
+                ?? throw new InputValidationException("沒有這個房間", [ReasonCodes.UnknownRoom]);
             EnsureCanBook(character, Inn.Price(inn, room, character.Level));
 
             var now = clock.UtcNow;
@@ -54,5 +55,5 @@ public sealed class InnService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

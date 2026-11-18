@@ -40,7 +40,7 @@ public static class MissionBoard
         var nextReset = DailyMissions.NextReset(now);
 
         var available = missions
-            .Where(mission => MissionRules.CanAccept(character, mission, current) is [] or ["TOO_MANY"])
+            .Where(mission => MissionRules.CanAccept(character, mission, current) is [] or [ReasonCodes.TooMany])
             .OrderBy(mission => mission.Daily ? 0 : 1)
             .ThenBy(mission => mission.Daily ? 0 : mission.Level)
             .Select(mission => new MissionEntry(

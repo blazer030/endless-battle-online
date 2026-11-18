@@ -42,5 +42,5 @@ public static class BaseStatCode
         _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
     };
 
-    public static string StatTooLow(BaseStat stat) => $"STAT_TOO_LOW:{Of(stat)}";
+    public static string StatTooLow(BaseStat stat) => ReasonCodes.StatTooLow(Of(stat));
 }

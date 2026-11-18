@@ -1,6 +1,7 @@
 using System.Text.Json;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Missions;
 using EndlessBattle.Infrastructure.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,7 @@ public sealed class MissionRepository(EndlessBattleDbContext context) : IMission
         }
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
-            throw new ConflictException("任務已存在", ["MISSION_CONFLICT"], exception);
+            throw new ConflictException("任務已存在", [ReasonCodes.MissionConflict], exception);
         }
     }
 

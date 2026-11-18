@@ -1,6 +1,7 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Mercenaries;
 
@@ -87,7 +88,7 @@ public sealed class MercenaryService(
     private MercenaryOverview Overview(MercenaryContract? contract) => new(content.AllMercenaries, contract);
 
     private async Task<MercenaryContract> FindContractAsync(Character character, CancellationToken cancellationToken) =>
-        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", ["NO_MERCENARY"]);
+        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", [ReasonCodes.NoMercenary]);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {
@@ -98,5 +99,5 @@ public sealed class MercenaryService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

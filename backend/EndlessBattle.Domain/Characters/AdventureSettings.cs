@@ -17,13 +17,13 @@ public sealed record AdventureSettings(
         var reasons = new List<string>();
         if (Attack is { } attack && !Enum.IsDefined(attack))
         {
-            reasons.Add("INVALID_ATTACK");
+            reasons.Add(ReasonCodes.InvalidAttack);
         }
 
         int[] skippable = [PotionHealthPointsPercent, PotionManaPointsPercent, RestHealthPointsPercent, RestManaPointsPercent];
         if (skippable.Any(percent => percent is < Skip or > MaximumPercent) || EscapeHealthPointsPercent is < 0 or > MaximumPercent)
         {
-            reasons.Add("INVALID_PERCENT");
+            reasons.Add(ReasonCodes.InvalidPercent);
         }
 
         return reasons;

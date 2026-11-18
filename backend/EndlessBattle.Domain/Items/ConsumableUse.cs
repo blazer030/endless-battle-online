@@ -24,12 +24,12 @@ public static class ConsumableUse
     public static IReadOnlyList<string> CanUse(UseContext context, ItemDefinition item) => item.Consumable switch
     {
         ConsumableKind.StatPotion => [],
-        ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : ["NO_EFFECT"],
-        ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : ["NO_EFFECT"],
+        ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : [ReasonCodes.NoEffect],
+        ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : [ReasonCodes.NoEffect],
         ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule
             or ConsumableKind.Elixir => [],
-        ConsumableKind.PetEgg => context.PetCount >= PetRules.MaxPets ? ["PETS_FULL"] : [],
-        _ => ["NOT_USABLE"],
+        ConsumableKind.PetEgg => context.PetCount >= PetRules.MaxPets ? [ReasonCodes.PetsFull] : [],
+        _ => [ReasonCodes.NotUsable],
     };
 
     // 呼叫前先以 CanUse 確認可用

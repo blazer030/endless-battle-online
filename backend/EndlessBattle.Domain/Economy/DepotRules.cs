@@ -19,7 +19,7 @@ public static class DepotRules
         var valid = item.IsEquipment ? quantity == 1 : quantity >= 1 && quantity <= entry.Quantity;
         if (!valid)
         {
-            return Rejected("INVALID_QUANTITY");
+            return Rejected(ReasonCodes.InvalidQuantity);
         }
 
         if (item.Stackable)
@@ -28,14 +28,14 @@ public static class DepotRules
             if (existing is not null)
             {
                 return existing.Quantity + quantity > StackLimit
-                    ? Rejected("STACK_LIMIT")
+                    ? Rejected(ReasonCodes.StackLimit)
                     : new DepotPlan([], [], [existing with { Quantity = existing.Quantity + quantity }]);
             }
         }
 
         if (depot.Count >= Capacity(depotBonus))
         {
-            return Rejected("DEPOT_FULL");
+            return Rejected(ReasonCodes.DepotFull);
         }
 
         return new DepotPlan([], [entry with { Id = 0, Quantity = quantity }], []);
@@ -49,18 +49,18 @@ public static class DepotRules
         var valid = item.IsEquipment ? quantity == 1 : quantity >= 1 && quantity <= entry.Quantity;
         if (!valid)
         {
-            return Rejected("INVALID_QUANTITY");
+            return Rejected(ReasonCodes.InvalidQuantity);
         }
 
         if (item.IsEquipment)
         {
             return sameCategoryBag.Count >= InventoryRules.Capacity(item.Category, bagBonus)
-                ? Rejected("BAG_FULL")
+                ? Rejected(ReasonCodes.BagFull)
                 : new DepotPlan([], [entry with { Id = 0, Quantity = 1 }], []);
         }
 
         var added = InventoryRules.TryAdd(sameCategoryBag, item, quantity, bagBonus);
-        return added.Discarded > 0 ? Rejected("BAG_FULL") : new DepotPlan([], added.NewEntries, added.UpdatedEntries);
+        return added.Discarded > 0 ? Rejected(ReasonCodes.BagFull) : new DepotPlan([], added.NewEntries, added.UpdatedEntries);
     }
 
     private static DepotPlan Rejected(string reason) => new([reason], [], []);

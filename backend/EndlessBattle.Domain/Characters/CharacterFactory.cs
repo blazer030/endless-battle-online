@@ -25,12 +25,12 @@ public static class CharacterFactory
     {
         var allocation = command.Allocation;
         ValidateAllocation(allocation);
-        ValidateChoice(command.Sex, CharacterOptions.Sexes.Count, "性別", "SEX_INVALID");
-        ValidateChoice(command.Element, CharacterOptions.Elements.Count, "屬性", "ELEMENT_INVALID");
-        ValidateChoice(command.Birth, CharacterOptions.Births.Count, "出生地", "BIRTH_INVALID");
+        ValidateChoice(command.Sex, CharacterOptions.Sexes.Count, "性別", ReasonCodes.SexInvalid);
+        ValidateChoice(command.Element, CharacterOptions.Elements.Count, "屬性", ReasonCodes.ElementInvalid);
+        ValidateChoice(command.Birth, CharacterOptions.Births.Count, "出生地", ReasonCodes.BirthInvalid);
         if (job.Tier != StartingJobTier)
         {
-            throw new CharacterCreationException("只能選擇初階職業", "JOB_NOT_FIRST_TIER");
+            throw new CharacterCreationException("只能選擇初階職業", ReasonCodes.JobNotFirstTier);
         }
 
         return new Character(
@@ -70,13 +70,13 @@ public static class CharacterFactory
         int[] points = [allocation.Strength, allocation.Intelligence, allocation.Life, allocation.Agility];
         if (points.Any(point => point < 1))
         {
-            throw new CharacterCreationException("每項能力至少要分配 1 點", "STAT_BELOW_ONE");
+            throw new CharacterCreationException("每項能力至少要分配 1 點", ReasonCodes.StatBelowOne);
         }
 
         // 先擋單項過大，避免加總溢位
         if (points.Any(point => point > TotalPoints) || points.Sum() != TotalPoints)
         {
-            throw new CharacterCreationException($"能力點數必須剛好分完 {TotalPoints} 點", "POINTS_NOT_SPENT");
+            throw new CharacterCreationException($"能力點數必須剛好分完 {TotalPoints} 點", ReasonCodes.PointsNotSpent);
         }
     }
 

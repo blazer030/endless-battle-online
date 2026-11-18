@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain;
 
 namespace EndlessBattle.Application.Accounts;
 
@@ -14,12 +15,12 @@ public sealed partial class AccountService(IAccountRepository accounts, IPasswor
     {
         if (!UsernamePattern().IsMatch(username))
         {
-            throw new InputValidationException("帳號必須是 3～32 個英數字或底線", ["USERNAME_INVALID"]);
+            throw new InputValidationException("帳號必須是 3～32 個英數字或底線", [ReasonCodes.UsernameInvalid]);
         }
 
         if (password.Length < MinimumPasswordLength)
         {
-            throw new InputValidationException($"密碼至少要 {MinimumPasswordLength} 個字元", ["PASSWORD_TOO_SHORT"]);
+            throw new InputValidationException($"密碼至少要 {MinimumPasswordLength} 個字元", [ReasonCodes.PasswordTooShort]);
         }
 
         return await accounts.AddAsync(username, passwordHashing.Hash(password), clock.UtcNow, cancellationToken);
@@ -39,5 +40,5 @@ public sealed partial class AccountService(IAccountRepository accounts, IPasswor
 
     public async Task<AccountCredentials> GetAsync(long accountId, CancellationToken cancellationToken) =>
         await accounts.FindByIdAsync(accountId, cancellationToken)
-        ?? throw new NotFoundException("找不到帳號", "ACCOUNT_NOT_FOUND");
+        ?? throw new NotFoundException("找不到帳號", ReasonCodes.AccountNotFound);
 }

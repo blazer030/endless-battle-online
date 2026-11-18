@@ -2,6 +2,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Economy;
 using EndlessBattle.Domain.Items;
 
@@ -20,7 +21,7 @@ public sealed class ShopService(
 
     public IReadOnlyList<ItemDefinition> List(ItemCategory category, int level) =>
         level is < MinLevel or > MaxLevel
-            ? throw new InputValidationException($"商店等級必須是 {MinLevel}～{MaxLevel}", ["INVALID_LEVEL"])
+            ? throw new InputValidationException($"商店等級必須是 {MinLevel}～{MaxLevel}", [ReasonCodes.InvalidLevel])
             : content.ItemsForShop(category, level);
 
     public Task<InventoryView> BuyAsync(long accountId, string itemId, int quantity, CancellationToken cancellationToken) =>
@@ -28,7 +29,7 @@ public sealed class ShopService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var item = content.AllItems.FirstOrDefault(candidate => candidate.Id == itemId)
-                ?? throw new InputValidationException("商店沒有這個品項", ["NOT_FOR_SALE"]);
+                ?? throw new InputValidationException("商店沒有這個品項", [ReasonCodes.NotForSale]);
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var sameCategory = state.Bag.Where(entry => content.GetItem(entry.ItemId).Category == item.Category).ToList();
             var reasons = Shop.CanBuy(character, item, quantity, sameCategory);
@@ -59,8 +60,8 @@ public sealed class ShopService(
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
                 ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
-                    ? new InputValidationException("請先卸下這件裝備", ["EQUIPPED"])
-                    : new InputValidationException("背包裡沒有這件道具", ["ITEM_NOT_FOUND"]));
+                    ? new InputValidationException("請先卸下這件裝備", [ReasonCodes.Equipped])
+                    : new InputValidationException("背包裡沒有這件道具", [ReasonCodes.ItemNotFound]));
             var item = content.GetItem(entry.ItemId);
             var reasons = Shop.CanSell(entry, item, quantity);
             if (reasons.Count > 0)
@@ -82,5 +83,5 @@ public sealed class ShopService(
         }, cancellationToken);
 
     private async Task<Domain.Characters.Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

@@ -2,6 +2,7 @@ using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Content;
 using EndlessBattle.Domain.Equipment;
@@ -65,7 +66,7 @@ public sealed class JobService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var target = content.AllJobs.FirstOrDefault(job => job.Id == jobId)
-                ?? throw new InputValidationException("找不到職業", ["JOB_UNKNOWN"]);
+                ?? throw new InputValidationException("找不到職業", [ReasonCodes.JobUnknown]);
             var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
 
             var check = JobChange.Evaluate(character, target, rows);
@@ -76,7 +77,7 @@ public sealed class JobService(
 
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var unequipped = Unequipping.TryReturnAll(state.Bag, state.Loadout, character.BagBonus, content.GetItem)
-                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", ["BAG_FULL"]);
+                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", [ReasonCodes.BagFull]);
 
             var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
             await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);
@@ -111,5 +112,5 @@ public sealed class JobService(
     }
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }

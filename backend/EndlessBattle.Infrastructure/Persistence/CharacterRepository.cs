@@ -1,5 +1,6 @@
 using EndlessBattle.Application.Characters;
 using EndlessBattle.Application.Common;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +36,10 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
             throw MySqlErrors.IsDuplicateKey(exception, "uk_characters_account_id")
-                ? new ConflictException("此帳號已有角色", ["ACCOUNT_HAS_CHARACTER"], exception)
+                ? new ConflictException("此帳號已有角色", [ReasonCodes.AccountHasCharacter], exception)
                 : MySqlErrors.IsDuplicateKey(exception, "uk_characters_name")
-                    ? new ConflictException("角色名稱已被使用", ["CHARACTER_NAME_TAKEN"], exception)
-                    : new ConflictException("角色資料重複", ["CONCURRENT_UPDATE"], exception);
+                    ? new ConflictException("角色名稱已被使用", [ReasonCodes.CharacterNameTaken], exception)
+                    : new ConflictException("角色資料重複", [ReasonCodes.ConcurrentUpdate], exception);
         }
 
         return ToDomain(row);
@@ -47,7 +48,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
     public async Task<Character> UpdateAsync(Character character, CancellationToken cancellationToken)
     {
         var row = await context.Characters.SingleOrDefaultAsync(existing => existing.Id == character.Id, cancellationToken)
-            ?? throw new NotFoundException("找不到角色", "CHARACTER_NOT_FOUND");
+            ?? throw new NotFoundException("找不到角色", ReasonCodes.CharacterNotFound);
 
         // 以呼叫端拿到的版本作為比對基準：UPDATE ... WHERE version = character.Version
         context.Entry(row).Property(existing => existing.Version).OriginalValue = character.Version;
@@ -59,7 +60,7 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         }
         catch (DbUpdateConcurrencyException exception)
         {
-            throw new ConflictException("角色資料已被其他請求更新，請重新整理", ["CONCURRENT_UPDATE"], exception);
+            throw new ConflictException("角色資料已被其他請求更新，請重新整理", [ReasonCodes.ConcurrentUpdate], exception);
         }
 
         return ToDomain(row);

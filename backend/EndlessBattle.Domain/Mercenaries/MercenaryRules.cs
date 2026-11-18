@@ -21,23 +21,23 @@ public static class MercenaryRules
     {
         if (definition is null)
         {
-            return ["MERCENARY_UNKNOWN"];
+            return [ReasonCodes.MercenaryUnknown];
         }
 
         var reasons = new List<string>();
         if (definition.Price is null)
         {
-            reasons.Add("HONOUR_ONLY");
+            reasons.Add(ReasonCodes.HonourOnly);
         }
 
         if (current is not null)
         {
-            reasons.Add("MERCENARY_HIRED");
+            reasons.Add(ReasonCodes.MercenaryHired);
         }
 
         if (definition.Price is not { } price || character.Money < price)
         {
-            reasons.Add("NOT_ENOUGH_MONEY");
+            reasons.Add(ReasonCodes.NotEnoughMoney);
         }
 
         return reasons;
@@ -48,12 +48,12 @@ public static class MercenaryRules
         new(definition.Id, definition.Name, definition.Fights, PlaceId: null, NextFightAt: null, hiredAt);
 
     public static IReadOnlyList<string> CanDeploy(PlaceDefinition? place) =>
-        place is null ? ["PLACE_UNKNOWN"] : place.Restricted ? ["PLACE_RESTRICTED"] : [];
+        place is null ? [ReasonCodes.PlaceUnknown] : place.Restricted ? [ReasonCodes.PlaceRestricted] : [];
 
     // 去頭尾空白後 1～8 字（WOG 輸入框 maxlength 8）；以字碼計算
     public static IReadOnlyList<string> CanRename(string? name)
     {
         var length = name?.Trim().EnumerateRunes().Count() ?? 0;
-        return length is >= 1 and <= NameMaxLength ? [] : ["NAME_INVALID"];
+        return length is >= 1 and <= NameMaxLength ? [] : [ReasonCodes.NameInvalid];
     }
 }

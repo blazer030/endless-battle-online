@@ -9,6 +9,7 @@ using EndlessBattle.Application.Pets;
 using EndlessBattle.Application.Rest;
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Application.World;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Characters;
@@ -47,7 +48,7 @@ public sealed class AdventureService(
     public async Task<AdvanceResult> AdvanceAsync(long accountId, CancellationToken cancellationToken)
     {
         var character = await characters.FindByAccountAsync(accountId, cancellationToken)
-            ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+            ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 
         // 裝備在一次推進中不變，只讀一次
         var equipped = await equipment.GetAsync(character.Id, cancellationToken);

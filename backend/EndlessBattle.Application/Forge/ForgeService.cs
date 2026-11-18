@@ -3,6 +3,7 @@ using EndlessBattle.Application.Common;
 using EndlessBattle.Application.Content;
 using EndlessBattle.Application.Inventory;
 using EndlessBattle.Application.Missions;
+using EndlessBattle.Domain;
 using EndlessBattle.Domain.Characters;
 using EndlessBattle.Domain.Forge;
 using EndlessBattle.Domain.Items;
@@ -94,7 +95,7 @@ public sealed class ForgeService(
             var added = InventoryRules.TryAdd(SameCategory(InventoryRules.AfterConsuming(state.Bag, remover, 1), stone), stone, 1, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
+                throw new InputValidationException("背包已滿", [ReasonCodes.BagFull]);
             }
 
             await LockAsync(character, cancellationToken);
@@ -145,7 +146,7 @@ public sealed class ForgeService(
                 SameCategory(InventoryRules.AfterConsuming(state.Bag, stone, consumed), next), next, quantityPairs, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
+                throw new InputValidationException("背包已滿", [ReasonCodes.BagFull]);
             }
 
             await LockAsync(character, cancellationToken);
@@ -177,7 +178,7 @@ public sealed class ForgeService(
             var added = InventoryRules.TryAddEach(SameCategory(bag, results[0]), results, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
+                throw new InputValidationException("背包已滿", [ReasonCodes.BagFull]);
             }
 
             await LockAsync(character, cancellationToken);
@@ -206,7 +207,7 @@ public sealed class ForgeService(
         unitOfWork.RunAsync(async cancellationToken =>
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
-            var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方", "RECIPE_UNKNOWN");
+            var recipe = content.AllRecipes.FirstOrDefault(candidate => candidate.Id == recipeId) ?? throw new NotFoundException("找不到配方", ReasonCodes.RecipeUnknown);
             var state = await LoadAsync(character.Id, cancellationToken);
             var completed = await CompletedByCharacterAsync(character.Id, cancellationToken);
             Check(Synthesis.Check(recipe, attempts, state.Bag, character.Money, character.BagBonus, content.GetItem, completed), "無法合成");
@@ -272,10 +273,10 @@ public sealed class ForgeService(
 
     private static InventoryEntry FindTarget(InventoryState state, long inventoryId) =>
         state.Bag.Concat(state.Loadout.Equipped.Values).FirstOrDefault(entry => entry.Id == inventoryId)
-            ?? throw new NotFoundException("找不到這件道具", "ITEM_NOT_FOUND");
+            ?? throw new NotFoundException("找不到這件道具", ReasonCodes.ItemNotFound);
 
     private static InventoryEntry FindInBag(InventoryState state, long inventoryId) =>
-        state.Bag.FirstOrDefault(entry => entry.Id == inventoryId) ?? throw new NotFoundException("背包裡沒有這件道具", "ITEM_NOT_FOUND");
+        state.Bag.FirstOrDefault(entry => entry.Id == inventoryId) ?? throw new NotFoundException("背包裡沒有這件道具", ReasonCodes.ItemNotFound);
 
     // 交易中第一個寫入：鎖住角色列，同一角色的並行請求排在後面，因版本不符收到 409
     private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
@@ -285,5 +286,5 @@ public sealed class ForgeService(
         BagReader.LoadAsync(inventory, equipment, characterId, cancellationToken);
 
     private async Task<Character> FindCharacterAsync(long accountId, CancellationToken cancellationToken) =>
-        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", "CHARACTER_NOT_FOUND");
+        await characters.FindByAccountAsync(accountId, cancellationToken) ?? throw new NotFoundException("尚未建立角色", ReasonCodes.CharacterNotFound);
 }
