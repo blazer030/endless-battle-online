@@ -47,16 +47,16 @@ public class SynthesisTests
         Assert.Equal(4, random.Consumed);
     }
 
-    // 材料可以分散在多格；不夠時 Check 回 missingMaterials，Attempt 直接丟例外
+    // 材料可以分散在多格；不夠時 Check 回 MISSING_MATERIALS，Attempt 直接丟例外
     [Fact]
     public void Synthesis_RejectsMissingMaterials()
     {
         var bag = new[] { TestItems.Entry(1, "ore", 2), TestItems.Entry(2, "ore", 3) };
 
         Assert.Empty(Check(OreSword, 1, bag));
-        Assert.Equal(["missingMaterials"], Check(OreSword, 2, bag));
-        Assert.Equal(["missingMaterials"], Check(OreSword, int.MaxValue, bag));
-        Assert.Equal(["missingMaterials"], Check(OreSword, 1, [TestItems.Entry(1, "dust", 9)]));
+        Assert.Equal(["MISSING_MATERIALS"], Check(OreSword, 2, bag));
+        Assert.Equal(["MISSING_MATERIALS"], Check(OreSword, int.MaxValue, bag));
+        Assert.Equal(["MISSING_MATERIALS"], Check(OreSword, 1, [TestItems.Entry(1, "dust", 9)]));
         Assert.Throws<InvalidOperationException>(() => Synthesis.Attempt(OreSword, 2, bag, new ScriptedRandom(0.0)));
     }
 
@@ -65,8 +65,8 @@ public class SynthesisTests
     {
         var bag = new[] { TestItems.Entry(1, "ore", 9) };
 
-        Assert.Equal(["invalidQuantity"], Check(OreSword, 0, bag));
-        Assert.Equal(["invalidQuantity"], Check(OreSword, -1, bag));
+        Assert.Equal(["INVALID_QUANTITY"], Check(OreSword, 0, bag));
+        Assert.Equal(["INVALID_QUANTITY"], Check(OreSword, -1, bag));
         Assert.Throws<InvalidOperationException>(() => Synthesis.Attempt(OreSword, 0, bag, new ScriptedRandom(0.0)));
     }
 
@@ -77,9 +77,9 @@ public class SynthesisTests
         var ore = new[] { TestItems.Entry(1, "ore", 6) };
         var swords = Enumerable.Range(10, InventoryRules.SlotsPerCategory - 1).Select(id => TestItems.Entry(id, "sword")).ToList();
 
-        Assert.Equal(["notEnoughMoney"], Check(OreSword, 2, ore, money: 1999));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], Check(OreSword, 2, ore, money: 1999));
         Assert.Empty(Check(OreSword, 1, [.. ore, .. swords]));
-        Assert.Equal(["bagFull"], Check(OreSword, 2, [.. ore, .. swords]));
+        Assert.Equal(["BAG_FULL"], Check(OreSword, 2, [.. ore, .. swords]));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class SynthesisTests
         // 材料也不夠：前置任務的原因排在最前面
         var reasons = Synthesis.Check(locked, 1, [], 100_000, bagBonus: 0, GetItem, completedMissionIds: new HashSet<string>());
 
-        Assert.Equal(["missionIncomplete"], reasons);
+        Assert.Equal(["MISSION_INCOMPLETE"], reasons);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class SynthesisTests
 
         var reasons = Synthesis.Check(locked, 1, [], 100_000, bagBonus: 0, GetItem, completedMissionIds: new HashSet<string> { "mission-317" });
 
-        Assert.Equal(["missingMaterials"], reasons);
+        Assert.Equal(["MISSING_MATERIALS"], reasons);
     }
 
     private static IReadOnlyList<string> Check(Recipe recipe, int attempts, IReadOnlyList<InventoryEntry> bag, long money = 100_000) =>

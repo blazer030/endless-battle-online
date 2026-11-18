@@ -10,26 +10,26 @@ public sealed record RefineOutcome(bool Success, InventoryEntry Entry, bool Cons
 
 public static class Refine
 {
-    // 原因代碼依序為 notEquipment、notRefineStone、wrongStoneLevel、atRefineMax（WOG 先比等級再比上限），只回第一個
+    // 原因代碼依序為 NOT_EQUIPMENT、NOT_REFINE_STONE、WRONG_STONE_LEVEL、AT_REFINE_MAX（WOG 先比等級再比上限），只回第一個
     public static IReadOnlyList<string> Check(InventoryEntry equipment, ItemDefinition equipmentDef, ItemDefinition stone)
     {
         if (!equipmentDef.IsEquipment)
         {
-            return ["notEquipment"];
+            return ["NOT_EQUIPMENT"];
         }
 
         if (stone.Refine is null)
         {
-            return ["notRefineStone"];
+            return ["NOT_REFINE_STONE"];
         }
 
         var target = equipment.RefineLevel + 1;
         if (stone.Refine.Level != target)
         {
-            return ["wrongStoneLevel"];
+            return ["WRONG_STONE_LEVEL"];
         }
 
-        return target > equipmentDef.RefineMax ? ["atRefineMax"] : [];
+        return target > equipmentDef.RefineMax ? ["AT_REFINE_MAX"] : [];
     }
 
     // 擲 r = rand(1, 100)，10n > r 失敗（成功率 101 − 10n %）；成功才依序擲各能力

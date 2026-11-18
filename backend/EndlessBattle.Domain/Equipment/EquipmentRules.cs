@@ -5,18 +5,18 @@ namespace EndlessBattle.Domain.Equipment;
 
 public static class EquipmentRules
 {
-    // 原因代碼：notEquipment、jobMismatch、statTooLow:<stat>；能力需求比對裸點，不含裝備加成。欄位由分類決定，不會放錯欄
+    // 原因代碼：NOT_EQUIPMENT、JOB_MISMATCH、STAT_TOO_LOW:<stat>；能力需求比對裸點，不含裝備加成。欄位由分類決定，不會放錯欄
     public static IReadOnlyList<string> CanEquip(Character character, ItemDefinition item)
     {
         if (!item.IsEquipment)
         {
-            return ["notEquipment"];
+            return ["NOT_EQUIPMENT"];
         }
 
         var reasons = new List<string>();
         if (item.JobId is not null && item.JobId != character.JobId)
         {
-            reasons.Add("jobMismatch");
+            reasons.Add("JOB_MISMATCH");
         }
 
         var bare = character.Base;

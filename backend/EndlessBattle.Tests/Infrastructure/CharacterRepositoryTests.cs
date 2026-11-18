@@ -77,8 +77,8 @@ public class CharacterRepositoryTests(MySqlDatabaseFixture database)
         var takenName = await Assert.ThrowsAsync<ConflictException>(() => new CharacterRepository(nameContext).AddAsync(
             TestCharacters.Default(otherAccountId, name, 1, 1, now), cancellationToken));
 
-        Assert.Equal(["accountHasCharacter"], secondCharacter.Reasons);
-        Assert.Equal(["characterNameTaken"], takenName.Reasons);
+        Assert.Equal(["ACCOUNT_HAS_CHARACTER"], secondCharacter.Reasons);
+        Assert.Equal(["CHARACTER_NAME_TAKEN"], takenName.Reasons);
     }
 
     // 每個欄位都用和資料庫預設值不同的值，漏對應的欄位才會被抓到

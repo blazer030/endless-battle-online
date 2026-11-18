@@ -41,7 +41,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(60, berserker.GetProperty("statRequirements")[0].GetProperty("minimum").GetInt32());
         Assert.Equal(3, berserker.GetProperty("growth").GetProperty("strength").GetProperty("minimum").GetInt32());
         Assert.Equal(
-            ["levelTooLow", "parentProficiencyTooLow", "statTooLow:strength"],
+            ["LEVEL_TOO_LOW", "PARENT_PROFICIENCY_TOO_LOW", "STAT_TOO_LOW:strength"],
             berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
@@ -71,7 +71,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
         var jobs = (await client.GetFromJsonAsync<JsonElement>("/api/jobs", CancellationToken)).EnumerateArray();
 
         var berserker = jobs.First(job => job.GetProperty("id").GetString() == "berserker");
-        Assert.Contains("statTooLow:strength", berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Contains("STAT_TOO_LOW:strength", berserker.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Contains("levelTooLow", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Contains("LEVEL_TOO_LOW", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["sameJob"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["SAME_JOB"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class JobEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["bagFull"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["BAG_FULL"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
         var equipped = Assert.Single((await InventoryAsync(client)).GetProperty("equipment").EnumerateArray());
         Assert.Equal(sword, equipped.GetProperty("item").GetProperty("inventoryId").GetInt64());
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);

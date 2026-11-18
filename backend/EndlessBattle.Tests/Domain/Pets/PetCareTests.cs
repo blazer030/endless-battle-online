@@ -74,7 +74,7 @@ public class PetCareTests
 
     [Theory]
     [InlineData(178, new string[0])]
-    [InlineData(179, new[] { "overOwner" })]
+    [InlineData(179, new[] { "OVER_OWNER" })]
     public void Feed_AllowsEqualToOwnerRejectsAbove(int attack, string[] reasons)
     {
         Assert.Equal(reasons, PetCare.CanFeed(Fed(attack: attack), Food("fruit-vigor-small"), Owner, 2000, Now));
@@ -84,12 +84,12 @@ public class PetCareTests
     public void Feed_MagicCapIsOwnerMat()
     {
         Assert.Empty(PetCare.CanFeed(Fed(magic: 176), Food("fruit-aroma-medium"), Owner, 2000, Now));
-        Assert.Equal(["overOwner"], PetCare.CanFeed(Fed(magic: 177), Food("fruit-aroma-medium"), Owner, 2000, Now));
+        Assert.Equal(["OVER_OWNER"], PetCare.CanFeed(Fed(magic: 177), Food("fruit-aroma-medium"), Owner, 2000, Now));
     }
 
     [Theory]
     [InlineData(78, new string[0])]
-    [InlineData(79, new[] { "overOwner" })]
+    [InlineData(79, new[] { "OVER_OWNER" })]
     public void Feed_DefenseCapIsTheHigherOfDfAndMdf(int defense, string[] reasons)
     {
         Assert.Equal(reasons, PetCare.CanFeed(Fed(defense: defense), Food("fruit-sweet-small"), Owner, 2000, Now));
@@ -106,7 +106,7 @@ public class PetCareTests
     {
         var food = Food("fruit-vigor-small");
 
-        Assert.Equal(["tooSoon"], PetCare.CanFeed(Fed() with { HungerSince = Now.AddMilliseconds(-9_999) }, food, Owner, 2000, Now));
+        Assert.Equal(["TOO_SOON"], PetCare.CanFeed(Fed() with { HungerSince = Now.AddMilliseconds(-9_999) }, food, Owner, 2000, Now));
         Assert.Empty(PetCare.CanFeed(Fed() with { HungerSince = Now.AddSeconds(-10) }, food, Owner, 2000, Now));
         Assert.Equal(Now.AddSeconds(10), PetCare.NextFeedAt(Fed() with { HungerSince = Now }));
     }
@@ -116,7 +116,7 @@ public class PetCareTests
     {
         var food = Food("fruit-vigor-small");
 
-        Assert.Equal(["full"], PetCare.CanFeed(Fed(satiety: 100), food, Owner, 2000, Now));
+        Assert.Equal(["FULL"], PetCare.CanFeed(Fed(satiety: 100), food, Owner, 2000, Now));
         Assert.Empty(PetCare.CanFeed(Fed(satiety: 99), food, Owner, 2000, Now));
         Assert.Equal(119, PetCare.Feed(Fed(satiety: 99), food, Now, new ScriptedRandom(0.99)).Satiety);
     }
@@ -126,13 +126,13 @@ public class PetCareTests
     {
         var food = Food("fruit-vigor-small");
 
-        Assert.Equal(["notEnoughMoney"], PetCare.CanFeed(Fed(), food, Owner, 19, Now));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], PetCare.CanFeed(Fed(), food, Owner, 19, Now));
         Assert.Empty(PetCare.CanFeed(Fed(), food, Owner, 20, Now));
 
         // 全部不符時只回第一個
         var everything = Fed(attack: 179, satiety: 100) with { HungerSince = Now };
-        Assert.Equal(["tooSoon"], PetCare.CanFeed(everything, food, Owner, 19, Now));
-        Assert.Equal(["full"], PetCare.CanFeed(everything with { HungerSince = Now.AddSeconds(-10) }, food, Owner, 19, Now));
+        Assert.Equal(["TOO_SOON"], PetCare.CanFeed(everything, food, Owner, 19, Now));
+        Assert.Equal(["FULL"], PetCare.CanFeed(everything with { HungerSince = Now.AddSeconds(-10) }, food, Owner, 19, Now));
     }
 
     // 只給一個值（0.5 → rand(8,12) = 10）：飢餓剛好用掉這一個，之後拿到的是 fallback
@@ -195,10 +195,10 @@ public class PetCareTests
 
     // 規格 pets：refusals 表（主人物攻 31 時，攻擊 30 的寵物吃中級活力果實會變 34）
     [Theory]
-    [InlineData("fed5SecondsAgo", "tooSoon")]
-    [InlineData("satiety100", "full")]
-    [InlineData("overOwner", "overOwner")]
-    [InlineData("tenMoney", "notEnoughMoney")]
+    [InlineData("fed5SecondsAgo", "TOO_SOON")]
+    [InlineData("satiety100", "FULL")]
+    [InlineData("OVER_OWNER", "OVER_OWNER")]
+    [InlineData("tenMoney", "NOT_ENOUGH_MONEY")]
     public void CanFeed_RefusalTable(string state, string reason)
     {
         var owner = Owner with { Attack = 31 };
@@ -206,7 +206,7 @@ public class PetCareTests
         {
             "fed5SecondsAgo" => (Fed() with { HungerSince = Now.AddSeconds(-5) }, Food("fruit-vigor-small"), 2000L),
             "satiety100" => (Fed(satiety: 100), Food("fruit-vigor-small"), 2000L),
-            "overOwner" => (Fed(attack: 30), Food("fruit-vigor-medium"), 2000L),
+            "OVER_OWNER" => (Fed(attack: 30), Food("fruit-vigor-medium"), 2000L),
             _ => (Fed(), Food("fruit-vigor-small"), 10L),
         };
 

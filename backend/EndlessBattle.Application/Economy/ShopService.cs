@@ -20,7 +20,7 @@ public sealed class ShopService(
 
     public IReadOnlyList<ItemDefinition> List(ItemCategory category, int level) =>
         level is < MinLevel or > MaxLevel
-            ? throw new InputValidationException($"商店等級必須是 {MinLevel}～{MaxLevel}", ["invalidLevel"])
+            ? throw new InputValidationException($"商店等級必須是 {MinLevel}～{MaxLevel}", ["INVALID_LEVEL"])
             : content.ItemsForShop(category, level);
 
     public Task<InventoryView> BuyAsync(long accountId, string itemId, int quantity, CancellationToken cancellationToken) =>
@@ -28,7 +28,7 @@ public sealed class ShopService(
         {
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var item = content.AllItems.FirstOrDefault(candidate => candidate.Id == itemId)
-                ?? throw new InputValidationException("商店沒有這個品項", ["notForSale"]);
+                ?? throw new InputValidationException("商店沒有這個品項", ["NOT_FOR_SALE"]);
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var sameCategory = state.Bag.Where(entry => content.GetItem(entry.ItemId).Category == item.Category).ToList();
             var reasons = Shop.CanBuy(character, item, quantity, sameCategory);
@@ -59,8 +59,8 @@ public sealed class ShopService(
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
                 ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
-                    ? new InputValidationException("請先卸下這件裝備", ["equipped"])
-                    : new InputValidationException("背包裡沒有這件道具", ["itemNotFound"]));
+                    ? new InputValidationException("請先卸下這件裝備", ["EQUIPPED"])
+                    : new InputValidationException("背包裡沒有這件道具", ["ITEM_NOT_FOUND"]));
             var item = content.GetItem(entry.ItemId);
             var reasons = Shop.CanSell(entry, item, quantity);
             if (reasons.Count > 0)

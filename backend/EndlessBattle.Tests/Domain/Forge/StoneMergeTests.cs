@@ -43,39 +43,39 @@ public class StoneMergeTests
     public void Merge_CheckRejectsBadQuantityAndUnmergeableStones()
     {
         Assert.Empty(StoneMerge.Check(Stone(1, 3), 4, 2, Find));
-        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, 3, Find));
-        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, 0, Find));
-        Assert.Equal(["invalidQuantity"], StoneMerge.Check(Stone(1, 3), 4, int.MaxValue, Find));
-        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 2, 1, Find));
-        Assert.Equal(["notRefineStone"], StoneMerge.Check(TestItems.Item("ore", ItemCategory.Material), 4, 1, Find));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.Check(Stone(1, 3), 4, 3, Find));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.Check(Stone(1, 3), 4, 0, Find));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.Check(Stone(1, 3), 4, int.MaxValue, Find));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.Check(Stone(1, 10), 2, 1, Find));
+        Assert.Equal(["NOT_REFINE_STONE"], StoneMerge.Check(TestItems.Item("ore", ItemCategory.Material), 4, 1, Find));
     }
 
-    // 先判斷這種石頭能不能合成，再看數量：只有 1 顆 Lv10 也回 cannotMerge
+    // 先判斷這種石頭能不能合成，再看數量：只有 1 顆 Lv10 也回 CANNOT_MERGE
     [Fact]
     public void Merge_SingleMaxLevelStoneReportsCannotMerge()
     {
-        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 1, 1, Find));
-        Assert.Equal(["cannotMerge"], StoneMerge.Check(Stone(1, 10), 2, 0, Find));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.Check(Stone(1, 10), 1, 1, Find));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.Check(Stone(1, 10), 2, 0, Find));
     }
 
     [Fact]
     public void CheckCrossKind_RejectsSameKind()
     {
-        Assert.Equal(["cannotMerge"], StoneMerge.CheckCrossKind(Stone(1, 5), 2, Stone(1, 5), 2, 1, Stones));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.CheckCrossKind(Stone(1, 5), 2, Stone(1, 5), 2, 1, Stones));
     }
 
     [Fact]
     public void CheckCrossKind_RejectsLevelOne()
     {
-        Assert.Equal(["cannotMerge"], StoneMerge.CheckCrossKind(Stone(1, 1), 2, Stone(2, 1), 2, 1, Stones));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.CheckCrossKind(Stone(1, 1), 2, Stone(2, 1), 2, 1, Stones));
     }
 
     [Fact]
     public void CheckCrossKind_RejectsDifferentLevels()
     {
-        Assert.Equal(["cannotMerge"], StoneMerge.CheckCrossKind(Stone(1, 5), 2, Stone(2, 4), 2, 1, Stones));
+        Assert.Equal(["CANNOT_MERGE"], StoneMerge.CheckCrossKind(Stone(1, 5), 2, Stone(2, 4), 2, 1, Stones));
         Assert.Equal(
-            ["notRefineStone"],
+            ["NOT_REFINE_STONE"],
             StoneMerge.CheckCrossKind(Stone(1, 5), 2, TestItems.Item("ore", ItemCategory.Material), 2, 1, Stones));
     }
 
@@ -84,9 +84,9 @@ public class StoneMergeTests
     public void CheckCrossKind_PairsLimitedBySmallerStack()
     {
         Assert.Empty(StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, 2, Stones));
-        Assert.Equal(["invalidQuantity"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, 3, Stones));
-        Assert.Equal(["invalidQuantity"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, 0, Stones));
-        Assert.Equal(["invalidQuantity"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, int.MaxValue, Stones));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, 3, Stones));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, 0, Stones));
+        Assert.Equal(["INVALID_QUANTITY"], StoneMerge.CheckCrossKind(Stone(1, 5), 5, Stone(2, 5), 2, int.MaxValue, Stones));
     }
 
     // 鋼鐵（1）Lv5 + 秘法（2）Lv5 → 候選只剩活力（3）Lv4：NextInt(1)

@@ -100,7 +100,7 @@ public class SkillServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.LearnAsync(AccountId, "burst", CancellationToken));
 
-        Assert.Equal(["notEnoughProficiency"], exception.Reasons);
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], exception.Reasons);
         Assert.Empty(log);
         Assert.Equal(2000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
         Assert.Equal([new JobProficiency("warrior", 0, 299)], await proficiencies.ListAsync(character.Id, CancellationToken));
@@ -161,7 +161,7 @@ public class SkillServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
             service.SetSlotsAsync(AccountId, [new SkillSlot(4, "burst"), new SkillSlot(2, "iron-skin")], CancellationToken));
 
-        Assert.Equal(["activeInPassiveSlot", "notLearned"], exception.Reasons);
+        Assert.Equal(["ACTIVE_IN_PASSIVE_SLOT", "NOT_LEARNED"], exception.Reasons);
         Assert.Empty(log);
         Assert.Equal([new SkillSlot(1, "burst")], await loadout.ListAsync(character.Id, CancellationToken));
     }
@@ -210,7 +210,7 @@ public class SkillServiceTests
         var combo = overview.Skills[2];
         Assert.Equal(2, combo.Level);
         Assert.Equal("機率 50%｜消耗 SP 8｜物理連擊 3 次，3 回合、自己物攻 -2%，3 回合", combo.Summary);
-        Assert.Equal(["wrongJob", "notEnoughProficiency", "notEnoughMoney"], combo.Next!.Reasons);
+        Assert.Equal(["WRONG_JOB", "NOT_ENOUGH_PROFICIENCY", "NOT_ENOUGH_MONEY"], combo.Next!.Reasons);
         Assert.False(combo.Next.CanLearn);
     }
 

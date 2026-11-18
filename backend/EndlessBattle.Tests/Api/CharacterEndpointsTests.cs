@@ -319,7 +319,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
         var (detail, reasons) = await ConflictOf(second);
         Assert.Equal("此帳號已有角色", detail);
-        Assert.Equal(["accountHasCharacter"], reasons);
+        Assert.Equal(["ACCOUNT_HAS_CHARACTER"], reasons);
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.StartsWith("初", me.GetProperty("name").GetString());
     }
@@ -338,7 +338,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         var (detail, reasons) = await ConflictOf(duplicate);
         Assert.Equal("角色名稱已被使用", detail);
-        Assert.Equal(["characterNameTaken"], reasons);
+        Assert.Equal(["CHARACTER_NAME_TAKEN"], reasons);
     }
 
     // spec 名字長度範例表的「艾倫」與「12 個中文字」列；名字要唯一，用隨機漢字
@@ -495,7 +495,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(42, body.GetProperty("settings").GetProperty("potionHealthPointsPercent").GetInt32());
         Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
         var problem = await refused.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal("invalidPercent", problem.GetProperty("reasons")[0].GetString());
+        Assert.Equal("INVALID_PERCENT", problem.GetProperty("reasons")[0].GetString());
     }
 
     // 舊客戶端還會送這個欄位：直接忽略，不回錯誤
@@ -532,7 +532,7 @@ public class CharacterEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal("invalidPercent", problem.GetProperty("reasons")[0].GetString());
+        Assert.Equal("INVALID_PERCENT", problem.GetProperty("reasons")[0].GetString());
     }
 
     [Fact]

@@ -35,9 +35,9 @@ public sealed class CharacterRepository(EndlessBattleDbContext context) : IChara
         catch (DbUpdateException exception) when (MySqlErrors.IsDuplicateKey(exception))
         {
             throw MySqlErrors.IsDuplicateKey(exception, "uk_characters_account_id")
-                ? new ConflictException("此帳號已有角色", exception, ["accountHasCharacter"])
+                ? new ConflictException("此帳號已有角色", exception, ["ACCOUNT_HAS_CHARACTER"])
                 : MySqlErrors.IsDuplicateKey(exception, "uk_characters_name")
-                    ? new ConflictException("角色名稱已被使用", exception, ["characterNameTaken"])
+                    ? new ConflictException("角色名稱已被使用", exception, ["CHARACTER_NAME_TAKEN"])
                     : new ConflictException("角色資料重複", exception);
         }
 

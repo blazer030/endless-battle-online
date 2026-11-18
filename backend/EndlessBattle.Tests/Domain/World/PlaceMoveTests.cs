@@ -24,27 +24,27 @@ public class PlaceMoveTests
     [Fact]
     public void Validate_ReportsReasonsInOrder()
     {
-        Assert.Equal(["restricted", "subPlaceNotAllowed"], Evaluate(Place(20, 0, restricted: true), 1));
+        Assert.Equal(["RESTRICTED", "SUB_PLACE_NOT_ALLOWED"], Evaluate(Place(20, 0, restricted: true), 1));
     }
 
-    // samePlace 要地區與子地區都相同；目前在子地區 1，未給子地區 ≠ 子地區 1，所以只有 subPlaceRequired
+    // SAME_PLACE 要地區與子地區都相同；目前在子地區 1，未給子地區 ≠ 子地區 1，所以只有 SUB_PLACE_REQUIRED
     [Fact]
     public void Validate_ReportsOnlySubPlaceRequired_WhenSamePlaceWithoutSubPlace()
     {
-        Assert.Equal(["subPlaceRequired"], Evaluate(Place(1, 4, restricted: false), null));
+        Assert.Equal(["SUB_PLACE_REQUIRED"], Evaluate(Place(1, 4, restricted: false), null));
     }
 
-    // 超出範圍的子地區必然不等於目前（合法）的子地區，所以不會同時是 samePlace
+    // 超出範圍的子地區必然不等於目前（合法）的子地區，所以不會同時是 SAME_PLACE
     [Fact]
     public void Validate_ReportsOutOfRange_WithoutSamePlace()
     {
-        Assert.Equal(["subPlaceOutOfRange"], Evaluate(Place(1, 4, restricted: false), 5));
+        Assert.Equal(["SUB_PLACE_OUT_OF_RANGE"], Evaluate(Place(1, 4, restricted: false), 5));
     }
 
     [Fact]
     public void Evaluate_RestrictedWithoutPassOrKey()
     {
-        Assert.Equal(["restricted"], Evaluate(Place(17, 4, restricted: true), 1));
+        Assert.Equal(["RESTRICTED"], Evaluate(Place(17, 4, restricted: true), 1));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class PlaceMoveTests
     public void Evaluate_SameRestrictedPlaceWithValidPassIsSamePlace()
     {
         Assert.Equal(
-            ["samePlace"],
+            ["SAME_PLACE"],
             Evaluate(Place(17, 4, restricted: true), 1, new AreaPass(17, Now.AddSeconds(1)), hasKey: true, placeId: 17));
     }
 }

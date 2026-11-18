@@ -16,7 +16,7 @@ public static class SkillLoadout
     public static bool IsPassiveSlot(int slot) => slot > ActiveSlots && slot <= ActiveSlots + PassiveSlots;
 
     // 回傳所有不合法原因（不重複、依出現順序），空清單表示合法。
-    // 代碼：slotOutOfRange、duplicateSlot、notLearned、duplicateSkill、activeInPassiveSlot、passiveInActiveSlot
+    // 代碼：SLOT_OUT_OF_RANGE、DUPLICATE_SLOT、NOT_LEARNED、DUPLICATE_SKILL、ACTIVE_IN_PASSIVE_SLOT、PASSIVE_IN_ACTIVE_SLOT
     public static IReadOnlyList<string> Validate(IReadOnlyList<SkillSlot> slots, IReadOnlyList<LearnedSkill> learned, Func<string, SkillDefinition> skills)
     {
         var reasons = new List<string>();
@@ -29,33 +29,33 @@ public static class SkillLoadout
             var isActiveSlot = IsActiveSlot(slot.Slot);
             if (!isActiveSlot && !IsPassiveSlot(slot.Slot))
             {
-                reasons.Add("slotOutOfRange");
+                reasons.Add("SLOT_OUT_OF_RANGE");
             }
 
             if (!seenSlots.Add(slot.Slot))
             {
-                reasons.Add("duplicateSlot");
+                reasons.Add("DUPLICATE_SLOT");
             }
 
             if (!learnedIds.Contains(slot.SkillId))
             {
-                reasons.Add("notLearned");
+                reasons.Add("NOT_LEARNED");
                 continue;
             }
 
             if (!seenSkills.Add(slot.SkillId))
             {
-                reasons.Add("duplicateSkill");
+                reasons.Add("DUPLICATE_SKILL");
             }
 
             var skill = skills(slot.SkillId);
             if (isActiveSlot && skill.Type == SkillType.Passive)
             {
-                reasons.Add("passiveInActiveSlot");
+                reasons.Add("PASSIVE_IN_ACTIVE_SLOT");
             }
             else if (IsPassiveSlot(slot.Slot) && skill.Type == SkillType.Active)
             {
-                reasons.Add("activeInPassiveSlot");
+                reasons.Add("ACTIVE_IN_PASSIVE_SLOT");
             }
         }
 

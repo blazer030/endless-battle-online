@@ -71,8 +71,8 @@ public class DepotRulesTests
     [Fact]
     public void TryStore_RejectsBadQuantity()
     {
-        Assert.Equal(["invalidQuantity"], DepotRules.TryStore([], Sword, TestItems.Entry(9, "sword"), 2, 0).Reasons);
-        Assert.Equal(["invalidQuantity"], DepotRules.TryStore([], Supply, TestItems.Entry(9, "supply", 5), 6, 0).Reasons);
+        Assert.Equal(["INVALID_QUANTITY"], DepotRules.TryStore([], Sword, TestItems.Entry(9, "sword"), 2, 0).Reasons);
+        Assert.Equal(["INVALID_QUANTITY"], DepotRules.TryStore([], Supply, TestItems.Entry(9, "supply", 5), 6, 0).Reasons);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class DepotRulesTests
         var plan = DepotRules.TryTake([], Sword, refined, 1, 0);
 
         Assert.Equal((2, 1), (Assert.Single(plan.Created).RefineLevel, plan.Created[0].Holes));
-        Assert.Equal(["bagFull"], DepotRules.TryTake(Filled(15), Sword, refined, 1, 0).Reasons);
+        Assert.Equal(["BAG_FULL"], DepotRules.TryTake(Filled(15), Sword, refined, 1, 0).Reasons);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class DepotRulesTests
 
         Assert.Equal([(1L, 99)], plan.Updated.Select(entry => (entry.Id, entry.Quantity)));
         Assert.Equal([11], plan.Created.Select(entry => entry.Quantity));
-        Assert.Equal(["bagFull"], DepotRules.TryTake(Filled(15), Supply, TestItems.Entry(5, "supply", 200), 5, 0).Reasons);
-        Assert.Equal(["invalidQuantity"], DepotRules.TryTake(bag, Supply, TestItems.Entry(5, "supply", 20), 21, 0).Reasons);
+        Assert.Equal(["BAG_FULL"], DepotRules.TryTake(Filled(15), Supply, TestItems.Entry(5, "supply", 200), 5, 0).Reasons);
+        Assert.Equal(["INVALID_QUANTITY"], DepotRules.TryTake(bag, Supply, TestItems.Entry(5, "supply", 20), 21, 0).Reasons);
     }
 }

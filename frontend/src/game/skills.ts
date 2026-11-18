@@ -61,20 +61,21 @@ export const validateLoadout = (drafts: SlotDraft[], overview: SkillOverviewVo):
   for (const { slot, skillId } of drafts) {
     if (skillId === null) continue
     const isActive = isActiveSlot(slot)
-    if (!isActive && !isPassiveSlot(slot)) reasons.push("slotOutOfRange")
-    if (seenSlots.has(slot)) reasons.push("duplicateSlot")
+    if (!isActive && !isPassiveSlot(slot)) reasons.push("SLOT_OUT_OF_RANGE")
+    if (seenSlots.has(slot)) reasons.push("DUPLICATE_SLOT")
     seenSlots.add(slot)
 
     const skill = overview.skills.find((candidate) => candidate.id === skillId)
     if (skill === undefined || skill.level === 0) {
-      reasons.push("notLearned")
+      reasons.push("NOT_LEARNED")
       continue
     }
-    if (seenSkills.has(skillId)) reasons.push("duplicateSkill")
+    if (seenSkills.has(skillId)) reasons.push("DUPLICATE_SKILL")
     seenSkills.add(skillId)
 
-    if (isActive && skill.slotType === "Passive") reasons.push("passiveInActiveSlot")
-    else if (isPassiveSlot(slot) && skill.slotType === "Active") reasons.push("activeInPassiveSlot")
+    if (isActive && skill.slotType === "Passive") reasons.push("PASSIVE_IN_ACTIVE_SLOT")
+    else if (isPassiveSlot(slot) && skill.slotType === "Active")
+      reasons.push("ACTIVE_IN_PASSIVE_SLOT")
   }
   return [...new Set(reasons)]
 }
@@ -85,12 +86,12 @@ export const proficiencyPercent = (value: number) =>
 const translate = (texts: Record<string, string>) => (code: string) => texts[code] ?? code
 
 const fixedJobReasonText = translate({
-  sameJob: "已是目前職業",
-  levelTooLow: "等級不足",
-  parentProficiencyTooLow: "前置職業熟練度不足",
+  SAME_JOB: "已是目前職業",
+  LEVEL_TOO_LOW: "等級不足",
+  PARENT_PROFICIENCY_TOO_LOW: "前置職業熟練度不足",
 })
 
-const StatTooLowPrefix = "statTooLow:"
+const StatTooLowPrefix = "STAT_TOO_LOW:"
 
 export const jobReasonText = (code: string) =>
   code.startsWith(StatTooLowPrefix)
@@ -98,14 +99,14 @@ export const jobReasonText = (code: string) =>
     : fixedJobReasonText(code)
 
 export const learnReasonText = translate({
-  wrongJob: "不是目前職業的技能",
-  maxLevel: "已達最高等級",
-  notEnoughProficiency: "技能熟練度不足",
-  notEnoughMoney: "金錢不足",
-  prerequisite: "前置技能等級不足",
+  WRONG_JOB: "不是目前職業的技能",
+  MAX_LEVEL: "已達最高等級",
+  NOT_ENOUGH_PROFICIENCY: "技能熟練度不足",
+  NOT_ENOUGH_MONEY: "金錢不足",
+  PREREQUISITE: "前置技能等級不足",
 })
 
-const Prerequisite = "prerequisite"
+const Prerequisite = "PREREQUISITE"
 
 // 技能卡上的未達成原因：前置技能寫出名稱與要求等級
 export const learnReasonTextOf =
@@ -116,15 +117,15 @@ export const learnReasonTextOf =
       : learnReasonText(code)
 
 export const slotReasonText = translate({
-  slotOutOfRange: "欄位編號不正確",
-  duplicateSlot: "欄位重複",
-  notLearned: "尚未學會這個技能",
-  duplicateSkill: "同一技能不能裝在兩個欄位",
-  activeInPassiveSlot: "被動欄只能放被動技能",
-  passiveInActiveSlot: "主動欄只能放主動技能",
+  SLOT_OUT_OF_RANGE: "欄位編號不正確",
+  DUPLICATE_SLOT: "欄位重複",
+  NOT_LEARNED: "尚未學會這個技能",
+  DUPLICATE_SKILL: "同一技能不能裝在兩個欄位",
+  ACTIVE_IN_PASSIVE_SLOT: "被動欄只能放被動技能",
+  PASSIVE_IN_ACTIVE_SLOT: "主動欄只能放主動技能",
 })
 
-const SameJob = "sameJob"
+const SameJob = "SAME_JOB"
 
 // 轉職成功但列表沒能重新載入時，在本地改標目前職業；其他條件沿用上次的判定
 export const markCurrentJob = (jobs: JobChoiceVo[], currentJobId: string): JobChoiceVo[] =>

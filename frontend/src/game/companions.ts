@@ -23,24 +23,24 @@ const MiraFailed = "咦，剛剛沒弄好……再試一次吧？"
 const BartonFailed = "嘖，文書出了點差錯，再來一次。"
 
 const miraRejections: Record<string, string> = {
-  overOwner: "再吃下去，牠就要比你還強了呢。",
-  notEnoughMoney: "哎呀，這顆果實的錢好像不太夠。",
-  nameInvalid: "這名字牠好像記不住呢。",
-  full: "牠已經吃得飽飽的了。",
-  tooSoon: "慢慢來，讓牠先嚼完這顆。",
+  OVER_OWNER: "再吃下去，牠就要比你還強了呢。",
+  NOT_ENOUGH_MONEY: "哎呀，這顆果實的錢好像不太夠。",
+  NAME_INVALID: "這名字牠好像記不住呢。",
+  FULL: "牠已經吃得飽飽的了。",
+  TOO_SOON: "慢慢來，讓牠先嚼完這顆。",
 }
 
 const bartonRejection = (reason: string, contractName: string | undefined): string | undefined => {
   switch (reason) {
-    case "notEnoughMoney":
+    case "NOT_ENOUGH_MONEY":
       return "錢不夠，這張契約簽不了。"
-    case "mercenaryHired":
+    case "MERCENARY_HIRED":
       return `一次只接一份契約，先把${contractName ?? "那位"}的處理掉。`
-    case "honourOnly":
+    case "HONOUR_ONLY":
       return "那兩位得去勳章所換，我這兒不賣。"
-    case "placeRestricted":
+    case "PLACE_RESTRICTED":
       return "那裡是禁區，我的人不去送死。"
-    case "nameInvalid":
+    case "NAME_INVALID":
       return "這名字名冊上寫不了，換一個。"
     default:
       return undefined

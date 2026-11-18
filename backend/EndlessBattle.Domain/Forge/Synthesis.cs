@@ -11,7 +11,7 @@ public static class Synthesis
 {
     public const long CostPerAttempt = 1000;
 
-    // 原因代碼依序為 missionIncomplete、invalidQuantity、missingMaterials、notEnoughMoney、bagFull，只回第一個。
+    // 原因代碼依序為 MISSION_INCOMPLETE、INVALID_QUANTITY、MISSING_MATERIALS、NOT_ENOUGH_MONEY、BAG_FULL，只回第一個。
     // bag 是整個背包（不含已裝備的列）。金錢與背包都以全部成功估算，避免擲完才發現付不出或放不下
     public static IReadOnlyList<string> Check(
         Recipe recipe, int attempts, IReadOnlyList<InventoryEntry> bag, long money, int bagBonus, Func<string, ItemDefinition> getItem,
@@ -19,7 +19,7 @@ public static class Synthesis
     {
         if (recipe.RequiredMissionId is { } missionId && completedMissionIds?.Contains(missionId) != true)
         {
-            return ["missionIncomplete"];
+            return ["MISSION_INCOMPLETE"];
         }
 
         var materials = CheckMaterials(recipe, attempts, bag);
@@ -30,12 +30,12 @@ public static class Synthesis
 
         if (CostPerAttempt * attempts > money)
         {
-            return ["notEnoughMoney"];
+            return ["NOT_ENOUGH_MONEY"];
         }
 
         var result = getItem(recipe.ResultItemId);
         var sameCategory = AfterTaking(bag, Consumed(recipe, attempts)).Where(entry => getItem(entry.ItemId).Category == result.Category).ToList();
-        return InventoryRules.TryAdd(sameCategory, result, recipe.ResultQuantity * attempts, bagBonus).Discarded > 0 ? ["bagFull"] : [];
+        return InventoryRules.TryAdd(sameCategory, result, recipe.ResultQuantity * attempts, bagBonus).Discarded > 0 ? ["BAG_FULL"] : [];
     }
 
     // 每次獨立擲 rand(1, 100) ≤ 成功率（WOG syn.php:426-433）；材料一律依次數全扣
@@ -87,12 +87,12 @@ public static class Synthesis
     {
         if (attempts < 1)
         {
-            return ["invalidQuantity"];
+            return ["INVALID_QUANTITY"];
         }
 
         var missing = Required(recipe).Any(material =>
             (long)material.Quantity * attempts > bag.Where(entry => entry.ItemId == material.ItemId).Sum(entry => (long)entry.Quantity));
-        return missing ? ["missingMaterials"] : [];
+        return missing ? ["MISSING_MATERIALS"] : [];
     }
 
     private static List<(string ItemId, int Quantity)> Required(Recipe recipe) =>

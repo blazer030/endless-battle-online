@@ -22,7 +22,7 @@ public sealed record MissionRewardOutcome(
 public static class MissionRewards
 {
     // 經驗加完立刻升級；道具依序放進交付後的背包，任何一件放不下就整筆拒絕；已會的技能略過、其餘照給；
-    // 寵物獎勵在升級擲骰之後擲（PetCapture.NewPet），交付後寵物數已滿就整筆拒絕。Reasons 依序 bagFull、petsFull
+    // 寵物獎勵在升級擲骰之後擲（PetCapture.NewPet），交付後寵物數已滿就整筆拒絕。Reasons 依序 BAG_FULL、PETS_FULL
     public static MissionRewardOutcome Apply(
         Character character,
         JobDefinition job,
@@ -40,12 +40,12 @@ public static class MissionRewards
         var reasons = new List<string>();
         if (placed.Discarded.Contains(true))
         {
-            reasons.Add("bagFull");
+            reasons.Add("BAG_FULL");
         }
 
         if (reward.Pet is not null && petCountAfterDelivery >= PetRules.MaxPets)
         {
-            reasons.Add("petsFull");
+            reasons.Add("PETS_FULL");
         }
 
         if (reasons.Count > 0)

@@ -80,7 +80,7 @@ test.each([
   [null, false, "歡迎光臨暖爐亭！今晚想住哪一間？"],
   [null, true, "房間還幫你留著呢。要換一間，還是續住？"],
   [{ kind: "booked", roomName: "學徒閣樓" } as const, true, "學徒閣樓收拾好了，好好睡一覺吧！"],
-  [{ kind: "notEnoughMoney" } as const, false, "哎呀，這間的錢好像還差一點呢。"],
+  [{ kind: "NOT_ENOUGH_MONEY" } as const, false, "哎呀，這間的錢好像還差一點呢。"],
   [{ kind: "bookFailed" } as const, false, "咦，登記簿沒寫上去……等會兒再來吧。"],
   [{ kind: "thresholdFailed" } as const, true, "剛剛那個沒記下來，再調一次好嗎？"],
   [{ kind: "loadFailed" } as const, false, "哎呀，今天的房帳一時找不到……"],

@@ -149,7 +149,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["tooMany"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["TOO_MANY"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     private static async Task LearnAsync(EndlessBattleApiFactory factory, HttpClient client, string skillId, int level)
@@ -204,7 +204,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         }
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("skillTooLow", await response.Content.ReadAsStringAsync(CancellationToken));
+        Assert.Contains("SKILL_TOO_LOW", await response.Content.ReadAsStringAsync(CancellationToken));
         Assert.Equal(["test-skill-gate"], Ids(board, "active"));
     }
 
@@ -237,7 +237,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
         var response = await PostAsync(client, "complete", "test-pet-delivery");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("petMissing", await response.Content.ReadAsStringAsync(CancellationToken));
+        Assert.Contains("PET_MISSING", await response.Content.ReadAsStringAsync(CancellationToken));
         var pets = await client.GetFromJsonAsync<JsonElement>("/api/pets", CancellationToken);
         Assert.Single(pets.GetProperty("pets").EnumerateArray());
         var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
@@ -254,7 +254,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
 
         var unfinished = await PostAsync(client, "complete", "test-double-hunt");
         Assert.Equal(HttpStatusCode.BadRequest, unfinished.StatusCode);
-        Assert.Contains("objectiveIncomplete", await unfinished.Content.ReadAsStringAsync(CancellationToken));
+        Assert.Contains("OBJECTIVE_INCOMPLETE", await unfinished.Content.ReadAsStringAsync(CancellationToken));
         var board = await client.GetFromJsonAsync<JsonElement>("/api/missions", CancellationToken);
         var active = board.GetProperty("active").EnumerateArray().Single(mission => mission.GetProperty("id").GetString() == "test-double-hunt");
         Assert.Equal(
@@ -334,7 +334,7 @@ public class MissionEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["objectiveIncomplete"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["OBJECTIVE_INCOMPLETE"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]

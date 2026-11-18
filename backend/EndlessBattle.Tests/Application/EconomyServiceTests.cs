@@ -91,7 +91,7 @@ public class EconomyServiceTests
             await GiveAsync(character, "test-axe");
         }
 
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-sword", 1, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-sword", 1, CancellationToken)));
         Assert.Equal(2000, (await ReloadAsync()).Money);
     }
 
@@ -100,10 +100,10 @@ public class EconomyServiceTests
     {
         await AddCharacterAsync(character => character with { Money = 100 });
 
-        Assert.Equal(["notForSale"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-axe", 1, CancellationToken)));
-        Assert.Equal(["notForSale"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "no-such-item", 1, CancellationToken)));
-        Assert.Equal(["notEnoughMoney"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-sword", 1, CancellationToken)));
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-supply", 100, CancellationToken)));
+        Assert.Equal(["NOT_FOR_SALE"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-axe", 1, CancellationToken)));
+        Assert.Equal(["NOT_FOR_SALE"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "no-such-item", 1, CancellationToken)));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-sword", 1, CancellationToken)));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(() => shop.BuyAsync(AccountId, "test-supply", 100, CancellationToken)));
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class EconomyServiceTests
 
     [Fact]
     public void List_RejectsLevelOutOfRange() =>
-        Assert.Equal(["invalidLevel"], Assert.Throws<InputValidationException>(() => shop.List(ItemCategory.Weapon, 8)).Reasons);
+        Assert.Equal(["INVALID_LEVEL"], Assert.Throws<InputValidationException>(() => shop.List(ItemCategory.Weapon, 8)).Reasons);
 
     // 精鍊 +2、鑲嵌、打洞都不影響賣價：floor(200 × 0.5) = 100，列刪除
     [Fact]
@@ -177,7 +177,7 @@ public class EconomyServiceTests
         var sword = await GiveAsync(character, "test-sword");
         await inventoryService.EquipAsync(AccountId, sword, null, CancellationToken);
 
-        Assert.Equal(["equipped"], await ReasonsAsync(() => shop.SellAsync(AccountId, sword, 1, CancellationToken)));
+        Assert.Equal(["EQUIPPED"], await ReasonsAsync(() => shop.SellAsync(AccountId, sword, 1, CancellationToken)));
         Assert.Single(await inventory.ListAsync(character.Id, CancellationToken));
     }
 
@@ -191,7 +191,7 @@ public class EconomyServiceTests
 
         Assert.Equal(2030, (await ReloadAsync()).Money);
         Assert.Equal([("test-supply", 7)], BagOf(view, ItemCategory.Consumable));
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(() => shop.SellAsync(AccountId, id, 8, CancellationToken)));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(() => shop.SellAsync(AccountId, id, 8, CancellationToken)));
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class EconomyServiceTests
     {
         await AddCharacterAsync();
 
-        Assert.Equal(["itemNotFound"], await ReasonsAsync(() => shop.SellAsync(AccountId, 999, 1, CancellationToken)));
+        Assert.Equal(["ITEM_NOT_FOUND"], await ReasonsAsync(() => shop.SellAsync(AccountId, 999, 1, CancellationToken)));
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public class EconomyServiceTests
     {
         await AddCharacterAsync();
 
-        Assert.Equal(["levelTooLow"], await ReasonsAsync(() => bank.DepositAsync(AccountId, 100, CancellationToken)));
+        Assert.Equal(["LEVEL_TOO_LOW"], await ReasonsAsync(() => bank.DepositAsync(AccountId, 100, CancellationToken)));
         Assert.Equal(2000, (await ReloadAsync()).Money);
     }
 
@@ -244,9 +244,9 @@ public class EconomyServiceTests
     {
         await AddCharacterAsync(character => character with { Level = 15, Bank = 100 });
 
-        Assert.Equal(["notEnoughMoney"], await ReasonsAsync(() => bank.DepositAsync(AccountId, 2001, CancellationToken)));
-        Assert.Equal(["notEnoughBank"], await ReasonsAsync(() => bank.WithdrawAsync(AccountId, 101, CancellationToken)));
-        Assert.Equal(["invalidAmount"], await ReasonsAsync(() => bank.WithdrawAsync(AccountId, 0, CancellationToken)));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], await ReasonsAsync(() => bank.DepositAsync(AccountId, 2001, CancellationToken)));
+        Assert.Equal(["NOT_ENOUGH_BANK"], await ReasonsAsync(() => bank.WithdrawAsync(AccountId, 101, CancellationToken)));
+        Assert.Equal(["INVALID_AMOUNT"], await ReasonsAsync(() => bank.WithdrawAsync(AccountId, 0, CancellationToken)));
     }
 
     // 精鍊與鑲嵌存進倉庫、再取回都保留
@@ -331,7 +331,7 @@ public class EconomyServiceTests
 
         var stored = await depot.AddAsync(character.Id, TestItems.Entry(0, "test-sword"), CancellationToken);
 
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 1, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 1, CancellationToken)));
         Assert.Single(await depot.ListAsync(character.Id, CancellationToken));
         Assert.Equal(15, (await inventory.ListAsync(character.Id, CancellationToken)).Count);
     }
@@ -349,7 +349,7 @@ public class EconomyServiceTests
 
         var stored = await depot.AddAsync(character.Id, TestItems.Entry(0, "test-supply", 5), CancellationToken);
 
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 5, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => depotService.TakeAsync(AccountId, stored, 5, CancellationToken)));
         var bag = await inventory.ListAsync(character.Id, CancellationToken);
         Assert.Equal(15, bag.Count);
         Assert.Equal(99, bag.Single(entry => entry.ItemId == "test-supply").Quantity);
@@ -392,7 +392,7 @@ public class EconomyServiceTests
         var sword = await GiveAsync(character, "test-sword");
         await inventoryService.EquipAsync(AccountId, sword, null, CancellationToken);
 
-        Assert.Equal(["equipped"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, sword, 1, CancellationToken)));
+        Assert.Equal(["EQUIPPED"], await ReasonsAsync(() => depotService.StoreAsync(AccountId, sword, 1, CancellationToken)));
     }
 
     [Fact]

@@ -112,7 +112,7 @@ export function replaceNotice(
 
 export type InnkeeperEvent =
   | { kind: "booked"; roomName: string }
-  | { kind: "notEnoughMoney" }
+  | { kind: "NOT_ENOUGH_MONEY" }
   | { kind: "bookFailed" }
   | { kind: "thresholdFailed" }
   | { kind: "loadFailed" }
@@ -122,7 +122,7 @@ export function innkeeperLine(event: InnkeeperEvent | null, hasStay: boolean): s
   switch (event?.kind) {
     case "booked":
       return `${event.roomName}收拾好了，好好睡一覺吧！`
-    case "notEnoughMoney":
+    case "NOT_ENOUGH_MONEY":
       return "哎呀，這間的錢好像還差一點呢。"
     case "bookFailed":
       return "咦，登記簿沒寫上去……等會兒再來吧。"

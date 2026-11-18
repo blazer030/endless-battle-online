@@ -29,7 +29,7 @@ public class MissionRulesTests
     [Fact]
     public void CanAccept_UnknownMission()
     {
-        Assert.Equal(["missionUnknown"], MissionRules.CanAccept(Hero(), null, []));
+        Assert.Equal(["MISSION_UNKNOWN"], MissionRules.CanAccept(Hero(), null, []));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class MissionRulesTests
     {
         var mission = Mission("hunt");
 
-        Assert.Equal(["tooMany"], MissionRules.CanAccept(Hero(), mission, [Active("a"), Active("b"), Active("c")]));
+        Assert.Equal(["TOO_MANY"], MissionRules.CanAccept(Hero(), mission, [Active("a"), Active("b"), Active("c")]));
         Assert.Empty(MissionRules.CanAccept(Hero(), mission, [Completed("a"), Completed("b"), Completed("c")]));
     }
 
@@ -46,14 +46,14 @@ public class MissionRulesTests
     {
         var mission = Mission("hunt", level: 15);
 
-        Assert.Equal(["levelTooLow"], MissionRules.CanAccept(Hero(14), mission, []));
+        Assert.Equal(["LEVEL_TOO_LOW"], MissionRules.CanAccept(Hero(14), mission, []));
         Assert.Empty(MissionRules.CanAccept(Hero(15), mission, []));
     }
 
     [Theory]
-    [InlineData("sorcerer", null, null, "jobMismatch")]
-    [InlineData(null, 2, null, "sexMismatch")]
-    [InlineData(null, null, 2, "birthMismatch")]
+    [InlineData("sorcerer", null, null, "JOB_MISMATCH")]
+    [InlineData(null, 2, null, "SEX_MISMATCH")]
+    [InlineData(null, null, 2, "BIRTH_MISMATCH")]
     public void CanAccept_ChecksJobSexBirth(string? jobId, int? sex, int? birth, string expected)
     {
         var mission = Mission("hunt", requirements: new MissionRequirements(jobId, sex, birth));
@@ -66,8 +66,8 @@ public class MissionRulesTests
     {
         var mission = Mission("hunt", requirements: new MissionRequirements(PrerequisiteId: "first"));
 
-        Assert.Equal(["prerequisiteMissing"], MissionRules.CanAccept(Hero(), mission, [Active("first")]));
-        Assert.Equal(["prerequisiteMissing"], MissionRules.CanAccept(Hero(), mission, []));
+        Assert.Equal(["PREREQUISITE_MISSING"], MissionRules.CanAccept(Hero(), mission, [Active("first")]));
+        Assert.Equal(["PREREQUISITE_MISSING"], MissionRules.CanAccept(Hero(), mission, []));
         Assert.Empty(MissionRules.CanAccept(Hero(), mission, [Completed("first")]));
     }
 
@@ -76,8 +76,8 @@ public class MissionRulesTests
     {
         var mission = Mission("hunt", requirements: new MissionRequirements(ConflictsWith: "rival"));
 
-        Assert.Equal(["missionConflict"], MissionRules.CanAccept(Hero(), mission, [Active("rival")]));
-        Assert.Equal(["missionConflict"], MissionRules.CanAccept(Hero(), mission, [Completed("rival")]));
+        Assert.Equal(["MISSION_CONFLICT"], MissionRules.CanAccept(Hero(), mission, [Active("rival")]));
+        Assert.Equal(["MISSION_CONFLICT"], MissionRules.CanAccept(Hero(), mission, [Completed("rival")]));
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class MissionRulesTests
     {
         var mission = Mission("hunt");
 
-        Assert.Equal(["alreadyActive"], MissionRules.CanAccept(Hero(), mission, [Active("hunt")]));
-        Assert.Equal(["alreadyCompleted"], MissionRules.CanAccept(Hero(), mission, [Completed("hunt")]));
+        Assert.Equal(["ALREADY_ACTIVE"], MissionRules.CanAccept(Hero(), mission, [Active("hunt")]));
+        Assert.Equal(["ALREADY_COMPLETED"], MissionRules.CanAccept(Hero(), mission, [Completed("hunt")]));
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class MissionRulesTests
         var mission = Mission("hunt", level: 10, requirements: new MissionRequirements("sorcerer", 2, PrerequisiteId: "first"));
 
         Assert.Equal(
-            ["levelTooLow", "jobMismatch", "sexMismatch", "prerequisiteMissing"],
+            ["LEVEL_TOO_LOW", "JOB_MISMATCH", "SEX_MISMATCH", "PREREQUISITE_MISSING"],
             MissionRules.CanAccept(Hero(1), mission, []));
     }
 
@@ -105,7 +105,7 @@ public class MissionRulesTests
         var mission = Mission("hunt", level: 10, requirements: new MissionRequirements("sorcerer", 2, 2, "first", "rival"));
 
         Assert.Equal(
-            ["tooMany", "levelTooLow", "jobMismatch", "sexMismatch", "birthMismatch", "prerequisiteMissing", "missionConflict"],
+            ["TOO_MANY", "LEVEL_TOO_LOW", "JOB_MISMATCH", "SEX_MISMATCH", "BIRTH_MISMATCH", "PREREQUISITE_MISSING", "MISSION_CONFLICT"],
             MissionRules.CanAccept(Hero(1), mission, [Active("rival"), Active("b"), Active("c")]));
     }
 
@@ -116,7 +116,7 @@ public class MissionRulesTests
         var mission = Mission("hunt", level: 10, requirements: new MissionRequirements("sorcerer", PrerequisiteId: "first"));
 
         Assert.Equal(
-            ["tooMany", "levelTooLow", "jobMismatch", "prerequisiteMissing"],
+            ["TOO_MANY", "LEVEL_TOO_LOW", "JOB_MISMATCH", "PREREQUISITE_MISSING"],
             MissionRules.CanAccept(Hero(5), mission, [Active("a"), Active("b"), Active("c")]));
     }
 }

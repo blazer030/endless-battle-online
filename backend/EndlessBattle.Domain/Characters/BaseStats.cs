@@ -27,7 +27,7 @@ public sealed record BaseStats(int Strength, int Intelligence, int Life, int Vit
     };
 }
 
-// 對外的能力代碼（原因代碼 statTooLow:<代碼>、轉職需求），集中在這裡產生
+// 對外的能力代碼（原因代碼 STAT_TOO_LOW:<代碼>、轉職需求），集中在這裡產生
 public static class BaseStatCode
 {
     public static string Of(BaseStat stat) => stat switch
@@ -42,5 +42,5 @@ public static class BaseStatCode
         _ => throw new ArgumentOutOfRangeException(nameof(stat), stat, "未知的能力"),
     };
 
-    public static string StatTooLow(BaseStat stat) => $"statTooLow:{Of(stat)}";
+    public static string StatTooLow(BaseStat stat) => $"STAT_TOO_LOW:{Of(stat)}";
 }

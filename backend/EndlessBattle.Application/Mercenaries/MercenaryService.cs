@@ -9,7 +9,7 @@ namespace EndlessBattle.Application.Mercenaries;
 public sealed record MercenaryOverview(IReadOnlyList<MercenaryDefinition> Catalogue, MercenaryContract? Contract);
 
 // 每個寫入型用例一筆交易：讀取與驗證 → 角色版本鎖（僱用時一併扣錢）→ 寫合約。
-// 沒有合約時 Deploy／Rest／Rename／Dismiss 一律 noMercenary
+// 沒有合約時 Deploy／Rest／Rename／Dismiss 一律 NO_MERCENARY
 public sealed class MercenaryService(
     ICharacterRepository characters,
     IMercenaryRepository mercenaries,
@@ -87,7 +87,7 @@ public sealed class MercenaryService(
     private MercenaryOverview Overview(MercenaryContract? contract) => new(content.AllMercenaries, contract);
 
     private async Task<MercenaryContract> FindContractAsync(Character character, CancellationToken cancellationToken) =>
-        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", ["noMercenary"]);
+        await mercenaries.FindAsync(character.Id, cancellationToken) ?? throw new InputValidationException("沒有僱用傭兵", ["NO_MERCENARY"]);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {

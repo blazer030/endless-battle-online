@@ -80,7 +80,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(500, next.GetProperty("money").GetInt64());
         Assert.Equal(300, next.GetProperty("proficiency").GetInt64());
         Assert.False(next.GetProperty("canLearn").GetBoolean());
-        Assert.Equal(["notEnoughProficiency"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], next.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
         // 效果文字由條件、消耗、效果產生；未學時目前等級沒有效果文字；被動硬甲常駐
         Assert.Equal("機率 40%｜消耗 SP 5｜自己物攻 +1%，3 回合", next.GetProperty("summary").GetString());
         Assert.Equal(JsonValueKind.Null, burst.GetProperty("summary").ValueKind);
@@ -127,7 +127,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal("burst", prerequisite.GetProperty("skillId").GetString());
         Assert.Equal("爆氣", prerequisite.GetProperty("name").GetString());
         Assert.Equal(3, prerequisite.GetProperty("level").GetInt32());
-        Assert.Contains("prerequisite", skills["advanced-burst"].GetProperty("next").GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Contains("PREREQUISITE", skills["advanced-burst"].GetProperty("next").GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
         Assert.Equal(JsonValueKind.Null, skills["burst"].GetProperty("prerequisite").ValueKind);
     }
 
@@ -185,7 +185,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
 
         var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "burst" }, CancellationToken);
 
-        Assert.Equal(["notEnoughProficiency"], await ReadReasonsAsync(response));
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], await ReadReasonsAsync(response));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(2000, me.GetProperty("money").GetInt64());
     }
@@ -200,7 +200,7 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
 
         var response = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "advanced-burst" }, CancellationToken);
 
-        Assert.Contains("prerequisite", await ReadReasonsAsync(response));
+        Assert.Contains("PREREQUISITE", await ReadReasonsAsync(response));
     }
 
     [Theory]
@@ -219,10 +219,10 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
 
     // 已學 burst（主動）與 iron-skin（被動）；stun 未學
     [Theory]
-    [InlineData("""[{"slot":4,"skillId":"burst"}]""", "activeInPassiveSlot")]
-    [InlineData("""[{"slot":1,"skillId":"burst"},{"slot":2,"skillId":"burst"}]""", "duplicateSkill")]
-    [InlineData("""[{"slot":1,"skillId":"iron-skin"}]""", "passiveInActiveSlot")]
-    [InlineData("""[{"slot":1,"skillId":"stun"}]""", "notLearned")]
+    [InlineData("""[{"slot":4,"skillId":"burst"}]""", "ACTIVE_IN_PASSIVE_SLOT")]
+    [InlineData("""[{"slot":1,"skillId":"burst"},{"slot":2,"skillId":"burst"}]""", "DUPLICATE_SKILL")]
+    [InlineData("""[{"slot":1,"skillId":"iron-skin"}]""", "PASSIVE_IN_ACTIVE_SLOT")]
+    [InlineData("""[{"slot":1,"skillId":"stun"}]""", "NOT_LEARNED")]
     public async Task Slots_RejectInvalidLoadout_AndKeepExisting(string slotsJson, string reason)
     {
         await using var factory = new EndlessBattleApiFactory(database);

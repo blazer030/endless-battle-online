@@ -53,18 +53,18 @@ type Requirement = { text: string; met: boolean }
 
 const requirementsOf = (job: JobChoiceVo, jobs: JobChoiceVo[]): Requirement[] => {
   const unmet = new Set(job.reasons)
-  const rows: Requirement[] = [{ text: `Lv ${job.unlockLevel}`, met: !unmet.has("levelTooLow") }]
+  const rows: Requirement[] = [{ text: `Lv ${job.unlockLevel}`, met: !unmet.has("LEVEL_TOO_LOW") }]
   if (job.parentId !== null) {
     const parent = jobs.find((candidate) => candidate.id === job.parentId)
     rows.push({
       text: `${job.parentName ?? job.parentId}熟練度 ${parent?.proficiencyPercent ?? 0}%／100%`,
-      met: !unmet.has("parentProficiencyTooLow"),
+      met: !unmet.has("PARENT_PROFICIENCY_TOO_LOW"),
     })
   }
   for (const { stat, minimum } of job.statRequirements) {
     rows.push({
       text: `${statLabel(stat)} ≥ ${formatNumber(minimum)}`,
-      met: !unmet.has(`statTooLow:${stat}`),
+      met: !unmet.has(`STAT_TOO_LOW:${stat}`),
     })
   }
   return rows

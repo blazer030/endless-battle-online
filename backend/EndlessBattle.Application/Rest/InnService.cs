@@ -34,7 +34,7 @@ public sealed class InnService(
             var inn = content.Inn;
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var room = inn.Rooms.FirstOrDefault(candidate => candidate.Id == roomId)
-                ?? throw new InputValidationException("沒有這個房間", ["unknownRoom"]);
+                ?? throw new InputValidationException("沒有這個房間", ["UNKNOWN_ROOM"]);
             EnsureCanBook(character, Inn.Price(inn, room, character.Level));
 
             var now = clock.UtcNow;

@@ -22,7 +22,7 @@ public class SocketTests
     {
         var equipment = Equipment(2, new SocketedStone(1, "attack-stone", Attack.Stone!.Fixed));
 
-        Assert.Equal(["duplicateStone"], Socket.CheckInsert(equipment, Sword, 2, Attack));
+        Assert.Equal(["DUPLICATE_STONE"], Socket.CheckInsert(equipment, Sword, 2, Attack));
         Assert.Empty(Socket.CheckInsert(equipment, Sword, 2, Guard));
         Assert.Throws<InvalidOperationException>(() => Socket.Insert(equipment, 2, Attack, new ScriptedRandom(0.0)));
     }
@@ -33,11 +33,11 @@ public class SocketTests
     {
         var equipment = Equipment(2, new SocketedStone(1, "guard-stone", Guard.Stone!.Fixed));
 
-        Assert.Equal(["notEquipment"], Socket.CheckInsert(equipment, TestItems.Item("ore", ItemCategory.Material), 2, Attack));
-        Assert.Equal(["notStone"], Socket.CheckInsert(equipment, Sword, 2, TestItems.Item("ore", ItemCategory.Material)));
-        Assert.Equal(["holeOutOfRange"], Socket.CheckInsert(equipment, Sword, 0, Attack));
-        Assert.Equal(["holeOutOfRange"], Socket.CheckInsert(equipment, Sword, 3, Attack));
-        Assert.Equal(["holeOccupied"], Socket.CheckInsert(equipment, Sword, 1, Attack));
+        Assert.Equal(["NOT_EQUIPMENT"], Socket.CheckInsert(equipment, TestItems.Item("ore", ItemCategory.Material), 2, Attack));
+        Assert.Equal(["NOT_STONE"], Socket.CheckInsert(equipment, Sword, 2, TestItems.Item("ore", ItemCategory.Material)));
+        Assert.Equal(["HOLE_OUT_OF_RANGE"], Socket.CheckInsert(equipment, Sword, 0, Attack));
+        Assert.Equal(["HOLE_OUT_OF_RANGE"], Socket.CheckInsert(equipment, Sword, 3, Attack));
+        Assert.Equal(["HOLE_OCCUPIED"], Socket.CheckInsert(equipment, Sword, 1, Attack));
     }
 
     // 隨機魔石在鑲嵌當下依 Str、Smart、Life、Vit、Agi、Au、Be、At、Mat、Df、Mdf、HpMax 的順序各擲一次 rand(min, max)，
@@ -99,9 +99,9 @@ public class SocketTests
     {
         var equipment = Equipment(2, new SocketedStone(1, "attack-stone", Attack.Stone!.Fixed));
 
-        Assert.Equal(["holeEmpty"], Socket.CheckRemove(equipment, Sword, 2));
-        Assert.Equal(["holeOutOfRange"], Socket.CheckRemove(equipment, Sword, 3));
-        Assert.Equal(["notEquipment"], Socket.CheckRemove(equipment, TestItems.Item("ore", ItemCategory.Material), 1));
+        Assert.Equal(["HOLE_EMPTY"], Socket.CheckRemove(equipment, Sword, 2));
+        Assert.Equal(["HOLE_OUT_OF_RANGE"], Socket.CheckRemove(equipment, Sword, 3));
+        Assert.Equal(["NOT_EQUIPMENT"], Socket.CheckRemove(equipment, TestItems.Item("ore", ItemCategory.Material), 1));
         Assert.Empty(Socket.CheckRemove(equipment, Sword, 1));
     }
 
@@ -123,8 +123,8 @@ public class SocketTests
     [Fact]
     public void Drill_StopsAtFourHoles()
     {
-        Assert.Equal(["maxHoles"], Socket.CheckDrill(Equipment(4), Sword));
+        Assert.Equal(["MAX_HOLES"], Socket.CheckDrill(Equipment(4), Sword));
         Assert.Empty(Socket.CheckDrill(Equipment(3), Sword));
-        Assert.Equal(["notEquipment"], Socket.CheckDrill(Equipment(0), TestItems.Item("ore", ItemCategory.Material)));
+        Assert.Equal(["NOT_EQUIPMENT"], Socket.CheckDrill(Equipment(0), TestItems.Item("ore", ItemCategory.Material)));
     }
 }

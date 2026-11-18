@@ -220,7 +220,7 @@ test("skillAndJobCalls_UseTheirEndpoints", async () => {
 })
 
 test("request_ExposesProblemReasons_OnValidationError", async () => {
-  const problem = { detail: "技能欄位不正確", reasons: ["duplicateSkill", "notLearned"] }
+  const problem = { detail: "技能欄位不正確", reasons: ["DUPLICATE_SKILL", "NOT_LEARNED"] }
   const fetchMock = vi.fn().mockResolvedValue(jsonResponse(problem, 400))
   const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
 
@@ -228,7 +228,7 @@ test("request_ExposesProblemReasons_OnValidationError", async () => {
 
   expect(error).toBeInstanceOf(ApiError)
   expect((error as ApiError).detail).toBe("技能欄位不正確")
-  expect((error as ApiError).reasons).toEqual(["duplicateSkill", "notLearned"])
+  expect((error as ApiError).reasons).toEqual(["DUPLICATE_SKILL", "NOT_LEARNED"])
 })
 
 test("request_HasNoReasons_WhenProblemOmitsThem", async () => {

@@ -16,28 +16,28 @@ public static class MercenaryRules
     // PHP get_item：寶物% > 1 時分母 × (2 − 寶物% / 100)
     public static double DropDenominatorFactor(int dropPercent) => dropPercent > 1 ? 2 - dropPercent / 100.0 : 1;
 
-    // 勳章所的傭兵（Price 為 null）沒有金錢價格，也一併回報 notEnoughMoney
+    // 勳章所的傭兵（Price 為 null）沒有金錢價格，也一併回報 NOT_ENOUGH_MONEY
     public static IReadOnlyList<string> CanHire(Character character, MercenaryDefinition? definition, MercenaryContract? current)
     {
         if (definition is null)
         {
-            return ["mercenaryUnknown"];
+            return ["MERCENARY_UNKNOWN"];
         }
 
         var reasons = new List<string>();
         if (definition.Price is null)
         {
-            reasons.Add("honourOnly");
+            reasons.Add("HONOUR_ONLY");
         }
 
         if (current is not null)
         {
-            reasons.Add("mercenaryHired");
+            reasons.Add("MERCENARY_HIRED");
         }
 
         if (definition.Price is not { } price || character.Money < price)
         {
-            reasons.Add("notEnoughMoney");
+            reasons.Add("NOT_ENOUGH_MONEY");
         }
 
         return reasons;
@@ -48,12 +48,12 @@ public static class MercenaryRules
         new(definition.Id, definition.Name, definition.Fights, PlaceId: null, NextFightAt: null, hiredAt);
 
     public static IReadOnlyList<string> CanDeploy(PlaceDefinition? place) =>
-        place is null ? ["placeUnknown"] : place.Restricted ? ["placeRestricted"] : [];
+        place is null ? ["PLACE_UNKNOWN"] : place.Restricted ? ["PLACE_RESTRICTED"] : [];
 
     // 去頭尾空白後 1～8 字（WOG 輸入框 maxlength 8）；以字碼計算
     public static IReadOnlyList<string> CanRename(string? name)
     {
         var length = name?.Trim().EnumerateRunes().Count() ?? 0;
-        return length is >= 1 and <= NameMaxLength ? [] : ["nameInvalid"];
+        return length is >= 1 and <= NameMaxLength ? [] : ["NAME_INVALID"];
     }
 }

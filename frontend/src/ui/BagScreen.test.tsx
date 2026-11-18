@@ -443,8 +443,8 @@ test("BagScreen_BankDepositsAtLevel15", async () => {
 
 test("BagScreen_ShowsMappedErrorFromApiErrorReasons", async () => {
   const api = createFakeApi({
-    buy: vi.fn().mockRejectedValue(new ApiError(400, "無法購買", ["bagFull"])),
-    equip: vi.fn().mockRejectedValue(new ApiError(400, "無法裝備", ["statTooLow:strength"])),
+    buy: vi.fn().mockRejectedValue(new ApiError(400, "無法購買", ["BAG_FULL"])),
+    equip: vi.fn().mockRejectedValue(new ApiError(400, "無法裝備", ["STAT_TOO_LOW:strength"])),
   })
   renderBag(api)
 
@@ -722,7 +722,7 @@ test("BagScreen_ForgeSynthesizeDisabledWithoutMaterials", async () => {
 
 test("BagScreen_ForgeShowsMappedErrorReasons", async () => {
   await renderForge({
-    refine: vi.fn().mockRejectedValue(new ApiError(400, "無法精鍊", ["wrongStoneLevel"])),
+    refine: vi.fn().mockRejectedValue(new ApiError(400, "無法精鍊", ["WRONG_STONE_LEVEL"])),
   })
 
   await user.click(screen.getByRole("radio", { name: /鋼鐵精鍊石 Lv3/ }))
@@ -868,7 +868,7 @@ test("BagScreen_PetEggShowsPetsFullError", async () => {
   renderBag(
     createFakeApi({
       getInventory: vi.fn().mockResolvedValue(makeInventory([petEgg])),
-      useItem: vi.fn().mockRejectedValue(new ApiError(400, "這個道具不能使用", ["petsFull"])),
+      useItem: vi.fn().mockRejectedValue(new ApiError(400, "這個道具不能使用", ["PETS_FULL"])),
     }),
   )
   await user.click(await screen.findByRole("tab", { name: "道具" }))

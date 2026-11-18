@@ -38,9 +38,9 @@ public class MercenaryRulesTests
         var honourOnly = Hired with { Price = null };
         var current = new MercenaryContract("hired", "傭兵", 3, PlaceId: null, NextFightAt: null, Now);
 
-        Assert.Equal(["honourOnly", "mercenaryHired", "notEnoughMoney"], MercenaryRules.CanHire(broke, honourOnly, current));
-        Assert.Equal(["mercenaryUnknown"], MercenaryRules.CanHire(broke, definition: null, current));
-        Assert.Equal(["notEnoughMoney"], MercenaryRules.CanHire(broke with { Money = 99 }, Hired, current: null));
+        Assert.Equal(["HONOUR_ONLY", "MERCENARY_HIRED", "NOT_ENOUGH_MONEY"], MercenaryRules.CanHire(broke, honourOnly, current));
+        Assert.Equal(["MERCENARY_UNKNOWN"], MercenaryRules.CanHire(broke, definition: null, current));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], MercenaryRules.CanHire(broke with { Money = 99 }, Hired, current: null));
         Assert.Empty(MercenaryRules.CanHire(broke with { Money = 100 }, Hired, current: null));
     }
 
@@ -49,8 +49,8 @@ public class MercenaryRulesTests
     {
         var plain = new PlaceDefinition(1, "平原", "central", [], new LevelRange(1, 10), Restricted: false);
 
-        Assert.Equal(["placeRestricted"], MercenaryRules.CanDeploy(plain with { Restricted = true }));
-        Assert.Equal(["placeUnknown"], MercenaryRules.CanDeploy(null));
+        Assert.Equal(["PLACE_RESTRICTED"], MercenaryRules.CanDeploy(plain with { Restricted = true }));
+        Assert.Equal(["PLACE_UNKNOWN"], MercenaryRules.CanDeploy(null));
         Assert.Empty(MercenaryRules.CanDeploy(plain));
     }
 
@@ -64,6 +64,6 @@ public class MercenaryRulesTests
     [InlineData("😀😀😀😀😀😀😀😀😀", false)]
     public void Rename_LimitsToEightCharacters(string? name, bool valid)
     {
-        Assert.Equal(valid ? [] : ["nameInvalid"], MercenaryRules.CanRename(name));
+        Assert.Equal(valid ? [] : ["NAME_INVALID"], MercenaryRules.CanRename(name));
     }
 }

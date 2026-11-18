@@ -20,16 +20,16 @@ public static class ConsumableUse
     // 魔石寶箱 rand(1,100)：≤ 60 等級 1、61～90 等級 2、91～100 等級 3
     private const int ClassOneMax = 60, ClassTwoMax = 90;
 
-    // 原因代碼：notUsable（補給品、裝備、材料等不能從背包直接使用）、noEffect（擴充格數不比目前多）、petsFull（寵物蛋）
+    // 原因代碼：NOT_USABLE（補給品、裝備、材料等不能從背包直接使用）、NO_EFFECT（擴充格數不比目前多）、PETS_FULL（寵物蛋）
     public static IReadOnlyList<string> CanUse(UseContext context, ItemDefinition item) => item.Consumable switch
     {
         ConsumableKind.StatPotion => [],
-        ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : ["noEffect"],
-        ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : ["noEffect"],
+        ConsumableKind.BagExpansion => item.Amount > context.Character.BagBonus ? [] : ["NO_EFFECT"],
+        ConsumableKind.DepotExpansion => item.Amount > context.Character.DepotBonus ? [] : ["NO_EFFECT"],
         ConsumableKind.StoneBox or ConsumableKind.RefineBox or ConsumableKind.ProficiencyBook or ConsumableKind.ExperienceCapsule
             or ConsumableKind.Elixir => [],
-        ConsumableKind.PetEgg => context.PetCount >= PetRules.MaxPets ? ["petsFull"] : [],
-        _ => ["notUsable"],
+        ConsumableKind.PetEgg => context.PetCount >= PetRules.MaxPets ? ["PETS_FULL"] : [],
+        _ => ["NOT_USABLE"],
     };
 
     // 呼叫前先以 CanUse 確認可用

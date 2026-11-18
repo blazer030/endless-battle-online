@@ -95,8 +95,8 @@ public class RefineTests
     [Fact]
     public void Refine_RequiresNextLevelStone()
     {
-        Assert.Equal(["wrongStoneLevel"], Refine.Check(Equipment(2), Sword, Stone(2)));
-        Assert.Equal(["wrongStoneLevel"], Refine.Check(Equipment(2), Sword, Stone(4)));
+        Assert.Equal(["WRONG_STONE_LEVEL"], Refine.Check(Equipment(2), Sword, Stone(2)));
+        Assert.Equal(["WRONG_STONE_LEVEL"], Refine.Check(Equipment(2), Sword, Stone(4)));
         Assert.Empty(Refine.Check(Equipment(2), Sword, Stone(3)));
         var random = new ScriptedRandom(0.99);
         Assert.Throws<InvalidOperationException>(() => Refine.Attempt(Equipment(2), Sword, Stone(2), useSafeStone: false, random));
@@ -108,7 +108,7 @@ public class RefineTests
     {
         var capped = Sword with { RefineMax = 4 };
 
-        Assert.Equal(["atRefineMax"], Refine.Check(Equipment(4), capped, Stone(5)));
+        Assert.Equal(["AT_REFINE_MAX"], Refine.Check(Equipment(4), capped, Stone(5)));
         Assert.Empty(Refine.Check(Equipment(3), capped, Stone(4)));
     }
 
@@ -117,7 +117,7 @@ public class RefineTests
     {
         var ore = TestItems.Item("ore", ItemCategory.Material);
 
-        Assert.Equal(["notEquipment"], Refine.Check(Equipment(0), ore, Stone(1)));
-        Assert.Equal(["notRefineStone"], Refine.Check(Equipment(0), Sword, ore));
+        Assert.Equal(["NOT_EQUIPMENT"], Refine.Check(Equipment(0), ore, Stone(1)));
+        Assert.Equal(["NOT_REFINE_STONE"], Refine.Check(Equipment(0), Sword, ore));
     }
 }

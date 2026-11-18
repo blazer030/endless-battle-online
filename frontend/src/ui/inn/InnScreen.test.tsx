@@ -170,7 +170,7 @@ test("InnScreen_BookingUpdatesBannerMoneyAndLine", async () => {
 // 規格 inn-screen：Money spent elsewhere
 test("InnScreen_NotEnoughMoneyReloadsTheCharacter", async () => {
   const api = createApi()
-  vi.mocked(api.bookInn).mockRejectedValue(new ApiError(400, "錢不夠", ["notEnoughMoney"]))
+  vi.mocked(api.bookInn).mockRejectedValue(new ApiError(400, "錢不夠", ["NOT_ENOUGH_MONEY"]))
   vi.mocked(api.getMyCharacter).mockResolvedValue(makeCharacter({ level: 6, money: 500 }))
   await renderInn({ api })
 

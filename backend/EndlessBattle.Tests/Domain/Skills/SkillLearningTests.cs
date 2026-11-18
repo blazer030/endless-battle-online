@@ -39,7 +39,7 @@ public class SkillLearningTests
         Assert.Equal(0, character.Money);
         Assert.Equal(600, proficiencyCost);
         Assert.Equal(new LearnedSkill("burst", 2), learned);
-        Assert.Equal(["notEnoughProficiency"], SkillLearning.Evaluate(Warrior, Burst, 0, 299, Taught).Reasons);
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], SkillLearning.Evaluate(Warrior, Burst, 0, 299, Taught).Reasons);
     }
 
     [Fact]
@@ -48,9 +48,9 @@ public class SkillLearningTests
         var check = SkillLearning.Evaluate(Warrior, Burst, 0, 299, Taught);
 
         Assert.False(check.Allowed);
-        Assert.Equal(["notEnoughProficiency"], check.Reasons);
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], check.Reasons);
         var exception = Assert.Throws<SkillLearningException>(() => SkillLearning.Apply(Warrior, Burst, 0, 299, Taught));
-        Assert.Equal(["notEnoughProficiency"], exception.Reasons);
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], exception.Reasons);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class SkillLearningTests
     {
         var check = SkillLearning.Evaluate(Warrior with { Money = 499 }, Burst, 0, 0, Taught);
 
-        Assert.Equal(["notEnoughProficiency", "notEnoughMoney"], check.Reasons);
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY", "NOT_ENOUGH_MONEY"], check.Reasons);
         Assert.Equal(1, check.TargetLevel);
     }
 
@@ -68,7 +68,7 @@ public class SkillLearningTests
         var check = SkillLearning.Evaluate(Warrior, Combo, 0, 300, NotTaught);
 
         Assert.False(check.Allowed);
-        Assert.Equal(["wrongJob"], check.Reasons);
+        Assert.Equal(["WRONG_JOB"], check.Reasons);
         Assert.Throws<SkillLearningException>(() => SkillLearning.Apply(Warrior, Combo, 0, 300, NotTaught));
     }
 
@@ -80,7 +80,7 @@ public class SkillLearningTests
         var check = SkillLearning.Evaluate(rich, Burst, 5, 100_000, Taught);
 
         Assert.False(check.Allowed);
-        Assert.Equal(["maxLevel"], check.Reasons);
+        Assert.Equal(["MAX_LEVEL"], check.Reasons);
         Assert.Equal(5, check.TargetLevel);
         Assert.Throws<SkillLearningException>(() => SkillLearning.Apply(rich, Burst, 5, 100_000, Taught));
     }
@@ -96,7 +96,7 @@ public class SkillLearningTests
     [Fact]
     public void UnlistedSkill_IsRefusedAsWrongJob()
     {
-        Assert.Equal(["wrongJob"], SkillLearning.Evaluate(Warrior, Burst, 0, 300, NotTaught).Reasons);
+        Assert.Equal(["WRONG_JOB"], SkillLearning.Evaluate(Warrior, Burst, 0, 300, NotTaught).Reasons);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class SkillLearningTests
     {
         var advanced = Burst with { Id = "advanced-burst", Prerequisite = new SkillPrerequisite("burst", 3) };
 
-        Assert.Equal(["prerequisite"], SkillLearning.Evaluate(Warrior, advanced, 0, 300, Taught with { PrerequisiteLevel = 2 }).Reasons);
+        Assert.Equal(["PREREQUISITE"], SkillLearning.Evaluate(Warrior, advanced, 0, 300, Taught with { PrerequisiteLevel = 2 }).Reasons);
         Assert.True(SkillLearning.Evaluate(Warrior, advanced, 0, 300, Taught with { PrerequisiteLevel = 3 }).Allowed);
     }
 }

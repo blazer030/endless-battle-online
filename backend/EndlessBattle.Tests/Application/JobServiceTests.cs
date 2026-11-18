@@ -83,7 +83,7 @@ public class JobServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "berserker", CancellationToken));
 
-        Assert.Contains("levelTooLow", exception.Reasons);
+        Assert.Contains("LEVEL_TOO_LOW", exception.Reasons);
         Assert.Empty(log);
     }
 
@@ -119,7 +119,7 @@ public class JobServiceTests
         var warrior = options.Single(option => option.Id == "warrior");
         Assert.True(warrior.Current);
         Assert.Equal(50, warrior.ProficiencyPercent);
-        Assert.Equal(["sameJob"], warrior.Reasons);
+        Assert.Equal(["SAME_JOB"], warrior.Reasons);
         var thief = options.Single(option => option.Id == "thief");
         Assert.True(thief.Eligible);
         Assert.False(thief.Current);
@@ -221,7 +221,7 @@ public class JobServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.ChangeAsync(AccountId, "thief", CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Empty(log);
         Assert.Empty(inventory.Writes);
         Assert.Equal(2, (await equipment.GetAsync(character.Id, CancellationToken)).Equipped.Count);

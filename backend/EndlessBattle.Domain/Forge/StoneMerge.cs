@@ -7,21 +7,21 @@ public static class StoneMerge
 {
     public const int MaxLevel = 10, StonesPerPair = 2;
 
-    // 從同一格 quantity 顆的精鍊石合 pairs 組。原因代碼依序為 notRefineStone、cannotMerge、invalidQuantity，只回第一個
+    // 從同一格 quantity 顆的精鍊石合 pairs 組。原因代碼依序為 NOT_REFINE_STONE、CANNOT_MERGE、INVALID_QUANTITY，只回第一個
     public static IReadOnlyList<string> Check(ItemDefinition stone, int quantity, int pairs, Func<int, int, ItemDefinition?> find)
     {
         if (stone.Refine is null)
         {
-            return ["notRefineStone"];
+            return ["NOT_REFINE_STONE"];
         }
 
         if (SameKindNext(stone, stone, find) is null)
         {
-            return ["cannotMerge"];
+            return ["CANNOT_MERGE"];
         }
 
         // 以除法比較，避免組數極大時乘法溢位
-        return pairs < 1 || pairs > quantity / StonesPerPair ? ["invalidQuantity"] : [];
+        return pairs < 1 || pairs > quantity / StonesPerPair ? ["INVALID_QUANTITY"] : [];
     }
 
     // 同類合成必成功：兩顆同種類、同等級的精鍊石 → 同種類 +1 級。find(kind, level) 找不到或已是 LV10 時回 null
@@ -40,21 +40,21 @@ public static class StoneMerge
         return find(first.Kind, first.Level + 1);
     }
 
-    // 異類合成：兩格不同種類、同等級（≥ 2）的精鍊石，各扣 pairs 顆。原因代碼依序為 notRefineStone、cannotMerge、invalidQuantity，只回第一個
+    // 異類合成：兩格不同種類、同等級（≥ 2）的精鍊石，各扣 pairs 顆。原因代碼依序為 NOT_REFINE_STONE、CANNOT_MERGE、INVALID_QUANTITY，只回第一個
     public static IReadOnlyList<string> CheckCrossKind(
         ItemDefinition first, int firstQuantity, ItemDefinition second, int secondQuantity, int pairs, IReadOnlyList<ItemDefinition> refineStones)
     {
         if (first.Refine is null || second.Refine is null)
         {
-            return ["notRefineStone"];
+            return ["NOT_REFINE_STONE"];
         }
 
         if (CrossKindCandidates(first, second, refineStones) is not { Count: > 0 })
         {
-            return ["cannotMerge"];
+            return ["CANNOT_MERGE"];
         }
 
-        return pairs < 1 || pairs > Math.Min(firstQuantity, secondQuantity) ? ["invalidQuantity"] : [];
+        return pairs < 1 || pairs > Math.Min(firstQuantity, secondQuantity) ? ["INVALID_QUANTITY"] : [];
     }
 
     // 每組獨立擲：候選＝等級 −1、種類不是兩個來源的精鍊石（依內容順序），random.NextInt(候選數)。呼叫前先以 CheckCrossKind 確認

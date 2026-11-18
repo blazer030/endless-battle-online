@@ -50,19 +50,19 @@ public class HonourShopTests
         Assert.Null(outcome.Mercenary);
     }
 
-    // 付掉勳章後才判斷背包：勳章不足時沒有付款，材料分類滿了照樣回報 bagFull
+    // 付掉勳章後才判斷背包：勳章不足時沒有付款，材料分類滿了照樣回報 BAG_FULL
     [Fact]
     public void Exchange_ReasonsInOrder()
     {
-        Assert.Equal(["honourUnknown"], Exchange(null, [TestItems.Entry(1, "test-medal-a", 3)]).Reasons);
+        Assert.Equal(["HONOUR_UNKNOWN"], Exchange(null, [TestItems.Entry(1, "test-medal-a", 3)]).Reasons);
 
         var bag = FullMaterials();
         bag.Add(TestItems.Entry(1, "test-medal-a", 1));
-        Assert.Equal(["medalsMissing", "bagFull"], Exchange(Ore, bag).Reasons);
+        Assert.Equal(["MEDALS_MISSING", "BAG_FULL"], Exchange(Ore, bag).Reasons);
 
         var hired = MercenaryRules.NewContract(new MercenaryDefinition("test-mercenary", "測試傭兵", 100, 3, 50, 100, 50, 2), Now);
         IReadOnlyList<InventoryEntry> medals = [TestItems.Entry(1, "test-medal-a", 1), TestItems.Entry(2, "test-medal-b", 1)];
-        Assert.Equal(["mercenaryHired"], Exchange(Mercenary, medals, hired).Reasons);
+        Assert.Equal(["MERCENARY_HIRED"], Exchange(Mercenary, medals, hired).Reasons);
     }
 
     // 勳章不足又已有傭兵：兩個原因都回報，勳章不足在前
@@ -73,7 +73,7 @@ public class HonourShopTests
 
         var outcome = Exchange(Mercenary, [TestItems.Entry(1, "test-medal-a", 1)], hired);
 
-        Assert.Equal(["medalsMissing", "mercenaryHired"], outcome.Reasons);
+        Assert.Equal(["MEDALS_MISSING", "MERCENARY_HIRED"], outcome.Reasons);
         Assert.Null(outcome.Mercenary);
     }
 
@@ -98,11 +98,11 @@ public class HonourShopTests
 
     // 規格 honour「Exchange refusals」的 refusals 表；礦石對應 honour-9／honour-10，榮譽傭兵對應 honour-1
     [Theory]
-    [InlineData("unknown", 3, 1, false, false, new[] { "honourUnknown" })]
-    [InlineData("ore", 1, 0, false, false, new[] { "medalsMissing" })]
-    [InlineData("mercenary", 1, 1, true, false, new[] { "mercenaryHired" })]
-    [InlineData("mercenary", 1, 0, true, false, new[] { "medalsMissing", "mercenaryHired" })]
-    [InlineData("ore", 2, 0, false, true, new[] { "bagFull" })]
+    [InlineData("unknown", 3, 1, false, false, new[] { "HONOUR_UNKNOWN" })]
+    [InlineData("ore", 1, 0, false, false, new[] { "MEDALS_MISSING" })]
+    [InlineData("mercenary", 1, 1, true, false, new[] { "MERCENARY_HIRED" })]
+    [InlineData("mercenary", 1, 0, true, false, new[] { "MEDALS_MISSING", "MERCENARY_HIRED" })]
+    [InlineData("ore", 2, 0, false, true, new[] { "BAG_FULL" })]
     public void Exchange_RefusalTable(string exchange, int medalA, int medalB, bool hired, bool bagFull, string[] reasons)
     {
         List<InventoryEntry> bag = bagFull ? FullMaterials() : [];

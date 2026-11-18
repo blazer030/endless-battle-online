@@ -36,11 +36,11 @@ public class SkillLoadoutTests
 
     [Fact]
     public void Loadout_RejectsPassiveInActiveSlot() =>
-        Assert.Equal(["passiveInActiveSlot"], Validate(new SkillSlot(1, "iron-skin")));
+        Assert.Equal(["PASSIVE_IN_ACTIVE_SLOT"], Validate(new SkillSlot(1, "iron-skin")));
 
     [Fact]
     public void Loadout_RejectsActiveInPassiveSlot() =>
-        Assert.Equal(["activeInPassiveSlot"], Validate(new SkillSlot(4, "burst")));
+        Assert.Equal(["ACTIVE_IN_PASSIVE_SLOT"], Validate(new SkillSlot(4, "burst")));
 
     // 被動欄也不限職業：任何職業學過的被動都能裝
     [Fact]
@@ -49,29 +49,29 @@ public class SkillLoadoutTests
 
     [Fact]
     public void Loadout_RejectsDuplicateSkill() =>
-        Assert.Equal(["duplicateSkill"], Validate(new SkillSlot(1, "burst"), new SkillSlot(2, "burst")));
+        Assert.Equal(["DUPLICATE_SKILL"], Validate(new SkillSlot(1, "burst"), new SkillSlot(2, "burst")));
 
     [Fact]
     public void Loadout_RejectsDuplicateSlot() =>
-        Assert.Equal(["duplicateSlot"], Validate(new SkillSlot(1, "burst"), new SkillSlot(1, "combo")));
+        Assert.Equal(["DUPLICATE_SLOT"], Validate(new SkillSlot(1, "burst"), new SkillSlot(1, "combo")));
 
     [Fact]
     public void Loadout_RejectsNotLearned()
     {
-        Assert.Equal(["notLearned"], SkillLoadout.Validate([new SkillSlot(1, "burst")], [], id => Skills[id]));
-        Assert.Equal(["notLearned"], Validate(new SkillSlot(1, "no-such-skill")));
+        Assert.Equal(["NOT_LEARNED"], SkillLoadout.Validate([new SkillSlot(1, "burst")], [], id => Skills[id]));
+        Assert.Equal(["NOT_LEARNED"], Validate(new SkillSlot(1, "no-such-skill")));
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(6)]
     public void Loadout_RejectsSlotOutOfRange(int slot) =>
-        Assert.Equal(["slotOutOfRange"], Validate(new SkillSlot(slot, "burst")));
+        Assert.Equal(["SLOT_OUT_OF_RANGE"], Validate(new SkillSlot(slot, "burst")));
 
     [Fact]
     public void Loadout_ReportsEveryDistinctReasonInOrder() =>
         Assert.Equal(
-            ["passiveInActiveSlot", "activeInPassiveSlot"],
+            ["PASSIVE_IN_ACTIVE_SLOT", "ACTIVE_IN_PASSIVE_SLOT"],
             Validate(new SkillSlot(1, "iron-skin"), new SkillSlot(2, "guard"), new SkillSlot(4, "burst"), new SkillSlot(5, "combo")));
 
     private static IReadOnlyList<(string SkillId, int Level, int Slot)> ForBattle(IReadOnlyList<LearnedSkill> learned, params SkillSlot[] slots) =>

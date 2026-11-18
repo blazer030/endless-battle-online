@@ -58,7 +58,7 @@ public sealed class JobService(
         }).ToList();
     }
 
-    // 轉職時全部裝備卸回背包（spec §5.2），放不下就 400 bagFull、不轉職；技能欄不動（主動、被動都不限職業）。
+    // 轉職時全部裝備卸回背包（spec §5.2），放不下就 400 BAG_FULL、不轉職；技能欄不動（主動、被動都不限職業）。
     // 整個轉職是一筆交易：先過版本鎖更新角色，成功後才清裝備欄、把補給併回背包；衝突或背包滿時什麼都不寫
     public Task<CharacterProfile> ChangeAsync(long accountId, string jobId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
@@ -76,7 +76,7 @@ public sealed class JobService(
 
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var unequipped = Unequipping.TryReturnAll(state.Bag, state.Loadout, character.BagBonus, content.GetItem)
-                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", ["bagFull"]);
+                ?? throw new InputValidationException("背包已滿，無法卸下全部裝備", ["BAG_FULL"]);
 
             var updated = await characters.UpdateAsync(JobChange.Apply(character, target), cancellationToken);
             await UnequipAllAsync(character.Id, state.Loadout, unequipped, cancellationToken);

@@ -12,7 +12,7 @@ public sealed record PetView(Pet Pet, int Age, DateTimeOffset NextFeedAt);
 public sealed record PetOverview(IReadOnlyList<PetView> Pets, int MaxPets, IReadOnlyList<PetFood> Foods);
 
 // 每個寫入型用例一筆交易：讀取與驗證 → 角色版本鎖（餵食時一併扣錢）→ 寫寵物；
-// 不存在或別的角色的寵物一律 petUnknown
+// 不存在或別的角色的寵物一律 PET_UNKNOWN
 public sealed class PetService(
     ICharacterRepository characters,
     IPetRepository pets,
@@ -75,7 +75,7 @@ public sealed class PetService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var pet = FindPet(await pets.ListAsync(character.Id, cancellationToken), petId);
             var food = PetCare.Foods.FirstOrDefault(food => food.Id == foodId)
-                ?? throw new InputValidationException("沒有這種食物", ["foodUnknown"]);
+                ?? throw new InputValidationException("沒有這種食物", ["FOOD_UNKNOWN"]);
             var owner = DerivedStats.From(character.Base, await equipment.LoadBonusAsync(character.Id, content, cancellationToken));
             var now = clock.UtcNow;
             Check(PetCare.CanFeed(pet, food, owner, character.Money, now), "無法餵食");
@@ -106,7 +106,7 @@ public sealed class PetService(
     }
 
     private static Pet FindPet(IReadOnlyList<Pet> owned, long petId) =>
-        owned.FirstOrDefault(pet => pet.Id == petId) ?? throw new InputValidationException("沒有這隻寵物", ["petUnknown"]);
+        owned.FirstOrDefault(pet => pet.Id == petId) ?? throw new InputValidationException("沒有這隻寵物", ["PET_UNKNOWN"]);
 
     private static void Check(IReadOnlyList<string> reasons, string message)
     {

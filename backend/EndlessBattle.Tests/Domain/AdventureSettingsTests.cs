@@ -32,12 +32,12 @@ public class AdventureSettingsTests
             AdventureSettings.Default with { EscapeHealthPointsPercent = 101 },
             new AdventureSettings(null, 101, -2, 101, -2, 101),
         ];
-        Assert.All(invalid, settings => Assert.Equal(["invalidPercent"], settings.Validate()));
+        Assert.All(invalid, settings => Assert.Equal(["INVALID_PERCENT"], settings.Validate()));
     }
 
     [Fact]
     public void Settings_RejectsUnknownAttackKind()
     {
-        Assert.Equal(["invalidAttack"], (AdventureSettings.Default with { Attack = (AttackKind)7 }).Validate());
+        Assert.Equal(["INVALID_ATTACK"], (AdventureSettings.Default with { Attack = (AttackKind)7 }).Validate());
     }
 }

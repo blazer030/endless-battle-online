@@ -65,7 +65,7 @@ public sealed class InventoryService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var state = await LoadAsync(character.Id, cancellationToken);
             var equipped = state.Loadout.Equipped.GetValueOrDefault(slot)
-                ?? throw new InputValidationException("這一欄沒有裝備", ["slotEmpty"]);
+                ?? throw new InputValidationException("這一欄沒有裝備", ["SLOT_EMPTY"]);
 
             if (slot == EquipmentSlot.Supply)
             {
@@ -85,7 +85,7 @@ public sealed class InventoryService(
             return await ViewAsync(character, cancellationToken);
         }, cancellationToken);
 
-    // 一筆交易：讀角色、背包（寵物蛋另讀寵物數）→ CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 bagFull、
+    // 一筆交易：讀角色、背包（寵物蛋另讀寵物數）→ CanUse → Apply（擲骰）→ 開出的道具放進「扣掉這一個道具後」的背包，放不下 400 BAG_FULL、
     // 什麼都不寫 → 以版本鎖寫入角色 → 背包（扣道具、加結果）→ 寵物 → 技能點 → 密藥。衝突時道具不動
     public Task<ItemUseResult> UseAsync(long accountId, long inventoryId, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
@@ -174,7 +174,7 @@ public sealed class InventoryService(
     {
         if (quantity < 1 || quantity > InventoryRules.StackLimit || quantity > entry.Quantity)
         {
-            throw new InputValidationException($"補給數量必須是 1～{InventoryRules.StackLimit}，且不超過持有數量", ["invalidQuantity"]);
+            throw new InputValidationException($"補給數量必須是 1～{InventoryRules.StackLimit}，且不超過持有數量", ["INVALID_QUANTITY"]);
         }
 
         var left = entry with { Quantity = entry.Quantity - quantity };
@@ -203,7 +203,7 @@ public sealed class InventoryService(
         }
     }
 
-    // 卸下的道具要放回背包：同分類放不下就整筆拒絕（400 bagFull），不丟棄
+    // 卸下的道具要放回背包：同分類放不下就整筆拒絕（400 BAG_FULL），不丟棄
     private AddResult TryReturn(IReadOnlyList<InventoryEntry> bag, InventoryEntry equipped, int quantity, int bagBonus) =>
         Unequipping.TryReturn(bag, content.GetItem(equipped.ItemId), quantity, bagBonus, content.GetItem) ?? throw BagFull();
 
@@ -228,7 +228,7 @@ public sealed class InventoryService(
     private Task<Character> LockAsync(Character character, CancellationToken cancellationToken) =>
         characters.UpdateAsync(character, cancellationToken);
 
-    private static InputValidationException BagFull() => new("背包已滿", ["bagFull"]);
+    private static InputValidationException BagFull() => new("背包已滿", ["BAG_FULL"]);
 
     private Task<InventoryState> LoadAsync(long characterId, CancellationToken cancellationToken) =>
         BagReader.LoadAsync(inventory, equipment, characterId, cancellationToken);
@@ -237,11 +237,11 @@ public sealed class InventoryService(
     {
         if (state.Loadout.Equipped.Values.Any(entry => entry.Id == inventoryId))
         {
-            throw new InputValidationException("這件道具已經裝備中", ["alreadyEquipped"]);
+            throw new InputValidationException("這件道具已經裝備中", ["ALREADY_EQUIPPED"]);
         }
 
         return state.Bag.FirstOrDefault(entry => entry.Id == inventoryId)
-            ?? throw new InputValidationException("背包裡沒有這件道具", ["itemNotFound"]);
+            ?? throw new InputValidationException("背包裡沒有這件道具", ["ITEM_NOT_FOUND"]);
     }
 
     private async Task<InventoryView> ViewAsync(Character character, CancellationToken cancellationToken)

@@ -107,7 +107,7 @@ public class PetServiceTests
         var error = await Assert.ThrowsAsync<InputValidationException>(
             () => service.FeedAsync(AccountId, id, "fruit-vigor-small", CancellationToken));
 
-        Assert.Equal(["overOwner"], error.Reasons);
+        Assert.Equal(["OVER_OWNER"], error.Reasons);
         Assert.Empty(log);
         Assert.Equal(character, await StoredAsync());
         Assert.Equal(before, await FindPetAsync(character, id));
@@ -149,7 +149,7 @@ public class PetServiceTests
 
         var error = await Assert.ThrowsAsync<InputValidationException>(() => service.FeedAsync(AccountId, id, "vip-fruit", CancellationToken));
 
-        Assert.Equal(["foodUnknown"], error.Reasons);
+        Assert.Equal(["FOOD_UNKNOWN"], error.Reasons);
         Assert.Empty(log);
     }
 
@@ -191,7 +191,7 @@ public class PetServiceTests
         Assert.Equal("小風", (await FindPetAsync(character, id)).Name);
 
         var error = await Assert.ThrowsAsync<InputValidationException>(() => service.RenameAsync(AccountId, id, " ", CancellationToken));
-        Assert.Equal(["nameInvalid"], error.Reasons);
+        Assert.Equal(["NAME_INVALID"], error.Reasons);
     }
 
     [Fact]
@@ -218,15 +218,15 @@ public class PetServiceTests
 
         foreach (var petId in new[] { othersPet, 999 })
         {
-            Assert.Equal(["petUnknown"], (await Assert.ThrowsAsync<InputValidationException>(
+            Assert.Equal(["PET_UNKNOWN"], (await Assert.ThrowsAsync<InputValidationException>(
                 () => service.CarryAsync(AccountId, petId, CancellationToken))).Reasons);
-            Assert.Equal(["petUnknown"], (await Assert.ThrowsAsync<InputValidationException>(
+            Assert.Equal(["PET_UNKNOWN"], (await Assert.ThrowsAsync<InputValidationException>(
                 () => service.StoreAsync(AccountId, petId, CancellationToken))).Reasons);
-            Assert.Equal(["petUnknown"], (await Assert.ThrowsAsync<InputValidationException>(
+            Assert.Equal(["PET_UNKNOWN"], (await Assert.ThrowsAsync<InputValidationException>(
                 () => service.RenameAsync(AccountId, petId, "阿雪", CancellationToken))).Reasons);
-            Assert.Equal(["petUnknown"], (await Assert.ThrowsAsync<InputValidationException>(
+            Assert.Equal(["PET_UNKNOWN"], (await Assert.ThrowsAsync<InputValidationException>(
                 () => service.ReleaseAsync(AccountId, petId, CancellationToken))).Reasons);
-            Assert.Equal(["petUnknown"], (await Assert.ThrowsAsync<InputValidationException>(
+            Assert.Equal(["PET_UNKNOWN"], (await Assert.ThrowsAsync<InputValidationException>(
                 () => service.FeedAsync(AccountId, petId, "fruit-vigor-small", CancellationToken))).Reasons);
         }
 

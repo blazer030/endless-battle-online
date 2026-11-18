@@ -102,7 +102,7 @@ public class PetEndpointsTests(MySqlDatabaseFixture database)
         var again = await client.PostAsJsonAsync("/api/pets/feed", new { petId = id, foodId = "fruit-wild-small" }, CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
         var problem = await again.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["tooSoon"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["TOO_SOON"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]

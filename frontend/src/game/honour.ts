@@ -207,10 +207,10 @@ export const clerkLine = (event: ClerkEvent): ClerkLine => {
     case "refused": {
       const category = event.category
       for (const reason of event.reasons) {
-        if (reason === "medalsMissing") return { text: "勳章好像還差一點呢……", failed: true }
-        if (reason === "mercenaryHired")
+        if (reason === "MEDALS_MISSING") return { text: "勳章好像還差一點呢……", failed: true }
+        if (reason === "MERCENARY_HIRED")
           return { text: "您已經有一位傭兵了，一次只能一位喔。", failed: true }
-        if (reason === "bagFull" && category !== null)
+        if (reason === "BAG_FULL" && category !== null)
           return { text: `哎呀，${categoryLabel(category)}的格子已經滿了……`, failed: true }
       }
       return { text: ClerkFailed, failed: true }

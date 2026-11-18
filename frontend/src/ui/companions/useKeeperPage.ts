@@ -71,7 +71,7 @@ export const useKeeperPage = <T>({
   const fail = (error: unknown, speak: boolean) => {
     if (error instanceof ApiError && error.reasons.length > 0) {
       if (speak) setEvent(rejected(error.reasons[0]!, view))
-      if (error.reasons.includes("notEnoughMoney")) void reloadCharacter()
+      if (error.reasons.includes("NOT_ENOUGH_MONEY")) void reloadCharacter()
     } else if (speak) setEvent(failed)
   }
 

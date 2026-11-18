@@ -81,7 +81,7 @@ public sealed class ForgeService(
             return new ForgeResult(true, await inventoryService.GetAsync(accountId, cancellationToken));
         }, cancellationToken);
 
-    // 擲回收前先確認魔石分類放得下那顆魔石，放不下 400 bagFull、什麼都不寫（拆石器不扣、魔石留在孔裡）
+    // 擲回收前先確認魔石分類放得下那顆魔石，放不下 400 BAG_FULL、什麼都不寫（拆石器不扣、魔石留在孔裡）
     public Task<UnsocketResult> UnsocketAsync(long accountId, long inventoryId, int hole, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -94,7 +94,7 @@ public sealed class ForgeService(
             var added = InventoryRules.TryAdd(SameCategory(InventoryRules.AfterConsuming(state.Bag, remover, 1), stone), stone, 1, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["bagFull"]);
+                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
             }
 
             await LockAsync(character, cancellationToken);
@@ -130,7 +130,7 @@ public sealed class ForgeService(
             return new ForgeResult(outcome.Success, await inventoryService.GetAsync(accountId, cancellationToken));
         }, cancellationToken);
 
-    // 同類合成（規則見 StoneMerge）：從同一格扣 2 × quantityPairs 顆，得 quantityPairs 顆同種類 +1 級；放不下就整筆拒絕（400 bagFull）
+    // 同類合成（規則見 StoneMerge）：從同一格扣 2 × quantityPairs 顆，得 quantityPairs 顆同種類 +1 級；放不下就整筆拒絕（400 BAG_FULL）
     public Task<ForgeResult> MergeStonesAsync(long accountId, long stoneInventoryId, int quantityPairs, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
         {
@@ -145,7 +145,7 @@ public sealed class ForgeService(
                 SameCategory(InventoryRules.AfterConsuming(state.Bag, stone, consumed), next), next, quantityPairs, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["bagFull"]);
+                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
             }
 
             await LockAsync(character, cancellationToken);
@@ -155,7 +155,7 @@ public sealed class ForgeService(
         }, cancellationToken);
 
     // 異類合成（規則見 StoneMerge）：兩格各扣 quantityPairs 顆，每組獨立擲出一顆低一級的其他種類精鍊石；
-    // 先擲完、算好放不放得下（放不下 400 bagFull，什麼都不寫），再以版本鎖寫入角色、扣石頭、放結果
+    // 先擲完、算好放不放得下（放不下 400 BAG_FULL，什麼都不寫），再以版本鎖寫入角色、扣石頭、放結果
     public Task<InventoryView> MergeCrossKindAsync(
         long accountId, long firstInventoryId, long secondInventoryId, int quantityPairs, CancellationToken cancellationToken) =>
         unitOfWork.RunAsync(async cancellationToken =>
@@ -177,7 +177,7 @@ public sealed class ForgeService(
             var added = InventoryRules.TryAddEach(SameCategory(bag, results[0]), results, character.BagBonus);
             if (added.Discarded > 0)
             {
-                throw new InputValidationException("背包已滿", ["bagFull"]);
+                throw new InputValidationException("背包已滿", ["BAG_FULL"]);
             }
 
             await LockAsync(character, cancellationToken);

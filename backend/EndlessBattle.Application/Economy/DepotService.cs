@@ -32,8 +32,8 @@ public sealed class DepotService(
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var entry = state.Bag.FirstOrDefault(candidate => candidate.Id == inventoryId)
                 ?? throw (state.Loadout.Equipped.Values.Any(equipped => equipped.Id == inventoryId)
-                    ? new InputValidationException("請先卸下這件裝備", ["equipped"])
-                    : new InputValidationException("背包裡沒有這件道具", ["itemNotFound"]));
+                    ? new InputValidationException("請先卸下這件裝備", ["EQUIPPED"])
+                    : new InputValidationException("背包裡沒有這件道具", ["ITEM_NOT_FOUND"]));
             var item = content.GetItem(entry.ItemId);
             var stored = await depot.ListAsync(character.Id, cancellationToken);
             var plan = DepotRules.TryStore(stored, item, entry, quantity, character.DepotBonus);
@@ -68,7 +68,7 @@ public sealed class DepotService(
             var character = await FindCharacterAsync(accountId, cancellationToken);
             var stored = await depot.ListAsync(character.Id, cancellationToken);
             var entry = stored.FirstOrDefault(candidate => candidate.Id == depotId)
-                ?? throw new InputValidationException("倉庫裡沒有這件道具", ["itemNotFound"]);
+                ?? throw new InputValidationException("倉庫裡沒有這件道具", ["ITEM_NOT_FOUND"]);
             var item = content.GetItem(entry.ItemId);
             var state = await BagReader.LoadAsync(inventory, equipment, character.Id, cancellationToken);
             var sameCategory = state.Bag.Where(other => content.GetItem(other.ItemId).Category == item.Category).ToList();

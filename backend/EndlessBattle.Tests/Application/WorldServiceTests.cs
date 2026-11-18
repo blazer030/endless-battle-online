@@ -100,7 +100,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 17, 1, CancellationToken));
 
-        Assert.Equal(["restricted"], exception.Reasons);
+        Assert.Equal(["RESTRICTED"], exception.Reasons);
         Assert.Empty(log);
         var stored = await characters.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal((1, 1, Start), (stored!.PlaceId, stored.SubPlace, stored.LastSettledAt));
@@ -195,7 +195,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 20, 1, CancellationToken));
 
-        Assert.Equal(["subPlaceNotAllowed"], exception.Reasons);
+        Assert.Equal(["SUB_PLACE_NOT_ALLOWED"], exception.Reasons);
         Assert.Empty(log);
         var profile = await service.MoveAsync(AccountId, 20, null, CancellationToken);
         Assert.Equal((20, (int?)null), (profile.Character.PlaceId, profile.Character.SubPlace));
@@ -208,7 +208,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 2, null, CancellationToken));
 
-        Assert.Equal(["subPlaceRequired"], exception.Reasons);
+        Assert.Equal(["SUB_PLACE_REQUIRED"], exception.Reasons);
         Assert.Empty(log);
     }
 
@@ -221,7 +221,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 2, subPlace, CancellationToken));
 
-        Assert.Equal(["subPlaceOutOfRange"], exception.Reasons);
+        Assert.Equal(["SUB_PLACE_OUT_OF_RANGE"], exception.Reasons);
         Assert.Empty(log);
     }
 
@@ -233,7 +233,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 1, 1, CancellationToken));
 
-        Assert.Equal(["samePlace"], exception.Reasons);
+        Assert.Equal(["SAME_PLACE"], exception.Reasons);
         Assert.Empty(log);
         var profile = await service.MoveAsync(AccountId, 1, 2, CancellationToken);
         Assert.Equal((1, (int?)2), (profile.Character.PlaceId, profile.Character.SubPlace));
@@ -246,7 +246,7 @@ public class WorldServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MoveAsync(AccountId, 99, 1, CancellationToken));
 
-        Assert.Equal(["unknownPlace"], exception.Reasons);
+        Assert.Equal(["UNKNOWN_PLACE"], exception.Reasons);
         Assert.Empty(log);
     }
 

@@ -489,22 +489,22 @@ describe("liseLine", () => {
   it.each([
     [liseLine({ kind: "accepted", mission }), "「討伐任務」就拜託您了，路上小心！", false],
     [liseLine({ kind: "abandoned" }), "好的，這張先放回佈告欄囉。", false],
-    [refused("itemsMissing"), "交付的東西好像還差一點呢……", true],
-    [refused("objectiveIncomplete"), "討伐的數量好像還差一點呢……", true],
-    [refused("petMissing"), "咦，您身邊沒有帶著飛兔呢……", true],
-    [refused("skillTooLow"), "施毒要練到 Lv3 才行喔。", true],
-    [refused("bagFull"), "哎呀，材料的格子已經滿了……", true],
-    [refused("petsFull"), "獸欄已經住滿 3 隻了，新夥伴沒地方住呢……", true],
-    [refused("tooMany"), "您手邊已經有 3 張委託了喔。", true],
+    [refused("ITEMS_MISSING"), "交付的東西好像還差一點呢……", true],
+    [refused("OBJECTIVE_INCOMPLETE"), "討伐的數量好像還差一點呢……", true],
+    [refused("PET_MISSING"), "咦，您身邊沒有帶著飛兔呢……", true],
+    [refused("SKILL_TOO_LOW"), "施毒要練到 Lv3 才行喔。", true],
+    [refused("BAG_FULL"), "哎呀，材料的格子已經滿了……", true],
+    [refused("PETS_FULL"), "獸欄已經住滿 3 隻了，新夥伴沒地方住呢……", true],
+    [refused("TOO_MANY"), "您手邊已經有 3 張委託了喔。", true],
     [
-      liseLine({ kind: "refused", reasons: ["tooMany"], mission, activeLimit: 4 }),
+      liseLine({ kind: "refused", reasons: ["TOO_MANY"], mission, activeLimit: 4 }),
       "您手邊已經有 4 張委託了喔。",
       true,
     ],
-    [refused("missionNotActive"), "這張委託已經不在您手上了呢……", true],
-    [refused("levelTooLow"), "咦，剛剛沒送出去……再試一次吧？", true],
+    [refused("MISSION_NOT_ACTIVE"), "這張委託已經不在您手上了呢……", true],
+    [refused("LEVEL_TOO_LOW"), "咦，剛剛沒送出去……再試一次吧？", true],
     [liseLine({ kind: "failed" }), "咦，剛剛沒送出去……再試一次吧？", true],
-    [refused("petsFull", "bagFull"), "哎呀，材料的格子已經滿了……", true],
+    [refused("PETS_FULL", "BAG_FULL"), "哎呀，材料的格子已經滿了……", true],
   ])("%#", (line, text, failed) => {
     expect(line).toEqual({ text, failed })
   })
@@ -523,7 +523,7 @@ describe("liseLine", () => {
       },
     })
     expect(
-      liseLine({ kind: "refused", reasons: ["bagFull"], mission: mixed, activeLimit: 3 }).text,
+      liseLine({ kind: "refused", reasons: ["BAG_FULL"], mission: mixed, activeLimit: 3 }).text,
     ).toBe("哎呀，背包的格子已經滿了……")
   })
 })

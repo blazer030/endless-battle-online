@@ -2,7 +2,7 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.Skills;
 
-// Reasons 代碼：wrongJob、prerequisite、maxLevel、notEnoughProficiency、notEnoughMoney
+// Reasons 代碼：WRONG_JOB、prerequisite、maxLevel、NOT_ENOUGH_PROFICIENCY、NOT_ENOUGH_MONEY
 public sealed record LearnCheck(bool Allowed, IReadOnlyList<string> Reasons, int TargetLevel);
 
 public sealed class SkillLearningException(IReadOnlyList<string> reasons) : Exception("無法學習技能")
@@ -21,17 +21,17 @@ public static class SkillLearning
         var reasons = new List<string>();
         if (!teaching.TaughtByCurrentJob)
         {
-            reasons.Add("wrongJob");
+            reasons.Add("WRONG_JOB");
         }
 
         if (skill.Prerequisite is { } prerequisite && teaching.PrerequisiteLevel < prerequisite.Level)
         {
-            reasons.Add("prerequisite");
+            reasons.Add("PREREQUISITE");
         }
 
         if (currentLevel >= skill.MaxLevel)
         {
-            reasons.Add("maxLevel");
+            reasons.Add("MAX_LEVEL");
             return new LearnCheck(false, reasons, skill.MaxLevel);
         }
 
@@ -39,12 +39,12 @@ public static class SkillLearning
         var next = skill.LevelAt(targetLevel);
         if (skillPoints < next.Proficiency)
         {
-            reasons.Add("notEnoughProficiency");
+            reasons.Add("NOT_ENOUGH_PROFICIENCY");
         }
 
         if (character.Money < next.Money)
         {
-            reasons.Add("notEnoughMoney");
+            reasons.Add("NOT_ENOUGH_MONEY");
         }
 
         return new LearnCheck(reasons.Count == 0, reasons, targetLevel);

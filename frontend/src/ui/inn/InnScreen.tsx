@@ -112,8 +112,8 @@ export const InnScreen = ({ api, character, onCharacterChange, onBack }: Props) 
       setEvent({ kind: "booked", roomName: room.name })
     } catch (error) {
       if (!alive.current) return
-      if (error instanceof ApiError && error.reasons.includes("notEnoughMoney")) {
-        setEvent({ kind: "notEnoughMoney" })
+      if (error instanceof ApiError && error.reasons.includes("NOT_ENOUGH_MONEY")) {
+        setEvent({ kind: "NOT_ENOUGH_MONEY" })
         // 錢可能在別處花掉了：重讀角色換成最新的金錢，讀不到就維持原樣
         try {
           const latest = await api.getMyCharacter()

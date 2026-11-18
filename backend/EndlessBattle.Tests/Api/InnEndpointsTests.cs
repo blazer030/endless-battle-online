@@ -126,14 +126,14 @@ public class InnEndpointsTests(MySqlDatabaseFixture database)
         var (client, characterId) = await CreateCharacterAsync(factory);
 
         var unknown = await client.PostAsJsonAsync("/api/inn/book", new { roomId = "royal-suite" }, CancellationToken);
-        Assert.Equal(["unknownRoom"], await ReasonsOf400Async(unknown));
+        Assert.Equal(["UNKNOWN_ROOM"], await ReasonsOf400Async(unknown));
 
         var missing = await client.PostAsJsonAsync("/api/inn/book", new { }, CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
 
         await SetMoneyAsync(characterId, 99);
         var poor = await client.PostAsJsonAsync("/api/inn/book", new { roomId = "apprentice-loft" }, CancellationToken);
-        Assert.Equal(["notEnoughMoney"], await ReasonsOf400Async(poor));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], await ReasonsOf400Async(poor));
     }
 
     [Fact]

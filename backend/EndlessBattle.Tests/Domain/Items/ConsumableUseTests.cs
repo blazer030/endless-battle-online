@@ -18,11 +18,11 @@ public class ConsumableUseTests
 
     private static UseContext Context(Character character) => new(character, Warrior, 0, [], []);
 
-    // 擴充只在加成會變大時可用；目前已 ≥ 擴充格數 → noEffect
+    // 擴充只在加成會變大時可用；目前已 ≥ 擴充格數 → NO_EFFECT
     [Theory]
     [InlineData(4, new string[0])]
-    [InlineData(5, new[] { "noEffect" })]
-    [InlineData(8, new[] { "noEffect" })]
+    [InlineData(5, new[] { "NO_EFFECT" })]
+    [InlineData(8, new[] { "NO_EFFECT" })]
     public void CanUse_ExpansionNeedsEffect(int bonus, string[] expected)
     {
         var character = TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch) with { BagBonus = bonus, DepotBonus = bonus };
@@ -36,7 +36,7 @@ public class ConsumableUseTests
     {
         var character = TestCharacters.Default(1, "測試者", 1, 1, DateTimeOffset.UnixEpoch);
 
-        Assert.Equal(["notUsable"], ConsumableUse.CanUse(Context(character), TestItems.Consumable("supply")));
+        Assert.Equal(["NOT_USABLE"], ConsumableUse.CanUse(Context(character), TestItems.Consumable("supply")));
     }
 
     // 魔石寶箱的等級：攻擊／魔力／守護／結界 1，生命／疾風 2，混沌／虹彩 3；boxClass 0 不會從寶箱出現
@@ -118,7 +118,7 @@ public class ConsumableUseTests
     {
         var egg = Usable(ConsumableKind.PetEgg, 280);
 
-        Assert.Equal(["petsFull"], ConsumableUse.CanUse(Full(Hero, petCount: PetRules.MaxPets), egg));
+        Assert.Equal(["PETS_FULL"], ConsumableUse.CanUse(Full(Hero, petCount: PetRules.MaxPets), egg));
         Assert.Empty(ConsumableUse.CanUse(Full(Hero, petCount: PetRules.MaxPets - 1), egg));
     }
 

@@ -17,7 +17,7 @@ public sealed class InMemoryCharacterRepository : ICharacterRepository, IRestora
     {
         if (charactersByAccount.ContainsKey(character.AccountId))
         {
-            throw new ConflictException("此帳號已有角色", reasons: ["accountHasCharacter"]);
+            throw new ConflictException("此帳號已有角色", reasons: ["ACCOUNT_HAS_CHARACTER"]);
         }
 
         var stored = character with { Id = nextId++ };

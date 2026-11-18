@@ -211,7 +211,7 @@ test("WorldPanel_ShowsMoveReasonsInChinese", async () => {
     createApi({
       moveTo: vi
         .fn()
-        .mockRejectedValue(new ApiError(400, "無法移動", ["restricted", "subPlaceRequired"])),
+        .mockRejectedValue(new ApiError(400, "無法移動", ["RESTRICTED", "SUB_PLACE_REQUIRED"])),
     }),
   )
 

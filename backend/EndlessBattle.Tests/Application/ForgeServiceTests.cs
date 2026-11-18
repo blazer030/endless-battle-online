@@ -111,7 +111,7 @@ public class ForgeServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.RefineAsync(AccountId, sword, stone, useSafeStone: true, CancellationToken));
 
-        Assert.Equal(["missingTool:safe-refine-stone"], exception.Reasons);
+        Assert.Equal(["MISSING_TOOL:safe-refine-stone"], exception.Reasons);
         Assert.Empty(log);
     }
 
@@ -196,7 +196,7 @@ public class ForgeServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.UnsocketAsync(AccountId, sword, 1, CancellationToken));
 
-        Assert.Equal(["missingTool:item-1378"], exception.Reasons);
+        Assert.Equal(["MISSING_TOOL:item-1378"], exception.Reasons);
         Assert.Single(Find(character, sword).Sockets);
         Assert.Empty(log);
     }
@@ -237,7 +237,7 @@ public class ForgeServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.UnsocketAsync(AccountId, sword, 1, CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Single(Find(character, sword).Sockets);
         Assert.Equal(2, Find(character, remover).Quantity);
         Assert.Empty(inventory.Writes);
@@ -276,7 +276,7 @@ public class ForgeServiceTests
         Assert.Equal(2, Find(character, sword).Holes);
         Assert.Equal([("test-sword", 1)], await ItemsAsync(character));
         Assert.Equal(
-            ["missingTool:item-3361"],
+            ["MISSING_TOOL:item-3361"],
             (await Assert.ThrowsAsync<InputValidationException>(() => service.DrillAsync(AccountId, sword, CancellationToken))).Reasons);
     }
 
@@ -307,7 +307,7 @@ public class ForgeServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.MergeStonesAsync(AccountId, stone, 1, CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Equal(4, Find(character, stone).Quantity);
         Assert.Empty(log);
     }
@@ -323,11 +323,11 @@ public class ForgeServiceTests
         async Task<IReadOnlyList<string>> ReasonsAsync(long id, int pairs) =>
             (await Assert.ThrowsAsync<InputValidationException>(() => service.MergeStonesAsync(AccountId, id, pairs, CancellationToken))).Reasons;
 
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, 3));
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, 0));
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(stone, int.MaxValue));
-        Assert.Equal(["cannotMerge"], await ReasonsAsync(top, 1));
-        Assert.Equal(["notRefineStone"], await ReasonsAsync(magic, 1));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(stone, 3));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(stone, 0));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(stone, int.MaxValue));
+        Assert.Equal(["CANNOT_MERGE"], await ReasonsAsync(top, 1));
+        Assert.Equal(["NOT_REFINE_STONE"], await ReasonsAsync(magic, 1));
         Assert.Empty(log);
     }
 
@@ -345,7 +345,7 @@ public class ForgeServiceTests
         Assert.Equal(["update"], log);
     }
 
-    // 精鍊石分類 15 格全滿、兩格來源都還有剩 → 活力 Lv1 沒有格子放：400 bagFull，什麼都不寫
+    // 精鍊石分類 15 格全滿、兩格來源都還有剩 → 活力 Lv1 沒有格子放：400 BAG_FULL，什麼都不寫
     [Fact]
     public async Task MergeCrossKind_RejectsWhenRefineBagFull()
     {
@@ -360,7 +360,7 @@ public class ForgeServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.MergeCrossKindAsync(AccountId, iron, arcane, 1, CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Equal((2, 2), (Find(character, iron).Quantity, Find(character, arcane).Quantity));
         Assert.Empty(log);
     }
@@ -376,9 +376,9 @@ public class ForgeServiceTests
         async Task<IReadOnlyList<string>> ReasonsAsync(long first, long second, int pairs) =>
             (await Assert.ThrowsAsync<InputValidationException>(() => service.MergeCrossKindAsync(AccountId, first, second, pairs, CancellationToken))).Reasons;
 
-        Assert.Equal(["cannotMerge"], await ReasonsAsync(iron, ironLow, 1));
-        Assert.Equal(["cannotMerge"], await ReasonsAsync(iron, iron, 1));
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(iron, arcane, 3));
+        Assert.Equal(["CANNOT_MERGE"], await ReasonsAsync(iron, ironLow, 1));
+        Assert.Equal(["CANNOT_MERGE"], await ReasonsAsync(iron, iron, 1));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(iron, arcane, 3));
         Assert.Empty(log);
     }
 
@@ -458,7 +458,7 @@ public class ForgeServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.SynthesizeAsync(AccountId, "test-forge-sword", 1, CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Equal(3, Find(character, ore).Quantity);
         Assert.Equal(2000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
         Assert.Empty(log);
@@ -474,7 +474,7 @@ public class ForgeServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.SynthesizeAsync(AccountId, "test-forge-sword", 3, CancellationToken));
 
-        Assert.Equal(["notEnoughMoney"], exception.Reasons);
+        Assert.Equal(["NOT_ENOUGH_MONEY"], exception.Reasons);
         Assert.Equal(9, Find(character, ore).Quantity);
         Assert.Empty(log);
     }

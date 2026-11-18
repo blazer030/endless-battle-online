@@ -84,7 +84,7 @@ public class InnServiceTests
     {
         await AddCharacterAsync(character => character with { LastSettledAt = Now.AddSeconds(-60) });
 
-        Assert.Equal(["unknownRoom"], await ReasonsAsync(() => service.BookAsync(AccountId, "royal-suite", CancellationToken)));
+        Assert.Equal(["UNKNOWN_ROOM"], await ReasonsAsync(() => service.BookAsync(AccountId, "royal-suite", CancellationToken)));
         Assert.Empty(log);
     }
 
@@ -94,7 +94,7 @@ public class InnServiceTests
     {
         await AddCharacterAsync(character => character with { Money = 99, LastSettledAt = Now.AddSeconds(-60) });
 
-        Assert.Equal(["notEnoughMoney"], await ReasonsAsync(() => service.BookAsync(AccountId, "apprentice-loft", CancellationToken)));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], await ReasonsAsync(() => service.BookAsync(AccountId, "apprentice-loft", CancellationToken)));
         Assert.Empty(log);
     }
 

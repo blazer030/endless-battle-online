@@ -93,7 +93,7 @@ public class HonourServiceTests
         var missing = await Assert.ThrowsAsync<InputValidationException>(
             () => RealService().ExchangeAsync(AccountId, "honour-10", CancellationToken));
 
-        Assert.Equal(["medalsMissing"], missing.Reasons);
+        Assert.Equal(["MEDALS_MISSING"], missing.Reasons);
         for (var weapon = 0; weapon < 15; weapon++)
         {
             await GiveAsync(character, "item-1384", 1);
@@ -102,7 +102,7 @@ public class HonourServiceTests
         var full = await Assert.ThrowsAsync<InputValidationException>(
             () => RealService().ExchangeAsync(AccountId, "honour-9", CancellationToken));
 
-        Assert.Equal(["bagFull"], full.Reasons);
+        Assert.Equal(["BAG_FULL"], full.Reasons);
         Assert.Equal(4, Assert.Single(await BagAsync(character), entry => entry.ItemId == "item-1304").Quantity);
     }
 
@@ -211,7 +211,7 @@ public class HonourServiceTests
         var error = await Assert.ThrowsAsync<InputValidationException>(
             () => service.ExchangeAsync(AccountId, "test-exchange-mercenary", CancellationToken));
 
-        Assert.Equal(["medalsMissing"], error.Reasons);
+        Assert.Equal(["MEDALS_MISSING"], error.Reasons);
         Assert.Equal(1, Assert.Single(await BagAsync(character)).Quantity);
         Assert.Null(await mercenaries.FindAsync(character.Id, CancellationToken));
         Assert.Equal(0, await VersionAsync());
@@ -231,8 +231,8 @@ public class HonourServiceTests
         var again = await Assert.ThrowsAsync<InputValidationException>(
             () => service.ExchangeAsync(AccountId, "test-exchange-mercenary", CancellationToken));
 
-        Assert.Equal(["honourUnknown"], unknown.Reasons);
-        Assert.Equal(["mercenaryHired"], again.Reasons);
+        Assert.Equal(["HONOUR_UNKNOWN"], unknown.Reasons);
+        Assert.Equal(["MERCENARY_HIRED"], again.Reasons);
         Assert.Empty(log);
     }
 

@@ -84,7 +84,7 @@ test("SettingsPanel_RejectsDecimalBeforeCallingTheApi", async () => {
 
 test("SettingsPanel_ShowsInvalidPercentFromTheServer", async () => {
   const { dialog, onCharacterChanged, onClose } = renderPanel({
-    updateSettings: vi.fn().mockRejectedValue(new ApiError(400, "設定無效", ["invalidPercent"])),
+    updateSettings: vi.fn().mockRejectedValue(new ApiError(400, "設定無效", ["INVALID_PERCENT"])),
   })
 
   await user.click(within(dialog).getByRole("button", { name: "儲存" }))

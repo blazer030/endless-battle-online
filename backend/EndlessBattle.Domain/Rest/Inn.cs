@@ -21,7 +21,7 @@ public static class Inn
         (long)level * inn.PricePerLevel * room.PriceRate;
 
     public static IReadOnlyList<string> CanBook(Character character, long price) =>
-        character.Money >= price ? [] : ["notEnoughMoney"];
+        character.Money >= price ? [] : ["NOT_ENOUGH_MONEY"];
 
     // 只扣錢、不回滿；還沒到期的那筆在 now 結束（不退錢），新的一筆從 now 開始
     public static InnBooking Book(Character character, InnDefinition inn, InnRoom room, Lodging? active, DateTimeOffset now)

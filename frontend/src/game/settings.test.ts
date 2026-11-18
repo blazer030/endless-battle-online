@@ -93,7 +93,7 @@ describe("parseSettings", () => {
 
 describe("settingsErrorMessage", () => {
   test("settingsErrorMessage_TranslatesKnownReasons", () => {
-    expect(settingsErrorMessage(["invalidPercent"], "fallback")).toBe(InvalidPercentMessage)
+    expect(settingsErrorMessage(["INVALID_PERCENT"], "fallback")).toBe(InvalidPercentMessage)
     expect(settingsErrorMessage(["unknown"], "fallback")).toBe("fallback")
   })
 })

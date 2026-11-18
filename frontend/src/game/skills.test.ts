@@ -117,12 +117,12 @@ describe("skills", () => {
 
   it("validateLoadout_ReportsTheBackendCodes", () => {
     const cases: [SlotDraft[], string[]][] = [
-      [setSlot(drafts, 2, "burst"), ["duplicateSkill"]],
-      [setSlot(drafts, 5, "combo"), ["activeInPassiveSlot"]],
-      [setSlot(drafts, 2, "iron-skin"), ["passiveInActiveSlot", "duplicateSkill"]],
-      [setSlot(drafts, 3, "war-cry"), ["notLearned"]],
-      [setSlot(drafts, 3, "unknown"), ["notLearned"]],
-      [[...drafts, { slot: 1, skillId: "combo" }], ["duplicateSlot"]],
+      [setSlot(drafts, 2, "burst"), ["DUPLICATE_SKILL"]],
+      [setSlot(drafts, 5, "combo"), ["ACTIVE_IN_PASSIVE_SLOT"]],
+      [setSlot(drafts, 2, "iron-skin"), ["PASSIVE_IN_ACTIVE_SLOT", "DUPLICATE_SKILL"]],
+      [setSlot(drafts, 3, "war-cry"), ["NOT_LEARNED"]],
+      [setSlot(drafts, 3, "unknown"), ["NOT_LEARNED"]],
+      [[...drafts, { slot: 1, skillId: "combo" }], ["DUPLICATE_SLOT"]],
     ]
     for (const [loadout, reasons] of cases)
       expect(validateLoadout(loadout, overview)).toEqual(reasons)
@@ -132,9 +132,9 @@ describe("skills", () => {
     const option = (id: string, current: boolean, reasons: string[]): JobChoiceVo =>
       makeJobChoice({ id, current, eligible: reasons.length === 0, reasons })
     const jobs = [
-      option("warrior", true, ["sameJob"]),
+      option("warrior", true, ["SAME_JOB"]),
       option("thief", false, []),
-      option("knight", false, ["levelTooLow"]),
+      option("knight", false, ["LEVEL_TOO_LOW"]),
     ]
 
     expect(
@@ -146,8 +146,8 @@ describe("skills", () => {
       })),
     ).toEqual([
       { id: "warrior", current: false, eligible: true, reasons: [] },
-      { id: "thief", current: true, eligible: false, reasons: ["sameJob"] },
-      { id: "knight", current: false, eligible: false, reasons: ["levelTooLow"] },
+      { id: "thief", current: true, eligible: false, reasons: ["SAME_JOB"] },
+      { id: "knight", current: false, eligible: false, reasons: ["LEVEL_TOO_LOW"] },
     ])
   })
 
@@ -160,17 +160,17 @@ describe("skills", () => {
   })
 
   it("reasonTexts_TranslateCodesToChinese", () => {
-    expect(jobReasonText("sameJob")).toBe("已是目前職業")
-    expect(jobReasonText("levelTooLow")).toBe("等級不足")
-    expect(jobReasonText("parentProficiencyTooLow")).toBe("前置職業熟練度不足")
-    expect(jobReasonText("statTooLow:vitality")).toBe("體質不足")
-    expect(learnReasonText("wrongJob")).toBe("不是目前職業的技能")
-    expect(learnReasonText("maxLevel")).toBe("已達最高等級")
-    expect(learnReasonText("notEnoughProficiency")).toBe("技能熟練度不足")
-    expect(learnReasonText("notEnoughMoney")).toBe("金錢不足")
-    expect(learnReasonText("prerequisite")).toBe("前置技能等級不足")
-    expect(slotReasonText("duplicateSkill")).toBe("同一技能不能裝在兩個欄位")
-    expect(slotReasonText("activeInPassiveSlot")).toBe("被動欄只能放被動技能")
+    expect(jobReasonText("SAME_JOB")).toBe("已是目前職業")
+    expect(jobReasonText("LEVEL_TOO_LOW")).toBe("等級不足")
+    expect(jobReasonText("PARENT_PROFICIENCY_TOO_LOW")).toBe("前置職業熟練度不足")
+    expect(jobReasonText("STAT_TOO_LOW:vitality")).toBe("體質不足")
+    expect(learnReasonText("WRONG_JOB")).toBe("不是目前職業的技能")
+    expect(learnReasonText("MAX_LEVEL")).toBe("已達最高等級")
+    expect(learnReasonText("NOT_ENOUGH_PROFICIENCY")).toBe("技能熟練度不足")
+    expect(learnReasonText("NOT_ENOUGH_MONEY")).toBe("金錢不足")
+    expect(learnReasonText("PREREQUISITE")).toBe("前置技能等級不足")
+    expect(slotReasonText("DUPLICATE_SKILL")).toBe("同一技能不能裝在兩個欄位")
+    expect(slotReasonText("ACTIVE_IN_PASSIVE_SLOT")).toBe("被動欄只能放被動技能")
     expect(slotReasonText("somethingNew")).toBe("somethingNew")
   })
 
@@ -180,8 +180,8 @@ describe("skills", () => {
       prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
     })
 
-    expect(learnReasonTextOf(advanced)("prerequisite")).toBe("前置技能：爆氣 Lv 3")
-    expect(learnReasonTextOf(advanced)("notEnoughMoney")).toBe("金錢不足")
-    expect(learnReasonTextOf(skill({}))("prerequisite")).toBe("前置技能等級不足")
+    expect(learnReasonTextOf(advanced)("PREREQUISITE")).toBe("前置技能：爆氣 Lv 3")
+    expect(learnReasonTextOf(advanced)("NOT_ENOUGH_MONEY")).toBe("金錢不足")
+    expect(learnReasonTextOf(skill({}))("PREREQUISITE")).toBe("前置技能等級不足")
   })
 })

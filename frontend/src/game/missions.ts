@@ -473,7 +473,7 @@ const sentFailed: LiseLine = { text: "咦，剛剛沒送出去……再試一次
 
 export const boardLoadFailedLine = "哎呀，委託單一時找不到了……"
 
-// 報酬道具都同一分類時說那一類，否則說背包（後端只回 bagFull，不知道是哪一件放不下）
+// 報酬道具都同一分類時說那一類，否則說背包（後端只回 BAG_FULL，不知道是哪一件放不下）
 const fullCategory = (mission: Mission) => {
   const categories = new Set(mission.rewards.items.map((item) => item.category))
   const [only] = categories
@@ -481,20 +481,20 @@ const fullCategory = (mission: Mission) => {
 }
 
 const refusalLines: [string, (mission: Mission, activeLimit: number) => string][] = [
-  ["itemsMissing", () => "交付的東西好像還差一點呢……"],
-  ["objectiveIncomplete", () => "討伐的數量好像還差一點呢……"],
-  ["petMissing", (mission) => `咦，您身邊沒有帶著${mission.deliverPet?.name ?? "寵物"}呢……`],
+  ["ITEMS_MISSING", () => "交付的東西好像還差一點呢……"],
+  ["OBJECTIVE_INCOMPLETE", () => "討伐的數量好像還差一點呢……"],
+  ["PET_MISSING", (mission) => `咦，您身邊沒有帶著${mission.deliverPet?.name ?? "寵物"}呢……`],
   [
-    "skillTooLow",
+    "SKILL_TOO_LOW",
     (mission) =>
       mission.requiredSkill === null
         ? "技能等級好像還不夠呢……"
         : `${mission.requiredSkill.name}要練到 Lv${mission.requiredSkill.level} 才行喔。`,
   ],
-  ["bagFull", (mission) => `哎呀，${fullCategory(mission)}的格子已經滿了……`],
-  ["petsFull", () => `獸欄已經住滿 ${MaxPetsInStable} 隻了，新夥伴沒地方住呢……`],
-  ["tooMany", (_, activeLimit) => `您手邊已經有 ${activeLimit} 張委託了喔。`],
-  ["missionNotActive", () => "這張委託已經不在您手上了呢……"],
+  ["BAG_FULL", (mission) => `哎呀，${fullCategory(mission)}的格子已經滿了……`],
+  ["PETS_FULL", () => `獸欄已經住滿 ${MaxPetsInStable} 隻了，新夥伴沒地方住呢……`],
+  ["TOO_MANY", (_, activeLimit) => `您手邊已經有 ${activeLimit} 張委託了喔。`],
+  ["MISSION_NOT_ACTIVE", () => "這張委託已經不在您手上了呢……"],
 ]
 
 // 莉瑟在委託單裡說的話；多個原因時取表中最前面的

@@ -55,7 +55,7 @@ public class InnTests
     [Fact]
     public void CanBook_RejectsWhenMoneyShort()
     {
-        Assert.Equal(["notEnoughMoney"], Inn.CanBook(Hero(money: 599), 600));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], Inn.CanBook(Hero(money: 599), 600));
         Assert.Empty(Inn.CanBook(Hero(money: 600), 600));
     }
 

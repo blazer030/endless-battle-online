@@ -25,7 +25,7 @@ export const attackChoices: { value: AttackChoice; label: string }[] = [
 export const InvalidPercentMessage = "門檻必須是 -1～100 的整數（逃跑 0～100）"
 
 const reasonTexts: Record<string, string> = {
-  invalidPercent: InvalidPercentMessage,
+  INVALID_PERCENT: InvalidPercentMessage,
 }
 
 export const settingsErrorMessage = (reasons: string[], fallback: string) =>

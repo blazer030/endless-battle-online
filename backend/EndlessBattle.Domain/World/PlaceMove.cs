@@ -2,8 +2,8 @@ using EndlessBattle.Domain.Characters;
 
 namespace EndlessBattle.Domain.World;
 
-// 移動免費、不看等級；代碼依序：unknownPlace、restricted（禁區且沒有有效通行證也沒有鑰匙）、subPlaceNotAllowed、
-// subPlaceRequired、subPlaceOutOfRange、samePlace（禁區通行證已到期時不算，可用鑰匙再次進入）
+// 移動免費、不看等級；代碼依序：UNKNOWN_PLACE、restricted（禁區且沒有有效通行證也沒有鑰匙）、SUB_PLACE_NOT_ALLOWED、
+// SUB_PLACE_REQUIRED、SUB_PLACE_OUT_OF_RANGE、SAME_PLACE（禁區通行證已到期時不算，可用鑰匙再次進入）
 public static class PlaceMove
 {
     public static IReadOnlyList<string> Evaluate(
@@ -11,34 +11,34 @@ public static class PlaceMove
     {
         if (target is null)
         {
-            return ["unknownPlace"];
+            return ["UNKNOWN_PLACE"];
         }
 
         var reasons = new List<string>();
         var needsKey = AreaKeys.NeedsKey(target, pass, now);
         if (needsKey && !hasKey)
         {
-            reasons.Add("restricted");
+            reasons.Add("RESTRICTED");
         }
 
         if (!target.HasSubPlaces && subPlace is not null)
         {
-            reasons.Add("subPlaceNotAllowed");
+            reasons.Add("SUB_PLACE_NOT_ALLOWED");
         }
 
         if (target.HasSubPlaces && subPlace is null)
         {
-            reasons.Add("subPlaceRequired");
+            reasons.Add("SUB_PLACE_REQUIRED");
         }
 
         if (target.HasSubPlaces && subPlace is { } index && target.SubPlaces.All(candidate => candidate.Index != index))
         {
-            reasons.Add("subPlaceOutOfRange");
+            reasons.Add("SUB_PLACE_OUT_OF_RANGE");
         }
 
         if (character.PlaceId == target.Id && character.SubPlace == subPlace && !needsKey)
         {
-            reasons.Add("samePlace");
+            reasons.Add("SAME_PLACE");
         }
 
         return reasons;

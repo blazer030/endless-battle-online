@@ -24,12 +24,12 @@ describe("recommendationLabel", () => {
 
 describe("moveReasonText", () => {
   it.each([
-    ["restricted", "需用鑰匙開啟地區"],
-    ["subPlaceRequired", "請選擇子地區"],
-    ["subPlaceNotAllowed", "此地區沒有子地區"],
-    ["subPlaceOutOfRange", "子地區不存在"],
-    ["samePlace", "你已經在這裡"],
-    ["unknownPlace", "地區不存在"],
+    ["RESTRICTED", "需用鑰匙開啟地區"],
+    ["SUB_PLACE_REQUIRED", "請選擇子地區"],
+    ["SUB_PLACE_NOT_ALLOWED", "此地區沒有子地區"],
+    ["SUB_PLACE_OUT_OF_RANGE", "子地區不存在"],
+    ["SAME_PLACE", "你已經在這裡"],
+    ["UNKNOWN_PLACE", "地區不存在"],
   ])("translates %s", (code, text) => {
     expect(moveReasonText(code)).toBe(text)
   })

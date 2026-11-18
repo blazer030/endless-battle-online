@@ -68,7 +68,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         var wrongLevel = await GiveAsync(characterId, "test-refine-stone-2");
 
         Assert.Equal(
-            ["wrongStoneLevel"],
+            ["WRONG_STONE_LEVEL"],
             await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/refine", new { inventoryId = sword, stoneInventoryId = wrongLevel }, CancellationToken)));
         var notFound = await client.PostAsJsonAsync("/api/forge/refine", new { inventoryId = 999999999, stoneInventoryId = stone }, CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, notFound.StatusCode);
@@ -104,7 +104,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(1, Items(inventory, "Stone")[0].GetProperty("quantity").GetInt32());
 
         Assert.Equal(
-            ["holeOccupied"],
+            ["HOLE_OCCUPIED"],
             await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/socket", new { inventoryId = sword, hole = 1, stoneInventoryId = stone }, CancellationToken)));
     }
 
@@ -171,7 +171,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
     private async Task AssertLockedAsync(HttpClient client)
     {
         Assert.Equal(
-            ["missionIncomplete"],
+            ["MISSION_INCOMPLETE"],
             await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "test-forge-locked", attempts = 1 }, CancellationToken)));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(2000, me.GetProperty("money").GetInt64());
@@ -223,7 +223,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         await GiveAsync(characterId, "test-ore", 6);
 
         Assert.Equal(
-            ["invalidQuantity"],
+            ["INVALID_QUANTITY"],
             await ReasonsAsync(await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "test-forge-sword", attempts = 0 }, CancellationToken)));
         var unknown = await client.PostAsJsonAsync("/api/forge/synthesize", new { recipeId = "nope", attempts = 1 }, CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
@@ -242,7 +242,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(2000 - 1000L * successes, me.GetProperty("money").GetInt64());
     }
 
-    // 鋼鐵 Lv2 + 秘法 Lv2 → 活力 Lv1；同種類 400 cannotMerge
+    // 鋼鐵 Lv2 + 秘法 Lv2 → 活力 Lv1；同種類 400 CANNOT_MERGE
     [Fact]
     public async Task MergeCross_Route()
     {
@@ -252,7 +252,7 @@ public class ForgeEndpointsTests(MySqlDatabaseFixture database)
         var arcane = await GiveAsync(characterId, "test-arcane-refine-stone-2", 1);
 
         Assert.Equal(
-            ["cannotMerge"],
+            ["CANNOT_MERGE"],
             await ReasonsAsync(await client.PostAsJsonAsync(
                 "/api/forge/merge-cross", new { firstInventoryId = iron, secondInventoryId = iron, quantityPairs = 1 }, CancellationToken)));
 

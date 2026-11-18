@@ -16,9 +16,9 @@ public static class Socket
 {
     public const int MaxHoles = 4;
 
-    // 原因代碼依序為 notEquipment、notStone、holeOutOfRange、holeOccupied、duplicateStone，只回第一個
+    // 原因代碼依序為 NOT_EQUIPMENT、NOT_STONE、HOLE_OUT_OF_RANGE、HOLE_OCCUPIED、DUPLICATE_STONE，只回第一個
     public static IReadOnlyList<string> CheckInsert(InventoryEntry equipment, ItemDefinition equipmentDef, int hole, ItemDefinition stone) =>
-        equipmentDef.IsEquipment ? InsertReasons(equipment, hole, stone) : ["notEquipment"];
+        equipmentDef.IsEquipment ? InsertReasons(equipment, hole, stone) : ["NOT_EQUIPMENT"];
 
     public static SocketOutcome Insert(InventoryEntry equipment, int hole, ItemDefinition stone, IRandomSource random)
     {
@@ -28,9 +28,9 @@ public static class Socket
         return new SocketOutcome(equipment with { Sockets = [.. equipment.Sockets.Append(socket).OrderBy(other => other.Hole)] }, socket);
     }
 
-    // 原因代碼依序為 notEquipment、holeOutOfRange、holeEmpty，只回第一個
+    // 原因代碼依序為 NOT_EQUIPMENT、HOLE_OUT_OF_RANGE、HOLE_EMPTY，只回第一個
     public static IReadOnlyList<string> CheckRemove(InventoryEntry equipment, ItemDefinition equipmentDef, int hole) =>
-        equipmentDef.IsEquipment ? RemoveReasons(equipment, hole) : ["notEquipment"];
+        equipmentDef.IsEquipment ? RemoveReasons(equipment, hole) : ["NOT_EQUIPMENT"];
 
     // 擲 rand(1, 100) < 25 回收（24%）；不論成敗該孔都清空
     public static RemoveOutcome Remove(InventoryEntry equipment, int hole, IRandomSource random)
@@ -41,15 +41,15 @@ public static class Socket
         return new RemoveOutcome(recovered, equipment with { Sockets = [.. equipment.Sockets.Where(socket => socket.Hole != hole)] }, removed.StoneId);
     }
 
-    // 原因代碼依序為 notEquipment、maxHoles，只回第一個
+    // 原因代碼依序為 NOT_EQUIPMENT、MAX_HOLES，只回第一個
     public static IReadOnlyList<string> CheckDrill(InventoryEntry equipment, ItemDefinition equipmentDef)
     {
         if (!equipmentDef.IsEquipment)
         {
-            return ["notEquipment"];
+            return ["NOT_EQUIPMENT"];
         }
 
-        return equipment.Holes >= MaxHoles ? ["maxHoles"] : [];
+        return equipment.Holes >= MaxHoles ? ["MAX_HOLES"] : [];
     }
 
     // 擲 rand(1, 100) ≤ 8 成功：同一筆道具的孔數 +1（不換道具 id）
@@ -65,10 +65,10 @@ public static class Socket
     {
         if (!InRange(equipment, hole))
         {
-            return ["holeOutOfRange"];
+            return ["HOLE_OUT_OF_RANGE"];
         }
 
-        return equipment.Sockets.Any(socket => socket.Hole == hole) ? [] : ["holeEmpty"];
+        return equipment.Sockets.Any(socket => socket.Hole == hole) ? [] : ["HOLE_EMPTY"];
     }
 
     private static bool InRange(InventoryEntry equipment, int hole) => hole >= 1 && hole <= Math.Min(equipment.Holes, MaxHoles);
@@ -92,19 +92,19 @@ public static class Socket
     {
         if (stone.Stone is null)
         {
-            return ["notStone"];
+            return ["NOT_STONE"];
         }
 
         if (!InRange(equipment, hole))
         {
-            return ["holeOutOfRange"];
+            return ["HOLE_OUT_OF_RANGE"];
         }
 
         if (equipment.Sockets.Any(socket => socket.Hole == hole))
         {
-            return ["holeOccupied"];
+            return ["HOLE_OCCUPIED"];
         }
 
-        return equipment.Sockets.Any(socket => socket.StoneId == stone.Id) ? ["duplicateStone"] : [];
+        return equipment.Sockets.Any(socket => socket.StoneId == stone.Id) ? ["DUPLICATE_STONE"] : [];
     }
 }

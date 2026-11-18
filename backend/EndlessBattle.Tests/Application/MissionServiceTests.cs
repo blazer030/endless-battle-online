@@ -109,7 +109,7 @@ public class MissionServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.AcceptAsync(AccountId, "test-skill-reward", CancellationToken));
 
-        Assert.Equal(["levelTooLow", "prerequisiteMissing"], exception.Reasons);
+        Assert.Equal(["LEVEL_TOO_LOW", "PREREQUISITE_MISSING"], exception.Reasons);
         Assert.Empty(await RecordsAsync(character));
         Assert.Equal(0, await VersionAsync());
         Assert.Empty(log);
@@ -205,7 +205,7 @@ public class MissionServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(
             () => service.AbandonAsync(AccountId, "test-hunt", CancellationToken));
 
-        Assert.Equal(["missionNotActive"], exception.Reasons);
+        Assert.Equal(["MISSION_NOT_ACTIVE"], exception.Reasons);
         Assert.Single(await RecordsAsync(character));
         Assert.Empty(log);
     }
@@ -273,7 +273,7 @@ public class MissionServiceTests
 
         var again = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-hunt", CancellationToken));
 
-        Assert.Equal(["missionNotActive"], again.Reasons);
+        Assert.Equal(["MISSION_NOT_ACTIVE"], again.Reasons);
         Assert.Equal(after.Money, (await CurrentAsync()).Money);
     }
 
@@ -285,7 +285,7 @@ public class MissionServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-hunt", CancellationToken));
 
-        Assert.Equal(["objectiveIncomplete"], exception.Reasons);
+        Assert.Equal(["OBJECTIVE_INCOMPLETE"], exception.Reasons);
         Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
         Assert.Equal(0, await VersionAsync());
         Assert.Empty(log);
@@ -300,7 +300,7 @@ public class MissionServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-delivery", CancellationToken));
 
-        Assert.Equal(["itemsMissing"], exception.Reasons);
+        Assert.Equal(["ITEMS_MISSING"], exception.Reasons);
         Assert.Equal(2, Assert.Single(await BagAsync(character)).Quantity);
         Assert.Empty(log);
     }
@@ -334,7 +334,7 @@ public class MissionServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-delivery", CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Equal(before, await BagAsync(character));
         Assert.Equal(5, Assert.Single(await BagAsync(character), entry => entry.ItemId == "test-ore").Quantity);
         Assert.Equal(character, await CurrentAsync());
@@ -355,17 +355,17 @@ public class MissionServiceTests
         await SeedAsync(character, Active("test-order-gate"));
         Task<IReadOnlyList<string>> ReasonsAsync() => CompleteReasonsAsync("test-order-gate");
 
-        Assert.Equal(["petMissing"], await ReasonsAsync());
+        Assert.Equal(["PET_MISSING"], await ReasonsAsync());
         await GivePetAsync(character, "test-wolf", carried: true);
-        Assert.Equal(["skillTooLow"], await ReasonsAsync());
+        Assert.Equal(["SKILL_TOO_LOW"], await ReasonsAsync());
         await skillBook.UpsertAsync(character.Id, new LearnedSkill("burst", 2), CancellationToken);
-        Assert.Equal(["bagFull"], await ReasonsAsync());
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync());
     }
 
     private async Task<IReadOnlyList<string>> CompleteReasonsAsync(string missionId) =>
         (await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, missionId, CancellationToken))).Reasons;
 
-    // 獎勵是魔石：魔石分類 15 格都滿疊、道具分類還空著 → 400 bagFull，什麼都不寫
+    // 獎勵是魔石：魔石分類 15 格都滿疊、道具分類還空著 → 400 BAG_FULL，什麼都不寫
     [Fact]
     public async Task Complete_RejectsWhenRewardCategoryFull()
     {
@@ -380,7 +380,7 @@ public class MissionServiceTests
 
         var exception = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-stone-reward", CancellationToken));
 
-        Assert.Equal(["bagFull"], exception.Reasons);
+        Assert.Equal(["BAG_FULL"], exception.Reasons);
         Assert.Equal(before, await BagAsync(character));
         Assert.Equal(character, await CurrentAsync());
         Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
@@ -427,7 +427,7 @@ public class MissionServiceTests
         await service.CompleteAsync(AccountId, "test-daily", CancellationToken);
         var sameDay = await Assert.ThrowsAsync<InputValidationException>(() => service.AcceptAsync(AccountId, "test-daily", CancellationToken));
 
-        Assert.Equal(["alreadyCompleted"], sameDay.Reasons);
+        Assert.Equal(["ALREADY_COMPLETED"], sameDay.Reasons);
 
         clock.Advance(TimeSpan.FromHours(23));
         await service.AcceptAsync(AccountId, "test-daily", CancellationToken);
@@ -538,7 +538,7 @@ public class MissionServiceTests
 
         var error = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-daily-pet", CancellationToken));
 
-        Assert.Equal(["petMissing"], error.Reasons);
+        Assert.Equal(["PET_MISSING"], error.Reasons);
         Assert.Equal(before, await PetsAsync(character));
         Assert.Empty(await BagAsync(character));
         Assert.Equal(MissionState.Active, Assert.Single(await RecordsAsync(character)).State);
@@ -582,7 +582,7 @@ public class MissionServiceTests
 
         var error = await Assert.ThrowsAsync<InputValidationException>(() => service.CompleteAsync(AccountId, "test-pet-reward", CancellationToken));
 
-        Assert.Equal(["petsFull"], error.Reasons);
+        Assert.Equal(["PETS_FULL"], error.Reasons);
         Assert.Equal(before, await CurrentAsync());
         Assert.Equal(pets, await PetsAsync(character));
         Assert.Equal(bag, await BagAsync(character));

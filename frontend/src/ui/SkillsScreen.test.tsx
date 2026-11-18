@@ -16,7 +16,7 @@ const jobs: JobChoiceVo[] = [
     current: true,
     proficiencyPercent: 42,
     eligible: false,
-    reasons: ["sameJob"],
+    reasons: ["SAME_JOB"],
   }),
   jobOption({ id: "thief", name: "盜賊" }),
   jobOption({
@@ -32,7 +32,7 @@ const jobs: JobChoiceVo[] = [
       { stat: "strength", minimum: 20 },
     ],
     eligible: false,
-    reasons: ["levelTooLow", "parentProficiencyTooLow", "statTooLow:vitality"],
+    reasons: ["LEVEL_TOO_LOW", "PARENT_PROFICIENCY_TOO_LOW", "STAT_TOO_LOW:vitality"],
   }),
 ]
 
@@ -79,7 +79,7 @@ const overview: SkillOverviewVo = {
         summary: "常駐｜自己物防 +3%",
         money: 4500,
         canLearn: false,
-        reasons: ["notEnoughMoney"],
+        reasons: ["NOT_ENOUGH_MONEY"],
       }),
     }),
     skill({
@@ -237,7 +237,7 @@ test("SkillsScreen_NamesThePrerequisiteSkill", async () => {
     id: "advanced-burst",
     name: "狂暴爆氣",
     prerequisite: { skillId: "burst", name: "爆氣", level: 3 },
-    next: next({ canLearn: false, reasons: ["prerequisite", "notEnoughMoney"] }),
+    next: next({ canLearn: false, reasons: ["PREREQUISITE", "NOT_ENOUGH_MONEY"] }),
   })
   renderScreen(
     createApi({ getSkills: vi.fn().mockResolvedValue({ ...overview, skills: [advanced] }) }),
@@ -309,7 +309,7 @@ test("SkillsScreen_LearnCallsApiAndShowsNewOverview", async () => {
 
 test("SkillsScreen_ShowsLearnReasonsFromServer", async () => {
   const api = createApi({
-    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "無法學習技能", ["notEnoughMoney"])),
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, "無法學習技能", ["NOT_ENOUGH_MONEY"])),
   })
   renderScreen(api)
 
@@ -387,7 +387,7 @@ test("SkillsScreen_ShowsServerReasonsWhenSaveFails", async () => {
   const api = createApi({
     setSkillSlots: vi
       .fn()
-      .mockRejectedValue(new ApiError(400, "技能欄位不正確", ["activeInPassiveSlot"])),
+      .mockRejectedValue(new ApiError(400, "技能欄位不正確", ["ACTIVE_IN_PASSIVE_SLOT"])),
   })
   renderScreen(api)
 

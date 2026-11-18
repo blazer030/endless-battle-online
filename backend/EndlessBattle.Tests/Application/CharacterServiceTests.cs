@@ -113,7 +113,7 @@ public class CharacterServiceTests
         var exception = await Assert.ThrowsAsync<InputValidationException>(() =>
             service.UpdateSettingsAsync(AccountId, AdventureSettings.Default with { PotionHealthPointsPercent = potionHpPercent }, CancellationToken));
 
-        Assert.Equal(["invalidPercent"], exception.Reasons);
+        Assert.Equal(["INVALID_PERCENT"], exception.Reasons);
         var stored = await repository.FindByAccountAsync(AccountId, CancellationToken);
         Assert.Equal((0, Now, AdventureSettings.Default), (stored!.Version, stored.LastSettledAt, stored.Settings));
     }

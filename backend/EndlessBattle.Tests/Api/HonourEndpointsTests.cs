@@ -143,7 +143,7 @@ public class HonourEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["medalsMissing"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["MEDALS_MISSING"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/honour/exchange", new { }, CancellationToken)).StatusCode);
     }
 

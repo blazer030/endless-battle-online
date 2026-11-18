@@ -69,9 +69,9 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         Assert.Empty((await client.GetFromJsonAsync<JsonElement>("/api/shop?category=Weapon&level=2", CancellationToken)).EnumerateArray());
 
         var notForSale = await client.PostAsJsonAsync("/api/shop/buy", new { itemId = "test-axe", quantity = 1 }, CancellationToken);
-        Assert.Equal(["notForSale"], await ReasonsOf400Async(notForSale));
+        Assert.Equal(["NOT_FOR_SALE"], await ReasonsOf400Async(notForSale));
         var badLevel = await client.GetAsync("/api/shop?category=Weapon&level=8", CancellationToken);
-        Assert.Equal(["invalidLevel"], await ReasonsOf400Async(badLevel));
+        Assert.Equal(["INVALID_LEVEL"], await ReasonsOf400Async(badLevel));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         var (client, characterId) = await CreateCharacterAsync(factory);
 
         var early = await client.PostAsJsonAsync("/api/bank/deposit", new { amount = 100 }, CancellationToken);
-        Assert.Equal(["levelTooLow"], await ReasonsOf400Async(early));
+        Assert.Equal(["LEVEL_TOO_LOW"], await ReasonsOf400Async(early));
 
         var before = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(0, before.GetProperty("bank").GetInt64());
@@ -120,7 +120,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(300, withdrawn.GetProperty("bank").GetInt64());
 
         var overdraft = await client.PostAsJsonAsync("/api/bank/withdraw", new { amount = 301 }, CancellationToken);
-        Assert.Equal(["notEnoughBank"], await ReasonsOf400Async(overdraft));
+        Assert.Equal(["NOT_ENOUGH_BANK"], await ReasonsOf400Async(overdraft));
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class EconomyEndpointsTests(MySqlDatabaseFixture database)
 
         var response = await client.PostAsJsonAsync("/api/depot/take", new { depotId = 999999, quantity = 1 }, CancellationToken);
 
-        Assert.Equal(["itemNotFound"], await ReasonsOf400Async(response));
+        Assert.Equal(["ITEM_NOT_FOUND"], await ReasonsOf400Async(response));
     }
 
     [Theory]

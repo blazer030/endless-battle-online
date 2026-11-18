@@ -185,27 +185,27 @@ describe("clerk lines", () => {
     [{ kind: "exchangedItem" }, "換好了！已經幫您放進背包囉。", false],
     [{ kind: "exchangedMercenary", name: "C級傭兵" }, "C級傭兵的契約簽好囉，祝您順利！", false],
     [
-      { kind: "refused", reasons: ["bagFull"], category: "Consumable" },
+      { kind: "refused", reasons: ["BAG_FULL"], category: "Consumable" },
       "哎呀，道具的格子已經滿了……",
       true,
     ],
     [
-      { kind: "refused", reasons: ["bagFull"], category: "Weapon" },
+      { kind: "refused", reasons: ["BAG_FULL"], category: "Weapon" },
       "哎呀，武器的格子已經滿了……",
       true,
     ],
     [
-      { kind: "refused", reasons: ["mercenaryHired"], category: null },
+      { kind: "refused", reasons: ["MERCENARY_HIRED"], category: null },
       "您已經有一位傭兵了，一次只能一位喔。",
       true,
     ],
     [
-      { kind: "refused", reasons: ["medalsMissing", "mercenaryHired"], category: null },
+      { kind: "refused", reasons: ["MEDALS_MISSING", "MERCENARY_HIRED"], category: null },
       "勳章好像還差一點呢……",
       true,
     ],
     [
-      { kind: "refused", reasons: ["honourUnknown"], category: null },
+      { kind: "refused", reasons: ["HONOUR_UNKNOWN"], category: null },
       "咦，剛剛沒送出去……再試一次吧？",
       true,
     ],

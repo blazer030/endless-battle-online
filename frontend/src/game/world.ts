@@ -53,12 +53,12 @@ const labels: Record<Recommendation, RecommendationLabel | null> = {
 export const recommendationLabel = (recommendation: Recommendation) => labels[recommendation]
 
 const moveReasonTexts: Record<string, string> = {
-  unknownPlace: "地區不存在",
-  restricted: "需用鑰匙開啟地區",
-  subPlaceNotAllowed: "此地區沒有子地區",
-  subPlaceRequired: "請選擇子地區",
-  subPlaceOutOfRange: "子地區不存在",
-  samePlace: "你已經在這裡",
+  UNKNOWN_PLACE: "地區不存在",
+  RESTRICTED: "需用鑰匙開啟地區",
+  SUB_PLACE_NOT_ALLOWED: "此地區沒有子地區",
+  SUB_PLACE_REQUIRED: "請選擇子地區",
+  SUB_PLACE_OUT_OF_RANGE: "子地區不存在",
+  SAME_PLACE: "你已經在這裡",
 }
 
 export const moveReasonText = (code: string) => moveReasonTexts[code] ?? code

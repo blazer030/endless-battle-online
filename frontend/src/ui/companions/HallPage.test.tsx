@@ -166,7 +166,7 @@ test("HiringIsSpokenInTheHeader", async () => {
 // 規格 companions-screen：Keepers speak——羊皮紙打開時在羊皮紙裡說
 test("SecondHireRejectionIsSpokenInTheSheet", async () => {
   const api = await renderHall({ money: 1000 })
-  vi.mocked(api.hireMercenary).mockRejectedValue(new ApiError(400, "不行", ["mercenaryHired"]))
+  vi.mocked(api.hireMercenary).mockRejectedValue(new ApiError(400, "不行", ["MERCENARY_HIRED"]))
 
   fireEvent.click(note("F級傭兵"))
   fireEvent.click(within(sheet()).getByRole("button", { name: "僱用" }))
@@ -233,7 +233,7 @@ test("DeployAndRestAreSpoken", async () => {
 
 test("RestrictedPlaceRejectionIsSpoken", async () => {
   const api = await renderHall({ current: contract({ fighting: false }) })
-  vi.mocked(api.deployMercenary).mockRejectedValue(new ApiError(400, "禁區", ["placeRestricted"]))
+  vi.mocked(api.deployMercenary).mockRejectedValue(new ApiError(400, "禁區", ["PLACE_RESTRICTED"]))
 
   fireEvent.click(screen.getByRole("button", { name: "派遣" }))
   await flush()
@@ -345,7 +345,7 @@ test.each([
       settle = () =>
         succeeds
           ? resolve(overview(contract({ placeId: 1, placeName: "中央平原" })))
-          : reject(new ApiError(400, "禁區", ["placeRestricted"]))
+          : reject(new ApiError(400, "禁區", ["PLACE_RESTRICTED"]))
     }),
   )
 

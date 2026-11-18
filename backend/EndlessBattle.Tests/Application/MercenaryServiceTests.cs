@@ -86,7 +86,7 @@ public class MercenaryServiceTests
 
         var error = await RejectedAsync(() => service.HireAsync(AccountId, "test-mercenary", CancellationToken));
 
-        Assert.Equal(["mercenaryHired"], error.Reasons);
+        Assert.Equal(["MERCENARY_HIRED"], error.Reasons);
         Assert.Equal(1900, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
         Assert.Empty(log);
     }
@@ -99,8 +99,8 @@ public class MercenaryServiceTests
         var error = await RejectedAsync(() => service.HireAsync(AccountId, "test-honour-mercenary", CancellationToken));
         var unknown = await RejectedAsync(() => service.HireAsync(AccountId, "nobody", CancellationToken));
 
-        Assert.Equal(["honourOnly", "notEnoughMoney"], error.Reasons);
-        Assert.Equal(["mercenaryUnknown"], unknown.Reasons);
+        Assert.Equal(["HONOUR_ONLY", "NOT_ENOUGH_MONEY"], error.Reasons);
+        Assert.Equal(["MERCENARY_UNKNOWN"], unknown.Reasons);
         Assert.Null(await mercenaries.FindAsync(character.Id, CancellationToken));
         Assert.Empty(log);
     }
@@ -125,8 +125,8 @@ public class MercenaryServiceTests
         var restricted = await RejectedAsync(() => service.DeployAsync(AccountId, placeId: 17, CancellationToken));
         var unknown = await RejectedAsync(() => service.DeployAsync(AccountId, placeId: 999, CancellationToken));
 
-        Assert.Equal(["placeRestricted"], restricted.Reasons);
-        Assert.Equal(["placeUnknown"], unknown.Reasons);
+        Assert.Equal(["PLACE_RESTRICTED"], restricted.Reasons);
+        Assert.Equal(["PLACE_UNKNOWN"], unknown.Reasons);
         Assert.Empty(log);
     }
 
@@ -163,7 +163,7 @@ public class MercenaryServiceTests
         var error = await RejectedAsync(() => service.RenameAsync(AccountId, "一二三四五六七八九", CancellationToken));
 
         Assert.Equal("一二三四五六七八", renamed.Contract!.Name);
-        Assert.Equal(["nameInvalid"], error.Reasons);
+        Assert.Equal(["NAME_INVALID"], error.Reasons);
     }
 
     [Fact]
@@ -171,10 +171,10 @@ public class MercenaryServiceTests
     {
         await AddCharacterAsync();
 
-        Assert.Equal(["noMercenary"], (await RejectedAsync(() => service.DeployAsync(AccountId, 1, CancellationToken))).Reasons);
-        Assert.Equal(["noMercenary"], (await RejectedAsync(() => service.RestAsync(AccountId, CancellationToken))).Reasons);
-        Assert.Equal(["noMercenary"], (await RejectedAsync(() => service.RenameAsync(AccountId, "阿傭", CancellationToken))).Reasons);
-        Assert.Equal(["noMercenary"], (await RejectedAsync(() => service.DismissAsync(AccountId, CancellationToken))).Reasons);
+        Assert.Equal(["NO_MERCENARY"], (await RejectedAsync(() => service.DeployAsync(AccountId, 1, CancellationToken))).Reasons);
+        Assert.Equal(["NO_MERCENARY"], (await RejectedAsync(() => service.RestAsync(AccountId, CancellationToken))).Reasons);
+        Assert.Equal(["NO_MERCENARY"], (await RejectedAsync(() => service.RenameAsync(AccountId, "阿傭", CancellationToken))).Reasons);
+        Assert.Equal(["NO_MERCENARY"], (await RejectedAsync(() => service.DismissAsync(AccountId, CancellationToken))).Reasons);
         Assert.Null((await service.GetAsync(AccountId, CancellationToken)).Contract);
     }
 }

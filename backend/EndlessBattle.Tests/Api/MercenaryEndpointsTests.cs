@@ -113,7 +113,7 @@ public class MercenaryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
         var problem = await again.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["mercenaryHired"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["MERCENARY_HIRED"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     [Fact]

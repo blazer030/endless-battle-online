@@ -24,11 +24,11 @@ public class ShopTests
     {
         var poor = TestCharacters.Default(1, "x", 1, 1, DateTimeOffset.UnixEpoch) with { Money = 10 };
 
-        Assert.Equal(["notForSale"], Shop.CanBuy(poor, Supply with { ShopSellable = false }, 1, []));
-        Assert.Equal(["invalidQuantity"], Shop.CanBuy(poor, Sword, 2, []));
-        Assert.Equal(["invalidQuantity"], Shop.CanBuy(poor, Supply, 100, []));
-        Assert.Equal(["invalidQuantity"], Shop.CanBuy(poor, Supply, 0, []));
-        Assert.Equal(["notEnoughMoney"], Shop.CanBuy(poor, Supply, 1, []));
+        Assert.Equal(["NOT_FOR_SALE"], Shop.CanBuy(poor, Supply with { ShopSellable = false }, 1, []));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanBuy(poor, Sword, 2, []));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanBuy(poor, Supply, 100, []));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanBuy(poor, Supply, 0, []));
+        Assert.Equal(["NOT_ENOUGH_MONEY"], Shop.CanBuy(poor, Supply, 1, []));
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class ShopTests
         var rich = TestCharacters.Default(1, "x", 1, 1, DateTimeOffset.UnixEpoch) with { Money = 100000 };
         var full = Enumerable.Range(1, 15).Select(index => TestItems.Entry(index, $"other-{index}")).ToList();
 
-        Assert.Equal(["bagFull"], Shop.CanBuy(rich, Sword, 1, full));
+        Assert.Equal(["BAG_FULL"], Shop.CanBuy(rich, Sword, 1, full));
         Assert.Empty(Shop.CanBuy(rich, Sword, 1, full.Take(14).ToList()));
     }
 
@@ -47,9 +47,9 @@ public class ShopTests
         var bound = Sword with { Bound = true };
 
         Assert.Empty(Shop.CanSell(TestItems.Entry(1, "sword"), bound, 1));
-        Assert.Equal(["invalidQuantity"], Shop.CanSell(TestItems.Entry(1, "sword"), Sword, 2));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanSell(TestItems.Entry(1, "sword"), Sword, 2));
         Assert.Empty(Shop.CanSell(TestItems.Entry(1, "supply", 10), Supply, 10));
-        Assert.Equal(["invalidQuantity"], Shop.CanSell(TestItems.Entry(1, "supply", 10), Supply, 11));
-        Assert.Equal(["invalidQuantity"], Shop.CanSell(TestItems.Entry(1, "supply", 10), Supply, 0));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanSell(TestItems.Entry(1, "supply", 10), Supply, 11));
+        Assert.Equal(["INVALID_QUANTITY"], Shop.CanSell(TestItems.Entry(1, "supply", 10), Supply, 0));
     }
 }

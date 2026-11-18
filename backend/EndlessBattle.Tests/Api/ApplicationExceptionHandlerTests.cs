@@ -31,11 +31,11 @@ public class ApplicationExceptionHandlerTests
 
         await new ApplicationExceptionHandler(problemDetails).TryHandleAsync(
             new DefaultHttpContext(),
-            new InputValidationException("無法學習技能", ["wrongJob", "notEnoughMoney"]),
+            new InputValidationException("無法學習技能", ["WRONG_JOB", "NOT_ENOUGH_MONEY"]),
             TestContext.Current.CancellationToken);
 
         var reasons = Assert.IsAssignableFrom<IEnumerable<string>>(problemDetails.Written?.ProblemDetails.Extensions["reasons"]);
-        Assert.Equal(["wrongJob", "notEnoughMoney"], reasons);
+        Assert.Equal(["WRONG_JOB", "NOT_ENOUGH_MONEY"], reasons);
     }
 
     [Fact]

@@ -12,14 +12,14 @@ public static class DepotRules
     public static int Capacity(int depotBonus) => Slots + depotBonus;
 
     // 可堆疊的道具與倉庫中同種的合併，合併後超過 254 就拒絕；裝備每件一格，強化原樣帶入。
-    // 原因代碼：invalidQuantity、stackLimit、depotFull。綁定的道具也可以存（綁定只擋贈送與交易）
+    // 原因代碼：INVALID_QUANTITY、stackLimit、depotFull。綁定的道具也可以存（綁定只擋贈送與交易）
     public static DepotPlan TryStore(
         IReadOnlyList<InventoryEntry> depot, ItemDefinition item, InventoryEntry entry, int quantity, int depotBonus)
     {
         var valid = item.IsEquipment ? quantity == 1 : quantity >= 1 && quantity <= entry.Quantity;
         if (!valid)
         {
-            return Rejected("invalidQuantity");
+            return Rejected("INVALID_QUANTITY");
         }
 
         if (item.Stackable)
@@ -42,25 +42,25 @@ public static class DepotRules
     }
 
     // 取回背包：可堆疊的走 InventoryRules.TryAdd（背包堆疊上限 99），裝備佔一格並保留強化；
-    // sameCategoryBag 是背包中同分類、沒有裝備上的道具。原因代碼：invalidQuantity、bagFull
+    // sameCategoryBag 是背包中同分類、沒有裝備上的道具。原因代碼：INVALID_QUANTITY、BAG_FULL
     public static DepotPlan TryTake(
         IReadOnlyList<InventoryEntry> sameCategoryBag, ItemDefinition item, InventoryEntry entry, int quantity, int bagBonus)
     {
         var valid = item.IsEquipment ? quantity == 1 : quantity >= 1 && quantity <= entry.Quantity;
         if (!valid)
         {
-            return Rejected("invalidQuantity");
+            return Rejected("INVALID_QUANTITY");
         }
 
         if (item.IsEquipment)
         {
             return sameCategoryBag.Count >= InventoryRules.Capacity(item.Category, bagBonus)
-                ? Rejected("bagFull")
+                ? Rejected("BAG_FULL")
                 : new DepotPlan([], [entry with { Id = 0, Quantity = 1 }], []);
         }
 
         var added = InventoryRules.TryAdd(sameCategoryBag, item, quantity, bagBonus);
-        return added.Discarded > 0 ? Rejected("bagFull") : new DepotPlan([], added.NewEntries, added.UpdatedEntries);
+        return added.Discarded > 0 ? Rejected("BAG_FULL") : new DepotPlan([], added.NewEntries, added.UpdatedEntries);
     }
 
     private static DepotPlan Rejected(string reason) => new([reason], [], []);

@@ -141,7 +141,7 @@ public class WorldEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["restricted"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["RESTRICTED"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
         var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
         Assert.Equal(1, me.GetProperty("placeId").GetInt32());
         Assert.Equal(

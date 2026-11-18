@@ -96,7 +96,7 @@ public class InventoryServiceTests
         var sword = await GiveAsync(character, "test-sword");
         await service.EquipAsync(AccountId, sword, null, CancellationToken);
 
-        Assert.Equal(["alreadyEquipped"], await ReasonsAsync(() => service.EquipAsync(AccountId, sword, null, CancellationToken)));
+        Assert.Equal(["ALREADY_EQUIPPED"], await ReasonsAsync(() => service.EquipAsync(AccountId, sword, null, CancellationToken)));
     }
 
     // 別的角色的道具、不存在的 id：都當成背包裡沒有
@@ -107,8 +107,8 @@ public class InventoryServiceTests
         var other = await characters.AddAsync(TestCharacters.Default(AccountId + 1, "路人", 1, 1, DateTimeOffset.UnixEpoch), CancellationToken);
         var foreign = await GiveAsync(other, "test-sword");
 
-        Assert.Equal(["itemNotFound"], await ReasonsAsync(() => service.EquipAsync(AccountId, foreign, null, CancellationToken)));
-        Assert.Equal(["itemNotFound"], await ReasonsAsync(() => service.EquipAsync(AccountId, 999, null, CancellationToken)));
+        Assert.Equal(["ITEM_NOT_FOUND"], await ReasonsAsync(() => service.EquipAsync(AccountId, foreign, null, CancellationToken)));
+        Assert.Equal(["ITEM_NOT_FOUND"], await ReasonsAsync(() => service.EquipAsync(AccountId, 999, null, CancellationToken)));
     }
 
     // 戒指 +50 力量後有效力量 62，但巨劍需求比對裸點 12 → 仍然不能裝
@@ -119,7 +119,7 @@ public class InventoryServiceTests
         await service.EquipAsync(AccountId, await GiveAsync(character, "test-power-ring"), null, CancellationToken);
         var heavy = await GiveAsync(character, "test-heavy-sword");
 
-        Assert.Equal(["statTooLow:strength"], await ReasonsAsync(() => service.EquipAsync(AccountId, heavy, null, CancellationToken)));
+        Assert.Equal(["STAT_TOO_LOW:strength"], await ReasonsAsync(() => service.EquipAsync(AccountId, heavy, null, CancellationToken)));
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class InventoryServiceTests
         var character = await AddCharacterAsync();
         var ore = await GiveAsync(character, "test-ore", 3);
 
-        Assert.Equal(["notEquipment"], await ReasonsAsync(() => service.EquipAsync(AccountId, ore, null, CancellationToken)));
+        Assert.Equal(["NOT_EQUIPMENT"], await ReasonsAsync(() => service.EquipAsync(AccountId, ore, null, CancellationToken)));
     }
 
     // ×30 裝 10 到補給欄：欄位記 10，背包剩 20；補給品不計能力加成
@@ -172,7 +172,7 @@ public class InventoryServiceTests
             await inventory.UpdateQuantityAsync(character.Id, supply, 120, CancellationToken);
         }
 
-        Assert.Equal(["invalidQuantity"], await ReasonsAsync(() => service.EquipAsync(AccountId, supply, quantity, CancellationToken)));
+        Assert.Equal(["INVALID_QUANTITY"], await ReasonsAsync(() => service.EquipAsync(AccountId, supply, quantity, CancellationToken)));
     }
 
     // 補給欄已有 10：從背包 ×20 再裝 5 → 背包 20 − 5 + 10 = 25，欄位 5，總數 30 不變
@@ -217,7 +217,7 @@ public class InventoryServiceTests
         Assert.Equal(EquipmentBonus.Zero, view.Bonus);
     }
 
-    // 背包武器 15 格已滿：卸下會多出一格 → 400 bagFull，武器仍在身上
+    // 背包武器 15 格已滿：卸下會多出一格 → 400 BAG_FULL，武器仍在身上
     [Fact]
     public async Task Unequip_EquipmentBagFull400()
     {
@@ -230,11 +230,11 @@ public class InventoryServiceTests
 
         await service.EquipAsync(AccountId, sword, null, CancellationToken);
 
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => service.UnequipAsync(AccountId, EquipmentSlot.Weapon, CancellationToken)));
         Assert.Equal([(EquipmentSlot.Weapon, "test-sword", 1)], EquippedOf(await service.GetAsync(AccountId, CancellationToken)));
     }
 
-    // 補給欄 10 卸下：疊回背包的 ×20 → ×30；背包 15 格都是 ×99 時放不下 → 400 bagFull，補給欄不變
+    // 補給欄 10 卸下：疊回背包的 ×20 → ×30；背包 15 格都是 ×99 時放不下 → 400 BAG_FULL，補給欄不變
     [Fact]
     public async Task Unequip_SupplyReturnsQuantity_BagFull400()
     {
@@ -248,7 +248,7 @@ public class InventoryServiceTests
         Assert.Equal([("test-supply", 30)], BagOf(view, ItemCategory.Consumable));
 
         var full = await AddFullSupplyBagAsync();
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => service.UnequipAsync(full.AccountId, EquipmentSlot.Supply, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => service.UnequipAsync(full.AccountId, EquipmentSlot.Supply, CancellationToken)));
         Assert.Equal(10, (await equipment.GetAsync(full.Id, CancellationToken)).SupplyQuantity);
     }
 
@@ -271,7 +271,7 @@ public class InventoryServiceTests
     {
         await AddCharacterAsync();
 
-        Assert.Equal(["slotEmpty"], await ReasonsAsync(() => service.UnequipAsync(AccountId, EquipmentSlot.Head, CancellationToken)));
+        Assert.Equal(["SLOT_EMPTY"], await ReasonsAsync(() => service.UnequipAsync(AccountId, EquipmentSlot.Head, CancellationToken)));
     }
 
     // 力量藥水 str +1、vit +2：永久加在裸點；×2 用一次剩 ×1，再用一次整格消失
@@ -326,7 +326,7 @@ public class InventoryServiceTests
         var character = await AddCharacterAsync();
         var id = await GiveAsync(character, itemId);
 
-        Assert.Equal(["notUsable"], await ReasonsAsync(() => service.UseAsync(AccountId, id, CancellationToken)));
+        Assert.Equal(["NOT_USABLE"], await ReasonsAsync(() => service.UseAsync(AccountId, id, CancellationToken)));
         Assert.Empty(log);
     }
 
@@ -388,7 +388,7 @@ public class InventoryServiceTests
         Assert.Equal(["update", "update"], log);
     }
 
-    // 目前加成已 ≥ 擴充格數：400 noEffect，不消耗、不寫角色
+    // 目前加成已 ≥ 擴充格數：400 NO_EFFECT，不消耗、不寫角色
     [Theory]
     [InlineData(5)]
     [InlineData(8)]
@@ -398,8 +398,8 @@ public class InventoryServiceTests
         var bag = await GiveAsync(character, "test-bag-expansion", 2);
         var depot = await GiveAsync(character, "test-depot-expansion");
 
-        Assert.Equal(["noEffect"], await ReasonsAsync(() => service.UseAsync(AccountId, bag, CancellationToken)));
-        Assert.Equal(["noEffect"], await ReasonsAsync(() => service.UseAsync(AccountId, depot, CancellationToken)));
+        Assert.Equal(["NO_EFFECT"], await ReasonsAsync(() => service.UseAsync(AccountId, bag, CancellationToken)));
+        Assert.Equal(["NO_EFFECT"], await ReasonsAsync(() => service.UseAsync(AccountId, depot, CancellationToken)));
 
         Assert.Equal([2, 1], (await inventory.ListAsync(character.Id, CancellationToken)).Select(entry => entry.Quantity));
         Assert.Empty(log);
@@ -421,7 +421,7 @@ public class InventoryServiceTests
         Assert.Equal([("test-sword", 1)], BagOf(view, ItemCategory.Weapon));
     }
 
-    // 魔石分類 15 格都是 99 顆的測試攻擊魔石（寶箱唯一的候選）→ 開出的魔石放不下：400 bagFull，寶箱、背包、角色版本都不變
+    // 魔石分類 15 格都是 99 顆的測試攻擊魔石（寶箱唯一的候選）→ 開出的魔石放不下：400 BAG_FULL，寶箱、背包、角色版本都不變
     [Fact]
     public async Task Use_StoneBoxRejectedWhenStoneBagFull()
     {
@@ -434,7 +434,7 @@ public class InventoryServiceTests
 
         var before = await RowsAsync(character);
 
-        Assert.Equal(["bagFull"], await ReasonsAsync(() => service.UseAsync(AccountId, box, CancellationToken)));
+        Assert.Equal(["BAG_FULL"], await ReasonsAsync(() => service.UseAsync(AccountId, box, CancellationToken)));
 
         Assert.Equal(before, await RowsAsync(character));
         Assert.Equal(2, inventory.Find(character.Id, box).Quantity);
@@ -442,7 +442,7 @@ public class InventoryServiceTests
         Assert.Empty(log);
     }
 
-    // 已有 3 隻寵物：400 petsFull，蛋還在、沒有新寵物、角色版本不變
+    // 已有 3 隻寵物：400 PETS_FULL，蛋還在、沒有新寵物、角色版本不變
     [Fact]
     public async Task Use_PetEggRejectedWhenPetsFull()
     {
@@ -455,7 +455,7 @@ public class InventoryServiceTests
 
         var before = await RowsAsync(character);
 
-        Assert.Equal(["petsFull"], await ReasonsAsync(() => service.UseAsync(AccountId, egg, CancellationToken)));
+        Assert.Equal(["PETS_FULL"], await ReasonsAsync(() => service.UseAsync(AccountId, egg, CancellationToken)));
 
         Assert.Equal(before, await RowsAsync(character));
         Assert.Equal(1, inventory.Find(character.Id, egg).Quantity);

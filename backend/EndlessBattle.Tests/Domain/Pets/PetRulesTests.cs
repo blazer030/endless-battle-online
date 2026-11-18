@@ -33,6 +33,6 @@ public class PetRulesTests
     [InlineData("😀😀😀😀😀😀😀😀😀😀😀😀😀", false)]
     public void Rename_RejectsEmptyOrTooLong(string? name, bool valid)
     {
-        Assert.Equal(valid ? [] : ["nameInvalid"], PetRules.CanRename(name));
+        Assert.Equal(valid ? [] : ["NAME_INVALID"], PetRules.CanRename(name));
     }
 }

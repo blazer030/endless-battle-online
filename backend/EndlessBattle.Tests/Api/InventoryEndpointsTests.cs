@@ -207,7 +207,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Equal(["statTooLow:strength"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Equal(["STAT_TOO_LOW:strength"], problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     // 測試魅力護符要求魅力 99，新角色的魅力是 10
@@ -222,7 +222,7 @@ public class InventoryEndpointsTests(MySqlDatabaseFixture database)
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>(CancellationToken);
-        Assert.Contains("statTooLow:charisma", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
+        Assert.Contains("STAT_TOO_LOW:charisma", problem.GetProperty("reasons").EnumerateArray().Select(reason => reason.GetString()));
     }
 
     // 補給欄裝 3、卸下後疊回背包；用掉一瓶力量藥水 → 裸點 str 13

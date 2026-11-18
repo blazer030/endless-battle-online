@@ -66,7 +66,7 @@ const jobDto = {
   current: false,
   proficiencyPercent: 40,
   eligible: false,
-  reasons: ["levelTooLow", "statTooLow:strength"],
+  reasons: ["LEVEL_TOO_LOW", "STAT_TOO_LOW:strength"],
 }
 
 const parseFailure = (convert: () => unknown): ParseError => {
@@ -114,7 +114,7 @@ test("JobChoiceConverter_ConvertsGrowthAndReasons", () => {
 
   expect(job.growth.strength).toEqual({ minimum: 3, maximum: 4 })
   expect(job.statRequirements).toEqual([{ stat: "strength", minimum: 60 }])
-  expect(job.reasons).toEqual(["levelTooLow", "statTooLow:strength"])
+  expect(job.reasons).toEqual(["LEVEL_TOO_LOW", "STAT_TOO_LOW:strength"])
   expect(job.parentName).toBe("戰士")
 })
 

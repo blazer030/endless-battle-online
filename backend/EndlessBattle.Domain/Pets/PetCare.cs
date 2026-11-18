@@ -34,25 +34,25 @@ public static class PetCare
         Medium("fruit-wild-medium", "中級野性果實", PetStat.Spirit),
     ];
 
-    // 依序 tooSoon、full、overOwner、notEnoughMoney，只回第一個成立的；owner 是含裝備的有效能力
+    // 依序 TOO_SOON、full、OVER_OWNER、NOT_ENOUGH_MONEY，只回第一個成立的；owner 是含裝備的有效能力
     public static IReadOnlyList<string> CanFeed(Pet pet, PetFood food, DerivedStats owner, long money, DateTimeOffset now)
     {
         if (now < NextFeedAt(pet))
         {
-            return ["tooSoon"];
+            return ["TOO_SOON"];
         }
 
         if (pet.Satiety >= SatietyFull)
         {
-            return ["full"];
+            return ["FULL"];
         }
 
         if (ExceedsOwner(Raise(pet, food), owner))
         {
-            return ["overOwner"];
+            return ["OVER_OWNER"];
         }
 
-        return money < food.Cost ? ["notEnoughMoney"] : [];
+        return money < food.Cost ? ["NOT_ENOUGH_MONEY"] : [];
     }
 
     // 先擲飽腹再擲親密度；飽腹可以超過 100

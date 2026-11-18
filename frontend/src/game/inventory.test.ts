@@ -232,47 +232,47 @@ describe("maxBuyQuantity", () => {
 
 describe("reasonText", () => {
   it.each([
-    ["alreadyEquipped", "這件道具已經裝備中"],
-    ["bagFull", "背包已滿"],
+    ["ALREADY_EQUIPPED", "這件道具已經裝備中"],
+    ["BAG_FULL", "背包已滿"],
     ["depotFull", "倉庫已滿"],
-    ["equipped", "請先卸下這件裝備"],
-    ["invalidAmount", "金額不正確"],
-    ["invalidLevel", "商店等級不正確"],
-    ["invalidQuantity", "數量不正確"],
-    ["itemNotFound", "找不到這件道具"],
-    ["jobMismatch", "職業不符"],
-    ["levelTooLow", "Lv 15 才能存款"],
-    ["noEffect", "使用後沒有效果"],
-    ["notEnoughBank", "存款不足"],
-    ["notEnoughMoney", "金錢不足"],
-    ["notEquipment", "這不是裝備"],
-    ["notForSale", "商店沒有販售這個品項"],
-    ["notUsable", "這個道具不能直接使用"],
-    ["slotEmpty", "這一欄沒有裝備"],
+    ["EQUIPPED", "請先卸下這件裝備"],
+    ["INVALID_AMOUNT", "金額不正確"],
+    ["INVALID_LEVEL", "商店等級不正確"],
+    ["INVALID_QUANTITY", "數量不正確"],
+    ["ITEM_NOT_FOUND", "找不到這件道具"],
+    ["JOB_MISMATCH", "職業不符"],
+    ["LEVEL_TOO_LOW", "Lv 15 才能存款"],
+    ["NO_EFFECT", "使用後沒有效果"],
+    ["NOT_ENOUGH_BANK", "存款不足"],
+    ["NOT_ENOUGH_MONEY", "金錢不足"],
+    ["NOT_EQUIPMENT", "這不是裝備"],
+    ["NOT_FOR_SALE", "商店沒有販售這個品項"],
+    ["NOT_USABLE", "這個道具不能直接使用"],
+    ["SLOT_EMPTY", "這一欄沒有裝備"],
     ["stackLimit", "已達堆疊上限"],
-    ["statTooLow:strength", "力量不足"],
-    ["statTooLow:intelligence", "智力不足"],
-    ["statTooLow:agility", "敏捷不足"],
-    ["statTooLow:charisma", "魅力不足"],
-    ["statTooLow:life", "生命不足"],
-    ["statTooLow:vitality", "體質不足"],
-    ["statTooLow:faith", "信仰不足"],
-    ["wrongStoneLevel", "精鍊石等級不符"],
-    ["atRefineMax", "已達精鍊上限"],
-    ["notRefineStone", "這不是精鍊石"],
-    ["holeOutOfRange", "沒有這個孔位"],
-    ["holeOccupied", "這個孔已經鑲嵌了魔石"],
-    ["duplicateStone", "同一件裝備不能鑲嵌同種魔石"],
-    ["notStone", "這不是魔石"],
-    ["holeEmpty", "這個孔沒有魔石"],
-    ["maxHoles", "孔數已達上限"],
-    ["missingTool:item-1378", "缺少拆石器"],
-    ["missingTool:item-3361", "缺少鑽孔器"],
-    ["missingTool:safe-refine-stone", "缺少安全精鍊石"],
-    ["missingTool:mystery-tool", "缺少需要的道具"],
-    ["cannotMerge", "這種精鍊石無法再合成"],
-    ["missingMaterials", "材料不足"],
-    ["missionIncomplete", "需先完成前置任務"],
+    ["STAT_TOO_LOW:strength", "力量不足"],
+    ["STAT_TOO_LOW:intelligence", "智力不足"],
+    ["STAT_TOO_LOW:agility", "敏捷不足"],
+    ["STAT_TOO_LOW:charisma", "魅力不足"],
+    ["STAT_TOO_LOW:life", "生命不足"],
+    ["STAT_TOO_LOW:vitality", "體質不足"],
+    ["STAT_TOO_LOW:faith", "信仰不足"],
+    ["WRONG_STONE_LEVEL", "精鍊石等級不符"],
+    ["AT_REFINE_MAX", "已達精鍊上限"],
+    ["NOT_REFINE_STONE", "這不是精鍊石"],
+    ["HOLE_OUT_OF_RANGE", "沒有這個孔位"],
+    ["HOLE_OCCUPIED", "這個孔已經鑲嵌了魔石"],
+    ["DUPLICATE_STONE", "同一件裝備不能鑲嵌同種魔石"],
+    ["NOT_STONE", "這不是魔石"],
+    ["HOLE_EMPTY", "這個孔沒有魔石"],
+    ["MAX_HOLES", "孔數已達上限"],
+    ["MISSING_TOOL:item-1378", "缺少拆石器"],
+    ["MISSING_TOOL:item-3361", "缺少鑽孔器"],
+    ["MISSING_TOOL:safe-refine-stone", "缺少安全精鍊石"],
+    ["MISSING_TOOL:mystery-tool", "缺少需要的道具"],
+    ["CANNOT_MERGE", "這種精鍊石無法再合成"],
+    ["MISSING_MATERIALS", "材料不足"],
+    ["MISSION_INCOMPLETE", "需先完成前置任務"],
   ])("translates %s", (code, text) => {
     expect(reasonText(code)).toBe(text)
   })
@@ -284,7 +284,7 @@ describe("reasonText", () => {
 
 describe("errorMessage", () => {
   it("joins the translated reasons", () => {
-    expect(errorMessage("無法裝備", ["jobMismatch", "statTooLow:strength"])).toBe(
+    expect(errorMessage("無法裝備", ["JOB_MISMATCH", "STAT_TOO_LOW:strength"])).toBe(
       "職業不符、力量不足",
     )
   })
@@ -392,6 +392,6 @@ describe("itemUseResultLines", () => {
   })
 
   it("牧場已滿的錯誤文案", () => {
-    expect(reasonText("petsFull")).toBe("牧場已滿，最多只能擁有3隻寵物")
+    expect(reasonText("PETS_FULL")).toBe("牧場已滿，最多只能擁有3隻寵物")
   })
 })

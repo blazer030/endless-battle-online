@@ -29,10 +29,10 @@ public class JobChangeTests
     }
 
     [Theory]
-    [InlineData(29, 3500, 60, new[] { "levelTooLow" })]
-    [InlineData(30, 3499, 60, new[] { "parentProficiencyTooLow" })]
-    [InlineData(30, 3500, 59, new[] { "statTooLow:strength" })]
-    [InlineData(1, 0, 1, new[] { "levelTooLow", "parentProficiencyTooLow", "statTooLow:strength" })]
+    [InlineData(29, 3500, 60, new[] { "LEVEL_TOO_LOW" })]
+    [InlineData(30, 3499, 60, new[] { "PARENT_PROFICIENCY_TOO_LOW" })]
+    [InlineData(30, 3500, 59, new[] { "STAT_TOO_LOW:strength" })]
+    [InlineData(1, 0, 1, new[] { "LEVEL_TOO_LOW", "PARENT_PROFICIENCY_TOO_LOW", "STAT_TOO_LOW:strength" })]
     public void Evaluate_RequiresLevelParentProficiencyAndStats(int level, long proficiency, int str, string[] expected)
     {
         var check = JobChange.Evaluate(Warrior(level, str), Berserker, Ch(proficiency));
@@ -55,7 +55,7 @@ public class JobChangeTests
         var target = Thief with { Id = "other", StatRequirements = [new StatRequirement(stat, minimum)] };
         var character = Warrior(level: 1, str: 12);
 
-        Assert.Equal([$"statTooLow:{code}"], JobChange.Evaluate(character, target, []).Reasons);
+        Assert.Equal([$"STAT_TOO_LOW:{code}"], JobChange.Evaluate(character, target, []).Reasons);
         Assert.True(JobChange.Evaluate(character, target with { StatRequirements = [new StatRequirement(stat, minimum - 1)] }, []).Eligible);
     }
 
@@ -64,7 +64,7 @@ public class JobChangeTests
     {
         var check = JobChange.Evaluate(Warrior(), Berserker, []);
 
-        Assert.Equal(["parentProficiencyTooLow"], check.Reasons);
+        Assert.Equal(["PARENT_PROFICIENCY_TOO_LOW"], check.Reasons);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class JobChangeTests
         var check = JobChange.Evaluate(Warrior(), new JobDefinition("warrior", "戰士", 1, null, 1, 0, [], Growth), []);
 
         Assert.False(check.Eligible);
-        Assert.Equal(["sameJob"], check.Reasons);
+        Assert.Equal(["SAME_JOB"], check.Reasons);
     }
 
     [Fact]

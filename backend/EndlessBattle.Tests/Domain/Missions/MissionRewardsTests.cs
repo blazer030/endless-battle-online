@@ -82,7 +82,7 @@ public class MissionRewardsTests
 
         var outcome = Apply(Hero, Objective(level: 1, money: 50, [new ItemQuantity("safe-refine-stone", 1)]), bag);
 
-        Assert.Equal(["bagFull"], outcome.Reasons);
+        Assert.Equal(["BAG_FULL"], outcome.Reasons);
     }
 
     // 先疊到同種道具上再開新格；同一次獎勵裡後面的道具可以疊到前面新開的格子
@@ -156,8 +156,8 @@ public class MissionRewardsTests
         var objective = Objective(level: 1, money: 50, [new ItemQuantity("safe-refine-stone", 1)], pet: new PetReward("test-wolf", 2));
         var fullBag = Enumerable.Range(1, 15).Select(id => TestItems.Entry(id, "item-1378", 99)).ToList();
 
-        Assert.Equal(["petsFull"], Apply(Hero, objective, petCount: PetRules.MaxPets).Reasons);
-        Assert.Equal(["bagFull", "petsFull"], Apply(Hero, objective, fullBag, petCount: PetRules.MaxPets).Reasons);
+        Assert.Equal(["PETS_FULL"], Apply(Hero, objective, petCount: PetRules.MaxPets).Reasons);
+        Assert.Equal(["BAG_FULL", "PETS_FULL"], Apply(Hero, objective, fullBag, petCount: PetRules.MaxPets).Reasons);
         Assert.Empty(Apply(Hero, objective, petCount: PetRules.MaxPets - 1).Reasons);
     }
 
