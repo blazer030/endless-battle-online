@@ -75,7 +75,7 @@
     - `game/skills.ts`：「技能熟練度不足」改「技能點不足」，`learnReasonText` 加 `NOT_LEARNED`。
     - 既有測試的手寫資料補 `jobs: []`、假 API 補 `getAccount`。
     - 先跑新測試 6 項失敗；實作後通過，`pnpm check` 1099 項通過。
-- [ ] 2.2 依 design「角色頁的資料由 `src/game/characterScreen.ts` 的純函式算出」新增 `characterCard`、`abilityRows`、`combatRows`、`jobSwitcher`、`skillCard`、`learnedPopup`、`learnFailureText`、`characterLayout`、`portraitOffset`、`characterRevealOrigin`。先寫失敗測試 `characterScreen.test.ts`，用規格的 Example 當測資：
+- [x] 2.2 依 design「角色頁的資料由 `src/game/characterScreen.ts` 的純函式算出」新增 `characterCard`、`abilityRows`、`combatRows`、`jobSwitcher`、`skillCard`、`learnedPopup`、`learnFailureText`、`characterLayout`、`portraitOffset`、`characterRevealOrigin`。先寫失敗測試 `characterScreen.test.ts`，用規格的 Example 當測資：
   - Card values（收尾者 Lv 162、70%、`2,450 / 3,500`、EXP 42%）與熟練度 100% 上限；
   - 有正負號的加成；
   - Switcher of the current job（`Class I・見習・已學 3 / 4 招`）；
@@ -85,6 +85,11 @@
   - 失敗文字對照表；
   - Layout values 兩列與 Feet offset。
   驗證：`characterScreen.test.ts` 全綠、`pnpm check` 全綠。[after: 2.1]
+  - 實作紀錄：
+    - 新增 `game/characterScreen.ts`，函式同任務名。`learnFailureText(reasons | null, skill)` 收原因代碼，null 表示沒連到伺服器；因為 `src/game` 不 import `src/api`，`ApiError` 由畫面轉成代碼。
+    - 沒有熟練度紀錄時熟練度算 0；`characterRevealOrigin()` 不收參數，符合 `RevealOrigin`。
+    - 數值列的 `changed` 跟前一份同種類的列比；習得（從 0）時都不標。
+    - 先跑測試因模組不存在而失敗；實作後 14 項通過，`pnpm check` 1113 項通過。
 
 ## 3. 共用回饋與素材
 
