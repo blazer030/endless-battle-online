@@ -190,6 +190,32 @@
   --brass-rgb: 201 164 100;
   --bonus-shadow-rgb: 30 18 8;
   --bonus-chip-shadow-rgb: 40 24 8;
+  /* 角色頁（ui/character） */
+  --character-room: #2a1a0c;
+  --character-wash-rgb: 251 246 234;
+  --character-page-rgb: 252 247 235;
+  --character-label: #8a6a40;
+  --character-soft: #6a5030;
+  --character-number: #5a4428;
+  --character-muted: #7a6040;
+  --character-faint: #9a8462;
+  --character-teal: #2f7a6a;
+  --character-hp: #b0301e;
+  --character-sp: #2e6e9a;
+  --character-exp: #9a7420;
+  --character-tab-text: #f6e2c0;
+  --character-tab-selected: #fff2dc;
+  --character-hp-light: #f2a08e;
+  --character-hp-dark: #c9473a;
+  --character-sp-light: #9ed0e8;
+  --character-sp-dark: #3e86b0;
+  --character-exp-light: #f2d98a;
+  --character-exp-dark: #c99a2e;
+  --character-proficiency-light: #8fd3c0;
+  --character-short: #b0301e;
+  --character-sheet: #fbf5e4;
+  --character-sheet-deep: #f4ead2;
+  --character-switch-knob: #6a4626;
   /* 共用動作回饋（ui/feedback）：等待墨點底板、失敗彈窗的紅字與蠟封陰影 */
   --feedback-plate-rgb: 30 18 8;
   --feedback-failure-text: #9a2416;

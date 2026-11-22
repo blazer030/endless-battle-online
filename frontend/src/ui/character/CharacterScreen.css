@@ -1,0 +1,451 @@
+/* 角色頁（設計板 CharacterFit）：--cs 上半縮放、--dt 桌緣（木條上緣）、--h 舞台高 */
+.character {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  color: var(--umber-deep);
+  background:
+    linear-gradient(rgb(var(--character-wash-rgb) / 0.38), rgb(var(--character-wash-rgb) / 0.38)),
+    url("../../assets/character/room.webp") center -40px / 390px auto no-repeat,
+    var(--character-room);
+}
+
+/* 木桌與桌緣木條 */
+.character__desk {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--dt) + 14px);
+  bottom: 0;
+  background: url("../../assets/title/desk.webp") center top / cover no-repeat;
+  filter: sepia(0.35) saturate(1.1) brightness(0.55) contrast(1.08);
+}
+
+.character__desk::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14px;
+  height: 40px;
+  background: url("../../assets/title/desk-edge.webp") left center / auto 100% repeat-x;
+  filter: drop-shadow(0 3px 2px rgb(var(--shade-rgb) / 0.55));
+}
+
+/* 立繪：腳底藏在桌緣下 6，依雙腳中心（--portrait-shift）對齊 */
+.character__portrait {
+  position: absolute;
+  z-index: 25;
+  left: -10px;
+  top: var(--portrait-top);
+  width: calc(221px * var(--cs));
+  height: var(--portrait-height);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.character__portrait > img {
+  flex: none;
+  height: 100%;
+  transform: translateX(var(--portrait-shift));
+  filter: drop-shadow(0 10px 16px rgb(var(--town-hero-shadow-rgb) / 0.25));
+}
+
+.character__portrait-pending {
+  align-self: center;
+  margin-top: -20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 8px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--character-soft);
+  background: rgb(var(--character-wash-rgb) / 0.75);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.35);
+}
+
+.character__portrait-pending img {
+  width: 44px;
+  height: 44px;
+  opacity: 0.7;
+}
+
+/* 冒險者登記證：右上角對齊、跟 --cs 縮放 */
+.registration {
+  position: absolute;
+  z-index: 30;
+  right: 8px;
+  top: 16px;
+  width: 224px;
+  aspect-ratio: 700 / 1029;
+  box-sizing: border-box;
+  padding: 58px 24px 0;
+  color: var(--umber-deep);
+  background: url("../../assets/title/card-sealed.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 6px 8px rgb(var(--shade-rgb) / 0.45));
+  transform: rotate(1deg) scale(var(--cs));
+  transform-origin: 100% 0;
+}
+
+.registration__name {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  line-height: 1.2;
+}
+
+.registration__job {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 4px 0 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.registration__job img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.registration__job b {
+  font-family: var(--font-serif);
+  font-weight: 900;
+}
+
+.registration__job em {
+  font-style: normal;
+  font-family: var(--font-number);
+  font-weight: 700;
+  color: var(--character-teal);
+}
+
+.registration__change {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--seal-red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.registration__proficiency {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 3px;
+  font-size: 12.5px;
+  color: var(--character-soft);
+}
+
+.registration__proficiency b {
+  color: var(--umber-deep);
+}
+
+.registration__bar {
+  display: block;
+  height: 7px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgb(var(--umber-rgb) / 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--umber-rgb) / 0.5);
+}
+
+.registration__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.registration__bar--proficiency i {
+  background: linear-gradient(90deg, var(--character-proficiency-light), var(--character-teal));
+}
+
+.registration__bar--hp i {
+  background: linear-gradient(90deg, var(--character-hp-light), var(--character-hp-dark));
+}
+
+.registration__bar--sp i {
+  background: linear-gradient(90deg, var(--character-sp-light), var(--character-sp-dark));
+}
+
+.registration__bar--exp i {
+  background: linear-gradient(90deg, var(--character-exp-light), var(--character-exp-dark));
+}
+
+.registration__info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 8px;
+  margin: 6px 0 0;
+  padding-top: 6px;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+  font-size: 13px;
+}
+
+.registration__info > div {
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.registration__info-wide {
+  grid-column: 1 / -1;
+}
+
+.registration__info dt {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--character-label);
+}
+
+.registration__info dd {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.registration__gauges {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 50px 0 0;
+  padding-top: 6px;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.45);
+  font-size: 12.5px;
+}
+
+.registration__gauge p {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 2px;
+  line-height: 1.2;
+}
+
+.registration__gauge p > span:first-child {
+  font-family: var(--font-number);
+  font-weight: 700;
+}
+
+.registration__gauge p > .registration__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--character-number);
+}
+
+.registration__gauge .registration__bar {
+  height: 5px;
+}
+
+.registration__gauge--hp p > span:first-child {
+  color: var(--character-hp);
+}
+
+.registration__gauge--sp p > span:first-child {
+  color: var(--character-sp);
+}
+
+.registration__gauge--exp p > span:first-child {
+  color: var(--character-exp);
+}
+
+/* 讀取中：字與數字留位置，用淡色塊代替 */
+.registration[aria-busy="true"] .registration__value {
+  display: inline-block;
+  min-width: 3em;
+  min-height: 1em;
+  border-radius: 3px;
+  background: rgb(var(--umber-rgb) / 0.13);
+}
+
+/* 皮革索引籤：從手帳上緣探出來，選中的比較高、比較亮 */
+.character__tabs {
+  position: absolute;
+  z-index: 1;
+  right: 30px;
+  top: calc(var(--dt) + 4px);
+  width: 168px;
+  display: flex;
+  gap: 8px;
+}
+
+.character__tab {
+  flex: 1;
+  height: 60px;
+  padding: 14px 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  border: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: var(--character-tab-text);
+  text-shadow: 0 1px 1px rgb(var(--shade-rgb) / 0.8);
+  background: url("../../assets/character/tab.webp") center top / 100% auto no-repeat;
+  transform: translateY(6px);
+  filter: brightness(0.7) saturate(0.8);
+  transition:
+    transform 0.15s,
+    filter 0.15s;
+  cursor: pointer;
+}
+
+.character__tab[aria-selected="true"] {
+  color: var(--character-tab-selected);
+  transform: none;
+  filter: none;
+}
+
+/* 錢袋：桌緣木條左邊（同旅館、同伴） */
+.character__purse {
+  position: absolute;
+  z-index: 2;
+  left: 16px;
+  top: calc(var(--dt) + 7px);
+  height: 28px;
+  padding: 0 12px 0 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--inn-purse-dark), var(--inn-purse-light));
+  box-shadow:
+    inset 0 0 0 1px var(--brass),
+    inset 0 0 0 2px rgb(var(--inn-dark-rgb) / 0.8),
+    inset 0 0 0 3px rgb(var(--inn-brass-rgb) / 0.3);
+}
+
+.character__purse img {
+  width: 20px;
+  height: 20px;
+}
+
+.character__purse b {
+  min-width: 56px;
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--inn-money);
+  font-variant-numeric: tabular-nums;
+}
+
+.character__purse b:empty {
+  border-radius: 3px;
+  background: rgb(var(--inn-brass-rgb) / 0.15);
+  height: 14px;
+}
+
+/* 手帳：圖只負責外觀，內容在 .character__page 裡捲 */
+.character__journal {
+  position: absolute;
+  z-index: 2;
+  left: -71px;
+  width: 455px;
+  top: calc(var(--dt) + 40px);
+  height: calc(var(--h) - var(--dt) - 40px);
+  overflow: hidden;
+  background: url("../../assets/character/journal.webp") 0 0 / 455px auto no-repeat;
+  filter: drop-shadow(0 -3px 6px rgb(var(--shade-rgb) / 0.45));
+}
+
+.character__page {
+  position: absolute;
+  left: 110px;
+  right: 34px;
+  top: 30px;
+  bottom: 0;
+  box-sizing: border-box;
+  padding: 4px 6px 28px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  background: rgb(var(--character-page-rgb) / 0.72);
+  box-shadow: 0 0 12px 8px rgb(var(--character-page-rgb) / 0.72);
+  border-radius: 10px 10px 0 0;
+}
+
+.character__page::-webkit-scrollbar {
+  display: none;
+}
+
+.character__blank {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 4px;
+}
+
+.character__blank i {
+  display: block;
+  height: 12px;
+  border-radius: 3px;
+  background: rgb(var(--umber-rgb) / 0.12);
+  animation: character-wait 1s ease-in-out infinite alternate;
+}
+
+.character__blank i:nth-child(3n) {
+  width: 62%;
+}
+
+.character__blank i:nth-child(3n + 1) {
+  width: 88%;
+}
+
+@keyframes character-wait {
+  to {
+    opacity: 0.45;
+  }
+}
+
+.character__failed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 26px 6px 10px;
+}
+
+.character__failed-line {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--error-red);
+}
+
+.character__retry {
+  width: 92px;
+  height: 92px;
+}
+
+.character .inn__back {
+  z-index: 31;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .character__blank i {
+    animation: none;
+  }
+}

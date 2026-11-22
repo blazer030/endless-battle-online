@@ -127,12 +127,21 @@
 
 ## 4. 角色頁畫面
 
-- [ ] 4.1 角色頁外框：Loading and load failure、Registration card and portrait、Wallet、Character screen layout follows the stage height（`frontend/src/ui/character/CharacterScreen.tsx` 與子元件）：
+- [x] 4.1 角色頁外框：Loading and load failure、Registration card and portrait、Wallet、Character screen layout follows the stage height（`frontend/src/ui/character/CharacterScreen.tsx` 與子元件）：
   - 讀取依 design「打開時一次讀六個 API，任何一個失敗就整頁失敗」；
   - 登記證不含轉職鈕的接線；
   - 兩張索引籤（預設能力頁）、「城鎮」返回。
   - 先寫失敗測試 `CharacterScreen.test.tsx`：`LoadsSixRequestsOnOpen`、`LoadingShowsFaintBlocks`、`AnyFailureShowsRetry`、`RetryLoadsAgain`、`CardShowsTheCharacter`、`PortraitBySex`、`JobWithoutPortraitShowsPlaceholder`、`WalletShowsMoney`、`OpensOnTheAbilitiesPage`、`BackReturnsToTown`。
   驗證：測試與 `pnpm check` 全綠。[after: 2.2, 3.1, 3.2]
+  - 實作紀錄：
+    - `ui/character/CharacterScreen.tsx`：`loadAll` 用 `Promise.all` 讀六個，`getMyCharacter` 回 null 也算失敗；讀到後交出角色。
+    - 立繪有沒有圖照 `contentArtKeys("portraits")` 判斷，沒有就顯示職業圖示＋「立繪待補」。
+    - 版位用 `characterLayout` 算出 CSS 變數（`--cs`、`--dt`、`--portrait-top`、`--portrait-shift`）。
+    - `RegistrationCard.tsx`：讀取中 `aria-busy`，字改淡色塊。
+    - 能力、技能兩頁的內容留到 4.2、4.3。
+    - `CharacterScreen.css` 照快取檔的 `.cpage`、`.ccard`、`.ctabs`、`.cbody`、`.ch-*`，新色碼 `--character-*` 進 `theme.css`。
+    - 另加 `JobChangeButtonCallsBack`。
+    - 先跑測試因元件不存在而失敗；實作後 11 項通過，`pnpm check` 1133 項通過。畫面對照留到 5.1。
 - [ ] 4.2 能力頁：Abilities page（七項能力與加成、戰鬥數值、密藥與住宿用 `bonusRows` 每秒倒數與 10 分鐘轉紅、空清單文字、到期消失不重讀）與 Sign out from the abilities page（確認框寫帳號、取消、點外面關、確定後呼叫 `onSignOut`、不送請求）。先寫失敗測試：`StatShowsEquipmentBonus`、`StatWithoutBonus`、`BonusListLodgingFirst`、`BonusCountsDownEverySecond`、`NothingActiveText`、`ExpiredBonusDisappearsWithoutRequest`、`SignOutAsksWithUsername`、`CancelSignOut`、`ConfirmSignOutCallsBack`。驗證：測試與 `pnpm check` 全綠。[after: 4.1]
 - [ ] 4.3 技能頁：Skills page job switcher 與 Skill cards。
   - 職業切換：打開停目前職業、標頭、分組清單、選職業後只列那個職業的技能、不出現「熟練度」；
