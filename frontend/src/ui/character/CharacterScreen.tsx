@@ -15,6 +15,8 @@ import { BackButton } from "../companions/BackButton"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import purse from "../../assets/town/purse.webp"
+import { Popup } from "../feedback/Popup"
+import { AbilitiesPage } from "./AbilitiesPage"
 import { RegistrationCard } from "./RegistrationCard"
 import "../inn/InnScreen.css"
 import "./CharacterScreen.css"
@@ -71,11 +73,18 @@ const loadAll = async (api: CharacterScreenApi): Promise<CharacterData> => {
 }
 
 // 角色頁（設計板 CharacterFit）：裝備間的立繪與冒險者登記證，桌上攤開的手帳（能力／技能）
-export const CharacterScreen = ({ api, onCharacterChange, onBack, onOpenJobChange }: Props) => {
+export const CharacterScreen = ({
+  api,
+  onCharacterChange,
+  onBack,
+  onSignOut,
+  onOpenJobChange,
+}: Props) => {
   const stage = useStage()
   const [load, setLoad] = useState<Load>(null)
   const [attempt, setAttempt] = useState(0)
   const [page, setPage] = useState<Page>("abilities")
+  const [askingSignOut, setAskingSignOut] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -180,11 +189,34 @@ export const CharacterScreen = ({ api, onCharacterChange, onBack, onOpenJobChang
               />
             </div>
           )}
-          {data !== null && <div data-page={page} />}
+          {data !== null && page === "abilities" && (
+            <AbilitiesPage data={data} onAskSignOut={() => setAskingSignOut(true)} />
+          )}
+          {data !== null && page === "skills" && <div role="tabpanel" aria-label="技能" />}
         </div>
       </div>
 
       <BackButton label="城鎮" onClick={onBack} />
+
+      {askingSignOut && data !== null && (
+        <Popup
+          label="登出"
+          className="character-sign-out-ask"
+          onClose={() => setAskingSignOut(false)}
+          actions={(close) => (
+            <div className="character-sign-out-ask__actions">
+              <button type="button" className="popup__button" onClick={close}>
+                取消
+              </button>
+              <button type="button" className="popup__button popup__button--go" onClick={onSignOut}>
+                登出
+              </button>
+            </div>
+          )}
+        >
+          <p className="character-sign-out-ask__question">要登出 {data.account.username} 嗎？</p>
+        </Popup>
+      )}
     </div>
   )
 }

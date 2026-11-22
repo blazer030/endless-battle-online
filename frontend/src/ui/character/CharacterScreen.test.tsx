@@ -3,7 +3,9 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { CharacterScreen, type CharacterScreenApi } from "./CharacterScreen"
-import { createCharacterApi, Now, warrior } from "./testing"
+import { BuffVo } from "../../game/buffs"
+import { InnVo } from "../../game/inn"
+import { at, attackElixir, createCharacterApi, innWithLodging, Now, warrior } from "./testing"
 
 const flush = () =>
   act(async () => {
@@ -198,4 +200,124 @@ test("JobChangeButtonCallsBack", async () => {
   fireEvent.click(within(card()).getByRole("button", { name: "轉職" }))
 
   expect(onOpenJobChange).toHaveBeenCalledTimes(1)
+})
+
+// ── 能力頁 ──
+const abilities = () => screen.getByRole("tabpanel", { name: "能力" })
+const statRow = (label: string) => within(abilities()).getByText(label).closest(".character-stat")!
+const bonusList = () => within(abilities()).getByRole("list", { name: "密藥與住宿" })
+
+// 規格「Stat with an equipment bonus」
+test("StatShowsEquipmentBonus", async () => {
+  await renderCharacter()
+
+  expect(statRow("力量")).toHaveTextContent("412")
+  expect(statRow("力量")).toHaveTextContent("+18")
+})
+
+// 規格「Stat without a bonus」
+test("StatWithoutBonus", async () => {
+  await renderCharacter()
+
+  expect(statRow("智力").querySelector(".character-stat__bonus")).toBeNull()
+  expect(within(abilities()).getByText("HP 上限").closest(".character-combat")).toHaveTextContent(
+    "9,640",
+  )
+})
+
+// 規格「Bonus list」：住宿第一、再來密藥，時間格式同城鎮
+test("BonusListLodgingFirst", async () => {
+  await renderCharacter()
+
+  const items = within(bonusList()).getAllByRole("listitem")
+  expect(items.map((item) => item.querySelector(".character-bonus__name")?.textContent)).toEqual([
+    "學徒閣樓",
+    "神力秘藥LV1",
+  ])
+  expect(items[0]).toHaveTextContent("07:00")
+  expect(items[1]).toHaveTextContent("物攻 ×1.05")
+  expect(items[1]).toHaveTextContent("01:40")
+})
+
+// 每秒倒數；不到 10 分鐘轉紅
+test("BonusCountsDownEverySecond", async () => {
+  const soon = BuffVo.create({ ...attackElixir, endsAt: at(601) })
+  await renderCharacter({
+    api: createCharacterApi({ getBuffs: vi.fn().mockResolvedValue([soon]) }),
+  })
+  const elixir = () => within(bonusList()).getAllByRole("listitem")[1]
+
+  expect(elixir()).toHaveTextContent("10:01")
+  expect(elixir()).not.toHaveAttribute("data-ending-soon")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+
+  expect(elixir()).toHaveTextContent("09:59")
+  expect(elixir()).toHaveAttribute("data-ending-soon", "true")
+})
+
+// 規格「Nothing active」
+test("NothingActiveText", async () => {
+  await renderCharacter({
+    api: createCharacterApi({
+      getBuffs: vi.fn().mockResolvedValue([]),
+      getInn: vi.fn().mockResolvedValue(InnVo.create({ ...innWithLodging, lodging: null })),
+    }),
+  })
+
+  expect(within(abilities()).getByText("沒有生效中的密藥或住宿")).toBeInTheDocument()
+})
+
+// 到期的直接拿掉，不重讀
+test("ExpiredBonusDisappearsWithoutRequest", async () => {
+  const brief = BuffVo.create({ ...attackElixir, endsAt: at(2) })
+  const { api } = await renderCharacter({
+    api: createCharacterApi({ getBuffs: vi.fn().mockResolvedValue([brief]) }),
+  })
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000)
+  })
+
+  expect(within(bonusList()).getAllByRole("listitem")).toHaveLength(1)
+  expect(api.getBuffs).toHaveBeenCalledTimes(1)
+})
+
+// 規格「Sign out from the abilities page」
+test("SignOutAsksWithUsername", async () => {
+  await renderCharacter()
+
+  fireEvent.click(within(abilities()).getByRole("button", { name: "登出" }))
+
+  expect(within(abilities()).getByText("ethan")).toBeInTheDocument()
+  expect(screen.getByRole("dialog", { name: "登出" })).toHaveTextContent("要登出 ethan 嗎？")
+})
+
+// 規格「Cancel sign out」
+test("CancelSignOut", async () => {
+  const { onSignOut } = await renderCharacter()
+
+  fireEvent.click(within(abilities()).getByRole("button", { name: "登出" }))
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "登出" })).getByRole("button", { name: "取消" }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(150)
+  })
+
+  expect(screen.queryByRole("dialog", { name: "登出" })).toBeNull()
+  expect(onSignOut).not.toHaveBeenCalled()
+})
+
+// 規格「Confirm sign out」：不送請求，交給外層清掉登入
+test("ConfirmSignOutCallsBack", async () => {
+  const { onSignOut } = await renderCharacter()
+
+  fireEvent.click(within(abilities()).getByRole("button", { name: "登出" }))
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "登出" })).getByRole("button", { name: "登出" }),
+  )
+
+  expect(onSignOut).toHaveBeenCalledTimes(1)
 })

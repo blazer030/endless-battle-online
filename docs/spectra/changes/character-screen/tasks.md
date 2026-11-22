@@ -142,7 +142,12 @@
     - `CharacterScreen.css` 照快取檔的 `.cpage`、`.ccard`、`.ctabs`、`.cbody`、`.ch-*`，新色碼 `--character-*` 進 `theme.css`。
     - 另加 `JobChangeButtonCallsBack`。
     - 先跑測試因元件不存在而失敗；實作後 11 項通過，`pnpm check` 1133 項通過。畫面對照留到 5.1。
-- [ ] 4.2 能力頁：Abilities page（七項能力與加成、戰鬥數值、密藥與住宿用 `bonusRows` 每秒倒數與 10 分鐘轉紅、空清單文字、到期消失不重讀）與 Sign out from the abilities page（確認框寫帳號、取消、點外面關、確定後呼叫 `onSignOut`、不送請求）。先寫失敗測試：`StatShowsEquipmentBonus`、`StatWithoutBonus`、`BonusListLodgingFirst`、`BonusCountsDownEverySecond`、`NothingActiveText`、`ExpiredBonusDisappearsWithoutRequest`、`SignOutAsksWithUsername`、`CancelSignOut`、`ConfirmSignOutCallsBack`。驗證：測試與 `pnpm check` 全綠。[after: 4.1]
+- [x] 4.2 能力頁：Abilities page（七項能力與加成、戰鬥數值、密藥與住宿用 `bonusRows` 每秒倒數與 10 分鐘轉紅、空清單文字、到期消失不重讀）與 Sign out from the abilities page（確認框寫帳號、取消、點外面關、確定後呼叫 `onSignOut`、不送請求）。先寫失敗測試：`StatShowsEquipmentBonus`、`StatWithoutBonus`、`BonusListLodgingFirst`、`BonusCountsDownEverySecond`、`NothingActiveText`、`ExpiredBonusDisappearsWithoutRequest`、`SignOutAsksWithUsername`、`CancelSignOut`、`ConfirmSignOutCallsBack`。驗證：測試與 `pnpm check` 全綠。[after: 4.1]
+  - 實作紀錄：
+    - `AbilitiesPage.tsx`：每秒用本機時鐘重算 `bonusRows`；到期的列直接拿掉、不重讀；不到 10 分鐘的列標 `data-ending-soon`。
+    - 圓章沿用城鎮的樣式。React 的 fast refresh 規則不准元件檔另外 export 函式，所以先以結構性變更把 `bonusBadgeClass`、`BonusBadgeImage` 從 `TownBonuses.tsx` 搬到 `ui/town/bonusBadge.ts`、`BonusBadgeImage.tsx`，單獨 commit，城鎮行為不變。
+    - 登出確認用共用 `Popup`（自訂「取消」「登出」兩顆），放在 `CharacterScreen` 舞台層；確定時直接呼叫 `onSignOut`，不送請求。
+    - 先跑新測試 9 項失敗；實作後 20 項通過，`pnpm check` 1142 項通過。
 - [ ] 4.3 技能頁：Skills page job switcher 與 Skill cards。
   - 職業切換：打開停目前職業、標頭、分組清單、選職業後只列那個職業的技能、不出現「熟練度」；
   - 技能卡：Lv 與未習得、菱形、主動／被動、「（說明待補）」、一次只展開一張、兩欄數值列與綠字、花費行與紅字、停用與原因、滿級精通。

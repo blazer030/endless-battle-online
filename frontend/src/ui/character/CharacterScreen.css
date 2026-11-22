@@ -449,3 +449,159 @@
     animation: none;
   }
 }
+
+/* ── 能力頁 ── */
+.character-section {
+  margin: 0 0 16px;
+}
+
+.character-section__title {
+  margin: 2px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid rgb(var(--umber-rgb) / 0.45);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  color: var(--umber-mid);
+}
+
+.character-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+}
+
+.character-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 4px;
+  border-bottom: 1px dashed rgb(var(--umber-rgb) / 0.3);
+  font-size: 13px;
+}
+
+.character-stat b {
+  margin-left: auto;
+  font-size: 16px;
+}
+
+.character-stat__bonus {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--character-teal);
+}
+
+.character-combats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+}
+
+.character-combat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 5px 4px;
+  border-bottom: 1px dashed rgb(var(--umber-rgb) / 0.3);
+  font-size: 13px;
+}
+
+.character-combat b {
+  font-size: 16px;
+}
+
+.character-bonuses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.character-bonus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: 13px;
+}
+
+.character-bonus--none {
+  margin: 0;
+  color: var(--character-faint);
+}
+
+.character-bonus__disc {
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}
+
+.character-bonus__name {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.character-bonus__effect {
+  color: var(--character-teal);
+  white-space: nowrap;
+}
+
+.character-bonus__left {
+  flex: 0 0 44px;
+  margin-left: auto;
+  text-align: right;
+  font-family: var(--font-number);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--character-number);
+}
+
+.character-bonus[data-ending-soon] .character-bonus__left {
+  color: var(--character-short);
+}
+
+.character-sign-out {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding-top: 10px;
+  border-top: 1px dashed rgb(var(--umber-rgb) / 0.35);
+  font-size: 13px;
+  color: var(--town-muted);
+}
+
+.character-sign-out button {
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 3px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--seal-red);
+  background: none;
+  box-shadow: inset 0 0 0 1px rgb(var(--missions-seal-rgb) / 0.55);
+  cursor: pointer;
+}
+
+.character-sign-out button:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.character-sign-out-ask__question {
+  margin: 6px 0 14px;
+  font-size: 14px;
+}
+
+.character-sign-out-ask__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.character-sign-out-ask__actions .popup__button {
+  flex: 1;
+}
