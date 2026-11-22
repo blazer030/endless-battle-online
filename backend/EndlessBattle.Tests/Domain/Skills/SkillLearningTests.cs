@@ -12,8 +12,8 @@ public class SkillLearningTests
     private static readonly SkillDefinition Combo = TestSkills.Create("combo", SkillType.Active);
 
     // 目前職業有沒有教這個技能（job-skills.json）與前置技能已學的等級，由呼叫端查好傳入
-    private static readonly SkillTeaching Taught = new(TaughtByCurrentJob: true, PrerequisiteLevel: 0);
-    private static readonly SkillTeaching NotTaught = new(TaughtByCurrentJob: false, PrerequisiteLevel: 0);
+    private static readonly SkillTeaching Taught = new(Teaches: true, PrerequisiteLevel: 0);
+    private static readonly SkillTeaching NotTaught = new(Teaches: false, PrerequisiteLevel: 0);
 
     [Fact]
     public void Learn_FirstLevel_DeductsMoneyAndSkillPoints()
@@ -68,7 +68,7 @@ public class SkillLearningTests
     {
         var check = SkillLearning.Evaluate(Warrior with { Money = 499 }, Burst, 0, 0, Taught);
 
-        Assert.True(check.TaughtByCurrentJob);
+        Assert.True(check.Teaches);
         Assert.True(check.PrerequisiteMet);
         Assert.False(check.AtMaxLevel);
         Assert.False(check.EnoughProficiency);

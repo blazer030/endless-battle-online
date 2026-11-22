@@ -17,7 +17,7 @@
     - Rejection changes nothing → `Learn_DeductsNothing_WhenProficiencyInsufficient`、`Learn_ConflictLeavesProficiencyAndBook`、`Learn_ReasonsExampleTable`；
     - `JOB_UNKNOWN` 與以前職業的列留到 1.3。
   - 新測試第一次就通過，都是描述現況。`dotnet test --filter-class "*Skill*"` 243 項全綠。
-- [ ] 1.2 結構性變更（單獨以 ♻️ refactor commit）：依 design「學技能可以指定職業，條件仍在 Domain」，把 `SkillTeaching.TaughtByCurrentJob` 改名為 `Teaches`、`LearnCheck.TaughtByCurrentJob` 改名為 `Teaches`。`SkillService` 與測試跟著改名，對外的 `taughtByCurrentJob` 欄位不變。驗證：改名前後 `dotnet test --filter-class "*Skill*"` 都全綠，`backend/openapi/` 沒有差異。[after: 1.1]
+- [x] 1.2 結構性變更（單獨以 ♻️ refactor commit）：依 design「學技能可以指定職業，條件仍在 Domain」，把 `SkillTeaching.TaughtByCurrentJob` 改名為 `Teaches`、`LearnCheck.TaughtByCurrentJob` 改名為 `Teaches`。`SkillService` 與測試跟著改名，對外的 `taughtByCurrentJob` 欄位不變。驗證：改名前後 `dotnet test --filter-class "*Skill*"` 都全綠，`backend/openapi/` 沒有差異。[after: 1.1]
 - [ ] 1.3 實作 Upgrading a learned skill with a previous job's skill points，以及 Learning rejections and their order 的新原因。
   - Domain：`SkillTeaching` 加 `ThroughPreviousJob`；`LearnCheck` 加 `Learned` 與 `NOT_LEARNED`（排在 `WRONG_JOB` 之後）。
   - Application：`SkillService.LearnAsync` 收 `jobId`，決定用哪個職業，順序是：不帶或等於目前職業 → 未知 `JOB_UNKNOWN` → 沒持有只回 `WRONG_JOB`；扣那個職業的技能點。

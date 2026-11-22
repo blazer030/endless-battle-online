@@ -105,7 +105,7 @@ public sealed class SkillService(
         return new SkillView(
             skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, skill.Icon, level, skill.MaxLevel,
             current is null ? null : SkillSummary.Of(current),
-            check.TaughtByCurrentJob,
+            check.Teaches,
             skill.Prerequisite is { } prerequisite
                 ? new SkillPrerequisiteCheckView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level, check.PrerequisiteMet)
                 : null,
