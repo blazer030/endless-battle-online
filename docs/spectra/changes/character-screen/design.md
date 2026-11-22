@@ -9,7 +9,7 @@
   - 「登出」，`App` 只清掉本機 token、回標題，不送請求。
   - 名稱表來自 `AdventureScreen` 讀的 `getPublicJobs`、`getCreationOptions`（`/api/public/settings`）。
 - 技能 API 現況：
-  - `GET /api/skills` 回 `{ jobId, skillPoints, skills, slots }`。`skills` 是目前職業教的技能（`job-skills.json` 順序）加上其他已學的技能；每筆帶 `summary`（`SkillSummary.Of` 用「｜」接起來的一行）、`taughtByCurrentJob`、`prerequisite.met`、`next`（`money`、`proficiency`＝技能點花費、`summary`、`canLearn`、`enoughMoney`、`enoughProficiency`）。
+  - `GET /api/skills` 回 `{ jobId, skillPoints, skills, slots }`。`skills` 是目前職業教的技能（`skills.json` 順序）加上其他已學的技能；每筆帶 `summary`（`SkillSummary.Of` 用「｜」接起來的一行）、`taughtByCurrentJob`、`prerequisite.met`、`next`（`money`、`proficiency`＝技能點花費、`summary`、`canLearn`、`enoughMoney`、`enoughProficiency`）。
   - `POST /api/skills/learn { skillId }` 只能用目前職業的技能點；原因依序 `WRONG_JOB`、`PREREQUISITE`、`MAX_LEVEL`、`NOT_ENOUGH_PROFICIENCY`、`NOT_ENOUGH_MONEY`（Domain `SkillLearning`、`LearnCheck`）。
   - `job_proficiency` 每列有 `Proficiency`（轉職門檻，上限顯示 3500）與 `SkillPoints`（學技能扣）；只在該職業得到熟練度或技能點時才會產生那一列（`IJobProficiencyRepository.AddAsync`）。
   - 技能學習沒有規格。測試在 `SkillLearningTests`、`SkillServiceTests`、`SkillEndpointsTests`、`SkillSummaryTests`。
@@ -229,10 +229,10 @@
 
 - `POST /api/skills/learn`
   - 請求：`{ skillId: string, jobId?: string | null }`；
-  - 回應：`SkillOverviewResponse`，加 `jobs: JobSkillsResponse[]`。
-- `JobSkillsResponse`：`{ jobId, jobName, tier, current, skillPoints, skills: JobSkillResponse[] }`。
-- `JobSkillResponse`：`{ id, name, slotType, timing, description, icon, level, maxLevel, rows: SkillDetailRowResponse[] | null, prerequisite: SkillPrerequisiteCheckResponse | null, next: JobSkillNextLevelResponse | null }`。
-- `JobSkillNextLevelResponse`：`{ level, money, skillPoints, rows, canLearn, enoughMoney, enoughSkillPoints }`。
+  - 回應：`SkillOverviewResponse`，加 `jobs: SkillJobResponse[]`。
+- `SkillJobResponse`：`{ jobId, jobName, tier, current, skillPoints, skills: LearnableSkillResponse[] }`。
+- `LearnableSkillResponse`：`{ id, name, slotType, timing, description, icon, level, maxLevel, rows: SkillDetailRowResponse[] | null, prerequisite: SkillPrerequisiteCheckResponse | null, next: LearnableSkillNextLevelResponse | null }`。
+- `LearnableSkillNextLevelResponse`：`{ level, money, skillPoints, rows, canLearn, enoughMoney, enoughSkillPoints }`。
 - `SkillDetailRowResponse`：`{ kind: "Trigger" | "Cost" | "Effect" | "Cooldown", text }`。
 - 前端 client：
   - `getAccount(): Promise<AccountVo>`；

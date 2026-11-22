@@ -56,5 +56,28 @@ public static class SkillEndpoints
             skill.Next is { } next
                 ? new SkillNextLevelResponse(next.Level, next.Money, next.Proficiency, next.Summary, next.CanLearn, next.EnoughMoney, next.EnoughProficiency)
                 : null)).ToList(),
-        overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId)).ToList());
+        overview.Slots.Select(slot => new SkillSlotResponse(slot.Slot, slot.SkillId)).ToList(),
+        overview.Jobs.Select(job => new SkillJobResponse(
+            job.JobId, job.JobName, job.Tier, job.Current, job.SkillPoints, job.Skills.Select(ToResponse).ToList())).ToList());
+
+    private static LearnableSkillResponse ToResponse(JobSkillView skill) => new(
+        skill.Id,
+        skill.Name,
+        skill.Type,
+        skill.Timing,
+        skill.Description,
+        skill.Icon,
+        skill.Level,
+        skill.MaxLevel,
+        skill.Rows is { } rows ? ToResponse(rows) : null,
+        skill.Prerequisite is { } prerequisite
+            ? new SkillPrerequisiteCheckResponse(prerequisite.SkillId, prerequisite.Name, prerequisite.Level, prerequisite.Met)
+            : null,
+        skill.Next is { } next
+            ? new LearnableSkillNextLevelResponse(
+                next.Level, next.Money, next.SkillPoints, ToResponse(next.Rows), next.CanLearn, next.EnoughMoney, next.EnoughSkillPoints)
+            : null);
+
+    private static List<SkillDetailRowResponse> ToResponse(IReadOnlyList<SkillDetailRow> rows) =>
+        rows.Select(row => new SkillDetailRowResponse(row.Kind, row.Text)).ToList();
 }

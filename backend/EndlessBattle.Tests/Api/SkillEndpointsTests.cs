@@ -161,6 +161,30 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.False(heal.TryGetProperty("jobId", out _));
     }
 
+    // 規格「Skill overview lists each held job's skills」：jobs 帶每個職業的技能與數值列，不帶原因代碼
+    [Fact]
+    public async Task Get_CarriesJobsWithoutReasons()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "thief", 40);
+
+        var body = await ReadOkAsync(await client.GetAsync("/api/skills", CancellationToken));
+
+        var jobs = body.GetProperty("jobs").EnumerateArray().ToList();
+        Assert.Equal(["warrior", "thief"], jobs.Select(job => job.GetProperty("jobId").GetString()));
+        Assert.True(jobs[0].GetProperty("current").GetBoolean());
+        Assert.Equal(40, jobs[1].GetProperty("skillPoints").GetInt64());
+        var burst = jobs[0].GetProperty("skills")[0];
+        Assert.Equal(JsonValueKind.Null, burst.GetProperty("rows").ValueKind);
+        var next = burst.GetProperty("next");
+        Assert.Equal(300, next.GetProperty("skillPoints").GetInt64());
+        Assert.False(next.GetProperty("enoughSkillPoints").GetBoolean());
+        Assert.Equal("Trigger", next.GetProperty("rows")[0].GetProperty("kind").GetString());
+        Assert.False(next.TryGetProperty("reasons", out _));
+        Assert.False(burst.TryGetProperty("reasons", out _));
+    }
+
     [Fact]
     public async Task Learn_ReturnsUpdatedOverview()
     {

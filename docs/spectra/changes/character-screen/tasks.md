@@ -43,9 +43,9 @@
   - `Rows_CostTexts`（`SP 最大值×N%`、`全部 SP`、`HP N`、`金錢 N`）。
   驗證：`SkillSummaryTests` 全綠，既有 `Of` 測試不改也通過。[after: 1.3]
   - 實作紀錄：`SkillSummary.RowsOf` 與 `SkillDetailKind`、`SkillDetailRow`（放在 `SkillSummary.cs`）；消耗文字抽成 `CostText`，`Of` 的「消耗」前綴照原本的空白規則接回去。冷卻那條用測試自建的等級（正式內容沒有冷卻）。先跑因型別不存在而編譯失敗；實作後 `SkillSummaryTests` 8 項全綠（原本 4 項不改），`*Skill*` 256 項全綠。
-- [ ] 1.5 依 design「技能回應加每個職業的清單，舊欄位不動」實作 Skill overview lists each held job's skills。
+- [x] 1.5 依 design「技能回應加每個職業的清單，舊欄位不動」實作 Skill overview lists each held job's skills。
   - `SkillOverview` 加 `Jobs`（`JobSkills`、`JobSkillView`）：目前職業第一，其他持有的職業照 `jobs.json` 順序；以前的職業只列已學的；每個職業用自己的技能點判斷。
-  - `SkillEndpoints` 與 `Contracts.cs` 加 `JobSkillsResponse`、`JobSkillResponse`、`JobSkillNextLevelResponse`、`SkillDetailRowResponse`；`GET` 與 `learn` 都帶，頂層欄位不變。
+  - `SkillEndpoints` 與 `Contracts.cs` 加 `SkillJobResponse`、`LearnableSkillResponse`、`LearnableSkillNextLevelResponse`、`SkillDetailRowResponse`；`GET` 與 `learn` 都帶，頂層欄位不變。
   - 先寫失敗測試：
     - `SkillServiceTests.Jobs_PreviousJobListsOnlyLearned`（Scenario 的術士 1,882 技能點只列魔力增幅）；
     - `Jobs_EachJobJudgesWithItsOwnSkillPoints`；
@@ -54,6 +54,11 @@
     - `SkillEndpointsTests.Get_CarriesJobsWithoutReasons`。
   - 之後 `dotnet build` 產生 `backend/openapi/`，`cd frontend && pnpm generate:api` 更新 `schema.ts`（`git add` 產生檔）。
   驗證：測試全綠；`./scripts/check.sh` 的 API 文件與型別檢查通過。[after: 1.4]
+  - 實作紀錄：
+    - Application：`SkillOverview` 加 `Jobs`（`JobSkills`、`JobSkillView`、`JobSkillNextLevelView`）；`SkillService.JobsOf` 目前職業第一、其他有熟練度紀錄的職業照 `jobs.json` 順序；以前的職業用 `ThroughPreviousJob` 判斷；前置技能的轉換抽成 `PrerequisiteOf` 共用。
+    - Api：跟公開職業 API 既有的 `JobSkillResponse` 撞名，新型別改名為 `SkillJobResponse`、`LearnableSkillResponse`、`LearnableSkillNextLevelResponse`（design 跟著改）。`SkillDetailKind` 定義在 Application，`Contracts.cs` 加 `using EndlessBattle.Application.Skills`。
+    - 發現規格寫錯：技能清單照 `skills.json` 順序（`SkillsOf` 依 `AllSkills` 過濾），不是 `job-skills.json`。正式內容兩者剛好一樣，所以 1.1 的測試有過；已把 `skill-learning` 規格兩處與 design 改成 `skills.json`。
+    - 先跑新測試因 `SkillOverview.Jobs` 不存在而編譯失敗；實作後 `*Skill*` 261 項全綠（含 Testcontainers 的 `SkillEndpointsTests.Get_CarriesJobsWithoutReasons`）。`schema.ts` 已重新產生，`tsc -b` 通過。
 
 ## 2. 前端資料與純模型
 

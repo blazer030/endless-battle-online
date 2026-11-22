@@ -385,4 +385,64 @@ public class SkillServiceTests
         Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], invalid.Reasons);
         Assert.Empty(log);
     }
+
+    // ── 規格「Skill overview lists each held job's skills」 ──
+    [Fact]
+    public async Task Jobs_PreviousJobListsOnlyLearned()
+    {
+        await ArrangeWarriorAsync(0, new Dictionary<string, long> { ["job-6"] = 10, ["job-7"] = 1882 }, new LearnedSkill("skill-11", 3));
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        Assert.Equal(["job-6", "job-7"], overview.Jobs.Select(job => job.JobId));
+        var warrior = overview.Jobs[0];
+        Assert.Equal(("戰士", 1, true, 10L), (warrior.JobName, warrior.Tier, warrior.Current, warrior.SkillPoints));
+        Assert.Equal(["skill-1", "skill-61", "skill-71", "skill-77"], warrior.Skills.Select(skill => skill.Id));
+        var sorcerer = overview.Jobs[1];
+        Assert.Equal(("術士", false, 1882L), (sorcerer.JobName, sorcerer.Current, sorcerer.SkillPoints));
+        Assert.Equal(["skill-11"], sorcerer.Skills.Select(skill => skill.Id));
+    }
+
+    // 目前職業的技能點是 0，以前職業的技能點夠 → 以前職業那份可以升級
+    [Fact]
+    public async Task Jobs_EachJobJudgesWithItsOwnSkillPoints()
+    {
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 0, ["job-7"] = 5000 }, new LearnedSkill("skill-11", 1));
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        var next = Assert.Single(overview.Jobs[1].Skills).Next!;
+        Assert.True(next.EnoughSkillPoints);
+        Assert.True(next.CanLearn);
+        Assert.False(overview.Jobs[0].Skills[0].Next!.EnoughSkillPoints);
+    }
+
+    [Fact]
+    public async Task Jobs_HeldJobWithoutLearnedSkillsIsEmpty()
+    {
+        await ArrangeWarriorAsync(0, new Dictionary<string, long> { ["job-8"] = 10 });
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        Assert.Equal(["job-6", "job-8"], overview.Jobs.Select(job => job.JobId));
+        Assert.Empty(overview.Jobs[1].Skills);
+    }
+
+    // 爆氣 Lv1 的目前列與 Lv2 的下一級列；未學的技能沒有目前列；目前職業沒有熟練度紀錄時技能點 0
+    [Fact]
+    public async Task Jobs_RowsOfCurrentAndNextLevel()
+    {
+        await ArrangeWarriorAsync(0, new Dictionary<string, long>(), new LearnedSkill("skill-1", 1));
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        var warrior = Assert.Single(overview.Jobs);
+        Assert.Equal(0, warrior.SkillPoints);
+        var burst = warrior.Skills[0];
+        Assert.Equal(["機率 40%", "SP 2", "自己物攻 +1%，3 回合"], burst.Rows!.Select(row => row.Text));
+        Assert.Equal((2, 2000L, 235L), (burst.Next!.Level, burst.Next.Money, burst.Next.SkillPoints));
+        Assert.Equal(["機率 50%", "SP 4", "自己物攻 +2%，3 回合"], burst.Next.Rows.Select(row => row.Text));
+        Assert.Null(warrior.Skills[1].Rows);
+        Assert.Equal(new SkillPrerequisiteCheckView("skill-1", "爆氣", 3, false), warrior.Skills[1].Prerequisite);
+    }
 }

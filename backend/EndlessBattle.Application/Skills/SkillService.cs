@@ -30,8 +30,51 @@ public sealed class SkillService(
             .ToList();
 
         var slots = await loadout.ListAsync(character.Id, cancellationToken);
-        return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots);
+        return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots, JobsOf(character, points, levels));
     }
+
+    // 目前職業排第一，其他有熟練度紀錄的職業照內容順序（內容已沒有的職業略過）
+    private List<JobSkills> JobsOf(Character character, IReadOnlyList<JobProficiency> points, IReadOnlyDictionary<string, int> levels)
+    {
+        var held = content.AllJobs.Where(job => job.Id != character.JobId && points.Any(row => row.JobId == job.Id));
+        return content.AllJobs.Where(job => job.Id == character.JobId).Concat(held)
+            .Select(job =>
+            {
+                var current = job.Id == character.JobId;
+                var skillPoints = SkillPointsOf(points, job.Id);
+                var skills = content.SkillsOf(job.Id)
+                    .Where(skill => current || levels.GetValueOrDefault(skill.Id) > 0)
+                    .Select(skill => ToJobSkillView(
+                        character, skill, levels.GetValueOrDefault(skill.Id), skillPoints,
+                        TeachingOf(job.Id, skill, levels) with { ThroughPreviousJob = !current }))
+                    .ToList();
+                return new JobSkills(job.Id, job.Name, job.Tier, current, skillPoints, skills);
+            })
+            .ToList();
+    }
+
+    private JobSkillView ToJobSkillView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
+    {
+        var check = SkillLearning.Evaluate(character, skill, level, skillPoints, teaching);
+        JobSkillNextLevelView? next = null;
+        if (!check.AtMaxLevel)
+        {
+            var target = skill.LevelAt(check.TargetLevel);
+            next = new JobSkillNextLevelView(
+                target.Level, target.Money, target.Proficiency, SkillSummary.RowsOf(target), check.Allowed, check.EnoughMoney, check.EnoughProficiency);
+        }
+
+        return new JobSkillView(
+            skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, skill.Icon, level, skill.MaxLevel,
+            level == 0 ? null : SkillSummary.RowsOf(skill.LevelAt(Math.Min(level, skill.MaxLevel))),
+            PrerequisiteOf(skill, check),
+            next);
+    }
+
+    private SkillPrerequisiteCheckView? PrerequisiteOf(SkillDefinition skill, LearnCheck check) =>
+        skill.Prerequisite is { } prerequisite
+            ? new SkillPrerequisiteCheckView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level, check.PrerequisiteMet)
+            : null;
 
     public Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken) =>
         LearnAsync(accountId, skillId, null, cancellationToken);
@@ -123,9 +166,7 @@ public sealed class SkillService(
             skill.Id, skill.Name, skill.Type, skill.Timing, skill.Description, skill.Icon, level, skill.MaxLevel,
             current is null ? null : SkillSummary.Of(current),
             check.Teaches,
-            skill.Prerequisite is { } prerequisite
-                ? new SkillPrerequisiteCheckView(prerequisite.SkillId, content.GetSkill(prerequisite.SkillId).Name, prerequisite.Level, check.PrerequisiteMet)
-                : null,
+            PrerequisiteOf(skill, check),
             next);
     }
 }

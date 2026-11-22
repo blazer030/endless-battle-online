@@ -1,3 +1,4 @@
+using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Adventure;
 using EndlessBattle.Domain.Battle;
 using EndlessBattle.Domain.Equipment;
@@ -181,11 +182,36 @@ public sealed record SetSkillSlotsRequest(IReadOnlyList<SkillSlotRequest?>? Slot
 
 public sealed record SkillSlotRequest(int? Slot, string? SkillId);
 
+// Jobs：目前職業與以前當過的職業各一份技能清單（角色頁技能頁）；Skills 是舊技能分頁用的清單
 public sealed record SkillOverviewResponse(
     string JobId,
     long SkillPoints,
     IReadOnlyList<SkillResponse> Skills,
-    IReadOnlyList<SkillSlotResponse> Slots);
+    IReadOnlyList<SkillSlotResponse> Slots,
+    IReadOnlyList<SkillJobResponse> Jobs);
+
+// SkillPoints 是這個職業的技能點；各技能的 next 都用它判斷
+public sealed record SkillJobResponse(string JobId, string JobName, int Tier, bool Current, long SkillPoints, IReadOnlyList<LearnableSkillResponse> Skills);
+
+// Rows 是目前等級的數值列（未學為 null）；Next 在滿級時為 null
+public sealed record LearnableSkillResponse(
+    string Id,
+    string Name,
+    SkillType SlotType,
+    SkillTiming Timing,
+    string Description,
+    string? Icon,
+    int Level,
+    int MaxLevel,
+    IReadOnlyList<SkillDetailRowResponse>? Rows,
+    SkillPrerequisiteCheckResponse? Prerequisite,
+    LearnableSkillNextLevelResponse? Next);
+
+public sealed record LearnableSkillNextLevelResponse(
+    int Level, long Money, long SkillPoints, IReadOnlyList<SkillDetailRowResponse> Rows, bool CanLearn, bool EnoughMoney, bool EnoughSkillPoints);
+
+// Kind 是 Trigger（發動）、Cost（消耗）、Effect（效果）、Cooldown（冷卻）；列名由前端決定
+public sealed record SkillDetailRowResponse(SkillDetailKind Kind, string Text);
 
 // Level 0 表示尚未學習；Summary 是目前等級的效果文字（未學為 null），Description 是技能的文字說明；Prerequisite 在沒有前置技能時為 null；Next 在已滿級時為 null
 public sealed record SkillResponse(

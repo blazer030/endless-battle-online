@@ -3865,6 +3865,123 @@
           }
         }
       },
+      "LearnableSkillNextLevelResponse": {
+        "required": [
+          "level",
+          "money",
+          "skillPoints",
+          "rows",
+          "canLearn",
+          "enoughMoney",
+          "enoughSkillPoints"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "money": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillDetailRowResponse"
+            }
+          },
+          "canLearn": {
+            "type": "boolean"
+          },
+          "enoughMoney": {
+            "type": "boolean"
+          },
+          "enoughSkillPoints": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LearnableSkillResponse": {
+        "required": [
+          "id",
+          "name",
+          "slotType",
+          "timing",
+          "description",
+          "icon",
+          "level",
+          "maxLevel",
+          "rows",
+          "prerequisite",
+          "next"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slotType": {
+            "$ref": "#/components/schemas/SkillType"
+          },
+          "timing": {
+            "$ref": "#/components/schemas/SkillTiming"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxLevel": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rows": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/SkillDetailRowResponse"
+            }
+          },
+          "prerequisite": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SkillPrerequisiteCheckResponse"
+              }
+            ]
+          },
+          "next": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LearnableSkillNextLevelResponse"
+              }
+            ]
+          }
+        }
+      },
       "LearnSkillRequest": {
         "required": [
           "skillId",
@@ -5302,6 +5419,65 @@
           }
         }
       },
+      "SkillDetailKind": {
+        "enum": [
+          "Trigger",
+          "Cost",
+          "Effect",
+          "Cooldown"
+        ]
+      },
+      "SkillDetailRowResponse": {
+        "required": [
+          "kind",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/SkillDetailKind"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "SkillJobResponse": {
+        "required": [
+          "jobId",
+          "jobName",
+          "tier",
+          "current",
+          "skillPoints",
+          "skills"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "jobName": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "skillPoints": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LearnableSkillResponse"
+            }
+          }
+        }
+      },
       "SkillLevelSummaryResponse": {
         "required": [
           "level",
@@ -5361,7 +5537,8 @@
           "jobId",
           "skillPoints",
           "skills",
-          "slots"
+          "slots",
+          "jobs"
         ],
         "type": "object",
         "properties": {
@@ -5382,6 +5559,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SkillSlotResponse"
+            }
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillJobResponse"
             }
           }
         }

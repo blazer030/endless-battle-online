@@ -2847,6 +2847,33 @@ export interface components {
             /** Format: int32 */
             minimum: number;
         };
+        LearnableSkillNextLevelResponse: {
+            /** Format: int32 */
+            level: number;
+            /** Format: int64 */
+            money: number;
+            /** Format: int64 */
+            skillPoints: number;
+            rows: components["schemas"]["SkillDetailRowResponse"][];
+            canLearn: boolean;
+            enoughMoney: boolean;
+            enoughSkillPoints: boolean;
+        };
+        LearnableSkillResponse: {
+            id: string;
+            name: string;
+            slotType: components["schemas"]["SkillType"];
+            timing: components["schemas"]["SkillTiming"];
+            description: string;
+            icon: null | string;
+            /** Format: int32 */
+            level: number;
+            /** Format: int32 */
+            maxLevel: number;
+            rows: null | components["schemas"]["SkillDetailRowResponse"][];
+            prerequisite: null | components["schemas"]["SkillPrerequisiteCheckResponse"];
+            next: null | components["schemas"]["LearnableSkillNextLevelResponse"];
+        };
         LearnSkillRequest: {
             skillId: null | string;
             jobId: null | string;
@@ -3221,6 +3248,22 @@ export interface components {
             /** Format: int32 */
             refineMax: number;
         };
+        /** @enum {unknown} */
+        SkillDetailKind: "Trigger" | "Cost" | "Effect" | "Cooldown";
+        SkillDetailRowResponse: {
+            kind: components["schemas"]["SkillDetailKind"];
+            text: string;
+        };
+        SkillJobResponse: {
+            jobId: string;
+            jobName: string;
+            /** Format: int32 */
+            tier: number;
+            current: boolean;
+            /** Format: int64 */
+            skillPoints: number;
+            skills: components["schemas"]["LearnableSkillResponse"][];
+        };
         SkillLevelSummaryResponse: {
             /** Format: int32 */
             level: number;
@@ -3244,6 +3287,7 @@ export interface components {
             skillPoints: number;
             skills: components["schemas"]["SkillResponse"][];
             slots: components["schemas"]["SkillSlotResponse"][];
+            jobs: components["schemas"]["SkillJobResponse"][];
         };
         SkillPrerequisiteCheckResponse: {
             skillId: string;
