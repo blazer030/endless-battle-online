@@ -244,4 +244,12 @@
       - 讀取失敗的「再試一次」改成排在句子下面、橫書兩行。
     - 只靠測試的部分：瀏覽器面板隱藏時畫格被節流，等待墨點 0.45 秒出現、至少停 0.3 秒的時間點靠 fake timer 測試。
     - 沒有內容圖的部分：技能圖示與 Class II 職業圖示 R2 還沒有，顯示佔位圖。
-- [ ] 5.2 依 design「硬規則」複查（Api 只轉型、條件在 Domain；色碼只在 `theme.css`；內容圖只經 `ContentImage`；`schema.ts` 為產生檔），`./scripts/check.sh` exit code 0。[after: 1.1, 5.1]
+- [x] 5.2 依 design「硬規則」複查（Api 只轉型、條件在 Domain；色碼只在 `theme.css`；內容圖只經 `ContentImage`；`schema.ts` 為產生檔），`./scripts/check.sh` exit code 0。[after: 1.1, 5.1]
+  - 驗證紀錄：
+    - 硬規則複查：
+      - Api 只轉型：`SkillEndpoints` 只對應欄位，學習條件在 Domain `SkillLearning`；「沒當過的職業只回 `WRONG_JOB`」是 Application 查熟練度紀錄後擋下。
+      - 新 CSS／TSX 沒有寫死色碼，新色碼都在 `theme.css`。
+      - `src/game` 沒有引用 `src/api`。
+      - 立繪、職業圖示、技能圖示只經 `ContentImage`。
+      - `schema.ts` 由 `pnpm generate:api` 產生。
+    - 2026-11-22 `./scripts/check.sh` exit 0：後端 2025 項、前端 1149 項、admin 144 項、tools/assets 66 項、tools/content-sheet 25 項，0 失敗。
