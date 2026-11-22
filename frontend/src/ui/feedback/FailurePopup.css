@@ -1,0 +1,28 @@
+.failure-popup {
+  padding-top: 4px;
+}
+
+.failure-popup__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px;
+  transform: rotate(-4deg);
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--paper);
+  background: url("../../assets/title/seal.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 2px 2px rgb(var(--seal-shadow-rgb) / 0.45));
+}
+
+.failure-popup__text {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  color: var(--feedback-failure-text);
+}

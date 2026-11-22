@@ -32,6 +32,15 @@ export const RegisterSealSettleMilliseconds = 900
 export const RegisterCardReturnMilliseconds = 600
 // 讀角色時，過這麼久還沒好才浮出墨點，快的時候不閃
 export const InkDotsDelaySeconds = 0.45
+// 共用的等待墨點（ui/feedback）：送出後過這麼久還沒回應才出現，同標題頁讀角色（與 ActionWait.css 一致）
+export const ActionWaitDelaySeconds = InkDotsDelaySeconds
+// 墨點出現後至少停這麼久才收，免得閃一下就不見
+export const ActionWaitMinimumMilliseconds = 300
+export const ActionWaitFadeInSeconds = 0.2
+export const ActionWaitFadeOutSeconds = 0.15
+// 共用彈窗（成功、失敗、確認）：淡入＋從 0.92 倍放大、淡出（與 Popup.css 一致）
+export const PopupInSeconds = 0.22
+export const PopupOutSeconds = 0.15
 // 「歡迎回來」「踏上旅途」過場停留多久再進遊戲
 export const PassageMilliseconds = 2_400
 // 打開網頁沒角色或讀不到時，過場背景疊在下一個畫面上淡出（延遲 0.3 秒＋0.6 秒，與 Passage.css 一致）

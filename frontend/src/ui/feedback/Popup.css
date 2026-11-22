@@ -1,0 +1,80 @@
+/* 時長同 motion/timings.ts 的 PopupInSeconds、PopupOutSeconds */
+.popup-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 95;
+  background: rgb(var(--shade-rgb) / 0.55);
+  animation: popup-fade 0.22s ease-out;
+  transition: opacity 0.15s;
+}
+
+.popup {
+  position: absolute;
+  z-index: 96;
+  left: 32px;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  padding: 8px 12px 12px;
+  color: var(--umber-deep);
+  text-align: center;
+  font-family: var(--font-ui);
+  border-style: solid;
+  border-width: 14px;
+  border-image: url("../../assets/inn/parchment.webp") 140 210 70 60 fill / 28px 42px 14px 12px
+    stretch;
+  filter: drop-shadow(0 10px 16px rgb(var(--shade-rgb) / 0.6));
+  animation: popup-in 0.22s ease-out;
+  transition: opacity 0.15s;
+}
+
+.popup-scrim--closing,
+.popup--closing {
+  opacity: 0;
+}
+
+.popup__button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 3px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: var(--umber-deep);
+  cursor: pointer;
+  background: var(--paper);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--umber-rgb) / 0.4),
+    0 3px 6px rgb(var(--shade-rgb) / 0.35);
+}
+
+.popup__button--go {
+  color: var(--paper);
+  background: var(--seal-red);
+}
+
+.popup__button--confirm {
+  display: block;
+  width: 150px;
+  margin: 14px auto 0;
+}
+
+.popup__button:not(:disabled):active {
+  transform: scale(0.96);
+}
+
+@keyframes popup-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.92);
+  }
+}

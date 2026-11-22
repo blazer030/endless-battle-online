@@ -190,6 +190,10 @@
   --brass-rgb: 201 164 100;
   --bonus-shadow-rgb: 30 18 8;
   --bonus-chip-shadow-rgb: 40 24 8;
+  /* 共用動作回饋（ui/feedback）：等待墨點底板、失敗彈窗的紅字與蠟封陰影 */
+  --feedback-plate-rgb: 30 18 8;
+  --feedback-failure-text: #9a2416;
+  --seal-shadow-rgb: 60 10 4;
   /* 舞台外的空間：所有新畫面共用，之後換成靜態大圖只改這裡 */
   --stage-backdrop: var(--ink);
   --font-serif: "Noto Serif TC", serif;

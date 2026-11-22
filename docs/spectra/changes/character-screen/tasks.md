@@ -93,12 +93,20 @@
 
 ## 3. 共用回饋與素材
 
-- [ ] 3.1 依 design「共用回饋元件放 `src/ui/feedback/`」實作 Waiting ink dots while an action is sent、Shared failure popup、Feedback timings live with the other motion constants：
+- [x] 3.1 依 design「共用回饋元件放 `src/ui/feedback/`」實作 Waiting ink dots while an action is sent、Shared failure popup、Feedback timings live with the other motion constants：
   - `useActionFeedback`、`ActionWait`（沿用 `InkDots`）、`Popup`、`FailurePopup`；
   - 時長常數進 `motion/timings.ts`，`ActionWaitDelaySeconds` 取 `InkDotsDelaySeconds`；
   - 新色碼進 `theme.css`。
   - 先寫失敗測試（fake timers）：`ActionWait.test.tsx` 的 `QuickResponseShowsNoInkDots`（0.2 秒）、`SlowResponseShowsInkDots`（1.5 秒）、`InkDotsStayTheMinimumTime`（0.5 秒回應 → 停到 0.75 秒）、`BlocksPressesWhileWaiting`；`FailurePopup.test.tsx` 的 `ShowsTheText`、`ClosesOnOutsidePress`；`timings.test.ts` 的 `ActionWaitDelayMatchesInkDots`。
   驗證：測試與 `pnpm check` 全綠。
+  - 實作紀錄：
+    - `ui/feedback/useActionFeedback.ts`：`run(send)` 交回 `{ ok, value | error }`，等待層收掉後才交回；同一刻連按的第二下不送、也不交回結果。
+    - `ActionWait`：沿用標題頁的 `InkDots`，放在深色底板上。
+    - `Popup`：紙框沿用 `inn/parchment` 的九宮格，切法同設計稿；遮罩與「確定」都會淡出後再關；`actions` 可以換成自己的按鈕，給登出確認用。淡出計時器原本寫在 ref，React 編譯器的 lint 不准在 render 裡傳 ref 給函式，改成用 state 加 effect。
+    - `FailurePopup`：蠟封沿用 `title/seal`。
+    - 時長常數進 `motion/timings.ts`；`theme.css` 加 `--feedback-plate-rgb`、`--feedback-failure-text`、`--seal-shadow-rgb`。
+    - 另外補一項 `FailureSettlesWithTheError`、`ConfirmClosesAfterFadingOut`。
+    - 先跑測試因模組與常數不存在而失敗；實作後 9 項通過，`pnpm check` 1122 項通過。
 - [ ] 3.2 設計素材：
   - 用 `cd tools/assets && pnpm cli design character <名稱> <來源圖>` 轉出 Design Source 表的素材到 `frontend/src/assets/character/*.webp`：裝備間、登記證、索引籤兩張、技能圖示圓兩張、菱形兩張；
   - 前端已有同一張圖（紅印章、木條、金幣等）就比對像素後沿用；
