@@ -232,4 +232,85 @@ public class SkillServiceTests
         Assert.Equal(SkillTiming.BeforeAttack, heal.Timing);
         Assert.Null(Assert.Single(overview.Skills, skill => skill.Id == "iron-skin").Summary);
     }
+
+    // ── 規格 skill-learning：正式內容的戰士（job-6）技能 ──
+    private static readonly JsonGameContent RealContent = JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content"));
+
+    private SkillService RealService() => new(characters, proficiencies, skillBook, loadout, RealContent);
+
+    // 準備正式內容的戰士：金錢與各職業的技能點、已學技能
+    private async Task<Character> ArrangeWarriorAsync(long money, IReadOnlyDictionary<string, long> skillPoints, params LearnedSkill[] learned)
+    {
+        var character = await characters.AddAsync(
+            TestCharacters.Default(AccountId, "測試者", 1, 1, Now) with { JobId = "job-6", Money = money }, CancellationToken);
+        foreach (var (jobId, points) in skillPoints)
+        {
+            await proficiencies.AddAsync(character.Id, jobId, 0, points, CancellationToken);
+        }
+
+        foreach (var skill in learned)
+        {
+            await skillBook.UpsertAsync(character.Id, skill, CancellationToken);
+        }
+
+        log.Clear();
+        return character;
+    }
+
+    // 規格「Current job skills come first」
+    [Fact]
+    public async Task Get_CurrentJobSkillsComeFirst()
+    {
+        await ArrangeWarriorAsync(0, new Dictionary<string, long>(), new LearnedSkill("skill-11", 2), new LearnedSkill("skill-1", 1));
+
+        var overview = await RealService().GetAsync(AccountId, CancellationToken);
+
+        Assert.Equal(["skill-1", "skill-61", "skill-71", "skill-77", "skill-11"], overview.Skills.Select(skill => skill.Id));
+        Assert.False(overview.Skills[4].TaughtByCurrentJob);
+    }
+
+    // 規格「Learning the first level」：爆氣 Lv1 花 500 金錢、35 技能點，熟練度不動
+    [Fact]
+    public async Task Learn_FirstLevelSpendsMoneyAndSkillPoints()
+    {
+        var character = await ArrangeWarriorAsync(1000, new Dictionary<string, long> { ["job-6"] = 100 });
+
+        var overview = await RealService().LearnAsync(AccountId, "skill-1", CancellationToken);
+
+        Assert.Equal(1, Assert.Single(overview.Skills, skill => skill.Id == "skill-1").Level);
+        Assert.Equal(500, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        Assert.Equal([new JobProficiency("job-6", 0, 65)], await proficiencies.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 規格「Learning the next level」：爆氣 Lv2 花 2,000 金錢、235 技能點
+    [Fact]
+    public async Task Learn_NextLevelSpendsMoneyAndSkillPoints()
+    {
+        var character = await ArrangeWarriorAsync(5000, new Dictionary<string, long> { ["job-6"] = 300 }, new LearnedSkill("skill-1", 1));
+
+        var overview = await RealService().LearnAsync(AccountId, "skill-1", CancellationToken);
+
+        Assert.Equal(2, Assert.Single(overview.Skills, skill => skill.Id == "skill-1").Level);
+        Assert.Equal(3000, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        Assert.Equal(65, Assert.Single(await proficiencies.ListAsync(character.Id, CancellationToken)).SkillPoints);
+    }
+
+    // 規格「Every reason in order」的前三列（目前職業）；被拒時什麼都不變
+    [Theory]
+    [InlineData("skill-11", 1_000_000L, 100_000L, 0, "WRONG_JOB")]
+    [InlineData("skill-61", 0L, 0L, 2, "PREREQUISITE,NOT_ENOUGH_PROFICIENCY,NOT_ENOUGH_MONEY")]
+    [InlineData("skill-1", 0L, 100_000L, 10, "MAX_LEVEL")]
+    public async Task Learn_ReasonsExampleTable(string skillId, long money, long skillPoints, int burstLevel, string reasons)
+    {
+        LearnedSkill[] learned = burstLevel > 0 ? [new LearnedSkill("skill-1", burstLevel)] : [];
+        var character = await ArrangeWarriorAsync(money, new Dictionary<string, long> { ["job-6"] = skillPoints }, learned);
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, skillId, CancellationToken));
+
+        Assert.Equal(reasons.Split(','), invalid.Reasons);
+        Assert.Empty(log);
+        Assert.Equal(money, (await characters.FindByAccountAsync(AccountId, CancellationToken))!.Money);
+        Assert.Equal(skillPoints, Assert.Single(await proficiencies.ListAsync(character.Id, CancellationToken)).SkillPoints);
+        Assert.Equal(learned, await skillBook.ListAsync(character.Id, CancellationToken));
+    }
 }
