@@ -160,12 +160,19 @@
     - 技能圖示用內容圖 `skills/<icon 或 id>`，現在 R2 沒有，會顯示佔位圖。
     - 升級鈕的接線留到 4.4。新色碼 `--character-*` 進 `theme.css`。
     - 先跑新測試 9 項失敗；實作後 29 項通過，`pnpm check` 1151 項通過。
-- [ ] 4.4 Learning from the skills page：
+- [x] 4.4 Learning from the skills page：
   - 按下印章送 `learnSkill`（以前的職業帶 `jobId`）並套等待墨點；
   - 成功時換成回傳的技能與角色、留在同一職業同一張卡、更新錢袋與交出角色，跳升級成功或習得成功彈窗；
   - 失敗時跳共用失敗彈窗、畫面不變。
   - 先寫失敗測試：`UpgradeShowsUpgradedPopup`、`LearnShowsLearnedPopup`、`UpgradeToMaxShowsMasterSeal`、`PreviousJobSendsJobId`、`SuccessKeepsJobAndCard`、`SuccessUpdatesWalletAndCharacter`、`RejectionShowsReasonText`、`NetworkFailureShowsConnectionFailed`、`WaitingBlocksSecondPress`。
   驗證：測試與 `pnpm check` 全綠。[after: 4.3]
+  - 實作紀錄：
+    - `CharacterScreen.learn`：用 `useActionFeedback().run` 送 `learnSkill`；只有正在看的不是目前職業時才帶 `jobId`。
+    - 回應只有技能，所以同一次等待裡再讀一次角色。讀不到角色時錢袋留舊值，不算失敗。
+    - 成功時換掉技能與角色、交出角色，再用 `learnedPopup` 跳 `LearnedPopup`。技能頁沒卸載，所以正在看的職業與展開的卡都留著。
+    - 失敗時 `ApiError` 的原因交給 `learnFailureText`，其他錯誤或沒有原因算連線失敗，跳共用 `FailurePopup`。
+    - `ActionWait` 掛在舞台層。
+    - 先跑新測試 9 項失敗；實作後 38 項通過，`pnpm check` 1160 項通過。
 - [ ] 4.5 依 design「角色頁是 GameScreen 的第七種展開設施」接線，並實作 `town-screen` 的 Facilities open the old tabbed screen 與 Enter and leave the character screen：
   - `GameScreen`：`revealed` 加 `character`（圓心 `characterRevealOrigin`、收回停城門口、帶最新角色）、`facilityViews` 拿掉 `character`；
   - 轉職鈕開舊外殼技能分頁，城鎮預載角色頁素材；

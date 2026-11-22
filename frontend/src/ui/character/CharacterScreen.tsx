@@ -1,13 +1,19 @@
-import { useEffect, useState, type CSSProperties } from "react"
-import type { ApiClient } from "../../api/client"
+import { useCallback, useEffect, useState, type CSSProperties } from "react"
+import { ApiError, type ApiClient } from "../../api/client"
 import type { Account } from "../../game/account"
 import type { BuffVo } from "../../game/buffs"
 import type { CharacterVo } from "../../game/character"
-import { characterLayout, portraitOffset } from "../../game/characterScreen"
+import {
+  characterLayout,
+  learnedPopup,
+  learnFailureText,
+  portraitOffset,
+  type LearnedPopup as LearnedPopupData,
+} from "../../game/characterScreen"
 import type { CreationOptionsVo } from "../../game/creationOptions"
 import type { InnVo } from "../../game/inn"
 import { portraitKey } from "../../game/portrait"
-import type { SkillOverviewVo } from "../../game/skillOverview"
+import type { LearnableSkill, SkillJob, SkillOverviewVo } from "../../game/skillOverview"
 import { formatNumber } from "../../game/format"
 import { contentArtKeys } from "../../render/contentAssets"
 import { ContentImage } from "../ContentImage"
@@ -15,8 +21,12 @@ import { BackButton } from "../companions/BackButton"
 import { useStage } from "../stage/stageContext"
 import { Seal } from "../title/Seal"
 import purse from "../../assets/town/purse.webp"
+import { ActionWait } from "../feedback/ActionWait"
+import { FailurePopup } from "../feedback/FailurePopup"
 import { Popup } from "../feedback/Popup"
+import { useActionFeedback } from "../feedback/useActionFeedback"
 import { AbilitiesPage } from "./AbilitiesPage"
+import { LearnedPopup } from "./LearnedPopup"
 import { RegistrationCard } from "./RegistrationCard"
 import { SkillsPage } from "./SkillsPage"
 import "../inn/InnScreen.css"
@@ -55,6 +65,10 @@ export type CharacterData = {
 }
 
 type Load = CharacterData | "failed" | null
+
+type Result =
+  | { kind: "learned"; popup: LearnedPopupData; skill: LearnableSkill }
+  | { kind: "failure"; text: string }
 type Page = "abilities" | "skills"
 
 const portraitKeys = new Set(contentArtKeys("portraits"))
@@ -86,6 +100,8 @@ export const CharacterScreen = ({
   const [attempt, setAttempt] = useState(0)
   const [page, setPage] = useState<Page>("abilities")
   const [askingSignOut, setAskingSignOut] = useState(false)
+  const [result, setResult] = useState<Result | null>(null)
+  const feedback = useActionFeedback()
 
   useEffect(() => {
     let isCurrent = true
@@ -105,6 +121,34 @@ export const CharacterScreen = ({
   }, [api, attempt, onCharacterChange])
 
   const data = load !== null && load !== "failed" ? load : null
+
+  // 升級、學習：等待墨點收掉後，畫面換成新的技能與角色，再跳成功彈窗；失敗時畫面不變、跳失敗彈窗。
+  // 回應只有技能，錢要重讀角色；角色讀不到時錢袋留著舊的
+  const learn = async (skill: LearnableSkill, job: SkillJob) => {
+    const outcome = await feedback.run(async () => {
+      const skills = await api.learnSkill(skill.id, job.current ? undefined : job.jobId)
+      const character = await api.getMyCharacter().catch(() => null)
+      return { skills, character }
+    })
+    if (!outcome.ok) {
+      const reasons = outcome.error instanceof ApiError ? outcome.error.reasons : null
+      setResult({ kind: "failure", text: learnFailureText(reasons, skill) })
+      return
+    }
+    const { skills, character } = outcome.value
+    setLoad((current) =>
+      current === null || current === "failed"
+        ? current
+        : { ...current, skills, character: character ?? current.character },
+    )
+    if (character !== null) onCharacterChange(character)
+    const after = skills.jobs
+      .find((entry) => entry.jobId === job.jobId)
+      ?.skills.find((entry) => entry.id === skill.id)
+    if (after !== undefined)
+      setResult({ kind: "learned", popup: learnedPopup(skill, after), skill: after })
+  }
+  const closeResult = useCallback(() => setResult(null), [])
   const layout = characterLayout(stage.height)
   const character = data?.character ?? null
   const hasPortrait =
@@ -194,12 +238,18 @@ export const CharacterScreen = ({
             <AbilitiesPage data={data} onAskSignOut={() => setAskingSignOut(true)} />
           )}
           {data !== null && page === "skills" && (
-            <SkillsPage jobs={data.skills.jobs} onLearn={() => undefined} />
+            <SkillsPage jobs={data.skills.jobs} onLearn={(skill, job) => void learn(skill, job)} />
           )}
         </div>
       </div>
 
       <BackButton label="城鎮" onClick={onBack} />
+
+      {result?.kind === "learned" && (
+        <LearnedPopup popup={result.popup} skill={result.skill} onClose={closeResult} />
+      )}
+      {result?.kind === "failure" && <FailurePopup text={result.text} onClose={closeResult} />}
+      <ActionWait feedback={feedback} />
 
       {askingSignOut && data !== null && (
         <Popup

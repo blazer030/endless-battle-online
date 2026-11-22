@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, expect, test, vi } from "vitest"
+import { ApiError } from "../../api/client"
 import { makeCharacter } from "../../test/fixtures"
 import { StageContext } from "../stage/stageContext"
 import { CharacterScreen, type CharacterScreenApi } from "./CharacterScreen"
@@ -13,6 +14,8 @@ import {
   learnableSkill,
   Now,
   overviewWith,
+  rows,
+  sorcererJob,
   warrior,
   warriorJob,
 } from "./testing"
@@ -460,4 +463,185 @@ test("EmptyDescriptionShowsPending", async () => {
   fireEvent.click(within(skillsPanel()).getByRole("button", { name: /術士/ }))
 
   expect(cardOf("魔力增幅")).toHaveTextContent("（說明待補）")
+})
+
+// ── 升級與學習 ──
+const upgraded = (level: number) =>
+  overviewWith([
+    warriorJob({
+      skillPoints: 0,
+      skills: [
+        learnableSkill({
+          level,
+          rows: rows("機率 100%", "SP 12", "自己物攻 +7%，3 回合"),
+          next: level >= 10 ? null : learnableSkill().next,
+        }),
+        ...warriorJob().skills.slice(1),
+      ],
+    }),
+    sorcererJob(),
+  ])
+
+const pressSeal = (skill: string, seal: "升級" | "學習" = "升級") => {
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: new RegExp(`^${skill}`) }))
+  fireEvent.click(within(cardOf(skill)).getByRole("button", { name: seal }))
+}
+
+const settle = () =>
+  act(async () => {
+    await vi.advanceTimersByTimeAsync(1000)
+  })
+
+// 規格「Upgrade with the current job」
+test("UpgradeShowsUpgradedPopup", async () => {
+  const api = createCharacterApi({ learnSkill: vi.fn().mockResolvedValue(upgraded(7)) })
+  await openSkills(api)
+
+  pressSeal("爆氣")
+  await settle()
+
+  const popup = screen.getByRole("dialog", { name: "升級成功" })
+  expect(popup).toHaveTextContent("Lv 6 → Lv 7 / 10")
+  expect(popup).not.toHaveTextContent("精通")
+  expect(cardOf("爆氣")).toHaveTextContent("Lv 7/10")
+  expect(switcher()).toHaveTextContent("0")
+  expect(api.learnSkill).toHaveBeenCalledWith("skill-1", undefined)
+})
+
+// 規格「Learning a new skill」
+test("LearnShowsLearnedPopup", async () => {
+  const unlearned = warriorJob().skills[3]
+  const learnable = {
+    ...unlearned,
+    prerequisite: null,
+    next: { ...unlearned.next!, canLearn: true, enoughSkillPoints: true },
+  }
+  const learned = { ...unlearned, level: 1, rows: unlearned.next!.rows }
+  const api = createCharacterApi({
+    getSkills: vi.fn().mockResolvedValue(overviewWith([warriorJob({ skills: [learnable] })])),
+    learnSkill: vi.fn().mockResolvedValue(overviewWith([warriorJob({ skills: [learned] })])),
+  })
+  await openSkills(api)
+
+  pressSeal("嗜血", "學習")
+  await settle()
+
+  expect(screen.getByRole("dialog", { name: "習得成功" })).toHaveTextContent("Lv 1 / 10")
+})
+
+// 升到滿級多一個「精通」章
+test("UpgradeToMaxShowsMasterSeal", async () => {
+  const api = createCharacterApi({
+    getSkills: vi
+      .fn()
+      .mockResolvedValue(overviewWith([warriorJob({ skills: [learnableSkill({ level: 9 })] })])),
+    learnSkill: vi.fn().mockResolvedValue(upgraded(10)),
+  })
+  await openSkills(api)
+
+  pressSeal("爆氣")
+  await settle()
+
+  expect(screen.getByRole("dialog", { name: "升級成功" })).toHaveTextContent("精通")
+})
+
+// 規格「Upgrade with a previous job」：帶正在看的職業
+test("PreviousJobSendsJobId", async () => {
+  const api = createCharacterApi({ learnSkill: vi.fn().mockResolvedValue(overviewWith()) })
+  await openSkills(api)
+  fireEvent.click(switcher())
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /術士/ }))
+
+  pressSeal("魔力增幅")
+  await settle()
+
+  expect(api.learnSkill).toHaveBeenCalledWith("skill-11", "job-7")
+})
+
+// 成功後停在同一職業、同一張卡展開
+test("SuccessKeepsJobAndCard", async () => {
+  const after = overviewWith([
+    warriorJob(),
+    sorcererJob({
+      skillPoints: 0,
+      skills: [learnableSkill({ id: "skill-11", name: "魔力增幅", level: 4 })],
+    }),
+  ])
+  const api = createCharacterApi({ learnSkill: vi.fn().mockResolvedValue(after) })
+  await openSkills(api)
+  fireEvent.click(switcher())
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /術士/ }))
+
+  pressSeal("魔力增幅")
+  await settle()
+  fireEvent.click(
+    within(screen.getByRole("dialog", { name: "升級成功" })).getByRole("button", { name: "確定" }),
+  )
+  await settle()
+
+  expect(switcher()).toHaveTextContent("術士")
+  expect(within(skillsPanel()).getByRole("button", { name: /^魔力增幅/ })).toHaveAttribute(
+    "aria-expanded",
+    "true",
+  )
+  expect(cardOf("魔力增幅")).toHaveTextContent("Lv 4/10")
+  expect(screen.queryByRole("dialog")).toBeNull()
+})
+
+// 成功後重讀角色：錢袋換新、交出角色
+test("SuccessUpdatesWalletAndCharacter", async () => {
+  const poorer = { ...warrior, money: 101_400 }
+  const getMyCharacter = vi.fn().mockResolvedValueOnce(warrior).mockResolvedValueOnce(poorer)
+  const onCharacterChange = vi.fn()
+  await renderCharacter({
+    api: createCharacterApi({ getMyCharacter, learnSkill: vi.fn().mockResolvedValue(upgraded(7)) }),
+    onCharacterChange,
+  })
+  fireEvent.click(screen.getByRole("tab", { name: "技能" }))
+
+  pressSeal("爆氣")
+  await settle()
+
+  expect(screen.getByLabelText("持有金錢")).toHaveTextContent("101,400")
+  expect(onCharacterChange).toHaveBeenLastCalledWith(poorer)
+})
+
+// 規格「Server rejection」：失敗彈窗寫原因，畫面不變
+test("RejectionShowsReasonText", async () => {
+  const api = createCharacterApi({
+    learnSkill: vi.fn().mockRejectedValue(new ApiError(400, ["NOT_ENOUGH_MONEY"])),
+  })
+  await openSkills(api)
+
+  pressSeal("爆氣")
+  await settle()
+
+  expect(screen.getByRole("alertdialog", { name: "失敗" })).toHaveTextContent("金錢不足")
+  expect(cardOf("爆氣")).toHaveTextContent("Lv 6/10")
+  expect(screen.queryByRole("dialog", { name: "升級成功" })).toBeNull()
+})
+
+// 沒連到伺服器：連線失敗
+test("NetworkFailureShowsConnectionFailed", async () => {
+  await openSkills(
+    createCharacterApi({ learnSkill: vi.fn().mockRejectedValue(new TypeError("fetch failed")) }),
+  )
+
+  pressSeal("爆氣")
+  await settle()
+
+  expect(screen.getByRole("alertdialog", { name: "失敗" })).toHaveTextContent("連線失敗")
+})
+
+// 等待中擋住點擊，不會送第二次
+test("WaitingBlocksSecondPress", async () => {
+  const api = createCharacterApi({ learnSkill: vi.fn(() => new Promise<never>(() => {})) })
+  await openSkills(api)
+
+  pressSeal("爆氣")
+  fireEvent.click(within(cardOf("爆氣")).getByRole("button", { name: "升級" }))
+  await settle()
+
+  expect(api.learnSkill).toHaveBeenCalledTimes(1)
+  expect(document.querySelector(".action-wait__plate")).not.toBeNull()
 })
