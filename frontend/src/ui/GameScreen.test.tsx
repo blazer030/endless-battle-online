@@ -10,6 +10,7 @@ import { createCompanionsApi } from "./companions/testing"
 import { createHonourApi, demoExchanges, shopWith } from "./honour/testing"
 import { MissionCompletionVo } from "../game/missions"
 import { createMissionsApi, lv150Board, regular } from "./missions/testing"
+import { createCharacterApi } from "./character/testing"
 import { GameScreen } from "./GameScreen"
 
 // 舊外殼另有測試；這裡只看停在哪個分頁、回城鎮交回什麼角色
@@ -429,9 +430,74 @@ test("GameScreen_BackFromMissionsCarriesTheLatestCharacter", async () => {
   expect(api.advance).not.toHaveBeenCalled()
 })
 
+// 規格 character-screen：Enter and leave the character screen——城門口「角色」展開角色頁，不呼叫推進
+const characterApi = (money = 1000) =>
+  ({
+    ...createApi(),
+    ...createCharacterApi({ getMyCharacter: vi.fn().mockResolvedValue({ ...character, money }) }),
+  }) as unknown as ApiClient
+
+const openCharacter = async () => {
+  click("角色 Lv 6")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+}
+
+test("GameScreen_CharacterOpensTheCharacterScreen", async () => {
+  const api = renderGame(characterApi())
+
+  await openCharacter()
+
+  expect(screen.getByRole("group", { name: "冒險者登記證" })).toBeInTheDocument()
+  expect(screen.queryByText(/舊外殼/)).not.toBeInTheDocument()
+  expect(screen.queryByTestId("town-world")).not.toBeInTheDocument()
+  expect(api.advance).not.toHaveBeenCalled()
+})
+
+// 「城鎮」收回、停在城門口
+test("GameScreen_BackFromCharacterShowsTheGate", async () => {
+  renderGame(characterApi())
+  await openCharacter()
+
+  click("城鎮")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.queryByRole("group", { name: "冒險者登記證" })).not.toBeInTheDocument()
+  expect(segmentOf()).toBe("0")
+})
+
+// 角色頁讀到的角色帶回城鎮
+test("GameScreen_BackFromCharacterCarriesTheLatestCharacter", async () => {
+  renderGame(characterApi(555))
+  await openCharacter()
+
+  click("城鎮")
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(RevealMilliseconds)
+  })
+
+  expect(screen.getByLabelText("金錢")).toHaveTextContent("555")
+})
+
+// 登記證的「轉職」：這一段先開舊外殼技能分頁
+test("GameScreen_JobChangeOpensTheSkillsTab", async () => {
+  renderGame(characterApi())
+  await openCharacter()
+
+  fireEvent.click(
+    within(screen.getByRole("group", { name: "冒險者登記證" })).getByRole("button", {
+      name: "轉職",
+    }),
+  )
+
+  expect(screen.getByText("舊外殼：skills／bag／Lv 6")).toBeInTheDocument()
+})
+
 // 規格 Facilities open the old tabbed screen 的對照表
 test.each([
-  [[], "角色 Lv 6", "character／bag"],
   [[], "背包", "bag／bag"],
   [[], "出發 中央平原", "adventure／bag"],
   [["市集"], "商店街", "bag／shop"],

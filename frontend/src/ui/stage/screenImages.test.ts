@@ -4,6 +4,7 @@ import {
   honourImages,
   innImages,
   missionsImages,
+  characterImages,
   townImages,
 } from "./screenImages"
 
@@ -47,6 +48,25 @@ test("MissionsImages_IncludeTheBoardArt", () => {
     "parchment",
     "clerk",
     "seal",
+  ]) {
+    expect(urls.some((url) => url.includes(name))).toBe(true)
+  }
+})
+
+// 角色頁：裝備間、手帳、索引籤、技能圓框與菱形，加上沿用的登記證、木桌、紅印章與彈窗紙
+test("CharacterImages_IncludeTheRoomArt", () => {
+  const urls = characterImages()
+
+  for (const name of [
+    "room",
+    "journal",
+    "tab",
+    "skill-disc-active",
+    "level-pip-lit",
+    "card-sealed",
+    "desk-edge",
+    "seal",
+    "parchment",
   ]) {
     expect(urls.some((url) => url.includes(name))).toBe(true)
   }

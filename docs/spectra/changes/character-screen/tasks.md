@@ -173,7 +173,7 @@
     - 失敗時 `ApiError` 的原因交給 `learnFailureText`，其他錯誤或沒有原因算連線失敗，跳共用 `FailurePopup`。
     - `ActionWait` 掛在舞台層。
     - 先跑新測試 9 項失敗；實作後 38 項通過，`pnpm check` 1160 項通過。
-- [ ] 4.5 依 design「角色頁是 GameScreen 的第七種展開設施」接線，並實作 `town-screen` 的 Facilities open the old tabbed screen 與 Enter and leave the character screen：
+- [x] 4.5 依 design「角色頁是 GameScreen 的第七種展開設施」接線，並實作 `town-screen` 的 Facilities open the old tabbed screen 與 Enter and leave the character screen：
   - `GameScreen`：`revealed` 加 `character`（圓心 `characterRevealOrigin`、收回停城門口、帶最新角色）、`facilityViews` 拿掉 `character`；
   - 轉職鈕開舊外殼技能分頁，城鎮預載角色頁素材；
   - `AdventureScreen` 拿掉「角色」分頁與 `onSignOut`，`App` 的登出改傳給 `GameScreen`→角色頁；
@@ -181,6 +181,17 @@
   - `docs/superpowers/specs/2026-10-23-deferred-backlog.md` 拿掉只跟舊 `CharacterScreen` 有關的條目（卸載時清倒數的測試缺口）。
   - 先寫失敗測試：`GameScreen.test.tsx` 的 `CharacterOpensTheCharacterScreen`、`BackFromCharacterShowsTheGate`、`BackFromCharacterCarriesTheLatestCharacter`、`JobChangeOpensTheSkillsTab`、`CharacterScreenMakesNoAdventureRequests`，`EachFacilityOpensItsTab` 拿掉角色；`AdventureScreen.test.tsx` 的分頁不含「角色」（改寫依賴舊角色分頁的既有測試）；`App.test.tsx` 的 `SignOutFromCharacterScreenShowsTitle`；`screenImages.test.ts` 包含角色頁素材。
   驗證：測試與 `pnpm check` 全綠。[after: 4.4]
+  - 實作紀錄：
+    - `GameScreen`：展開設施加 `character`（`characterRevealOrigin`、收回停城門口段 0、帶最新角色），`facilityViews` 拿掉 `character`；抽出 `openShell(tab, bagPage)`，轉職鈕用它開舊外殼技能分頁；`onSignOut` 改傳給角色頁。
+    - 城鎮載完後預載 `characterImages()`：`character/` 全部，加上登記證、木桌、木條、羊皮紙、紅印章。
+    - `AdventureScreen`：拿掉「角色」分頁與 `onSignOut`；名稱表照舊讀，背包還在用職業名。
+    - 刪舊 `ui/CharacterScreen.tsx`、`.css`、`.test.tsx`；延後清單刪掉卸載清倒數那條。
+    - 測試：
+      - `CharacterScreenMakesNoAdventureRequests` 併在 `GameScreen_CharacterOpensTheCharacterScreen` 裡驗。
+      - `AdventureScreen` 依賴舊角色分頁的三項：換分頁不重掛載、輪詢錯誤這兩項改用技能分頁；重讀密藥那項隨分頁刪掉。
+      - `App` 的登出測試改由 mock 的角色頁按「登出」，並改名 `App_SignOutFromCharacterScreenShowsTitle`。
+    - 先跑 GameScreen 新測試 4 項失敗；實作後通過。測試裡城門口的段我先寫成 "2"，實際是 "0"，是測試寫錯，已改。
+    - `pnpm check` 1149 項通過（少掉的是刪掉的舊角色頁測試）。
 
 ## 5. 收尾
 

@@ -36,6 +36,17 @@ const honourSharedArt = import.meta.glob<string>(
   ],
   { eager: true, import: "default" },
 )
+// 角色頁沿用標題的登記證、木桌與木條，彈窗用旅館的羊皮紙
+const characterArt = import.meta.glob<string>(
+  [
+    "../../assets/character/*.webp",
+    "../../assets/title/card-sealed.webp",
+    "../../assets/title/desk.webp",
+    "../../assets/title/desk-edge.webp",
+    "../../assets/inn/parchment.webp",
+  ],
+  { eager: true, import: "default" },
+)
 // 紅印章、對話框：旅館與同伴共用（錢袋在城鎮資料夾，進城時已載）
 const sharedArt = import.meta.glob<string>(
   ["../../assets/title/seal.webp", "../../assets/title/bubble.webp"],
@@ -82,3 +93,6 @@ export const missionsImages = (): string[] => [
   ...urlsOf(honourSharedArt).filter((url) => /(clerk|book-page)/.test(url)),
   ...urlsOf(sharedArt),
 ]
+
+// 角色頁（立繪、職業圖示是內容圖，打開時才載）
+export const characterImages = (): string[] => [...urlsOf(characterArt), ...urlsOf(sharedArt)]

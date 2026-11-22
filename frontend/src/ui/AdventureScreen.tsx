@@ -15,7 +15,6 @@ import { StageHeight } from "../render/stageLayout"
 import type { StageHandle } from "../render/StageRenderer"
 import { BagScreen, type SubPage } from "./BagScreen"
 import { BattleLog } from "./BattleLog"
-import { CharacterScreen } from "./CharacterScreen"
 import { formatNumber } from "../game/format"
 import { SettingsPanel } from "./SettingsPanel"
 import { SkillsScreen } from "./SkillsScreen"
@@ -30,11 +29,10 @@ const PixiStage = lazy(() =>
   import("../render/PixiStage").then((module) => ({ default: module.PixiStage })),
 )
 
-export type Tab = "adventure" | "character" | "skills" | "bag"
+export type Tab = "adventure" | "skills" | "bag"
 
 const tabs: { id: Tab; label: string }[] = [
   { id: "adventure", label: "冒險" },
-  { id: "character", label: "角色" },
   { id: "skills", label: "技能" },
   { id: "bag", label: "背包" },
 ]
@@ -46,12 +44,11 @@ type AreaPass = {
   subPlace: CharacterVo["subPlace"]
 }
 
-// onSignOut：玩家在角色頁按登出；從城鎮打開時停在 initialTab（背包分頁再停在 initialBagPage），
+// 從城鎮打開時停在 initialTab（背包分頁再停在 initialBagPage），
 // onReturnToTown 交回伺服器最新的角色
 type Props = {
   api: ApiClient
   initialCharacter: CharacterVo
-  onSignOut: () => void
   initialTab?: Tab
   initialBagPage?: SubPage
   onReturnToTown?: (character: CharacterVo) => void
@@ -62,7 +59,6 @@ type Props = {
 export function AdventureScreen({
   api,
   initialCharacter,
-  onSignOut,
   initialTab = "adventure",
   initialBagPage = "bag",
   onReturnToTown,
@@ -293,12 +289,6 @@ export function AdventureScreen({
             />
           )}
         </div>
-        {/* 角色分頁每次打開才載入密藥效果，剩餘時間是最新的 */}
-        {tab === "character" && (
-          <div className="adventure__sheet">
-            <CharacterScreen api={api} character={character} names={names} onSignOut={onSignOut} />
-          </div>
-        )}
         {/* 技能分頁每次打開才載入，轉職條件與熟練度都是最新的 */}
         {tab === "skills" && (
           <div className="adventure__sheet">

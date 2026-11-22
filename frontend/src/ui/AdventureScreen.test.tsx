@@ -211,7 +211,7 @@ afterEach(() => {
 const topBarExp = () => within(screen.getByRole("banner")).getByRole("progressbar", { name: "EXP" })
 
 test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   const topBar = screen.getByRole("banner")
   expect(within(topBar).getByText("Lv 1")).toBeInTheDocument()
   expect(topBarExp()).toHaveAttribute("aria-valuenow", "0")
@@ -230,19 +230,12 @@ test("AdventureScreen_ShowsLogLineAndUpdatedTotals", async () => {
   expect(within(topBar).getByText("8 / 1,000")).toBeInTheDocument()
   expect(within(topBar).getByText("金錢 3")).toBeInTheDocument()
   expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("button", { name: "角色" })).toBeEnabled()
   expect(screen.getByRole("button", { name: "技能" })).toBeEnabled()
   expect(screen.getByRole("button", { name: "背包" })).toBeEnabled()
 })
 
 test("AdventureScreen_ShowsLevelUpHintWhenLevelUpPlays", async () => {
-  render(
-    <AdventureScreen
-      api={createFakeApi(levelUpResponse)}
-      initialCharacter={character}
-      onSignOut={vi.fn()}
-    />,
-  )
+  render(<AdventureScreen api={createFakeApi(levelUpResponse)} initialCharacter={character} />)
   const topBar = screen.getByRole("banner")
   expect(within(topBar).queryByText("升級！")).not.toBeInTheDocument()
 
@@ -263,7 +256,6 @@ test("AdventureScreen_TopBarExpBarIsProportional", () => {
     <AdventureScreen
       api={createFakeApi()}
       initialCharacter={{ ...character, level: 7, experience: 250, nextLevelExperience: 1000 }}
-      onSignOut={vi.fn()}
     />,
   )
 
@@ -274,27 +266,22 @@ test("AdventureScreen_TopBarExpBarIsProportional", () => {
   expect(bar.firstElementChild).toHaveStyle({ width: "25%" })
 })
 
-test("AdventureScreen_SwitchesToCharacterSheet_WithoutRemountingAdventure", async () => {
+test("AdventureScreen_SwitchesToSkillsSheet_WithoutRemountingAdventure", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
   const stageElement = screen.getByTestId("stage")
   expect(api.advance).toHaveBeenCalledTimes(1)
 
-  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
 
-  expect(screen.getByRole("button", { name: "角色" })).toHaveAttribute("aria-current", "page")
-  expect(screen.getByRole("region", { name: "能力" })).toBeVisible()
-  expect(screen.getByRole("heading", { name: "青衣" })).toBeVisible()
-  expect(screen.getByRole("progressbar", { name: "HP" })).toBeVisible()
+  expect(screen.getByRole("button", { name: "技能" })).toHaveAttribute("aria-current", "page")
   expect(stageElement).not.toBeVisible()
-  expect(screen.queryAllByRole("listitem")).toHaveLength(0)
 
   fireEvent.click(screen.getByRole("button", { name: "冒險" }))
 
   expect(screen.getByRole("button", { name: "冒險" })).toHaveAttribute("aria-current", "page")
-  expect(screen.queryByRole("region", { name: "能力" })).not.toBeInTheDocument()
   expect(screen.getByTestId("stage")).toBe(stageElement)
   expect(stageElement).toBeVisible()
   const lines = screen.getAllByRole("listitem")
@@ -306,7 +293,7 @@ test("AdventureScreen_SwitchesToCharacterSheet_WithoutRemountingAdventure", asyn
 })
 
 test("AdventureScreen_ReplaysEncounterWhenStageBecomesReady", async () => {
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
   expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("遭遇 測試寒狼！")
@@ -350,13 +337,7 @@ test("AdventureScreen_RestRefillsStageHealth", async () => {
       { type: "rest", atSeconds: 2, cost: 0, experiencePenalty: false, waitSeconds: 15 },
     ],
   }
-  render(
-    <AdventureScreen
-      api={createFakeApi(restResponse)}
-      initialCharacter={character}
-      onSignOut={vi.fn()}
-    />,
-  )
+  render(<AdventureScreen api={createFakeApi(restResponse)} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(500)
   act(() => stage.attach())
@@ -376,7 +357,7 @@ test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   stage.fail = true
   const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
 
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
 
@@ -385,22 +366,21 @@ test("AdventureScreen_KeepsLogWorking_WhenStageChunkFails", async () => {
   consoleError.mockRestore()
 })
 
-test("AdventureScreen_ShowsPollErrorOnCharacterTab", async () => {
+test("AdventureScreen_ShowsPollErrorOnSkillsTab", async () => {
   const api = createFakeApi()
   vi.mocked(api.advance).mockRejectedValue(new TypeError("Failed to fetch"))
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
 
-  fireEvent.click(screen.getByRole("button", { name: "角色" }))
+  fireEvent.click(screen.getByRole("button", { name: "技能" }))
 
-  expect(screen.getByRole("region", { name: "能力" })).toBeVisible()
   expect(screen.getByText("連線不穩，稍後自動重試")).toBeVisible()
 })
 
 test("AdventureScreen_SkillsTabLoadsSkillsScreenOnEachVisit", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   expect(api.getJobs).not.toHaveBeenCalled()
 
@@ -421,7 +401,7 @@ test("AdventureScreen_SkillsTabLoadsSkillsScreenOnEachVisit", async () => {
 
 test("AdventureScreen_BagTabOpensBagScreen", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   expect(api.getInventory).not.toHaveBeenCalled()
 
@@ -436,7 +416,7 @@ test("AdventureScreen_BagTabOpensBagScreen", async () => {
 
 test("AdventureScreen_SettingsButtonOpensTheSettingsDialog", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
 
   const button = screen.getByRole("button", { name: "設定" })
@@ -474,7 +454,7 @@ test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
       ],
     },
   })
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
 
@@ -487,16 +467,16 @@ test("AdventureScreen_LogsTheMercenaryReportBeforeTheBatch", async () => {
 // 規格 town-screen：舊外殼沒有任務分頁（任務板改從公會前進）
 test("AdventureScreen_HasNoMissionsTab", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
 
   const navigation = within(screen.getByRole("navigation")).getAllByRole("button")
-  expect(navigation.map((button) => button.textContent)).toEqual(["冒險", "角色", "技能", "背包"])
+  expect(navigation.map((button) => button.textContent)).toEqual(["冒險", "技能", "背包"])
   expect(api.getMissions).not.toHaveBeenCalled()
 })
 
 test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {
-  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   const topBar = screen.getByRole("banner")
   expect(within(topBar).getByText("測試戰士")).toBeInTheDocument()
   await advanceTime(0)
@@ -514,7 +494,7 @@ test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {
 
 test("AdventureScreen_MovingUpdatesTheHeadingAndLogs", async () => {
   const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
 
   fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
@@ -539,7 +519,7 @@ test("AdventureScreen_MovingToAPlaceWithoutSubPlacesLogsOnlyThePlace", async () 
     subPlace: null,
     subPlaceName: null,
   })
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
 
   fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
@@ -558,7 +538,6 @@ test("AdventureScreen_ShowsTheRemainingAreaPassTime", async () => {
     <AdventureScreen
       api={createFakeApi({ ...response, areaPassExpiresAt: new Date("2026-10-21T00:30:00Z") })}
       initialCharacter={character}
-      onSignOut={vi.fn()}
     />,
   )
 
@@ -573,7 +552,6 @@ test("AdventureScreen_TellsWhenTheAreaPassHasEnded", async () => {
     <AdventureScreen
       api={createFakeApi({ ...response, areaPassExpiresAt: new Date("2026-10-20T23:00:00Z") })}
       initialCharacter={character}
-      onSignOut={vi.fn()}
     />,
   )
 
@@ -584,22 +562,6 @@ test("AdventureScreen_TellsWhenTheAreaPassHasEnded", async () => {
   expect(screen.queryByText(/禁區通行剩/)).not.toBeInTheDocument()
 })
 
-test("AdventureScreen_OpeningTheCharacterTabReloadsBuffs", async () => {
-  const api = createFakeApi()
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
-  await advanceTime(0)
-
-  fireEvent.click(screen.getByRole("button", { name: "角色" }))
-  await advanceTime(0)
-  expect(api.getBuffs).toHaveBeenCalledTimes(1)
-
-  fireEvent.click(screen.getByRole("button", { name: "冒險" }))
-  fireEvent.click(screen.getByRole("button", { name: "角色" }))
-  await advanceTime(0)
-
-  expect(api.getBuffs).toHaveBeenCalledTimes(2)
-})
-
 test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
   const api = createFakeApi({
     ...response,
@@ -608,7 +570,7 @@ test("AdventureScreen_MovingDiscardsTheOldAreasQueuedBattles", async () => {
       { type: "reward", atSeconds: 5, experience: 8, money: 3, jobExperience: 2, drops: [] },
     ],
   })
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   await advanceTime(100)
   expect(screen.getAllByRole("listitem")).toHaveLength(1)
@@ -633,7 +595,7 @@ test("AdventureScreen_StaleResponseFromTheOldPlaceShowsNoPassCountdown", async (
       resolveAdvance = resolve
     }),
   )
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
 
   fireEvent.click(screen.getByRole("button", { name: "中央平原・香茅綠地 ▾" }))
@@ -671,7 +633,7 @@ test("AdventureScreen_OpenBagReloadsWhenADropPlays", async () => {
       },
     ],
   })
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   fireEvent.click(screen.getByRole("button", { name: "背包" }))
   await advanceTime(0)
@@ -690,7 +652,7 @@ test("AdventureScreen_OpenBagReloadsAfterASummary", async () => {
     summary: makeSummary({ fights: 30, wins: 30, experience: 240, money: 90 }),
     eventsCoverAll: false,
   })
-  render(<AdventureScreen api={api} initialCharacter={character} onSignOut={vi.fn()} />)
+  render(<AdventureScreen api={api} initialCharacter={character} />)
   await advanceTime(0)
   fireEvent.click(screen.getByRole("button", { name: "背包" }))
   await advanceTime(0)
@@ -709,7 +671,6 @@ test("AdventureScreen_OpensAtTheGivenTabAndBagPage", async () => {
       initialCharacter={character}
       initialTab="bag"
       initialBagPage="shop"
-      onSignOut={vi.fn()}
       onReturnToTown={vi.fn()}
     />,
   )
@@ -726,7 +687,6 @@ test("AdventureScreen_ReturnToTownHandsBackTheLatestCharacter", async () => {
     <AdventureScreen
       api={createFakeApi()}
       initialCharacter={character}
-      onSignOut={vi.fn()}
       onReturnToTown={onReturnToTown}
     />,
   )
@@ -744,12 +704,7 @@ test("AdventureScreen_ReturnToTownHandsBackTheLatestCharacter", async () => {
 test("AdventureScreen_ReturnToTownStopsPolling", async () => {
   const api = createFakeApi()
   const { unmount } = render(
-    <AdventureScreen
-      api={api}
-      initialCharacter={character}
-      onSignOut={vi.fn()}
-      onReturnToTown={vi.fn()}
-    />,
+    <AdventureScreen api={api} initialCharacter={character} onReturnToTown={vi.fn()} />,
   )
   await advanceTime(0)
   const calls = vi.mocked(api.advance).mock.calls.length
@@ -775,7 +730,6 @@ test("AdventureScreen_ResponseAfterReturnToTownStillReportsTheCharacter", async 
     <AdventureScreen
       api={api}
       initialCharacter={character}
-      onSignOut={vi.fn()}
       onReturnToTown={vi.fn()}
       onConfirmedCharacter={onConfirmedCharacter}
     />,
@@ -798,7 +752,6 @@ test("AdventureScreen_CharacterChangeIsReported", async () => {
     <AdventureScreen
       api={createFakeApi()}
       initialCharacter={character}
-      onSignOut={vi.fn()}
       onConfirmedCharacter={onConfirmedCharacter}
     />,
   )

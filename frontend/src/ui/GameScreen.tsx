@@ -8,6 +8,7 @@ import type { SubPage } from "./BagScreen"
 import { StageFrame } from "./stage/StageFrame"
 import { preloadImages } from "./stage/preloadImages"
 import {
+  characterImages,
   companionsImages,
   honourImages,
   innImages,
@@ -22,15 +23,18 @@ import { innRevealOrigin } from "../game/inn"
 import { companionsRevealOrigin } from "../game/companions"
 import { honourRevealOrigin } from "../game/honour"
 import { missionsRevealOrigin } from "../game/missions"
+import { characterRevealOrigin } from "../game/characterScreen"
+import { CharacterScreen } from "./character/CharacterScreen"
 import { InnScreen } from "./inn/InnScreen"
 import { CompanionsScreen } from "./companions/CompanionsScreen"
 import { HonourScreen } from "./honour/HonourScreen"
 import { MissionsScreen } from "./missions/MissionsScreen"
 import { TownScreen } from "./town/TownScreen"
 
-// 新畫面從城鎮展開：旅館從市集的名牌、同伴從城門口的紙籤、勳章所與任務板從公會前的紙籤；收回後城鎮停在原本的段落
-type Revealed = "inn" | "companions" | "honour" | "missions"
+// 新畫面從城鎮展開：旅館從市集的名牌、同伴與角色從城門口的紙籤、勳章所與任務板從公會前的紙籤；收回後城鎮停在原本的段落
+type Revealed = "inn" | "companions" | "honour" | "missions" | "character"
 const revealed: Record<Revealed, { origin: RevealOrigin; segment: TownSegment }> = {
+  character: { origin: characterRevealOrigin, segment: 0 },
   inn: { origin: innRevealOrigin, segment: 1 },
   companions: { origin: companionsRevealOrigin, segment: 0 },
   honour: { origin: honourRevealOrigin, segment: 2 },
@@ -41,7 +45,6 @@ const isRevealed = (facility: TownFacility): facility is Revealed => facility in
 
 // 其他設施先接舊外殼：停在對應分頁（背包分頁再停在對應子頁）
 const facilityViews: Record<Exclude<TownFacility, Revealed>, { tab: Tab; bagPage: SubPage }> = {
-  character: { tab: "character", bagPage: "bag" },
   bag: { tab: "bag", bagPage: "bag" },
   adventure: { tab: "adventure", bagPage: "bag" },
   shop: { tab: "bag", bagPage: "shop" },
@@ -88,6 +91,7 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
           ...companionsImages(),
           ...honourImages(),
           ...missionsImages(),
+          ...characterImages(),
         ])
     })
     return () => {
@@ -97,13 +101,17 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
   // 每打開一次舊外殼加一；回城鎮後才回來的回應只收最後打開的那次，較早的不蓋掉較新的角色
   const latestShell = useRef(0)
 
+  const openShell = (tab: Tab, bagPage: SubPage) => {
+    latestShell.current += 1
+    setView({ name: "shell", tab, bagPage, shell: latestShell.current })
+  }
+
   const open = (facility: TownFacility) => {
     if (isRevealed(facility)) {
       setView({ name: "revealed", facility, phase: "opening" })
       return
     }
-    latestShell.current += 1
-    setView({ name: "shell", ...facilityViews[facility], shell: latestShell.current })
+    openShell(facilityViews[facility].tab, facilityViews[facility].bagPage)
   }
 
   const revealedFacility = view.name === "revealed" ? view.facility : null
@@ -169,6 +177,15 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
                 onCharacterChange={setCharacter}
                 onBack={close}
               />
+            ) : view.facility === "character" ? (
+              <CharacterScreen
+                api={api}
+                character={character}
+                onCharacterChange={setCharacter}
+                onBack={close}
+                onSignOut={onSignOut}
+                onOpenJobChange={() => openShell("skills", "bag")}
+              />
             ) : (
               <MissionsScreen
                 api={api}
@@ -190,7 +207,6 @@ export const GameScreen = ({ api, initialCharacter, onSignOut, arrival }: Props)
       initialCharacter={character}
       initialTab={view.tab}
       initialBagPage={view.bagPage}
-      onSignOut={onSignOut}
       onReturnToTown={(latest) => {
         setCharacter(latest)
         setView({ name: "town", segment: 0 })

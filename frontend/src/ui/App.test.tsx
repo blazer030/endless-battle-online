@@ -15,19 +15,17 @@ import { App, type SessionExpiryListener } from "./App"
 
 // 路由測試只關心切到哪個畫面，冒險畫面本身另有測試
 vi.mock("./AdventureScreen", () => ({
-  AdventureScreen: ({
-    initialCharacter,
-    onSignOut,
-  }: {
-    initialCharacter: CharacterVo
-    onSignOut: () => void
-  }) => (
-    <>
-      <p>冒險中：{initialCharacter.name}</p>
-      <button type="button" onClick={onSignOut}>
-        登出
-      </button>
-    </>
+  AdventureScreen: ({ initialCharacter }: { initialCharacter: CharacterVo }) => (
+    <p>冒險中：{initialCharacter.name}</p>
+  ),
+}))
+
+// 登出在角色頁（從城門口「角色」打開）；角色頁本身另有測試
+vi.mock("./character/CharacterScreen", () => ({
+  CharacterScreen: ({ onSignOut }: { onSignOut: () => void }) => (
+    <button type="button" onClick={onSignOut}>
+      登出
+    </button>
   ),
 }))
 
@@ -567,7 +565,8 @@ test("App_KeepsLoginError_WhenWrongPasswordTriggersSessionExpiry", async () => {
   expect(ownCard().getByLabelText("帳號")).toHaveValue("ethan")
 })
 
-test("App_SignOut_ClearsTokenAndReturnsToRegistryCards", async () => {
+// 規格 character-screen「Confirm sign out」：清掉登入、回登記證
+test("App_SignOutFromCharacterScreenShowsTitle", async () => {
   const user = setupUser()
   saveAccessToken("token")
   renderApp(createFakeApi({ getMyCharacter: vi.fn().mockResolvedValue(character) }))
