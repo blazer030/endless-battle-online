@@ -96,7 +96,7 @@ const statTooLowText = (stat: string) => `${statLabel(stat)}不足`
 
 const LearnConditionText = {
   wrongJob: "不是目前職業的技能",
-  notEnoughProficiency: "技能熟練度不足",
+  notEnoughProficiency: "技能點不足",
   notEnoughMoney: "金錢不足",
 } as const
 
@@ -119,6 +119,7 @@ export const learnReasonText = translate({
   NOT_ENOUGH_PROFICIENCY: LearnConditionText.notEnoughProficiency,
   NOT_ENOUGH_MONEY: LearnConditionText.notEnoughMoney,
   PREREQUISITE: "前置技能等級不足",
+  NOT_LEARNED: "尚未學會這個技能",
 })
 
 // 技能卡上的未達成條件：前置技能寫出名稱與要求等級；滿級（next 為 null）不列

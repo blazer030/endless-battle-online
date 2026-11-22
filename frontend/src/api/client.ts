@@ -1,3 +1,4 @@
+import type { Account } from "../game/account"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { JobChoiceVo, SkillOverviewVo, SkillSlotCommand } from "../game/skillOverview"
 import type { WorldAreaVo } from "../game/world"
@@ -23,6 +24,7 @@ import type { JobVo } from "../game/jobBook"
 import { RequestTimeoutMilliseconds } from "../motion/timings"
 import { clearAccessToken, readAccessToken, saveAccessToken } from "./authStorage"
 import { parseArray } from "./parse"
+import { AccountConverter } from "./accountData"
 import { AdvanceConverter } from "./adventureData"
 import {
   AdventureSettingsConverter,
@@ -73,6 +75,7 @@ export type ApiClient = {
   register: (username: string, password: string) => Promise<void>
   login: (username: string, password: string) => Promise<void>
   getMyCharacter: () => Promise<CharacterVo | null>
+  getAccount: () => Promise<Account>
   createCharacter: (command: CreateCharacterCommand) => Promise<CharacterVo>
   advance: () => Promise<AdvanceVo>
   // 不用登入的公開資料
@@ -81,7 +84,8 @@ export type ApiClient = {
   getJobs: () => Promise<JobChoiceVo[]>
   changeJob: (jobId: string) => Promise<CharacterVo>
   getSkills: () => Promise<SkillOverviewVo>
-  learnSkill: (skillId: string) => Promise<SkillOverviewVo>
+  // jobId：用以前當過的職業的技能點升級時才帶
+  learnSkill: (skillId: string, jobId?: string) => Promise<SkillOverviewVo>
   setSkillSlots: (slots: SkillSlotCommand[]) => Promise<SkillOverviewVo>
   getWorld: () => Promise<WorldAreaVo[]>
   moveTo: (placeId: number, subPlace: number | null) => Promise<CharacterVo>
@@ -221,6 +225,8 @@ export const createApiClient = (options: {
       )
       saveAccessToken(accessToken)
     },
+    getAccount: async () =>
+      AccountConverter.toVo(await requestJson<unknown>("/api/accounts/me", "GET")),
     getMyCharacter: async () => {
       try {
         return await requestCharacter("/api/characters/me", "GET")
@@ -246,9 +252,13 @@ export const createApiClient = (options: {
     changeJob: (jobId) => requestCharacter("/api/jobs/change", "POST", { jobId }),
     getSkills: async () =>
       SkillOverviewConverter.toVo(await requestJson<unknown>("/api/skills", "GET")),
-    learnSkill: async (skillId) =>
+    learnSkill: async (skillId, jobId) =>
       SkillOverviewConverter.toVo(
-        await requestJson<unknown>("/api/skills/learn", "POST", { skillId }),
+        await requestJson<unknown>(
+          "/api/skills/learn",
+          "POST",
+          jobId === undefined ? { skillId } : { skillId, jobId },
+        ),
       ),
     setSkillSlots: async (slots) =>
       SkillOverviewConverter.toVo(

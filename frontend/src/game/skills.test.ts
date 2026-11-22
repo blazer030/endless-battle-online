@@ -38,6 +38,7 @@ const skill = (overrides: Partial<Skill>): Skill => ({
 const overview: SkillOverviewVo = {
   jobId: "warrior",
   skillPoints: 0,
+  jobs: [],
   skills: [
     skill({}),
     skill({ id: "iron-skin", name: "硬甲", slotType: "Passive", summary: "常駐｜自己物防 +1%" }),
@@ -181,7 +182,8 @@ describe("skills", () => {
     expect(jobReasonText("STAT_TOO_LOW:vitality")).toBe("體質不足")
     expect(learnReasonText("WRONG_JOB")).toBe("不是目前職業的技能")
     expect(learnReasonText("MAX_LEVEL")).toBe("已達最高等級")
-    expect(learnReasonText("NOT_ENOUGH_PROFICIENCY")).toBe("技能熟練度不足")
+    expect(learnReasonText("NOT_ENOUGH_PROFICIENCY")).toBe("技能點不足")
+    expect(learnReasonText("NOT_LEARNED")).toBe("尚未學會這個技能")
     expect(learnReasonText("NOT_ENOUGH_MONEY")).toBe("金錢不足")
     expect(learnReasonText("PREREQUISITE")).toBe("前置技能等級不足")
     expect(slotReasonText("DUPLICATE_SKILL")).toBe("同一技能不能裝在兩個欄位")
@@ -209,7 +211,7 @@ describe("skills", () => {
     expect(unmetLearnTexts(advanced)).toEqual([
       "不是目前職業的技能",
       "前置技能：爆氣 Lv 3",
-      "技能熟練度不足",
+      "技能點不足",
       "金錢不足",
     ])
     expect(

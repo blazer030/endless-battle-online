@@ -62,13 +62,19 @@
 
 ## 2. 前端資料與純模型
 
-- [ ] 2.1 前端轉換與文字：
+- [x] 2.1 前端轉換與文字：
   - `frontend/src/api/skillData.ts` 讀 `jobs`（`JobSkillsVo`、`JobSkill`、數值列 `kind` 要是四種之一），依 DTO→VO 慣例驗證欄位；
   - client 的 `learnSkill(skillId, jobId?)` 只在有 `jobId` 時送出這個欄位；
   - 新增 `getAccount()` 讀 `GET /api/accounts/me`（`AccountVo { accountId, username }`）；
   - `game/skills.ts`：`LearnConditionText.notEnoughProficiency` 改「技能點不足」，加 `NOT_LEARNED` 的文字；舊 `SkillsScreen` 的測試跟著改字。
   - 先寫失敗測試：`skillData.test.ts` 的 `SkillOverviewConverter_ReadsJobs`、`SkillOverviewConverter_RejectsUnknownRowKind`；`client.test.ts` 的 `LearnSkill_SendsJobIdOnlyWhenGiven`、`GetAccount_ReadsUsername`；`skills.test.ts` 的原因文字。
   驗證：測試與 `pnpm check` 全綠。[after: 1.5]
+  - 實作紀錄：
+    - `game/skillOverview.ts` 加 `SkillJob`、`LearnableSkill`、`LearnableSkillNextLevel`、`SkillDetailRow`（`skillDetailKinds`），`SkillOverviewVo.jobs`；`api/skillData.ts` 轉換。
+    - 新增 `game/account.ts`（`Account`）、`api/accountData.ts`（`AccountConverter`），client 加 `getAccount`；`learnSkill(skillId, jobId?)` 只在有 `jobId` 時送。
+    - `game/skills.ts`：「技能熟練度不足」改「技能點不足」，`learnReasonText` 加 `NOT_LEARNED`。
+    - 既有測試的手寫資料補 `jobs: []`、假 API 補 `getAccount`。
+    - 先跑新測試 6 項失敗；實作後通過，`pnpm check` 1099 項通過。
 - [ ] 2.2 依 design「角色頁的資料由 `src/game/characterScreen.ts` 的純函式算出」新增 `characterCard`、`abilityRows`、`combatRows`、`jobSwitcher`、`skillCard`、`learnedPopup`、`learnFailureText`、`characterLayout`、`portraitOffset`、`characterRevealOrigin`。先寫失敗測試 `characterScreen.test.ts`，用規格的 Example 當測資：
   - Card values（收尾者 Lv 162、70%、`2,450 / 3,500`、EXP 42%）與熟練度 100% 上限；
   - 有正負號的加成；

@@ -46,6 +46,42 @@ const overviewDto = {
     },
   ],
   slots: [{ slot: 1, skillId: "skill-1" }],
+  jobs: [
+    {
+      jobId: "job-7",
+      jobName: "術士",
+      tier: 1,
+      current: false,
+      skillPoints: 1882,
+      skills: [
+        {
+          id: "skill-11",
+          name: "魔力增幅",
+          slotType: "Active",
+          timing: "BeforeAttack",
+          description: "",
+          icon: "skill-11",
+          level: 3,
+          maxLevel: 10,
+          rows: [
+            { kind: "Trigger", text: "機率 60%" },
+            { kind: "Cost", text: "SP 6" },
+            { kind: "Effect", text: "自己魔攻 +3%，3 回合" },
+          ],
+          prerequisite: null,
+          next: {
+            level: 4,
+            money: 9000,
+            skillPoints: 941,
+            rows: [{ kind: "Trigger", text: "機率 70%" }],
+            canLearn: true,
+            enoughMoney: true,
+            enoughSkillPoints: true,
+          },
+        },
+      ],
+    },
+  ],
 }
 
 const jobDto = {
@@ -90,6 +126,22 @@ test("SkillOverviewConverter_ConvertsTheWholeResponse", () => {
   expect(overview.skillPoints).toBe(120)
   expect(overview.skills).toEqual(overviewDto.skills)
   expect(overview.slots).toEqual([{ slot: 1, skillId: "skill-1" }])
+})
+
+test("SkillOverviewConverter_ReadsJobs", () => {
+  const overview = SkillOverviewConverter.toVo(overviewDto)
+
+  expect(overview.jobs).toEqual(overviewDto.jobs)
+})
+
+test("SkillOverviewConverter_RejectsUnknownRowKind", () => {
+  const [job] = overviewDto.jobs
+  const [skill] = job.skills
+  const jobs = [{ ...job, skills: [{ ...skill, rows: [{ kind: "Flavor", text: "?" }] }] }]
+
+  expect(parseFailure(() => SkillOverviewConverter.toVo({ ...overviewDto, jobs })).path).toBe(
+    "skills.jobs[0].skills[0].rows[0].kind",
+  )
 })
 
 test("SkillOverviewConverter_RejectsAnUnknownTiming", () => {

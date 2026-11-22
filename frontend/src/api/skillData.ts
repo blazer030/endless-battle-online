@@ -4,7 +4,12 @@ import {
   SkillOverviewVo,
   skillTimings,
   skillTypes,
+  type LearnableSkill,
+  type LearnableSkillNextLevel,
   type Skill,
+  skillDetailKinds,
+  type SkillDetailRow,
+  type SkillJob,
   type SkillNextLevel,
   type SkillPrerequisiteCheck,
   type SkillSlotCommand,
@@ -66,6 +71,57 @@ const toSkill = (value: unknown, path: string): Skill => {
   }
 }
 
+const toDetailRow = (value: unknown, path: string): SkillDetailRow => {
+  const dto = parseObject(value, path)
+  return {
+    kind: parseOneOf(dto.kind, skillDetailKinds, `${path}.kind`),
+    text: parseString(dto.text, `${path}.text`),
+  }
+}
+
+const toLearnableNextLevel = (value: unknown, path: string): LearnableSkillNextLevel | null => {
+  if (value === null) return null
+  const dto = parseObject(value, path)
+  return {
+    level: parseNumber(dto.level, `${path}.level`),
+    money: parseNumber(dto.money, `${path}.money`),
+    skillPoints: parseNumber(dto.skillPoints, `${path}.skillPoints`),
+    rows: parseArray(dto.rows, `${path}.rows`, toDetailRow),
+    canLearn: parseBoolean(dto.canLearn, `${path}.canLearn`),
+    enoughMoney: parseBoolean(dto.enoughMoney, `${path}.enoughMoney`),
+    enoughSkillPoints: parseBoolean(dto.enoughSkillPoints, `${path}.enoughSkillPoints`),
+  }
+}
+
+const toLearnableSkill = (value: unknown, path: string): LearnableSkill => {
+  const dto = parseObject(value, path)
+  return {
+    id: parseString(dto.id, `${path}.id`),
+    name: parseString(dto.name, `${path}.name`),
+    slotType: parseOneOf(dto.slotType, skillTypes, `${path}.slotType`),
+    timing: parseOneOf(dto.timing, skillTimings, `${path}.timing`),
+    description: parseString(dto.description, `${path}.description`),
+    icon: parseNullableString(dto.icon, `${path}.icon`),
+    level: parseNumber(dto.level, `${path}.level`),
+    maxLevel: parseNumber(dto.maxLevel, `${path}.maxLevel`),
+    rows: dto.rows === null ? null : parseArray(dto.rows, `${path}.rows`, toDetailRow),
+    prerequisite: toPrerequisiteCheck(dto.prerequisite, `${path}.prerequisite`),
+    next: toLearnableNextLevel(dto.next, `${path}.next`),
+  }
+}
+
+const toSkillJob = (value: unknown, path: string): SkillJob => {
+  const dto = parseObject(value, path)
+  return {
+    jobId: parseString(dto.jobId, `${path}.jobId`),
+    jobName: parseString(dto.jobName, `${path}.jobName`),
+    tier: parseNumber(dto.tier, `${path}.tier`),
+    current: parseBoolean(dto.current, `${path}.current`),
+    skillPoints: parseNumber(dto.skillPoints, `${path}.skillPoints`),
+    skills: parseArray(dto.skills, `${path}.skills`, toLearnableSkill),
+  }
+}
+
 export const SkillOverviewConverter = {
   toVo(value: unknown, path = "skills"): SkillOverviewVo {
     const dto = parseObject(value, path)
@@ -80,6 +136,7 @@ export const SkillOverviewConverter = {
           skillId: parseString(slot.skillId, `${itemPath}.skillId`),
         }
       }),
+      jobs: parseArray(dto.jobs, `${path}.jobs`, toSkillJob),
     })
   },
 }

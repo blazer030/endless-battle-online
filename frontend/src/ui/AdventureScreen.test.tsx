@@ -124,12 +124,14 @@ const skillOverview: SkillOverviewVo = {
   skillPoints: 0,
   skills: [],
   slots: [],
+  jobs: [],
 }
 
 const createFakeApi = (advanceResponse: AdvanceVo = response): ApiClient => ({
   register: vi.fn(),
   login: vi.fn(),
   getMyCharacter: vi.fn(),
+  getAccount: vi.fn().mockResolvedValue({ accountId: 1, username: "tester" }),
   createCharacter: vi.fn(),
   advance: vi.fn().mockResolvedValue(advanceResponse),
   getPublicJobs: vi.fn().mockResolvedValue(makePublicJobs()),

@@ -194,7 +194,7 @@ test("request_TimesOut_WhenServerNeverResponds", async () => {
 })
 
 test("skillAndJobCalls_UseTheirEndpoints", async () => {
-  const emptyOverview = { jobId: "warrior", skillPoints: 0, skills: [], slots: [] }
+  const emptyOverview = { jobId: "warrior", skillPoints: 0, skills: [], slots: [], jobs: [] }
   const fetchMock = vi
     .fn()
     .mockImplementation((path: string) =>
@@ -210,6 +210,7 @@ test("skillAndJobCalls_UseTheirEndpoints", async () => {
   await client.changeJob("knight")
   await client.getSkills()
   await client.learnSkill("burst")
+  await client.learnSkill("combo", "thief")
   await client.setSkillSlots([{ slot: 1, skillId: "burst" }])
 
   const calls = (fetchMock.mock.calls as [string, RequestInit][]).map(([path, init]) => [
@@ -222,8 +223,19 @@ test("skillAndJobCalls_UseTheirEndpoints", async () => {
     ["POST", "/api/jobs/change", { jobId: "knight" }],
     ["GET", "/api/skills", undefined],
     ["POST", "/api/skills/learn", { skillId: "burst" }],
+    ["POST", "/api/skills/learn", { skillId: "combo", jobId: "thief" }],
     ["PUT", "/api/skills/slots", { slots: [{ slot: 1, skillId: "burst" }] }],
   ])
+})
+
+test("getAccount_ReadsUsername", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ accountId: 7, username: "ethan" }))
+  const client = createApiClient({ fetch: fetchMock, onUnauthorized: vi.fn() })
+
+  const account = await client.getAccount()
+
+  expect(account).toEqual({ accountId: 7, username: "ethan" })
+  expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/accounts/me")
 })
 
 test("request_ExposesProblemReasons_OnValidationError", async () => {

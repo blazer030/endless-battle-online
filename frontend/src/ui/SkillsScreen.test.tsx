@@ -67,6 +67,7 @@ const skill = (overrides: Partial<Skill>): Skill => ({
 const overview: SkillOverviewVo = {
   jobId: "warrior",
   skillPoints: 1200,
+  jobs: [],
   skills: [
     skill({}),
     skill({

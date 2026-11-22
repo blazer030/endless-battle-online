@@ -40,6 +40,46 @@ export type Skill = {
   readonly next: SkillNextLevel | null
 }
 
+// 角色頁技能卡的一列數值：發動、消耗、效果、冷卻（列名由畫面決定）
+export const skillDetailKinds = ["Trigger", "Cost", "Effect", "Cooldown"] as const
+export type SkillDetailKind = (typeof skillDetailKinds)[number]
+export type SkillDetailRow = { readonly kind: SkillDetailKind; readonly text: string }
+
+export type LearnableSkillNextLevel = {
+  readonly level: number
+  readonly money: number
+  readonly skillPoints: number
+  readonly rows: readonly SkillDetailRow[]
+  readonly canLearn: boolean
+  readonly enoughMoney: boolean
+  readonly enoughSkillPoints: boolean
+}
+
+// 角色頁技能頁的一個技能：rows 是目前等級的數值列（未學為 null），next 在滿級時為 null，都用所屬職業的技能點判斷
+export type LearnableSkill = {
+  readonly id: string
+  readonly name: string
+  readonly slotType: SkillType
+  readonly timing: SkillTiming
+  readonly description: string
+  readonly icon: string | null
+  readonly level: number
+  readonly maxLevel: number
+  readonly rows: readonly SkillDetailRow[] | null
+  readonly prerequisite: SkillPrerequisiteCheck | null
+  readonly next: LearnableSkillNextLevel | null
+}
+
+// 目前職業（列全部技能）或以前當過的職業（只列已學的）；skillPoints 是這個職業的技能點
+export type SkillJob = {
+  readonly jobId: string
+  readonly jobName: string
+  readonly tier: number
+  readonly current: boolean
+  readonly skillPoints: number
+  readonly skills: readonly LearnableSkill[]
+}
+
 export type SkillSlot = { readonly slot: number; readonly skillId: string }
 
 // 設定技能欄時送出的一欄；空欄不送
@@ -50,6 +90,7 @@ type SkillOverviewVoParams = {
   skillPoints: number
   skills: Skill[]
   slots: SkillSlot[]
+  jobs: SkillJob[]
 }
 
 export class SkillOverviewVo {
@@ -57,12 +98,14 @@ export class SkillOverviewVo {
   readonly skillPoints: number
   readonly skills: readonly Skill[]
   readonly slots: readonly SkillSlot[]
+  readonly jobs: readonly SkillJob[]
 
   private constructor(params: SkillOverviewVoParams) {
     this.jobId = params.jobId
     this.skillPoints = params.skillPoints
     this.skills = params.skills
     this.slots = params.slots
+    this.jobs = params.jobs
   }
 
   static create(params: SkillOverviewVoParams): SkillOverviewVo {

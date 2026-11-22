@@ -24,6 +24,7 @@ const createFakeApi = (advance: ApiClient["advance"]): ApiClient => ({
   register: vi.fn(),
   login: vi.fn(),
   getMyCharacter: vi.fn(),
+  getAccount: vi.fn().mockResolvedValue({ accountId: 1, username: "tester" }),
   createCharacter: vi.fn(),
   advance,
   getPublicJobs: vi.fn(),
