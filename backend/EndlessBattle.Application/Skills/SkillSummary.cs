@@ -3,9 +3,35 @@ using EndlessBattle.Domain.Skills;
 
 namespace EndlessBattle.Application.Skills;
 
+// 數值列的種類；列名（發動、消耗、效果、冷卻）由前端決定
+public enum SkillDetailKind { Trigger, Cost, Effect, Cooldown }
+
+public sealed record SkillDetailRow(SkillDetailKind Kind, string Text);
+
 // 技能頁與戰鬥紀錄用的效果文字，由每級的條件、消耗、效果產生；description 是另外寫的技能說明，與效果無關
 public static class SkillSummary
 {
+    // 角色頁技能卡的數值列：發動（沒條件寫常駐）、消耗（沒有就不列）、效果、冷卻（0 不列）；同一列多項用「、」接
+    public static IReadOnlyList<SkillDetailRow> RowsOf(SkillLevel level)
+    {
+        var rows = new List<SkillDetailRow>
+        {
+            new(SkillDetailKind.Trigger, level.Conditions is [] ? "常駐" : string.Join("、", level.Conditions.Select(Condition))),
+        };
+        if (level.Costs is not [])
+        {
+            rows.Add(new SkillDetailRow(SkillDetailKind.Cost, string.Join("、", level.Costs.Select(CostText))));
+        }
+
+        rows.Add(new SkillDetailRow(SkillDetailKind.Effect, string.Join("、", level.Effects.Select(Effect))));
+        if (level.Cooldown > 0)
+        {
+            rows.Add(new SkillDetailRow(SkillDetailKind.Cooldown, $"{level.Cooldown} 回合"));
+        }
+
+        return rows;
+    }
+
     public static string Of(SkillLevel level)
     {
         var parts = new List<string>();
@@ -36,10 +62,17 @@ public static class SkillSummary
 
     private static string Cost(SkillCost cost) => cost.Kind switch
     {
-        SkillCostKind.SkillPoints when cost.All => "消耗全部 SP",
-        SkillCostKind.SkillPoints => $"消耗 SP {CostAmount(cost)}",
-        SkillCostKind.HitPoints => $"消耗 HP {CostAmount(cost)}",
-        SkillCostKind.Money => $"消耗金錢 {cost.Amount}",
+        SkillCostKind.SkillPoints when cost.All => $"消耗{CostText(cost)}",
+        SkillCostKind.Money => $"消耗{CostText(cost)}",
+        _ => $"消耗 {CostText(cost)}",
+    };
+
+    private static string CostText(SkillCost cost) => cost.Kind switch
+    {
+        SkillCostKind.SkillPoints when cost.All => "全部 SP",
+        SkillCostKind.SkillPoints => $"SP {CostAmount(cost)}",
+        SkillCostKind.HitPoints => $"HP {CostAmount(cost)}",
+        SkillCostKind.Money => $"金錢 {cost.Amount}",
         _ => throw new ArgumentOutOfRangeException(nameof(cost), cost.Kind, "未知的消耗"),
     };
 

@@ -36,12 +36,13 @@
     - Api：`LearnSkillRequest` 加 `JobId`；`backend/openapi/` 與 `schema.ts` 重新產生。
     - 例子表的後四列拆成：`SkillServiceTests.Learn_PreviousJobNotLearnedIsRejected`、`Learn_JobNeverHeldOnlyWrongJob`、`Learn_UnknownJob`，另有 `Learn_CurrentJobIdSameAsNone`；Domain 是 `SkillLearningTests.PreviousJob_NotLearnedIsRejected`、`PreviousJob_LearnedSkillCanBeUpgraded`。
     - 先跑新測試因 `Learned`、`ThroughPreviousJob`、四參數 `LearnAsync` 不存在而編譯失敗；實作後 `dotnet test --filter-class "*Skill*"` 252 項全綠（含 Testcontainers 的 `SkillEndpointsTests.Learn_WithJobIdUsesThatJob`）。
-- [ ] 1.4 依 design「數值列在 Application 拆，文字照 SkillSummary」實作 Skill level detail rows：新增 `SkillSummary.RowsOf(SkillLevel)` 回 `SkillDetailRow(Kind, Text)`，條件與效果文字與 `Of` 共用，`Of` 輸出不變。先寫失敗測試：
+- [x] 1.4 依 design「數值列在 Application 拆，文字照 SkillSummary」實作 Skill level detail rows：新增 `SkillSummary.RowsOf(SkillLevel)` 回 `SkillDetailRow(Kind, Text)`，條件與效果文字與 `Of` 共用，`Of` 輸出不變。先寫失敗測試：
   - `SkillSummaryTests.Rows_ActiveSkill`（爆氣 Lv1 → `機率 40%`、`SP 2`、`自己物攻 +1%，3 回合`）；
   - `Rows_PassiveWithoutConditionsOrCosts`（華爾滋 → `常駐`＋效果，沒有消耗與冷卻）；
   - `Rows_CooldownIsLast`（測試內容冷卻 4 → `4 回合`）；
   - `Rows_CostTexts`（`SP 最大值×N%`、`全部 SP`、`HP N`、`金錢 N`）。
   驗證：`SkillSummaryTests` 全綠，既有 `Of` 測試不改也通過。[after: 1.3]
+  - 實作紀錄：`SkillSummary.RowsOf` 與 `SkillDetailKind`、`SkillDetailRow`（放在 `SkillSummary.cs`）；消耗文字抽成 `CostText`，`Of` 的「消耗」前綴照原本的空白規則接回去。冷卻那條用測試自建的等級（正式內容沒有冷卻）。先跑因型別不存在而編譯失敗；實作後 `SkillSummaryTests` 8 項全綠（原本 4 項不改），`*Skill*` 256 項全綠。
 - [ ] 1.5 依 design「技能回應加每個職業的清單，舊欄位不動」實作 Skill overview lists each held job's skills。
   - `SkillOverview` 加 `Jobs`（`JobSkills`、`JobSkillView`）：目前職業第一，其他持有的職業照 `jobs.json` 順序；以前的職業只列已學的；每個職業用自己的技能點判斷。
   - `SkillEndpoints` 與 `Contracts.cs` 加 `JobSkillsResponse`、`JobSkillResponse`、`JobSkillNextLevelResponse`、`SkillDetailRowResponse`；`GET` 與 `learn` 都帶，頂層欄位不變。

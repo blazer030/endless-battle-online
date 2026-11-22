@@ -1,5 +1,7 @@
 using EndlessBattle.Application.Skills;
 using EndlessBattle.Domain.Skills;
+using EndlessBattle.Infrastructure.Content;
+using EndlessBattle.Tests.Support;
 
 namespace EndlessBattle.Tests.Application;
 
@@ -55,5 +57,62 @@ public class SkillSummaryTests
             [new StatChangeEffect(SkillTarget.Caster, SkillStat.MagicAttack, null, null, [new SkillScaling(SkillScalingBasis.SkillPoints, 0.1)], Rounds: 1)]);
 
         Assert.Equal("力量比對手高｜機率 40%｜消耗 HP 最大值×45%｜消耗全部 SP｜自己魔攻 +SP×10%，1 回合", SkillSummary.Of(level));
+    }
+
+    // ── 規格 skill-learning「Skill level detail rows」：每級拆成 發動／消耗／效果／冷卻 ──
+    private static readonly IReadOnlyList<SkillDefinition> RealSkills =
+        JsonGameContent.Load(Path.Combine(BackendPaths.BackendDirectory, "content")).AllSkills;
+
+    private static SkillLevel RealLevel(string skillId, int level) => RealSkills.Single(skill => skill.Id == skillId).LevelAt(level);
+
+    [Fact]
+    public void Rows_ActiveSkill()
+    {
+        Assert.Equal(
+            [
+                new SkillDetailRow(SkillDetailKind.Trigger, "機率 40%"),
+                new SkillDetailRow(SkillDetailKind.Cost, "SP 2"),
+                new SkillDetailRow(SkillDetailKind.Effect, "自己物攻 +1%，3 回合"),
+            ],
+            SkillSummary.RowsOf(RealLevel("skill-1", 1)));
+    }
+
+    [Fact]
+    public void Rows_PassiveWithoutConditionsOrCosts()
+    {
+        var rows = SkillSummary.RowsOf(RealLevel("skill-492", 1));
+
+        Assert.Equal([SkillDetailKind.Trigger, SkillDetailKind.Effect], rows.Select(row => row.Kind));
+        Assert.Equal("常駐", rows[0].Text);
+    }
+
+    [Fact]
+    public void Rows_CooldownIsLast()
+    {
+        var level = Level([new SkillCondition(SkillConditionKind.HitPointsBelow, 50)], [], [new RestoreEffect(SkillResource.HitPoints, null, null, Rounds: 0) { PercentOfMaximum = 30 }], cooldown: 4);
+
+        Assert.Equal(new SkillDetailRow(SkillDetailKind.Cooldown, "4 回合"), SkillSummary.RowsOf(level)[^1]);
+    }
+
+    // 條件、消耗多個時用「、」接；消耗不寫「消耗」前綴
+    [Fact]
+    public void Rows_CostTexts()
+    {
+        var level = Level(
+            [new SkillCondition(SkillConditionKind.StatAbove, 0) { Stat = SkillScalingBasis.Strength }, new SkillCondition(SkillConditionKind.Chance, 40)],
+            [
+                new SkillCost(SkillCostKind.SkillPoints, 3),
+                new SkillCost(SkillCostKind.SkillPoints, 0) { Percent = 10 },
+                new SkillCost(SkillCostKind.SkillPoints, 0) { All = true },
+                new SkillCost(SkillCostKind.HitPoints, 5),
+                new SkillCost(SkillCostKind.HitPoints, 0) { Percent = 45 },
+                new SkillCost(SkillCostKind.Money, 100),
+            ],
+            [new StatChangeEffect(SkillTarget.Caster, SkillStat.Attack, 1, null, null, Rounds: 3)]);
+
+        var rows = SkillSummary.RowsOf(level);
+
+        Assert.Equal("力量比對手高、機率 40%", rows[0].Text);
+        Assert.Equal(new SkillDetailRow(SkillDetailKind.Cost, "SP 3、SP 最大值×10%、全部 SP、HP 5、HP 最大值×45%、金錢 100"), rows[1]);
     }
 }
