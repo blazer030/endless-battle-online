@@ -18,6 +18,7 @@ import purse from "../../assets/town/purse.webp"
 import { Popup } from "../feedback/Popup"
 import { AbilitiesPage } from "./AbilitiesPage"
 import { RegistrationCard } from "./RegistrationCard"
+import { SkillsPage } from "./SkillsPage"
 import "../inn/InnScreen.css"
 import "./CharacterScreen.css"
 
@@ -192,7 +193,9 @@ export const CharacterScreen = ({
           {data !== null && page === "abilities" && (
             <AbilitiesPage data={data} onAskSignOut={() => setAskingSignOut(true)} />
           )}
-          {data !== null && page === "skills" && <div role="tabpanel" aria-label="技能" />}
+          {data !== null && page === "skills" && (
+            <SkillsPage jobs={data.skills.jobs} onLearn={() => undefined} />
+          )}
         </div>
       </div>
 

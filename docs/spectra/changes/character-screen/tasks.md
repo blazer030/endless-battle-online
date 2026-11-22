@@ -148,11 +148,18 @@
     - 圓章沿用城鎮的樣式。React 的 fast refresh 規則不准元件檔另外 export 函式，所以先以結構性變更把 `bonusBadgeClass`、`BonusBadgeImage` 從 `TownBonuses.tsx` 搬到 `ui/town/bonusBadge.ts`、`BonusBadgeImage.tsx`，單獨 commit，城鎮行為不變。
     - 登出確認用共用 `Popup`（自訂「取消」「登出」兩顆），放在 `CharacterScreen` 舞台層；確定時直接呼叫 `onSignOut`，不送請求。
     - 先跑新測試 9 項失敗；實作後 20 項通過，`pnpm check` 1142 項通過。
-- [ ] 4.3 技能頁：Skills page job switcher 與 Skill cards。
+- [x] 4.3 技能頁：Skills page job switcher 與 Skill cards。
   - 職業切換：打開停目前職業、標頭、分組清單、選職業後只列那個職業的技能、不出現「熟練度」；
   - 技能卡：Lv 與未習得、菱形、主動／被動、「（說明待補）」、一次只展開一張、兩欄數值列與綠字、花費行與紅字、停用與原因、滿級精通。
   - 先寫失敗測試：`SkillsPageStartsOnCurrentJob`、`SwitcherShowsSkillPoints`、`ChoosingPreviousJobListsLearnedOnly`、`SkillsPageNeverSaysProficiency`、`OneCardExpandedAtATime`、`CardShowsBothLevelColumns`、`DisabledSealShowsReasons`、`MaxLevelShowsSeal`、`EmptyDescriptionShowsPending`。
   驗證：測試與 `pnpm check` 全綠。[after: 4.2]
+  - 實作紀錄：
+    - `SkillsPage.tsx`：正在看的職業、清單開關、展開的卡都是頁內 state。切到技能頁才掛載，所以每次打開都停目前職業。
+    - 切換鈕的名稱是「切換職業：<職業>」，清單是 `role="group"`「當過的職業」。
+    - 卡的兩欄標題照設計稿：「目前 Lv N」「下一級 Lv N+1」，未學「目前」＋「尚未學習」，滿級只一欄「目前 Lv N（最高）」。
+    - 技能圖示用內容圖 `skills/<icon 或 id>`，現在 R2 沒有，會顯示佔位圖。
+    - 升級鈕的接線留到 4.4。新色碼 `--character-*` 進 `theme.css`。
+    - 先跑新測試 9 項失敗；實作後 29 項通過，`pnpm check` 1151 項通過。
 - [ ] 4.4 Learning from the skills page：
   - 按下印章送 `learnSkill`（以前的職業帶 `jobId`）並套等待墨點；
   - 成功時換成回傳的技能與角色、留在同一職業同一張卡、更新錢袋與交出角色，跳升級成功或習得成功彈窗；

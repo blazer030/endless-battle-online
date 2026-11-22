@@ -5,7 +5,17 @@ import { StageContext } from "../stage/stageContext"
 import { CharacterScreen, type CharacterScreenApi } from "./CharacterScreen"
 import { BuffVo } from "../../game/buffs"
 import { InnVo } from "../../game/inn"
-import { at, attackElixir, createCharacterApi, innWithLodging, Now, warrior } from "./testing"
+import {
+  at,
+  attackElixir,
+  createCharacterApi,
+  innWithLodging,
+  learnableSkill,
+  Now,
+  overviewWith,
+  warrior,
+  warriorJob,
+} from "./testing"
 
 const flush = () =>
   act(async () => {
@@ -204,7 +214,8 @@ test("JobChangeButtonCallsBack", async () => {
 
 // ── 能力頁 ──
 const abilities = () => screen.getByRole("tabpanel", { name: "能力" })
-const statRow = (label: string) => within(abilities()).getByText(label).closest(".character-stat")!
+const statRow = (label: string) =>
+  within(abilities()).getByText(label).closest<HTMLElement>(".character-stat")!
 const bonusList = () => within(abilities()).getByRole("list", { name: "密藥與住宿" })
 
 // 規格「Stat with an equipment bonus」
@@ -320,4 +331,133 @@ test("ConfirmSignOutCallsBack", async () => {
   )
 
   expect(onSignOut).toHaveBeenCalledTimes(1)
+})
+
+// ── 技能頁 ──
+const skillsPanel = () => screen.getByRole("tabpanel", { name: "技能" })
+const switcher = () => within(skillsPanel()).getByRole("button", { name: /^切換職業/ })
+const cardOf = (name: string) =>
+  within(skillsPanel())
+    .getByRole("button", { name: new RegExp(`^${name}`) })
+    .closest<HTMLElement>(".skill-card")!
+const openSkills = async (api = createCharacterApi()) => {
+  const rendered = await renderCharacter({ api })
+  fireEvent.click(screen.getByRole("tab", { name: "技能" }))
+  return rendered
+}
+
+// 規格「Skills page job switcher」：每次打開停目前職業
+test("SkillsPageStartsOnCurrentJob", async () => {
+  await openSkills()
+
+  expect(switcher()).toHaveTextContent("戰士")
+  expect(switcher()).toHaveTextContent("現職")
+  expect(
+    within(skillsPanel()).getAllByRole("button", { name: /^(爆氣|防禦心得|破滅一擊|嗜血)/ }),
+  ).toHaveLength(4)
+})
+
+// 規格「Switcher of the current job」
+test("SwitcherShowsSkillPoints", async () => {
+  await openSkills()
+
+  expect(switcher()).toHaveTextContent("Class I・見習・已學 3 / 4 招")
+  expect(switcher()).toHaveTextContent("技能點")
+  expect(switcher()).toHaveTextContent("2,587")
+})
+
+// 規格「Choosing a previous job」：清單依 Class 分組，選了只列那個職業學過的
+test("ChoosingPreviousJobListsLearnedOnly", async () => {
+  await openSkills()
+
+  fireEvent.click(switcher())
+  const picker = within(skillsPanel()).getByRole("group", { name: "當過的職業" })
+  expect(picker).toHaveTextContent("CLASS I・見習")
+  expect(within(picker).getByRole("button", { name: /術士/ })).toHaveTextContent("技能點 1,882")
+  fireEvent.click(within(picker).getByRole("button", { name: /術士/ }))
+
+  expect(within(skillsPanel()).queryByRole("group", { name: "當過的職業" })).toBeNull()
+  expect(switcher()).toHaveTextContent("術士")
+  expect(switcher()).not.toHaveTextContent("現職")
+  expect(within(skillsPanel()).getByRole("button", { name: /^魔力增幅/ })).toBeInTheDocument()
+  expect(within(skillsPanel()).queryByRole("button", { name: /^爆氣/ })).toBeNull()
+})
+
+// 技能頁不出現「熟練度」
+test("SkillsPageNeverSaysProficiency", async () => {
+  await openSkills()
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /^爆氣/ }))
+
+  expect(skillsPanel()).not.toHaveTextContent("熟練度")
+})
+
+// 一次只展開一張
+test("OneCardExpandedAtATime", async () => {
+  await openSkills()
+  const header = (name: string) =>
+    within(skillsPanel()).getByRole("button", { name: new RegExp(`^${name}`) })
+
+  fireEvent.click(header("爆氣"))
+  expect(header("爆氣")).toHaveAttribute("aria-expanded", "true")
+  fireEvent.click(header("防禦心得"))
+
+  expect(header("爆氣")).toHaveAttribute("aria-expanded", "false")
+  expect(header("防禦心得")).toHaveAttribute("aria-expanded", "true")
+})
+
+// 兩欄數值：目前與下一級，變了的標出來；花費行
+test("CardShowsBothLevelColumns", async () => {
+  await openSkills()
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /^爆氣/ }))
+  const card = cardOf("爆氣")
+
+  expect(card).toHaveTextContent("Lv 6/10")
+  expect(card).toHaveTextContent("目前 Lv 6")
+  expect(card).toHaveTextContent("下一級 Lv 7")
+  expect(within(card).getByText("機率 100%")).toHaveClass("skill-card__value--changed")
+  expect(within(card).getAllByText("SP 12")[1]).not.toHaveClass("skill-card__value--changed")
+  expect(card).toHaveTextContent("升級需要27,000 金錢2,587 技能點")
+  expect(within(card).getByRole("button", { name: "升級" })).toBeEnabled()
+})
+
+// 規格「Disabled reasons」
+test("DisabledSealShowsReasons", async () => {
+  await openSkills()
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /^嗜血/ }))
+  const card = cardOf("嗜血")
+
+  expect(card).toHaveTextContent("未習得")
+  expect(card).toHaveTextContent("尚未學習")
+  expect(within(card).getByRole("button", { name: "學習" })).toBeDisabled()
+  expect(card).toHaveTextContent("前置技能：破滅一擊 Lv 3・技能點不足")
+  expect(within(card).getByText("2,941 技能點")).toHaveClass("skill-card__cost--short")
+})
+
+// 規格「Maximum level」
+test("MaxLevelShowsSeal", async () => {
+  await openSkills(
+    createCharacterApi({
+      getSkills: vi
+        .fn()
+        .mockResolvedValue(
+          overviewWith([warriorJob({ skills: [learnableSkill({ level: 10, next: null })] })]),
+        ),
+    }),
+  )
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /^爆氣/ }))
+  const card = cardOf("爆氣")
+
+  expect(card).toHaveTextContent("已達最高等級")
+  expect(card).toHaveTextContent("精通")
+  expect(card).toHaveTextContent("目前 Lv 10（最高）")
+  expect(within(card).queryByRole("button", { name: "升級" })).toBeNull()
+})
+
+// 沒有說明的技能寫「（說明待補）」
+test("EmptyDescriptionShowsPending", async () => {
+  await openSkills()
+  fireEvent.click(switcher())
+  fireEvent.click(within(skillsPanel()).getByRole("button", { name: /術士/ }))
+
+  expect(cardOf("魔力增幅")).toHaveTextContent("（說明待補）")
 })

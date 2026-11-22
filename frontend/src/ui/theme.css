@@ -216,6 +216,16 @@
   --character-sheet: #fbf5e4;
   --character-sheet-deep: #f4ead2;
   --character-switch-knob: #6a4626;
+  --character-column-rgb: 255 248 230;
+  --character-picker-rgb: 240 226 196;
+  --character-chosen-rgb: 176 122 42;
+  --character-chosen-rim-rgb: 140 90 30;
+  --character-active-rgb: 176 90 30;
+  --character-active-text: #8a4a14;
+  --character-passive-text: #2f6a5a;
+  --character-teal-rgb: 47 122 106;
+  --character-max-title: #a0601e;
+  --character-mastered: #b0322a;
   /* 共用動作回饋（ui/feedback）：等待墨點底板、失敗彈窗的紅字與蠟封陰影 */
   --feedback-plate-rgb: 30 18 8;
   --feedback-failure-text: #9a2416;
