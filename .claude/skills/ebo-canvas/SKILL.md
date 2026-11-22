@@ -32,6 +32,7 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 | `CompanionsFit` | 同伴（入口、獸欄、傭兵所）的新比例稿，由 `work/companionsfit/build.py` 產生（傭兵讀 `mercenaries.json`、冒險地讀 `world.json`）；在新成品 |
 | `HonourFit` | 勳章所（櫃檯、陳列板、羊皮紙詳情）的新比例稿，由 `work/honourfit/build.py` 產生（兌換讀 `honour-shop.json`）；狀態截圖 `work/honourfit/shots.sh`；在新成品 |
 | `MissionsFit` | 任務板（佈告欄每日／一般兩頁、櫃檯手邊三張、委託單、完成清單）的新比例稿，由 `work/missionsfit/build.py` 產生（委託讀 `missions.json`）；狀態截圖 `work/missionsfit/shots.sh`；換頁採方案 A（上緣兩張標題紙）；在新成品 |
+| `CharacterFit` | 角色頁（裝備間立繪、冒險者登記證、手帳能力／技能兩頁、職業列表與詳細、等待墨點與成功／失敗彈窗）的新比例稿，由 `work/characterfit/build.py` 產生（職業與技能讀 `build-data.py` 產的 `character-data.json`）；狀態截圖 `work/characterfit/shots.sh`；回饋採等待墨點＋彈窗（v40）；在新成品 |
 | `MissionsPages` | 任務板換頁方案 A／B／C 的比較板（2026-11-15，使用者選 A）；在新成品 |
 | `AssetsJ*` | 素材庫（介面、背景、精靈圖、職業、道具、立繪、備用）；`Fonts` 字型比較 |
 | `StyleE`、`Bag2`、`Character2`、`Town`、`Assets` | 棄用，在畫布最下面 |
@@ -49,7 +50,7 @@ description: Use when working on the EBO design canvas (claude.ai artifact 5cCvc
 
 ## 新比例成品「EBO 新比例畫面」
 
-https://claude.ai/artifact/Y1nSuzweihhZm9NQEbZSts（Design 類型，跟舊畫布分開）：放照新比例（寬 390、高 624～780）實作的畫面稿，目前有 TitleFit、TownFit、InnFit、CompanionsFit、HonourFit、MissionsFit、MissionsPages。
+https://claude.ai/artifact/Y1nSuzweihhZm9NQEbZSts（Design 類型，跟舊畫布分開）：放照新比例（寬 390、高 624～780）實作的畫面稿，目前有 TitleFit、TownFit、InnFit、CompanionsFit、HonourFit、MissionsFit、MissionsPages、CharacterFit。
 
 - 本機：`.design-work/fit/src/`（產生器的輸出，用舊畫布的 blob id，可直接預覽）→ `work/fit/remap.py` 換成新成品的 id → `.design-work/fit/project/`（發布用，含 `canvas.json`）。
 - 兩邊的素材 id 不同：舊畫布的素材要先複製進新成品（`Artifact` publish、`url`＝新成品、`asset: true`、`from_url`＝舊畫布、`asset_ids` 一次最多 10 個），結果的「新 id ← 舊 id」寫進 `work/fit/blobmap.json`。`remap.py --missing` 列出還沒複製的。新產的素材直接上傳到新成品，也記進 blobmap（舊 id 欄填新 id 本身）。

@@ -107,12 +107,23 @@
     - 時長常數進 `motion/timings.ts`；`theme.css` 加 `--feedback-plate-rgb`、`--feedback-failure-text`、`--seal-shadow-rgb`。
     - 另外補一項 `FailureSettlesWithTheError`、`ConfirmClosesAfterFadingOut`。
     - 先跑測試因模組與常數不存在而失敗；實作後 9 項通過，`pnpm check` 1122 項通過。
-- [ ] 3.2 設計素材：
+- [x] 3.2 設計素材：
   - 用 `cd tools/assets && pnpm cli design character <名稱> <來源圖>` 轉出 Design Source 表的素材到 `frontend/src/assets/character/*.webp`：裝備間、登記證、索引籤兩張、技能圖示圓兩張、菱形兩張；
   - 前端已有同一張圖（紅印章、木條、金幣等）就比對像素後沿用；
   - `docs/art/README.md` 加 `character/` 一節，註明換立繪要重量雙腳偏移；
   - `.claude/skills/ebo-canvas` 的板子表加 CharacterFit。
   驗證：檔案存在；README 清單與檔案一致（內容檢查）；`cd tools/assets && pnpm check` 通過。
+  - 實作紀錄：
+    - 新轉 `character/` 七張：`room`（614）、`journal`（681）、`tab`（162）、`skill-disc-active`、`skill-disc-passive`（128）、`level-pip`、`level-pip-lit`（48）。
+    - 設計稿最後只用 `9ad83b52` 一張索引籤（未選的壓暗），`550cfa39` 不用。
+    - 沿用的照 README 的 blob id 對照（同一張原圖，不必比像素）：
+      - 登記證 `title/card-sealed`；
+      - 木桌、木條 `title/desk`、`title/desk-edge`；
+      - 紅印章 `title/seal`；
+      - 錢袋 `town/purse`；
+      - 彈窗紙框 `inn/parchment`。
+    - R2 內容圖目前只有一階四職的職業圖示與立繪，沒有技能圖示，所以技能與 Class II 職業先顯示佔位圖（另外跟使用者確認要不要上傳）。
+    - README 加 `character/` 一節，並註明立繪雙腳偏移怎麼重量；`ebo-canvas` 板子表加 CharacterFit；`tools/assets` 的 `pnpm check` 66 項通過。
 
 ## 4. 角色頁畫面
 

@@ -165,6 +165,18 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 
 單子紙、標題紙、委託單沿用 `inn/parchment`；一般委託的黃銅圖釘、關閉鈕、櫃檯沿用 `inn/pin`、`inn/close`、`inn/counter-wood`；木條沿用 `title/desk-edge`；重置紙條沿用 `title/book-page`；「完」章、「達成／可交」章與紅印章沿用 `title/seal`；莉瑟頭像沿用 `title/clerk`；金錢圖示沿用 `town/purse`；道具用 `placeholders/items/` 的分類佔位圖。
 
+### `character/`：角色頁（設計板 CharacterFit）
+
+| 檔名 | 用途 | blob id |
+| --- | --- | --- |
+| `room` | 裝備間背景（614） | `10caa783` |
+| `journal` | 桌上攤開的手帳（681，顯示寬 455） | `e10a856e` |
+| `tab` | 手帳上緣的皮革索引籤（選中與未選同一張，未選的壓暗；162） | `9ad83b52` |
+| `skill-disc-active`、`skill-disc-passive` | 技能圖示底下的主動／被動圓框（128，原圖 137） | `ce51ffe7`、`bd41af08` |
+| `level-pip`、`level-pip-lit` | 技能等級的銅框菱形、學到的琥珀菱形（48，原圖 430） | `15677f71`、`55a2cf6d` |
+
+登記證沿用 `title/card-sealed`；木桌、木條沿用 `title/desk`、`title/desk-edge`；紅印章（升級、學習、精通、再試一次、失敗彈窗的蠟封）沿用 `title/seal`；錢袋沿用 `town/purse`；彈窗的紙框沿用 `inn/parchment`。立繪、職業圖示、技能圖示是內容圖（`portraits/<職業>-male|female`、`job-icons/<職業>`、`skills/<技能>`）。立繪的雙腳偏移量（`frontend/src/game/characterScreen.ts` 的 `feetOffsets`）是量圖得到的，換立繪要重量：取圖片下方 75～97% 不透明像素的水平重心，離圖片中線的距離除以圖高。
+
 ## 提示詞
 
 日系手繪（設計畫布 EBO DEMO）的提示詞在 [`prompts/demo/`](prompts/demo/README.md)；道具描述檔在 `prompts/items/`。`prompts.md` 是舊的深藍夜色舞台範本，只留作參考。
