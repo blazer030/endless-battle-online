@@ -1,32 +1,14 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react"
-import type { BuffKind, BuffVo } from "../../game/buffs"
+import type { BuffVo } from "../../game/buffs"
 import type { InnVo } from "../../game/inn"
-import { bonusRows, expiredSince, type BonusRow } from "../../game/town"
+import { bonusRows, expiredSince } from "../../game/town"
 import { CountdownTickMilliseconds } from "../../motion/timings"
-import { ContentImage } from "../ContentImage"
+import { BonusBadgeImage } from "./BonusBadgeImage"
+import { bonusBadgeClass } from "./bonusBadge"
 import type { TownApi } from "./TownScreen"
 import "./TownBonuses.css"
 
-const kindClass: Record<BuffKind, string> = {
-  Experience: "experience",
-  JobExperience: "job-experience",
-  Attack: "attack",
-  Magic: "magic",
-  Defense: "defense",
-  MagicDefense: "magic-defense",
-}
-
 type Loaded = { buffs: readonly BuffVo[]; inn: InnVo; at: Date }
-
-const badgeClass = (row: BonusRow) =>
-  `town-bonus__disc town-bonus__disc--${row.isLodging ? "lodging" : kindClass[row.kind]}`
-
-const BadgeImage = ({ row }: { row: BonusRow }) =>
-  row.isLodging ? (
-    <ContentImage category="room-badges" assetKey={row.roomId ?? "unknown"} alt="" />
-  ) : (
-    <ContentImage category="items" assetKey={row.itemId ?? "unknown"} alt="" />
-  )
 
 type Props = {
   api: TownApi
@@ -91,13 +73,13 @@ export const TownBonuses = ({ api, open, onToggle, onClose }: Props) => {
             <li key={row.key}>
               <button
                 type="button"
-                className={`${badgeClass(row)} town-bonus__badge`}
+                className={`${bonusBadgeClass(row)} town-bonus__badge`}
                 data-ending-soon={row.endingSoon}
                 aria-label={`${row.name}，剩 ${row.remaining}`}
                 aria-expanded={open}
                 onClick={onToggle}
               >
-                <BadgeImage row={row} />
+                <BonusBadgeImage row={row} />
                 <i>{row.remaining}</i>
               </button>
             </li>
@@ -110,8 +92,8 @@ export const TownBonuses = ({ api, open, onToggle, onClose }: Props) => {
             </h5>
             {rows.map((row) => (
               <div key={row.key} className="town-bonus-list__row" data-ending-soon={row.endingSoon}>
-                <span className={badgeClass(row)}>
-                  <BadgeImage row={row} />
+                <span className={bonusBadgeClass(row)}>
+                  <BonusBadgeImage row={row} />
                 </span>
                 <span className="town-bonus-list__text">
                   <b>{row.name}</b>
