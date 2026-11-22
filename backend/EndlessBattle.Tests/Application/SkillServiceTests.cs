@@ -313,4 +313,76 @@ public class SkillServiceTests
         Assert.Equal(skillPoints, Assert.Single(await proficiencies.ListAsync(character.Id, CancellationToken)).SkillPoints);
         Assert.Equal(learned, await skillBook.ListAsync(character.Id, CancellationToken));
     }
+
+    // 規格「Every reason in order」的後幾列：用以前的職業、未知職業
+    [Fact]
+    public async Task Learn_PreviousJobNotLearnedIsRejected()
+    {
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 100_000, ["job-7"] = 100_000 }, new LearnedSkill("skill-11", 3));
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-66", "job-7", CancellationToken));
+
+        Assert.Equal(["NOT_LEARNED"], invalid.Reasons);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Learn_JobNeverHeldOnlyWrongJob()
+    {
+        await ArrangeWarriorAsync(0, new Dictionary<string, long> { ["job-6"] = 0 });
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-21", "job-8", CancellationToken));
+
+        Assert.Equal(["WRONG_JOB"], invalid.Reasons);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Learn_UnknownJob()
+    {
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 100_000 });
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-1", "job-9999", CancellationToken));
+
+        Assert.Equal(["JOB_UNKNOWN"], invalid.Reasons);
+        Assert.Empty(log);
+    }
+
+    // 不帶職業或帶目前職業都用目前職業
+    [Fact]
+    public async Task Learn_CurrentJobIdSameAsNone()
+    {
+        await ArrangeWarriorAsync(1000, new Dictionary<string, long> { ["job-6"] = 100 });
+
+        await RealService().LearnAsync(AccountId, "skill-1", "job-6", CancellationToken);
+
+        Assert.Equal(["update", "spend:job-6:35", "book:skill-1:1"], log);
+    }
+
+    // 規格「Upgrading a previous job's skill」：扣術士的技能點，戰士的不動，仍是戰士
+    [Fact]
+    public async Task Learn_PreviousJobSpendsThatJobsSkillPoints()
+    {
+        var character = await ArrangeWarriorAsync(3000, new Dictionary<string, long> { ["job-6"] = 50, ["job-7"] = 300 }, new LearnedSkill("skill-11", 1));
+
+        await RealService().LearnAsync(AccountId, "skill-11", "job-7", CancellationToken);
+
+        var updated = (await characters.FindByAccountAsync(AccountId, CancellationToken))!;
+        Assert.Equal(1000, updated.Money);
+        Assert.Equal("job-6", updated.JobId);
+        Assert.Equal([new JobProficiency("job-6", 0, 50), new JobProficiency("job-7", 0, 65)], await proficiencies.ListAsync(character.Id, CancellationToken));
+        Assert.Contains(new LearnedSkill("skill-11", 2), await skillBook.ListAsync(character.Id, CancellationToken));
+    }
+
+    // 規格「A previous job's skill points are not enough」：戰士的技能點夠也不行
+    [Fact]
+    public async Task Learn_PreviousJobNotEnoughSkillPoints()
+    {
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 100_000, ["job-7"] = 100 }, new LearnedSkill("skill-11", 1));
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-11", "job-7", CancellationToken));
+
+        Assert.Equal(["NOT_ENOUGH_PROFICIENCY"], invalid.Reasons);
+        Assert.Empty(log);
+    }
 }

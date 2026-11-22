@@ -18,7 +18,7 @@
     - `JOB_UNKNOWN` 與以前職業的列留到 1.3。
   - 新測試第一次就通過，都是描述現況。`dotnet test --filter-class "*Skill*"` 243 項全綠。
 - [x] 1.2 結構性變更（單獨以 ♻️ refactor commit）：依 design「學技能可以指定職業，條件仍在 Domain」，把 `SkillTeaching.TaughtByCurrentJob` 改名為 `Teaches`、`LearnCheck.TaughtByCurrentJob` 改名為 `Teaches`。`SkillService` 與測試跟著改名，對外的 `taughtByCurrentJob` 欄位不變。驗證：改名前後 `dotnet test --filter-class "*Skill*"` 都全綠，`backend/openapi/` 沒有差異。[after: 1.1]
-- [ ] 1.3 實作 Upgrading a learned skill with a previous job's skill points，以及 Learning rejections and their order 的新原因。
+- [x] 1.3 實作 Upgrading a learned skill with a previous job's skill points，以及 Learning rejections and their order 的新原因。
   - Domain：`SkillTeaching` 加 `ThroughPreviousJob`；`LearnCheck` 加 `Learned` 與 `NOT_LEARNED`（排在 `WRONG_JOB` 之後）。
   - Application：`SkillService.LearnAsync` 收 `jobId`，決定用哪個職業，順序是：不帶或等於目前職業 → 未知 `JOB_UNKNOWN` → 沒持有只回 `WRONG_JOB`；扣那個職業的技能點。
   - Api：`LearnSkillRequest` 加 `JobId`。
@@ -30,6 +30,12 @@
     - `SkillServiceTests.Learn_JobNeverHeldOnlyWrongJob`；
     - `SkillEndpointsTests.Learn_WithJobIdUsesThatJob`（Testcontainers，驗接線與 400 的 `reasons`）。
   驗證：測試全綠。[after: 1.2]
+  - 實作紀錄：
+    - Domain：`SkillTeaching` 加選填 `ThroughPreviousJob`，`LearnCheck` 加 `Learned`，原因 `NOT_LEARNED` 排在 `WRONG_JOB` 後；沿用 `ErrorCodes.NotLearned`。
+    - Application：`SkillService.LearnAsync(accountId, skillId, jobId, …)`，原本三個參數的版本轉呼叫它；`TeachingOf` 改收職業 id。
+    - Api：`LearnSkillRequest` 加 `JobId`；`backend/openapi/` 與 `schema.ts` 重新產生。
+    - 例子表的後四列拆成：`SkillServiceTests.Learn_PreviousJobNotLearnedIsRejected`、`Learn_JobNeverHeldOnlyWrongJob`、`Learn_UnknownJob`，另有 `Learn_CurrentJobIdSameAsNone`；Domain 是 `SkillLearningTests.PreviousJob_NotLearnedIsRejected`、`PreviousJob_LearnedSkillCanBeUpgraded`。
+    - 先跑新測試因 `Learned`、`ThroughPreviousJob`、四參數 `LearnAsync` 不存在而編譯失敗；實作後 `dotnet test --filter-class "*Skill*"` 252 項全綠（含 Testcontainers 的 `SkillEndpointsTests.Learn_WithJobIdUsesThatJob`）。
 - [ ] 1.4 依 design「數值列在 Application 拆，文字照 SkillSummary」實作 Skill level detail rows：新增 `SkillSummary.RowsOf(SkillLevel)` 回 `SkillDetailRow(Kind, Text)`，條件與效果文字與 `Of` 共用，`Of` 輸出不變。先寫失敗測試：
   - `SkillSummaryTests.Rows_ActiveSkill`（爆氣 Lv1 → `機率 40%`、`SP 2`、`自己物攻 +1%，3 回合`）；
   - `Rows_PassiveWithoutConditionsOrCosts`（華爾滋 → `常駐`＋效果，沒有消耗與冷卻）；

@@ -26,25 +26,42 @@ public sealed class SkillService(
         var learnedOthers = content.AllSkills.Where(skill => !content.Teaches(character.JobId, skill.Id) && levels.ContainsKey(skill.Id));
         var skillPoints = SkillPointsOf(points, character.JobId);
         var views = currentJobSkills.Concat(learnedOthers)
-            .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), skillPoints, TeachingOf(character, skill, levels)))
+            .Select(skill => ToView(character, skill, levels.GetValueOrDefault(skill.Id), skillPoints, TeachingOf(character.JobId, skill, levels)))
             .ToList();
 
         var slots = await loadout.ListAsync(character.Id, cancellationToken);
         return new SkillOverview(character.JobId, SkillPointsOf(points, character.JobId), views, slots);
     }
 
+    public Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken) =>
+        LearnAsync(accountId, skillId, null, cancellationToken);
+
+    // jobId 是用哪個職業的技能點學：不帶或等於目前職業時用目前職業；以前當過的職業（有熟練度紀錄）只能升級已學的技能，
+    // 沒當過的職業只回 WRONG_JOB、不判斷其他條件。
     // 角色更新（扣錢、版本鎖）成功後才扣技能點（條件式，不足則 409）與寫技能書；版本衝突時其他表都不動
-    public async Task<SkillOverview> LearnAsync(long accountId, string skillId, CancellationToken cancellationToken)
+    public async Task<SkillOverview> LearnAsync(long accountId, string skillId, string? jobId, CancellationToken cancellationToken)
     {
         var character = await FindCharacterAsync(accountId, cancellationToken);
         var skill = FindSkill(skillId)
             ?? throw new InputValidationException("不存在的技能", [ErrorCodes.SkillUnknown]);
-        // 學習扣的是目前職業的技能點：關聯表有目前職業＋這個技能才能學
-        var skillPoints = SkillPointsOf(await proficiencies.ListAsync(character.Id, cancellationToken), character.JobId);
+        var learningJobId = jobId ?? character.JobId;
+        if (content.AllJobs.All(job => job.Id != learningJobId))
+        {
+            throw new InputValidationException("不存在的職業", [ErrorCodes.JobUnknown]);
+        }
+
+        var rows = await proficiencies.ListAsync(character.Id, cancellationToken);
+        var throughPreviousJob = learningJobId != character.JobId;
+        if (throughPreviousJob && rows.All(row => row.JobId != learningJobId))
+        {
+            throw new InputValidationException("沒有當過這個職業", [ErrorCodes.WrongJob]);
+        }
+
+        var skillPoints = SkillPointsOf(rows, learningJobId);
         var levels = (await skillBook.ListAsync(character.Id, cancellationToken))
             .ToDictionary(learned => learned.SkillId, learned => learned.Level, StringComparer.Ordinal);
         var currentLevel = levels.GetValueOrDefault(skill.Id);
-        var teaching = TeachingOf(character, skill, levels);
+        var teaching = TeachingOf(learningJobId, skill, levels) with { ThroughPreviousJob = throughPreviousJob };
 
         var check = SkillLearning.Evaluate(character, skill, currentLevel, skillPoints, teaching);
         if (!check.Allowed)
@@ -54,7 +71,7 @@ public sealed class SkillService(
 
         var (updated, proficiencyCost, learnedSkill) = SkillLearning.Apply(character, skill, currentLevel, skillPoints, teaching);
         await characters.UpdateAsync(updated, cancellationToken);
-        await proficiencies.SpendSkillPointsAsync(character.Id, character.JobId, proficiencyCost, cancellationToken);
+        await proficiencies.SpendSkillPointsAsync(character.Id, learningJobId, proficiencyCost, cancellationToken);
         await skillBook.UpsertAsync(character.Id, learnedSkill, cancellationToken);
         return await GetAsync(accountId, cancellationToken);
     }
@@ -87,8 +104,8 @@ public sealed class SkillService(
     private static long SkillPointsOf(IReadOnlyList<JobProficiency> points, string jobId) =>
         points.FirstOrDefault(row => row.JobId == jobId)?.SkillPoints ?? 0;
 
-    private SkillTeaching TeachingOf(Character character, SkillDefinition skill, IReadOnlyDictionary<string, int> levels) =>
-        new(content.Teaches(character.JobId, skill.Id), skill.Prerequisite is { } prerequisite ? levels.GetValueOrDefault(prerequisite.SkillId) : 0);
+    private SkillTeaching TeachingOf(string jobId, SkillDefinition skill, IReadOnlyDictionary<string, int> levels) =>
+        new(content.Teaches(jobId, skill.Id), skill.Prerequisite is { } prerequisite ? levels.GetValueOrDefault(prerequisite.SkillId) : 0);
 
     private SkillView ToView(Character character, SkillDefinition skill, int level, long skillPoints, SkillTeaching teaching)
     {

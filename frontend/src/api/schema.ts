@@ -2849,6 +2849,7 @@ export interface components {
         };
         LearnSkillRequest: {
             skillId: null | string;
+            jobId: null | string;
         };
         LevelRangeResponse: {
             /** Format: int32 */

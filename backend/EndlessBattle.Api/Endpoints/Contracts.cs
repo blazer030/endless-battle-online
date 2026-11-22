@@ -173,7 +173,8 @@ public sealed record MercenaryReportResponse(
 
 public sealed record MercenaryFightResponse(DateTimeOffset At, string MonsterId, string MonsterName, bool Won, long Experience, long Money);
 
-public sealed record LearnSkillRequest(string? SkillId);
+// JobId：用哪個職業的技能點學，不帶時用目前職業
+public sealed record LearnSkillRequest(string? SkillId, string? JobId);
 
 // 省略的欄位＝清空；發動率由技能決定，請求不帶
 public sealed record SetSkillSlotsRequest(IReadOnlyList<SkillSlotRequest?>? Slots);

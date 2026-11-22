@@ -3867,11 +3867,18 @@
       },
       "LearnSkillRequest": {
         "required": [
-          "skillId"
+          "skillId",
+          "jobId"
         ],
         "type": "object",
         "properties": {
           "skillId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "jobId": {
             "type": [
               "null",
               "string"

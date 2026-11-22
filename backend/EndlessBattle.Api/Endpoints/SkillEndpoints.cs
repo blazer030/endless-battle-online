@@ -19,7 +19,7 @@ public static class SkillEndpoints
         skills.MapPost("/learn", async (LearnSkillRequest request, ClaimsPrincipal user, SkillService service, CancellationToken cancellationToken) =>
         {
             var skillId = request.SkillId ?? throw RequestErrors.Invalid("缺少技能 id");
-            return TypedResults.Ok(ToResponse(await service.LearnAsync(user.GetAccountId(), skillId, cancellationToken)));
+            return TypedResults.Ok(ToResponse(await service.LearnAsync(user.GetAccountId(), skillId, request.JobId, cancellationToken)));
         });
 
         skills.MapPut("/slots", async (SetSkillSlotsRequest request, ClaimsPrincipal user, SkillService service, CancellationToken cancellationToken) =>

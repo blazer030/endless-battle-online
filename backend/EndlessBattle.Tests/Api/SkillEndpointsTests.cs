@@ -182,6 +182,32 @@ public class SkillEndpointsTests(MySqlDatabaseFixture database)
         Assert.Equal(0, proficiency.GetProperty("proficiency").GetInt64());
     }
 
+    // 規格 skill-learning「Upgrading a learned skill with a previous job's skill points」：帶 jobId 扣那個職業的技能點
+    [Fact]
+    public async Task Learn_WithJobIdUsesThatJob()
+    {
+        await using var factory = new EndlessBattleApiFactory(database);
+        var client = await CreateClientWithCharacterAsync(factory);
+        await GrantSkillPointsAsync(factory, client, "thief", 600);
+        var characterId = await CharacterIdAsync(factory, client);
+        using (var scope = factory.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<ISkillBookRepository>().UpsertAsync(characterId, new LearnedSkill("combo", 1), CancellationToken);
+        }
+
+        var body = await ReadOkAsync(await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "combo", jobId = "thief" }, CancellationToken));
+
+        Assert.Equal(2, body.GetProperty("skills").EnumerateArray().First(skill => skill.GetProperty("id").GetString() == "combo").GetProperty("level").GetInt32());
+        var me = await client.GetFromJsonAsync<JsonElement>("/api/characters/me", CancellationToken);
+        Assert.Equal("warrior", me.GetProperty("jobId").GetString());
+        Assert.Equal(0, me.GetProperty("money").GetInt64());
+        var thief = me.GetProperty("jobProficiency").EnumerateArray().Single(row => row.GetProperty("jobId").GetString() == "thief");
+        Assert.Equal(0, thief.GetProperty("skillPoints").GetInt64());
+
+        var never = await client.PostAsJsonAsync("/api/skills/learn", new { skillId = "lullaby", jobId = "bard" }, CancellationToken);
+        Assert.Equal(["WRONG_JOB"], await ReadReasonsAsync(never));
+    }
+
     [Fact]
     public async Task Learn_Returns400WithReasons_WhenNotAllowed()
     {

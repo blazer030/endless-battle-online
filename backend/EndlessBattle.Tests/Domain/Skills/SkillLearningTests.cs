@@ -85,6 +85,31 @@ public class SkillLearningTests
         Assert.Throws<SkillLearningException>(() => SkillLearning.Apply(Warrior, Combo, 0, 300, NotTaught));
     }
 
+    // 用以前的職業學：只能升級已學的；沒學過回 NOT_LEARNED（排在 WRONG_JOB 之後），其他條件照舊判斷
+    private static readonly SkillTeaching TaughtByPreviousJob = new(Teaches: true, PrerequisiteLevel: 0, ThroughPreviousJob: true);
+
+    [Fact]
+    public void PreviousJob_NotLearnedIsRejected()
+    {
+        var check = SkillLearning.Evaluate(Warrior, Burst, 0, 300, TaughtByPreviousJob);
+
+        Assert.False(check.Allowed);
+        Assert.False(check.Learned);
+        Assert.Equal(["NOT_LEARNED"], check.Reasons);
+        Assert.Equal(["WRONG_JOB", "NOT_LEARNED", "NOT_ENOUGH_PROFICIENCY"],
+            SkillLearning.Evaluate(Warrior, Burst, 0, 0, TaughtByPreviousJob with { Teaches = false }).Reasons);
+    }
+
+    [Fact]
+    public void PreviousJob_LearnedSkillCanBeUpgraded()
+    {
+        var check = SkillLearning.Evaluate(Warrior, Burst, 1, 600, TaughtByPreviousJob);
+
+        Assert.True(check.Allowed);
+        Assert.True(check.Learned);
+        Assert.Equal(new LearnedSkill("burst", 2), SkillLearning.Apply(Warrior, Burst, 1, 600, TaughtByPreviousJob).Learned);
+    }
+
     [Fact]
     public void Learn_RejectsMaxLevel()
     {
