@@ -3,7 +3,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  font-family: var(--font-ui);
+  font-family: var(--font-number-ui);
   color: var(--umber-deep);
   background:
     linear-gradient(rgb(var(--character-wash-rgb) / 0.38), rgb(var(--character-wash-rgb) / 0.38)),
@@ -134,16 +134,24 @@
 
 .registration__change {
   margin-left: auto;
-  padding: 0;
+  width: 72px;
+  height: 23px;
+  padding: 0 0 1px;
   border: 0;
-  background: none;
-  font: inherit;
+  background: url("../../assets/character/job-button.webp") center / 100% 100% no-repeat;
+  font-family: var(--font-serif);
+  font-weight: 900;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--seal-red);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--character-tab-selected);
+  text-shadow: 0 1px 1px rgb(var(--shade-rgb) / 0.8);
+  filter: drop-shadow(0 2px 2px rgb(var(--shade-rgb) / 0.45));
   cursor: pointer;
+}
+
+.registration__change:not(:disabled):active {
+  transform: scale(0.95);
 }
 
 .registration__proficiency {
@@ -429,15 +437,32 @@
 
 .character__failed-line {
   margin: 0;
-  font-family: var(--font-serif);
-  font-size: 14px;
-  font-weight: 700;
+  font-family: var(--font-ui);
+  font-size: 13px;
   color: var(--error-red);
 }
 
-.character__retry {
+/* 讀取失敗的「再試一次」：排在那句話下面，字橫書兩行（同同伴、勳章所） */
+.seal.character__retry {
+  position: relative;
+  bottom: auto;
   width: 92px;
   height: 92px;
+  transform: rotate(-4deg);
+}
+
+.seal.character__retry span {
+  padding: 0 22px;
+  writing-mode: horizontal-tb;
+  text-align: center;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+}
+
+.seal.character__retry:not(:disabled):active {
+  transform: rotate(-4deg) scale(0.9);
 }
 
 .character .inn__back {
@@ -494,21 +519,23 @@
 
 .character-combats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
 }
 
 .character-combat {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 5px 4px;
-  border-bottom: 1px dashed rgb(var(--umber-rgb) / 0.3);
-  font-size: 13px;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--town-muted);
 }
 
 .character-combat b {
   font-size: 16px;
+  color: var(--town-text);
 }
 
 .character-bonuses {
@@ -570,6 +597,7 @@
   margin: 4px 0 0;
   padding-top: 10px;
   border-top: 1px dashed rgb(var(--umber-rgb) / 0.35);
+  font-family: var(--font-ui);
   font-size: 13px;
   color: var(--town-muted);
 }
@@ -594,6 +622,7 @@
 
 .character-sign-out-ask__question {
   margin: 6px 0 14px;
+  font-family: var(--font-ui);
   font-size: 14px;
 }
 
@@ -695,7 +724,10 @@
   box-shadow: inset 0 0 0 1px rgb(var(--character-teal-rgb) / 0.45);
 }
 
+/* 技能點到六位數時欄寬不夠，副標截斷，不跟數字重疊 */
 .job-switch__subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 11px;
   color: var(--character-muted);
   white-space: nowrap;
@@ -1191,12 +1223,28 @@
 }
 
 .learned-popup__level {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
   margin: 4px 0;
   font-family: var(--font-number);
-  font-size: 15px;
   font-weight: 700;
+}
+
+.learned-popup__from {
+  font-size: 14px;
+  color: var(--character-faint);
+}
+
+.learned-popup__to {
+  font-size: 22px;
   color: var(--character-teal);
+}
+
+.learned-popup__level small {
+  font-size: 13px;
+  color: var(--character-muted);
 }
 
 .learned-popup__pips {

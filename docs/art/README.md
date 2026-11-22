@@ -174,6 +174,7 @@ pnpm cli design ui paper-strip ../../.design-work/assets/<檔名>.png --max-widt
 | `tab` | 手帳上緣的皮革索引籤（選中與未選同一張，未選的壓暗；162） | `9ad83b52` |
 | `skill-disc-active`、`skill-disc-passive` | 技能圖示底下的主動／被動圓框（128，原圖 137） | `ce51ffe7`、`bd41af08` |
 | `level-pip`、`level-pip-lit` | 技能等級的銅框菱形、學到的琥珀菱形（48，原圖 430） | `15677f71`、`55a2cf6d` |
+| `job-button` | 登記證上的「轉職」紅鈕（144，原圖較大） | `ea244ccc` |
 
 登記證沿用 `title/card-sealed`；木桌、木條沿用 `title/desk`、`title/desk-edge`；紅印章（升級、學習、精通、再試一次、失敗彈窗的蠟封）沿用 `title/seal`；錢袋沿用 `town/purse`；彈窗的紙框沿用 `inn/parchment`。立繪、職業圖示、技能圖示是內容圖（`portraits/<職業>-male|female`、`job-icons/<職業>`、`skills/<技能>`）。立繪的雙腳偏移量（`frontend/src/game/characterScreen.ts` 的 `feetOffsets`）是量圖得到的，換立繪要重量：取圖片下方 75～97% 不透明像素的水平重心，離圖片中線的距離除以圖高。
 

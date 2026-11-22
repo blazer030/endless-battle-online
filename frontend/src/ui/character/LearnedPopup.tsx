@@ -20,7 +20,16 @@ export const LearnedPopup = ({ popup, skill, onClose }: Props) => (
       {popup.mastered && <span className="skill-card__mastered learned-popup__mastered">精通</span>}
     </span>
     <span className="learned-popup__name">{popup.name}</span>
-    <span className="learned-popup__level">{popup.levelText}</span>
+    <span className="learned-popup__level" aria-label={popup.levelText}>
+      {popup.fromLevel !== null && (
+        <>
+          <span className="learned-popup__from">Lv {popup.fromLevel}</span>
+          <span className="learned-popup__from">→</span>
+        </>
+      )}
+      <span className="learned-popup__to">Lv {popup.toLevel}</span>
+      <small>/ {popup.maxLevel}</small>
+    </span>
     <span className="skill-pips learned-popup__pips" aria-hidden="true">
       {popup.pips.map((lit, index) => (
         <i key={index} className={lit ? "skill-pips__lit" : undefined} />

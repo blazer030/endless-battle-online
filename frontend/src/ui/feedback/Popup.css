@@ -60,6 +60,8 @@
   display: block;
   width: 150px;
   margin: 14px auto 0;
+  color: var(--paper);
+  background: var(--seal-red);
 }
 
 .popup__button:not(:disabled):active {

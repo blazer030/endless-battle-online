@@ -213,7 +213,8 @@ export const CharacterScreen = ({
       </div>
 
       <div className="character__journal">
-        <div className="character__page">
+        {/* 換分頁時重新掛載，捲動從頂端開始 */}
+        <div key={page} className="character__page">
           {load === null && (
             <div className="character__blank" aria-label="讀取中">
               {Array.from({ length: 8 }, (_, index) => (

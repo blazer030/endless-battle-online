@@ -234,6 +234,8 @@
   --stage-backdrop: var(--ink);
   --font-serif: "Noto Serif TC", serif;
   --font-number: "Cinzel", serif;
+  /* 數字與拉丁字用 Cinzel、中文用思源黑體（角色頁整頁） */
+  --font-number-ui: "Cinzel", "Noto Sans TC", sans-serif;
   --font-script: "Great Vibes", cursive;
 }
 

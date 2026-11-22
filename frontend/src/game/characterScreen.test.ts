@@ -299,7 +299,12 @@ describe("characterScreen", () => {
     })
     expect(upgraded.rows.map((row) => row.changed)).toEqual([true, false, true])
     expect(upgraded.pips.filter(Boolean)).toHaveLength(7)
-    expect(learned).toMatchObject({ title: "習得成功", levelText: "Lv 1 / 10", mastered: false })
+    expect(learned).toMatchObject({
+      title: "習得成功",
+      levelText: "Lv 1 / 10",
+      fromLevel: null,
+      mastered: false,
+    })
     expect(learned.rows.every((row) => !row.changed)).toBe(true)
     expect(mastered.mastered).toBe(true)
   })

@@ -501,7 +501,7 @@ test("UpgradeShowsUpgradedPopup", async () => {
   await settle()
 
   const popup = screen.getByRole("dialog", { name: "升級成功" })
-  expect(popup).toHaveTextContent("Lv 6 → Lv 7 / 10")
+  expect(within(popup).getByLabelText("Lv 6 → Lv 7 / 10")).toBeInTheDocument()
   expect(popup).not.toHaveTextContent("精通")
   expect(cardOf("爆氣")).toHaveTextContent("Lv 7/10")
   expect(switcher()).toHaveTextContent("0")
@@ -526,7 +526,9 @@ test("LearnShowsLearnedPopup", async () => {
   pressSeal("嗜血", "學習")
   await settle()
 
-  expect(screen.getByRole("dialog", { name: "習得成功" })).toHaveTextContent("Lv 1 / 10")
+  expect(
+    within(screen.getByRole("dialog", { name: "習得成功" })).getByLabelText("Lv 1 / 10"),
+  ).toBeInTheDocument()
 })
 
 // 升到滿級多一個「精通」章

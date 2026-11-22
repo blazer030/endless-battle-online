@@ -235,6 +235,10 @@ export type LearnedPopup = {
   readonly title: string
   readonly name: string
   readonly levelText: string
+  // 分開排版用：習得時 fromLevel 為 null
+  readonly fromLevel: number | null
+  readonly toLevel: number
+  readonly maxLevel: number
   readonly mastered: boolean
   readonly pips: readonly boolean[]
   readonly rows: readonly DetailLine[]
@@ -249,6 +253,9 @@ export const learnedPopup = (before: LearnableSkill, after: LearnableSkill): Lea
     levelText: learned
       ? `Lv ${after.level} / ${after.maxLevel}`
       : `Lv ${before.level} → Lv ${after.level} / ${after.maxLevel}`,
+    fromLevel: learned ? null : before.level,
+    toLevel: after.level,
+    maxLevel: after.maxLevel,
     mastered: after.level >= after.maxLevel,
     pips: pipsOf(after.level, after.maxLevel),
     rows: detailLines(after.rows ?? [], learned ? null : before.rows),
