@@ -475,6 +475,16 @@ test("AdventureScreen_HasNoMissionsTab", async () => {
   expect(api.getMissions).not.toHaveBeenCalled()
 })
 
+// 舊角色分頁拿掉後只剩背包用職業名稱，不再讀性別、屬性、出生地
+test("AdventureScreen_LoadsOnlyJobNames", async () => {
+  const api = createFakeApi()
+  render(<AdventureScreen api={api} initialCharacter={character} />)
+  await advanceTime(0)
+
+  expect(api.getPublicJobs).toHaveBeenCalledTimes(1)
+  expect(api.getCreationOptions).not.toHaveBeenCalled()
+})
+
 test("AdventureScreen_JobChangeUpdatesTopBarAndLogs", async () => {
   render(<AdventureScreen api={createFakeApi()} initialCharacter={character} />)
   const topBar = screen.getByRole("banner")

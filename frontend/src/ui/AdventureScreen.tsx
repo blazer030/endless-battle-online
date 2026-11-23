@@ -6,7 +6,7 @@ import { BattlePlayback } from "../game/battlePlayback"
 import type { PlaybackItem } from "../game/battlePlayback"
 import { refreshSignalsFor } from "../game/refreshSignals"
 import { applyToStage, initialStageState, stageEffectsFor } from "../game/stageModel"
-import { emptyPublicNames, type PublicNames } from "../game/publicNames"
+import type { JobName } from "../game/inventory"
 import type { AdvanceVo } from "../game/battleEvents"
 import type { CharacterVo } from "../game/character"
 import { locationTitle, passStatus } from "../game/world"
@@ -64,7 +64,7 @@ export function AdventureScreen({
   onReturnToTown,
   onConfirmedCharacter,
 }: Props) {
-  const [names, setNames] = useState<PublicNames>(emptyPublicNames)
+  const [jobNames, setJobNames] = useState<readonly JobName[]>([])
   const [playback] = useState(() => new BattlePlayback(initialCharacter))
   const [character, setCharacter] = useState(initialCharacter)
   const [lines, setLines] = useState<LogLine[]>([])
@@ -99,16 +99,10 @@ export function AdventureScreen({
 
   useEffect(() => {
     let isCurrent = true
-    // 名稱表載入失敗時以 id 顯示，不擋住冒險
-    Promise.all([api.getPublicJobs(), api.getCreationOptions()]).then(
-      ([jobs, options]) => {
-        if (isCurrent)
-          setNames({
-            jobs: jobs.map(({ id, name }) => ({ id, name })),
-            sexes: options.sexes,
-            elements: options.elements,
-            births: options.births,
-          })
+    // 職業名稱載入失敗時以 id 顯示，不擋住冒險
+    api.getPublicJobs().then(
+      (jobs) => {
+        if (isCurrent) setJobNames(jobs.map(({ id, name }) => ({ id, name })))
       },
       () => undefined,
     )
@@ -307,7 +301,7 @@ export function AdventureScreen({
               api={api}
               character={character}
               onCharacterChanged={handleCharacterChange}
-              jobNames={names.jobs}
+              jobNames={jobNames}
               refreshSignal={refreshSignals.bag}
               initialPage={initialBagPage}
             />
