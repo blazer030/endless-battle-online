@@ -102,15 +102,24 @@ While the town is shown the client SHALL NOT send adventure advance requests. Op
 ---
 ### Requirement: Facilities open the old tabbed screen
 
-Each facility in the town except the inn, the companions, the honour hall and the mission board SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page. The companions sign SHALL open the companions screen (see the `companions-screen` capability), and the old tabbed screen SHALL no longer have a companions tab. The honour hall sign SHALL open the honour screen (see the `honour-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an honour sub-page. The mission board sign SHALL open the missions screen (see the `missions-screen` capability), and the old tabbed screen SHALL no longer have a missions tab.
+Each facility in the town except the character sign, the inn, the companions, the honour hall and the mission board SHALL open the old tabbed screen at the following tab and bag sub-page, and the old tabbed screen SHALL show a "回城鎮" button on every tab that returns to the town at the gate segment. The character sign SHALL open the character screen (see the `character-screen` capability), and the old tabbed screen SHALL no longer have a character tab; the character screen's "轉職" button SHALL open the old tabbed screen at the skills tab. The inn SHALL open the inn screen instead (see the `inn-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an inn sub-page. The companions sign SHALL open the companions screen (see the `companions-screen` capability), and the old tabbed screen SHALL no longer have a companions tab. The honour hall sign SHALL open the honour screen (see the `honour-screen` capability), and the old tabbed screen's bag tab SHALL no longer have an honour sub-page. The mission board sign SHALL open the missions screen (see the `missions-screen` capability), and the old tabbed screen SHALL no longer have a missions tab.
 
 | Facility | Tab | Bag sub-page |
 | --- | --- | --- |
-| 角色 | character | — |
 | 背包 | bag | bag |
 | 出發 | adventure | — |
 | 商店街 | bag | shop |
 | 鐵舖 | bag | forge |
+
+#### Scenario: Character sign opens the character screen
+
+- **WHEN** the player clicks "角色" at the gate
+- **THEN** the character screen opens and the old tabbed screen is not shown
+
+#### Scenario: Old tabbed screen has no character tab
+
+- **WHEN** the player opens "背包" from the gate
+- **THEN** the old tabbed screen's tabs do not include "角色"
 
 #### Scenario: Inn opens the inn screen
 
@@ -129,7 +138,7 @@ Each facility in the town except the inn, the companions, the honour hall and th
 
 #### Scenario: Old tabbed screen has no companions tab
 
-- **WHEN** the player opens "角色" from the gate
+- **WHEN** the player opens "背包" from the gate
 - **THEN** the old tabbed screen's tabs do not include "同伴"
 
 #### Scenario: Honour hall opens the honour screen
@@ -149,7 +158,7 @@ Each facility in the town except the inn, the companions, the honour hall and th
 
 #### Scenario: Old tabbed screen has no missions tab
 
-- **WHEN** the player opens "角色" from the gate
+- **WHEN** the player opens "背包" from the gate
 - **THEN** the old tabbed screen's tabs do not include "任務"
 
 #### Scenario: Return to the town
