@@ -3,10 +3,8 @@ import type { CharacterVo, DerivedStats } from "./character"
 import type { CreationOptionsVo } from "./creationOptions"
 import { formatNumber } from "./format"
 import type { LearnableSkill, SkillDetailKind, SkillDetailRow, SkillJob } from "./skillOverview"
-import { proficiencyPercent } from "./skills"
+import { FullProficiency, LearnConditionText, prerequisiteText, proficiencyPercent } from "./skills"
 import { baseStatLabels } from "./stats"
-
-const FullProficiency = 3500
 
 export type CardBar = { readonly text: string; readonly ratio: number }
 
@@ -197,9 +195,9 @@ const unmetReasons = (skill: LearnableSkill) => {
   const reasons = [
     ...(prerequisite === null || prerequisite.met
       ? []
-      : [`前置技能：${prerequisite.name} Lv ${prerequisite.level}`]),
-    ...(next.enoughSkillPoints ? [] : ["技能點不足"]),
-    ...(next.enoughMoney ? [] : ["金錢不足"]),
+      : [prerequisiteText(prerequisite.name, prerequisite.level)]),
+    ...(next.enoughSkillPoints ? [] : [LearnConditionText.notEnoughProficiency]),
+    ...(next.enoughMoney ? [] : [LearnConditionText.notEnoughMoney]),
   ]
   return reasons.length === 0 ? null : reasons.join("・")
 }
@@ -267,14 +265,14 @@ const ConnectionFailedText = "連線失敗"
 // 失敗彈窗的字：reasons 為 null 表示沒連到伺服器；取第一個認得的原因，都不認得也算連線失敗
 export const learnFailureText = (reasons: readonly string[] | null, skill: LearnableSkill) => {
   const texts: Record<string, string> = {
-    NOT_ENOUGH_MONEY: "金錢不足",
-    NOT_ENOUGH_PROFICIENCY: "技能點不足",
-    MAX_LEVEL: "已達最高等級",
-    WRONG_JOB: "不是這個職業的技能",
-    NOT_LEARNED: "尚未學會這個技能",
+    NOT_ENOUGH_MONEY: LearnConditionText.notEnoughMoney,
+    NOT_ENOUGH_PROFICIENCY: LearnConditionText.notEnoughProficiency,
+    MAX_LEVEL: LearnConditionText.maxLevel,
+    WRONG_JOB: LearnConditionText.wrongShownJob,
+    NOT_LEARNED: LearnConditionText.notLearned,
     ...(skill.prerequisite === null
       ? {}
-      : { PREREQUISITE: `前置技能：${skill.prerequisite.name} Lv ${skill.prerequisite.level}` }),
+      : { PREREQUISITE: prerequisiteText(skill.prerequisite.name, skill.prerequisite.level) }),
   }
   const known = (reasons ?? []).find((reason) => reason in texts)
   return known === undefined ? ConnectionFailedText : texts[known]

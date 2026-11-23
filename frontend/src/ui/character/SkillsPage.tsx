@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { jobSwitcher, skillCard, type DetailLine } from "../../game/characterScreen"
 import type { LearnableSkill, SkillJob } from "../../game/skillOverview"
+import { LearnConditionText } from "../../game/skills"
 import { ContentImage } from "../ContentImage"
 
 type Props = {
@@ -108,7 +109,7 @@ const SkillCardView = ({
           <div className="skill-card__foot">
             {footer.kind === "max" ? (
               <>
-                <span className="skill-card__costs">已達最高等級</span>
+                <span className="skill-card__costs">{LearnConditionText.maxLevel}</span>
                 <span className="skill-card__mastered">精通</span>
               </>
             ) : (

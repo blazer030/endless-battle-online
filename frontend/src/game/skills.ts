@@ -8,7 +8,7 @@ export type SlotDraft = { slot: SlotNumber; skillId: string | null }
 export const ActiveSlots: readonly SlotNumber[] = [1, 2, 3]
 export const PassiveSlots: readonly SlotNumber[] = [4, 5]
 // 熟練度累積到此值顯示 100%
-const FullProficiency = 3500
+export const FullProficiency = 3500
 
 const allSlots: readonly SlotNumber[] = [...ActiveSlots, ...PassiveSlots]
 
@@ -94,11 +94,17 @@ const JobConditionText = {
 
 const statTooLowText = (stat: string) => `${statLabel(stat)}不足`
 
-const LearnConditionText = {
+// 舊外殼技能分頁與角色頁共用；角色頁看得到以前的職業，所以職業不對另有一句
+export const LearnConditionText = {
   wrongJob: "不是目前職業的技能",
+  wrongShownJob: "不是這個職業的技能",
   notEnoughProficiency: "技能點不足",
   notEnoughMoney: "金錢不足",
+  maxLevel: "已達最高等級",
+  notLearned: "尚未學會這個技能",
 } as const
+
+export const prerequisiteText = (name: string, level: number) => `前置技能：${name} Lv ${level}`
 
 const fixedJobReasonText = translate({
   SAME_JOB: JobConditionText.sameJob,
@@ -115,11 +121,11 @@ export const jobReasonText = (code: string) =>
 
 export const learnReasonText = translate({
   WRONG_JOB: LearnConditionText.wrongJob,
-  MAX_LEVEL: "已達最高等級",
+  MAX_LEVEL: LearnConditionText.maxLevel,
   NOT_ENOUGH_PROFICIENCY: LearnConditionText.notEnoughProficiency,
   NOT_ENOUGH_MONEY: LearnConditionText.notEnoughMoney,
   PREREQUISITE: "前置技能等級不足",
-  NOT_LEARNED: "尚未學會這個技能",
+  NOT_LEARNED: LearnConditionText.notLearned,
 })
 
 // 技能卡上的未達成條件：前置技能寫出名稱與要求等級；滿級（next 為 null）不列
@@ -130,7 +136,7 @@ export const unmetLearnTexts = ({ taughtByCurrentJob, prerequisite, next }: Skil
         ...(taughtByCurrentJob ? [] : [LearnConditionText.wrongJob]),
         ...(prerequisite === null || prerequisite.met
           ? []
-          : [`前置技能：${prerequisite.name} Lv ${prerequisite.level}`]),
+          : [prerequisiteText(prerequisite.name, prerequisite.level)]),
         ...(next.enoughProficiency ? [] : [LearnConditionText.notEnoughProficiency]),
         ...(next.enoughMoney ? [] : [LearnConditionText.notEnoughMoney]),
       ]
