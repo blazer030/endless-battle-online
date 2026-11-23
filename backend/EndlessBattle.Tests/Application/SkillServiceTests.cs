@@ -329,11 +329,22 @@ public class SkillServiceTests
     [Fact]
     public async Task Learn_JobNeverHeldOnlyWrongJob()
     {
-        await ArrangeWarriorAsync(0, new Dictionary<string, long> { ["job-6"] = 0 });
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 100_000 });
 
         var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-21", "job-8", CancellationToken));
 
         Assert.Equal(["WRONG_JOB"], invalid.Reasons);
+        Assert.Empty(log);
+    }
+
+    [Fact]
+    public async Task Learn_UnknownSkillInRealContent()
+    {
+        await ArrangeWarriorAsync(1_000_000, new Dictionary<string, long> { ["job-6"] = 100_000 });
+
+        var invalid = await Assert.ThrowsAsync<InputValidationException>(() => RealService().LearnAsync(AccountId, "skill-9999", CancellationToken));
+
+        Assert.Equal(["SKILL_UNKNOWN"], invalid.Reasons);
         Assert.Empty(log);
     }
 

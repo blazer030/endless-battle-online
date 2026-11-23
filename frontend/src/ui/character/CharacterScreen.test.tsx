@@ -582,6 +582,7 @@ test("SuccessKeepsJobAndCard", async () => {
   await settle()
 
   expect(switcher()).toHaveTextContent("術士")
+  expect(switcher()).toHaveTextContent("技能點0")
   expect(within(skillsPanel()).getByRole("button", { name: /^魔力增幅/ })).toHaveAttribute(
     "aria-expanded",
     "true",
@@ -606,6 +607,28 @@ test("SuccessUpdatesWalletAndCharacter", async () => {
 
   expect(screen.getByLabelText("持有金錢")).toHaveTextContent("101,400")
   expect(onCharacterChange).toHaveBeenLastCalledWith(poorer)
+})
+
+// 學習成功但重讀角色失敗：照樣跳成功彈窗，錢袋留著舊的，不交出角色
+test("SuccessKeepsWalletWhenCharacterReloadFails", async () => {
+  const getMyCharacter = vi
+    .fn()
+    .mockResolvedValueOnce(warrior)
+    .mockRejectedValueOnce(new TypeError("fetch failed"))
+  const onCharacterChange = vi.fn()
+  await renderCharacter({
+    api: createCharacterApi({ getMyCharacter, learnSkill: vi.fn().mockResolvedValue(upgraded(7)) }),
+    onCharacterChange,
+  })
+  fireEvent.click(screen.getByRole("tab", { name: "技能" }))
+
+  pressSeal("爆氣")
+  await settle()
+
+  expect(screen.getByRole("dialog", { name: "升級成功" })).toBeInTheDocument()
+  expect(screen.queryByRole("alertdialog")).toBeNull()
+  expect(screen.getByLabelText("持有金錢")).toHaveTextContent("128,400")
+  expect(onCharacterChange).toHaveBeenCalledTimes(1)
 })
 
 // 規格「Server rejection」：失敗彈窗寫原因，畫面不變
