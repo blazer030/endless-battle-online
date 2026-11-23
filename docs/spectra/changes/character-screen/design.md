@@ -48,7 +48,7 @@
 | 立繪 | 雙腳偏移（男／女，以圖高為 1） | 戰士 0／+0.010、術士 +0.035／+0.046、盜賊 −0.020／+0.008、樂手 +0.011／−0.012；其他職業 0 |
 | 立繪 | 待補 | 立繪區正中，職業圖示 44 + 「立繪待補」13px |
 | 錢袋 | 位置 | left 16、top dt + 7、高 28；金幣 20；Cinzel 700 14px（同旅館、同伴） |
-| 手帳 | 索引籤 | right 30、top dt + 4、寬 168、間距 8；兩張 `550cfa39`（未選）／`9ad83b52`（選中）；14px |
+| 手帳 | 索引籤 | right 30、top dt + 4、寬 168、間距 8；一張 `character/tab.webp`，選中與否用亮度與位移區分；14px |
 | 手帳 | 內頁 | dt + 40 到舞台底，頁內捲動 |
 | 能力頁 | 段名 | Noto Serif TC 900 14px、字距 .24em、下框線 1.5px |
 | 能力頁 | 能力格 | 兩欄、間距 6 14；名稱 13px、值 16px、加成 11px 綠 |
@@ -181,22 +181,24 @@
 - `abilityRows(character)`：七項裸點與帶正負號的加成。
 - `combatRows(character)`：六項戰鬥數值。
 - `jobSwitcher(overview)`：各職業的標頭與分組；Class 的羅馬數字與「見習、正式、精英、大師、傳奇」也在這裡。
-- `skillCard(skill, current)`：Lv 文字、菱形、兩欄數值列與「變了」標記、花費文字與不夠的標記、停用原因、按鈕字。
+- `skillCard(skill)`：Lv 文字、菱形、兩欄數值列與「變了」標記、花費文字與不夠的標記、停用原因、按鈕字。
 - `learnedPopup(before, after)`：升級或習得、舊與新等級、精通。
-- `learnFailureText(error)`：失敗彈窗的字。
+- `learnFailureText(reasons, skill)`：失敗彈窗的字；`reasons` 為 null（沒連到伺服器）或都不認得時是「連線失敗」，前置技能那句帶技能名稱。
 - `characterLayout(H)`：cs、dt、立繪 top、雙腳中心、內頁 top。
 - `portraitOffset(jobId, sex)`：雙腳偏移表。
 
 密藥與住宿直接用 `game/town.ts` 的 `bonusRows`。
 
-停用原因與失敗原因的字放在 `game/skills.ts`：
+停用原因與失敗原因的字放在 `game/skills.ts` 並匯出，角色頁從那裡取：
 - `LearnConditionText.notEnoughProficiency` 改成「技能點不足」；
-- 新增 `NOT_LEARNED` 的「尚未學會這個技能」；
-- 新增角色頁用的 `WRONG_JOB`「不是這個職業的技能」。
+- 新增 `notLearned`「尚未學會這個技能」、`maxLevel`「已達最高等級」；
+- 新增角色頁用的 `wrongShownJob`「不是這個職業的技能」；
+- `prerequisiteText(name, level)`：「前置技能：名稱 Lv N」；
+- 熟練度上限 `FullProficiency` 也從這裡匯出，登記證的百分比、`值 / 3,500` 與進度條共用。
 
 ### 共用回饋元件放 `src/ui/feedback/`
 
-- `useActionFeedback()`：回傳 `run(send)`（送出時擋點擊，0.45 秒後出墨點，出現後至少 300 毫秒）、`failure`、`closeFailure`。
+- `useActionFeedback()`：回傳 `{ phase, run }`；`run(send)` 送出時擋點擊，0.45 秒後出墨點，出現後至少 300 毫秒，等待層收掉後才回傳 `{ ok, value }` 或 `{ ok: false, error }`；要跳哪個彈窗由呼叫的畫面決定。
 - `<ActionWait>`：透明擋點擊層＋墨點底板，墨點沿用 `InkDots`。
 - `<FailurePopup text onClose>`：失敗彈窗。
 - `<Popup>`：彈窗外框（遮罩、紙框、「確定」、點外面關），成功彈窗與登出確認共用。
